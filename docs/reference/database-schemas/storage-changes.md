@@ -47,6 +47,18 @@ Classified database errors survive transport, and canonical close joins worker
 operations and native cleanup. Cold registry restoration and runtime-configuration
 preparation still retain their existing main-thread behavior.
 
+Meeting transcript identity, descriptor, notes, summary, and utterance reads use
+that same shared-state worker. Typed commands call the existing synchronous
+query kernels, preserve complete stored results and library error fields, and
+retain first-use schema creation. Compound enumeration, matching, and library
+reads use one deferred read snapshot, keeping their queries coherent while
+capture writes still run on the parent connection. Schema creation finishes
+before the read transaction, and domain errors are translated after it settles.
+Canonical close drains these reads before closing their worker connection. Chronological list reads still use the parent
+process because their SQL date function observes its current timezone. Streamed
+reads, export snapshots, and capture writes retain their existing owners until
+their snapshot and write-drainage lifecycles move together.
+
 SQLite worker transport preserves complete result values. Results within the
 64 MiB inline reply budget keep their existing reply path; larger results are
 serialized once and transferred in 8 MiB frames. The original operation retains

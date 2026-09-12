@@ -7,7 +7,9 @@ import {
 } from "../../test/vitest/vitest.agents-paths.mjs";
 import { cliProcessTestFiles } from "../../test/vitest/vitest.cli-process-paths.mjs";
 import { commandsLightTestFiles } from "../../test/vitest/vitest.commands-light-paths.mjs";
+import { databaseWorkerCoreTestFiles } from "../../test/vitest/vitest.database-worker-core-paths.mjs";
 import {
+  gatewayDatabaseWorkerTestFiles,
   gatewayPluginTestFiles,
   gatewayServerExcludedTestFiles,
   gatewayServerIsolatedTestFiles,
@@ -1604,6 +1606,10 @@ function createInfraSplitShards(): NodeTestSplitShard[] {
     const shardName = resolveInfraShardName(file);
     groups.set(shardName, [...(groups.get(shardName) ?? []), file]);
   }
+  groups.set("core-runtime-infra-storage-state", [
+    ...(groups.get("core-runtime-infra-storage-state") ?? []),
+    ...databaseWorkerCoreTestFiles,
+  ]);
 
   return [
     "core-runtime-infra-approval-exec",
@@ -1806,6 +1812,7 @@ function partitionRuntimeTestFiles(configs: string[], files: string[]) {
 function createAgenticGatewayCoreSplitShards(): NodeTestSplitShard[] {
   const unitFastFiles = new Set(getUnitFastTestFiles());
   const excludedGatewayFiles = new Set([
+    ...gatewayDatabaseWorkerTestFiles,
     ...gatewayServerExcludedTestFiles,
     ...gatewayServerIsolatedTestFiles,
   ]);
@@ -1941,7 +1948,10 @@ const SPLIT_NODE_SHARDS = new Map<string, NodeTestSplitShard[]>([
       ...createGatewayServerSplitShards(),
       {
         shardName: "agentic-gateway-server-isolated",
-        configs: ["test/vitest/vitest.gateway-server-isolated.config.ts"],
+        configs: [
+          "test/vitest/vitest.gateway-server-isolated.config.ts",
+          "test/vitest/vitest.gateway-database-workers.config.ts",
+        ],
         requiresDist: false,
       },
       // Split per config: the combined pair owned a ~206s hosted wall that no
@@ -2272,6 +2282,7 @@ function listCompactToolingTestFiles(): string[] {
     ...unitFastFiles,
     TOOLING_DOCKER_TEST_FILE,
     ...toolingIsolatedTestFiles,
+    ...databaseWorkerCoreTestFiles,
   ]);
   return [...listTestFiles("test"), ...listTestFiles("src/scripts")].filter(
     (file) =>
@@ -2438,7 +2449,10 @@ function readCompleteSplitGenerationSeconds(
 // must enumerate exactly its config's include set so a stripe union stays a
 // complete, non-overlapping partition of the suite.
 const WHOLE_CONFIG_SPLIT_FILE_LISTERS = new Map<string, () => string[]>([
-  ["agentic-gateway-server-isolated", () => gatewayServerIsolatedTestFiles],
+  [
+    "agentic-gateway-server-isolated",
+    () => [...gatewayServerIsolatedTestFiles, ...gatewayDatabaseWorkerTestFiles],
+  ],
   ["agentic-cli-process", () => cliProcessTestFiles],
   ["agentic-agents-support", listAgentSupportTestFiles],
   [
