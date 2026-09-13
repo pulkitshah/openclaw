@@ -17,14 +17,20 @@ function memoryKeyed<T>() {
 function makeTools() {
   const tools = new Map<
     string,
-    { execute: (id: string, input: unknown) => Promise<{ content: Array<{ text: string }> }> }
+    {
+      execute: (
+        id: string,
+        input: unknown,
+        signal?: AbortSignal,
+      ) => Promise<{ content: Array<{ text: string }> }>;
+    }
   >();
   const api = {
     registerTool: (tool: { name: string; execute: never }) => tools.set(tool.name, tool as never),
   } as never;
-  const run = async (name: string, input: unknown) =>
-    JSON.parse((await tools.get(name)!.execute("c1", input)).content[0]!.text);
-  return { api, run };
+  const run = async (name: string, input: unknown, signal?: AbortSignal) =>
+    JSON.parse((await tools.get(name)!.execute("c1", input, signal)).content[0]!.text);
+  return { api, run, tools };
 }
 
 describe("duty tools", () => {
@@ -37,7 +43,8 @@ describe("duty tools", () => {
       runs: { start: vi.fn(), wait: vi.fn() } as never,
       credHas: async () => false,
     });
-    await run("duty_draft", { id: "d1", name: "Book flight", summary: "books" });
+    const drafted = await run("duty_draft", { id: "d1", name: "Book flight", summary: "books" });
+    expect(drafted.duty.machine).toBe("gateway");
     expect((await run("duty_list", {})).duties[0]).toMatchObject({ id: "d1", status: "building" });
     const bad = await run("duty_set_steps", {
       id: "d1",
@@ -120,6 +127,38 @@ describe("duty tools", () => {
       targetId: "t1",
     });
     expect(result.steps).toHaveLength(1);
+  });
+
+  it("duty_run cancels the run and returns cancelled when the tool call is aborted", async () => {
+    const { api, tools } = makeTools();
+    const store = new DutyStore({ duties: memoryKeyed() as never, runs: memoryKeyed() as never });
+    await store.saveDuty({
+      id: "d1",
+      name: "Book flight",
+      summary: "books",
+      status: "building",
+      machine: "gateway",
+      reportsTo: "owner",
+      inputs: [],
+      steps: [],
+      triggers: [],
+      updatedAt: 0,
+    });
+    const start = vi.fn().mockResolvedValue({ runId: "r1", queued: false });
+    const wait = vi.fn(() => new Promise(() => {})); // never resolves
+    const cancel = vi.fn().mockResolvedValue(true);
+    registerDutyTools({
+      api,
+      store,
+      runs: { start, wait, cancel } as never,
+      credHas: async () => false,
+    });
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 5);
+    const raw = await tools.get("duty_run")!.execute("c1", { id: "d1" }, controller.signal);
+    const result = JSON.parse(raw.content[0]!.text);
+    expect(result).toMatchObject({ ok: false, runId: "r1", status: "cancelled" });
+    expect(cancel).toHaveBeenCalledWith("r1");
   });
 
   it("duty_save sets the duty's status to active", async () => {

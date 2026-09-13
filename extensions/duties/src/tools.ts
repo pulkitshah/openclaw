@@ -2,6 +2,7 @@ import { jsonResult } from "openclaw/plugin-sdk/core";
 import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
 import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import { Type } from "typebox";
+import type { OpenClawPluginApi } from "../api.js";
 import {
   validateDuty,
   type Duty,
@@ -12,12 +13,10 @@ import {
 import type { RunManager } from "./run-service.js";
 import type { DutyStore } from "./store.js";
 
-type OpenClawPluginApiLike = { registerTool(tool: AnyAgentTool, opts: { name: string }): void };
-
 /** Sensible header defaults for a freshly-drafted Duty that hasn't stated who runs it or
  *  reports on it yet, so `duty_draft` can save a valid-enough header immediately and let
  *  `duty_set_steps`'s errors focus on the steps being authored, not these unset fields. */
-const DEFAULT_MACHINE = "local";
+const DEFAULT_MACHINE = "gateway";
 const DEFAULT_REPORTS_TO = "owner";
 
 function readId(input: unknown): string {
@@ -28,15 +27,46 @@ function readId(input: unknown): string {
 }
 
 /**
+ * Races `promise` against `signal` aborting, so a caller that abandons a `duty_run` tool call
+ * (which can otherwise block on `runs.wait` for as long as an in-run `ask` step waits for the
+ * owner, up to 15 minutes) gets a result immediately instead of hanging forever. Removes the
+ * abort listener on whichever side settles first so it never lingers past this call.
+ */
+function raceAbort<T>(
+  promise: Promise<T>,
+  signal: AbortSignal | undefined,
+): Promise<{ aborted: true } | { aborted: false; value: T }> {
+  if (!signal) return promise.then((value) => ({ aborted: false, value }));
+  if (signal.aborted) return Promise.resolve({ aborted: true });
+  return new Promise((resolve, reject) => {
+    const onAbort = () => {
+      signal.removeEventListener("abort", onAbort);
+      resolve({ aborted: true });
+    };
+    signal.addEventListener("abort", onAbort);
+    promise.then(
+      (value) => {
+        signal.removeEventListener("abort", onAbort);
+        resolve({ aborted: false, value });
+      },
+      (error: unknown) => {
+        signal.removeEventListener("abort", onAbort);
+        reject(error);
+      },
+    );
+  });
+}
+
+/**
  * Registers the seven agent-facing Duties tools (`duty_list`, `duty_get`, `duty_draft`,
  * `duty_set_steps`, `duty_run`, `duty_save`, `cred_needed`) declared in `openclaw.plugin.json`'s
  * `contracts.tools`. Every tool returns `jsonResult(payload)`; failures are thrown as `Error`s,
  * following the same shape as `registerDutiesGatewayMethods` in `gateway-methods.ts`.
  */
 export function registerDutyTools(params: {
-  api: OpenClawPluginApiLike;
+  api: OpenClawPluginApi;
   store: DutyStore;
-  runs: Pick<RunManager, "start" | "wait">;
+  runs: Pick<RunManager, "start" | "wait" | "cancel">;
   credHas: (key: string) => Promise<boolean>;
 }): void {
   const { api, store, runs, credHas } = params;
@@ -159,7 +189,7 @@ export function registerDutyTools(params: {
     name: "duty_run",
     label: "Run Duty",
     description:
-      "Start a Duty run and wait for it to finish (or pause on a stop step / needs_input), returning its status, evidence, outputs, and report. Pass toStepId + keepOpen to leave the browser tab open and continue authoring from the returned targetId.",
+      "Starts the run and waits until it finishes (ok / failed / blocked / cancelled). An `ask` step inside the run waits for the owner's answer (up to 15 min) before this tool returns; use toStepId + keepOpen to build stage by stage.",
     parameters: Type.Object({
       id: Type.String({ description: "Duty id." }),
       inputs: Type.Optional(
@@ -175,7 +205,7 @@ export function registerDutyTools(params: {
         Type.String({ description: "Continue in this already-open browser tab." }),
       ),
     }),
-    execute: async (_toolCallId, rawInput) => {
+    execute: async (_toolCallId, rawInput, signal) => {
       if (!isRecord(rawInput)) throw new Error("id is required");
       const id = readId(rawInput);
       const duty = await store.getDuty(id);
@@ -188,7 +218,12 @@ export function registerDutyTools(params: {
         keepOpen: rawInput.keepOpen === true,
         targetId: typeof rawInput.targetId === "string" ? rawInput.targetId : undefined,
       });
-      const run = await runs.wait(runId);
+      const outcome = await raceAbort(runs.wait(runId), signal);
+      if (outcome.aborted) {
+        await runs.cancel(runId);
+        return jsonResult({ ok: false, runId, status: "cancelled", report: "tool call aborted" });
+      }
+      const run = outcome.value;
       return jsonResult({
         status: run.status,
         steps: run.steps,

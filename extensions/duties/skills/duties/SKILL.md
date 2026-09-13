@@ -31,8 +31,9 @@ steps.
    gate — you decide when a Duty is ready; a Duty that has never fully run end-to-end can
    still be saved.
 
-A Duty can be as small as `ask` → (a template step, later) → deliver — not every Duty
-needs a browser at all.
+Not every Duty needs a browser at all — today a Duty can end right after a single `ask`
+step whose answer is saved via `saveAs`; template and deliver steps arrive in a later
+part of this feature.
 
 ## Step vocabulary
 
