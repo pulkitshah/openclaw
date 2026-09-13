@@ -37,6 +37,55 @@ function validateTarget(target: unknown, path: string, errors: string[]): void {
   }
 }
 
+function validateCond(cond: unknown, path: string, errors: string[]): void {
+  if (!isRecord(cond)) { errors.push(`${path}: cond must be an object`); return; }
+  const keys = Object.keys(cond);
+  if (keys.length !== 1) { errors.push(`${path}: cond must have exactly one of visible, equals, text_matches`); return; }
+  const key = keys[0];
+  if (key === "visible") {
+    validateTarget(cond.visible, `${path}.visible`, errors);
+  } else if (key === "equals") {
+    if (!Array.isArray(cond.equals) || cond.equals.length !== 2 || typeof cond.equals[0] !== "string" || typeof cond.equals[1] !== "string") {
+      errors.push(`${path}.equals: must be [string, string]`);
+    }
+  } else if (key === "text_matches") {
+    if (typeof cond.text_matches !== "string" || !cond.text_matches.trim()) {
+      errors.push(`${path}.text_matches: must be a non-empty string`);
+    }
+  } else {
+    errors.push(`${path}: unknown condition kind "${key}"`);
+  }
+}
+
+function validateCheck(check: unknown, path: string, errors: string[]): void {
+  if (!isRecord(check)) { errors.push(`${path}: check must be an object`); return; }
+  if (check.visible !== undefined) validateTarget(check.visible, `${path}.visible`, errors);
+  if (typeof check.text_matches !== "undefined") {
+    if (typeof check.text_matches !== "string" || !check.text_matches.trim()) {
+      errors.push(`${path}.text_matches: must be a non-empty string`);
+    }
+  }
+  if (typeof check.url_matches !== "undefined") {
+    if (typeof check.url_matches !== "string" || !check.url_matches.trim()) {
+      errors.push(`${path}.url_matches: must be a non-empty string`);
+    }
+  }
+  if (typeof check.non_empty !== "undefined") {
+    if (typeof check.non_empty !== "string" || !check.non_empty.trim()) {
+      errors.push(`${path}.non_empty: must be a non-empty string`);
+    }
+  }
+  if (check.attribute !== undefined) {
+    if (!isRecord(check.attribute)) { errors.push(`${path}.attribute: must be an object`); }
+    else {
+      if (check.attribute.target !== undefined) validateTarget(check.attribute.target, `${path}.attribute.target`, errors);
+      if (typeof check.attribute.name !== "string" || !check.attribute.name.trim()) {
+        errors.push(`${path}.attribute.name: must be a non-empty string`);
+      }
+    }
+  }
+}
+
 function validateNodes(nodes: unknown, path: string, errors: string[], seenIds: Set<string>): void {
   if (!Array.isArray(nodes)) { errors.push(`${path}: steps must be an array`); return; }
   nodes.forEach((node, index) => {
@@ -46,6 +95,7 @@ function validateNodes(nodes: unknown, path: string, errors: string[], seenIds: 
     else if (SELECTOR_LABEL_RE.test(node.label.trim())) { errors.push(`${p}: label must be in the owner's words, not a selector`); }
     if (node.kind === "when") {
       if (!isRecord(node.cond)) errors.push(`${p}: when needs a cond`);
+      else validateCond(node.cond, `${p}.cond`, errors);
       validateNodes(node.then, `${p}.then`, errors, seenIds);
       if (node.else !== undefined) validateNodes(node.else, `${p}.else`, errors, seenIds);
       return;
@@ -60,6 +110,7 @@ function validateNodes(nodes: unknown, path: string, errors: string[], seenIds: 
     else seenIds.add(node.id);
     if (!isRecord(node.params)) errors.push(`${p}: params must be an object`);
     if (node.target !== undefined) validateTarget(node.target, p, errors);
+    if (node.check !== undefined) validateCheck(node.check, p, errors);
   });
 }
 
@@ -73,7 +124,22 @@ export function validateDuty(input: unknown): { ok: true; duty: Duty } | { ok: f
   if (typeof input.machine !== "string" || !input.machine) errors.push("machine is required");
   if (typeof input.reportsTo !== "string" || !input.reportsTo) errors.push("reportsTo is required");
   if (!Array.isArray(input.inputs)) errors.push("inputs must be an array");
+  else {
+    input.inputs.forEach((inp, idx) => {
+      if (!isRecord(inp)) { errors.push(`inputs[${idx}]: must be an object`); return; }
+      if (typeof inp.name !== "string" || !inp.name.trim()) errors.push(`inputs[${idx}].name: must be a non-empty string`);
+      const sources = ["ask", "file", "trigger", "cred", "literal"] as const;
+      if (!sources.includes(inp.source as typeof sources[number])) errors.push(`inputs[${idx}].source: must be one of ${sources.join(", ")}`);
+    });
+  }
   if (!Array.isArray(input.triggers)) errors.push("triggers must be an array");
+  else {
+    input.triggers.forEach((trg, idx) => {
+      if (!isRecord(trg)) { errors.push(`triggers[${idx}]: must be an object`); return; }
+      const kinds = ["manual", "webhook"] as const;
+      if (!kinds.includes(trg.kind as typeof kinds[number])) errors.push(`triggers[${idx}].kind: must be one of ${kinds.join(", ")}`);
+    });
+  }
   if (typeof input.updatedAt !== "number") errors.push("updatedAt must be a number");
   validateNodes(input.steps, "steps", errors, new Set());
   return errors.length ? { ok: false, errors } : { ok: true, duty: input as unknown as Duty };
@@ -95,7 +161,7 @@ export async function resolvePlaceholders(
       if (!ctx.cred) throw new Error(`no credential stored for ${key}`);
       replacement = await ctx.cred(key);
     }
-    result = result.replaceAll(whole, replacement);
+    result = result.replaceAll(whole, () => replacement);
   }
   return result;
 }

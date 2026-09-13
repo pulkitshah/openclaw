@@ -33,6 +33,53 @@ describe("validateDuty", () => {
     const dup = { ...base, steps: [base.steps[0], base.steps[0]] };
     expect(validateDuty(dup).ok).toBe(false);
   });
+  it("rejects when with invalid cond (empty visible target)", () => {
+    const bad = { ...base, steps: [{ kind: "when", label: "Bad cond", cond: { visible: {} }, then: [] }] };
+    const result = validateDuty(bad);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toEqual(expect.arrayContaining([
+        expect.stringContaining("visible"),
+      ]));
+    }
+  });
+  it("rejects step with invalid check (empty attribute target)", () => {
+    const bad = { ...base, steps: [{ id: "x", kind: "browser", label: "Bad check", params: {}, check: { attribute: { target: {}, name: "x" } } }] };
+    const result = validateDuty(bad);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toEqual(expect.arrayContaining([
+        expect.stringContaining("attribute"),
+      ]));
+    }
+  });
+  it("rejects invalid input source", () => {
+    const bad = { ...base, inputs: [{ name: "x", source: "cron" }] };
+    const result = validateDuty(bad);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toEqual(expect.arrayContaining([
+        expect.stringContaining("source"),
+      ]));
+    }
+  });
+  it("accepts unique nested when ids and rejects duplicate ids across branches", () => {
+    const nested = { ...base, steps: [
+      { kind: "when", label: "Outer when", cond: { visible: { css: ".outer" } },
+        then: [{ id: "s1", kind: "browser", label: "In then", params: {} }],
+        else: [{ id: "s2", kind: "browser", label: "In else", params: {} }] },
+    ] };
+    const result = validateDuty(nested);
+    expect(result.ok).toBe(true);
+
+    const dupBranch = { ...base, steps: [
+      { kind: "when", label: "Outer when", cond: { visible: { css: ".outer" } },
+        then: [{ id: "dup", kind: "browser", label: "In then", params: {} }],
+        else: [{ id: "dup", kind: "browser", label: "In else", params: {} }] },
+    ] };
+    const result2 = validateDuty(dupBranch);
+    expect(result2.ok).toBe(false);
+  });
 });
 
 describe("resolvePlaceholders", () => {
@@ -45,5 +92,11 @@ describe("resolvePlaceholders", () => {
   it("throws for an unknown credential so placeholder text never reaches a form", async () => {
     await expect(resolvePlaceholders("{{cred:missing}}", { out: {}, in: {}, cred: async () => { throw new Error("no credential stored for missing"); } }))
       .rejects.toThrow("no credential stored for missing");
+  });
+  it("preserves dollar signs and regex metacharacters in credential values", async () => {
+    const out = await resolvePlaceholders("password: {{cred:k}}", {
+      out: {}, in: {}, cred: async () => "p$$w0rd$&",
+    });
+    expect(out).toBe("password: p$$w0rd$&");
   });
 });
