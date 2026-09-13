@@ -85,4 +85,85 @@ describe("renderTemplate", () => {
     expect(d.flights).toEqual([{ airline: "[airline]", fare: "[fare]" }]);
     expect(renderTemplate(tpl, d).ok).toBe(true);
   });
+
+  it("only emits {{brand:logoDataUrl}} when it is a data:image/ URL", () => {
+    const t: Template = { ...tpl, html: '<img src="{{brand:logoDataUrl}}">', slots: [] };
+    const bad = renderTemplate(
+      t,
+      {},
+      { name: "Acme", logoDataUrl: "javascript:alert(1)", updatedAt: 1 },
+    );
+    expect(bad).toEqual({ ok: true, output: '<img src="">' });
+    const good = renderTemplate(
+      t,
+      {},
+      { name: "Acme", logoDataUrl: "data:image/png;base64,AAA", updatedAt: 1 },
+    );
+    expect(good).toEqual({ ok: true, output: '<img src="data:image/png;base64,AAA">' });
+  });
+
+  it("reports a missing row column as slot.column instead of rendering it blank", () => {
+    const r = renderTemplate(tpl, {
+      route: "x",
+      date: "y",
+      flights: [{ airline: "IndiGo" }],
+      notes: "z",
+    });
+    expect(r).toEqual({ ok: false, missing: ["flights.fare"] });
+  });
+
+  it("escapes single quotes for pdf templates", () => {
+    const r = renderTemplate(tpl, {
+      route: "x",
+      date: "y",
+      flights: [{ airline: "O'Hare", fare: "1" }],
+      notes: "it's fine",
+    });
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.output).toContain("O&#39;Hare");
+      expect(r.output).toContain("it&#39;s fine");
+    }
+  });
+});
+
+describe("validateTemplate slot/rows kind and column checks", () => {
+  it("rejects a rows-kind slot referenced with {{slot:name}}", () => {
+    const r = validateTemplate({
+      ...tpl,
+      html: tpl.html.replace(
+        "{{#rows:flights}}<tr><td>{{col:airline}}</td><td>{{col:fare}}</td></tr>{{/rows:flights}}",
+        "{{slot:flights}}",
+      ),
+    });
+    expect(r.ok).toBe(false);
+    if (!r.ok)
+      expect(r.errors).toContain(
+        'slot "flights" is a rows slot: use {{#rows:flights}}…{{/rows:flights}}',
+      );
+  });
+
+  it("rejects a text/prose slot wrapped in {{#rows:name}}", () => {
+    const r = validateTemplate({
+      ...tpl,
+      html: tpl.html.replace("{{slot:route}}", "{{#rows:route}}{{/rows:route}}"),
+    });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errors).toContain('slot "route" is not a rows slot: use {{slot:route}}');
+  });
+
+  it("rejects a {{col:x}} placeholder outside any rows block", () => {
+    const r = validateTemplate({ ...tpl, html: tpl.html + "{{col:extra}}" });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errors).toContain("{{col:extra}} is only valid inside a rows block");
+  });
+
+  it("rejects a {{col:x}} inside a rows block that is not a declared column", () => {
+    const r = validateTemplate({
+      ...tpl,
+      html: tpl.html.replace("{{col:airline}}", "{{col:carrier}}"),
+    });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errors).toContain('rows slot "flights" has no column "carrier"');
+  });
 });

@@ -48,14 +48,8 @@ function escapeHtml(value: string): string {
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
-}
-
-function usedSlotNames(html: string): Set<string> {
-  const names = new Set<string>();
-  for (const m of html.matchAll(SLOT_RE)) if (m[1]) names.add(m[1]);
-  for (const m of html.matchAll(ROWS_RE)) if (m[1]) names.add(m[1]);
-  return names;
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 export function validateTemplate(
@@ -94,11 +88,42 @@ export function validateTemplate(
     });
   }
   if (typeof input.html === "string") {
-    const used = usedSlotNames(input.html);
-    for (const name of used)
-      if (!declared.has(name)) errors.push(`html uses undeclared slot "${name}"`);
+    const html = input.html;
+    const slotRefs = new Set<string>();
+    for (const m of html.matchAll(SLOT_RE)) if (m[1]) slotRefs.add(m[1]);
+    const rowsMatches = [...html.matchAll(ROWS_RE)];
+    const rowsRefs = new Set<string>();
+    for (const m of rowsMatches) if (m[1]) rowsRefs.add(m[1]);
+
+    for (const name of slotRefs) {
+      const slot = declared.get(name);
+      if (!slot) errors.push(`html uses undeclared slot "${name}"`);
+      else if (slot.kind === "rows")
+        errors.push(`slot "${name}" is a rows slot: use {{#rows:${name}}}…{{/rows:${name}}}`);
+    }
+    for (const name of rowsRefs) {
+      const slot = declared.get(name);
+      if (!slot) errors.push(`html uses undeclared slot "${name}"`);
+      else if (slot.kind !== "rows")
+        errors.push(`slot "${name}" is not a rows slot: use {{slot:${name}}}`);
+    }
     for (const name of declared.keys())
-      if (!used.has(name)) errors.push(`slot "${name}" is declared but not used in html`);
+      if (!slotRefs.has(name) && !rowsRefs.has(name))
+        errors.push(`slot "${name}" is declared but not used in html`);
+
+    for (const m of rowsMatches) {
+      const name = m[1];
+      const slot = name ? declared.get(name) : undefined;
+      if (slot?.kind !== "rows") continue;
+      const body = m[2] ?? "";
+      for (const cm of body.matchAll(COL_RE)) {
+        const col = cm[1];
+        if (col && !(slot.columns ?? []).includes(col))
+          errors.push(`rows slot "${name}" has no column "${col}"`);
+      }
+    }
+    for (const cm of html.replaceAll(ROWS_RE, "").matchAll(COL_RE))
+      errors.push(`${cm[0]} is only valid inside a rows block`);
   }
   if (errors.length) return { ok: false, errors };
   // SAFETY: every Template field (id, name, kind, html, updatedAt, slots) was validated above.
@@ -142,8 +167,14 @@ export function renderTemplate(
   for (const slot of template.slots) {
     const value = data[slot.name];
     if (slot.kind === "rows") {
-      if (Array.isArray(value) && value.every(isRecord)) rows.set(slot.name, value);
-      else missing.push(slot.name);
+      if (Array.isArray(value) && value.every(isRecord)) {
+        const cols = slot.columns ?? [];
+        const missingCols = cols.filter((col) =>
+          value.some((row) => row[col] === undefined || row[col] === null),
+        );
+        if (missingCols.length) for (const col of missingCols) missing.push(`${slot.name}.${col}`);
+        else rows.set(slot.name, value);
+      } else missing.push(slot.name);
     } else if (typeof value === "string" && value.trim()) text.set(slot.name, value);
     else if (typeof value === "number") text.set(slot.name, String(value));
     else missing.push(slot.name);
@@ -155,9 +186,13 @@ export function renderTemplate(
       .join(""),
   );
   output = output.replaceAll(SLOT_RE, (_whole, name: string) => esc(text.get(name) ?? ""));
-  output = output.replaceAll(BRAND_RE, (_whole, field: (typeof BRAND_FIELDS)[number]) =>
-    field === "logoDataUrl" ? (brand?.logoDataUrl ?? "") : esc(brand?.[field] ?? ""),
-  );
+  output = output.replaceAll(BRAND_RE, (_whole, field: (typeof BRAND_FIELDS)[number]) => {
+    if (field === "logoDataUrl") {
+      const logo = brand?.logoDataUrl;
+      return typeof logo === "string" && logo.startsWith("data:image/") ? logo : "";
+    }
+    return esc(brand?.[field] ?? "");
+  });
   return { ok: true, output };
 }
 
