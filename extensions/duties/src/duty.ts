@@ -74,6 +74,12 @@ export type Duty = {
 };
 
 const ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+/** A step id is not just a label: the runner joins `${step.id}.pdf` onto the run's files
+ *  directory, so an id containing a path separator or `..` would write the rendered document
+ *  outside the run's own directory — where the age sweep cannot see it and where
+ *  `duties.run.file` would still read it back. Slug-only, like the duty id (`ID_RE`), the
+ *  template id (`template.ts`) and the run id (`files.ts`). */
+const STEP_ID_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/u;
 const SELECTOR_LABEL_RE = /^[#.[]|^role=|^css=/u;
 
 const TARGET_KEYS = ["role", "name", "text", "css"] as const;
@@ -288,6 +294,8 @@ function validateNodes(nodes: unknown, path: string, errors: string[], seenIds: 
       return;
     }
     if (typeof node.id !== "string" || !node.id) errors.push(`${p}: step id is required`);
+    else if (!STEP_ID_RE.test(node.id))
+      errors.push(`${p}: step id must be a slug (letters, digits, _ -)`);
     else if (seenIds.has(node.id)) errors.push(`${p}: duplicate step id "${node.id}"`);
     else seenIds.add(node.id);
     if (!isRecord(node.params)) errors.push(`${p}: params must be an object`);

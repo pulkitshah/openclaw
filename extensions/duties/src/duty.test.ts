@@ -63,6 +63,36 @@ describe("validateDuty", () => {
     const dup = { ...base, steps: [base.steps[0], base.steps[0]] };
     expect(validateDuty(dup).ok).toBe(false);
   });
+  it("rejects a step id that is not a slug, so a rendered document cannot escape the run directory", () => {
+    // The runner names a `template` step's document `<step.id>.pdf` and joins it onto the run's
+    // own files directory; anything but a slug could place that file anywhere on disk and still be
+    // served back by `duties.run.file`.
+    for (const id of [
+      "../../../../tmp/evil",
+      "a/b",
+      "a\\b",
+      "..",
+      "Caps",
+      "-lead",
+      "_lead",
+      "x".repeat(65),
+    ]) {
+      const bad = { ...base, steps: [{ ...base.steps[0], id }] };
+      const result = validateDuty(bad);
+      expect(result.ok, id).toBe(false);
+      if (!result.ok) {
+        expect(result.errors).toEqual(
+          expect.arrayContaining([
+            expect.stringContaining("step id must be a slug (letters, digits, _ -)"),
+          ]),
+        );
+      }
+    }
+    for (const id of ["s1", "print-note", "print_note", "0", "x".repeat(64)]) {
+      const good = { ...base, steps: [{ ...base.steps[0], id }] };
+      expect(validateDuty(good).ok, id).toBe(true);
+    }
+  });
   it("rejects when with invalid cond (empty visible target)", () => {
     const bad = {
       ...base,

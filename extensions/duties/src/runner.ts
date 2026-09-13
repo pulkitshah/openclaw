@@ -373,7 +373,10 @@ export async function runDuty(
           save(step, rendered.output);
           summary = rendered.output.slice(0, 120);
         } else {
-          const name = `${step.id}.pdf`;
+          // `basename` is belt-and-braces on top of `validateDuty`'s slug check on step ids: a
+          // stored Duty predating that check, or one written straight into the store, must still
+          // not be able to place its document outside this run's own directory.
+          const name = `${path.basename(step.id)}.pdf`;
           const dest = path.join(deps.filesDir, name);
           const { bytes } = await deps.render.toPdf(rendered.output, dest);
           const file: RunFile = {

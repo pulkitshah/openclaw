@@ -638,6 +638,33 @@ describe("template and deliver steps", () => {
     expect(deps.calls).toContain("deliver telegram:222 Route: IXU → COK []");
   });
 
+  it("keeps a rendered document inside the run directory even for a step id that escapes it", async () => {
+    // `validateDuty` now rejects such a step id outright; this pins the runner's own belt-and-braces
+    // `basename`, which is what protects a Duty stored before that check (or written straight into
+    // the store) from writing its document anywhere on disk — and from `duties.run.file` then
+    // serving that path back over an operator.read method.
+    const deps = fakeDeps({
+      templates: { get: async () => slipTpl, brand: async () => undefined },
+    });
+    const outcome = await runDuty(
+      duty([
+        {
+          id: "../../../../tmp/evil",
+          kind: "template",
+          label: "Print the slip",
+          params: { template: "slip", fill: { route: { from: "{{in:route}}" } } },
+        },
+      ]),
+      deps,
+      { inputs: { route: "IXU → COK" } },
+    );
+    expect(outcome.status).toBe("ok");
+    expect(outcome.files[0]!.name).toBe("evil.pdf");
+    expect(outcome.files[0]!.path).toBe(path.join(deps.filesDir, "evil.pdf"));
+    expect(path.dirname(outcome.files[0]!.path)).toBe(deps.filesDir);
+    expect(existsSync(outcome.files[0]!.path)).toBe(true);
+  });
+
   it("refuses a format that is not the template's own kind, in either direction", async () => {
     const asPdf = fakeDeps({
       templates: { get: async () => noteTpl, brand: async () => undefined },
