@@ -1,0 +1,10 @@
+{
+  "id": "duties",
+  "name": "Duties",
+  "description": "Saved, replayable automations the agent authors from your instructions.",
+  "categories": ["other"],
+  "activation": { "onStartup": true },
+  "contracts": { "tools": ["duty_list", "duty_get", "duty_draft", "duty_set_steps", "duty_run", "duty_save", "cred_needed"] },
+  "skills": ["./skills"],
+  "configSchema": { "type": "object", "additionalProperties": false, "properties": {} }
+}
