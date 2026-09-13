@@ -9,8 +9,13 @@
  * - Result is `DurableMessageBatchSendResult`, a union on `status`: "sent" | "suppressed" |
  *   "partial_failed" | "failed" (src/channels/message/send.ts:61-91). "sent" and "partial_failed"
  *   both carry `results: OutboundDeliveryResult[]`, and `OutboundDeliveryResult.messageId` is a
- *   required string (src/infra/outbound/deliver-types.ts:14-28) — accessing `.results` after
- *   excluding "failed"/"suppressed" is safe because both remaining arms share that field.
+ *   required string (src/infra/outbound/deliver-types.ts:14-28). "partial_failed" also carries
+ *   `error`/`sentBeforeError: true` — some payload parts landed and then delivery failed, so
+ *   `send()` throws rather than returning `messageIds` as if the batch had cleanly sent. "failed"
+ *   carries `stage?` and `payloadOutcomes?`, both folded into the thrown message with the original
+ *   error kept as `cause`. `DurableMessagePayloadDeliveryOutcome` itself is not exported from
+ *   `openclaw/plugin-sdk/channel-outbound`, so `PayloadOutcomeLike` below loosens to only the
+ *   fields this module reads.
  * - `getSessionEntry(params: SessionStoreReadParams): SessionEntry | undefined`
  *   (src/plugin-sdk/session-store-runtime.ts:60-63); `SessionStoreReadParams` requires only
  *   `sessionKey` (`agentId` optional, defaults inside the store) (session-store-runtime-internal.ts:10-17).
@@ -58,12 +63,26 @@ export function createRouteResolver(params: {
 }
 
 /** Looks up the delivery route of the session that called `duty_run`. Real sessions only — the
- *  runner receives an injectable `sessionRoute` so tests never touch the session store. */
-export function sessionRouteFromStore(origin: RunOrigin): DeliverRoute | undefined {
+ *  runner receives an injectable `sessionRoute` so tests never touch the session store.
+ *
+ *  `agentId` is forwarded only when `origin.agentId` is set. `resolveSqliteScope` gives an
+ *  explicit `scope.agentId` priority over the agent id parsed from the session key itself
+ *  (src/config/sessions/session-accessor.sqlite-scope.ts:298); a chat session key normally
+ *  already encodes its real agent (`agent:<agentId>:...`), so defaulting the omitted case to
+ *  "main" would force the wrong agent's (empty) store and silently drop the chat route whenever
+ *  the real agent isn't "main". Omitting the field entirely lets the key decide, per
+ *  `SessionAccessScope.agentId`'s own contract ("used when the session key does not already
+ *  encode one", session-accessor.types.ts:41). `getEntry` is injectable so tests never touch the
+ *  real session store. */
+export function sessionRouteFromStore(
+  origin: RunOrigin,
+  deps: { getEntry?: typeof getSessionEntry } = {},
+): DeliverRoute | undefined {
   if (!origin.sessionKey) return undefined;
-  const entry = getSessionEntry({
-    agentId: origin.agentId ?? "main",
+  const getEntry = deps.getEntry ?? getSessionEntry;
+  const entry = getEntry({
     sessionKey: origin.sessionKey,
+    ...(origin.agentId ? { agentId: origin.agentId } : {}),
   });
   const ctx = deliveryContextFromSession(entry);
   if (!ctx?.channel || !ctx.to) return undefined;
@@ -82,6 +101,26 @@ export type DeliverAdapter = {
   }): Promise<{ messageIds: string[] }>;
 };
 
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+/** One payload outcome from `DurableMessageBatchSendResult.payloadOutcomes`, loosened to the
+ *  fields this module reads — the full `DurableMessagePayloadDeliveryOutcome` union type is not
+ *  exported from `openclaw/plugin-sdk/channel-outbound`. */
+type PayloadOutcomeLike = { index: number; status: string; error?: unknown; reason?: string };
+
+function describePayloadOutcome(outcome: PayloadOutcomeLike): string {
+  if (outcome.status === "failed")
+    return `#${outcome.index} failed: ${errorMessage(outcome.error)}`;
+  if (outcome.status === "suppressed") return `#${outcome.index} suppressed: ${outcome.reason}`;
+  return `#${outcome.index} ${outcome.status}`;
+}
+
+function summarizePayloadOutcomes(outcomes: readonly PayloadOutcomeLike[] | undefined): string {
+  return (outcomes ?? []).map(describePayloadOutcome).join(", ");
+}
+
 export function createDeliverAdapter(params: {
   cfg: OpenClawConfig;
   sendBatch?: typeof sendDurableMessageBatch;
@@ -97,7 +136,25 @@ export function createDeliverAdapter(params: {
         payloads: [{ ...(text ? { text } : {}), ...(files?.length ? { mediaUrls: files } : {}) }],
       });
       if (result.status === "failed") {
-        throw result.error instanceof Error ? result.error : new Error(String(result.error));
+        const stage = result.stage ?? "unknown";
+        const n = result.payloadOutcomes?.length ?? 0;
+        const suffix =
+          n > 0
+            ? ` (${n} payload outcome(s): ${summarizePayloadOutcomes(result.payloadOutcomes)})`
+            : "";
+        throw new Error(`delivery failed at ${stage}: ${errorMessage(result.error)}${suffix}`, {
+          cause: result.error,
+        });
+      }
+      if (result.status === "partial_failed") {
+        // Some payload parts landed and then a real error stopped the rest (e.g. one of several
+        // mediaUrls failed to upload) — returning messageIds here would silently report success
+        // for a duty step that actually lost an attachment.
+        const failed = (result.payloadOutcomes ?? []).filter((o) => o.status === "failed");
+        const suffix = failed.length > 0 ? ` (${summarizePayloadOutcomes(failed)})` : "";
+        throw new Error(`delivery partially failed: ${errorMessage(result.error)}${suffix}`, {
+          cause: result.error,
+        });
       }
       if (result.status === "suppressed") {
         throw new Error(`delivery suppressed: ${result.reason}`);

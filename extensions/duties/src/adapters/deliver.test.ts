@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { createDeliverAdapter, createRouteResolver, maskTarget } from "./deliver.js";
+import {
+  createDeliverAdapter,
+  createRouteResolver,
+  maskTarget,
+  sessionRouteFromStore,
+} from "./deliver.js";
 
 describe("createRouteResolver", () => {
   const owner = { channel: "telegram", target: "111" };
@@ -75,9 +80,113 @@ describe("createDeliverAdapter", () => {
       bad.send({ route: { channel: "telegram", to: "222" }, text: "hi" }),
     ).rejects.toThrow(/channel down/u);
   });
+  it("throws on partial_failed instead of returning ids as if the batch fully sent", async () => {
+    // SAFETY: the adapter only forwards cfg; the stub never inspects it.
+    const cfg = {} as unknown as import("openclaw/plugin-sdk/core").OpenClawConfig;
+    const originalError = new Error("upload timeout");
+    const partial = vi.fn(async () => ({
+      status: "partial_failed" as const,
+      results: [{ messageId: "m1" }],
+      receipt: {},
+      error: originalError,
+      sentBeforeError: true as const,
+      payloadOutcomes: [
+        { index: 0, status: "sent" as const, results: [{ messageId: "m1" }] },
+        {
+          index: 1,
+          status: "failed" as const,
+          error: originalError,
+          sentBeforeError: true,
+          stage: "platform_send" as const,
+        },
+      ],
+    }));
+    // SAFETY: the stub returns the subset of DurableMessageBatchSendResult the adapter reads.
+    const adapter = createDeliverAdapter({
+      cfg,
+      sendBatch:
+        partial as unknown as typeof import("openclaw/plugin-sdk/channel-outbound").sendDurableMessageBatch,
+    });
+    const promise = adapter.send({
+      route: { channel: "telegram", to: "222" },
+      text: "hi",
+      files: ["/x/a.pdf", "/x/b.pdf"],
+    });
+    await expect(promise).rejects.toThrow(/delivery partially failed: upload timeout/u);
+    await expect(promise).rejects.toThrow(/#1 failed: upload timeout/u);
+    await promise.catch((error: unknown) => {
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).cause).toBe(originalError);
+    });
+  });
+  it("includes stage and a payload outcome summary on failed, keeping the original error as cause", async () => {
+    // SAFETY: the adapter only forwards cfg; the stub never inspects it.
+    const cfg = {} as unknown as import("openclaw/plugin-sdk/core").OpenClawConfig;
+    const originalError = new Error("channel down");
+    const failing = vi.fn(async () => ({
+      status: "failed" as const,
+      error: originalError,
+      stage: "queue" as const,
+      payloadOutcomes: [
+        {
+          index: 0,
+          status: "failed" as const,
+          error: originalError,
+          sentBeforeError: false,
+          stage: "queue" as const,
+        },
+      ],
+    }));
+    // SAFETY: as above.
+    const bad = createDeliverAdapter({
+      cfg,
+      sendBatch:
+        failing as unknown as typeof import("openclaw/plugin-sdk/channel-outbound").sendDurableMessageBatch,
+    });
+    const promise = bad.send({ route: { channel: "telegram", to: "222" }, text: "hi" });
+    await expect(promise).rejects.toThrow(/delivery failed at queue: channel down/u);
+    await expect(promise).rejects.toThrow(/1 payload outcome\(s\)/u);
+    await promise.catch((error: unknown) => {
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).cause).toBe(originalError);
+    });
+  });
   it("masks phone-like targets", () => {
     expect(maskTarget("+919876543210")).toBe("+91••••3210");
     expect(maskTarget("123456789")).toBe("123456789");
     expect(maskTarget("@someone")).toBe("@someone");
+  });
+});
+
+describe("sessionRouteFromStore", () => {
+  it("omits agentId when the origin has none, letting the session key decide", () => {
+    const getEntry = vi.fn(() => undefined);
+    sessionRouteFromStore({ kind: "chat", sessionKey: "agent:acme:telegram:1" }, { getEntry });
+    expect(getEntry).toHaveBeenCalledWith({ sessionKey: "agent:acme:telegram:1" });
+  });
+  it("passes agentId through when the origin has one", () => {
+    const getEntry = vi.fn(() => undefined);
+    sessionRouteFromStore({ kind: "chat", sessionKey: "s1", agentId: "acme" }, { getEntry });
+    expect(getEntry).toHaveBeenCalledWith({ agentId: "acme", sessionKey: "s1" });
+  });
+  it("returns undefined without calling the store when there is no sessionKey", () => {
+    const getEntry = vi.fn();
+    expect(sessionRouteFromStore({ kind: "chat" }, { getEntry })).toBeUndefined();
+    expect(getEntry).not.toHaveBeenCalled();
+  });
+  it("builds a route from the entry's external delivery context", () => {
+    // SAFETY: the stub carries only the `delivery` field deliveryContextFromSession reads.
+    const entry = {
+      delivery: {
+        kind: "external",
+        context: { channel: "telegram", to: "222", accountId: "acc1" },
+      },
+    } as unknown as import("openclaw/plugin-sdk/session-store-runtime").SessionEntry;
+    const getEntry = vi.fn(() => entry);
+    expect(sessionRouteFromStore({ kind: "chat", sessionKey: "s1" }, { getEntry })).toEqual({
+      channel: "telegram",
+      to: "222",
+      accountId: "acc1",
+    });
   });
 });
