@@ -9,7 +9,7 @@ vi.mock("./src/store.js", () => ({
   DutyStore: { open: () => ({}) },
 }));
 
-import plugin, { resolveBrowserProfile } from "./index.js";
+import plugin, { resolveBrowserProfile, resolveRenderBaseUrl } from "./index.js";
 
 describe("duties plugin registration", () => {
   it("registers the sidebar tab descriptor", () => {
@@ -52,5 +52,20 @@ describe("duties plugin registration", () => {
       }),
     );
     expect(RENDER_ROUTE_PATH).toBe("/plugins/duties/render/");
+  });
+
+  it("matches the render base url to the scheme the Gateway actually serves", () => {
+    // The port comes from resolveGatewayPort, which honours OPENCLAW_GATEWAY_PORT ahead of config,
+    // so the assertions pin the scheme and the loopback host without depending on the environment.
+    const plain = resolveRenderBaseUrl({ gateway: { port: 19001 } });
+    expect(plain).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/u);
+    // TLS is served on the same port, so only the scheme changes; an http:// URL would fail at the
+    // transport and reach the owner as an opaque browser navigation error.
+    expect(resolveRenderBaseUrl({ gateway: { port: 19001, tls: { enabled: true } } })).toBe(
+      plain.replace("http://", "https://"),
+    );
+    expect(resolveRenderBaseUrl({ gateway: { port: 19001, tls: { enabled: false } } })).toBe(plain);
+    expect(resolveRenderBaseUrl({ gateway: { port: 19001, tls: {} } })).toBe(plain);
+    expect(resolveRenderBaseUrl({})).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/u);
   });
 });

@@ -329,6 +329,47 @@ describe("duties gateway methods", () => {
     expect((await call("duties.run.file", { runId: "nope", stepId: "p1" })).ok).toBe(false);
   });
 
+  it("duties.run.file caps the read and reports a swept document instead of a raw fs error", async () => {
+    const { call, store } = harness();
+    const dir = await mkdtemp(path.join(tmpdir(), "duties-run-file-"));
+    const big = path.join(dir, "big.pdf");
+    await writeFile(big, Buffer.alloc(4 * 1024 * 1024 + 1));
+    const gone = path.join(dir, "gone.pdf");
+    const file = (stepId: string, filePath: string) => ({
+      stepId,
+      name: path.basename(filePath),
+      path: filePath,
+      bytes: 0,
+      contentType: "application/pdf",
+    });
+    await store.createRun({
+      id: "r1",
+      dutyId: "d1",
+      status: "ok",
+      startedAt: 1,
+      trigger: "manual",
+      inputs: {},
+      outputs: {},
+      steps: [],
+      files: [file("big", big), file("gone", gone)],
+    });
+
+    // base64 inflates by a third and the whole document goes out in one RPC frame, so the size is
+    // checked before the read rather than after.
+    const tooBig = await call("duties.run.file", { runId: "r1", stepId: "big" });
+    expect(tooBig.ok).toBe(false);
+    expect(tooBig.error).toMatchObject({
+      message: `file too large to return (${4 * 1024 * 1024 + 1} bytes)`,
+    });
+
+    // The 30-day sweep removes the run directory long before the run row expires; the owner should
+    // be told that, not handed an absolute state path in an ENOENT string.
+    const swept = await call("duties.run.file", { runId: "r1", stepId: "gone" });
+    expect(swept.ok).toBe(false);
+    expect(swept.error).toMatchObject({ message: "that file is no longer stored" });
+    expect(JSON.stringify(swept)).not.toContain(dir);
+  });
+
   it("duties.template.preview renders a pdf template and reports its content type", async () => {
     const previews = await mkdtemp(path.join(tmpdir(), "duties-preview-"));
     const { call, store, methods } = harness({

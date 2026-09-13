@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { OpenClawPluginApi } from "../api.js";
@@ -12,6 +12,10 @@ import { validateBrand } from "./template.js";
 
 type Ctx = Parameters<Parameters<OpenClawPluginApi["registerGatewayMethod"]>[1]>[0];
 type Scope = "operator.read" | "operator.write" | "operator.admin";
+
+/** Same per-entry ceiling the evidence blob store enforces on screenshots (`index.ts`), applied
+ *  here by hand because a rendered document is a plain file with no store to bound it. */
+const MAX_RUN_FILE_BYTES = 4 * 1024 * 1024;
 
 /**
  * Registers the Duties Gateway RPC surface, following the
@@ -213,11 +217,17 @@ export function registerDutiesGatewayMethods(params: {
     // method cannot be turned into an arbitrary file read.
     const file = (run.files ?? []).find((f) => f.stepId === params.stepId);
     if (!file) throw new Error("no document for that step");
-    return {
-      name: file.name,
-      contentType: file.contentType,
-      base64: (await readFile(file.path)).toString("base64"),
-    };
+    // Sized before reading, not after: base64 inflates by a third and the whole thing goes out in
+    // one RPC frame. Matches the evidence blob store's own per-entry cap (`index.ts`).
+    const info = await stat(file.path).catch(() => undefined);
+    if (!info) throw new Error("that file is no longer stored");
+    if (info.size > MAX_RUN_FILE_BYTES) {
+      throw new Error(`file too large to return (${info.size} bytes)`);
+    }
+    const bytes = await readFile(file.path).catch(() => undefined);
+    // The sweep can remove the run directory between the stat and the read.
+    if (!bytes) throw new Error("that file is no longer stored");
+    return { name: file.name, contentType: file.contentType, base64: bytes.toString("base64") };
   });
 
   register("duties.template.list", "operator.read", async () => ({

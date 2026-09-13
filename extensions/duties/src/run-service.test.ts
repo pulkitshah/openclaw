@@ -6,7 +6,7 @@ import type { Duty } from "./duty.js";
 import { RunManager } from "./run-service.js";
 import type { RunnerDeps } from "./runner.js";
 import { DutyStore } from "./store.js";
-import type { RunOrigin } from "./store.js";
+import type { DutyRun, RunOrigin } from "./store.js";
 import type { Template } from "./template.js";
 
 type Notify = (origin: RunOrigin, text: string) => Promise<void>;
@@ -147,7 +147,8 @@ function deps(delayMs: number, openTracker?: { current: number; max: number }): 
   };
 }
 
-/** A one-step duty that prints a pdf template, so `onFile` has a real document to record. */
+/** A duty that prints a pdf template and then keeps running, so `onFile` has a real document to
+ *  record *and* the run is still open while the test reads it back. */
 const pdfTemplate: Template = {
   id: "note",
   name: "Note",
@@ -165,6 +166,9 @@ const printingDuty = (id: string): Duty => ({
       label: "Print the note",
       params: { template: "note", fill: { route: { from: "{{in:route}}" } } },
     },
+    // Runs after the document exists and holds the run open, so a stored file observed here can
+    // only have been written by `onFile` — `finish` has not run yet.
+    { id: "p2", kind: "browser", label: "Open", params: { action: "open", url: "https://x" } },
   ],
 });
 
@@ -374,17 +378,34 @@ describe("RunManager", () => {
     expect((await store.getRun(runId))?.origin).toEqual({ kind: "chat", sessionKey: "s" });
   });
 
-  it("records each rendered document on the run as it is produced and in the terminal row", async () => {
+  it("records a rendered document on the run while it is still running, and finish keeps it", async () => {
     const store = newStore();
     const root = await mkdtemp(path.join(tmpdir(), "duties-run-service-"));
-    const seen: string[] = [];
+    // Snapshotted from inside a step that is still executing. `finish` writes `outcome.files`
+    // too, so only an observation taken *before* the terminal row can pin `onFile` itself: with
+    // the onFile wiring removed, the poll below finds nothing and `midRun` stays undefined.
+    let midRun: DutyRun | undefined;
     const mgr = new RunManager({
       store,
-      deps: (_duty, run) => ({
-        ...deps(0),
-        templates: { get: async () => pdfTemplate, brand: async () => undefined },
-        filesDir: path.join(root, run.id),
-      }),
+      deps: (_duty, run) => {
+        const base = deps(0);
+        return {
+          ...base,
+          templates: { get: async () => pdfTemplate, brand: async () => undefined },
+          filesDir: path.join(root, run.id),
+          browser: {
+            ...base.browser,
+            open: async () => {
+              for (let i = 0; i < 100 && !midRun; i += 1) {
+                const current = await store.getRun(run.id);
+                if (current?.files?.length) midRun = current;
+                else await new Promise((r) => setTimeout(r, 1));
+              }
+              return { targetId: "t" };
+            },
+          },
+        };
+      },
       emit: () => {},
     });
     const { runId } = await mgr.start({
@@ -392,14 +413,15 @@ describe("RunManager", () => {
       inputs: { route: "IXU → COK" },
       trigger: "manual",
     });
-    // Observe the store mid-run-agnostically: the append chain must have landed the file before
-    // the terminal row is written, so the stored run carries it either way.
     const final = await mgr.wait(runId);
-    seen.push(...(final.files ?? []).map((f) => f.name));
+
+    expect(midRun?.status).toBe("running");
+    expect(midRun?.files?.map((f) => f.name)).toEqual(["p1.pdf"]);
     expect(final.status).toBe("ok");
-    expect(seen).toEqual(["p1.pdf"]);
-    const stored = await store.getRun(runId);
-    expect(stored?.files?.map((f) => f.path)).toEqual([path.join(root, runId, "p1.pdf")]);
+    expect(final.files?.map((f) => f.path)).toEqual([path.join(root, runId, "p1.pdf")]);
+    expect((await store.getRun(runId))?.files?.map((f) => f.path)).toEqual([
+      path.join(root, runId, "p1.pdf"),
+    ]);
   });
 
   it("posts a chat status line when the run starts and finishes, and none for a manual run", async () => {

@@ -84,4 +84,25 @@ describe("createRenderAdapter", () => {
     ).rejects.toThrow(/pdf unsupported/u);
     expect(browser.close).toHaveBeenCalledWith("T9");
   });
+  it("names the render url when the page cannot be opened, so a wrong scheme or port is not opaque", async () => {
+    const server = createRenderServer({ baseUrl: "http://127.0.0.1:19001" });
+    const browser = {
+      open: vi.fn(async () => {
+        throw new Error("net::ERR_CONNECTION_REFUSED");
+      }),
+      pdf: vi.fn(async () => "/never"),
+      close: vi.fn(async () => undefined),
+    };
+    const failure = await createRenderAdapter({ server, browser })
+      .toPdf("<p/>", "/nonexistent/x.pdf")
+      .catch((error: unknown) => error);
+    if (!(failure instanceof Error)) throw new Error("toPdf should have rejected");
+    expect(failure.message).toMatch(
+      /^could not open the render page at http:\/\/127\.0\.0\.1:19001\/plugins\/duties\/render\/[0-9a-f-]+: net::ERR_CONNECTION_REFUSED$/u,
+    );
+    expect(failure.cause).toBeInstanceOf(Error);
+    // Nothing was opened, so there is no tab to close and no print attempt.
+    expect(browser.close).not.toHaveBeenCalled();
+    expect(browser.pdf).not.toHaveBeenCalled();
+  });
 });

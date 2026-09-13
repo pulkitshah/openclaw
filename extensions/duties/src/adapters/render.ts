@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { copyFile, mkdir, stat } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
+import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import type { BrowserAdapter } from "../runner.js";
 
 export const RENDER_ROUTE_PATH = "/plugins/duties/render/";
@@ -69,7 +70,17 @@ export function createRenderAdapter(params: {
   return {
     async toPdf(html, destPath) {
       const { url } = params.server.publish(html);
-      const { targetId } = await params.browser.open(url, params.timeoutMs ?? 30_000);
+      let targetId: string;
+      try {
+        ({ targetId } = await params.browser.open(url, params.timeoutMs ?? 30_000));
+      } catch (error) {
+        // Naming the URL is the whole point: the two ways this fails in practice are a wrong
+        // scheme (a TLS-enabled Gateway) and a wrong port, and a bare browser navigation error
+        // says neither. The URL carries a single-use token, never a credential.
+        throw new Error(`could not open the render page at ${url}: ${coerceErrorMessage(error)}`, {
+          cause: error,
+        });
+      }
       try {
         const produced = await params.browser.pdf(targetId);
         await mkdir(path.dirname(destPath), { recursive: true });

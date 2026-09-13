@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import path from "node:path";
-import { resolveGatewayPort } from "openclaw/plugin-sdk/core";
+import { resolveGatewayPort, type OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import { definePluginEntry } from "./api.js";
 import { createAiAdapter } from "./src/adapters/ai.js";
@@ -39,6 +39,15 @@ export function resolveBrowserProfile(pluginConfig?: Record<string, unknown>): s
   }
   const trimmed = configured.trim();
   return trimmed.length > 0 ? trimmed : DEFAULT_BROWSER_PROFILE;
+}
+
+/** The loopback origin the managed browser fetches rendered HTML from. `gateway.tls.enabled`
+ *  (`src/config/zod-schema.gateway.ts:195-197`) flips the scheme: the Gateway then serves TLS on
+ *  the same port, so a hardcoded `http://` would fail at the transport and surface as an opaque
+ *  browser navigation error on every `template` step and every preview. */
+export function resolveRenderBaseUrl(config: OpenClawConfig): string {
+  const scheme = config.gateway?.tls?.enabled === true ? "https" : "http";
+  return `${scheme}://127.0.0.1:${resolveGatewayPort(config)}`;
 }
 
 export default definePluginEntry({
@@ -88,9 +97,7 @@ export default definePluginEntry({
     );
     // The managed browser only navigates to http(s), so rendered HTML is served to it through this
     // plugin-authenticated route, one single-use token at a time.
-    const renderServer = createRenderServer({
-      baseUrl: `http://127.0.0.1:${resolveGatewayPort(api.config)}`,
-    });
+    const renderServer = createRenderServer({ baseUrl: resolveRenderBaseUrl(api.config) });
     api.registerHttpRoute({
       path: RENDER_ROUTE_PATH,
       match: "prefix",
