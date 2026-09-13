@@ -88,13 +88,25 @@ const run = (id: string, status: DutyRun["status"]): DutyRun => ({
 });
 
 describe("DutyStore", () => {
-  const store = new DutyStore({ duties: memoryKeyed(), runs: memoryKeyed() });
+  const store = new DutyStore({ duties: memoryKeyed(), runs: memoryKeyed(), creds: memoryKeyed() });
   it("saves, lists, gets and deletes duties", async () => {
     await store.saveDuty(duty);
     expect((await store.listDuties()).map((d) => d.id)).toEqual(["d1"]);
     expect((await store.getDuty("d1"))?.name).toBe("D1");
     expect(await store.deleteDuty("d1")).toBe(true);
     expect(await store.listDuties()).toEqual([]);
+  });
+  it("indexes credential keys without ever storing a value", async () => {
+    await store.recordCredKey("amigos.password", 5);
+    await store.recordCredKey("amigos.username", 7);
+    const listed = await store.listCredKeys();
+    expect(listed).toEqual([
+      { key: "amigos.password", updatedAt: 5 },
+      { key: "amigos.username", updatedAt: 7 },
+    ]);
+    expect(await store.forgetCredKey("amigos.password")).toBe(true);
+    expect((await store.listCredKeys()).map((entry) => entry.key)).toEqual(["amigos.username"]);
+    await store.forgetCredKey("amigos.username");
   });
   it("lists runs newest first and can filter to successful ones", async () => {
     await store.createRun(run("r1", "ok"));
@@ -108,7 +120,7 @@ describe("DutyStore", () => {
   });
   it("lists recent runs newest-first across every duty regardless of status", async () => {
     const runs = memoryKeyed<DutyRun>();
-    const withRuns = new DutyStore({ duties: memoryKeyed(), runs });
+    const withRuns = new DutyStore({ duties: memoryKeyed(), runs, creds: memoryKeyed() });
     await withRuns.createRun(run("r20", "ok"));
     await withRuns.saveDuty({ ...duty, id: "d2" });
     await withRuns.createRun({ ...run("r21", "failed"), dutyId: "d2" });
@@ -127,7 +139,7 @@ describe("DutyStore", () => {
 
   it("updateRun drops undefined patch fields instead of storing them", async () => {
     const runs = memoryKeyed<DutyRun>();
-    const withRuns = new DutyStore({ duties: memoryKeyed(), runs });
+    const withRuns = new DutyStore({ duties: memoryKeyed(), runs, creds: memoryKeyed() });
     await withRuns.createRun(run("r10", "running"));
     const patched = await withRuns.updateRun("r10", {
       status: "ok",
@@ -138,7 +150,11 @@ describe("DutyStore", () => {
     expect(Object.keys(patched ?? {})).not.toContain("failedStep");
     expect(Object.keys(patched ?? {})).not.toContain("targetId");
 
-    const noUpdate = new DutyStore({ duties: memoryKeyed(), runs: memoryKeyedNoUpdate<DutyRun>() });
+    const noUpdate = new DutyStore({
+      duties: memoryKeyed(),
+      runs: memoryKeyedNoUpdate<DutyRun>(),
+      creds: memoryKeyed(),
+    });
     await noUpdate.createRun(run("r11", "running"));
     const fallback = await noUpdate.updateRun("r11", { status: "ok", failedStep: undefined });
     expect(Object.keys(fallback ?? {})).not.toContain("failedStep");
@@ -146,7 +162,7 @@ describe("DutyStore", () => {
 
   it("updateRun uses the store's atomic update when available", async () => {
     const runs = spyKeyed<DutyRun>();
-    const withSpy = new DutyStore({ duties: memoryKeyed(), runs });
+    const withSpy = new DutyStore({ duties: memoryKeyed(), runs, creds: memoryKeyed() });
     await withSpy.createRun(run("r5", "running"));
     const patched = await withSpy.updateRun("r5", { report: "atomic" });
     expect(patched?.report).toBe("atomic");
@@ -156,7 +172,7 @@ describe("DutyStore", () => {
 
   it("updateRun falls back to lookup+register when atomic update is absent", async () => {
     const runs = memoryKeyedNoUpdate<DutyRun>();
-    const noUpdate = new DutyStore({ duties: memoryKeyed(), runs });
+    const noUpdate = new DutyStore({ duties: memoryKeyed(), runs, creds: memoryKeyed() });
     await noUpdate.createRun(run("r6", "running"));
     const patched = await noUpdate.updateRun("r6", { report: "fallback" });
     expect(patched?.report).toBe("fallback");
@@ -175,7 +191,7 @@ describe("DutyStore", () => {
 
   it("markRunningRunsLost uses the store's atomic update when available", async () => {
     const runs = spyKeyed<DutyRun>();
-    const withSpy = new DutyStore({ duties: memoryKeyed(), runs });
+    const withSpy = new DutyStore({ duties: memoryKeyed(), runs, creds: memoryKeyed() });
     await withSpy.createRun(run("r7", "running"));
     await withSpy.createRun(run("r8", "ok"));
     const count = await withSpy.markRunningRunsLost();
@@ -187,7 +203,7 @@ describe("DutyStore", () => {
 
   it("markRunningRunsLost falls back to lookup+register when atomic update is absent", async () => {
     const runs = memoryKeyedNoUpdate<DutyRun>();
-    const noUpdate = new DutyStore({ duties: memoryKeyed(), runs });
+    const noUpdate = new DutyStore({ duties: memoryKeyed(), runs, creds: memoryKeyed() });
     await noUpdate.createRun(run("r9", "queued"));
     const count = await noUpdate.markRunningRunsLost();
     expect(count).toBe(1);

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { Duty, Target } from "./duty.js";
 import { runDuty, type RunnerDeps } from "./runner.js";
 
@@ -7,10 +7,10 @@ function fakeDeps(over: Partial<RunnerDeps> = {}): RunnerDeps & { calls: string[
   const browser: RunnerDeps["browser"] = {
     open: async (url) => {
       calls.push(`open ${url}`);
-      return { targetId: "t1" };
+      return { targetId: `t${calls.filter((c) => c.startsWith("open ")).length}` };
     },
-    navigate: async (_t, url) => {
-      calls.push(`navigate ${url}`);
+    navigate: async (targetId, url) => {
+      calls.push(`navigate ${targetId} ${url}`);
     },
     isVisible: async () => false,
     click: async (_t, target) => {
@@ -20,11 +20,16 @@ function fakeDeps(over: Partial<RunnerDeps> = {}): RunnerDeps & { calls: string[
       calls.push(`fill ${target.css} ${value}`);
     },
     select: async () => {},
-    press: async () => {},
+    press: async (_t, key) => {
+      calls.push(`press ${key}`);
+    },
     waitFor: async () => {},
     text: async () => "Welcome Ask !",
     url: async () => "https://x/Home/Dashboard",
-    evaluate: async () => 42,
+    evaluate: async (_t, fn) => {
+      calls.push(`evaluate ${fn}`);
+      return 42;
+    },
     screenshot: async () => "blob-1",
     close: async () => {
       calls.push("close");
@@ -205,7 +210,212 @@ describe("runDuty", () => {
     );
     expect(resumed.status).toBe("ok");
     expect(resumed.targetId).toBe("handed-tab");
-    expect(deps.calls).toEqual(["navigate https://x"]);
+    expect(deps.calls).toEqual(["navigate handed-tab https://x"]);
+  });
+  it("resumes only the first open of a run; a later open still gets its own tab", async () => {
+    const deps = fakeDeps();
+    const outcome = await runDuty(
+      duty([
+        { id: "s1", kind: "browser", label: "Open", params: { action: "open", url: "https://a" } },
+        {
+          id: "s2",
+          kind: "browser",
+          label: "Open a second tab",
+          params: { action: "open", url: "https://b" },
+        },
+      ]),
+      deps,
+      { inputs: {}, keepOpen: true, targetId: "handed-tab" },
+    );
+    expect(outcome.status).toBe("ok");
+    expect(deps.calls).toEqual(["navigate handed-tab https://a", "open https://b"]);
+    expect(outcome.targetId).toBe("t1");
+  });
+  it("resolves placeholders in a press key and an evaluate body", async () => {
+    const deps = fakeDeps();
+    const outcome = await runDuty(
+      duty([
+        { id: "s1", kind: "browser", label: "Open", params: { action: "open", url: "https://x" } },
+        {
+          id: "s2",
+          kind: "browser",
+          label: "Press the key the owner named",
+          params: { action: "press", key: "{{in:key}}" },
+        },
+        {
+          id: "s3",
+          kind: "browser.evaluate",
+          label: "Count the rows",
+          params: { fn: "() => document.querySelectorAll('{{in:rows}}').length" },
+        },
+      ]),
+      deps,
+      { inputs: { key: "Enter", rows: ".row" } },
+    );
+    expect(outcome.status).toBe("ok");
+    expect(deps.calls).toContain("press Enter");
+    expect(deps.calls).toContain("evaluate () => document.querySelectorAll('.row').length");
+  });
+  it("evaluates a url_matches condition through the browser's url read", async () => {
+    const steps: Duty["steps"] = [
+      { id: "s1", kind: "browser", label: "Open", params: { action: "open", url: "https://x" } },
+      {
+        kind: "when",
+        label: "Already on the dashboard",
+        cond: { url_matches: "/Home/Dashboard" },
+        then: [{ kind: "stop", label: "Nothing to do", reason: "already there" }],
+        else: [
+          {
+            id: "s2",
+            kind: "browser",
+            label: "Sign in",
+            params: { action: "click" },
+            target: { css: "#signin" },
+          },
+        ],
+      },
+    ];
+
+    const onDashboard = fakeDeps();
+    const matched = await runDuty(duty(steps), onDashboard, { inputs: {} });
+    expect(matched.report).toBe("already there");
+    expect(onDashboard.calls.some((c) => c.startsWith("click"))).toBe(false);
+
+    const onLogin = fakeDeps({ browser: { url: async () => "https://x/Account/Login" } as never });
+    const missed = await runDuty(duty(steps), onLogin, { inputs: {} });
+    expect(missed.report).toBeUndefined();
+    expect(onLogin.calls.some((c) => c.startsWith("click"))).toBe(true);
+  });
+  it("records an evidence row naming the gate when a when-probe fails", async () => {
+    const deps = fakeDeps({
+      browser: {
+        isVisible: async () => {
+          throw new Error("cdp gone");
+        },
+      } as never,
+    });
+    const outcome = await runDuty(
+      duty([
+        { id: "s1", kind: "browser", label: "Open", params: { action: "open", url: "https://x" } },
+        {
+          kind: "when",
+          label: "Check if already signed in",
+          cond: { visible: { text: "My Account" } },
+          then: [],
+        },
+      ]),
+      deps,
+      { inputs: {} },
+    );
+    expect(outcome.status).toBe("failed");
+    expect(outcome.failedStep).toBe("when:Check if already signed in");
+    expect(outcome.steps.at(-1)).toMatchObject({
+      kind: "when",
+      status: "failed",
+      label: "Check if already signed in",
+      summary: "cdp gone",
+    });
+  });
+  it("records a blocked ask as blocked evidence, not as a failure", async () => {
+    const outcome = await runDuty(
+      duty([{ id: "s1", kind: "ask", label: "OTP?", params: { question: "Code?" } }]),
+      fakeDeps({ ask: { ask: async () => ({ status: "timeout" }) } }),
+      { inputs: {} },
+    );
+    expect(outcome.status).toBe("blocked");
+    expect(outcome.steps[0]!.status).toBe("blocked");
+  });
+  it("throws for a step kind it cannot run instead of recording a silent ok", async () => {
+    const outcome = await runDuty(
+      duty([
+        { id: "s1", kind: "template", label: "Render the quote", params: {} },
+      ] as unknown as Duty["steps"]),
+      fakeDeps(),
+      { inputs: {} },
+    );
+    expect(outcome.status).toBe("failed");
+    expect(outcome.report).toContain("template");
+    expect(outcome.steps[0]!.status).toBe("failed");
+  });
+  it("stops before the next browser call once the run is cancelled", async () => {
+    const deps = fakeDeps();
+    let cancelled = false;
+    const outcome = await runDuty(
+      duty([
+        { id: "s1", kind: "browser", label: "Open", params: { action: "open", url: "https://x" } },
+        {
+          id: "s2",
+          kind: "browser",
+          label: "Click after cancel",
+          params: { action: "click" },
+          target: { css: "#late" },
+        },
+      ]),
+      {
+        ...deps,
+        isCancelled: () => cancelled,
+        onStep: () => {
+          cancelled = true;
+        },
+      },
+      { inputs: {} },
+    );
+    expect(outcome.status).toBe("cancelled");
+    expect(deps.calls.some((c) => c.startsWith("click"))).toBe(false);
+    expect(outcome.steps.map((s) => s.stepId)).toEqual(["s1"]);
+  });
+  it("notes a transport retry the adapter reports in the step's summary", async () => {
+    const deps = fakeDeps();
+    let drained = false;
+    const outcome = await runDuty(
+      duty([
+        {
+          id: "s1",
+          kind: "browser",
+          label: "Open",
+          params: { action: "open", url: "https://x" },
+        },
+        {
+          id: "s2",
+          kind: "browser",
+          label: "Read the page",
+          params: { action: "read" },
+        },
+      ]),
+      {
+        ...deps,
+        browser: {
+          ...deps.browser,
+          drainRetryNotes: () => {
+            if (drained) return [];
+            drained = true;
+            return ["retried snapshot once"];
+          },
+        },
+      },
+      { inputs: {} },
+    );
+    expect(outcome.status).toBe("ok");
+    expect(outcome.steps.map((s) => s.summary).join(" | ")).toContain("retried snapshot once");
+  });
+  it("parks and unparks around an ask through onWaiting", async () => {
+    const seen: Array<{ questionId: string; stepId: string } | undefined> = [];
+    const outcome = await runDuty(
+      duty([{ id: "s1", kind: "ask", label: "Which?", params: { question: "Which?" } }]),
+      {
+        ...fakeDeps(),
+        ask: {
+          ask: async ({ onAsked }) => {
+            onAsked?.("q-1");
+            return { status: "answered", answer: "a" };
+          },
+        },
+        onWaiting: (waitingOn) => seen.push(waitingOn),
+      },
+      { inputs: {} },
+    );
+    expect(outcome.status).toBe("ok");
+    expect(seen).toEqual([{ questionId: "q-1", stepId: "s1" }, undefined]);
   });
 });
 
@@ -244,47 +454,117 @@ describe("runDuty credential redaction", () => {
     expect(outcome.report).not.toContain(secret);
   });
 
-  it("masks a resolved credential inside a navigate step's url summary", async () => {
+  it("masks a credential a later step echoes back, once a fill has resolved it", async () => {
     const secret = "cred(amigos.token)";
-    const deps = fakeDeps();
+    const deps = fakeDeps({
+      ask: { ask: async () => ({ status: "answered", answer: `saw ${secret}` }) },
+    });
     const outcome = await runDuty(
       duty([
         { id: "s1", kind: "browser", label: "Open", params: { action: "open", url: "https://x" } },
         {
           id: "s2",
           kind: "browser",
-          label: "Navigate with token",
-          params: { action: "navigate", url: "https://x/reset?token={{cred:amigos.token}}" },
+          label: "Fill the token",
+          params: { action: "fill", value: "{{cred:amigos.token}}" },
+          target: { css: "#token" },
         },
+        { id: "s3", kind: "ask", label: "Confirm", params: { question: "All good?" } },
       ]),
       deps,
       { inputs: {} },
     );
     expect(outcome.status).toBe("ok");
-    expect(outcome.steps[1]!.summary).toContain(MASK);
-    expect(outcome.steps[1]!.summary).not.toContain(secret);
+    expect(outcome.steps[2]!.summary).toContain(MASK);
+    expect(outcome.steps[2]!.summary).not.toContain(secret);
   });
+});
 
-  it("masks a resolved credential that echoes back through an ask answer", async () => {
-    const secret = "cred(amigos.token)";
-    const deps = fakeDeps({
-      ask: { ask: async (params) => ({ status: "answered", answer: params.question }) },
-    });
+describe("runDuty credential confinement", () => {
+  const credFor = (calls: string[]) => async (key: string) => {
+    calls.push(key);
+    return `cred(${key})`;
+  };
+
+  it("fails an ai step whose instruction carries a credential placeholder", async () => {
+    const credCalls: string[] = [];
+    const deps = fakeDeps({ cred: credFor(credCalls) });
     const outcome = await runDuty(
       duty([
         {
           id: "s1",
-          kind: "ask",
-          label: "Confirm",
-          params: { question: "Use {{cred:amigos.token}} to confirm?" },
-          saveAs: "confirmed",
+          kind: "ai",
+          label: "Read the mail",
+          params: { instruction: "sign in with {{cred:amigos.password}}", input: "x" },
         },
       ]),
       deps,
       { inputs: {} },
     );
-    expect(outcome.status).toBe("ok");
-    expect(outcome.steps[0]!.summary).toContain(MASK);
-    expect(outcome.steps[0]!.summary).not.toContain(secret);
+    expect(outcome.status).toBe("failed");
+    expect(outcome.failedStep).toBe("s1");
+    expect(outcome.report).toContain("no credential stored for amigos.password");
+    expect(credCalls).toEqual([]);
+  });
+
+  it("fails a navigate, press, evaluate and ask step that reference a credential", async () => {
+    const cases: Array<{ what: string; step: Duty["steps"][number] }> = [
+      {
+        what: "navigate",
+        step: {
+          id: "s2",
+          kind: "browser",
+          label: "Open the reset link",
+          params: { action: "navigate", url: "https://x/?t={{cred:amigos.token}}" },
+        },
+      },
+      {
+        what: "press",
+        step: {
+          id: "s2",
+          kind: "browser",
+          label: "Press the key",
+          params: { action: "press", key: "{{cred:amigos.token}}" },
+        },
+      },
+      {
+        what: "evaluate",
+        step: {
+          id: "s2",
+          kind: "browser.evaluate",
+          label: "Read the token",
+          params: { fn: "() => '{{cred:amigos.token}}'" },
+        },
+      },
+      {
+        what: "ask",
+        step: {
+          id: "s2",
+          kind: "ask",
+          label: "Confirm",
+          params: { question: "Use {{cred:amigos.token}}?" },
+        },
+      },
+    ];
+    for (const { what, step } of cases) {
+      const credCalls: string[] = [];
+      const deps = fakeDeps({ cred: credFor(credCalls) });
+      const outcome = await runDuty(
+        duty([
+          {
+            id: "s1",
+            kind: "browser",
+            label: "Open",
+            params: { action: "open", url: "https://x" },
+          },
+          step,
+        ]),
+        deps,
+        { inputs: {} },
+      );
+      expect(outcome.status, what).toBe("failed");
+      expect(outcome.report, what).toContain("no credential stored for amigos.token");
+      expect(credCalls, what).toEqual([]);
+    }
   });
 });

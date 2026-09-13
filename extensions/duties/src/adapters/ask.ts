@@ -27,7 +27,7 @@ export function createAskAdapter(params: {
   pollMs?: number;
 }): AskAdapter {
   return {
-    async ask({ stepId, question, header, options, timeoutMs }) {
+    async ask({ stepId, question, header, options, timeoutMs, onAsked }) {
       const budget = timeoutMs ?? DEFAULT_TIMEOUT_MS;
       const requested = await params.request<{ id: string; expiresAtMs: number }>(
         "question.request",
@@ -44,6 +44,8 @@ export function createAskAdapter(params: {
           ],
         },
       );
+      // The run parks on `needs_input` from here until this call returns.
+      onAsked?.(requested.id);
       const deadline = Date.now() + budget;
       while (Date.now() < deadline) {
         const state = await params.request<{

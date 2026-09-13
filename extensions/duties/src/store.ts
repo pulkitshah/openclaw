@@ -14,7 +14,9 @@ export type StepEvidence = {
   stepId: string;
   label: string;
   kind: string;
-  status: "ok" | "failed" | "skipped";
+  /** Exactly what the runner emits: an `ok` step, a failed one, or an `ask` the owner never
+   *  answered (`blocked`). A cancelled run writes no step row at all. */
+  status: "ok" | "failed" | "blocked";
   durationMs: number;
   summary: string;
   target?: string;
@@ -45,13 +47,24 @@ type Keyed<T> = {
   update?: (key: string, fn: (current: T | undefined) => T | undefined) => Promise<boolean>;
 };
 
-export type DutyStores = { duties: Keyed<Duty>; runs: Keyed<DutyRun> };
+/** Index of the credential keys the owner has saved. Only the key and when it was last written —
+ *  the value itself never leaves the OS keychain, so it is never stored here. Listing keys from
+ *  the keychain directly is not viable (`security dump-keychain` prompts and is heavy), so this
+ *  index is what the Logins panel reads. */
+export type CredKeyRecord = { key: string; updatedAt: number };
+
+export type DutyStores = {
+  duties: Keyed<Duty>;
+  runs: Keyed<DutyRun>;
+  creds: Keyed<CredKeyRecord>;
+};
 
 /** Drops keys whose value is `undefined`. A run patch built from optional outcome fields
  *  (`failedStep`, `targetId`, `report`) otherwise carries explicit `undefined` values into the
  *  stored record, and the plugin state store rejects those as not JSON-serializable. Absent
  *  means "leave unchanged", which is what every caller means by an undefined patch field. */
 function omitUndefined<T extends object>(patch: T): T {
+  // SAFETY: filtering only REMOVES keys, and every key of a run patch is optional, so a `T` with fewer keys present is still a `T`.
   return Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined)) as T;
 }
 
@@ -73,7 +86,24 @@ export class DutyStore {
         defaultTtlMs: 90 * 24 * 3600 * 1000,
         // SAFETY: same PluginStateKeyedStore superset relationship as the duties store above.
       }) as unknown as Keyed<DutyRun>,
+      creds: api.runtime.state.openKeyedStore<CredKeyRecord>({
+        namespace: "creds",
+        maxEntries: 1_000,
+        overflowPolicy: "reject-new",
+        // SAFETY: same PluginStateKeyedStore superset relationship as the duties store above.
+      }) as unknown as Keyed<CredKeyRecord>,
     });
+  }
+
+  async listCredKeys(): Promise<CredKeyRecord[]> {
+    const entries = await this.stores.creds.entries();
+    return entries.map((e) => e.value).toSorted((a, b) => a.key.localeCompare(b.key));
+  }
+  recordCredKey(key: string, updatedAt: number) {
+    return this.stores.creds.register(key, { key, updatedAt });
+  }
+  forgetCredKey(key: string) {
+    return this.stores.creds.delete(key);
   }
 
   async listDuties(): Promise<Duty[]> {

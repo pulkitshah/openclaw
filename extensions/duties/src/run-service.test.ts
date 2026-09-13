@@ -42,6 +42,14 @@ function memoryKeyedAsync<T>() {
   };
 }
 
+function newStore(runs: unknown = memoryKeyed()): DutyStore {
+  return new DutyStore({
+    duties: memoryKeyed() as never,
+    runs: runs as never,
+    creds: memoryKeyed() as never,
+  });
+}
+
 async function flushMacrotasks(ticks = 20): Promise<void> {
   for (let i = 0; i < ticks; i += 1) await new Promise((r) => setTimeout(r, 0));
 }
@@ -119,7 +127,7 @@ function deps(delayMs: number, openTracker?: { current: number; max: number }): 
 
 describe("RunManager", () => {
   it("runs two different duties in parallel, overlapping, and records ok runs", async () => {
-    const store = new DutyStore({ duties: memoryKeyed() as never, runs: memoryKeyed() as never });
+    const store = newStore();
     const emit = vi.fn();
     const openTracker = { current: 0, max: 0 };
     const mgr = new RunManager({ store, deps: () => deps(30, openTracker), emit });
@@ -142,7 +150,7 @@ describe("RunManager", () => {
   });
 
   it("emits a queued RunEvent as soon as a run is created", async () => {
-    const store = new DutyStore({ duties: memoryKeyed() as never, runs: memoryKeyed() as never });
+    const store = newStore();
     const emit = vi.fn();
     const mgr = new RunManager({ store, deps: () => deps(0), emit });
     const { runId } = await mgr.start({ duty: duty("q"), inputs: {}, trigger: "manual" });
@@ -153,7 +161,7 @@ describe("RunManager", () => {
   });
 
   it("queues a second run of an exclusive duty until the first finishes", async () => {
-    const store = new DutyStore({ duties: memoryKeyed() as never, runs: memoryKeyed() as never });
+    const store = newStore();
     const mgr = new RunManager({ store, deps: () => deps(30), emit: () => {} });
     const first = await mgr.start({ duty: duty("x", true), inputs: {}, trigger: "manual" });
     const second = await mgr.start({ duty: duty("x", true), inputs: {}, trigger: "manual" });
@@ -166,10 +174,7 @@ describe("RunManager", () => {
   });
 
   it("serializes concurrent evidence appends against a slow store so no step is dropped or reverts the terminal status", async () => {
-    const store = new DutyStore({
-      duties: memoryKeyed() as never,
-      runs: memoryKeyedAsync() as never,
-    });
+    const store = newStore(memoryKeyedAsync());
     const mgr = new RunManager({ store, deps: () => deps(0), emit: () => {} });
     const { runId } = await mgr.start({
       duty: multiStepDuty("multi"),
@@ -193,7 +198,7 @@ describe("RunManager", () => {
     };
     process.on("unhandledRejection", onUnhandledRejection);
     try {
-      const store = new DutyStore({ duties: memoryKeyed() as never, runs: memoryKeyed() as never });
+      const store = newStore();
       const mgr = new RunManager({
         store,
         deps: () => {
@@ -213,7 +218,7 @@ describe("RunManager", () => {
   });
 
   it("resolves every concurrent waiter for the same still-queued run", async () => {
-    const store = new DutyStore({ duties: memoryKeyed() as never, runs: memoryKeyed() as never });
+    const store = newStore();
     const mgr = new RunManager({ store, deps: () => deps(20), emit: () => {} });
     const first = await mgr.start({ duty: duty("q1", true), inputs: {}, trigger: "manual" });
     const second = await mgr.start({ duty: duty("q1", true), inputs: {}, trigger: "manual" });
@@ -225,13 +230,13 @@ describe("RunManager", () => {
   });
 
   it("rejects wait() for an unknown run id instead of hanging", async () => {
-    const store = new DutyStore({ duties: memoryKeyed() as never, runs: memoryKeyed() as never });
+    const store = newStore();
     const mgr = new RunManager({ store, deps: () => deps(0), emit: () => {} });
     await expect(mgr.wait("does-not-exist")).rejects.toThrow("no such run");
   });
 
   it("re-reads the duty at finish so a concurrent rename survives lastRunAt", async () => {
-    const store = new DutyStore({ duties: memoryKeyed() as never, runs: memoryKeyed() as never });
+    const store = newStore();
     const mgr = new RunManager({ store, deps: () => deps(20), emit: () => {} });
     const original = duty("rename-me");
     await store.saveDuty(original);
@@ -243,8 +248,77 @@ describe("RunManager", () => {
     expect(stored?.lastRunAt).toBeGreaterThan(0);
   });
 
+  it("parks the run on needs_input while an ask is pending and returns it to running", async () => {
+    const store = newStore();
+    const statuses: string[] = [];
+    let release = () => {};
+    const pending = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const askDuty: Duty = {
+      ...duty("ask-me"),
+      steps: [{ id: "s1", kind: "ask", label: "Which account?", params: { question: "Which?" } }],
+    };
+    const mgr = new RunManager({
+      store,
+      deps: () => ({
+        ...deps(0),
+        ask: {
+          ask: async ({ onAsked }) => {
+            onAsked?.("q-1");
+            await pending;
+            return { status: "answered", answer: "LIC Nagpur" };
+          },
+        },
+      }),
+      emit: (event) => statuses.push(event.status),
+    });
+    const { runId } = await mgr.start({ duty: askDuty, inputs: {}, trigger: "manual" });
+    await flushMacrotasks(5);
+
+    const parked = await store.getRun(runId);
+    expect(parked?.status).toBe("needs_input");
+    expect(parked?.waitingOn).toEqual({ questionId: "q-1", stepId: "s1" });
+    expect(statuses).toContain("needs_input");
+
+    release();
+    const final = await mgr.wait(runId);
+    expect(final.status).toBe("ok");
+  });
+
+  it("stops an active run at the next step when it is cancelled", async () => {
+    const store = newStore();
+    const slow: Duty = {
+      ...duty("cancel-me"),
+      steps: [
+        { id: "s1", kind: "browser", label: "Open", params: { action: "open", url: "https://x" } },
+        {
+          id: "s2",
+          kind: "browser",
+          label: "Click",
+          params: { action: "click" },
+          target: { css: "#a" },
+        },
+      ],
+    };
+    let clicks = 0;
+    const mgr = new RunManager({
+      store,
+      deps: () => {
+        const base = deps(20);
+        return { ...base, browser: { ...base.browser, click: async () => void (clicks += 1) } };
+      },
+      emit: () => {},
+    });
+    const { runId } = await mgr.start({ duty: slow, inputs: {}, trigger: "manual" });
+    expect(await mgr.cancel(runId)).toBe(true);
+    const final = await mgr.wait(runId);
+    expect(final.status).toBe("cancelled");
+    expect(clicks).toBe(0);
+  });
+
   it("skips setting lastRunAt when the duty was deleted while running", async () => {
-    const store = new DutyStore({ duties: memoryKeyed() as never, runs: memoryKeyed() as never });
+    const store = newStore();
     const mgr = new RunManager({ store, deps: () => deps(20), emit: () => {} });
     const original = duty("delete-me");
     await store.saveDuty(original);

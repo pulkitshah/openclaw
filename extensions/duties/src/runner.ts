@@ -14,23 +14,28 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+/** Every acting verb takes the authored step budget so a `timeoutMs: 60000` step is not silently
+ *  capped at the adapter's blanket default. */
 export type BrowserAdapter = {
-  open(url: string): Promise<{ targetId: string }>;
-  navigate(targetId: string, url: string): Promise<void>;
+  open(url: string, timeoutMs?: number): Promise<{ targetId: string }>;
+  navigate(targetId: string, url: string, timeoutMs?: number): Promise<void>;
   isVisible(targetId: string, target: Target): Promise<boolean>;
-  click(targetId: string, target: Target): Promise<void>;
-  fill(targetId: string, target: Target, value: string): Promise<void>;
-  select(targetId: string, target: Target, value: string): Promise<void>;
-  press(targetId: string, key: string): Promise<void>;
+  click(targetId: string, target: Target, timeoutMs?: number): Promise<void>;
+  fill(targetId: string, target: Target, value: string, timeoutMs?: number): Promise<void>;
+  select(targetId: string, target: Target, value: string, timeoutMs?: number): Promise<void>;
+  press(targetId: string, key: string, timeoutMs?: number): Promise<void>;
   waitFor(
     targetId: string,
     opts: { target?: Target; text?: string; url?: string; timeoutMs?: number },
   ): Promise<void>;
-  text(targetId: string, target?: Target): Promise<string>;
+  text(targetId: string, target?: Target, timeoutMs?: number): Promise<string>;
   url(targetId: string): Promise<string>;
-  evaluate(targetId: string, fn: string): Promise<unknown>;
+  evaluate(targetId: string, fn: string, timeoutMs?: number): Promise<unknown>;
   screenshot(targetId: string): Promise<string | undefined>;
   close(targetId: string): Promise<void>;
+  /** Drains the transport-retry notes recorded since the last drain, so a retried read is
+   *  reported in the step's evidence summary instead of passing silently. */
+  drainRetryNotes?: () => string[];
 };
 export type AiAdapter = {
   extract(params: {
@@ -39,9 +44,7 @@ export type AiAdapter = {
     schema: Record<string, unknown>;
   }): Promise<Record<string, unknown>>;
 };
-export type AskResult =
-  | { status: "answered"; answer: string }
-  | { status: "timeout" | "cancelled" };
+type AskResult = { status: "answered"; answer: string } | { status: "timeout" | "cancelled" };
 export type AskAdapter = {
   ask(params: {
     stepId: string;
@@ -49,6 +52,8 @@ export type AskAdapter = {
     header: string;
     options: string[];
     timeoutMs?: number;
+    /** Called with the created question's id as soon as it exists, so the run can park on it. */
+    onAsked?: (questionId: string) => void;
   }): Promise<AskResult>;
 };
 export type RunnerDeps = {
@@ -58,6 +63,11 @@ export type RunnerDeps = {
   cred: (key: string) => Promise<string>;
   now?: () => number;
   onStep?: (evidence: StepEvidence) => void;
+  /** Checked before every step and after every ask; a cancelled run halts instead of continuing
+   *  to click, fill and submit until the browser work happens to finish. */
+  isCancelled?: () => boolean;
+  /** Called with the question the run is parked on, then with `undefined` once it is answered. */
+  onWaiting?: (waitingOn: { questionId: string; stepId: string } | undefined) => void;
 };
 export type RunOptions = {
   inputs: Record<string, unknown>;
@@ -97,6 +107,10 @@ export async function runDuty(
   const evidence: StepEvidence[] = [];
   const secrets = new Set<string>();
   let targetId = options.targetId;
+  /** The tab handed in by the previous stage (`keepOpen` → `targetId`). The FIRST `open` of the
+   *  run resumes it instead of replaying the whole flow in a fresh tab; a later `open` in the
+   *  same run means the author wants another tab, so it gets one. */
+  let resumeTargetId = options.targetId;
   let reachedStop = false;
   const trackedCred = async (key: string): Promise<string> => {
     const value = await deps.cred(key);
@@ -108,9 +122,16 @@ export async function runDuty(
     for (const secret of secrets) result = result.split(secret).join(MASK);
     return result;
   };
-  const ctx = () => ({ out: outputs, in: options.inputs, cred: trackedCred });
+  const ctx = () => ({ out: outputs, in: options.inputs });
+  /** Cred-free: `resolvePlaceholders` throws `no credential stored for <key>` when a
+   *  `{{cred:...}}` reaches it without a getter, so a placeholder authored anywhere but a
+   *  `fill`/`select` value fails the step loudly instead of shipping the secret onward
+   *  (`validateDuty` rejects those at authoring time; this is the run-time backstop). */
   const resolve = (value: unknown) =>
     typeof value === "string" ? resolvePlaceholders(value, ctx()) : Promise.resolve(value);
+  /** The one cred-capable resolver, used only for a browser `fill`/`select` value. */
+  const resolveSecret = (value: string) =>
+    resolvePlaceholders(value, { ...ctx(), cred: trackedCred });
   const requireTab = (): string => {
     if (!targetId) throw new Error("no browser tab: add an open step first");
     return targetId;
@@ -136,6 +157,8 @@ export async function runDuty(
     if ("visible" in cond) return deps.browser.isVisible(requireTab(), cond.visible);
     if ("equals" in cond)
       return (await resolve(cond.equals[0])) === (await resolve(cond.equals[1]));
+    if ("url_matches" in cond)
+      return new RegExp(cond.url_matches, "iu").test(await deps.browser.url(requireTab()));
     return new RegExp(cond.text_matches, "iu").test(await deps.browser.text(requireTab()));
   };
 
@@ -158,49 +181,50 @@ export async function runDuty(
   const save = (step: Step, value: unknown) => {
     if (!step.saveAs) return;
     if (Array.isArray(step.saveAs)) {
-      const record = isRecord(value) ? value : undefined;
-      for (const key of step.saveAs) outputs[key] = record?.[key];
+      const resultRecord = isRecord(value) ? value : undefined;
+      for (const key of step.saveAs) outputs[key] = resultRecord?.[key];
     } else outputs[step.saveAs] = value;
   };
 
   const runStep = async (step: Step): Promise<void> => {
+    if (deps.isCancelled?.()) throw new HaltSignal("cancelled", step.id, "cancelled");
     const startedAt = now();
     let summary = "";
     let usedCred = false;
+    const budget = step.timeoutMs;
     try {
       if (step.kind === "browser") {
         const action = String(step.params.action);
         if (action === "open") {
           const url = String(await resolve(step.params.url));
-          // Authoring hands the next run the tab the previous stage left open (`keepOpen` →
-          // `targetId`) so a stage can resume where the last one stopped. Opening a fresh tab
-          // here would throw that away and replay the whole flow — including a second sign-in
-          // on sites that allow only one session. Reuse the tab we were given instead.
-          if (targetId) {
-            await deps.browser.navigate(targetId, url);
+          if (resumeTargetId) {
+            await deps.browser.navigate(resumeTargetId, url, budget);
+            targetId = resumeTargetId;
+            resumeTargetId = undefined;
           } else {
-            targetId = (await deps.browser.open(url)).targetId;
+            targetId = (await deps.browser.open(url, budget)).targetId;
           }
           summary = url;
         } else if (action === "navigate") {
           const url = String(await resolve(step.params.url));
-          await deps.browser.navigate(requireTab(), url);
+          await deps.browser.navigate(requireTab(), url, budget);
           summary = url;
         } else if (action === "click") {
           if (!step.target) throw new Error("click needs a target");
-          await deps.browser.click(requireTab(), step.target);
+          await deps.browser.click(requireTab(), step.target, budget);
           summary = describeTarget(step.target);
         } else if (action === "fill" || action === "select") {
           if (!step.target) throw new Error(`${action} needs a target`);
           const raw = String(step.params.value ?? "");
           usedCred = /\{\{cred:/u.test(raw);
-          const value = String(await resolve(raw));
-          if (action === "fill") await deps.browser.fill(requireTab(), step.target, value);
-          else await deps.browser.select(requireTab(), step.target, value);
+          const value = await resolveSecret(raw);
+          if (action === "fill") await deps.browser.fill(requireTab(), step.target, value, budget);
+          else await deps.browser.select(requireTab(), step.target, value, budget);
           summary = `${describeTarget(step.target)} ← ${usedCred ? MASK : value}`;
         } else if (action === "press") {
-          await deps.browser.press(requireTab(), String(step.params.key));
-          summary = String(step.params.key);
+          const key = String(await resolve(step.params.key));
+          await deps.browser.press(requireTab(), key, budget);
+          summary = key;
         } else if (action === "wait") {
           await deps.browser.waitFor(requireTab(), {
             target: step.target,
@@ -210,7 +234,7 @@ export async function runDuty(
           });
           summary = "waited";
         } else if (action === "read") {
-          const text = await deps.browser.text(requireTab(), step.target);
+          const text = await deps.browser.text(requireTab(), step.target, budget);
           save(step, text);
           summary = text.slice(0, 120);
         } else if (action === "screenshot") {
@@ -219,7 +243,8 @@ export async function runDuty(
           throw new Error(`unknown browser action "${action}"`);
         }
       } else if (step.kind === "browser.evaluate") {
-        const result = await deps.browser.evaluate(requireTab(), String(step.params.fn));
+        const fn = String(await resolve(step.params.fn));
+        const result = await deps.browser.evaluate(requireTab(), fn, budget);
         save(step, result);
         summary = JSON.stringify(result)?.slice(0, 120) ?? "";
       } else if (step.kind === "ai") {
@@ -237,13 +262,21 @@ export async function runDuty(
       } else if (step.kind === "ask") {
         // SAFETY: options is authored duty config; a missing/non-array value falls back to an empty list.
         const options_ = (step.params.options as string[] | undefined) ?? [];
-        const result = await deps.ask.ask({
-          stepId: step.id,
-          question: String(await resolve(step.params.question)),
-          header: String(step.params.header ?? step.label).slice(0, 12),
-          options: options_,
-          timeoutMs: step.timeoutMs,
-        });
+        const question = String(await resolve(step.params.question));
+        let result: Awaited<ReturnType<AskAdapter["ask"]>>;
+        try {
+          result = await deps.ask.ask({
+            stepId: step.id,
+            question,
+            header: String(step.params.header ?? step.label).slice(0, 12),
+            options: options_,
+            timeoutMs: step.timeoutMs,
+            onAsked: (questionId) => deps.onWaiting?.({ questionId, stepId: step.id }),
+          });
+        } finally {
+          deps.onWaiting?.(undefined);
+        }
+        if (deps.isCancelled?.()) throw new HaltSignal("cancelled", step.id, "cancelled");
         if (result.status !== "answered")
           throw new HaltSignal(
             result.status === "cancelled" ? "cancelled" : "blocked",
@@ -252,6 +285,14 @@ export async function runDuty(
           );
         save(step, result.answer);
         summary = result.answer;
+      } else {
+        // Exhaustiveness guard: a step kind outside the four handled above would otherwise be
+        // recorded as a silent `ok` that performed no action at all.
+        throw new Error(`unsupported step kind "${String(step.kind)}"`);
+      }
+      const retryNotes = deps.browser.drainRetryNotes?.() ?? [];
+      if (retryNotes.length) {
+        summary = summary ? `${summary} (${retryNotes.join("; ")})` : retryNotes.join("; ");
       }
       if (step.check) {
         const problem = await runCheck(step.check);
@@ -271,6 +312,9 @@ export async function runDuty(
             : undefined,
       });
     } catch (error) {
+      // A cancelled run stopped on the owner's instruction, not on a step outcome: the run's own
+      // `cancelled` status carries that, so no step evidence row is written for it.
+      if (error instanceof HaltSignal && error.outcome === "cancelled") throw error;
       const shot = targetId
         ? await deps.browser.screenshot(targetId).catch(() => undefined)
         : undefined;
@@ -278,7 +322,7 @@ export async function runDuty(
         stepId: step.id,
         label: step.label,
         kind: step.kind,
-        status: "failed",
+        status: error instanceof HaltSignal && error.outcome === "blocked" ? "blocked" : "failed",
         summary: error instanceof HaltSignal ? error.message : errorMessage(error),
         startedAt,
         screenshotBlobId: shot,
@@ -293,7 +337,25 @@ export async function runDuty(
   const walk = async (nodes: DutyNode[]): Promise<void> => {
     for (const node of nodes) {
       if (node.kind === "when") {
-        await walk((await evalCond(node.cond)) ? node.then : (node.else ?? []));
+        const startedAt = now();
+        let taken: boolean;
+        try {
+          taken = await evalCond(node.cond);
+        } catch (error) {
+          // A gate whose probe itself failed must name the gate in the run's evidence and report,
+          // not fail the run with a bare message and no row to point at.
+          const gateId = `when:${node.label}`;
+          record({
+            stepId: gateId,
+            label: node.label,
+            kind: "when",
+            status: "failed",
+            summary: errorMessage(error),
+            startedAt,
+          });
+          throw new HaltSignal("failed", gateId, errorMessage(error));
+        }
+        await walk(taken ? node.then : (node.else ?? []));
         continue;
       }
       if (node.kind === "stop") {

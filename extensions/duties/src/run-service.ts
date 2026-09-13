@@ -33,7 +33,7 @@ export class RunManager {
   constructor(
     private readonly params: {
       store: DutyStore;
-      deps: () => RunnerDeps;
+      deps: (duty: Duty) => RunnerDeps;
       emit: (event: RunEvent) => void;
       maxParallel?: number;
     },
@@ -142,11 +142,21 @@ export class RunManager {
       try {
         await this.params.store.updateRun(run.id, { status: "running", startedAt: Date.now() });
         this.params.emit({ type: "run", runId: run.id, dutyId: duty.id, status: "running" });
-        const deps = this.params.deps();
+        const deps = this.params.deps(duty);
         const outcome = await runDuty(
           duty,
           {
             ...deps,
+            isCancelled: () => this.cancelled.has(run.id),
+            // Parking is written through the same per-run chain as evidence appends, so the
+            // `needs_input` row can never land after — and revert — the terminal status.
+            onWaiting: (waitingOn) => {
+              const prior = this.appendChains.get(run.id) ?? Promise.resolve();
+              this.appendChains.set(
+                run.id,
+                prior.then(() => this.markWaiting(run, waitingOn)),
+              );
+            },
             onStep: (step) => {
               const prior = this.appendChains.get(run.id) ?? Promise.resolve();
               this.appendChains.set(
@@ -198,6 +208,24 @@ export class RunManager {
     // failure path inside the async IIFE is caught and turned into a "failed" finish(); this
     // guards against an unhandled-rejection warning if something in `.finally()` ever throws.
     promise.catch(() => {});
+  }
+
+  /** Records that a run is parked on an owner question (`needs_input` + `waitingOn`), and flips
+   *  it back to `running` once the answer arrives, so the Board's "Waiting on you" rollup and
+   *  `recoverOrphans` both tell the truth about a run that is waiting rather than working.
+   *  Re-attaching to an open question after a Gateway restart is Part 2. Best-effort: a store
+   *  failure here must not break the run. */
+  private async markWaiting(
+    run: DutyRun,
+    waitingOn: { questionId: string; stepId: string } | undefined,
+  ): Promise<void> {
+    const status: RunStatus = waitingOn ? "needs_input" : "running";
+    try {
+      await this.params.store.updateRun(run.id, waitingOn ? { status, waitingOn } : { status });
+    } catch {
+      // status bookkeeping is best-effort; the run's own outcome is still written by finish().
+    }
+    this.params.emit({ type: "run", runId: run.id, dutyId: run.dutyId, status });
   }
 
   /** Appends one step's evidence to the run's stored `steps` via the store's atomic
