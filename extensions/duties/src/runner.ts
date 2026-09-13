@@ -333,6 +333,14 @@ export async function runDuty(
         const templateId = String(step.params.template);
         const template = await deps.templates.get(templateId);
         if (!template) throw new Error(`unknown template "${templateId}"`);
+        // `renderTemplate` escapes by the template's own kind (a message body is left literal), so
+        // a step's `format` may only restate that kind: printing a message template would serve its
+        // unescaped text to the browser as HTML, and texting a pdf template would send raw markup.
+        const format = typeof step.params.format === "string" ? step.params.format : template.kind;
+        if (format !== template.kind)
+          throw new Error(
+            `template "${template.id}" is a ${template.kind} template; format "${format}" is not allowed`,
+          );
         // SAFETY: validateDuty validated params.fill as an object of { from } | { ai }.
         const fill = step.params.fill as Record<string, { from: string } | { ai: string }>;
         const data: Record<string, unknown> = {};
@@ -361,7 +369,6 @@ export async function runDuty(
         }
         const rendered = renderTemplate(template, data, await deps.templates.brand());
         if (!rendered.ok) throw new Error(`slot "${rendered.missing[0]}" could not be filled`);
-        const format = typeof step.params.format === "string" ? step.params.format : template.kind;
         if (format === "message") {
           save(step, rendered.output);
           summary = rendered.output.slice(0, 120);
@@ -425,9 +432,12 @@ export async function runDuty(
       // A cancelled run stopped on the owner's instruction, not on a step outcome: the run's own
       // `cancelled` status carries that, so no step evidence row is written for it.
       if (error instanceof HaltSignal && error.outcome === "cancelled") throw error;
-      const shot = targetId
-        ? await deps.browser.screenshot(targetId).catch(() => undefined)
-        : undefined;
+      // Same gate as the success path: a step that never drove the tab (ai, ask, template,
+      // deliver) must not attach a screenshot of whatever unrelated page happens to be open.
+      const shot =
+        step.kind.startsWith("browser") && targetId
+          ? await deps.browser.screenshot(targetId).catch(() => undefined)
+          : undefined;
       record({
         stepId: step.id,
         label: step.label,

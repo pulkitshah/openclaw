@@ -476,6 +476,14 @@ describe("template and deliver steps", () => {
     html: "Route: {{slot:route}}",
     slots: [{ name: "route", kind: "text", description: "" }],
   };
+  const slipTpl: Template = {
+    id: "slip",
+    name: "Slip",
+    kind: "pdf",
+    updatedAt: 1,
+    html: "<p>{{slot:route}}</p>",
+    slots: [{ name: "route", kind: "text", description: "" }],
+  };
 
   /** One ai fake for every `extract` a template duty makes: the two seeding steps and the template
    *  step's own `{ ai }` fills all dispatch on the slot names their schema asks for, so a test can
@@ -612,21 +620,67 @@ describe("template and deliver steps", () => {
     expect(deps.calls).toContain("deliver telegram:222 Route: IXU → COK []");
   });
 
+  it("refuses a format that is not the template's own kind, in either direction", async () => {
+    const asPdf = fakeDeps({
+      templates: { get: async () => noteTpl, brand: async () => undefined },
+    });
+    const printed = await runDuty(
+      duty([
+        {
+          id: "t1",
+          kind: "template",
+          label: "Print the note",
+          params: { template: "note", format: "pdf", fill: { route: { from: "{{in:route}}" } } },
+        },
+      ]),
+      asPdf,
+      { inputs: { route: "IXU → COK" } },
+    );
+    expect(printed.status).toBe("failed");
+    expect(printed.report).toBe(
+      'template "note" is a message template; format "pdf" is not allowed',
+    );
+    expect(printed.files).toEqual([]);
+    expect(asPdf.calls.some((c) => c.startsWith("render"))).toBe(false);
+
+    const asMessage = fakeDeps({
+      templates: { get: async () => slipTpl, brand: async () => undefined },
+    });
+    const texted = await runDuty(
+      duty([
+        {
+          id: "t1",
+          kind: "template",
+          label: "Text the slip",
+          params: {
+            template: "slip",
+            format: "message",
+            fill: { route: { from: "{{in:route}}" } },
+          },
+          saveAs: "slip",
+        },
+      ]),
+      asMessage,
+      { inputs: { route: "IXU → COK" } },
+    );
+    expect(texted.status).toBe("failed");
+    expect(texted.report).toBe(
+      'template "slip" is a pdf template; format "message" is not allowed',
+    );
+    expect(texted.outputs.slip).toBeUndefined();
+  });
+
   it("resolves a produced file only in template and deliver params", async () => {
     const deps = fakeDeps({
-      templates: { get: async () => noteTpl, brand: async () => undefined },
+      templates: { get: async () => slipTpl, brand: async () => undefined },
     });
     const outcome = await runDuty(
       duty([
         {
           id: "t1",
           kind: "template",
-          label: "Render the note",
-          params: {
-            template: "note",
-            format: "pdf",
-            fill: { route: { from: "{{in:route}}" } },
-          },
+          label: "Render the slip",
+          params: { template: "slip", fill: { route: { from: "{{in:route}}" } } },
         },
         {
           id: "a1",
@@ -658,6 +712,27 @@ describe("template and deliver steps", () => {
     );
     expect(outcome.status).toBe("failed");
     expect(outcome.report).toMatch(/no owner target configured/u);
+  });
+
+  it("records no screenshot for a failed deliver step, even with a tab still open", async () => {
+    const deps = fakeDeps({
+      resolveRoute: async () => {
+        throw new Error("no owner target configured — set it on the Duties page");
+      },
+    });
+    const outcome = await runDuty(
+      duty([
+        { id: "s1", kind: "browser", label: "Open", params: { action: "open", url: "https://x" } },
+        { id: "d1", kind: "deliver", label: "Send", params: { to: "owner", text: "x" } },
+      ]),
+      deps,
+      { inputs: {} },
+    );
+    expect(outcome.status).toBe("failed");
+    expect(outcome.steps.map((s) => s.status)).toEqual(["ok", "failed"]);
+    // The browser step's own evidence still carries one: the gate is the step's kind, not the tab.
+    expect(outcome.steps[0]!.screenshotBlobId).toBe("blob-1");
+    expect(outcome.steps[1]!.screenshotBlobId).toBeUndefined();
   });
 
   it("a cancelled run never delivers", async () => {
