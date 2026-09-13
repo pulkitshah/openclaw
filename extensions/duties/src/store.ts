@@ -129,6 +129,16 @@ export class DutyStore {
       .toSorted((a, b) => b.startedAt - a.startedAt)
       .slice(0, opts?.limit ?? 50);
   }
+  /** Newest-first runs across every duty, regardless of status — unlike `listRuns`, which is
+   *  scoped to one duty. Backs `duties.runs.recent` so the Board can show real failed/blocked
+   *  history instead of only what this page session has observed via events. */
+  async listRecentRuns(limit = 20): Promise<DutyRun[]> {
+    const entries = await this.stores.runs.entries();
+    return entries
+      .map((e) => e.value)
+      .toSorted((a, b) => b.startedAt - a.startedAt)
+      .slice(0, limit);
+  }
   async markRunningRunsLost(): Promise<number> {
     const store = this.stores.runs;
     const entries = await store.entries();

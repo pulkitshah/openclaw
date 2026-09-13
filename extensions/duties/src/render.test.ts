@@ -134,4 +134,42 @@ describe("render", () => {
     expect(html).toContain("answered yes");
     expect(html).toContain("AMG-1");
   });
+
+  it("renders an inline error banner with a retry control when given one", () => {
+    const board = renderBoard([duty as unknown as Duty], [], { error: "boom" });
+    expect(board).toContain("boom");
+    expect(board).toContain("data-retry");
+
+    const detail = renderDetail(duty as unknown as Duty, [], { error: "detail boom" });
+    expect(detail).toContain("detail boom");
+    expect(detail).toContain("data-retry");
+
+    const run = {
+      id: "r1",
+      dutyId: "d1",
+      status: "ok",
+      startedAt: 1,
+      trigger: "manual",
+      inputs: {},
+      outputs: {},
+      steps: [],
+    } as unknown as DutyRun;
+    const runHtml = renderRun(run, duty as unknown as Duty, { error: "run boom" });
+    expect(runHtml).toContain("run boom");
+    expect(runHtml).toContain("data-retry");
+  });
+
+  it("escapes a duty name containing markup and quotes everywhere it appears", () => {
+    const hostile = {
+      ...duty,
+      name: `<script>&"`,
+    } as unknown as Duty;
+    const board = renderBoard([hostile], []);
+    expect(board).not.toContain("<script>");
+    expect(board).toContain("&lt;script&gt;&amp;&quot;");
+
+    const detail = renderDetail(hostile, []);
+    expect(detail).not.toContain("<script>");
+    expect(detail).toContain("&lt;script&gt;&amp;&quot;");
+  });
 });

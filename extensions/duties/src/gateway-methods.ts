@@ -76,6 +76,15 @@ export function registerDutiesGatewayMethods(params: {
     return { duty, runs: await store.listRuns(duty.id, { onlySuccessful: true, limit: 20 }) };
   });
 
+  register("duties.runs.recent", "operator.read", async (params) => {
+    const requested = params.limit;
+    if (requested !== undefined && typeof requested !== "number") {
+      throw new Error("limit must be a number");
+    }
+    const limit = Math.max(1, Math.min(100, requested ?? 20));
+    return { runs: await store.listRecentRuns(limit) };
+  });
+
   register("duties.save", "operator.write", async (params) => {
     const candidate = isRecord(params.duty)
       ? { ...params.duty, updatedAt: Date.now() }

@@ -105,6 +105,46 @@ describe("duties gateway methods", () => {
     expect(emit).toHaveBeenCalledWith("changed", { dutyId: "d1" });
   });
 
+  it("duties.runs.recent lists newest-first across duties, clamped between 1 and 100", async () => {
+    const { call, store } = harness();
+    await store.saveDuty({ ...baseDuty, id: "d1" });
+    await store.createRun({
+      id: "r1",
+      dutyId: "d1",
+      status: "ok",
+      startedAt: 1,
+      trigger: "manual",
+      inputs: {},
+      outputs: {},
+      steps: [],
+    });
+    await store.createRun({
+      id: "r2",
+      dutyId: "d1",
+      status: "failed",
+      startedAt: 2,
+      trigger: "manual",
+      inputs: {},
+      outputs: {},
+      steps: [],
+    });
+
+    const defaultLimit = await call("duties.runs.recent", {});
+    expect(defaultLimit.ok).toBe(true);
+    expect((defaultLimit.result as { runs: Array<{ id: string }> }).runs.map((r) => r.id)).toEqual([
+      "r2",
+      "r1",
+    ]);
+
+    const clamped = await call("duties.runs.recent", { limit: 1 });
+    expect((clamped.result as { runs: Array<{ id: string }> }).runs.map((r) => r.id)).toEqual([
+      "r2",
+    ]);
+
+    const rejected = await call("duties.runs.recent", { limit: "nope" });
+    expect(rejected.ok).toBe(false);
+  });
+
   it("rejects duties.status transitions to building and runs/cancels via the RunManager", async () => {
     const start = vi.fn().mockResolvedValue({ runId: "r1", queued: false });
     const cancel = vi.fn().mockResolvedValue(true);

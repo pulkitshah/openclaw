@@ -106,6 +106,18 @@ describe("DutyStore", () => {
       "r1",
     ]);
   });
+  it("lists recent runs newest-first across every duty regardless of status", async () => {
+    const runs = memoryKeyed<DutyRun>();
+    const withRuns = new DutyStore({ duties: memoryKeyed(), runs });
+    await withRuns.createRun(run("r20", "ok"));
+    await withRuns.saveDuty({ ...duty, id: "d2" });
+    await withRuns.createRun({ ...run("r21", "failed"), dutyId: "d2" });
+    await withRuns.createRun(run("r22", "ok"));
+
+    expect((await withRuns.listRecentRuns()).map((r) => r.id)).toEqual(["r22", "r21", "r20"]);
+    expect((await withRuns.listRecentRuns(2)).map((r) => r.id)).toEqual(["r22", "r21"]);
+  });
+
   it("patches a run and marks running runs lost", async () => {
     await store.createRun(run("r4", "running"));
     expect((await store.updateRun("r4", { report: "x" }))?.report).toBe("x");

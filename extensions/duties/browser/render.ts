@@ -28,11 +28,19 @@ function isToday(ms: number): boolean {
   const now = new Date();
   const then = new Date(ms);
   return (
-    now.getUTCFullYear() === then.getUTCFullYear() &&
-    now.getUTCMonth() === then.getUTCMonth() &&
-    now.getUTCDate() === then.getUTCDate()
+    now.getFullYear() === then.getFullYear() &&
+    now.getMonth() === then.getMonth() &&
+    now.getDate() === then.getDate()
   );
 }
+
+/** Inline error block rendered at the top of the current view, with a `data-retry` control the
+ * host wires to re-run whatever request last failed (a load, or the action that just failed). */
+function renderErrorBanner(message: string): string {
+  return `<div class="error"><span>${esc(message)}</span><button class="btn" data-retry>Retry</button></div>`;
+}
+
+export type RenderOpts = { error?: string };
 
 const DUTY_STATUS_LABEL: Record<DutyStatus, string> = {
   active: "Active",
@@ -130,7 +138,12 @@ function dutyCard(duty: Duty, runs: readonly DutyRun[]): string {
 </article>`;
 }
 
-export function renderBoard(duties: readonly Duty[], runs: readonly DutyRun[]): string {
+export function renderBoard(
+  duties: readonly Duty[],
+  runs: readonly DutyRun[],
+  opts?: RenderOpts,
+): string {
+  const errorBanner = opts?.error ? renderErrorBanner(opts.error) : "";
   const active = duties.filter((d) => d.status === "active").length;
   const building = duties.filter((d) => d.status === "building").length;
   const successfulToday = runs.filter((r) => r.status === "ok" && isToday(r.startedAt)).length;
@@ -146,7 +159,7 @@ export function renderBoard(duties: readonly Duty[], runs: readonly DutyRun[]): 
         }</div><button class="btn primary" data-open-run="${esc(unresolved.id)}" data-duty-id="${esc(unresolvedDuty.id)}">View run</button><button class="btn" data-open="${esc(unresolvedDuty.id)}">Open Duty</button></div>`
       : "";
   const cards = duties.map((d) => dutyCard(d, runs)).join("");
-  return `<div class="head"><div><h1>Duties</h1><p>Everything your digital employee runs for you — what it does, when, and whether it worked.</p></div><div class="actions"><button class="btn primary" data-edit="new">New Duty · chat with the agent</button></div></div>
+  return `${errorBanner}<div class="head"><div><h1>Duties</h1><p>Everything your digital employee runs for you — what it does, when, and whether it worked.</p></div><div class="actions"><button class="btn primary" data-edit="new">New Duty · chat with the agent</button></div></div>
 <div class="rollup">
   <div class="roll"><div class="n">${active}</div><div class="l">Active</div></div>
   <div class="roll"><div class="n">${successfulToday}</div><div class="l">Successful runs today</div></div>
@@ -184,7 +197,8 @@ function successfulRunRow(run: DutyRun): string {
   return `<li><span class="st ok">✓</span><span class="when">${esc(fmtWhen(run.startedAt))}</span><span class="r">${esc(run.trigger)}</span><a href="#" data-open-run="${esc(run.id)}" data-duty-id="${esc(run.dutyId)}">view run</a></li>`;
 }
 
-export function renderDetail(duty: Duty, runs: readonly DutyRun[]): string {
+export function renderDetail(duty: Duty, runs: readonly DutyRun[], opts?: RenderOpts): string {
+  const errorBanner = opts?.error ? renderErrorBanner(opts.error) : "";
   const successful = runs
     .filter((r) => r.dutyId === duty.id && r.status === "ok")
     .toSorted((a, b) => b.startedAt - a.startedAt);
@@ -197,7 +211,7 @@ export function renderDetail(duty: Duty, runs: readonly DutyRun[]): string {
       : `<button class="btn primary" data-run="${esc(duty.id)}">Run</button><button class="btn" data-status="${esc(duty.id)}" data-next="${
           duty.status === "active" ? "paused" : "active"
         }">${duty.status === "active" ? "Pause" : "Resume"}</button><button class="btn" data-edit="${esc(duty.id)}">Edit with agent</button><button class="btn danger" data-delete="${esc(duty.id)}">Delete</button>`;
-  return `<div class="head"><div><div class="small"><a href="#" data-nav="board">← Duties</a></div><h1>${esc(duty.name)}</h1>
+  return `${errorBanner}<div class="head"><div><div class="small"><a href="#" data-nav="board">← Duties</a></div><h1>${esc(duty.name)}</h1>
 <div class="meta">${statusPill(duty.status)}<span>Last updated <b>${esc(fmtWhen(duty.updatedAt))}</b></span><span>Last run <b>${
     duty.lastRunAt ? esc(fmtWhen(duty.lastRunAt)) : "never"
   }</b></span><span>Runs on <b>${esc(duty.machine)}</b></span><span>Reports to <b>${esc(duty.reportsTo)}</b></span>${
@@ -232,9 +246,10 @@ function stepEvidenceRow(step: StepEvidence): string {
   return `<li class="step"><span class="st ${st}">${mark}</span><div><div class="t">${esc(step.label)}</div><div class="d">${esc(step.summary)}</div></div><span class="kind ${esc(step.kind)}">${esc(kindLabel(step.kind))}</span></li>`;
 }
 
-export function renderRun(run: DutyRun, duty: Duty | undefined): string {
+export function renderRun(run: DutyRun, duty: Duty | undefined, opts?: RenderOpts): string {
+  const errorBanner = opts?.error ? renderErrorBanner(opts.error) : "";
   const outputEntries = Object.entries(run.outputs);
-  return `<div class="head"><div><div class="small"><a href="#" data-open="${esc(duty?.id ?? run.dutyId)}">← ${esc(duty?.name ?? run.dutyId)}</a></div><h1>Run</h1>
+  return `${errorBanner}<div class="head"><div><div class="small"><a href="#" data-open="${esc(duty?.id ?? run.dutyId)}">← ${esc(duty?.name ?? run.dutyId)}</a></div><h1>Run</h1>
 <div class="meta">${runStatusPill(run.status)}<span>Started <b>${esc(fmtWhen(run.startedAt))}</b></span>${
     run.endedAt ? `<span>Ended <b>${esc(fmtWhen(run.endedAt))}</b></span>` : ""
   }<span>Trigger <b>${esc(run.trigger)}</b></span></div></div>
