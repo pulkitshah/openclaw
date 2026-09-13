@@ -33,6 +33,9 @@ export type BrowserAdapter = {
   evaluate(targetId: string, fn: string, timeoutMs?: number): Promise<unknown>;
   screenshot(targetId: string): Promise<string | undefined>;
   close(targetId: string): Promise<void>;
+  /** Prints the tab to PDF via the browser plugin's `/pdf` route; returns the absolute path the
+   *  browser plugin wrote it to (not the caller's destination — the render adapter copies it). */
+  pdf(targetId: string): Promise<string>;
   /** Drains the transport-retry notes recorded since the last drain, so a retried read is
    *  reported in the step's evidence summary instead of passing silently. */
   drainRetryNotes?: () => string[];

@@ -374,5 +374,14 @@ export function createBrowserAdapter(params: {
     async close(targetId) {
       await call("DELETE", `/tabs/${encodeURIComponent(targetId)}`);
     },
+    async pdf(targetId) {
+      const r = await call<{ path?: string }>("POST", "/pdf", {
+        body: { targetId },
+        timeoutMs: 60_000,
+      });
+      if (typeof r.path !== "string" || !r.path)
+        throw new Error("browser did not return a pdf path");
+      return r.path;
+    },
   };
 }

@@ -34,6 +34,7 @@ function fakeDeps(over: Partial<RunnerDeps> = {}): RunnerDeps & { calls: string[
     close: async (id) => {
       calls.push(`close ${id}`);
     },
+    pdf: async () => "/tmp/fake.pdf",
   };
   return {
     calls,

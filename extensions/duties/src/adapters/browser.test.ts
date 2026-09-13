@@ -250,6 +250,19 @@ describe("createBrowserAdapter", () => {
     expect(navigates).toBe(1);
   });
 
+  it("prints a tab to pdf and returns the path the browser plugin wrote", async () => {
+    const request = vi.fn(async (_m: string, params: Record<string, unknown>) =>
+      (params.path as string) === "/pdf"
+        ? { ok: true, path: "/tmp/out.pdf", targetId: "T1" }
+        : { ok: true },
+    );
+    const b = createBrowserAdapter({ request: asRequest(request), profile: "openclaw" });
+    expect(await b.pdf("T1")).toBe("/tmp/out.pdf");
+    expect(
+      request.mock.calls.find(([, p]) => (p as { path?: string }).path === "/pdf")?.[1],
+    ).toMatchObject({ method: "POST", body: { targetId: "T1" } });
+  });
+
   it("maps an unconditional waitFor to a single timed wait action", async () => {
     const request = vi.fn(async (_m: string, _params: Record<string, unknown>) => ({ ok: true }));
     const b = createBrowserAdapter({ request: asRequest(request), profile: "chrome" });
