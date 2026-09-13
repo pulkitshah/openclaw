@@ -17,15 +17,19 @@ function assertNoUndefinedValues(value: unknown, path = "$"): void {
   }
 }
 
+type ServiceContext = Parameters<ReturnType<typeof createDutiesEventService>["start"]>[0];
+type GatewayEvents = NonNullable<ServiceContext["gatewayEvents"]>;
+type EmitScope = Parameters<GatewayEvents["emit"]>[2]["scope"];
+
 function contextWith(gatewayEvents: {
-  emit: (name: string, payload: unknown, opts: { scope: "operator.read" }) => void;
+  emit: (name: string, payload: unknown, opts: { scope: EmitScope }) => void;
 }) {
   return {
     config: {},
     stateDir: "/tmp/duties-events-test",
     logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
     gatewayEvents: { ...gatewayEvents, onSessionsChanged: () => () => undefined },
-  } satisfies Parameters<ReturnType<typeof createDutiesEventService>["start"]>[0];
+  } satisfies ServiceContext;
 }
 
 describe("createDutiesEventService", () => {

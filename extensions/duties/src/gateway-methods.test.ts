@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, type Mock } from "vitest";
+import type { Duty } from "./duty.js";
 import { registerDutiesGatewayMethods } from "./gateway-methods.js";
 import { DutyStore } from "./store.js";
 
@@ -19,8 +20,10 @@ type Handler = (ctx: {
   respond: (ok: boolean, result?: unknown, error?: unknown) => void;
 }) => Promise<void>;
 
+type EmitFn = (name: "changed" | "run", payload: Record<string, unknown>) => void;
+
 function harness(params?: {
-  emit?: (name: "changed" | "run", payload: Record<string, unknown>) => void;
+  emit?: Mock<EmitFn>;
   runs?: { start: ReturnType<typeof vi.fn>; cancel: ReturnType<typeof vi.fn> };
   blob?: { bytes: Uint8Array; metadata: { contentType: string } };
 }) {
@@ -34,7 +37,7 @@ function harness(params?: {
     runs: memoryKeyed() as never,
     creds: memoryKeyed() as never,
   });
-  const emit = params?.emit ?? vi.fn();
+  const emit = params?.emit ?? vi.fn<EmitFn>();
   const runs = params?.runs ?? { start: vi.fn(), cancel: vi.fn() };
   const creds = {
     set: vi.fn<(key: string, value: string) => Promise<void>>(async () => {}),
@@ -71,7 +74,7 @@ const baseDuty = {
   steps: [],
   triggers: [{ kind: "manual" }],
   updatedAt: 0,
-};
+} satisfies Duty;
 
 describe("duties gateway methods", () => {
   it("saves a valid duty, lists it, and rejects an invalid one", async () => {
@@ -90,7 +93,7 @@ describe("duties gateway methods", () => {
   });
 
   it("still responds ok:true for duties.save when the emitter throws", async () => {
-    const emit = vi.fn(() => {
+    const emit = vi.fn<EmitFn>(() => {
       throw new Error("boom");
     });
     const { call } = harness({ emit });

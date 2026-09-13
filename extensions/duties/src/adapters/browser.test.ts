@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createBrowserAdapter, resolveRef } from "./browser.js";
+import { asRequest } from "./test-helpers.js";
 
 const REFS = {
   e33: { role: "textbox", name: "User Name" },
@@ -57,7 +58,7 @@ describe("createBrowserAdapter", () => {
       if (path === "/snapshot") return { refs: REFS };
       return { ok: true };
     });
-    const b = createBrowserAdapter({ request, profile: "chrome" });
+    const b = createBrowserAdapter({ request: asRequest(request), profile: "chrome" });
     expect(await b.open("https://x")).toEqual({ targetId: "T1" });
     await b.fill("T1", { css: "#UserId" }, "ask");
     await b.click("T1", { role: "textbox", name: "User Name" });
@@ -84,7 +85,7 @@ describe("createBrowserAdapter", () => {
 
   it("fails clearly when a target cannot be resolved", async () => {
     const request = vi.fn(async () => ({ refs: REFS }));
-    const b = createBrowserAdapter({ request, profile: "chrome" });
+    const b = createBrowserAdapter({ request: asRequest(request), profile: "chrome" });
     await expect(b.click("T1", { role: "button", name: "Sign-in" })).rejects.toThrow(
       /2 matches|ambiguous/u,
     );
@@ -97,7 +98,7 @@ describe("createBrowserAdapter", () => {
       if (body?.kind === "wait" && body.selector === "#missing") throw new Error("timed out");
       return { ok: true };
     });
-    const b = createBrowserAdapter({ request, profile: "chrome" });
+    const b = createBrowserAdapter({ request: asRequest(request), profile: "chrome" });
     expect(await b.isVisible("T1", { css: "#present" })).toBe(true);
     expect(await b.isVisible("T1", { css: "#missing" })).toBe(false);
     const waitBody = request.mock.calls.find(
@@ -108,7 +109,7 @@ describe("createBrowserAdapter", () => {
 
   it("resolves role/name/text visibility strictly from resolveRef's match count", async () => {
     const request = vi.fn(async () => ({ refs: REFS }));
-    const b = createBrowserAdapter({ request, profile: "chrome" });
+    const b = createBrowserAdapter({ request: asRequest(request), profile: "chrome" });
     expect(await b.isVisible("T1", { role: "textbox", name: "User Name" })).toBe(true);
     expect(await b.isVisible("T1", { role: "button", name: "Sign-in" })).toBe(false); // ambiguous
     expect(await b.isVisible("T1", { role: "button", name: "Nope" })).toBe(false); // not found
@@ -124,7 +125,7 @@ describe("createBrowserAdapter", () => {
       }
       return { ok: true };
     });
-    const b = createBrowserAdapter({ request, profile: "chrome" });
+    const b = createBrowserAdapter({ request: asRequest(request), profile: "chrome" });
     await b.click("T1", { role: "heading", name: "Welcome" });
     const snapshotCalls = request.mock.calls.filter(
       ([, p]) => (p as { path?: string }).path === "/snapshot",
@@ -149,7 +150,7 @@ describe("createBrowserAdapter", () => {
       if (body?.kind === "evaluate") return { ok: true, targetId: "T1", url: "https://x" };
       return { ok: true };
     });
-    const b = createBrowserAdapter({ request, profile: "chrome" });
+    const b = createBrowserAdapter({ request: asRequest(request), profile: "chrome" });
     expect(await b.evaluate("T1", "() => null")).toBeNull();
     expect(await b.evaluate("T1", "() => undefined")).toBeUndefined();
   });
@@ -158,7 +159,11 @@ describe("createBrowserAdapter", () => {
     const request = vi.fn(async (_m: string, _params: Record<string, unknown>) => ({
       targetId: "T1",
     }));
-    const b = createBrowserAdapter({ request, profile: "chrome", tabLabel: "duty:book-flight" });
+    const b = createBrowserAdapter({
+      request: asRequest(request),
+      profile: "chrome",
+      tabLabel: "duty:book-flight",
+    });
     await b.open("https://x");
     expect(request.mock.calls[0]?.[1]).toMatchObject({
       path: "/tabs/open",
@@ -168,7 +173,7 @@ describe("createBrowserAdapter", () => {
 
   it("carries the authored wait budget into the act body and the request timeout", async () => {
     const request = vi.fn(async (_m: string, _params: Record<string, unknown>) => ({ ok: true }));
-    const b = createBrowserAdapter({ request, profile: "chrome" });
+    const b = createBrowserAdapter({ request: asRequest(request), profile: "chrome" });
     await b.waitFor("T1", { text: "Booked", timeoutMs: 60_000 });
     const [, params] = request.mock.calls[0]!;
     expect(params).toMatchObject({
@@ -181,7 +186,7 @@ describe("createBrowserAdapter", () => {
     const request = vi.fn(async (_m: string, params: Record<string, unknown>) =>
       (params.path as string) === "/snapshot" ? { refs: REFS } : { ok: true },
     );
-    const b = createBrowserAdapter({ request, profile: "chrome" });
+    const b = createBrowserAdapter({ request: asRequest(request), profile: "chrome" });
     await b.click("T1", { role: "textbox", name: "User Name" }, 45_000);
     const clickCall = request.mock.calls.find(
       ([, p]) => ((p.body as { kind?: string }) ?? {}).kind === "click",
@@ -197,7 +202,7 @@ describe("createBrowserAdapter", () => {
     const request = vi.fn(async () => {
       throw new Error("browser.request failed: connectOverCDP: Timeout 9000ms exceeded");
     });
-    const b = createBrowserAdapter({ request, profile: "chrome" });
+    const b = createBrowserAdapter({ request: asRequest(request), profile: "chrome" });
     await expect(b.isVisible("T1", { css: "#account" })).rejects.toThrow(/connectOverCDP/u);
   });
 
@@ -209,7 +214,7 @@ describe("createBrowserAdapter", () => {
       if (snapshots === 1) throw new Error("connectOverCDP: Timeout 9000ms exceeded");
       return { refs: REFS };
     });
-    const b = createBrowserAdapter({ request, profile: "chrome" });
+    const b = createBrowserAdapter({ request: asRequest(request), profile: "chrome" });
     await b.click("T1", { role: "textbox", name: "User Name" });
     expect(snapshots).toBe(2);
     expect(b.drainRetryNotes?.()).toEqual(["retried snapshot once"]);
@@ -223,7 +228,7 @@ describe("createBrowserAdapter", () => {
       snapshots += 1;
       throw new Error("act wait timed out after 20000ms");
     });
-    const b = createBrowserAdapter({ request, profile: "chrome" });
+    const b = createBrowserAdapter({ request: asRequest(request), profile: "chrome" });
     await expect(b.click("T1", { role: "textbox", name: "User Name" })).rejects.toThrow(
       /timed out/u,
     );
@@ -240,14 +245,14 @@ describe("createBrowserAdapter", () => {
       }
       return { ok: true };
     });
-    const b = createBrowserAdapter({ request, profile: "chrome" });
+    const b = createBrowserAdapter({ request: asRequest(request), profile: "chrome" });
     await expect(b.navigate("T1", "https://x")).rejects.toThrow(/ECONNRESET/u);
     expect(navigates).toBe(1);
   });
 
   it("maps an unconditional waitFor to a single timed wait action", async () => {
-    const request = vi.fn(async () => ({ ok: true }));
-    const b = createBrowserAdapter({ request, profile: "chrome" });
+    const request = vi.fn(async (_m: string, _params: Record<string, unknown>) => ({ ok: true }));
+    const b = createBrowserAdapter({ request: asRequest(request), profile: "chrome" });
     await b.waitFor("T1", {});
     let waitBody = request.mock.calls.find(
       ([, p]) => (p.body as { kind?: string })?.kind === "wait",

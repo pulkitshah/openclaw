@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createAiAdapter } from "./ai.js";
 import { createAskAdapter } from "./ask.js";
+import { asRequest } from "./test-helpers.js";
 
 describe("ai adapter", () => {
   it("invokes llm-task and returns its JSON object", async () => {
@@ -9,7 +10,7 @@ describe("ai adapter", () => {
       toolName: "llm-task",
       output: { content: [{ type: "text", text: JSON.stringify({ origin: "IXU" }) }] },
     }));
-    const ai = createAiAdapter({ request, sessionKey: "main" });
+    const ai = createAiAdapter({ request: asRequest(request), sessionKey: "main" });
     await expect(
       ai.extract({ instruction: "x", input: "mail", schema: { type: "object" } }),
     ).resolves.toEqual({ origin: "IXU" });
@@ -32,7 +33,7 @@ describe("ai adapter", () => {
         details: { json: { origin: "IXU" } },
       },
     }));
-    const ai = createAiAdapter({ request, sessionKey: "main" });
+    const ai = createAiAdapter({ request: asRequest(request), sessionKey: "main" });
     await expect(
       ai.extract({ instruction: "x", input: "mail", schema: { type: "object" } }),
     ).resolves.toEqual({ origin: "IXU" });
@@ -44,7 +45,7 @@ describe("ai adapter", () => {
       toolName: "llm-task",
       output: { details: { json: { json: "the raw mail text", origin: "IXU" } } },
     }));
-    const ai = createAiAdapter({ request, sessionKey: "main" });
+    const ai = createAiAdapter({ request: asRequest(request), sessionKey: "main" });
     await expect(
       ai.extract({ instruction: "x", input: "mail", schema: { type: "object" } }),
     ).resolves.toEqual({ json: "the raw mail text", origin: "IXU" });
@@ -56,7 +57,7 @@ describe("ai adapter", () => {
       toolName: "llm-task",
       error: { type: "not_found", message: "tool llm-task not found" },
     }));
-    const ai = createAiAdapter({ request, sessionKey: "main" });
+    const ai = createAiAdapter({ request: asRequest(request), sessionKey: "main" });
     await expect(
       ai.extract({ instruction: "x", input: "mail", schema: { type: "object" } }),
     ).rejects.toThrow("tool llm-task not found");
@@ -69,7 +70,7 @@ describe("ai adapter", () => {
       requiresApproval: true,
       error: { code: "requires_approval", message: "confirmation required" },
     }));
-    const ai = createAiAdapter({ request, sessionKey: "main" });
+    const ai = createAiAdapter({ request: asRequest(request), sessionKey: "main" });
     await expect(
       ai.extract({ instruction: "x", input: "mail", schema: { type: "object" } }),
     ).rejects.toThrow(/approval/);
@@ -86,7 +87,7 @@ describe("ask adapter", () => {
         ? { status: "pending" }
         : { status: "answered", answers: { answers: { account: ["LIC Nagpur"] } } };
     });
-    const ask = createAskAdapter({ request, sessionKey: "main", pollMs: 1 });
+    const ask = createAskAdapter({ request: asRequest(request), sessionKey: "main", pollMs: 1 });
     await expect(
       ask.ask({
         stepId: "account",
@@ -114,7 +115,7 @@ describe("ask adapter", () => {
         ? { id: "q-42", expiresAtMs: 1 }
         : { status: "answered", answers: { answers: { otp: ["1234"] } } },
     );
-    const ask = createAskAdapter({ request, sessionKey: "main", pollMs: 1 });
+    const ask = createAskAdapter({ request: asRequest(request), sessionKey: "main", pollMs: 1 });
     const asked: string[] = [];
     await ask.ask({
       stepId: "otp",
@@ -130,7 +131,7 @@ describe("ask adapter", () => {
     const request = vi.fn(async (method: string) =>
       method === "question.request" ? { id: "q1", expiresAtMs: 1 } : { status: "expired" },
     );
-    const ask = createAskAdapter({ request, sessionKey: "main", pollMs: 1 });
+    const ask = createAskAdapter({ request: asRequest(request), sessionKey: "main", pollMs: 1 });
     await expect(
       ask.ask({ stepId: "otp", question: "Code?", header: "OTP", options: [] }),
     ).resolves.toEqual({ status: "timeout" });
