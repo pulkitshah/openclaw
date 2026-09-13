@@ -10,6 +10,20 @@ export type RunStatus =
   | "needs_input"
   | "cancelled"
   | "lost";
+export type RunOrigin = {
+  kind: "chat" | "mail" | "manual";
+  sessionKey?: string;
+  agentId?: string;
+  channel?: string;
+  accountId?: string;
+};
+export type RunFile = {
+  stepId: string;
+  name: string;
+  path: string;
+  bytes: number;
+  contentType: string;
+};
 export type StepEvidence = {
   stepId: string;
   label: string;
@@ -36,6 +50,8 @@ export type DutyRun = {
   report?: string;
   waitingOn?: { questionId: string; stepId: string };
   targetId?: string;
+  origin?: RunOrigin;
+  files?: RunFile[];
 };
 
 type Keyed<T> = {

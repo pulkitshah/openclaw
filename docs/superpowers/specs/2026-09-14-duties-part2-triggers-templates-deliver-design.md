@@ -26,6 +26,18 @@ file in Telegram gets the PDF back in that chat.
   print / for-each steps, failure repair, the build-session machine view and its Template tab,
   desktop steps, registers. Each is a later slice.
 
+### 1.1 Planning deviations
+
+- The owner delivery target lives in the plugin keyed store `settings` namespace, set on the
+  Duties page, not in plugin config.
+- Rendered HTML is served once over a Gateway HTTP route (`auth: "plugin"`, single-use token,
+  60 s TTL) because the browser plugin only navigates to http(s).
+- Rendered PDFs are files under `<stateDir>/plugins/duties/files/<runId>/`, not blob entries.
+- `openclaw duties setup-mail` prints config snippets and commands and verifies prerequisites, it
+  does not mutate openclaw.json.
+- The Gmail hook payload documents only `id, from, subject, snippet, body` — `threadId` is not
+  relied on.
+
 ## 2. Verified platform facts this design builds on
 
 | Fact                                                                                                                                                                                      | Where                                                                                  |

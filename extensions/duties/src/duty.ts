@@ -9,8 +9,16 @@ export type Check = {
   url_matches?: string;
   non_empty?: string;
 };
-type StepKind = "browser" | "browser.evaluate" | "ai" | "ask";
-const STEP_KINDS: readonly StepKind[] = ["browser", "browser.evaluate", "ai", "ask"];
+export type StepKind = "browser" | "browser.evaluate" | "ai" | "ask" | "template" | "deliver";
+const STEP_KINDS: readonly StepKind[] = [
+  "browser",
+  "browser.evaluate",
+  "ai",
+  "ask",
+  "template",
+  "deliver",
+];
+export type TemplateFill = { from: string } | { ai: string };
 export type Step = {
   id: string;
   kind: StepKind;
@@ -37,11 +45,19 @@ type StopNode = { kind: "stop"; label: string; reason: string };
 export type DutyNode = Step | WhenNode | StopNode;
 export type DutyInput = {
   name: string;
-  source: "ask" | "file" | "trigger" | "cred" | "literal";
+  source: "ask" | "file" | "mail" | "trigger" | "cred" | "literal";
   prompt?: string;
   value?: string;
+  /** Only meaningful for `mail`/`file`: default true — a run without it fails before step 1. */
+  required?: boolean;
 };
-export type DutyTrigger = { kind: "manual" | "webhook"; secret?: string };
+export type DutyTrigger =
+  | { kind: "manual" }
+  | { kind: "mail"; match: string }
+  | { kind: "chat"; match: string };
+const INPUT_SOURCES = ["ask", "file", "mail", "trigger", "cred", "literal"] as const;
+const TRIGGER_KINDS = ["manual", "mail", "chat"] as const;
+const DELIVER_ROUTES = ["trigger", "owner"] as const;
 export type Duty = {
   id: string;
   name: string;
@@ -184,6 +200,57 @@ function validateStepParams(node: Record<string, unknown>, path: string, errors:
     if (credValueAllowed && key === "value" && typeof value === "string") continue;
     rejectCredStrings(value, `${path}.params.${key}`, errors);
   }
+  if (node.kind === "template") validateTemplateParams(params, `${path}.params`, errors);
+  if (node.kind === "deliver") validateDeliverParams(params, `${path}.params`, errors);
+}
+
+function validateTemplateParams(
+  params: Record<string, unknown>,
+  path: string,
+  errors: string[],
+): void {
+  if (typeof params.template !== "string" || !params.template.trim())
+    errors.push(`${path}.template: must be a non-empty string`);
+  if (params.format !== undefined && params.format !== "pdf" && params.format !== "message")
+    errors.push(`${path}.format: must be pdf or message`);
+  if (!isRecord(params.fill)) {
+    errors.push(`${path}.fill: must be an object of slot → { from } | { ai }`);
+    return;
+  }
+  for (const [slot, fill] of Object.entries(params.fill)) {
+    const okFrom =
+      isRecord(fill) && typeof fill.from === "string" && Object.keys(fill).length === 1;
+    const okAi =
+      isRecord(fill) &&
+      typeof fill.ai === "string" &&
+      fill.ai.trim() &&
+      Object.keys(fill).length === 1;
+    if (!okFrom && !okAi) errors.push(`${path}.fill.${slot}: must be { from } or { ai }`);
+  }
+}
+
+function validateDeliverParams(
+  params: Record<string, unknown>,
+  path: string,
+  errors: string[],
+): void {
+  if (typeof params.to !== "string" || !params.to.trim()) {
+    errors.push(`${path}.to: must be "trigger", "owner", or a channel target`);
+    return;
+  }
+  // SAFETY: includes() is the runtime check; the cast only lets an arbitrary string be compared.
+  const explicit = !DELIVER_ROUTES.includes(params.to as (typeof DELIVER_ROUTES)[number]);
+  if (explicit && (typeof params.channel !== "string" || !params.channel.trim()))
+    errors.push(`${path}.channel: required when to is not "trigger" or "owner"`);
+  if (params.text !== undefined && typeof params.text !== "string")
+    errors.push(`${path}.text: must be a string`);
+  if (
+    params.files !== undefined &&
+    (!Array.isArray(params.files) || params.files.some((f) => typeof f !== "string"))
+  )
+    errors.push(`${path}.files: must be an array of {{file:<stepId>}} strings`);
+  if (params.text === undefined && params.files === undefined)
+    errors.push(`${path}: deliver needs text and/or files`);
 }
 
 function validateNodes(nodes: unknown, path: string, errors: string[], seenIds: Set<string>): void {
@@ -253,10 +320,9 @@ export function validateDuty(
       }
       if (typeof inp.name !== "string" || !inp.name.trim())
         errors.push(`inputs[${idx}].name: must be a non-empty string`);
-      const sources = ["ask", "file", "trigger", "cred", "literal"] as const;
       // SAFETY: includes() is the actual runtime membership check; the cast only lets an arbitrary inp.source be compared, and a non-matching value is reported as an error.
-      if (!sources.includes(inp.source as (typeof sources)[number]))
-        errors.push(`inputs[${idx}].source: must be one of ${sources.join(", ")}`);
+      if (!INPUT_SOURCES.includes(inp.source as (typeof INPUT_SOURCES)[number]))
+        errors.push(`inputs[${idx}].source: must be one of ${INPUT_SOURCES.join(", ")}`);
     });
   }
   if (!Array.isArray(input.triggers)) errors.push("triggers must be an array");
@@ -267,10 +333,14 @@ export function validateDuty(
         errors.push(`triggers[${idx}]: must be an object`);
         return;
       }
-      const kinds = ["manual", "webhook"] as const;
       // SAFETY: includes() is the actual runtime membership check; the cast only lets an arbitrary trg.kind be compared, and a non-matching value is reported as an error.
-      if (!kinds.includes(trg.kind as (typeof kinds)[number]))
-        errors.push(`triggers[${idx}].kind: must be one of ${kinds.join(", ")}`);
+      if (!TRIGGER_KINDS.includes(trg.kind as (typeof TRIGGER_KINDS)[number]))
+        errors.push(`triggers[${idx}].kind: must be one of ${TRIGGER_KINDS.join(", ")}`);
+      if (
+        (trg.kind === "mail" || trg.kind === "chat") &&
+        (typeof trg.match !== "string" || !trg.match.trim())
+      )
+        errors.push(`triggers[${idx}].match: must be a non-empty string`);
     });
   }
   if (typeof input.updatedAt !== "number") errors.push("updatedAt must be a number");
@@ -279,7 +349,41 @@ export function validateDuty(
   return errors.length ? { ok: false, errors } : { ok: true, duty: input as unknown as Duty };
 }
 
-const PLACEHOLDER_RE = /\{\{(out|in|cred):([A-Za-z0-9_.-]+)\}\}/gu;
+/** Checks the inputs handed to a run against the Duty's declared `mail`/`file` inputs. Returns
+ *  one message per problem; an empty array means the run may start. */
+export function validateRunInputs(duty: Duty, inputs: Record<string, unknown>): string[] {
+  const errors: string[] = [];
+  for (const input of duty.inputs) {
+    if (input.source !== "mail" && input.source !== "file") continue;
+    const value = inputs[input.name];
+    if (value === undefined) {
+      if (input.required !== false) errors.push(`input "${input.name}" is required`);
+      continue;
+    }
+    if (!isRecord(value)) {
+      errors.push(`input "${input.name}": must be an object`);
+      continue;
+    }
+    const need = input.source === "mail" ? ["from", "subject", "body"] : ["name", "path"];
+    for (const field of need) {
+      if (typeof value[field] !== "string")
+        errors.push(`input "${input.name}": ${field} must be a string`);
+    }
+  }
+  return errors;
+}
+
+const PLACEHOLDER_RE = /\{\{(out|in|cred|file):([A-Za-z0-9_.-]+)\}\}/gu;
+
+function readPath(root: unknown, dotted: string): unknown {
+  let cur: unknown = root;
+  for (const segment of dotted.split(".")) {
+    if (Array.isArray(cur)) cur = cur[Number(segment)];
+    else if (isRecord(cur)) cur = cur[segment];
+    else return undefined;
+  }
+  return cur;
+}
 
 export async function resolvePlaceholders(
   value: string,
@@ -287,6 +391,8 @@ export async function resolvePlaceholders(
     out: Record<string, unknown>;
     in: Record<string, unknown>;
     cred?: (key: string) => Promise<string>;
+    /** Path of the file a `template` step produced; only `deliver`/`template` params may use it. */
+    file?: (stepId: string) => string | undefined;
   },
 ): Promise<string> {
   let result = value;
@@ -296,9 +402,13 @@ export async function resolvePlaceholders(
     const key = match[2];
     if (!whole || !scope || !key) continue;
     let replacement = "";
-    if (scope === "out") replacement = stringify(ctx.out[key]);
-    else if (scope === "in") replacement = stringify(ctx.in[key]);
-    else {
+    if (scope === "out") replacement = stringify(readPath(ctx.out, key));
+    else if (scope === "in") replacement = stringify(readPath(ctx.in, key));
+    else if (scope === "file") {
+      const path = ctx.file?.(key);
+      if (!path) throw new Error(`no file from step "${key}"`);
+      replacement = path;
+    } else {
       if (!ctx.cred) throw new Error(`no credential stored for ${key}`);
       replacement = await ctx.cred(key);
     }

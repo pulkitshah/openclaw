@@ -115,7 +115,10 @@ function renderNode(node: DutyNode, counter: { n: number }): string {
 
 function triggerChips(triggers: readonly DutyTrigger[]): string {
   return triggers
-    .map((t) => `<span class="chip trig">${t.kind === "webhook" ? "Webhook" : "Manual"}</span>`)
+    .map(
+      (t) =>
+        `<span class="chip trig">${t.kind === "mail" ? "Mail" : t.kind === "chat" ? "Chat" : "Manual"}</span>`,
+    )
     .join("");
 }
 
@@ -201,9 +204,13 @@ function inputRow(input: DutyInput): string {
 }
 
 function triggerRow(trigger: DutyTrigger): string {
-  const label = trigger.kind === "webhook" ? "Webhook" : "Manual (chat or Run button)";
-  const detail =
-    trigger.kind === "webhook" ? (trigger.secret ? "secret required" : "no secret set") : "—";
+  const label =
+    trigger.kind === "mail"
+      ? "Mail"
+      : trigger.kind === "chat"
+        ? "Chat"
+        : "Manual (chat or Run button)";
+  const detail = trigger.kind === "mail" || trigger.kind === "chat" ? trigger.match : "—";
   return `<dt>${esc(label)}</dt><dd>${esc(detail)}</dd>`;
 }
 

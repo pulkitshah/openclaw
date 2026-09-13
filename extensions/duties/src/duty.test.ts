@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolvePlaceholders, validateDuty } from "./duty.js";
+import { resolvePlaceholders, validateDuty, validateRunInputs, type Duty } from "./duty.js";
 
 const base = {
   id: "book-flight",
@@ -361,5 +361,126 @@ describe("resolvePlaceholders", () => {
       cred: async () => "p$$w0rd$&",
     });
     expect(out).toBe("password: p$$w0rd$&");
+  });
+});
+
+describe("Part 2 model", () => {
+  const base = () => ({
+    id: "t",
+    name: "T",
+    summary: "",
+    status: "active",
+    machine: "gateway",
+    reportsTo: "owner",
+    inputs: [],
+    steps: [],
+    triggers: [{ kind: "manual" }],
+    updatedAt: 1,
+  });
+
+  it("accepts mail and chat triggers with a match and rejects them without one", () => {
+    const ok = validateDuty({
+      ...base(),
+      triggers: [
+        { kind: "mail", match: "travel requests" },
+        { kind: "chat", match: "a forwarded request" },
+      ],
+    });
+    expect(ok.ok).toBe(true);
+    const bad = validateDuty({ ...base(), triggers: [{ kind: "mail" }] });
+    expect(bad.ok).toBe(false);
+    if (!bad.ok) expect(bad.errors.join()).toMatch(/triggers\[0\]\.match/u);
+  });
+
+  it("validates template and deliver step params", () => {
+    const good = validateDuty({
+      ...base(),
+      steps: [
+        {
+          id: "t1",
+          kind: "template",
+          label: "Render options",
+          params: {
+            template: "flight-options",
+            fill: { route: { from: "{{out:route}}" }, notes: { ai: "Summarize" } },
+          },
+        },
+        {
+          id: "d1",
+          kind: "deliver",
+          label: "Send it",
+          params: { to: "trigger", text: "Here you go", files: ["{{file:t1}}"] },
+        },
+      ],
+    });
+    expect(good.ok).toBe(true);
+    const bad = validateDuty({
+      ...base(),
+      steps: [
+        { id: "t1", kind: "template", label: "Render", params: { fill: { x: { nope: 1 } } } },
+        { id: "d1", kind: "deliver", label: "Send", params: { to: "someone" } },
+      ],
+    });
+    expect(bad.ok).toBe(false);
+    if (!bad.ok) {
+      expect(bad.errors.join("\n")).toMatch(/params\.template: must be a non-empty string/u);
+      expect(bad.errors.join("\n")).toMatch(/params\.fill\.x: must be \{ from \} or \{ ai \}/u);
+      expect(bad.errors.join("\n")).toMatch(
+        /params\.channel: required when to is not "trigger" or "owner"/u,
+      );
+    }
+  });
+
+  it("rejects a cred placeholder inside template fill and deliver text", () => {
+    const bad = validateDuty({
+      ...base(),
+      steps: [
+        {
+          id: "d1",
+          kind: "deliver",
+          label: "Send",
+          params: { to: "owner", text: "{{cred:site.password}}" },
+        },
+      ],
+    });
+    expect(bad.ok).toBe(false);
+  });
+
+  it("resolves nested input paths and file placeholders", async () => {
+    const out = await resolvePlaceholders(
+      "{{in:mail.attachments.0.text}} / {{in:mail.subject}} / {{file:t1}}",
+      {
+        out: {},
+        in: { mail: { subject: "Ref G703", attachments: [{ text: "PDF TEXT" }] } },
+        file: (id) => (id === "t1" ? "/tmp/x.pdf" : undefined),
+      },
+    );
+    expect(out).toBe("PDF TEXT / Ref G703 / /tmp/x.pdf");
+    await expect(resolvePlaceholders("{{file:zz}}", { out: {}, in: {} })).rejects.toThrow(
+      /no file from step "zz"/u,
+    );
+  });
+
+  it("validateRunInputs requires declared mail/file inputs with the right shape", () => {
+    const duty = {
+      ...base(),
+      inputs: [
+        { name: "mail", source: "mail" },
+        { name: "sheet", source: "file", required: false },
+      ],
+    };
+    // SAFETY: test fixture shaped like a Duty; validateRunInputs only reads inputs[].
+    const d = duty as unknown as Duty;
+    expect(validateRunInputs(d, {})).toEqual(['input "mail" is required']);
+    expect(validateRunInputs(d, { mail: { from: "a@b", subject: "s" } })).toEqual([
+      'input "mail": body must be a string',
+    ]);
+    expect(validateRunInputs(d, { mail: { from: "a@b", subject: "s", body: "b" } })).toEqual([]);
+    expect(
+      validateRunInputs(d, {
+        mail: { from: "a@b", subject: "s", body: "b" },
+        sheet: { name: "x" },
+      }),
+    ).toEqual(['input "sheet": path must be a string']);
   });
 });
