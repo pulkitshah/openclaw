@@ -20,6 +20,39 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+/**
+ * Resolves every string leaf of a param, through arrays and plain objects rather than only at the
+ * top level. An `ai` step's `params.input` is routinely an object or an array — that is how a
+ * model is handed a named payload — and resolving only top-level strings shipped the literal text
+ * `{{out:key}}` to the model: no error, no failed step, just an answer about the placeholder
+ * instead of the value.
+ *
+ * Non-string leaves are returned untouched, so a schema's numbers and booleans survive. The
+ * per-leaf resolver decides which placeholder kinds are legal, so nesting widens nothing: a
+ * `{{cred:...}}` buried in an object still reaches the cred-free resolver and fails the step, and
+ * `validateDuty` already walks nested params to reject it at authoring time
+ * (`rejectCredStrings`/`forEachString`, duty.ts).
+ */
+async function resolveTree(
+  value: unknown,
+  resolveString: (text: string) => Promise<string>,
+): Promise<unknown> {
+  if (typeof value === "string") return resolveString(value);
+  if (Array.isArray(value)) {
+    const out: unknown[] = [];
+    for (const item of value) out.push(await resolveTree(item, resolveString));
+    return out;
+  }
+  if (isRecord(value)) {
+    const out: Record<string, unknown> = {};
+    for (const [key, item] of Object.entries(value)) {
+      out[key] = await resolveTree(item, resolveString);
+    }
+    return out;
+  }
+  return value;
+}
+
 /** Every acting verb takes the authored step budget so a `timeoutMs: 60000` step is not silently
  *  capped at the adapter's blanket default. */
 export type BrowserAdapter = {
@@ -160,7 +193,7 @@ export async function runDuty(
    *  `fill`/`select` value fails the step loudly instead of shipping the secret onward
    *  (`validateDuty` rejects those at authoring time; this is the run-time backstop). */
   const resolve = (value: unknown) =>
-    typeof value === "string" ? resolvePlaceholders(value, ctx()) : Promise.resolve(value);
+    resolveTree(value, (text) => resolvePlaceholders(text, ctx()));
   /** The one cred-capable resolver, used only for a browser `fill`/`select` value. */
   const resolveSecret = (value: string) =>
     resolvePlaceholders(value, { ...ctx(), cred: trackedCred });
@@ -169,12 +202,12 @@ export async function runDuty(
    *  getter and so fails the step instead of putting a gateway-local path into a browser field, an
    *  ai prompt or a question the owner reads. */
   const resolveWithFiles = (value: unknown) =>
-    typeof value === "string"
-      ? resolvePlaceholders(value, {
-          ...ctx(),
-          file: (stepId) => files.find((f) => f.stepId === stepId)?.path,
-        })
-      : Promise.resolve(value);
+    resolveTree(value, (text) =>
+      resolvePlaceholders(text, {
+        ...ctx(),
+        file: (stepId) => files.find((f) => f.stepId === stepId)?.path,
+      }),
+    );
   const requireTab = (): string => {
     if (!targetId) throw new Error("no browser tab: add an open step first");
     return targetId;

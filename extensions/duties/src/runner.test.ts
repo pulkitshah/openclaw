@@ -93,6 +93,58 @@ const duty = (steps: Duty["steps"]): Duty => ({
 });
 
 describe("runDuty", () => {
+  // Regression: placeholders were resolved only when a param was a string at the top level, so an
+  // `ai` step whose `params.input` is an object or array — the normal way to hand a model a
+  // named payload — reached the model with the literal text "{{out:key}}". No error, no failed
+  // step: the model just answered about the placeholder instead of the value.
+  it("resolves placeholders inside object and array params, not only top-level strings", async () => {
+    const seen: unknown[] = [];
+    const deps = fakeDeps({
+      ai: {
+        extract: async ({ input }) => {
+          seen.push(input);
+          return { requester: "os.nagpur@licindia.com", matched: "true" };
+        },
+      },
+    });
+
+    const outcome = await runDuty(
+      duty([
+        {
+          id: "s1",
+          kind: "ai",
+          label: "Read the requester",
+          params: { instruction: "extract", input: "{{in:mail}}", schema: { type: "object" } },
+          saveAs: ["requester"],
+        },
+        {
+          id: "s2",
+          kind: "ai",
+          label: "Match the requester to a client",
+          params: {
+            instruction: "match {{out:requester}} against the register",
+            input: {
+              requester: "{{out:requester}}",
+              register: [{ email: "os.nagpur@licindia.com", clientId: "91925" }],
+              note: ["asked by {{out:requester}}", 7, null],
+            },
+            schema: { type: "object" },
+          },
+          saveAs: ["matched"],
+        },
+      ]),
+      deps,
+      { inputs: { mail: "From: os.nagpur@licindia.com" } },
+    );
+
+    expect(outcome.status).toBe("ok");
+    expect(seen[1]).toEqual({
+      requester: "os.nagpur@licindia.com",
+      register: [{ email: "os.nagpur@licindia.com", clientId: "91925" }],
+      note: ["asked by os.nagpur@licindia.com", 7, null],
+    });
+  });
+
   it("runs browser, ai and ask steps, resolves placeholders and records evidence", async () => {
     const deps = fakeDeps();
     const outcome = await runDuty(
