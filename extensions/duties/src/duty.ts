@@ -1,3 +1,5 @@
+import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
+
 export type DutyStatus = "active" | "paused" | "building";
 export const DUTY_STATUSES: readonly DutyStatus[] = ["active", "paused", "building"];
 export type Target = { role?: string; name?: string; text?: string; css?: string };
@@ -54,10 +56,6 @@ export type Duty = {
 
 const ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 const SELECTOR_LABEL_RE = /^[#.[]|^role=|^css=/u;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 function validateTarget(target: unknown, path: string, errors: string[]): void {
   if (!isRecord(target)) {
