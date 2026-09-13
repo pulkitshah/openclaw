@@ -194,6 +194,19 @@ describe("runDuty", () => {
     expect(partial.targetId).toBe("t1");
     expect(deps.calls).not.toContain("close");
   });
+  it("resumes an open step in the tab it was handed instead of opening a new one", async () => {
+    const deps = fakeDeps();
+    const resumed = await runDuty(
+      duty([
+        { id: "s1", kind: "browser", label: "Open", params: { action: "open", url: "https://x" } },
+      ]),
+      deps,
+      { inputs: {}, keepOpen: true, targetId: "handed-tab" },
+    );
+    expect(resumed.status).toBe("ok");
+    expect(resumed.targetId).toBe("handed-tab");
+    expect(deps.calls).toEqual(["navigate https://x"]);
+  });
 });
 
 // Matches runner.ts's private MASK constant; kept local since the runner does not

@@ -172,7 +172,15 @@ export async function runDuty(
         const action = String(step.params.action);
         if (action === "open") {
           const url = String(await resolve(step.params.url));
-          targetId = (await deps.browser.open(url)).targetId;
+          // Authoring hands the next run the tab the previous stage left open (`keepOpen` →
+          // `targetId`) so a stage can resume where the last one stopped. Opening a fresh tab
+          // here would throw that away and replay the whole flow — including a second sign-in
+          // on sites that allow only one session. Reuse the tab we were given instead.
+          if (targetId) {
+            await deps.browser.navigate(targetId, url);
+          } else {
+            targetId = (await deps.browser.open(url)).targetId;
+          }
           summary = url;
         } else if (action === "navigate") {
           const url = String(await resolve(step.params.url));
