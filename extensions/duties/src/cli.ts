@@ -1,7 +1,8 @@
 /**
- * `openclaw duties setup-mail --account <email>` — prints the config an operator pastes in (an
- * `agents.entries.duties-mail` agent and a `hooks.mappings[]` Gmail mapping) plus the shell
- * commands that wire the rest up, so a Duty can be dispatched from an inbound Gmail message.
+ * `openclaw duties setup-mail --account <email>` — prints the config an operator pastes in (the
+ * `duties-mail` agent with the ownership and bindings that adding a second agent forces, and the
+ * `hooks` block with the Gmail mapping and the session-key settings that mapping needs) plus the
+ * shell commands that wire the rest up, so a Duty can be dispatched from an inbound Gmail message.
  *
  * `buildMailSetup` is pure and tested on its own; the Commander action below is the only piece
  * that touches the filesystem (a `which gog` lookup) or prints anything.
@@ -29,31 +30,72 @@ export type MailSetupResult = {
   missing: string[];
 };
 
-/** The exact `agents.entries.duties-mail` block an operator pastes into config: a minimal-profile
- *  agent that can only list/get/run Duties, message the owner, and shell out to `gog` — never
- *  the browser, filesystem, web, cron, gateway, or node tools a mail-triggered dispatch has no
- *  business touching. */
+/** The bundled tool every `ai` step runs through. A Duty's `ai` steps are dead without it, and
+ *  nothing else in an install turns it on, so it is wired up here rather than left to be
+ *  discovered one failed run at a time. */
+const LLM_TASK_TOOL = "llm-task";
+
+/** The exact config block an operator pastes in: a minimal-profile dispatcher agent that can only
+ *  list/get/run Duties, message the owner, run an `ai` step, and shell out to `gog` — never the
+ *  browser, filesystem, web, cron, gateway, or node tools a mail-triggered dispatch has no business
+ *  touching.
+ *
+ *  Adding that agent makes the install multi-agent, and the rest of the block is what that forces:
+ *  with a second agent present and no explicit owner, every channel turn, every session key that is
+ *  not agent-scoped, and every ambient call (which is how an `ai` step reaches a model) resolves to
+ *  no agent at all (`AgentSelectionRequiredError`, src/agents/agent-scope-config.ts:42-59) — so
+ *  `agents.ownership`, `agents.defaults.systemAgent` and `bindings` ship alongside it. Pasting the
+ *  agent without them takes the operator's existing channels down and fails every `ai` step.
+ *  `comment` is part of the binding schema (`RouteBindingSchema`,
+ *  src/config/zod-schema.agents.ts:118-125), so the note travels with the config the operator
+ *  pastes rather than being lost with the terminal scrollback. */
 const AGENT_ENTRY_SNIPPET = {
   agents: {
+    ownership: "explicit",
+    defaults: {
+      systemAgent: {
+        agentId: "<your-main-agent-id>",
+      },
+    },
     entries: {
       [MAIL_AGENT_ID]: {
         name: "Duties mail dispatcher",
         skills: ["duties"],
         tools: {
           profile: "minimal",
-          allow: ["duty_list", "duty_get", "duty_run", "message", "exec"],
+          allow: ["duty_list", "duty_get", "duty_run", "message", "exec", LLM_TASK_TOOL],
           deny: ["browser", "group:fs", "group:web", "cron", "gateway", "nodes"],
         },
       },
     },
   },
+  bindings: [
+    {
+      agentId: "<your-main-agent-id>",
+      comment:
+        "Required: one binding per enabled channel once a second agent exists. Without it that channel has no explicit owner and stops answering. Repeat this entry per channel.",
+      match: { channel: "telegram", accountId: "*" },
+    },
+  ],
+  plugins: { entries: { [LLM_TASK_TOOL]: { enabled: true } } },
+  tools: { alsoAllow: [LLM_TASK_TOOL] },
 };
 
-/** The exact `hooks.mappings[]` entry that routes every inbound Gmail message to the dispatcher
- *  agent above, one message at a time, without auto-delivering the agent's reply back to Gmail. */
+/** The exact `hooks` block that routes every inbound Gmail message to the dispatcher agent above,
+ *  one message at a time, without auto-delivering the agent's reply back to Gmail.
+ *
+ *  The four session-key/agent keys are not optional hardening: the mapping asks for a per-message
+ *  `sessionKey`, so the hook receiver needs `allowRequestSessionKey` plus a prefix allowlist that
+ *  covers it, `defaultSessionKey` for a delivery that names none, and `allowedAgentIds` so only
+ *  the dispatcher can be woken this way. Without them an inbound message is rejected before it
+ *  ever reaches the dispatcher. */
 const HOOK_MAPPING_SNIPPET = {
   hooks: {
     enabled: true,
+    defaultSessionKey: "hook:gmail:ingress",
+    allowRequestSessionKey: true,
+    allowedSessionKeyPrefixes: ["hook:gmail:"],
+    allowedAgentIds: [MAIL_AGENT_ID],
     mappings: [
       {
         id: MAIL_AGENT_ID,
@@ -156,10 +198,12 @@ function printMailSetup(params: {
     for (const item of result.missing) console.log(`  - ${item}`);
     console.log("");
   }
-  console.log(`Agent entry — paste under agents.entries.${MAIL_AGENT_ID} if missing:`);
+  console.log(
+    `Agent config — merge into agents, bindings, plugins and tools (the ${MAIL_AGENT_ID} entry needs every other key here):`,
+  );
   console.log(result.snippets.agentEntry);
   console.log("");
-  console.log("Hook mapping — paste into hooks.mappings if missing:");
+  console.log("Hook mapping — merge into hooks (settings and mappings) if missing:");
   console.log(result.snippets.hookMapping);
   console.log("");
   console.log("Commands:");
