@@ -47,6 +47,14 @@ type Keyed<T> = {
 
 export type DutyStores = { duties: Keyed<Duty>; runs: Keyed<DutyRun> };
 
+/** Drops keys whose value is `undefined`. A run patch built from optional outcome fields
+ *  (`failedStep`, `targetId`, `report`) otherwise carries explicit `undefined` values into the
+ *  stored record, and the plugin state store rejects those as not JSON-serializable. Absent
+ *  means "leave unchanged", which is what every caller means by an undefined patch field. */
+function omitUndefined<T extends object>(patch: T): T {
+  return Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined)) as T;
+}
+
 export class DutyStore {
   constructor(private readonly stores: DutyStores) {}
 
@@ -88,7 +96,8 @@ export class DutyStore {
   getRun(id: string) {
     return this.stores.runs.lookup(id);
   }
-  async updateRun(id: string, patch: Partial<DutyRun>): Promise<DutyRun | undefined> {
+  async updateRun(id: string, rawPatch: Partial<DutyRun>): Promise<DutyRun | undefined> {
+    const patch = omitUndefined(rawPatch);
     const store = this.stores.runs;
     if (store.update) {
       const applied = await store.update(id, (cur) => (cur ? { ...cur, ...patch } : undefined));

@@ -125,6 +125,25 @@ describe("DutyStore", () => {
     expect((await store.getRun("r4"))?.status).toBe("lost");
   });
 
+  it("updateRun drops undefined patch fields instead of storing them", async () => {
+    const runs = memoryKeyed<DutyRun>();
+    const withRuns = new DutyStore({ duties: memoryKeyed(), runs });
+    await withRuns.createRun(run("r10", "running"));
+    const patched = await withRuns.updateRun("r10", {
+      status: "ok",
+      failedStep: undefined,
+      targetId: undefined,
+    });
+    expect(patched?.status).toBe("ok");
+    expect(Object.keys(patched ?? {})).not.toContain("failedStep");
+    expect(Object.keys(patched ?? {})).not.toContain("targetId");
+
+    const noUpdate = new DutyStore({ duties: memoryKeyed(), runs: memoryKeyedNoUpdate<DutyRun>() });
+    await noUpdate.createRun(run("r11", "running"));
+    const fallback = await noUpdate.updateRun("r11", { status: "ok", failedStep: undefined });
+    expect(Object.keys(fallback ?? {})).not.toContain("failedStep");
+  });
+
   it("updateRun uses the store's atomic update when available", async () => {
     const runs = spyKeyed<DutyRun>();
     const withSpy = new DutyStore({ duties: memoryKeyed(), runs });
