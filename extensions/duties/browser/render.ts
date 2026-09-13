@@ -9,7 +9,9 @@ import type {
   DutyTrigger,
   Step as DutyStep,
 } from "../src/duty.js";
-import type { DutyRun, RunStatus, StepEvidence } from "../src/store.js";
+import type { MailStatus } from "../src/mail.js";
+import type { DutiesSettings, DutyRun, RunFile, RunStatus, StepEvidence } from "../src/store.js";
+import type { Brand, Template } from "../src/template.js";
 
 function esc(value: unknown): string {
   return String(value ?? "")
@@ -79,6 +81,8 @@ function kindLabel(kind: string): string {
   if (kind === "browser.evaluate") return "Script";
   if (kind === "when") return "When";
   if (kind === "stop") return "Stop";
+  if (kind === "template") return "Template";
+  if (kind === "deliver") return "Deliver";
   return kind;
 }
 
@@ -113,13 +117,14 @@ function renderNode(node: DutyNode, counter: { n: number }): string {
 
 // ---------- Board ----------
 
+function triggerChipLabel(trigger: DutyTrigger): string {
+  if (trigger.kind === "mail") return `Mail: ${trigger.match}`;
+  if (trigger.kind === "chat") return `Chat: ${trigger.match}`;
+  return "Manual";
+}
+
 function triggerChips(triggers: readonly DutyTrigger[]): string {
-  return triggers
-    .map(
-      (t) =>
-        `<span class="chip trig">${t.kind === "mail" ? "Mail" : t.kind === "chat" ? "Chat" : "Manual"}</span>`,
-    )
-    .join("");
+  return triggers.map((t) => `<span class="chip trig">${esc(triggerChipLabel(t))}</span>`).join("");
 }
 
 function lastSuccessfulRun(dutyId: string, runs: readonly DutyRun[]): DutyRun | undefined {
@@ -155,10 +160,68 @@ function dutyCard(duty: Duty, runs: readonly DutyRun[]): string {
 </article>`;
 }
 
+/** Alphabetical: the channel list the owner target form offers, matching the channel plugins
+ *  that can carry an approval/question to a person. */
+const OWNER_CHANNELS = ["discord", "signal", "slack", "telegram", "whatsapp"] as const;
+
+function ownerSettingsForm(settings: DutiesSettings | undefined): string {
+  const owner = settings?.owner;
+  const options = OWNER_CHANNELS.map(
+    (channel) =>
+      `<option value="${channel}"${owner?.channel === channel ? " selected" : ""}>${channel}</option>`,
+  ).join("");
+  return `<div class="ownerform"><label class="fld"><span>Channel</span><select data-settings-channel>${options}</select></label><label class="fld"><span>Target</span><input type="text" data-settings-target value="${esc(owner?.target ?? "")}" placeholder="chat id, phone, @handle"></label><button class="btn primary" data-settings-save>Save</button></div>`;
+}
+
+const MAIL_CHECKS: ReadonlyArray<{ key: keyof MailStatus; label: string }> = [
+  { key: "hooksEnabled", label: "Hooks enabled" },
+  { key: "gmailAccountSet", label: "Gmail account set" },
+  { key: "mappingPresent", label: "Mapped to the mail agent" },
+  { key: "agentPresent", label: "Mail agent present" },
+];
+
+/** Four ✓/✗ checks plus the last dispatch; the setup instruction only appears once one of the
+ *  four is missing, since a fully wired mail trigger needs nothing further from the owner. */
+function mailHealthLine(status: MailStatus | undefined): string {
+  if (!status) return `<p class="muted small">Loading…</p>`;
+  const marks = MAIL_CHECKS.map(
+    ({ key, label }) =>
+      `<span class="mcheck ${status[key] ? "ok" : "bad"}">${status[key] ? "✓" : "✗"} ${esc(label)}</span>`,
+  ).join("");
+  const last = status.lastDispatchAt
+    ? `Last dispatch ${esc(fmtWhen(status.lastDispatchAt))}${
+        status.lastDispatchDutyId
+          ? ` for <span class="mono">${esc(status.lastDispatchDutyId)}</span>`
+          : ""
+      }`
+    : "No mail dispatched yet.";
+  const needsSetup =
+    !status.hooksEnabled ||
+    !status.gmailAccountSet ||
+    !status.mappingPresent ||
+    !status.agentPresent;
+  const setup = needsSetup
+    ? `<p class="mono small">Run: openclaw duties setup-mail --account &lt;you@…&gt;</p>`
+    : "";
+  return `<div class="mchecks">${marks}</div><p class="muted small">${last}</p>${setup}`;
+}
+
+function settingsStrip(
+  settings: DutiesSettings | undefined,
+  mailStatus: MailStatus | undefined,
+): string {
+  return `<div class="panel settings"><div class="ph"><h2>Settings</h2></div><div class="pb"><div class="two-col">
+  <div><h3>Owner</h3><p class="muted small">Where approvals and questions reach you.</p>${ownerSettingsForm(settings)}</div>
+  <div><h3>Mail trigger</h3>${mailHealthLine(mailStatus)}</div>
+</div></div></div>`;
+}
+
+export type BoardOpts = RenderOpts & { settings?: DutiesSettings; mailStatus?: MailStatus };
+
 export function renderBoard(
   duties: readonly Duty[],
   runs: readonly DutyRun[],
-  opts?: RenderOpts,
+  opts?: BoardOpts,
 ): string {
   const errorBanner = opts?.error ? renderErrorBanner(opts.error) : "";
   const active = duties.filter((d) => d.status === "active").length;
@@ -176,7 +239,7 @@ export function renderBoard(
         }</div><button class="btn primary" data-open-run="${esc(unresolved.id)}" data-duty-id="${esc(unresolvedDuty.id)}">View run</button><button class="btn" data-open="${esc(unresolvedDuty.id)}">Open Duty</button></div>`
       : "";
   const cards = duties.map((d) => dutyCard(d, runs)).join("");
-  return `${errorBanner}<div class="head"><div><h1>Duties</h1><p>Everything your digital employee runs for you — what it does, when, and whether it worked.</p></div><div class="actions"><button class="btn" data-nav="logins">Logins</button><button class="btn primary" data-edit="new">New Duty · chat with the agent</button></div></div>
+  return `${errorBanner}<div class="head"><div><h1>Duties</h1><p>Everything your digital employee runs for you — what it does, when, and whether it worked.</p></div><div class="actions"><button class="btn" data-nav="templates">Templates</button><button class="btn" data-nav="logins">Logins</button><button class="btn primary" data-edit="new">New Duty · chat with the agent</button></div></div>
 <div class="rollup">
   <div class="roll"><div class="n">${active}</div><div class="l">Active</div></div>
   <div class="roll"><div class="n">${successfulToday}</div><div class="l">Successful runs today</div></div>
@@ -184,6 +247,7 @@ export function renderBoard(
   <div class="roll"><div class="n">${building}</div><div class="l">Being built with the agent</div></div>
 </div>
 ${banner}
+${settingsStrip(opts?.settings, opts?.mailStatus)}
 <div class="grid">${cards}<article class="card new" data-edit="new"><b>New Duty</b><span>Describe the job to the agent in any chat. It explores what it needs to, asks what it needs, builds and tests step by step.</span></article></div>`;
 }
 
@@ -273,9 +337,24 @@ function stepEvidenceRow(step: StepEvidence): string {
   return `<li class="step"><span class="st ${st}">${mark}</span><div><div class="t">${esc(step.label)}</div><div class="d">${esc(step.summary)}</div>${shot}</div><span class="kind ${esc(step.kind)}">${esc(kindLabel(step.kind))}</span></li>`;
 }
 
+function formatBytes(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes < 0) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/** A document a run produced (e.g. a rendered PDF). Fetched only when the owner opens the
+ *  toggle, then shown inline as a `data:` iframe — same lazy-fetch shape as the screenshot
+ *  toggle above; the file's disk path never reaches the page. */
+function fileRow(file: RunFile): string {
+  return `<li><span class="mono">${esc(file.name)}</span><span class="when">${esc(formatBytes(file.bytes))}</span><button class="btn quiet" data-file="${esc(file.stepId)}">Open</button><div class="filewrap" data-file-for="${esc(file.stepId)}" hidden></div></li>`;
+}
+
 export function renderRun(run: DutyRun, duty: Duty | undefined, opts?: RenderOpts): string {
   const errorBanner = opts?.error ? renderErrorBanner(opts.error) : "";
   const outputEntries = Object.entries(run.outputs);
+  const files = run.files ?? [];
   return `${errorBanner}<div class="head"><div><div class="small"><a href="#" data-open="${esc(duty?.id ?? run.dutyId)}">← ${esc(duty?.name ?? run.dutyId)}</a></div><h1>Run</h1>
 <div class="meta">${runStatusPill(run.status)}<span>Started <b>${esc(fmtWhen(run.startedAt))}</b></span>${
     run.endedAt ? `<span>Ended <b>${esc(fmtWhen(run.endedAt))}</b></span>` : ""
@@ -291,6 +370,11 @@ ${run.report ? `<div class="panel"><div class="pb">${esc(run.report)}</div></div
       ? `<ol class="steps">${run.steps.map(stepEvidenceRow).join("")}</ol>`
       : `<p class="muted">No step evidence yet.</p>`
   }</div></div>
+${
+  files.length
+    ? `<div class="panel"><div class="ph"><h2>Files</h2></div><div class="pb"><ul class="runs files">${files.map(fileRow).join("")}</ul></div></div>`
+    : ""
+}
 <div class="panel"><div class="ph"><h2>Outputs</h2></div><div class="pb"><dl class="kv">${
     outputEntries.length
       ? outputEntries
@@ -336,6 +420,52 @@ export function renderLogins(view: LoginsView, opts?: RenderOpts): string {
     <button class="btn primary" data-cred-save>Save login</button>
   </div></div>
 </div>`;
+}
+
+// ---------- Templates & brand ----------
+
+function pluralSlots(count: number): string {
+  return `${count} slot${count === 1 ? "" : "s"}`;
+}
+
+/** Preview and delete are the only mutations this page performs on a template; content edits go
+ *  through the agent (`data-tpl-edit`, mirroring `data-edit` on a Duty), since a template's HTML
+ *  and slot contract are hand-authored and validated server-side, not form fields here. */
+function templateCard(template: Template): string {
+  return `<article class="card tpl" data-tpl="${esc(template.id)}">
+  <div class="top"><h3>${esc(template.name)}</h3><span class="chip">${esc(template.kind)}</span></div>
+  <p class="sum">${esc(pluralSlots(template.slots.length))} · updated ${esc(fmtWhen(template.updatedAt))}</p>
+  <div class="foot"><span></span><span><button class="btn quiet" data-tpl-preview="${esc(template.id)}">Preview</button><button class="btn quiet" data-tpl-edit="${esc(template.id)}">Edit with agent</button><button class="btn danger" data-tpl-delete="${esc(template.id)}">Delete</button></span></div>
+  <div class="tplpreview" data-tpl-preview-for="${esc(template.id)}" hidden></div>
+</article>`;
+}
+
+/** The logo is read client-side (FileReader → data URL) and posted as `Brand.logoDataUrl`; no
+ *  separate upload endpoint exists, matching `validateBrand`'s `data:image/...` contract. */
+function brandForm(brand: Brand | undefined): string {
+  return `<div class="panel"><div class="ph"><h2>Brand</h2></div><div class="pb">
+  <label class="fld"><span>Name</span><input type="text" data-brand-name value="${esc(brand?.name ?? "")}"></label>
+  <label class="fld"><span>Logo</span><input type="file" accept="image/*" data-brand-logo></label>
+  ${brand?.logoDataUrl ? `<img class="brandlogo" src="${esc(brand.logoDataUrl)}" alt="Current logo">` : ""}
+  <label class="fld"><span>Primary colour</span><input type="color" data-brand-primary value="${esc(brand?.primary ?? "#111111")}"></label>
+  <label class="fld"><span>Accent colour</span><input type="color" data-brand-accent value="${esc(brand?.accent ?? "#2563eb")}"></label>
+  <label class="fld"><span>Phone</span><input type="text" data-brand-phone value="${esc(brand?.phone ?? "")}"></label>
+  <label class="fld"><span>Email</span><input type="text" data-brand-email value="${esc(brand?.email ?? "")}"></label>
+  <label class="fld"><span>Footer</span><input type="text" data-brand-footer value="${esc(brand?.footer ?? "")}"></label>
+  <button class="btn primary" data-brand-save>Save brand</button>
+</div></div>`;
+}
+
+export type TemplatesView = { templates: readonly Template[]; brand?: Brand };
+
+export function renderTemplates(view: TemplatesView, opts?: RenderOpts): string {
+  const errorBanner = opts?.error ? renderErrorBanner(opts.error) : "";
+  const cards = view.templates.map(templateCard).join("");
+  return `${errorBanner}<div class="head"><div><div class="small"><a href="#" data-nav="board">← Duties</a></div><h1>Templates</h1>
+<p>Documents and messages a Duty can fill in and send.</p></div></div>
+<div class="notice">Ask the agent in chat to create or change a template, e.g. "Make a rate-quote PDF template with columns day, hotel, price."</div>
+<div class="grid">${cards || `<p class="muted">No templates yet.</p>`}</div>
+${brandForm(view.brand)}`;
 }
 
 // ---------- Build session preview (static example; wired for real in Part 2) ----------

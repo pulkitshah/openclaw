@@ -8,9 +8,11 @@ import {
   renderLogins,
   renderPlaceholder,
   renderRun,
+  renderTemplates,
 } from "../browser/render.js";
 import type { Duty } from "./duty.js";
 import type { DutyRun } from "./store.js";
+import type { Template } from "./template.js";
 
 const duty = {
   id: "d1",
@@ -259,6 +261,129 @@ describe("render", () => {
     const detail = renderDetail(hostile, []);
     expect(detail).not.toContain("<script>");
     expect(detail).toContain("&lt;script&gt;&amp;&quot;");
+  });
+
+  it("trigger chips show the match text for mail and chat triggers, and Manual for manual", () => {
+    const withTriggers = {
+      ...duty,
+      triggers: [
+        { kind: "mail", match: "quote@vendor.com" },
+        { kind: "chat", match: "book flight" },
+        { kind: "manual" },
+      ],
+    } as unknown as Duty;
+    const html = renderBoard([withTriggers], []);
+    expect(html).toContain("Mail: quote@vendor.com");
+    expect(html).toContain("Chat: book flight");
+    expect(html).toMatch(/>Manual</u);
+  });
+
+  it("run view lists files with a data-file toggle and shows a deliver step's channel:target summary", () => {
+    const run = {
+      id: "r1",
+      dutyId: "d1",
+      status: "ok",
+      startedAt: 1,
+      trigger: "manual",
+      inputs: {},
+      outputs: {},
+      steps: [
+        {
+          stepId: "s1",
+          label: "Send quote",
+          kind: "deliver",
+          status: "ok",
+          durationMs: 1,
+          summary: "→ telegram:12345",
+        },
+      ],
+      files: [
+        {
+          stepId: "s1",
+          name: "quote.pdf",
+          path: "/tmp/quote.pdf",
+          bytes: 2048,
+          contentType: "application/pdf",
+        },
+      ],
+    } as unknown as DutyRun;
+    const html = renderRun(run, duty as unknown as Duty);
+    expect(html).toContain('data-file="s1"');
+    expect(html).toContain("quote.pdf");
+    expect(html).toContain("→ telegram:12345");
+    expect(html).toContain('class="kind deliver"');
+    expect(html).toContain(">Deliver<");
+  });
+
+  it("templates view renders a card per template with a preview toggle and the brand form", () => {
+    const templates = [
+      {
+        id: "t1",
+        name: "Rate quote",
+        kind: "pdf",
+        html: "<p>{{slot:x}}</p>",
+        slots: [{ name: "x", kind: "text", description: "d" }],
+        updatedAt: 10,
+      },
+      {
+        id: "t2",
+        name: "Confirmation",
+        kind: "message",
+        html: "hi {{slot:y}}",
+        slots: [{ name: "y", kind: "text", description: "d" }],
+        updatedAt: 20,
+      },
+    ] as unknown as Template[];
+    const html = renderTemplates({ templates });
+    expect(html).toContain('data-tpl-preview="t1"');
+    expect(html).toContain('data-tpl-preview="t2"');
+    expect(html).toContain("Rate quote");
+    expect(html).toContain("Confirmation");
+    expect(html).toContain("data-brand-save");
+  });
+
+  it("escapes a template name containing markup and quotes", () => {
+    const hostile = [
+      {
+        id: "t1",
+        name: `<script>&"`,
+        kind: "pdf",
+        html: "<p>{{slot:x}}</p>",
+        slots: [],
+        updatedAt: 1,
+      },
+    ] as unknown as Template[];
+    const html = renderTemplates({ templates: hostile });
+    expect(html).not.toContain("<script>");
+    expect(html).toContain("&lt;script&gt;&amp;&quot;");
+  });
+
+  it("board shows the owner settings form and the mail setup instruction when the mapping is missing", () => {
+    const html = renderBoard([duty as unknown as Duty], [], {
+      settings: { owner: { channel: "telegram", target: "12345" } },
+      mailStatus: {
+        hooksEnabled: true,
+        gmailAccountSet: true,
+        mappingPresent: false,
+        agentPresent: true,
+      },
+    });
+    expect(html).toContain("data-settings-save");
+    expect(html).toContain("openclaw duties setup-mail");
+    expect(html).toContain('value="12345"');
+    expect(html).toContain('value="telegram" selected');
+  });
+
+  it("board's mail setup instruction disappears once every check passes", () => {
+    const html = renderBoard([duty as unknown as Duty], [], {
+      mailStatus: {
+        hooksEnabled: true,
+        gmailAccountSet: true,
+        mappingPresent: true,
+        agentPresent: true,
+      },
+    });
+    expect(html).not.toContain("openclaw duties setup-mail");
   });
 
   it("renderPlaceholder shows an error banner with retry when a load failed, not a bare Loading forever", () => {
