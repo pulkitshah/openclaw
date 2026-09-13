@@ -14,104 +14,103 @@ function memoryKeyed<T>() {
   };
 }
 
+type Handler = (ctx: {
+  params: Record<string, unknown>;
+  respond: (ok: boolean, result?: unknown, error?: unknown) => void;
+}) => Promise<void>;
+
+function harness(params?: {
+  emit?: (name: "changed" | "run", payload: Record<string, unknown>) => void;
+  runs?: { start: ReturnType<typeof vi.fn>; cancel: ReturnType<typeof vi.fn> };
+}) {
+  const methods = new Map<string, { handler: Handler; scope: string }>();
+  const api = {
+    registerGatewayMethod: (name: string, handler: never, opts: { scope: string }) =>
+      methods.set(name, { handler, scope: opts.scope }),
+  } as never;
+  const store = new DutyStore({ duties: memoryKeyed() as never, runs: memoryKeyed() as never });
+  const emit = params?.emit ?? vi.fn();
+  const runs = params?.runs ?? { start: vi.fn(), cancel: vi.fn() };
+  registerDutiesGatewayMethods({ api, store, runs: runs as never, emit });
+
+  const call = async (name: string, callParams: Record<string, unknown>) =>
+    new Promise<{ ok: boolean; result?: unknown; error?: unknown }>((resolve) =>
+      methods.get(name)!.handler({
+        params: callParams,
+        respond: (ok, result, error) => resolve({ ok, result, error }),
+      }),
+    );
+
+  return { methods, store, emit, runs, call };
+}
+
+const baseDuty = {
+  id: "d1",
+  name: "D",
+  summary: "",
+  status: "building",
+  machine: "gateway",
+  reportsTo: "owner",
+  inputs: [],
+  steps: [],
+  triggers: [{ kind: "manual" }],
+  updatedAt: 0,
+};
+
 describe("duties gateway methods", () => {
   it("saves a valid duty, lists it, and rejects an invalid one", async () => {
-    const methods = new Map<
-      string,
-      {
-        handler: (ctx: {
-          params: Record<string, unknown>;
-          respond: (ok: boolean, result?: unknown, error?: unknown) => void;
-        }) => Promise<void>;
-        scope: string;
-      }
-    >();
-    const api = {
-      registerGatewayMethod: (name: string, handler: never, opts: { scope: string }) =>
-        methods.set(name, { handler, scope: opts.scope }),
-    } as never;
-    const store = new DutyStore({ duties: memoryKeyed() as never, runs: memoryKeyed() as never });
-    const emit = vi.fn();
-    registerDutiesGatewayMethods({
-      api,
-      store,
-      runs: { start: vi.fn(), cancel: vi.fn() } as never,
-      emit,
-    });
+    const { methods, emit, call } = harness();
 
     expect(methods.get("duties.delete")?.scope).toBe("operator.admin");
 
-    const call = async (name: string, params: Record<string, unknown>) =>
-      new Promise<{ ok: boolean; result?: unknown; error?: unknown }>((resolve) =>
-        methods.get(name)!.handler({
-          params,
-          respond: (ok, result, error) => resolve({ ok, result, error }),
-        }),
-      );
-
-    const duty = {
-      id: "d1",
-      name: "D",
-      summary: "",
-      status: "building",
-      machine: "gateway",
-      reportsTo: "owner",
-      inputs: [],
-      steps: [],
-      triggers: [{ kind: "manual" }],
-      updatedAt: 0,
-    };
-    expect((await call("duties.save", { duty })).ok).toBe(true);
+    expect((await call("duties.save", { duty: baseDuty })).ok).toBe(true);
     expect(emit).toHaveBeenCalledWith("changed", { dutyId: "d1" });
     expect(((await call("duties.list", {})).result as { duties: unknown[] }).duties).toHaveLength(
       1,
     );
 
-    const bad = await call("duties.save", { duty: { ...duty, status: "draft" } });
+    const bad = await call("duties.save", { duty: { ...baseDuty, status: "draft" } });
     expect(bad.ok).toBe(false);
   });
 
+  it("still responds ok:true for duties.save when the emitter throws", async () => {
+    const emit = vi.fn(() => {
+      throw new Error("boom");
+    });
+    const { call } = harness({ emit });
+
+    const result = await call("duties.save", { duty: baseDuty });
+
+    expect(result.ok).toBe(true);
+    expect(emit).toHaveBeenCalledOnce();
+  });
+
+  it("duties.delete returns ok:false and does not emit when nothing was deleted", async () => {
+    const { emit, call } = harness();
+
+    const result = await call("duties.delete", { id: "does-not-exist" });
+
+    expect(result).toEqual({ ok: true, result: { ok: false }, error: undefined });
+    expect(emit).not.toHaveBeenCalled();
+  });
+
+  it("duties.delete returns ok:true and emits changed when a duty was deleted", async () => {
+    const { emit, call } = harness();
+    await call("duties.save", { duty: baseDuty });
+    emit.mockClear();
+
+    const result = await call("duties.delete", { id: "d1" });
+
+    expect(result).toEqual({ ok: true, result: { ok: true }, error: undefined });
+    expect(emit).toHaveBeenCalledWith("changed", { dutyId: "d1" });
+  });
+
   it("rejects duties.status transitions to building and runs/cancels via the RunManager", async () => {
-    const methods = new Map<
-      string,
-      {
-        handler: (ctx: {
-          params: Record<string, unknown>;
-          respond: (ok: boolean, result?: unknown, error?: unknown) => void;
-        }) => Promise<void>;
-        scope: string;
-      }
-    >();
-    const api = {
-      registerGatewayMethod: (name: string, handler: never, opts: { scope: string }) =>
-        methods.set(name, { handler, scope: opts.scope }),
-    } as never;
-    const store = new DutyStore({ duties: memoryKeyed() as never, runs: memoryKeyed() as never });
     const start = vi.fn().mockResolvedValue({ runId: "r1", queued: false });
     const cancel = vi.fn().mockResolvedValue(true);
-    const emit = vi.fn();
-    registerDutiesGatewayMethods({ api, store, runs: { start, cancel } as never, emit });
+    const { emit, call } = harness({ runs: { start, cancel } });
 
-    const call = async (name: string, params: Record<string, unknown>) =>
-      new Promise<{ ok: boolean; result?: unknown; error?: unknown }>((resolve) =>
-        methods.get(name)!.handler({
-          params,
-          respond: (ok, result, error) => resolve({ ok, result, error }),
-        }),
-      );
-
-    const duty = {
-      id: "d1",
-      name: "D",
-      summary: "",
-      status: "active",
-      machine: "gateway",
-      reportsTo: "owner",
-      inputs: [],
-      steps: [],
-      triggers: [{ kind: "manual" }],
-      updatedAt: 0,
-    };
+    const duty = { ...baseDuty, status: "active" };
     await call("duties.save", { duty });
 
     const badStatus = await call("duties.status", { id: "d1", status: "building" });

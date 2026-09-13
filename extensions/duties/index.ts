@@ -33,18 +33,24 @@ export default definePluginEntry({
       api.runtime.gateway.request<T>(method, params, { scopes: ["operator.admin"] });
 
     // The blob store is opened lazily, only when a run actually starts (never during plugin
-    // registration), so plugin registration never needs trusted plugin-runtime storage access.
+    // registration), so plugin registration never needs trusted plugin-runtime storage access;
+    // it is then memoized across runs instead of reopened on every `deps()` call.
+    let blobs: ReturnType<typeof openEvidenceBlobs> | undefined;
+    function openEvidenceBlobs() {
+      return api.runtime.state.openBlobStore<{ contentType: string; kind: string }>({
+        namespace: "evidence",
+        maxEntries: 20_000,
+        maxBytesPerEntry: 4 * 1024 * 1024,
+        maxBytesPerNamespace: 512 * 1024 * 1024,
+        overflowPolicy: "evict-oldest",
+        defaultTtlMs: EVIDENCE_BLOB_TTL_MS,
+      });
+    }
     const runs = new RunManager({
       store,
       deps: () => {
-        const blobs = api.runtime.state.openBlobStore<{ contentType: string; kind: string }>({
-          namespace: "evidence",
-          maxEntries: 20_000,
-          maxBytesPerEntry: 4 * 1024 * 1024,
-          maxBytesPerNamespace: 512 * 1024 * 1024,
-          overflowPolicy: "evict-oldest",
-          defaultTtlMs: EVIDENCE_BLOB_TTL_MS,
-        });
+        blobs ??= openEvidenceBlobs();
+        const evidenceBlobs = blobs;
         return {
           browser: createBrowserAdapter({
             request,
@@ -52,7 +58,7 @@ export default definePluginEntry({
             blobs: {
               put: async (bytes, contentType) => {
                 const key = randomUUID();
-                await blobs.register(key, bytes, { contentType, kind: "screenshot" });
+                await evidenceBlobs.register(key, bytes, { contentType, kind: "screenshot" });
                 return key;
               },
             },

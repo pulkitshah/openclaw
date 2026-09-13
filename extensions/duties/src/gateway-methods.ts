@@ -23,6 +23,18 @@ export function registerDutiesGatewayMethods(params: {
 }): void {
   const { api, store, runs, emit } = params;
 
+  // A committed write (save/delete/status) must still be reported as `ok: true` even if
+  // best-effort event delivery fails after it; `createDutiesEventService`'s own `emit` never
+  // throws, but this guards the contract regardless of what `emit` is wired to.
+  const safeEmit = (name: "changed" | "run", payload: Record<string, unknown>): void => {
+    try {
+      emit(name, payload);
+    } catch {
+      // Event delivery is best-effort; a failure here must never turn a committed write into a
+      // reported Gateway failure.
+    }
+  };
+
   const register = (
     method: string,
     scope: Scope,
@@ -71,15 +83,15 @@ export function registerDutiesGatewayMethods(params: {
     const result = validateDuty(candidate);
     if (!result.ok) throw new Error(`invalid duty: ${result.errors.join("; ")}`);
     await store.saveDuty(result.duty);
-    emit("changed", { dutyId: result.duty.id });
+    safeEmit("changed", { dutyId: result.duty.id });
     return { duty: result.duty };
   });
 
   register("duties.delete", "operator.admin", async (params) => {
     const dutyId = readId(params);
-    await store.deleteDuty(dutyId);
-    emit("changed", { dutyId });
-    return { ok: true };
+    const deleted = await store.deleteDuty(dutyId);
+    if (deleted) safeEmit("changed", { dutyId });
+    return { ok: deleted };
   });
 
   register("duties.status", "operator.write", async (params) => {
@@ -93,7 +105,7 @@ export function registerDutiesGatewayMethods(params: {
     // SAFETY: status was checked above against DUTY_STATUSES with "building" excluded, so it can only be "active" or "paused" here.
     const next = { ...duty, status: status as DutyStatus, updatedAt: Date.now() };
     await store.saveDuty(next);
-    emit("changed", { dutyId: duty.id });
+    safeEmit("changed", { dutyId: duty.id });
     return { duty: next };
   });
 

@@ -117,11 +117,16 @@ export async function runDuty(
   };
 
   const record = (partial: Omit<StepEvidence, "durationMs"> & { startedAt: number }) => {
-    const { startedAt, ...rest } = partial;
+    const { startedAt, target, screenshotBlobId, ...rest } = partial;
     const item: StepEvidence = {
       ...rest,
       summary: redact(rest.summary),
       durationMs: now() - startedAt,
+      // Conditional spreads so an absent target/screenshot never becomes an explicit
+      // `undefined`-valued key: the host's gateway-event JSON validation
+      // (`isPluginJsonValue`, `src/plugins/host-hook-json.ts`) rejects those.
+      ...(target !== undefined ? { target } : {}),
+      ...(screenshotBlobId !== undefined ? { screenshotBlobId } : {}),
     };
     evidence.push(item);
     deps.onStep?.(item);
