@@ -31,9 +31,9 @@ steps.
    gate — you decide when a Duty is ready; a Duty that has never fully run end-to-end can
    still be saved.
 
-Not every Duty needs a browser at all — today a Duty can end right after a single `ask`
-step whose answer is saved via `saveAs`; template and deliver steps arrive in a later
-part of this feature.
+Not every Duty needs a browser at all — a Duty can end right after a single `ask` step
+whose answer is saved via `saveAs`, or after a `template` step renders a document and a
+`deliver` step sends it, with no browser involved at all.
 
 ## Step vocabulary
 
@@ -59,6 +59,20 @@ and `saveAs`.
   result object.
 - **`ask`** — `params.question`, optional `params.header`, optional `params.options`
   (multiple-choice). Answer is saved via `saveAs`.
+- **`template`** — renders a saved template. `params.template` is the template id;
+  `params.fill` maps each of its slots to either `{ from: "{{out:...}}" }` (or any other
+  placeholder) or `{ ai: "instruction" }` (the model writes that slot from the run's data).
+  Optional `params.format` must match the template's own kind (`pdf` or `message`) when
+  given — it exists to make the step's output format explicit, not to convert one kind
+  into the other. A `pdf` template produces a file (usable downstream as
+  `{{file:<templateStepId>}}`); a `message` template's rendered text is saved via `saveAs`
+  like any other step. See **Templates** below for the authoring loop.
+- **`deliver`** — sends text and/or files to a route. `params.to` is `"trigger"` (reply
+  to whoever/whatever started this run), `"owner"` (the configured owner), or an explicit
+  channel target, in which case `params.channel` is required. `params.text` is a string
+  (placeholders resolved as usual); `params.files` is an array of `{{file:<templateStepId>}}`
+  placeholders naming earlier `template` steps' output files. Needs at least one of `text`
+  or `files`.
 - **`when`** — `cond` is one of `{ visible: <target> }`, `{ equals: [a, b] }`,
   `{ text_matches: <regex> }`, `{ url_matches: <regex> }`; has `then` and optional `else` node
   lists.
@@ -68,7 +82,13 @@ and `saveAs`.
 ## Placeholders
 
 Strings in `params`/`reason` may use `{{in:name}}` (a Duty input) and `{{out:key}}` (a value
-an earlier step saved).
+an earlier step saved). A `mail` input is an object, so its fields are addressed by dotted
+path: `{{in:mail.body}}`, `{{in:mail.from}}`, `{{in:mail.attachments.0.text}}`.
+
+`{{file:<templateStepId>}}` names the file a `template` step produced (by that step's id). It
+is only valid in a `deliver` step's `params.files`/`params.text` or a later `template` step's
+`params.fill` — nowhere else, since it names a path on disk, not a value to hand to a model or
+put in a URL.
 
 `{{cred:key}}` (a stored credential) is valid in **exactly one place**: the `params.value` of a
 `browser` `fill` or `select` step. There it is resolved at run time, typed into the field, and
@@ -101,6 +121,53 @@ when:
           - click: { target: { role: "button", name: "Verify" } }
 ```
 
+## Templates
+
+A template is a saved document (`pdf`) or message (`message`) with named slots the Duty fills
+in at run time. Use `template_list` to see what already exists (id, name, kind, slots) before
+authoring a new one — reuse rather than duplicate.
+
+1. **Read or draft** with `template_get { id }`, or write a new one and validate/save it with
+   `template_set { template }` (`{ id, name, kind, html, slots, updatedAt }`); it returns
+   validation errors verbatim on a bad slot reference or an undeclared/unused slot.
+2. **Decide how every slot is filled** before writing the Duty's `template` step: each slot
+   needs a `{ from: "{{...}}" }` (a value already available as a Duty input or an earlier
+   step's output) or a `{ ai: "instruction" }` (write it from the run's data — good for prose,
+   never for facts the data doesn't already contain).
+3. **Preview it** with `template_preview { id, data? }` — omit `data` to fill every slot with a
+   `[slotName]` placeholder, or pass real values to see the real thing. It returns `{ path }`;
+   show the owner the actual rendered file by sending it with the `message` tool:
+   `{ action: "send", message: "Preview", media: "<path>" }`.
+4. **Check the brand block** with `brand_get`/`brand_set` (name, optional logo, colours,
+   contact lines) if the template uses `{{brand:...}}` fields — it's install-wide, not
+   per-template.
+
+Slot syntax inside `html`: `{{slot:name}}` for a `text`/`prose` slot, `{{#rows:name}}…
+{{col:column}}…{{/rows:name}}` for a `rows` slot (one row per array entry, `{{col:...}}` for
+each declared column), and `{{brand:field}}` for a brand field (`name`, `logoDataUrl`,
+`primary`, `accent`, `phone`, `email`, `footer`). A twelve-line `pdf` template with a text
+slot, a rows slot and a brand field:
+
+```html
+<h1>Invoice for {{slot:customerName}}</h1>
+<p>{{brand:name}} — {{brand:email}}</p>
+<table>
+  <tr>
+    <th>Item</th>
+    <th>Qty</th>
+    <th>Price</th>
+  </tr>
+  {{#rows:items}}
+  <tr>
+    <td>{{col:item}}</td>
+    <td>{{col:qty}}</td>
+    <td>{{col:price}}</td>
+  </tr>
+  {{/rows:items}}
+</table>
+<p>{{slot:footerNote}}</p>
+```
+
 ## Credentials
 
 Never ask the owner for a password (or any secret) in chat. Before authoring a step that
@@ -109,3 +176,32 @@ and, if not, how the owner stores it out-of-band. It never accepts or echoes a v
 
 The owner saves a login themselves on the **Duties → Logins** page; it goes straight into this
 machine's keychain. There is no tool, chat message, or file through which you can receive one.
+
+## Triggers and dispatch
+
+A Duty's `triggers` array declares how it can be started beyond a manual `duty_run`: a
+`{ kind: "mail", match: "..." }` or `{ kind: "chat", match: "..." }` trigger, where `match` is
+a plain-words description of what should route here (e.g. "invoices from our supplier",
+"someone asks to renew the domain") — not a regex or a channel-specific filter. Every active
+Duty needs at least one trigger; `duty_draft`/`duty_set_steps` default to `[{ kind: "manual" }]`
+when none is given.
+
+Inbound Gmail is not routed to a specific Duty directly — it wakes a separate, narrowly-scoped
+dispatcher agent (`duties-mail`) that reads the mail, picks the matching Duty, and calls
+`duty_run` on it. If you are that dispatcher agent:
+
+1. Read the incoming message (from/subject/body are already in your context) and its
+   attachments — a Gmail attachment through `gog gmail <read/download>` via the `exec` tool, a
+   dropped file by its given path.
+2. Call `duty_list` and match the mail against each active Duty's `triggers[].match` in plain
+   words. Pick **exactly one**. If none clearly matches, or more than one plausibly does,
+   message the owner with the `message` tool describing the mail and why nothing matched, and
+   stop — never guess.
+3. Call `duty_run { id, inputs: { mail: { from, subject, body, messageId, attachments: [{
+name, text }] } } }`, adding a `{ name, path, text? }` input per dropped file the Duty
+   declares (its `name` matches the input's declared name). The Duty's own steps read the
+   mail via `{{in:mail...}}` and any dropped file via `{{in:<name>...}}`.
+
+The dispatcher never opens a browser and never authors, edits, or otherwise touches a Duty's
+steps — it only reads mail, matches a trigger, and calls `duty_run`. Authoring stays with you,
+the authoring agent, exactly as described above.

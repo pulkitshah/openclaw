@@ -186,5 +186,15 @@ export default definePluginEntry({
       render,
       previewDir: () => runFiles.previewDir(),
     });
+
+    api.registerCli(
+      async ({ program, config }) => {
+        const { registerDutiesSetupCli } = await import("./src/cli.js");
+        registerDutiesSetupCli({ program, config });
+      },
+      {
+        descriptors: [{ name: "duties", description: "Duties setup", hasSubcommands: true }],
+      },
+    );
   },
 });
