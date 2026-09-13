@@ -361,6 +361,24 @@ describe("runDuty", () => {
     expect(outcome.status).toBe("blocked");
     expect(outcome.steps[0]!.status).toBe("blocked");
   });
+  it("keeps the failure screenshot for an ask step, whose page state is the evidence", async () => {
+    const outcome = await runDuty(
+      duty([
+        { id: "s1", kind: "browser", label: "Open", params: { action: "open", url: "https://x" } },
+        { id: "s2", kind: "ask", label: "OTP?", params: { question: "Code?" } },
+      ]),
+      fakeDeps({
+        ask: {
+          ask: async () => {
+            throw new Error("ask transport gone");
+          },
+        },
+      }),
+      { inputs: {} },
+    );
+    expect(outcome.status).toBe("failed");
+    expect(outcome.steps[1]).toMatchObject({ status: "failed", screenshotBlobId: "blob-1" });
+  });
   it("throws for a step kind it cannot run instead of recording a silent ok", async () => {
     const outcome = await runDuty(
       duty([
@@ -730,7 +748,8 @@ describe("template and deliver steps", () => {
     );
     expect(outcome.status).toBe("failed");
     expect(outcome.steps.map((s) => s.status)).toEqual(["ok", "failed"]);
-    // The browser step's own evidence still carries one: the gate is the step's kind, not the tab.
+    // The browser step's own evidence still carries one: the gate is the step's kind, not the tab
+    // (a failed ai/ask step keeps its screenshot too — only template/deliver skip it).
     expect(outcome.steps[0]!.screenshotBlobId).toBe("blob-1");
     expect(outcome.steps[1]!.screenshotBlobId).toBeUndefined();
   });

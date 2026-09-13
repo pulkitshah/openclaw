@@ -432,10 +432,11 @@ export async function runDuty(
       // A cancelled run stopped on the owner's instruction, not on a step outcome: the run's own
       // `cancelled` status carries that, so no step evidence row is written for it.
       if (error instanceof HaltSignal && error.outcome === "cancelled") throw error;
-      // Same gate as the success path: a step that never drove the tab (ai, ask, template,
-      // deliver) must not attach a screenshot of whatever unrelated page happens to be open.
+      // Wider than the success-path gate on purpose: when an `ai` read or an `ask` fails, the page
+      // the run was looking at IS the evidence. `template`/`deliver` failures are the exception —
+      // they never look at a tab, so a screenshot there is just an unrelated page.
       const shot =
-        step.kind.startsWith("browser") && targetId
+        step.kind !== "template" && step.kind !== "deliver" && targetId
           ? await deps.browser.screenshot(targetId).catch(() => undefined)
           : undefined;
       record({
