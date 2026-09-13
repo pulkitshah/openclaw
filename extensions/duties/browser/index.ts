@@ -3,7 +3,13 @@ import type { ControlUiHost, ControlUiViewContext } from "openclaw/plugin-sdk/co
 import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { Duty } from "../src/duty.js";
 import type { DutyRun } from "../src/store.js";
-import { renderBoard, renderBuildPreview, renderDetail, renderRun } from "./render.js";
+import {
+  renderBoard,
+  renderBuildPreview,
+  renderDetail,
+  renderPlaceholder,
+  renderRun,
+} from "./render.js";
 import "./styles.css";
 
 const PAGE = "duties";
@@ -120,12 +126,12 @@ export default defineControlUiPlugin({
               notice +
               (duty
                 ? renderDetail(duty, allKnownRuns(), errorOpts)
-                : `<p class="muted">Loading…</p>`);
+                : renderPlaceholder(errorOpts ?? {}));
           } else if (view === "run") {
             const run = observedRuns.get(runId);
             const duty = duties.find((d) => d.id === dutyId);
             root.innerHTML =
-              notice + (run ? renderRun(run, duty, errorOpts) : `<p class="muted">Loading…</p>`);
+              notice + (run ? renderRun(run, duty, errorOpts) : renderPlaceholder(errorOpts ?? {}));
           } else {
             root.innerHTML = notice + renderBoard(duties, allKnownRuns(), errorOpts);
           }
@@ -155,17 +161,27 @@ export default defineControlUiPlugin({
           }
         };
 
-        const loadDuties = async (): Promise<void> => {
-          try {
-            const result = await host.request<ListResult>("duties.list");
-            if (context.signal.aborted) return;
-            duties = result.duties;
-            clearError();
-            draw();
-            await Promise.all(duties.map((duty) => loadDutyRuns(duty.id)));
-          } catch (error) {
-            fail(error, () => void loadDuties());
-          }
+        // A burst of `plugin.duties.changed` events for ids unknown to the page each want a full
+        // list refresh; coalesce them onto one in-flight request instead of firing one per event.
+        let loadDutiesInFlight: Promise<void> | undefined;
+        const loadDuties = (): Promise<void> => {
+          if (loadDutiesInFlight) return loadDutiesInFlight;
+          const run = async (): Promise<void> => {
+            try {
+              const result = await host.request<ListResult>("duties.list");
+              if (context.signal.aborted) return;
+              duties = result.duties;
+              clearError();
+              draw();
+              await Promise.all(duties.map((duty) => loadDutyRuns(duty.id)));
+            } catch (error) {
+              fail(error, () => void loadDuties());
+            }
+          };
+          loadDutiesInFlight = run().finally(() => {
+            loadDutiesInFlight = undefined;
+          });
+          return loadDutiesInFlight;
         };
 
         const loadRun = async (runId: string): Promise<void> => {

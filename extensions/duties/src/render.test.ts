@@ -2,7 +2,7 @@
 // lane instead — see `test/vitest/vitest.ui-paths.mjs`'s `pluginControlUiPathGlob`), so this pure
 // render-function test lives under `src/` and imports the browser module by relative path.
 import { describe, expect, it } from "vitest";
-import { renderBoard, renderDetail, renderRun } from "../browser/render.js";
+import { renderBoard, renderDetail, renderPlaceholder, renderRun } from "../browser/render.js";
 import type { Duty } from "./duty.js";
 import type { DutyRun } from "./store.js";
 
@@ -171,5 +171,16 @@ describe("render", () => {
     const detail = renderDetail(hostile, []);
     expect(detail).not.toContain("<script>");
     expect(detail).toContain("&lt;script&gt;&amp;&quot;");
+  });
+
+  it("renderPlaceholder shows an error banner with retry when a load failed, not a bare Loading forever", () => {
+    const errored = renderPlaceholder({ error: "network down" });
+    expect(errored).toContain("network down");
+    expect(errored).toContain("data-retry");
+    expect(errored).not.toContain("Loading");
+
+    const loading = renderPlaceholder({});
+    expect(loading).toContain("Loading");
+    expect(loading).not.toContain("data-retry");
   });
 });

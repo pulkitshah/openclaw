@@ -42,6 +42,13 @@ function renderErrorBanner(message: string): string {
 
 export type RenderOpts = { error?: string };
 
+/** Placeholder shown in place of a view's content while it hasn't loaded yet — a direct
+ * navigation into a `detail`/`run` view whose single load fails renders the error banner (with
+ * its `data-retry` control) here instead of leaving a bare "Loading…" forever. */
+export function renderPlaceholder(opts: RenderOpts): string {
+  return opts.error ? renderErrorBanner(opts.error) : `<p class="muted">Loading…</p>`;
+}
+
 const DUTY_STATUS_LABEL: Record<DutyStatus, string> = {
   active: "Active",
   paused: "Paused",
