@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Duty } from "./duty.js";
-import { DutyStore, type DutyRun, type DutyStores } from "./store.js";
+import { DutyStore, runSessionKey, type DutyRun, type DutyStores } from "./store.js";
 
 function memoryKeyed<T>() {
   const map = new Map<string, T>();
@@ -263,5 +263,28 @@ describe("DutyStore", () => {
       lastMailDispatchAt: 9,
     });
     expect(await noUpdate.getSettings()).toEqual({ lastMailDispatchAt: 9 });
+  });
+});
+
+describe("runSessionKey", () => {
+  it("acts under the session that started the run", () => {
+    expect(
+      runSessionKey({ kind: "chat", sessionKey: "agent:krishna:duties-p2", agentId: "krishna" }),
+    ).toBe("agent:krishna:duties-p2");
+    expect(
+      runSessionKey({ kind: "mail", sessionKey: "hook:gmail:ingress", agentId: "duties-mail" }),
+    ).toBe("hook:gmail:ingress");
+  });
+
+  it('falls back to the origin agent\'s own session, never an unowned "main"', () => {
+    // A bare "main" has no owner under agents.ownership: "explicit" with several agents
+    // configured, so every ai/ask step of such a run failed before it ran.
+    expect(runSessionKey({ kind: "mail", agentId: "duties-mail" })).toBe("agent:duties-mail:main");
+    expect(runSessionKey({ kind: "manual", agentId: "krishna" })).toBe("agent:krishna:main");
+  });
+
+  it("uses main only when the run recorded no origin at all", () => {
+    expect(runSessionKey(undefined)).toBe("main");
+    expect(runSessionKey({ kind: "manual" })).toBe("main");
   });
 });

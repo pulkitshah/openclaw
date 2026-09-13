@@ -25,6 +25,24 @@ export type RunFile = {
   bytes: number;
   contentType: string;
 };
+
+/**
+ * The Gateway session a run's `ai` and `ask` steps act under.
+ *
+ * `tools.invoke` and `question.request` both resolve the owning agent from the session key, and
+ * under `agents.ownership: "explicit"` with more than one agent configured a bare `"main"` has no
+ * owner at all (`AgentSelectionRequiredError`, src/agents/agent-scope-config.ts:42-59) — every
+ * `ai`/`ask` step then fails before it runs. A run started from a chat turn, a mail dispatch, or an
+ * authoring turn already carries the session that asked for it, so that session owns the run's
+ * calls; a run that recorded only an agent falls back to that agent's own main session. `"main"`
+ * remains the answer only for a run with no recorded origin, where a single-agent install resolves
+ * it and a multi-agent one has nothing to resolve it to.
+ */
+export function runSessionKey(origin: RunOrigin | undefined): string {
+  if (origin?.sessionKey) return origin.sessionKey;
+  if (origin?.agentId) return `agent:${origin.agentId}:main`;
+  return "main";
+}
 export type StepEvidence = {
   stepId: string;
   label: string;

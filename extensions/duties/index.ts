@@ -21,7 +21,7 @@ import { createDutiesEventService } from "./src/events.js";
 import { createRunFiles } from "./src/files.js";
 import { registerDutiesGatewayMethods } from "./src/gateway-methods.js";
 import { RunManager } from "./src/run-service.js";
-import { DutyStore } from "./src/store.js";
+import { DutyStore, runSessionKey } from "./src/store.js";
 import { registerDutyTools } from "./src/tools.js";
 
 const EVIDENCE_BLOB_TTL_MS = 90 * 24 * 3600 * 1000;
@@ -143,8 +143,8 @@ export default definePluginEntry({
               },
             },
           }),
-          ai: createAiAdapter({ request, sessionKey: "main" }),
-          ask: createAskAdapter({ request, sessionKey: "main" }),
+          ai: createAiAdapter({ request, sessionKey: runSessionKey(run.origin) }),
+          ask: createAskAdapter({ request, sessionKey: runSessionKey(run.origin) }),
           cred: (key: string) => credGet(key),
           templates,
           render,
