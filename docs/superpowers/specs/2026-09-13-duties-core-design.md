@@ -7,7 +7,7 @@
 
 A Duty is a saved, replayable job that OpenClaw's agent **authors from the owner's instructions** and a deterministic runner **replays without the model**, except for the steps that need AI or a human. It is the core concept of the owner's earlier project (Vasudev); OpenClaw becomes the host. Vasudev is a reference for concepts only, not code to port.
 
-Example the whole design is tested against: *Book flight by mail — Amigos*. A client's booking mail arrives → AI reads it → look up the requester's corporate account in a register → sign in to Amigos with Keychain credentials → emulate the client account → search → identify the flight by airline and time → ask the owner to confirm → pick the fare → fill passengers → Hold → ask the owner to approve → confirm → render a confirmation → send it on Telegram. Live-tested on 2026-09-13 with OpenClaw's agent driving the owner's signed-in Chrome; only the last screens were left to the owner.
+Example the whole design is tested against: _Book flight by mail — Amigos_. A client's booking mail arrives → AI reads it → look up the requester's corporate account in a register → sign in to Amigos with Keychain credentials → emulate the client account → search → identify the flight by airline and time → ask the owner to confirm → pick the fare → fill passengers → Hold → ask the owner to approve → confirm → render a confirmation → send it on Telegram. Live-tested on 2026-09-13 with OpenClaw's agent driving the owner's signed-in Chrome; only the last screens were left to the owner.
 
 ### 1.1 Document shape
 
@@ -32,26 +32,26 @@ Stop   = { kind:"stop", reason }           // resolved with real values, never p
 
 ### 1.2 Step kinds in this sub-project
 
-| kind | does | backed by (verified) |
-|---|---|---|
-| `browser` | open, navigate, click, fill, select, press, wait, read text, download, upload, screenshot | Gateway method `browser.request` (`src/meeting-bot/browser-request.ts` pattern) or `tools.invoke` → `browser` |
-| `browser.evaluate` | page-script fallback for widgets click/fill can't drive; highlighted in UI | browser `act evaluate` |
-| `ai` | schema-validated extraction/decision → named outputs | `llm-task` plugin tool via `tools.invoke` |
-| `ask` | question or approval to the owner; run parks until answered | Gateway `question.request` / `question.resolve` + `question.resolved` event (`src/gateway/server-methods`) — same cards Telegram/Control UI/TUI show today |
-| `cred` (inside `browser` fill) | `{{cred:key}}` resolved from the OS keychain at fill time | new: `security` (macOS) / Credential Manager (Windows) adapter, value passed via stdin/env, never argv; never logged; registered for redaction |
-| `mcp` | call `server.tool(args)` on a connected MCP server | in-process session MCP runtime (`acquireSessionMcpRuntime`, `src/agents/agent-bundle-mcp-manager-api.ts:30`) behind a plugin-sdk seam |
-| `template` | render a template with run outputs → PDF/message file; usable anywhere, many times | new: template library + AI slot fill + browser print-to-PDF |
-| `deliver` | send message/files to a contact over Gmail/WhatsApp/Telegram… | OpenClaw message tool via `tools.invoke` |
-| `file` / `print` | move/copy/save/read; silent print to a named printer | Gateway filesystem tools; print = `lp` (mac/linux) / SumatraPDF (Windows) |
-| `when` / `for-each` / `stop` | control flow | runner |
-| `register` | reserved; implemented in sub-project 2 | — |
-| `desktop` | reserved; implemented in sub-project 3 | — |
+| kind                           | does                                                                                      | backed by (verified)                                                                                                                                       |
+| ------------------------------ | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `browser`                      | open, navigate, click, fill, select, press, wait, read text, download, upload, screenshot | Gateway method `browser.request` (`src/meeting-bot/browser-request.ts` pattern) or `tools.invoke` → `browser`                                              |
+| `browser.evaluate`             | page-script fallback for widgets click/fill can't drive; highlighted in UI                | browser `act evaluate`                                                                                                                                     |
+| `ai`                           | schema-validated extraction/decision → named outputs                                      | `llm-task` plugin tool via `tools.invoke`                                                                                                                  |
+| `ask`                          | question or approval to the owner; run parks until answered                               | Gateway `question.request` / `question.resolve` + `question.resolved` event (`src/gateway/server-methods`) — same cards Telegram/Control UI/TUI show today |
+| `cred` (inside `browser` fill) | `{{cred:key}}` resolved from the OS keychain at fill time                                 | new: `security` (macOS) / Credential Manager (Windows) adapter, value passed via stdin/env, never argv; never logged; registered for redaction             |
+| `mcp`                          | call `server.tool(args)` on a connected MCP server                                        | in-process session MCP runtime (`acquireSessionMcpRuntime`, `src/agents/agent-bundle-mcp-manager-api.ts:30`) behind a plugin-sdk seam                      |
+| `template`                     | render a template with run outputs → PDF/message file; usable anywhere, many times        | new: template library + AI slot fill + browser print-to-PDF                                                                                                |
+| `deliver`                      | send message/files to a contact over Gmail/WhatsApp/Telegram…                             | OpenClaw message tool via `tools.invoke`                                                                                                                   |
+| `file` / `print`               | move/copy/save/read; silent print to a named printer                                      | Gateway filesystem tools; print = `lp` (mac/linux) / SumatraPDF (Windows)                                                                                  |
+| `when` / `for-each` / `stop`   | control flow                                                                              | runner                                                                                                                                                     |
+| `register`                     | reserved; implemented in sub-project 2                                                    | —                                                                                                                                                          |
+| `desktop`                      | reserved; implemented in sub-project 3                                                    | —                                                                                                                                                          |
 
-**Login gateway:** a `when` whose condition is a *logged-in probe* (`visible` of something only a signed-in page shows). If visible, the sign-in group is skipped; otherwise it fills `{{cred:*}}`, clicks sign-in, checks the landing URL, and contains `ask` sub-steps that fire only when their trigger text (OTP / CAPTCHA) appears. Exactly Vasudev's guarded login block.
+**Login gateway:** a `when` whose condition is a _logged-in probe_ (`visible` of something only a signed-in page shows). If visible, the sign-in group is skipped; otherwise it fills `{{cred:*}}`, clicks sign-in, checks the landing URL, and contains `ask` sub-steps that fire only when their trigger text (OTP / CAPTCHA) appears. Exactly Vasudev's guarded login block.
 
 ### 1.3 Templates
 
-A template is an HTML document (PDF output) or message text with named slots, a **brand** (logo, colours, phone, footer), stored in a library shared across Duties and referenced by name. `template.render { template, data, format: pdf | message }` → file. **AI fills the slots** (prose slots written fresh each run; row slots mapped from outputs), the deterministic engine renders; an unfillable slot fails the step rather than inventing a value. A Duty may be nothing more than *ask for data (typed or a shared file) → template → deliver* ("Make a package quotation").
+A template is an HTML document (PDF output) or message text with named slots, a **brand** (logo, colours, phone, footer), stored in a library shared across Duties and referenced by name. `template.render { template, data, format: pdf | message }` → file. **AI fills the slots** (prose slots written fresh each run; row slots mapped from outputs), the deterministic engine renders; an unfillable slot fails the step rather than inventing a value. A Duty may be nothing more than _ask for data (typed or a shared file) → template → deliver_ ("Make a package quotation").
 
 ## 2. Authoring — "always through instructions"
 
@@ -64,7 +64,7 @@ No recording of a demo, ever. The owner describes the job in any chat; the agent
 5. Repeats; designs templates and delivery the same way.
 6. **Saves** — any time; no green-run gate (owner decision). Status is `building` until saved-and-activated.
 
-**Templates during build:** when a `template` step is added, the build stage gets a *Template* tab that replaces the machine view. It offers the library or "new"; the agent drafts from a description or from an example file the owner attaches, renders a preview from the last test run, iterates on chat feedback. The agent must state **how every slot will be filled** and add steps for what nothing provides yet (e.g. a "Google Maps link" slot → a web-search step).
+**Templates during build:** when a `template` step is added, the build stage gets a _Template_ tab that replaces the machine view. It offers the library or "new"; the agent drafts from a description or from an example file the owner attaches, renders a preview from the last test run, iterates on chat feedback. The agent must state **how every slot will be filled** and add steps for what nothing provides yet (e.g. a "Google Maps link" slot → a web-search step).
 
 **Credentials:** the moment a login appears, the agent asks the owner to store the credential under a key on the **Logins** screen (masked input → OS keychain). Never in chat.
 
@@ -97,6 +97,7 @@ Plugin keyed store (SQLite, bundled-only): namespaces `duties`, `runs`, `run-ste
 ## 6. UI (validated in the live spike, `~/Developer/duties-ui-spike`)
 
 Bundled plugin browser bundle (Workboard pattern): sidebar **Duties**; pages:
+
 - **Board**: rollups (Active · Successful runs today · Waiting on you · Being built), exception banner naming the fix, filters, cards (summary, trigger, integrations derived from steps, last successful run, Run / Edit with agent).
 - **Duty**: header (status, last updated, last run, machine, reports to, runs alone), read-only steps Plain⇄Raw with the login gateway as a group and gates highlighted, **successful runs only**, triggers, inputs (credentials by key only), uses. Actions: Run, Pause, Edit with agent, Delete.
 - **Build session**: stage (Machine view with Watch/Take control; Template tab only when a template step exists) + steps trail + chat mirrored from the channel; only **Save**.
