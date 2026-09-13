@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import type { Duty } from "./duty.js";
 import { runDuty, type RunnerDeps } from "./runner.js";
 import type { DutyRun, DutyStore, RunStatus, StepEvidence } from "./store.js";
@@ -20,10 +21,14 @@ type Pending = {
 
 export class RunManager {
   private readonly active = new Map<string, Promise<DutyRun>>();
-  private readonly waiters = new Map<string, { resolve: (run: DutyRun) => void }>();
+  private readonly waiters = new Map<string, Array<(run: DutyRun) => void>>();
   private readonly queue: Pending[] = [];
   private readonly activeByDuty = new Map<string, number>();
   private readonly cancelled = new Set<string>();
+  /** Per-run chain of pending evidence appends, so overlapping `onStep` calls for the same
+   *  run are serialized instead of racing on a read-modify-write of `steps`, and `finish`
+   *  can wait for every append to land before writing the terminal status. */
+  private readonly appendChains = new Map<string, Promise<void>>();
   private readonly maxParallel: number;
   constructor(
     private readonly params: {
@@ -59,6 +64,7 @@ export class RunManager {
       steps: [],
     };
     await this.params.store.createRun(run);
+    this.params.emit({ type: "run", runId: run.id, dutyId: p.duty.id, status: "queued" });
     this.queue.push({
       run,
       duty: p.duty,
@@ -82,12 +88,19 @@ export class RunManager {
   wait(runId: string): Promise<DutyRun> {
     const active = this.active.get(runId);
     if (active) return active;
-    return new Promise((resolve) => {
-      this.waiters.set(runId, { resolve });
+    return new Promise((resolve, reject) => {
+      const resolvers = this.waiters.get(runId) ?? [];
+      resolvers.push(resolve);
+      this.waiters.set(runId, resolvers);
       this.params.store.getRun(runId).then((r) => {
         if (r && !["queued", "running", "needs_input"].includes(r.status)) {
           this.waiters.delete(runId);
           resolve(r);
+          return;
+        }
+        if (!r && !this.queue.some((q) => q.run.id === runId) && !this.active.has(runId)) {
+          this.waiters.delete(runId);
+          reject(new Error("no such run"));
         }
       });
     });
@@ -125,63 +138,86 @@ export class RunManager {
   private launch(item: Pending): void {
     const { run, duty } = item;
     this.activeByDuty.set(duty.id, (this.activeByDuty.get(duty.id) ?? 0) + 1);
-    const promise = (async () => {
-      await this.params.store.updateRun(run.id, { status: "running", startedAt: Date.now() });
-      this.params.emit({ type: "run", runId: run.id, dutyId: duty.id, status: "running" });
-      const deps = this.params.deps();
-      const outcome = await runDuty(
-        duty,
-        {
-          ...deps,
-          onStep: (step) => {
-            void this.appendStep(run.id, step);
-            this.params.emit({
-              type: "run",
-              runId: run.id,
-              dutyId: duty.id,
-              status: "running",
-              step,
-            });
+    const promise = (async (): Promise<DutyRun> => {
+      try {
+        await this.params.store.updateRun(run.id, { status: "running", startedAt: Date.now() });
+        this.params.emit({ type: "run", runId: run.id, dutyId: duty.id, status: "running" });
+        const deps = this.params.deps();
+        const outcome = await runDuty(
+          duty,
+          {
+            ...deps,
+            onStep: (step) => {
+              const prior = this.appendChains.get(run.id) ?? Promise.resolve();
+              this.appendChains.set(
+                run.id,
+                prior.then(() => this.appendStep(run.id, step)),
+              );
+              this.params.emit({
+                type: "run",
+                runId: run.id,
+                dutyId: duty.id,
+                status: "running",
+                step,
+              });
+            },
           },
-        },
-        {
-          inputs: run.inputs,
-          toStepId: item.toStepId,
-          keepOpen: item.keepOpen,
-          targetId: item.targetId,
-        },
-      );
-      const status: RunStatus = this.cancelled.has(run.id) ? "cancelled" : outcome.status;
-      const final = await this.finish(run, {
-        status,
-        outputs: outcome.outputs,
-        steps: outcome.steps,
-        failedStep: outcome.failedStep,
-        report: outcome.report,
-        targetId: item.keepOpen && outcome.targetId ? outcome.targetId : undefined,
-      });
-      if (status === "ok") {
-        await this.params.store.saveDuty({ ...duty, lastRunAt: Date.now() });
+          {
+            inputs: run.inputs,
+            toStepId: item.toStepId,
+            keepOpen: item.keepOpen,
+            targetId: item.targetId,
+          },
+        );
+        const status: RunStatus = this.cancelled.has(run.id) ? "cancelled" : outcome.status;
+        const final = await this.finish(run, {
+          status,
+          outputs: outcome.outputs,
+          steps: outcome.steps,
+          failedStep: outcome.failedStep,
+          report: outcome.report,
+          targetId: item.keepOpen && outcome.targetId ? outcome.targetId : undefined,
+        });
+        if (status === "ok") {
+          const fresh = await this.params.store.getDuty(duty.id);
+          if (fresh) await this.params.store.saveDuty({ ...fresh, lastRunAt: Date.now() });
+        }
+        return final;
+      } catch (error) {
+        return this.finish(run, { status: "failed", report: coerceErrorMessage(error) });
       }
-      return final;
     })().finally(() => {
       this.active.delete(run.id);
       this.cancelled.delete(run.id);
+      this.appendChains.delete(run.id);
       this.activeByDuty.set(duty.id, Math.max(0, (this.activeByDuty.get(duty.id) ?? 1) - 1));
       this.pump();
     });
     this.active.set(run.id, promise);
+    // Defensive only: `promise` above already resolves (never rejects) because every
+    // failure path inside the async IIFE is caught and turned into a "failed" finish(); this
+    // guards against an unhandled-rejection warning if something in `.finally()` ever throws.
+    promise.catch(() => {});
   }
 
-  /** Appends one step's evidence to the run's stored `steps`, reading the latest row so
-   *  concurrent onStep calls don't clobber each other with a stale local copy. */
+  /** Appends one step's evidence to the run's stored `steps` via the store's atomic
+   *  `appendRunStep`. Callers must serialize calls per run (see `appendChains`) so a slow
+   *  fallback lookup+register store still can't drop a concurrent step. Best-effort: a
+   *  storage failure here must not break the run or reject the per-run append chain. */
   private async appendStep(runId: string, step: StepEvidence): Promise<void> {
-    const current = await this.params.store.getRun(runId);
-    const steps = [...(current?.steps ?? []), step];
-    await this.params.store.updateRun(runId, { steps });
+    try {
+      await this.params.store.appendRunStep(runId, step);
+    } catch {
+      // evidence persistence is best-effort; the run's outcome still carries the full step
+      // list and is written by finish() once runDuty completes.
+    }
   }
 
   private async finish(run: DutyRun, patch: Partial<DutyRun>): Promise<DutyRun> {
+    // Flush any pending evidence appends first so a late append can never land after — and
+    // silently revert — the terminal status/steps written below.
+    await (this.appendChains.get(run.id) ?? Promise.resolve());
+    this.appendChains.delete(run.id);
     const final = (await this.params.store.updateRun(run.id, {
       ...patch,
       endedAt: Date.now(),
@@ -190,7 +226,8 @@ export class RunManager {
       ...patch,
     };
     this.params.emit({ type: "run", runId: run.id, dutyId: run.dutyId, status: final.status });
-    this.waiters.get(run.id)?.resolve(final);
+    const resolvers = this.waiters.get(run.id);
+    if (resolvers) for (const resolve of resolvers) resolve(final);
     this.waiters.delete(run.id);
     return final;
   }

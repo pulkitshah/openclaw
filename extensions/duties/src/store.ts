@@ -101,6 +101,23 @@ export class DutyStore {
     await store.register(id, next);
     return next;
   }
+  /** Appends one step to a run's evidence, preferring the store's atomic `update` so
+   *  concurrent appends to the same run can never drop each other's step. */
+  async appendRunStep(id: string, step: StepEvidence): Promise<DutyRun | undefined> {
+    const store = this.stores.runs;
+    if (store.update) {
+      const applied = await store.update(id, (cur) =>
+        cur ? { ...cur, steps: [...cur.steps, step] } : undefined,
+      );
+      if (!applied) return undefined;
+      return store.lookup(id);
+    }
+    const current = await store.lookup(id);
+    if (!current) return undefined;
+    const next = { ...current, steps: [...current.steps, step] };
+    await store.register(id, next);
+    return next;
+  }
   async listRuns(
     dutyId: string,
     opts?: { onlySuccessful?: boolean; limit?: number },
