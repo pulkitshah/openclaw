@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { placeholderData, renderTemplate, validateTemplate, type Template } from "./template.js";
+import {
+  placeholderData,
+  renderTemplate,
+  validateBrand,
+  validateTemplate,
+  type Template,
+} from "./template.js";
 
 const tpl: Template = {
   id: "flight-options",
@@ -124,6 +130,21 @@ describe("renderTemplate", () => {
       expect(r.output).toContain("O&#39;Hare");
       expect(r.output).toContain("it&#39;s fine");
     }
+  });
+});
+
+describe("validateBrand", () => {
+  it("rejects a logoDataUrl over the 512 KB image cap", () => {
+    const big = `data:image/png;base64,${"A".repeat(700_001)}`;
+    const r = validateBrand({ name: "Amigos", logoDataUrl: big, updatedAt: 1 });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errors).toContain("logoDataUrl is too large (max 512 KB image)");
+  });
+
+  it("accepts a logoDataUrl within the cap", () => {
+    const ok = `data:image/png;base64,${"A".repeat(1000)}`;
+    const r = validateBrand({ name: "Amigos", logoDataUrl: ok, updatedAt: 1 });
+    expect(r.ok).toBe(true);
   });
 });
 

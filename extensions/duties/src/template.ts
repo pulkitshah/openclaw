@@ -147,6 +147,10 @@ export function validateBrand(
     !input.logoDataUrl.startsWith("data:image/")
   )
     errors.push("logoDataUrl must be a data:image/... URL");
+  // 700,000 base64 characters ≈ 512 KB of decoded image bytes — matches the client-side cap in
+  // `browser/index.ts`'s `saveBrand`, applied here too since this is the RPC's only real gate.
+  if (typeof input.logoDataUrl === "string" && input.logoDataUrl.length > 700_000)
+    errors.push("logoDataUrl is too large (max 512 KB image)");
   if (typeof input.updatedAt !== "number") errors.push("updatedAt must be a number");
   if (errors.length) return { ok: false, errors };
   // SAFETY: name, every optional string field, logoDataUrl's shape and updatedAt were validated above.

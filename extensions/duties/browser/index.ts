@@ -64,6 +64,11 @@ function isMissingDutyError(error: unknown): boolean {
  * authority. */
 const CRED_KEY_RE = /^[a-z0-9][a-z0-9_.-]{0,63}$/u;
 
+/** Matches `validateBrand`'s `logoDataUrl` length ceiling in `src/template.ts` (700,000 base64
+ *  characters ≈ 512 KB of image bytes). Checked against the raw file before it is even read, so a
+ *  large logo is refused without spending a `FileReader` pass or a wasted Gateway round trip. */
+const MAX_LOGO_BYTES = 512 * 1024;
+
 function esc(value: string): string {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
@@ -387,8 +392,12 @@ export default defineControlUiPlugin({
             fail(new Error("Enter a brand name."), () => undefined);
             return;
           }
+          const file = logoInput?.files?.[0];
+          if (file && file.size > MAX_LOGO_BYTES) {
+            fail(new Error("Logo must be under 512 KB"), () => undefined);
+            return;
+          }
           try {
-            const file = logoInput?.files?.[0];
             const logoDataUrl = file ? await readFileAsDataUrl(file) : brand?.logoDataUrl;
             const payload: Record<string, unknown> = {
               name,

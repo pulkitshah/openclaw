@@ -925,3 +925,18 @@
 .dt .runs.files .filewrap {
   flex-basis: 100%;
 }
+.dt .tpltext {
+  margin-top: 8px;
+}
+.dt .tpltext summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-strong, var(--text));
+}
+.dt .tpltext summary::-webkit-details-marker {
+  display: none;
+}
+.dt .tpltext .raw {
+  margin-top: 8px;
+  white-space: pre-wrap;
+}

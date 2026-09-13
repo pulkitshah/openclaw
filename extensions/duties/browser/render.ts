@@ -278,8 +278,21 @@ function triggerRow(trigger: DutyTrigger): string {
   return `<dt>${esc(label)}</dt><dd>${esc(detail)}</dd>`;
 }
 
+/** Spec §8: a run that delivered something shows "Delivered to <channel>" on the Board / Duty
+ *  page. The deliver step's own evidence summary is the runner's `→ ${channel}:${maskTarget}`
+ *  string (`src/runner.ts`); only its leading arrow is stripped, since the recipient is already
+ *  masked there and must stay that way here. */
+function deliveredToNote(run: DutyRun): string | undefined {
+  const delivered = run.steps.find((s) => s.kind === "deliver" && s.status === "ok");
+  if (!delivered) return undefined;
+  return `Delivered to ${delivered.summary.replace(/^→\s*/u, "")}`;
+}
+
 function successfulRunRow(run: DutyRun): string {
-  return `<li><span class="st ok">✓</span><span class="when">${esc(fmtWhen(run.startedAt))}</span><span class="r">${esc(run.trigger)}</span><a href="#" data-open-run="${esc(run.id)}" data-duty-id="${esc(run.dutyId)}">view run</a></li>`;
+  const delivered = deliveredToNote(run);
+  return `<li><span class="st ok">✓</span><span class="when">${esc(fmtWhen(run.startedAt))}</span><span class="r">${esc(run.trigger)}${
+    delivered ? ` · ${esc(delivered)}` : ""
+  }</span><a href="#" data-open-run="${esc(run.id)}" data-duty-id="${esc(run.dutyId)}">view run</a></li>`;
 }
 
 export function renderDetail(duty: Duty, runs: readonly DutyRun[], opts?: RenderOpts): string {
@@ -355,10 +368,13 @@ export function renderRun(run: DutyRun, duty: Duty | undefined, opts?: RenderOpt
   const errorBanner = opts?.error ? renderErrorBanner(opts.error) : "";
   const outputEntries = Object.entries(run.outputs);
   const files = run.files ?? [];
+  const delivered = deliveredToNote(run);
   return `${errorBanner}<div class="head"><div><div class="small"><a href="#" data-open="${esc(duty?.id ?? run.dutyId)}">← ${esc(duty?.name ?? run.dutyId)}</a></div><h1>Run</h1>
 <div class="meta">${runStatusPill(run.status)}<span>Started <b>${esc(fmtWhen(run.startedAt))}</b></span>${
     run.endedAt ? `<span>Ended <b>${esc(fmtWhen(run.endedAt))}</b></span>` : ""
-  }<span>Trigger <b>${esc(run.trigger)}</b></span></div></div>
+  }<span>Trigger <b>${esc(run.trigger)}</b></span>${
+    delivered ? `<span>${esc(delivered)}</span>` : ""
+  }</div></div>
 ${
   run.status === "running" || run.status === "queued"
     ? `<button class="btn danger" data-cancel="${esc(run.id)}">Cancel run</button>`
@@ -428,15 +444,29 @@ function pluralSlots(count: number): string {
   return `${count} slot${count === 1 ? "" : "s"}`;
 }
 
+/** `duties.template.preview` (`src/preview.ts`) only ever renders `pdf` templates and throws for
+ *  a `message` one, so the Preview button — which calls that method — is offered only for `pdf`
+ *  templates. A `message` template's body is plain text already sitting in `template.html`, so it
+ *  is shown inline behind a `<details>` toggle instead: no Gateway round trip needed or offered. */
+function templateBody(template: Template): string {
+  if (template.kind === "pdf")
+    return `<div class="tplpreview" data-tpl-preview-for="${esc(template.id)}" hidden></div>`;
+  return `<details class="tpltext"><summary>Message text</summary><pre class="raw">${esc(template.html)}</pre></details>`;
+}
+
 /** Preview and delete are the only mutations this page performs on a template; content edits go
  *  through the agent (`data-tpl-edit`, mirroring `data-edit` on a Duty), since a template's HTML
  *  and slot contract are hand-authored and validated server-side, not form fields here. */
 function templateCard(template: Template): string {
+  const preview =
+    template.kind === "pdf"
+      ? `<button class="btn quiet" data-tpl-preview="${esc(template.id)}">Preview</button>`
+      : "";
   return `<article class="card tpl" data-tpl="${esc(template.id)}">
   <div class="top"><h3>${esc(template.name)}</h3><span class="chip">${esc(template.kind)}</span></div>
   <p class="sum">${esc(pluralSlots(template.slots.length))} · updated ${esc(fmtWhen(template.updatedAt))}</p>
-  <div class="foot"><span></span><span><button class="btn quiet" data-tpl-preview="${esc(template.id)}">Preview</button><button class="btn quiet" data-tpl-edit="${esc(template.id)}">Edit with agent</button><button class="btn danger" data-tpl-delete="${esc(template.id)}">Delete</button></span></div>
-  <div class="tplpreview" data-tpl-preview-for="${esc(template.id)}" hidden></div>
+  <div class="foot"><span></span><span>${preview}<button class="btn quiet" data-tpl-edit="${esc(template.id)}">Edit with agent</button><button class="btn danger" data-tpl-delete="${esc(template.id)}">Delete</button></span></div>
+  ${templateBody(template)}
 </article>`;
 }
 

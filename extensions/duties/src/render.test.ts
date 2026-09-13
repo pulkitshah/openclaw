@@ -328,8 +328,8 @@ describe("render", () => {
       {
         id: "t2",
         name: "Confirmation",
-        kind: "message",
-        html: "hi {{slot:y}}",
+        kind: "pdf",
+        html: "<p>{{slot:y}}</p>",
         slots: [{ name: "y", kind: "text", description: "d" }],
         updatedAt: 20,
       },
@@ -340,6 +340,78 @@ describe("render", () => {
     expect(html).toContain("Rate quote");
     expect(html).toContain("Confirmation");
     expect(html).toContain("data-brand-save");
+  });
+
+  it("offers Preview only for pdf templates; a message template shows its text inline instead, with no Gateway call", () => {
+    const templates = [
+      {
+        id: "t1",
+        name: "Rate quote",
+        kind: "pdf",
+        html: "<p>{{slot:x}}</p>",
+        slots: [{ name: "x", kind: "text", description: "d" }],
+        updatedAt: 10,
+      },
+      {
+        id: "t2",
+        name: "Confirmation",
+        kind: "message",
+        html: "Hi {{slot:y}}, thanks for booking!",
+        slots: [{ name: "y", kind: "text", description: "d" }],
+        updatedAt: 20,
+      },
+    ] as unknown as Template[];
+    const html = renderTemplates({ templates });
+    expect(html).toContain('data-tpl-preview="t1"');
+    expect(html).not.toContain('data-tpl-preview="t2"');
+    expect(html).toContain("Message text");
+    expect(html).toContain("Hi {{slot:y}}, thanks for booking!");
+  });
+
+  it("triggerRow on the Duty detail page labels each kind and shows its match, with a dash for manual", () => {
+    const withTriggers = {
+      ...duty,
+      triggers: [
+        { kind: "mail", match: "quote@vendor.com" },
+        { kind: "chat", match: "book flight" },
+        { kind: "manual" },
+      ],
+    } as unknown as Duty;
+    const html = renderDetail(withTriggers, []);
+    expect(html).toContain("<dt>Mail</dt><dd>quote@vendor.com</dd>");
+    expect(html).toContain("<dt>Chat</dt><dd>book flight</dd>");
+    expect(html).toContain("<dt>Manual (chat or Run button)</dt><dd>—</dd>");
+  });
+
+  it("shows a Delivered-to note on the Duty page's successful runs and the run view header once a deliver step succeeded", () => {
+    const run = {
+      id: "r5",
+      dutyId: "d1",
+      status: "ok",
+      startedAt: 1,
+      trigger: "manual",
+      inputs: {},
+      outputs: {},
+      steps: [
+        {
+          stepId: "s1",
+          label: "Send quote",
+          kind: "deliver",
+          status: "ok",
+          durationMs: 1,
+          summary: "→ telegram:••••1234",
+        },
+      ],
+    } as unknown as DutyRun;
+    const detailHtml = renderDetail(duty as unknown as Duty, [run]);
+    expect(detailHtml).toContain("Delivered to telegram:••••1234");
+
+    const runHtml = renderRun(run, duty as unknown as Duty);
+    expect(runHtml).toContain("Delivered to telegram:••••1234");
+
+    const noDeliverRun = { ...run, id: "r6", steps: [] } as unknown as DutyRun;
+    const noDeliverHtml = renderDetail(duty as unknown as Duty, [noDeliverRun]);
+    expect(noDeliverHtml).not.toContain("Delivered to");
   });
 
   it("escapes a template name containing markup and quotes", () => {
