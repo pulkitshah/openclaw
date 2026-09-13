@@ -94,7 +94,7 @@ Agent tools registered by the plugin: `duty_list`, `duty_get`, `duty_draft` (cre
 
 Plugin keyed store (SQLite, bundled-only): namespaces `duties`, `runs`, `run-steps`, `templates`, `brands`, `cred-index` (keys only, never values). Screenshots and rendered files in the plugin blob store. Runs and evidence are retained 90 days; Duties forever. No JSON sidecar files.
 
-## 6. UI (validated in the live spike, `~/Developer/duties-ui-spike`)
+## 6. UI (validated in the live spike, `~/path/to/duties-ui-spike`)
 
 Bundled plugin browser bundle (Workboard pattern): sidebar **Duties**; pages:
 

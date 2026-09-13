@@ -46,7 +46,13 @@ export function createAiAdapter(params: { request: Request; sessionKey: string }
   };
 }
 
-export function parseToolJson(result: unknown): Record<string, unknown> {
+/**
+ * Unwraps `llm-task`'s two documented shapes only: `details.json` (preferred) and the text content
+ * block. An extracted object that legitimately carries its own `json`/`output` field is returned
+ * as-is rather than unwrapped again — guessing there silently replaced the model's result with one
+ * of its fields.
+ */
+function parseToolJson(result: unknown): Record<string, unknown> {
   if (isRecord(result)) {
     const details = isRecord(result.details) ? result.details : undefined;
     if (details && "json" in details) return parseToolJson(details.json);
@@ -59,8 +65,6 @@ export function parseToolJson(result: unknown): Record<string, unknown> {
         .join("\n");
       return parseToolJson(text);
     }
-    if ("json" in result) return parseToolJson(result.json);
-    if ("output" in result) return parseToolJson(result.output);
     return result;
   }
   if (typeof result === "string") {

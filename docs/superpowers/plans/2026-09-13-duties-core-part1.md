@@ -2631,7 +2631,7 @@ describe("duty tools", () => {
 **Files:**
 
 - Create: `extensions/duties/browser/index.ts`, `extensions/duties/browser/styles.css`, `extensions/duties/browser/render.ts`, `extensions/duties/browser/render.test.ts`
-- Source: copy `~/Developer/duties-ui-spike/src/control-ui.ts` and `control-ui.css`; the CSS moves unchanged; the TypeScript is split into `render.ts` (pure `renderBoard(duties, runs)`, `renderDetail(duty, runs)`, `renderRun(run, duty)`; no DOM) and `index.ts` (host wiring).
+- Source: copy `~/path/to/duties-ui-spike/src/control-ui.ts` and `control-ui.css`; the CSS moves unchanged; the TypeScript is split into `render.ts` (pure `renderBoard(duties, runs)`, `renderDetail(duty, runs)`, `renderRun(run, duty)`; no DOM) and `index.ts` (host wiring).
 
 **Interfaces:**
 
@@ -2724,3 +2724,24 @@ describe("render", () => {
 - **Spec coverage:** §1.1 document → Task 2; §1.2 browser/evaluate/ai/ask/cred/when/stop → Tasks 4–7; `for-each`, `template`, `deliver`, `file/print`, `mcp` → Part 2 (noted in header); §2 authoring → Task 10 (tools + skill); §3 runner, concurrency, evidence, `lost` → Tasks 5, 8, 9; §4 manual trigger → Task 9/11; schedule/mail/channel/webhook triggers → Part 2; §5 storage → Task 3/9; §6 UI board/detail/run → Task 11 (build session live chat mirror and machine view → Part 2); §7 constraints → Global Constraints; §9 acceptance 1–3 → Task 12.
 - **Placeholders:** none; two "confirm the exact field names before running" notes point at specific files rather than leaving code undefined.
 - **Type consistency:** `RunStatus`, `StepEvidence`, `DutyRun` defined once in Task 3 and reused; `RunnerDeps`/`BrowserAdapter`/`AiAdapter`/`AskAdapter` from Task 5 reused in 6–9; `validateDuty` signature identical in Tasks 2, 9, 10.
+
+---
+
+## Deferred to Part 2
+
+Confirmed deviations from the spec that Part 1 does not close, recorded here rather than left
+implied:
+
+- **Resume an `ask` after a Gateway restart.** A run now parks durably on `needs_input` with its
+  `waitingOn { questionId, stepId }` and returns to `running` on the answer, so the Board rollup
+  and `recoverOrphans` are truthful. Re-attaching to an open question id after the Gateway
+  restarts (instead of the run being marked `lost`) is Part 2.
+- **`check.attribute`.** Declared in the spec's vocabulary, rejected by `validateDuty` with
+  "attribute checks arrive in Part 2" and dropped from the skill until the adapter can evaluate it.
+- **Session-level browser reconnect and step-level repair.** Part 1 retries only idempotent reads
+  (`/snapshot`, `/text`, `/tabs`, `/screenshot`) twice on transport-shaped failures and records the
+  retry in the step summary; reconnecting a dead profile mid-run is Part 2.
+- **`ask` routing.** `ai`/`ask` steps run against the default agent's `main` session
+  (`sessionKey: "main"`), not the owner's triggering channel, and were never exercised live.
+- **`machine` routing.** Validated, stored and displayed, but every browser step runs on the
+  Gateway's configured profile.

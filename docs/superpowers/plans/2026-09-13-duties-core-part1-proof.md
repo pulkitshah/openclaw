@@ -25,7 +25,7 @@ The proof ran on an isolated Gateway so the owner's live Gateway (port 18789, La
 Start (detached, so nothing else was signalled):
 
 ```
-(cd /Users/pulkitshah/Developer/vasudev-openclaw && \
+(cd ~/path/to/openclaw-fork && \
  OPENCLAW_STATE_DIR=$HOME/.openclaw-duties \
  OPENCLAW_CONFIG_PATH=$HOME/.openclaw-duties/openclaw.json \
  nohup node openclaw.mjs gateway run --port 19001 > /tmp/claude-501/duties-proof-gateway.log 2>&1 &)
@@ -76,7 +76,7 @@ not plugin code.
 
 1. **The agent pointed at the owner's live state.** `agents.entries.krishna.agentDir` and
    `agents.defaults.workspace` still referenced `~/.openclaw/...`, so startup aborted with
-   `OpenClaw agent database /Users/pulkitshah/.openclaw/agents/krishna/agent/openclaw-agent.sqlite
+   `OpenClaw agent database ~/.openclaw/agents/krishna/agent/openclaw-agent.sqlite
    uses schema version 19; … run openclaw doctor --fix`. Migrating that database would have
    mutated the owner's live agent state, so instead both paths were repointed into
    `~/.openclaw-duties/`. The owner's database was never opened or migrated.
@@ -396,7 +396,7 @@ The Duties page is served by the proof Gateway:
 
 **For the owner, to view it:** in a real terminal run
 `OPENCLAW_STATE_DIR=~/.openclaw-duties node openclaw.mjs gateway auth-token --show`
-from `/Users/pulkitshah/Developer/vasudev-openclaw`, then open
+from `~/path/to/openclaw-fork`, then open
 <http://127.0.0.1:19001/duties> and sign in with that token. The token is deliberately not
 recorded here. Note the Gateway on 19001 is stopped at the end of this task and must be
 restarted (command at the top of this document) before the page will load.

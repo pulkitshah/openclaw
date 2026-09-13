@@ -38,6 +38,18 @@ describe("ai adapter", () => {
     ).resolves.toEqual({ origin: "IXU" });
   });
 
+  it("keeps an extracted object that carries its own json field instead of unwrapping it again", async () => {
+    const request = vi.fn(async () => ({
+      ok: true,
+      toolName: "llm-task",
+      output: { details: { json: { json: "the raw mail text", origin: "IXU" } } },
+    }));
+    const ai = createAiAdapter({ request, sessionKey: "main" });
+    await expect(
+      ai.extract({ instruction: "x", input: "mail", schema: { type: "object" } }),
+    ).resolves.toEqual({ json: "the raw mail text", origin: "IXU" });
+  });
+
   it("rejects with the tool's error message when tools.invoke fails", async () => {
     const request = vi.fn(async () => ({
       ok: false,
@@ -94,6 +106,24 @@ describe("ask adapter", () => {
         ],
       }),
     );
+  });
+
+  it("reports the created question id so the run can park on it", async () => {
+    const request = vi.fn(async (method: string) =>
+      method === "question.request"
+        ? { id: "q-42", expiresAtMs: 1 }
+        : { status: "answered", answers: { answers: { otp: ["1234"] } } },
+    );
+    const ask = createAskAdapter({ request, sessionKey: "main", pollMs: 1 });
+    const asked: string[] = [];
+    await ask.ask({
+      stepId: "otp",
+      question: "Code?",
+      header: "OTP",
+      options: [],
+      onAsked: (questionId) => asked.push(questionId),
+    });
+    expect(asked).toEqual(["q-42"]);
   });
 
   it("returns timeout when the question expires", async () => {
