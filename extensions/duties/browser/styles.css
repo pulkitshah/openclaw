@@ -801,3 +801,45 @@
   margin-bottom: 16px;
   color: var(--danger, #e5484d);
 }
+.dt .st.blocked {
+  background: var(--warn-subtle, rgba(245, 158, 11, 0.14));
+  color: var(--warn, #f59e0b);
+}
+.dt .shotwrap {
+  margin-top: 6px;
+}
+.dt .shot img {
+  display: block;
+  margin-top: 8px;
+  max-width: 280px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: zoom-in;
+}
+.dt .shot img.big {
+  max-width: 100%;
+  cursor: zoom-out;
+}
+.dt .logins li {
+  gap: 12px;
+}
+.dt .fld {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+.dt .fld span {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.dt .fld input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  color: inherit;
+  font: inherit;
+}

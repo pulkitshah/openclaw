@@ -22,16 +22,33 @@ type Handler = (ctx: {
 function harness(params?: {
   emit?: (name: "changed" | "run", payload: Record<string, unknown>) => void;
   runs?: { start: ReturnType<typeof vi.fn>; cancel: ReturnType<typeof vi.fn> };
+  creds?: { set: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn> };
+  blob?: { bytes: Uint8Array; metadata: { contentType: string } };
 }) {
   const methods = new Map<string, { handler: Handler; scope: string }>();
   const api = {
     registerGatewayMethod: (name: string, handler: never, opts: { scope: string }) =>
       methods.set(name, { handler, scope: opts.scope }),
   } as never;
-  const store = new DutyStore({ duties: memoryKeyed() as never, runs: memoryKeyed() as never });
+  const store = new DutyStore({
+    duties: memoryKeyed() as never,
+    runs: memoryKeyed() as never,
+    creds: memoryKeyed() as never,
+  });
   const emit = params?.emit ?? vi.fn();
   const runs = params?.runs ?? { start: vi.fn(), cancel: vi.fn() };
-  registerDutiesGatewayMethods({ api, store, runs: runs as never, emit });
+  const creds = params?.creds ?? {
+    set: vi.fn(async () => {}),
+    delete: vi.fn(async () => true),
+  };
+  registerDutiesGatewayMethods({
+    api,
+    store,
+    runs: runs as never,
+    emit,
+    creds,
+    evidence: () => ({ lookup: async () => params?.blob }),
+  });
 
   const call = async (name: string, callParams: Record<string, unknown>) =>
     new Promise<{ ok: boolean; result?: unknown; error?: unknown }>((resolve) =>
@@ -41,7 +58,7 @@ function harness(params?: {
       }),
     );
 
-  return { methods, store, emit, runs, call };
+  return { methods, store, emit, runs, creds, call };
 }
 
 const baseDuty = {
@@ -143,6 +160,65 @@ describe("duties gateway methods", () => {
 
     const rejected = await call("duties.runs.recent", { limit: "nope" });
     expect(rejected.ok).toBe(false);
+  });
+
+  it("stores, lists and deletes a login without ever echoing its value", async () => {
+    const { call, creds, methods } = harness();
+
+    expect(methods.get("duties.cred.set")?.scope).toBe("operator.admin");
+    expect(methods.get("duties.cred.list")?.scope).toBe("operator.read");
+    expect(methods.get("duties.cred.delete")?.scope).toBe("operator.admin");
+
+    const saved = await call("duties.cred.set", { key: "amigos.password", value: "s3cret" });
+    expect(saved).toEqual({ ok: true, result: { ok: true }, error: undefined });
+    expect(JSON.stringify(saved)).not.toContain("s3cret");
+    expect(creds.set).toHaveBeenCalledWith("amigos.password", "s3cret");
+
+    const empty = await call("duties.cred.set", { key: "amigos.password", value: "" });
+    expect(empty.ok).toBe(false);
+
+    const listed = await call("duties.cred.list", {});
+    expect((listed.result as { keys: string[] }).keys).toEqual(["amigos.password"]);
+    expect(JSON.stringify(listed)).not.toContain("s3cret");
+
+    const deleted = await call("duties.cred.delete", { key: "amigos.password" });
+    expect(deleted).toEqual({ ok: true, result: { ok: true }, error: undefined });
+    expect(creds.delete).toHaveBeenCalledWith("amigos.password");
+    expect((await call("duties.cred.list", {})).result).toMatchObject({ keys: [] });
+  });
+
+  it("serves a step's screenshot as base64 and refuses a step that has none", async () => {
+    const { call, store, methods } = harness({
+      blob: { bytes: new Uint8Array([1, 2, 3]), metadata: { contentType: "image/png" } },
+    });
+    expect(methods.get("duties.run.evidence")?.scope).toBe("operator.read");
+    await store.createRun({
+      id: "r1",
+      dutyId: "d1",
+      status: "ok",
+      startedAt: 1,
+      trigger: "manual",
+      inputs: {},
+      outputs: {},
+      steps: [
+        {
+          stepId: "s1",
+          label: "Open",
+          kind: "browser",
+          status: "ok",
+          durationMs: 1,
+          summary: "x",
+          screenshotBlobId: "blob-1",
+        },
+        { stepId: "s2", label: "Ask", kind: "ask", status: "ok", durationMs: 1, summary: "y" },
+      ],
+    });
+
+    const shot = await call("duties.run.evidence", { runId: "r1", stepId: "s1" });
+    expect(shot.result).toEqual({ contentType: "image/png", base64: "AQID" });
+
+    expect((await call("duties.run.evidence", { runId: "r1", stepId: "s2" })).ok).toBe(false);
+    expect((await call("duties.run.evidence", { runId: "nope", stepId: "s1" })).ok).toBe(false);
   });
 
   it("rejects duties.status transitions to building and runs/cancels via the RunManager", async () => {

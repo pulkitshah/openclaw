@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { credGet, credHas, credSet } from "./creds.js";
+import { credDelete, credGet, credHas, credSet } from "./creds.js";
 import type { ExecFn } from "./creds.js";
 
 // Explicitly typed to ExecFn's parameter shape so `mock.calls[0]` is always inferred as the real
@@ -64,6 +64,36 @@ describe("creds (macOS)", () => {
     expect(opts?.input).not.toContain('p"a');
     expect(opts?.input).not.toContain("\\ss");
   });
+  it("refuses a value written by anything but OpenClaw instead of filling the wrong bytes", async () => {
+    const exec = mockExec(async () => ({ stdout: "mypassword\n" }));
+    await expect(credGet("amigos.password", "darwin", exec)).rejects.toThrow(
+      "credential amigos.password was not stored by OpenClaw",
+    );
+    const oddLength = mockExec(async () => ({ stdout: "abc\n" }));
+    await expect(credGet("amigos.password", "darwin", oddLength)).rejects.toThrow(
+      "was not stored by OpenClaw",
+    );
+  });
+  it("rejects an empty value instead of leaving `security` waiting on stdin", async () => {
+    const exec = mockExec(async () => ({ stdout: "" }));
+    await expect(credSet("amigos.password", "", "darwin", exec)).rejects.toThrow(
+      "credential value must not be empty",
+    );
+    expect(exec).not.toHaveBeenCalled();
+  });
+  it("deletes through `security delete-generic-password` and reports a missing item", async () => {
+    const exec = mockExec(async () => ({ stdout: "" }));
+    await expect(credDelete("amigos.password", "darwin", exec)).resolves.toBe(true);
+    expect(exec).toHaveBeenCalledWith(
+      "security",
+      ["delete-generic-password", "-s", "openclaw-duties.amigos.password"],
+      undefined,
+    );
+    const missing = mockExec(async () => {
+      throw new Error("security: SecKeychainSearchCopyNext");
+    });
+    await expect(credDelete("amigos.password", "darwin", missing)).resolves.toBe(false);
+  });
   it("maps a failed save to a plain error without echoing the value or security's stderr", async () => {
     const value = "s3cret-value";
     const exec = mockExec(async () => {
@@ -105,6 +135,14 @@ describe("creds (windows)", () => {
     expect(args).not.toContain("v");
     expect(args).not.toContain("k");
     expect(opts?.env?.OCD_SECRET).toBe("v");
+    expect(opts?.env?.OCD_TARGET).toBe("openclaw-duties.k");
+  });
+  it("deletes through the same PowerShell surface, keeping the key in env", async () => {
+    const exec = mockExec(async () => ({ stdout: "" }));
+    await expect(credDelete("k", "win32", exec)).resolves.toBe(true);
+    const [file, args, opts] = exec.mock.calls[0]!;
+    expect(file).toBe("powershell.exe");
+    expect(args).not.toContain("k");
     expect(opts?.env?.OCD_TARGET).toBe("openclaw-duties.k");
   });
 });

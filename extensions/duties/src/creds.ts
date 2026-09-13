@@ -5,15 +5,19 @@ export type ExecFn = (
   args: string[],
   opts?: { input?: string; env?: NodeJS.ProcessEnv },
 ) => Promise<{ stdout: string }>;
-export const CRED_KEY_RE = /^[a-z0-9][a-z0-9_.-]{0,63}$/u;
+const CRED_KEY_RE = /^[a-z0-9][a-z0-9_.-]{0,63}$/u;
+const HEX_RE = /^[0-9a-f]*$/u;
 const SERVICE_PREFIX = "openclaw-duties.";
+/** `security`/`powershell.exe` can wait for interactive input; nothing here is interactive, so a
+ *  hung helper must become a failed step rather than a run that never ends. */
+const EXEC_TIMEOUT_MS = 20_000;
 
 const defaultExec: ExecFn = (file, args, opts) =>
   new Promise((resolve, reject) => {
     const child = execFile(
       file,
       args,
-      { env: opts?.env ?? process.env, maxBuffer: 1 << 20 },
+      { env: opts?.env ?? process.env, maxBuffer: 1 << 20, timeout: EXEC_TIMEOUT_MS },
       (error, stdout) => {
         if (error) reject(error);
         else resolve({ stdout: String(stdout) });
@@ -34,18 +38,31 @@ export async function credGet(
   exec: ExecFn = defaultExec,
 ): Promise<string> {
   assertKey(key);
-  try {
-    if (platform === "darwin") {
+  if (platform === "darwin") {
+    let stored: string;
+    try {
       const { stdout } = await exec(
         "security",
         ["find-generic-password", "-s", SERVICE_PREFIX + key, "-w"],
         undefined,
       );
-      // Stored value is hex text (see credSet); decode it back to the original bytes here rather
-      // than relying on `security`'s own `-X` hex handling, which on this OS only decodes hex that
-      // maps to printable ASCII and silently stores non-printable/UTF-8 hex text literally.
-      return Buffer.from(stdout.replace(/\n$/u, ""), "hex").toString("utf8");
+      stored = stdout.replace(/\n$/u, "");
+    } catch {
+      throw new Error(`no credential stored for ${key}`);
     }
+    // Stored value is hex text (see credSet); decode it back to the original bytes here rather
+    // than relying on `security`'s own `-X` hex handling, which on this OS only decodes hex that
+    // maps to printable ASCII and silently stores non-printable/UTF-8 hex text literally. An item
+    // written by hand (`security add-generic-password -w 'mypassword'`) is NOT hex, and
+    // `Buffer.from` would silently truncate it into the wrong value — so refuse it instead.
+    if (!HEX_RE.test(stored) || stored.length % 2 !== 0) {
+      throw new Error(
+        `credential ${key} was not stored by OpenClaw; save it again from Duties → Logins`,
+      );
+    }
+    return Buffer.from(stored, "hex").toString("utf8");
+  }
+  try {
     if (platform === "win32") {
       const { stdout } = await exec(
         "powershell.exe",
@@ -69,6 +86,9 @@ export async function credSet(
   exec: ExecFn = defaultExec,
 ): Promise<void> {
   assertKey(key);
+  // An empty value would render as `-w \n` with no token, leaving `security -i` waiting for an
+  // interactive password; there is also no legitimate empty credential to store.
+  if (!value) throw new Error("credential value must not be empty");
   if (platform === "darwin") {
     // `security -i` reads commands from stdin, so the secret never appears in argv. The value is
     // hex-encoded (not quoted/escaped into the command text) so it can never break out of the
@@ -102,6 +122,34 @@ export async function credSet(
   throw new Error(`credential store not supported on ${platform}`);
 }
 
+/** Removes a stored credential. Resolves `false` when there was nothing to remove. */
+export async function credDelete(
+  key: string,
+  platform: NodeJS.Platform = process.platform,
+  exec: ExecFn = defaultExec,
+): Promise<boolean> {
+  assertKey(key);
+  if (platform === "darwin") {
+    try {
+      await exec("security", ["delete-generic-password", "-s", SERVICE_PREFIX + key], undefined);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  if (platform === "win32") {
+    try {
+      await exec("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", WIN_DELETE], {
+        env: { ...process.env, OCD_TARGET: SERVICE_PREFIX + key },
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  throw new Error(`credential store not supported on ${platform}`);
+}
+
 export async function credHas(
   key: string,
   platform?: NodeJS.Platform,
@@ -125,7 +173,9 @@ public static class OcdCred {
     public uint Persist; public uint AttributeCount; public IntPtr Attributes; public string TargetAlias; public string UserName; }
   [DllImport("advapi32", CharSet = CharSet.Unicode, SetLastError = true)] static extern bool CredWriteW(ref CREDENTIAL c, uint f);
   [DllImport("advapi32", CharSet = CharSet.Unicode, SetLastError = true)] static extern bool CredReadW(string t, uint ty, uint f, out IntPtr p);
+  [DllImport("advapi32", CharSet = CharSet.Unicode, SetLastError = true)] static extern bool CredDeleteW(string t, uint ty, uint f);
   [DllImport("advapi32")] static extern void CredFree(IntPtr p);
+  public static void Delete(string target) { if (!CredDeleteW(target, 1, 0)) throw new Exception("not found"); }
   public static void Write(string target, string secret) {
     byte[] blob = System.Text.Encoding.Unicode.GetBytes(secret); IntPtr ptr = Marshal.AllocHGlobal(blob.Length); Marshal.Copy(blob, 0, ptr, blob.Length);
     CREDENTIAL c = new CREDENTIAL(); c.Type = 1; c.TargetName = target; c.CredentialBlobSize = (uint)blob.Length; c.CredentialBlob = ptr; c.Persist = 2; c.UserName = "openclaw";
@@ -137,3 +187,4 @@ public static class OcdCred {
     finally { CredFree(p); } } }`;
 const WIN_READ = `$ErrorActionPreference='Stop'; Add-Type -TypeDefinition @'\n${WIN_CS}\n'@; [Console]::Out.Write([OcdCred]::Read($env:OCD_TARGET))`;
 const WIN_WRITE = `$ErrorActionPreference='Stop'; Add-Type -TypeDefinition @'\n${WIN_CS}\n'@; [OcdCred]::Write($env:OCD_TARGET, $env:OCD_SECRET)`;
+const WIN_DELETE = `$ErrorActionPreference='Stop'; Add-Type -TypeDefinition @'\n${WIN_CS}\n'@; [OcdCred]::Delete($env:OCD_TARGET)`;

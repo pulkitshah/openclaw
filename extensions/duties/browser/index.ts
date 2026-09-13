@@ -7,6 +7,7 @@ import {
   renderBoard,
   renderBuildPreview,
   renderDetail,
+  renderLogins,
   renderPlaceholder,
   renderRun,
 } from "./render.js";
@@ -20,6 +21,8 @@ type GetResult = { duty: Duty; runs: DutyRun[] };
 type RecentRunsResult = { runs: DutyRun[] };
 type RunGetResult = { run: DutyRun };
 type RunStartResult = { runId: string; queued: boolean; reason?: string };
+type CredListResult = { keys: string[]; updatedAt: Record<string, number> };
+type EvidenceResult = { contentType: string; base64: string };
 
 function readDutyId(payload: unknown): string | undefined {
   return isRecord(payload) && typeof payload.dutyId === "string" ? payload.dutyId : undefined;
@@ -45,6 +48,11 @@ function coerceErrorMessage(error: unknown): string {
 function isMissingDutyError(error: unknown): boolean {
   return coerceErrorMessage(error).includes('no Duty "');
 }
+
+/** Same shape as `CRED_KEY_RE` in `src/creds.ts`, which the browser bundle cannot import (it pulls
+ * in `node:child_process`). Pre-validates the field; the Gateway method's own check is the
+ * authority. */
+const CRED_KEY_RE = /^[a-z0-9][a-z0-9_.-]{0,63}$/u;
 
 function esc(value: string): string {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -75,6 +83,7 @@ export default defineControlUiPlugin({
         // another feature's page that way. Show the instruction text every time until Part 2
         // gives this plugin a real hand-off (e.g. a host-provided chat-open capability).
         let editNotice: string | null = null;
+        let logins: CredListResult = { keys: [], updatedAt: {} };
 
         const root = document.createElement("div");
         root.className = "dt";
@@ -120,6 +129,8 @@ export default defineControlUiPlugin({
           const errorOpts = lastError ? { error: lastError } : undefined;
           if (view === "build") {
             root.innerHTML = notice + renderBuildPreview();
+          } else if (view === "logins") {
+            root.innerHTML = notice + renderLogins(logins, errorOpts);
           } else if (view === "detail") {
             const duty = duties.find((d) => d.id === dutyId);
             root.innerHTML =
@@ -217,12 +228,95 @@ export default defineControlUiPlugin({
           }
         };
 
+        const loadLogins = async (): Promise<void> => {
+          try {
+            const result = await host.request<CredListResult>("duties.cred.list", {});
+            if (context.signal.aborted) return;
+            logins = result;
+            clearError();
+            draw();
+          } catch (error) {
+            fail(error, () => void loadLogins());
+          }
+        };
+
+        /** Reads the key/value fields, saves the login, and clears the value field immediately.
+         *  The value is never stored on this page, put in the DOM, or logged. */
+        const saveLogin = async (): Promise<void> => {
+          const keyInput = root.querySelector<HTMLInputElement>("[data-cred-key]");
+          const valueInput = root.querySelector<HTMLInputElement>("[data-cred-value]");
+          const key = keyInput?.value.trim() ?? "";
+          const value = valueInput?.value ?? "";
+          if (valueInput) valueInput.value = "";
+          if (!CRED_KEY_RE.test(key)) {
+            fail(
+              new Error("A key looks like site.password: lowercase letters, digits, . _ -"),
+              () => undefined,
+            );
+            return;
+          }
+          if (!value) {
+            fail(new Error("Enter the password before saving."), () => undefined);
+            return;
+          }
+          try {
+            await host.request("duties.cred.set", { key, value });
+            if (context.signal.aborted) return;
+            if (keyInput) keyInput.value = "";
+            clearError();
+            await loadLogins();
+          } catch (error) {
+            fail(error, () => undefined);
+          }
+        };
+
+        const deleteLogin = async (key: string): Promise<void> => {
+          try {
+            await host.request("duties.cred.delete", { key });
+            if (context.signal.aborted) return;
+            clearError();
+            await loadLogins();
+          } catch (error) {
+            fail(error, () => void deleteLogin(key));
+          }
+        };
+
+        /** Lazily fetches one step's screenshot and shows it inline; clicking the image expands
+         *  it. Nothing is fetched until the owner opens the toggle. */
+        const toggleShot = async (stepId: string): Promise<void> => {
+          const holder = root.querySelector<HTMLElement>(`[data-shot-for="${stepId}"]`);
+          const runId = context.props.runId;
+          if (!holder || !runId) return;
+          if (!holder.hidden) {
+            holder.hidden = true;
+            return;
+          }
+          holder.hidden = false;
+          if (holder.dataset.loaded === "1") return;
+          try {
+            const shot = await host.request<EvidenceResult>("duties.run.evidence", {
+              runId,
+              stepId,
+            });
+            if (context.signal.aborted) return;
+            const img = document.createElement("img");
+            img.alt = "Step screenshot";
+            img.src = `data:${shot.contentType};base64,${shot.base64}`;
+            img.addEventListener("click", () => img.classList.toggle("big"));
+            holder.replaceChildren(img);
+            holder.dataset.loaded = "1";
+          } catch (error) {
+            holder.textContent = coerceErrorMessage(error);
+          }
+        };
+
         const ensureLoaded = (): void => {
           const view = context.props.view ?? "board";
           if (view === "run") {
             const runId = context.props.runId;
             if (runId && !observedRuns.has(runId)) void loadRun(runId);
           }
+          if (view === "logins") void loadLogins();
         };
 
         const runDuty = async (dutyId: string): Promise<void> => {
@@ -277,7 +371,7 @@ export default defineControlUiPlugin({
         root.addEventListener("click", (event) => {
           // SAFETY: this listener is on `root`, an HTMLElement, so its click events always target an Element.
           const target = (event.target as HTMLElement).closest<HTMLElement>(
-            "[data-open],[data-open-run],[data-run],[data-edit],[data-build],[data-status],[data-delete],[data-cancel],[data-nav],[data-retry]",
+            "[data-open],[data-open-run],[data-run],[data-edit],[data-build],[data-status],[data-delete],[data-cancel],[data-nav],[data-retry],[data-shot],[data-cred-save],[data-cred-delete]",
           );
           if (!target) return;
           event.preventDefault();
@@ -326,6 +420,18 @@ export default defineControlUiPlugin({
           }
           if (dataset.cancel !== undefined) {
             void cancelRun(dataset.cancel);
+            return;
+          }
+          if (dataset.shot !== undefined) {
+            void toggleShot(dataset.shot);
+            return;
+          }
+          if (dataset.credSave !== undefined) {
+            void saveLogin();
+            return;
+          }
+          if (dataset.credDelete !== undefined) {
+            void deleteLogin(dataset.credDelete);
           }
         });
 

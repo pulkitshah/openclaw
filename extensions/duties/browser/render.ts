@@ -125,8 +125,15 @@ function lastSuccessfulRun(dutyId: string, runs: readonly DutyRun[]): DutyRun | 
     .toSorted((a, b) => b.startedAt - a.startedAt)[0];
 }
 
+/** The newest failed/blocked run that is still its Duty's newest run. A failure the Duty has since
+ * run past is resolved by that later success and must stop winning the Board's banner. */
 function newestUnresolvedRun(runs: readonly DutyRun[]): DutyRun | undefined {
-  return runs
+  const newestPerDuty = new Map<string, DutyRun>();
+  for (const run of runs) {
+    const seen = newestPerDuty.get(run.dutyId);
+    if (!seen || run.startedAt > seen.startedAt) newestPerDuty.set(run.dutyId, run);
+  }
+  return [...newestPerDuty.values()]
     .filter((r) => r.status === "failed" || r.status === "blocked")
     .toSorted((a, b) => b.startedAt - a.startedAt)[0];
 }
@@ -166,7 +173,7 @@ export function renderBoard(
         }</div><button class="btn primary" data-open-run="${esc(unresolved.id)}" data-duty-id="${esc(unresolvedDuty.id)}">View run</button><button class="btn" data-open="${esc(unresolvedDuty.id)}">Open Duty</button></div>`
       : "";
   const cards = duties.map((d) => dutyCard(d, runs)).join("");
-  return `${errorBanner}<div class="head"><div><h1>Duties</h1><p>Everything your digital employee runs for you — what it does, when, and whether it worked.</p></div><div class="actions"><button class="btn primary" data-edit="new">New Duty · chat with the agent</button></div></div>
+  return `${errorBanner}<div class="head"><div><h1>Duties</h1><p>Everything your digital employee runs for you — what it does, when, and whether it worked.</p></div><div class="actions"><button class="btn" data-nav="logins">Logins</button><button class="btn primary" data-edit="new">New Duty · chat with the agent</button></div></div>
 <div class="rollup">
   <div class="roll"><div class="n">${active}</div><div class="l">Active</div></div>
   <div class="roll"><div class="n">${successfulToday}</div><div class="l">Successful runs today</div></div>
@@ -247,10 +254,16 @@ export function renderDetail(duty: Duty, runs: readonly DutyRun[], opts?: Render
 
 // ---------- Run view ----------
 
+/** A screenshot is fetched only when the owner asks for it (`data-shot`), and the blob id itself
+ * never reaches the page: the host requests `duties.run.evidence` by step id. Screenshots are the
+ * only page evidence retained — snapshot text never is. */
 function stepEvidenceRow(step: StepEvidence): string {
-  const st = step.status === "ok" ? "ok" : step.status === "failed" ? "fail" : "todo";
+  const st = step.status === "ok" ? "ok" : step.status === "failed" ? "fail" : "blocked";
   const mark = step.status === "ok" ? "✓" : step.status === "failed" ? "✕" : "–";
-  return `<li class="step"><span class="st ${st}">${mark}</span><div><div class="t">${esc(step.label)}</div><div class="d">${esc(step.summary)}</div></div><span class="kind ${esc(step.kind)}">${esc(kindLabel(step.kind))}</span></li>`;
+  const shot = step.screenshotBlobId
+    ? `<div class="shotwrap"><button class="btn quiet" data-shot="${esc(step.stepId)}">Screenshot</button><div class="shot" data-shot-for="${esc(step.stepId)}" hidden></div></div>`
+    : "";
+  return `<li class="step"><span class="st ${st}">${mark}</span><div><div class="t">${esc(step.label)}</div><div class="d">${esc(step.summary)}</div>${shot}</div><span class="kind ${esc(step.kind)}">${esc(kindLabel(step.kind))}</span></li>`;
 }
 
 export function renderRun(run: DutyRun, duty: Duty | undefined, opts?: RenderOpts): string {
@@ -278,6 +291,44 @@ ${run.report ? `<div class="panel"><div class="pb">${esc(run.report)}</div></div
           .join("")
       : `<dd class="muted">—</dd>`
   }</dl></div></div>`;
+}
+
+// ---------- Logins ----------
+
+/**
+ * Hand-mirrored copy of `CRED_KEY_RE` in `src/creds.ts` (that module imports `node:child_process`,
+ * so the browser bundle cannot import it). It only pre-validates the field; `credSet`'s own
+ * `assertKey` remains the authority.
+ */
+const CRED_KEY_PATTERN = "[a-z0-9][a-z0-9_.-]{0,63}";
+
+export type LoginsView = { keys: readonly string[]; updatedAt: Record<string, number> };
+
+/**
+ * The owner's only entry point for storing a credential. The value is typed into a password field,
+ * posted straight to `duties.cred.set`, and never rendered, echoed back, or kept in the page: this
+ * panel only ever shows which keys exist and when each was last written.
+ */
+export function renderLogins(view: LoginsView, opts?: RenderOpts): string {
+  const errorBanner = opts?.error ? renderErrorBanner(opts.error) : "";
+  const rows = view.keys
+    .map(
+      (key) =>
+        `<li><span class="mono">${esc(key)}</span><span class="when">saved ${esc(fmtWhen(view.updatedAt[key]))}</span><button class="btn danger" data-cred-delete="${esc(key)}">Delete</button></li>`,
+    )
+    .join("");
+  return `${errorBanner}<div class="head"><div><div class="small"><a href="#" data-nav="board">← Duties</a></div><h1>Logins</h1>
+<p>Passwords a Duty signs in with. They go straight into this machine's keychain — the agent never sees a value, and neither does this page.</p></div></div>
+<div class="two">
+  <div class="panel"><div class="ph"><h2>Saved logins</h2></div><div class="pb">${
+    rows ? `<ul class="runs logins">${rows}</ul>` : `<p class="muted">No logins saved yet.</p>`
+  }</div></div>
+  <div class="panel"><div class="ph"><h2>Add a login</h2></div><div class="pb">
+    <label class="fld"><span>Key</span><input type="text" data-cred-key placeholder="site.password" pattern="${CRED_KEY_PATTERN}" autocomplete="off" spellcheck="false"></label>
+    <label class="fld"><span>Value</span><input type="password" data-cred-value autocomplete="new-password"></label>
+    <button class="btn primary" data-cred-save>Save login</button>
+  </div></div>
+</div>`;
 }
 
 // ---------- Build session preview (static example; wired for real in Part 2) ----------

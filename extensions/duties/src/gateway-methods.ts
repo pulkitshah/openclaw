@@ -15,13 +15,24 @@ type Scope = "operator.read" | "operator.write" | "operator.admin";
  * `register` wraps it into `context.respond(true, result)` / `context.respond(false, undefined,
  * { code, message })`.
  */
+/** The read side of the evidence blob store (`index.ts` owns opening it lazily). */
+type EvidenceBlobs = {
+  lookup(
+    key: string,
+  ): Promise<{ bytes: Uint8Array; metadata: { contentType: string } } | undefined>;
+};
+
 export function registerDutiesGatewayMethods(params: {
   api: OpenClawPluginApi;
   store: DutyStore;
   runs: Pick<RunManager, "start" | "cancel">;
   emit: (name: "changed" | "run", payload: Record<string, unknown>) => void;
+  /** Credential writes. Values pass straight to the OS keychain and are never stored, logged,
+   *  echoed in a result, or emitted in an event. */
+  creds: { set(key: string, value: string): Promise<void>; delete(key: string): Promise<boolean> };
+  evidence: () => EvidenceBlobs;
 }): void {
-  const { api, store, runs, emit } = params;
+  const { api, store, runs, emit, creds, evidence } = params;
 
   // A committed write (save/delete/status) must still be reported as `ok: true` even if
   // best-effort event delivery fails after it; `createDutiesEventService`'s own `emit` never
@@ -62,6 +73,10 @@ export function registerDutiesGatewayMethods(params: {
   const readRunId = (params: Record<string, unknown>): string => {
     if (typeof params.runId !== "string" || !params.runId) throw new Error("runId is required");
     return params.runId;
+  };
+  const readCredKey = (params: Record<string, unknown>): string => {
+    if (typeof params.key !== "string" || !params.key) throw new Error("key is required");
+    return params.key;
   };
   const requireDuty = async (dutyId: string) => {
     const duty = await store.getDuty(dutyId);
@@ -139,4 +154,46 @@ export function registerDutiesGatewayMethods(params: {
   register("duties.run.cancel", "operator.write", async (params) => ({
     ok: await runs.cancel(readRunId(params)),
   }));
+
+  register("duties.run.evidence", "operator.read", async (params) => {
+    const runId = readRunId(params);
+    if (typeof params.stepId !== "string" || !params.stepId) throw new Error("stepId is required");
+    const run = await store.getRun(runId);
+    if (!run) throw new Error("no such run");
+    const blobId = run.steps.find((step) => step.stepId === params.stepId)?.screenshotBlobId;
+    if (!blobId) throw new Error("no screenshot for that step");
+    const entry = await evidence().lookup(blobId);
+    if (!entry) throw new Error("that screenshot is no longer stored");
+    return {
+      contentType: entry.metadata.contentType,
+      base64: Buffer.from(entry.bytes).toString("base64"),
+    };
+  });
+
+  register("duties.cred.set", "operator.admin", async (params) => {
+    const key = readCredKey(params);
+    if (typeof params.value !== "string" || !params.value) {
+      throw new Error("value is required");
+    }
+    await creds.set(key, params.value);
+    await store.recordCredKey(key, Date.now());
+    return { ok: true };
+  });
+
+  register("duties.cred.list", "operator.read", async () => {
+    const stored = await store.listCredKeys();
+    return {
+      keys: stored.map((entry) => entry.key),
+      updatedAt: Object.fromEntries(stored.map((entry) => [entry.key, entry.updatedAt])),
+    };
+  });
+
+  register("duties.cred.delete", "operator.admin", async (params) => {
+    const key = readCredKey(params);
+    const removed = await creds.delete(key);
+    // The index entry goes regardless: a keychain item the owner removed by hand must not keep
+    // the panel claiming a login is stored.
+    await store.forgetCredKey(key);
+    return { ok: removed };
+  });
 }

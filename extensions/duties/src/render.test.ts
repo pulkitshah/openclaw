@@ -2,7 +2,13 @@
 // lane instead — see `test/vitest/vitest.ui-paths.mjs`'s `pluginControlUiPathGlob`), so this pure
 // render-function test lives under `src/` and imports the browser module by relative path.
 import { describe, expect, it } from "vitest";
-import { renderBoard, renderDetail, renderPlaceholder, renderRun } from "../browser/render.js";
+import {
+  renderBoard,
+  renderDetail,
+  renderLogins,
+  renderPlaceholder,
+  renderRun,
+} from "../browser/render.js";
 import type { Duty } from "./duty.js";
 import type { DutyRun } from "./store.js";
 
@@ -133,6 +139,88 @@ describe("render", () => {
     expect(html).toContain("Succeeded");
     expect(html).toContain("answered yes");
     expect(html).toContain("AMG-1");
+  });
+
+  it("board stops accusing a duty once a newer run succeeded", () => {
+    const runs = [
+      {
+        id: "r3",
+        dutyId: "d1",
+        status: "failed",
+        startedAt: 5,
+        trigger: "manual",
+        inputs: {},
+        outputs: {},
+        steps: [],
+        report: "the site rejected the login",
+      },
+      {
+        id: "r4",
+        dutyId: "d1",
+        status: "ok",
+        startedAt: 6,
+        trigger: "manual",
+        inputs: {},
+        outputs: {},
+        steps: [],
+      },
+    ] as unknown as DutyRun[];
+    const html = renderBoard([duty as unknown as Duty], runs);
+    expect(html).not.toContain("the site rejected the login");
+    expect(html).not.toContain('data-open-run="r3"');
+  });
+
+  it("logins panel lists keys with a masked add form and never renders a value", () => {
+    const html = renderLogins({
+      keys: ["amigos.password"],
+      updatedAt: { "amigos.password": 1_700_000_000_000 },
+    });
+    expect(html).toContain("amigos.password");
+    expect(html).toContain('type="password"');
+    expect(html).toContain("data-cred-value");
+    expect(html).toContain('data-cred-delete="amigos.password"');
+    expect(html).toContain("data-cred-save");
+    expect(html).not.toMatch(/value="[^"]/u);
+
+    const empty = renderLogins({ keys: [], updatedAt: {} });
+    expect(empty).toContain("No logins saved yet");
+  });
+
+  it("run view offers a screenshot toggle only for steps that have one", () => {
+    const run = {
+      id: "r1",
+      dutyId: "d1",
+      status: "ok",
+      startedAt: 1,
+      trigger: "manual",
+      inputs: {},
+      outputs: {},
+      steps: [
+        {
+          stepId: "s1",
+          label: "Open",
+          kind: "browser",
+          status: "ok",
+          durationMs: 1,
+          summary: "x",
+          screenshotBlobId: "blob-1",
+        },
+        {
+          stepId: "s2",
+          label: "Confirm?",
+          kind: "ask",
+          status: "blocked",
+          durationMs: 1,
+          summary: "no answer",
+        },
+      ],
+    } as unknown as DutyRun;
+    const html = renderRun(run, duty as unknown as Duty);
+    expect(html).toContain('data-shot="s1"');
+    expect(html).toContain('data-shot-for="s1"');
+    expect(html).not.toContain('data-shot="s2"');
+    expect(html).not.toContain("blob-1");
+    expect(html).toContain('class="st blocked"');
   });
 
   it("renders an inline error banner with a retry control when given one", () => {

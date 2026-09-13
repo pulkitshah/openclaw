@@ -36,7 +36,11 @@ function makeTools() {
 describe("duty tools", () => {
   it("drafts, sets steps, and refuses invalid steps with the validation errors", async () => {
     const { api, run } = makeTools();
-    const store = new DutyStore({ duties: memoryKeyed() as never, runs: memoryKeyed() as never });
+    const store = new DutyStore({
+      duties: memoryKeyed() as never,
+      runs: memoryKeyed() as never,
+      creds: memoryKeyed() as never,
+    });
     registerDutyTools({
       api,
       store,
@@ -71,7 +75,11 @@ describe("duty tools", () => {
 
   it("duty_get returns the duty plus its last successful runs", async () => {
     const { api, run } = makeTools();
-    const store = new DutyStore({ duties: memoryKeyed() as never, runs: memoryKeyed() as never });
+    const store = new DutyStore({
+      duties: memoryKeyed() as never,
+      runs: memoryKeyed() as never,
+      creds: memoryKeyed() as never,
+    });
     registerDutyTools({
       api,
       store,
@@ -86,7 +94,11 @@ describe("duty tools", () => {
 
   it("duty_run starts a run and waits for it, returning the awaited run's fields", async () => {
     const { api, run } = makeTools();
-    const store = new DutyStore({ duties: memoryKeyed() as never, runs: memoryKeyed() as never });
+    const store = new DutyStore({
+      duties: memoryKeyed() as never,
+      runs: memoryKeyed() as never,
+      creds: memoryKeyed() as never,
+    });
     await store.saveDuty({
       id: "d1",
       name: "Book flight",
@@ -131,7 +143,11 @@ describe("duty tools", () => {
 
   it("duty_run cancels the run and returns cancelled when the tool call is aborted", async () => {
     const { api, tools } = makeTools();
-    const store = new DutyStore({ duties: memoryKeyed() as never, runs: memoryKeyed() as never });
+    const store = new DutyStore({
+      duties: memoryKeyed() as never,
+      runs: memoryKeyed() as never,
+      creds: memoryKeyed() as never,
+    });
     await store.saveDuty({
       id: "d1",
       name: "Book flight",
@@ -163,7 +179,11 @@ describe("duty tools", () => {
 
   it("duty_save sets the duty's status to active", async () => {
     const { api, run } = makeTools();
-    const store = new DutyStore({ duties: memoryKeyed() as never, runs: memoryKeyed() as never });
+    const store = new DutyStore({
+      duties: memoryKeyed() as never,
+      runs: memoryKeyed() as never,
+      creds: memoryKeyed() as never,
+    });
     registerDutyTools({
       api,
       store,

@@ -3,7 +3,7 @@ import { definePluginEntry } from "./api.js";
 import { createAiAdapter } from "./src/adapters/ai.js";
 import { createAskAdapter } from "./src/adapters/ask.js";
 import { createBrowserAdapter } from "./src/adapters/browser.js";
-import { credGet, credHas } from "./src/creds.js";
+import { credDelete, credGet, credHas, credSet } from "./src/creds.js";
 import { createDutiesEventService } from "./src/events.js";
 import { registerDutiesGatewayMethods } from "./src/gateway-methods.js";
 import { RunManager } from "./src/run-service.js";
@@ -60,15 +60,19 @@ export default definePluginEntry({
         defaultTtlMs: EVIDENCE_BLOB_TTL_MS,
       });
     }
+    const evidence = () => {
+      blobs ??= openEvidenceBlobs();
+      return blobs;
+    };
     const runs = new RunManager({
       store,
-      deps: () => {
-        blobs ??= openEvidenceBlobs();
-        const evidenceBlobs = blobs;
+      deps: (duty) => {
+        const evidenceBlobs = evidence();
         return {
           browser: createBrowserAdapter({
             request,
             profile: browserProfile,
+            tabLabel: `duty:${duty.id}`,
             blobs: {
               put: async (bytes, contentType) => {
                 const key = randomUUID();
@@ -92,7 +96,14 @@ export default definePluginEntry({
       stop() {},
     });
 
-    registerDutiesGatewayMethods({ api, store, runs, emit: events.emit });
+    registerDutiesGatewayMethods({
+      api,
+      store,
+      runs,
+      emit: events.emit,
+      creds: { set: (key, value) => credSet(key, value), delete: (key) => credDelete(key) },
+      evidence,
+    });
     registerDutyTools({ api, store, runs, credHas: (key) => credHas(key) });
   },
 });

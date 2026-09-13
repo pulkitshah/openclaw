@@ -18,6 +18,8 @@ import type { DutyStore } from "./store.js";
  *  `duty_set_steps`'s errors focus on the steps being authored, not these unset fields. */
 const DEFAULT_MACHINE = "gateway";
 const DEFAULT_REPORTS_TO = "owner";
+/** A Duty with no trigger cannot be run by anyone; every draft is at least manually runnable. */
+const DEFAULT_TRIGGERS: DutyTrigger[] = [{ kind: "manual" }];
 
 function readId(input: unknown): string {
   if (!isRecord(input) || typeof input.id !== "string" || !input.id) {
@@ -152,7 +154,8 @@ export function registerDutyTools(params: {
         inputs: (rawInput.inputs as DutyInput[] | undefined) ?? existing?.inputs ?? [],
         steps: existing?.steps ?? [],
         // SAFETY: see inputs above.
-        triggers: (rawInput.triggers as DutyTrigger[] | undefined) ?? existing?.triggers ?? [],
+        triggers: (rawInput.triggers as DutyTrigger[] | undefined) ??
+          existing?.triggers ?? [...DEFAULT_TRIGGERS],
         updatedAt: Date.now(),
         ...(existing?.lastRunAt !== undefined ? { lastRunAt: existing.lastRunAt } : {}),
       };
@@ -266,7 +269,7 @@ export function registerDutyTools(params: {
       const stored = await credHas(input.key);
       return jsonResult({
         stored,
-        howTo: `Ask the owner to open Duties → Logins and save the key ${input.key}, or run: openclaw duties cred set ${input.key}`,
+        howTo: `Ask the owner to open Duties → Logins and save the key ${input.key}`,
       });
     },
   });
