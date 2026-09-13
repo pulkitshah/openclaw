@@ -5,9 +5,15 @@
  * client-actions.ts, client-actions.types.ts, form-fields.ts):
  * - POST /tabs/open -> BrowserOpenResult (a BrowserTab) with a required `targetId`.
  * - GET /snapshot -> for format="ai" (forced explicitly; a profile's default format can
- *   otherwise resolve to "aria", which has no `snapshot` string field at all) the body is
- *   `{ ok, format: "ai", targetId, url, snapshot: string, ... }` — the field is always
- *   `snapshot`, never `text`.
+ *   otherwise resolve to "aria", which has no `snapshot`/`refs` fields at all) the body is
+ *   `{ ok, format: "ai", targetId, url, snapshot: string, refs?: Record<string, { role, name?,
+ *   nth? }>, ... }` (client.ts:152). Targets are resolved from the structured `refs` map, never
+ *   by regex-parsing the `snapshot` text: the map's keys are opaque ref strings (role-snapshot
+ *   refs look like "e37", Chrome MCP refs look like "mcp-ref:<12hex>:<n>" — chrome-mcp-routing.ts)
+ *   and its values carry already-decoded names, so quoting/escaping in the rendered snapshot text
+ *   never needs to be re-parsed. `interactive=true` filters the map down to interactive roles
+ *   only (pw-role-snapshot.ts / chrome-mcp.snapshot.ts), so a content-only target (e.g. a
+ *   heading, or a text-only target with no role) may need a second, unfiltered snapshot.
  * - GET /tabs -> BrowserTabsResult = `{ running: true, tabs: BrowserTab[] } | { running: false, tabs: [] }`.
  *   Always the wrapped object, never a bare array.
  * - GET /text -> `{ ok, targetId, url?, text: string, truncated }`.
@@ -18,10 +24,19 @@
  * - POST /act "wait" requires at least one of timeMs/text/textGone/selector/url/loadState/fn
  *   (agent.act.normalize.ts); `timeoutMs` alone does not satisfy it, and "wait" has no `ref`
  *   field at all, so a role/name/text target (no css) cannot be waited for through the wait
- *   action — it is polled locally via snapshot + resolveRef instead.
+ *   action — it is polled locally via snapshot + resolveRef instead. A waitFor with no
+ *   target/text/url is mapped to a plain timed wait (`{ kind: "wait", timeMs }`).
+ * - POST /act "evaluate" -> the route always answers `{ ok, targetId, url, result }`
+ *   (agent.act.ts); `result` itself may legitimately be `null`/`undefined`, so presence of the
+ *   `result` key (not its truthiness) decides whether to return it.
  * - POST /screenshot -> BrowserActionPathResult = `{ ok, path: string, targetId, url?, ... }`.
- *   There is no base64/data field: the server writes the image to a filesystem path that this
- *   adapter reads and hands to `blobs.put`.
+ *   There is no base64/data field: the server writes the image to a filesystem path — including
+ *   when browser.request is proxied to a remote node, whose result files are rewritten to a
+ *   Gateway-local path before this method ever sees them (gateway/browser-request.ts:264,
+ *   browser/proxy-files.ts:92-104) — so `path` is always readable locally.
+ *
+ * Snapshot text/refs are never logged, stored, or included in error messages: only match counts
+ * and `describeTarget(target)` (the owner-authored target description) appear in thrown errors.
  */
 import { readFile } from "node:fs/promises";
 import { extname } from "node:path";
@@ -29,36 +44,53 @@ import type { Target } from "../duty.js";
 import { describeTarget, type BrowserAdapter } from "../runner.js";
 
 type Request = <T = unknown>(method: string, params: Record<string, unknown>) => Promise<T>;
-const LINE_RE = /^\s*-\s*([a-z]+)\s*(?:"((?:[^"\\]|\\.)*)")?.*?\[ref=([a-z0-9]+)\]/iu;
+type RefInfo = { role: string; name?: string; nth?: number };
+type RefsMap = Record<string, RefInfo>;
+
 const DEFAULT_WAIT_TIMEOUT_MS = 15_000;
+const UNCONDITIONAL_WAIT_DEFAULT_MS = 1_000;
+const CSS_VISIBILITY_PROBE_TIMEOUT_MS = 1_500;
 const POLL_INTERVAL_MS = 250;
 
-export function resolveRef(snapshot: string, target: Target): string | undefined {
-  const matches: string[] = [];
-  for (const line of snapshot.split("\n")) {
-    const m = LINE_RE.exec(line);
-    if (!m) continue;
-    const role = m[1];
-    const name = m[2] ?? "";
-    const ref = m[3];
-    if (!role || !ref) continue;
-    if (target.role && role.toLowerCase() !== target.role.toLowerCase()) continue;
-    if (target.name && name.toLowerCase() !== target.name.toLowerCase()) continue;
-    if (target.text && !name.toLowerCase().includes(target.text.toLowerCase())) continue;
-    if (!target.role && !target.name && !target.text) continue;
-    matches.push(ref);
-  }
-  return matches.length === 1 ? matches[0] : undefined;
-}
+/**
+ * Mirrors extensions/browser/src/browser/snapshot-roles.ts INTERACTIVE_ROLES. Extension code
+ * cannot import across the extensions boundary (see extensions/CLAUDE.md), so this list is kept
+ * as a local copy — used only to decide whether a target's role could plausibly appear in an
+ * `interactive=true` snapshot, never to reproduce the server's own filtering.
+ */
+const INTERACTIVE_ROLES = new Set([
+  "button",
+  "checkbox",
+  "combobox",
+  "link",
+  "listbox",
+  "menuitem",
+  "menuitemcheckbox",
+  "menuitemradio",
+  "option",
+  "radio",
+  "searchbox",
+  "slider",
+  "spinbutton",
+  "switch",
+  "tab",
+  "textbox",
+  "treeitem",
+]);
 
-function countLooseMatches(snapshot: string, target: Target): number {
-  return snapshot.split("\n").filter((line) => {
-    if (!LINE_RE.test(line)) return false;
-    const lower = line.toLowerCase();
-    if (target.role && !lower.includes(`- ${target.role.toLowerCase()}`)) return false;
-    if (target.name && !lower.includes(`"${target.name.toLowerCase()}"`)) return false;
-    return true;
-  }).length;
+/** Resolve a target against a snapshot's structured refs map. Never touches snapshot text. */
+export function resolveRef(refs: RefsMap, target: Target): { ref?: string; matches: string[] } {
+  const matches: string[] = [];
+  if (target.role || target.name || target.text) {
+    for (const [ref, info] of Object.entries(refs)) {
+      const name = info.name ?? "";
+      if (target.role && info.role.toLowerCase() !== target.role.toLowerCase()) continue;
+      if (target.name && name.toLowerCase() !== target.name.toLowerCase()) continue;
+      if (target.text && !name.toLowerCase().includes(target.text.toLowerCase())) continue;
+      matches.push(ref);
+    }
+  }
+  return { ref: matches.length === 1 ? matches[0] : undefined, matches };
 }
 
 async function sleep(ms: number): Promise<void> {
@@ -85,11 +117,44 @@ export function createBrowserAdapter(params: {
       timeoutMs: opts.timeoutMs ?? 30_000,
     });
 
-  const snapshot = async (targetId: string): Promise<string> => {
-    const result = await call<{ snapshot?: string }>("GET", "/snapshot", {
-      query: { targetId, format: "ai", interactive: "true", refs: "role" },
+  const act = <T = unknown>(targetId: string, body: Record<string, unknown>, timeoutMs?: number) =>
+    call<T>("POST", "/act", { body: { ...body, targetId }, timeoutMs });
+
+  /** `interactive: true` asks the server to filter to interactive roles only; omitted asks for
+   * everything (content and structural roles included). */
+  const snapshotRefs = async (targetId: string, interactive: boolean): Promise<RefsMap> => {
+    const result = await call<{ refs?: RefsMap }>("GET", "/snapshot", {
+      query: {
+        targetId,
+        format: "ai",
+        refs: "role",
+        ...(interactive ? { interactive: "true" } : {}),
+      },
     });
-    return result.snapshot ?? "";
+    return result.refs ?? {};
+  };
+
+  /**
+   * Resolves a target from the interactive-only snapshot first; if that has zero matches and the
+   * target's role isn't necessarily interactive (no role at all, a non-interactive role, or a
+   * text-only target), retries against an unfiltered snapshot. Ambiguous (>1) results are
+   * returned as-is — a second, unfiltered snapshot cannot make an ambiguous match unambiguous.
+   */
+  const resolveTarget = async (
+    targetId: string,
+    target: Target,
+  ): Promise<{ ref?: string; matches: string[] }> => {
+    const first = resolveRef(await snapshotRefs(targetId, true), target);
+    if (first.ref || first.matches.length > 1) return first;
+    const isInteractiveRole = target.role
+      ? INTERACTIVE_ROLES.has(target.role.toLowerCase())
+      : false;
+    const targetHasOnlyText = Boolean(target.text) && !target.role && !target.name;
+    if (first.matches.length === 0 && (!isInteractiveRole || targetHasOnlyText)) {
+      const second = resolveRef(await snapshotRefs(targetId, false), target);
+      if (second.matches.length > 0) return second;
+    }
+    return first;
   };
 
   const locate = async (
@@ -100,20 +165,15 @@ export function createBrowserAdapter(params: {
       if (target.css) return { selector: target.css };
       throw new Error(`${describeTarget(target)}: target needs a role, name, text, or css`);
     }
-    const snap = await snapshot(targetId);
-    const ref = resolveRef(snap, target);
+    const { ref, matches } = await resolveTarget(targetId, target);
     if (ref) return { ref };
     if (target.css) return { selector: target.css };
-    const count = countLooseMatches(snap, target);
     throw new Error(
-      count > 1
-        ? `${describeTarget(target)}: ${count} matches (ambiguous)`
+      matches.length > 1
+        ? `${describeTarget(target)}: ${matches.length} matches (ambiguous)`
         : `${describeTarget(target)}: not found on the page`,
     );
   };
-
-  const act = <T = unknown>(targetId: string, body: Record<string, unknown>, timeoutMs?: number) =>
-    call<T>("POST", "/act", { body: { ...body, targetId }, timeoutMs });
 
   const waitForTarget = async (
     targetId: string,
@@ -149,8 +209,17 @@ export function createBrowserAdapter(params: {
       await call("POST", "/navigate", { body: { url, targetId } });
     },
     async isVisible(targetId, target) {
+      if (target.role || target.name || target.text) {
+        const { ref } = await resolveTarget(targetId, target);
+        return Boolean(ref);
+      }
+      if (!target.css) return false;
       try {
-        await locate(targetId, target);
+        await act(
+          targetId,
+          { kind: "wait", selector: target.css, timeoutMs: CSS_VISIBILITY_PROBE_TIMEOUT_MS },
+          CSS_VISIBILITY_PROBE_TIMEOUT_MS + 500,
+        );
         return true;
       } catch {
         return false;
@@ -177,25 +246,29 @@ export function createBrowserAdapter(params: {
     },
     async waitFor(targetId, opts) {
       const timeoutMs = opts.timeoutMs ?? DEFAULT_WAIT_TIMEOUT_MS;
-      const body: Record<string, unknown> = { kind: "wait", timeoutMs };
-      let hasServerCondition = false;
+      const deadline = Date.now() + timeoutMs;
+      const body: Record<string, unknown> = { kind: "wait" };
+      let hasCondition = false;
       if (opts.text) {
         body.text = opts.text;
-        hasServerCondition = true;
+        hasCondition = true;
       }
       if (opts.url) {
         body.url = opts.url;
-        hasServerCondition = true;
+        hasCondition = true;
       }
       if (opts.target?.css) {
         body.selector = opts.target.css;
-        hasServerCondition = true;
+        hasCondition = true;
       }
-      if (hasServerCondition) {
+      if (hasCondition) {
         await act(targetId, body, timeoutMs + 5_000);
+      } else if (!opts.target) {
+        const timeMs = opts.timeoutMs ?? UNCONDITIONAL_WAIT_DEFAULT_MS;
+        await act(targetId, { kind: "wait", timeMs }, timeMs + 5_000);
       }
       if (opts.target && !opts.target.css) {
-        await waitForTarget(targetId, opts.target, timeoutMs);
+        await waitForTarget(targetId, opts.target, Math.max(0, deadline - Date.now()));
       }
     },
     async text(targetId, target) {
@@ -213,7 +286,7 @@ export function createBrowserAdapter(params: {
     },
     async evaluate(targetId, fn) {
       const r = await act<{ result?: unknown }>(targetId, { kind: "evaluate", fn });
-      return r?.result ?? r;
+      return "result" in r ? r.result : undefined;
     },
     async screenshot(targetId) {
       if (!params.blobs) return undefined;

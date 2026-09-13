@@ -1,13 +1,51 @@
 import { describe, expect, it, vi } from "vitest";
 import { createBrowserAdapter, resolveRef } from "./browser.js";
 
-const SNAP = `- textbox "User Name" [ref=e33]\n- textbox "Password" [ref=e35]\n- button "Sign-in" [ref=e37]\n- button "Sign-in" [ref=e40]\n- link "Forgot your password?" [ref=e38]`;
+const REFS = {
+  e33: { role: "textbox", name: "User Name" },
+  e35: { role: "textbox", name: "Password" },
+  e37: { role: "button", name: "Sign-in" },
+  e40: { role: "button", name: "Sign-in" },
+  e38: { role: "link", name: "Forgot your password?" },
+};
 
 describe("resolveRef", () => {
   it("matches role + name exactly and refuses ambiguous matches", () => {
-    expect(resolveRef(SNAP, { role: "textbox", name: "User Name" })).toBe("e33");
-    expect(resolveRef(SNAP, { role: "button", name: "Sign-in" })).toBeUndefined();
-    expect(resolveRef(SNAP, { text: "forgot" })).toBe("e38");
+    expect(resolveRef(REFS, { role: "textbox", name: "User Name" })).toEqual({
+      ref: "e33",
+      matches: ["e33"],
+    });
+    expect(resolveRef(REFS, { role: "button", name: "Sign-in" })).toEqual({
+      ref: undefined,
+      matches: ["e37", "e40"],
+    });
+    expect(resolveRef(REFS, { text: "forgot" })).toEqual({ ref: "e38", matches: ["e38"] });
+  });
+
+  it("resolves opaque Chrome MCP ref keys (mcp-ref:<12hex>:<n>)", () => {
+    const refs = { "mcp-ref:ab12cd34ef56:7": { role: "button", name: "Submit" } };
+    expect(resolveRef(refs, { role: "button", name: "Submit" })).toEqual({
+      ref: "mcp-ref:ab12cd34ef56:7",
+      matches: ["mcp-ref:ab12cd34ef56:7"],
+    });
+  });
+
+  it("matches decoded names containing quotes", () => {
+    const refs = { e1: { role: "button", name: 'Say "hi"' } };
+    expect(resolveRef(refs, { name: 'Say "hi"' })).toEqual({ ref: "e1", matches: ["e1"] });
+  });
+
+  it("counts only real name matches for a text-only target", () => {
+    const refs = {
+      e1: { role: "link", name: "abc" },
+      e2: { role: "button" },
+      e3: { role: "link", name: "abcdef" },
+    };
+    expect(resolveRef(refs, { text: "abc" }).matches).toEqual(["e1", "e3"]);
+  });
+
+  it("returns no matches when the target has no role, name, or text", () => {
+    expect(resolveRef(REFS, { css: "#x" })).toEqual({ ref: undefined, matches: [] });
   });
 });
 
@@ -16,7 +54,7 @@ describe("createBrowserAdapter", () => {
     const request = vi.fn(async (_m: string, params: Record<string, unknown>) => {
       const path = params.path as string;
       if (path === "/tabs/open") return { targetId: "T1" };
-      if (path === "/snapshot") return { snapshot: SNAP };
+      if (path === "/snapshot") return { refs: REFS };
       return { ok: true };
     });
     const b = createBrowserAdapter({ request, profile: "chrome" });
@@ -43,12 +81,93 @@ describe("createBrowserAdapter", () => {
       { kind: "click", ref: "e33", targetId: "T1" },
     );
   });
+
   it("fails clearly when a target cannot be resolved", async () => {
-    const request = vi.fn(async () => ({ snapshot: SNAP }));
+    const request = vi.fn(async () => ({ refs: REFS }));
     const b = createBrowserAdapter({ request, profile: "chrome" });
     await expect(b.click("T1", { role: "button", name: "Sign-in" })).rejects.toThrow(
       /2 matches|ambiguous/u,
     );
     await expect(b.click("T1", { role: "button", name: "Nope" })).rejects.toThrow(/not found/u);
+  });
+
+  it("checks css visibility via a real /act wait probe, not the locate short-circuit", async () => {
+    const request = vi.fn(async (_m: string, params: Record<string, unknown>) => {
+      const body = params.body as { kind?: string; selector?: string } | undefined;
+      if (body?.kind === "wait" && body.selector === "#missing") throw new Error("timed out");
+      return { ok: true };
+    });
+    const b = createBrowserAdapter({ request, profile: "chrome" });
+    expect(await b.isVisible("T1", { css: "#present" })).toBe(true);
+    expect(await b.isVisible("T1", { css: "#missing" })).toBe(false);
+    const waitBody = request.mock.calls.find(
+      ([, p]) => (p.body as { kind?: string; selector?: string })?.selector === "#present",
+    )?.[1] as { body: Record<string, unknown> } | undefined;
+    expect(waitBody?.body).toMatchObject({ kind: "wait", selector: "#present", timeoutMs: 1500 });
+  });
+
+  it("resolves role/name/text visibility strictly from resolveRef's match count", async () => {
+    const request = vi.fn(async () => ({ refs: REFS }));
+    const b = createBrowserAdapter({ request, profile: "chrome" });
+    expect(await b.isVisible("T1", { role: "textbox", name: "User Name" })).toBe(true);
+    expect(await b.isVisible("T1", { role: "button", name: "Sign-in" })).toBe(false); // ambiguous
+    expect(await b.isVisible("T1", { role: "button", name: "Nope" })).toBe(false); // not found
+  });
+
+  it("falls back to an unfiltered snapshot when the interactive one has no match", async () => {
+    const request = vi.fn(async (_m: string, params: Record<string, unknown>) => {
+      const path = params.path as string;
+      if (path === "/snapshot") {
+        const query = params.query as { interactive?: string };
+        if (query.interactive === "true") return { refs: {} };
+        return { refs: { h1: { role: "heading", name: "Welcome" } } };
+      }
+      return { ok: true };
+    });
+    const b = createBrowserAdapter({ request, profile: "chrome" });
+    await b.click("T1", { role: "heading", name: "Welcome" });
+    const snapshotCalls = request.mock.calls.filter(
+      ([, p]) => (p as { path?: string }).path === "/snapshot",
+    );
+    expect(snapshotCalls).toHaveLength(2);
+    expect((snapshotCalls[0]?.[1] as { query: { interactive?: string } }).query.interactive).toBe(
+      "true",
+    );
+    expect(snapshotCalls[1]?.[1]).not.toHaveProperty("query.interactive");
+    const clickBody = request.mock.calls.find(
+      ([, p]) => (p.body as { kind?: string })?.kind === "click",
+    )?.[1] as { body: { ref?: string } } | undefined;
+    expect(clickBody?.body.ref).toBe("h1");
+  });
+
+  it("does not leak the /act envelope when evaluate's result is null or absent", async () => {
+    const request = vi.fn(async (_m: string, params: Record<string, unknown>) => {
+      const body = params.body as { kind?: string; fn?: string } | undefined;
+      if (body?.kind === "evaluate" && body.fn === "() => null") {
+        return { ok: true, targetId: "T1", url: "https://x", result: null };
+      }
+      if (body?.kind === "evaluate") return { ok: true, targetId: "T1", url: "https://x" };
+      return { ok: true };
+    });
+    const b = createBrowserAdapter({ request, profile: "chrome" });
+    expect(await b.evaluate("T1", "() => null")).toBeNull();
+    expect(await b.evaluate("T1", "() => undefined")).toBeUndefined();
+  });
+
+  it("maps an unconditional waitFor to a single timed wait action", async () => {
+    const request = vi.fn(async () => ({ ok: true }));
+    const b = createBrowserAdapter({ request, profile: "chrome" });
+    await b.waitFor("T1", {});
+    let waitBody = request.mock.calls.find(
+      ([, p]) => (p.body as { kind?: string })?.kind === "wait",
+    )?.[1] as { body: Record<string, unknown> } | undefined;
+    expect(waitBody?.body).toMatchObject({ kind: "wait", timeMs: 1000, targetId: "T1" });
+
+    request.mockClear();
+    await b.waitFor("T1", { timeoutMs: 5000 });
+    waitBody = request.mock.calls.find(
+      ([, p]) => (p.body as { kind?: string })?.kind === "wait",
+    )?.[1] as { body: Record<string, unknown> } | undefined;
+    expect(waitBody?.body).toMatchObject({ kind: "wait", timeMs: 5000, targetId: "T1" });
   });
 });
