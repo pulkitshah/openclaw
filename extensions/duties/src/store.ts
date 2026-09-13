@@ -33,6 +33,7 @@ export type DutyRun = {
   failedStep?: string;
   report?: string;
   waitingOn?: { questionId: string; stepId: string };
+  targetId?: string;
 };
 
 type Keyed<T> = {
