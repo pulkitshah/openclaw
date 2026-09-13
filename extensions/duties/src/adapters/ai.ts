@@ -11,6 +11,12 @@
  *   source }` (src/gateway/server-methods/tools-invoke.ts:70-78; ToolsInvokeResultSchema,
  *   packages/gateway-protocol/src/schema/agents-models-skills.ts:1460-1476) — the tool's raw return
  *   value round-trips unchanged under `output`, not `result`.
+ * - `tools.invoke` FAILURE is also answered as `respond(true, payload)` (never a JSON-RPC error): the
+ *   envelope is `{ ok: false, toolName, requiresApproval?: true, error: { code, message } }`
+ *   (tools-invoke.ts:81-90; ToolsInvokeErrorSchema has `code`/`message`/`details?`, not `type`).
+ *   `ok` must be checked before touching `output`, or a failure silently collapses into "no JSON
+ *   object" with the actual reason lost. The message fallback below also checks `error.type` for
+ *   forward/back compat with the pre-wire `ToolsInvokeOutcome` error shape.
  */
 import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { AiAdapter } from "../runner.js";
@@ -20,12 +26,22 @@ type Request = <T = unknown>(method: string, params: Record<string, unknown>) =>
 export function createAiAdapter(params: { request: Request; sessionKey: string }): AiAdapter {
   return {
     async extract({ instruction, input, schema }) {
-      const result = await params.request<{ output?: unknown }>("tools.invoke", {
+      const result = await params.request<unknown>("tools.invoke", {
         name: "llm-task",
         sessionKey: params.sessionKey,
         args: { prompt: instruction, input, schema },
       });
-      return parseToolJson(result.output);
+      if (isRecord(result) && result.ok === false) {
+        const error = isRecord(result.error) ? result.error : undefined;
+        const message =
+          (typeof error?.message === "string" && error.message) ||
+          (typeof error?.type === "string" && error.type) ||
+          (typeof error?.code === "string" && error.code) ||
+          "tool call failed";
+        if (result.requiresApproval) throw new Error(`ai step needs approval: ${message}`);
+        throw new Error(`ai step failed: ${message}`);
+      }
+      return parseToolJson(isRecord(result) ? result.output : undefined);
     },
   };
 }

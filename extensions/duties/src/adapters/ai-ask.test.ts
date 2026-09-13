@@ -22,6 +22,46 @@ describe("ai adapter", () => {
       }),
     );
   });
+
+  it("prefers output.details.json over content text", async () => {
+    const request = vi.fn(async () => ({
+      ok: true,
+      toolName: "llm-task",
+      output: {
+        content: [{ type: "text", text: "ignored" }],
+        details: { json: { origin: "IXU" } },
+      },
+    }));
+    const ai = createAiAdapter({ request, sessionKey: "main" });
+    await expect(
+      ai.extract({ instruction: "x", input: "mail", schema: { type: "object" } }),
+    ).resolves.toEqual({ origin: "IXU" });
+  });
+
+  it("rejects with the tool's error message when tools.invoke fails", async () => {
+    const request = vi.fn(async () => ({
+      ok: false,
+      toolName: "llm-task",
+      error: { type: "not_found", message: "tool llm-task not found" },
+    }));
+    const ai = createAiAdapter({ request, sessionKey: "main" });
+    await expect(
+      ai.extract({ instruction: "x", input: "mail", schema: { type: "object" } }),
+    ).rejects.toThrow("tool llm-task not found");
+  });
+
+  it("rejects with an approval-specific message when the call requires approval", async () => {
+    const request = vi.fn(async () => ({
+      ok: false,
+      toolName: "llm-task",
+      requiresApproval: true,
+      error: { code: "requires_approval", message: "confirmation required" },
+    }));
+    const ai = createAiAdapter({ request, sessionKey: "main" });
+    await expect(
+      ai.extract({ instruction: "x", input: "mail", schema: { type: "object" } }),
+    ).rejects.toThrow(/approval/);
+  });
 });
 
 describe("ask adapter", () => {
