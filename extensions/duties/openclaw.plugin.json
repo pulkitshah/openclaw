@@ -5,6 +5,7 @@
   "categories": [
     "other"
   ],
+  "enabledByDefault": true,
   "activation": {
     "onStartup": true
   },
@@ -25,7 +26,12 @@
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
-    "properties": {}
+    "properties": {
+      "browserProfile": {
+        "type": "string",
+        "description": "Browser profile used when replaying browser steps (default: openclaw)."
+      }
+    }
   },
   "controlUi": {
     "entry": "dist/control-ui/852a41f1455040050d719ef59d4f6ae887d673146024fbdd1608f0329a70c12b/index.js",

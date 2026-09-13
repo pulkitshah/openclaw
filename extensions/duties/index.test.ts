@@ -5,7 +5,7 @@ vi.mock("./src/store.js", () => ({
   DutyStore: { open: () => ({}) },
 }));
 
-import plugin from "./index.js";
+import plugin, { resolveBrowserProfile } from "./index.js";
 
 describe("duties plugin registration", () => {
   it("registers the sidebar tab descriptor", () => {
@@ -22,5 +22,13 @@ describe("duties plugin registration", () => {
       group: "control",
       requiredScopes: ["operator.read"],
     });
+  });
+
+  it("replays browser steps on the managed profile unless the config names another", () => {
+    expect(resolveBrowserProfile(undefined)).toBe("openclaw");
+    expect(resolveBrowserProfile({})).toBe("openclaw");
+    expect(resolveBrowserProfile({ browserProfile: "  " })).toBe("openclaw");
+    expect(resolveBrowserProfile({ browserProfile: 7 })).toBe("openclaw");
+    expect(resolveBrowserProfile({ browserProfile: "chrome" })).toBe("chrome");
   });
 });

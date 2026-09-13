@@ -12,6 +12,18 @@ import { registerDutyTools } from "./src/tools.js";
 
 const EVIDENCE_BLOB_TTL_MS = 90 * 24 * 3600 * 1000;
 
+export const DEFAULT_BROWSER_PROFILE = "openclaw";
+
+/** Resolves the browser profile duty replays drive, from `plugins.entries.duties.config`. */
+export function resolveBrowserProfile(pluginConfig?: Record<string, unknown>): string {
+  const configured = pluginConfig?.browserProfile;
+  if (typeof configured !== "string") {
+    return DEFAULT_BROWSER_PROFILE;
+  }
+  const trimmed = configured.trim();
+  return trimmed.length > 0 ? trimmed : DEFAULT_BROWSER_PROFILE;
+}
+
 export default definePluginEntry({
   id: "duties",
   name: "Duties",
@@ -26,6 +38,7 @@ export default definePluginEntry({
       requiredScopes: ["operator.read"],
     });
 
+    const browserProfile = resolveBrowserProfile(api.pluginConfig);
     const store = DutyStore.open(api);
     const events = createDutiesEventService();
     api.registerService(events);
@@ -55,7 +68,7 @@ export default definePluginEntry({
         return {
           browser: createBrowserAdapter({
             request,
-            profile: "chrome",
+            profile: browserProfile,
             blobs: {
               put: async (bytes, contentType) => {
                 const key = randomUUID();
