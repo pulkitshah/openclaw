@@ -84,6 +84,31 @@ export default definePluginEntry({
           ai: createAiAdapter({ request, sessionKey: "main" }),
           ask: createAskAdapter({ request, sessionKey: "main" }),
           cred: (key: string) => credGet(key),
+          // Task 7 wires the real template store, render server, deliver adapter, route resolver
+          // and per-run files directory. Until then every document path throws on its own step, so
+          // a duty that renders or delivers fails loudly instead of silently doing nothing.
+          templates: {
+            get: async () => {
+              throw new Error("templates not wired");
+            },
+            brand: async () => {
+              throw new Error("templates not wired");
+            },
+          },
+          render: {
+            toPdf: async () => {
+              throw new Error("render not wired");
+            },
+          },
+          deliver: {
+            send: async () => {
+              throw new Error("deliver not wired");
+            },
+          },
+          resolveRoute: async () => {
+            throw new Error("delivery routes not wired");
+          },
+          filesDir: "",
         };
       },
       emit: (event) => events.emit("run", event),

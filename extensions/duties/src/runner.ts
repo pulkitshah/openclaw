@@ -1,4 +1,8 @@
+import path from "node:path";
 import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
+import { maskTarget } from "./adapters/deliver.js";
+import type { DeliverAdapter, RouteResolver } from "./adapters/deliver.js";
+import type { RenderAdapter } from "./adapters/render.js";
 import {
   type Check,
   type Cond,
@@ -8,7 +12,9 @@ import {
   type Target,
   resolvePlaceholders,
 } from "./duty.js";
-import type { StepEvidence } from "./store.js";
+import type { RunFile, RunOrigin, StepEvidence } from "./store.js";
+import { renderTemplate } from "./template.js";
+import type { Brand, Template } from "./template.js";
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -59,11 +65,26 @@ export type AskAdapter = {
     onAsked?: (questionId: string) => void;
   }): Promise<AskResult>;
 };
+/** The templates a `template` step renders, read through the store rather than handed in whole, so
+ *  an edit on the Duties page is picked up by the next run without rebuilding the deps. */
+export type TemplateSource = {
+  get(id: string): Promise<Template | undefined>;
+  brand(): Promise<Brand | undefined>;
+};
 export type RunnerDeps = {
   browser: BrowserAdapter;
   ai: AiAdapter;
   ask: AskAdapter;
   cred: (key: string) => Promise<string>;
+  templates: TemplateSource;
+  render: RenderAdapter;
+  deliver: DeliverAdapter;
+  resolveRoute: RouteResolver;
+  /** This run's own directory (`createRunFiles().runDir(runId)`); every document a `template` step
+   *  produces is written here, so a cleanup pass can drop the whole run by age. */
+  filesDir: string;
+  /** Called as each document is produced, so a long run's files are recorded before it ends. */
+  onFile?: (file: RunFile) => void;
   now?: () => number;
   onStep?: (evidence: StepEvidence) => void;
   /** Checked before every step and after every ask; a cancelled run halts instead of continuing
@@ -77,11 +98,14 @@ export type RunOptions = {
   toStepId?: string;
   keepOpen?: boolean;
   targetId?: string;
+  /** Where the run came from; a `deliver` to "trigger" routes back to this chat. */
+  origin?: RunOrigin;
 };
 export type RunOutcome = {
   status: "ok" | "failed" | "blocked" | "cancelled";
   steps: StepEvidence[];
   outputs: Record<string, unknown>;
+  files: RunFile[];
   failedStep?: string;
   report?: string;
   targetId?: string;
@@ -107,6 +131,7 @@ export async function runDuty(
 ): Promise<RunOutcome> {
   const now = deps.now ?? Date.now;
   const outputs: Record<string, unknown> = {};
+  const files: RunFile[] = [];
   const evidence: StepEvidence[] = [];
   const secrets = new Set<string>();
   let targetId = options.targetId;
@@ -139,6 +164,17 @@ export async function runDuty(
   /** The one cred-capable resolver, used only for a browser `fill`/`select` value. */
   const resolveSecret = (value: string) =>
     resolvePlaceholders(value, { ...ctx(), cred: trackedCred });
+  /** The one `file`-capable resolver, used only for `template` and `deliver` params. A
+   *  `{{file:<stepId>}}` anywhere else reaches the cred-free `resolve` above, which has no `file`
+   *  getter and so fails the step instead of putting a gateway-local path into a browser field, an
+   *  ai prompt or a question the owner reads. */
+  const resolveWithFiles = (value: unknown) =>
+    typeof value === "string"
+      ? resolvePlaceholders(value, {
+          ...ctx(),
+          file: (stepId) => files.find((f) => f.stepId === stepId)?.path,
+        })
+      : Promise.resolve(value);
   const requireTab = (): string => {
     if (!targetId) throw new Error("no browser tab: add an open step first");
     return targetId;
@@ -293,6 +329,72 @@ export async function runDuty(
           );
         save(step, result.answer);
         summary = result.answer;
+      } else if (step.kind === "template") {
+        const templateId = String(step.params.template);
+        const template = await deps.templates.get(templateId);
+        if (!template) throw new Error(`unknown template "${templateId}"`);
+        // SAFETY: validateDuty validated params.fill as an object of { from } | { ai }.
+        const fill = step.params.fill as Record<string, { from: string } | { ai: string }>;
+        const data: Record<string, unknown> = {};
+        const aiSlots: Array<{ name: string; instruction: string }> = [];
+        for (const slot of template.slots) {
+          const spec = fill[slot.name];
+          if (!spec) continue;
+          if ("from" in spec) {
+            const raw = String(await resolveWithFiles(spec.from));
+            data[slot.name] = slot.kind === "rows" ? parseRows(raw) : raw;
+          } else aiSlots.push({ name: slot.name, instruction: spec.ai });
+        }
+        if (aiSlots.length) {
+          // One extract for the whole step: the model sees every slot it must write at once, so the
+          // prose slots of one document cannot contradict each other.
+          const properties = Object.fromEntries(
+            aiSlots.map((s) => [s.name, { type: "string", description: s.instruction }]),
+          );
+          const filled = await deps.ai.extract({
+            instruction:
+              "Write the following template slots from the run's data. Return every slot; never invent facts that are not in the data.",
+            input: { data: { outputs, inputs: options.inputs }, slots: aiSlots },
+            schema: { type: "object", properties, required: aiSlots.map((s) => s.name) },
+          });
+          for (const s of aiSlots) if (filled[s.name] !== undefined) data[s.name] = filled[s.name];
+        }
+        const rendered = renderTemplate(template, data, await deps.templates.brand());
+        if (!rendered.ok) throw new Error(`slot "${rendered.missing[0]}" could not be filled`);
+        const format = typeof step.params.format === "string" ? step.params.format : template.kind;
+        if (format === "message") {
+          save(step, rendered.output);
+          summary = rendered.output.slice(0, 120);
+        } else {
+          const name = `${step.id}.pdf`;
+          const dest = path.join(deps.filesDir, name);
+          const { bytes } = await deps.render.toPdf(rendered.output, dest);
+          const file: RunFile = {
+            stepId: step.id,
+            name,
+            path: dest,
+            bytes,
+            contentType: "application/pdf",
+          };
+          files.push(file);
+          deps.onFile?.(file);
+          summary = `${name} (${bytes} bytes)`;
+        }
+      } else if (step.kind === "deliver") {
+        const to = String(await resolveWithFiles(step.params.to));
+        const channel = typeof step.params.channel === "string" ? step.params.channel : undefined;
+        const route = await deps.resolveRoute(to, channel, options.origin);
+        const text =
+          typeof step.params.text === "string"
+            ? String(await resolveWithFiles(step.params.text))
+            : undefined;
+        // SAFETY: validateDuty validated params.files as an array of strings when present.
+        const filePlaceholders = (step.params.files as string[] | undefined) ?? [];
+        const paths = await Promise.all(
+          filePlaceholders.map(async (f) => String(await resolveWithFiles(f))),
+        );
+        await deps.deliver.send({ route, ...(text !== undefined ? { text } : {}), files: paths });
+        summary = `→ ${route.channel}:${maskTarget(route.to)}`;
       } else {
         // Exhaustiveness guard: a step kind outside the four handled above would otherwise be
         // recorded as a silent `ok` that performed no action at all.
@@ -399,10 +501,22 @@ export async function runDuty(
     status,
     steps: evidence,
     outputs,
+    files,
     failedStep,
     report,
     targetId: options.keepOpen ? targetId : undefined,
   };
+}
+
+/** A rows fill reads `{{out:<name>}}`, and `resolvePlaceholders` JSON-encodes a non-string output,
+ *  so the array arrives here as JSON text; anything else is handed to the template as-is and
+ *  reported as a missing slot by `renderTemplate`. */
+function parseRows(raw: string): unknown {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return raw;
+  }
 }
 
 export function describeTarget(target: Target): string {

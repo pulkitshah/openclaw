@@ -1,6 +1,11 @@
+import { existsSync, mkdtempSync } from "node:fs";
+import { mkdir, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
-import type { Duty, Target } from "./duty.js";
+import type { Duty, DutyNode, Target } from "./duty.js";
 import { runDuty, type RunnerDeps } from "./runner.js";
+import type { Template } from "./template.js";
 
 function fakeDeps(over: Partial<RunnerDeps> = {}): RunnerDeps & { calls: string[] } {
   const calls: string[] = [];
@@ -46,6 +51,31 @@ function fakeDeps(over: Partial<RunnerDeps> = {}): RunnerDeps & { calls: string[
       let t = 0;
       return () => (t += 10);
     })(),
+    templates: over.templates ?? { get: async () => undefined, brand: async () => undefined },
+    render: over.render ?? {
+      toPdf: async (html, dest) => {
+        calls.push(`render ${html}`);
+        await mkdir(path.dirname(dest), { recursive: true });
+        await writeFile(dest, "%PDF");
+        return { bytes: 4 };
+      },
+    },
+    deliver: over.deliver ?? {
+      send: async ({ route, text, files }) => {
+        const names = (files ?? []).map((f) => path.basename(f)).join(", ");
+        calls.push(`deliver ${route.channel}:${route.to} ${text ?? ""} [${names}]`);
+        return { messageIds: ["m-1"] };
+      },
+    },
+    resolveRoute:
+      over.resolveRoute ??
+      (async (_to, _channel, origin) => {
+        if (origin?.kind === "chat") return { channel: "telegram", to: "222" };
+        throw new Error("no owner target configured — set it on the Duties page");
+      }),
+    filesDir: over.filesDir ?? mkdtempSync(path.join(tmpdir(), "duties-runner-")),
+    // Conditional so the default stays "no cancellation hook" rather than an explicit undefined.
+    ...(over.isCancelled ? { isCancelled: over.isCancelled } : {}),
   };
 }
 
@@ -334,13 +364,13 @@ describe("runDuty", () => {
   it("throws for a step kind it cannot run instead of recording a silent ok", async () => {
     const outcome = await runDuty(
       duty([
-        { id: "s1", kind: "template", label: "Render the quote", params: {} },
+        { id: "s1", kind: "sms", label: "Text the client", params: {} },
       ] as unknown as Duty["steps"]),
       fakeDeps(),
       { inputs: {} },
     );
     expect(outcome.status).toBe("failed");
-    expect(outcome.report).toContain("template");
+    expect(outcome.report).toContain("sms");
     expect(outcome.steps[0]!.status).toBe("failed");
   });
   it("stops before the next browser call once the run is cancelled", async () => {
@@ -422,6 +452,236 @@ describe("runDuty", () => {
     );
     expect(outcome.status).toBe("ok");
     expect(seen).toEqual([{ questionId: "q-1", stepId: "s1" }, undefined]);
+  });
+});
+
+describe("template and deliver steps", () => {
+  const flightTpl: Template = {
+    id: "flight-options",
+    name: "Flight options",
+    kind: "pdf",
+    updatedAt: 1,
+    html: "<p>{{slot:route}}</p>{{#rows:flights}}<i>{{col:airline}}</i>{{/rows:flights}}<p>{{slot:notes}}</p>",
+    slots: [
+      { name: "route", kind: "text", description: "" },
+      { name: "flights", kind: "rows", description: "", columns: ["airline"] },
+      { name: "notes", kind: "prose", description: "" },
+    ],
+  };
+  const noteTpl: Template = {
+    id: "note",
+    name: "Note",
+    kind: "message",
+    updatedAt: 1,
+    html: "Route: {{slot:route}}",
+    slots: [{ name: "route", kind: "text", description: "" }],
+  };
+
+  /** One ai fake for every `extract` a template duty makes: the two seeding steps and the template
+   *  step's own `{ ai }` fills all dispatch on the slot names their schema asks for, so a test can
+   *  also assert how many extract calls the template step itself made. */
+  const seedAi = (
+    opts: { notes?: Record<string, unknown>; seen?: string[][] } = {},
+  ): RunnerDeps["ai"] => ({
+    extract: async ({ schema }) => {
+      const props = schema.properties;
+      const keys = props && typeof props === "object" ? Object.keys(props) : [];
+      opts.seen?.push(keys);
+      if (keys.includes("notes")) return opts.notes ?? { notes: "Book early" };
+      if (keys.includes("flights")) return { flights: [{ airline: "IndiGo" }] };
+      if (keys.includes("route")) return { route: "IXU → COK" };
+      return {};
+    },
+  });
+
+  /** The two leading `ai` steps seed `outputs.route` and `outputs.flights` the template fills from;
+   *  `saveAs: ["route"]` (not `"route"`) because the single-key form saves the whole result object. */
+  const dutySteps = (): DutyNode[] => [
+    {
+      id: "a1",
+      kind: "ai",
+      label: "Read the route",
+      params: {
+        instruction: "the route",
+        input: "{{in:mail}}",
+        schema: { type: "object", properties: { route: { type: "string" } } },
+      },
+      saveAs: ["route"],
+    },
+    {
+      id: "a2",
+      kind: "ai",
+      label: "Read the flights",
+      params: {
+        instruction: "the flights",
+        input: "{{in:mail}}",
+        schema: { type: "object", properties: { flights: { type: "array" } } },
+      },
+      saveAs: ["flights"],
+    },
+    {
+      id: "t1",
+      kind: "template",
+      label: "Render the options",
+      params: {
+        template: "flight-options",
+        fill: {
+          route: { from: "{{out:route}}" },
+          flights: { from: "{{out:flights}}" },
+          notes: { ai: "One line of advice" },
+        },
+      },
+    },
+    {
+      id: "d1",
+      kind: "deliver",
+      label: "Send to the requester",
+      params: { to: "trigger", text: "Options for {{out:route}}", files: ["{{file:t1}}"] },
+    },
+  ];
+
+  it("fills mapped and ai slots, renders a pdf into the run dir, and delivers it to the origin route", async () => {
+    const seen: string[][] = [];
+    const deps = fakeDeps({
+      templates: {
+        get: async () => flightTpl,
+        brand: async () => ({ name: "Amigos", updatedAt: 1 }),
+      },
+      ai: seedAi({ seen }),
+    });
+    const outcome = await runDuty(duty(dutySteps()), deps, {
+      inputs: {},
+      origin: { kind: "chat", sessionKey: "agent:main:telegram:222" },
+    });
+    expect(outcome.status).toBe("ok");
+    expect(outcome.files).toEqual([
+      expect.objectContaining({ stepId: "t1", contentType: "application/pdf" }),
+    ]);
+    expect(outcome.files[0]!.path).toBe(path.join(deps.filesDir, "t1.pdf"));
+    expect(existsSync(outcome.files[0]!.path)).toBe(true);
+    expect(deps.calls).toContain("render <p>IXU → COK</p><i>IndiGo</i><p>Book early</p>");
+    expect(deps.calls).toContain("deliver telegram:222 Options for IXU → COK [t1.pdf]");
+    expect(outcome.steps.map((s) => s.summary)).toEqual([
+      "route",
+      "flights",
+      expect.stringContaining("t1.pdf"),
+      "→ telegram:222",
+    ]);
+    // One extract for each seeding step, then exactly one for the template step's `{ ai }` fills.
+    expect(seen).toEqual([["route"], ["flights"], ["notes"]]);
+    expect(outcome.steps.at(-1)?.screenshotBlobId).toBeUndefined();
+  });
+
+  it("fails the template step naming the unfilled slot", async () => {
+    const deps = fakeDeps({
+      templates: { get: async () => flightTpl, brand: async () => undefined },
+      ai: seedAi({ notes: {} }),
+    });
+    const outcome = await runDuty(duty(dutySteps()), deps, { inputs: {} });
+    expect(outcome.status).toBe("failed");
+    expect(outcome.failedStep).toBe("t1");
+    expect(outcome.report).toMatch(/slot "notes" could not be filled/u);
+    expect(deps.calls.some((c) => c.startsWith("deliver"))).toBe(false);
+  });
+
+  it("renders a message template into an output without producing a file or calling ai", async () => {
+    const seen: string[][] = [];
+    const deps = fakeDeps({
+      templates: { get: async () => noteTpl, brand: async () => undefined },
+      ai: seedAi({ seen }),
+    });
+    const outcome = await runDuty(
+      duty([
+        {
+          id: "t1",
+          kind: "template",
+          label: "Write the note",
+          params: { template: "note", fill: { route: { from: "{{in:route}}" } } },
+          saveAs: "note",
+        },
+        { id: "d1", kind: "deliver", label: "Send", params: { to: "owner", text: "{{out:note}}" } },
+      ]),
+      deps,
+      { inputs: { route: "IXU → COK" }, origin: { kind: "chat" } },
+    );
+    expect(outcome.status).toBe("ok");
+    expect(outcome.outputs.note).toBe("Route: IXU → COK");
+    expect(outcome.files).toEqual([]);
+    expect(seen).toEqual([]);
+    expect(deps.calls.some((c) => c.startsWith("render"))).toBe(false);
+    expect(deps.calls).toContain("deliver telegram:222 Route: IXU → COK []");
+  });
+
+  it("resolves a produced file only in template and deliver params", async () => {
+    const deps = fakeDeps({
+      templates: { get: async () => noteTpl, brand: async () => undefined },
+    });
+    const outcome = await runDuty(
+      duty([
+        {
+          id: "t1",
+          kind: "template",
+          label: "Render the note",
+          params: {
+            template: "note",
+            format: "pdf",
+            fill: { route: { from: "{{in:route}}" } },
+          },
+        },
+        {
+          id: "a1",
+          kind: "ai",
+          label: "Summarize the attachment",
+          params: { instruction: "read {{file:t1}}", input: "x" },
+        },
+      ]),
+      deps,
+      { inputs: { route: "IXU → COK" } },
+    );
+    expect(outcome.status).toBe("failed");
+    expect(outcome.failedStep).toBe("a1");
+    expect(outcome.report).toContain('no file from step "t1"');
+    // The template step itself did produce the file the ai step was not allowed to name.
+    expect(outcome.files.map((f) => f.stepId)).toEqual(["t1"]);
+  });
+
+  it("a deliver with no chat origin and no owner target fails loudly", async () => {
+    const deps = fakeDeps({
+      resolveRoute: async () => {
+        throw new Error("no owner target configured — set it on the Duties page");
+      },
+    });
+    const outcome = await runDuty(
+      duty([{ id: "d1", kind: "deliver", label: "Send", params: { to: "owner", text: "x" } }]),
+      deps,
+      { inputs: {} },
+    );
+    expect(outcome.status).toBe("failed");
+    expect(outcome.report).toMatch(/no owner target configured/u);
+  });
+
+  it("a cancelled run never delivers", async () => {
+    let cancelled = false;
+    const deps = fakeDeps({ isCancelled: () => cancelled });
+    const steps: DutyNode[] = [
+      {
+        id: "a1",
+        kind: "ai",
+        label: "Think",
+        params: { instruction: "x", input: "y" },
+        saveAs: "route",
+      },
+      { id: "d1", kind: "deliver", label: "Send", params: { to: "owner", text: "x" } },
+    ];
+    deps.ai = {
+      extract: async () => {
+        cancelled = true;
+        return { route: "r" };
+      },
+    };
+    const outcome = await runDuty(duty(steps), deps, { inputs: {} });
+    expect(outcome.status).toBe("cancelled");
+    expect(deps.calls.some((c) => c.startsWith("deliver"))).toBe(false);
   });
 });
 
