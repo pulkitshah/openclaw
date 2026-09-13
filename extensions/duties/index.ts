@@ -46,9 +46,9 @@ export default definePluginEntry({
     const request = <T = unknown>(method: string, params: Record<string, unknown>) =>
       api.runtime.gateway.request<T>(method, params, { scopes: ["operator.admin"] });
 
-    // The blob store is opened lazily, only when a run actually starts (never during plugin
-    // registration), so plugin registration never needs trusted plugin-runtime storage access;
-    // it is then memoized across runs instead of reopened on every `deps()` call.
+    // The blob store is opened lazily, on the first run that captures evidence or the first
+    // request that reads it back (never during plugin registration), so registration never needs
+    // trusted plugin-runtime storage access; it is then memoized instead of reopened per call.
     let blobs: ReturnType<typeof openEvidenceBlobs> | undefined;
     function openEvidenceBlobs() {
       return api.runtime.state.openBlobStore<{ contentType: string; kind: string }>({

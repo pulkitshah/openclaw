@@ -180,10 +180,15 @@ describe("DutyStore", () => {
   });
 
   it("updateRun returns undefined for a missing run with and without atomic update", async () => {
-    const withSpy = new DutyStore({ duties: memoryKeyed(), runs: spyKeyed<DutyRun>() });
+    const withSpy = new DutyStore({
+      duties: memoryKeyed(),
+      runs: spyKeyed<DutyRun>(),
+      creds: memoryKeyed(),
+    });
     const withoutUpdate = new DutyStore({
       duties: memoryKeyed(),
       runs: memoryKeyedNoUpdate<DutyRun>(),
+      creds: memoryKeyed(),
     });
     expect(await withSpy.updateRun("missing", { report: "x" })).toBeUndefined();
     expect(await withoutUpdate.updateRun("missing", { report: "x" })).toBeUndefined();

@@ -22,7 +22,6 @@ type Handler = (ctx: {
 function harness(params?: {
   emit?: (name: "changed" | "run", payload: Record<string, unknown>) => void;
   runs?: { start: ReturnType<typeof vi.fn>; cancel: ReturnType<typeof vi.fn> };
-  creds?: { set: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn> };
   blob?: { bytes: Uint8Array; metadata: { contentType: string } };
 }) {
   const methods = new Map<string, { handler: Handler; scope: string }>();
@@ -37,9 +36,9 @@ function harness(params?: {
   });
   const emit = params?.emit ?? vi.fn();
   const runs = params?.runs ?? { start: vi.fn(), cancel: vi.fn() };
-  const creds = params?.creds ?? {
-    set: vi.fn(async () => {}),
-    delete: vi.fn(async () => true),
+  const creds = {
+    set: vi.fn<(key: string, value: string) => Promise<void>>(async () => {}),
+    delete: vi.fn<(key: string) => Promise<boolean>>(async () => true),
   };
   registerDutiesGatewayMethods({
     api,

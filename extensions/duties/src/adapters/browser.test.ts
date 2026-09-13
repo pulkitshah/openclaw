@@ -155,7 +155,9 @@ describe("createBrowserAdapter", () => {
   });
 
   it("labels the tab it opens with the duty it is replaying", async () => {
-    const request = vi.fn(async () => ({ targetId: "T1" }));
+    const request = vi.fn(async (_m: string, _params: Record<string, unknown>) => ({
+      targetId: "T1",
+    }));
     const b = createBrowserAdapter({ request, profile: "chrome", tabLabel: "duty:book-flight" });
     await b.open("https://x");
     expect(request.mock.calls[0]?.[1]).toMatchObject({
@@ -165,7 +167,7 @@ describe("createBrowserAdapter", () => {
   });
 
   it("carries the authored wait budget into the act body and the request timeout", async () => {
-    const request = vi.fn(async () => ({ ok: true }));
+    const request = vi.fn(async (_m: string, _params: Record<string, unknown>) => ({ ok: true }));
     const b = createBrowserAdapter({ request, profile: "chrome" });
     await b.waitFor("T1", { text: "Booked", timeoutMs: 60_000 });
     const [, params] = request.mock.calls[0]!;
