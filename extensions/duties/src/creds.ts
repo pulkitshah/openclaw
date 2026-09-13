@@ -41,7 +41,10 @@ export async function credGet(
         ["find-generic-password", "-s", SERVICE_PREFIX + key, "-w"],
         undefined,
       );
-      return stdout.replace(/\n$/u, "");
+      // Stored value is hex text (see credSet); decode it back to the original bytes here rather
+      // than relying on `security`'s own `-X` hex handling, which on this OS only decodes hex that
+      // maps to printable ASCII and silently stores non-printable/UTF-8 hex text literally.
+      return Buffer.from(stdout.replace(/\n$/u, ""), "hex").toString("utf8");
     }
     if (platform === "win32") {
       const { stdout } = await exec(
@@ -67,17 +70,33 @@ export async function credSet(
 ): Promise<void> {
   assertKey(key);
   if (platform === "darwin") {
-    // `security -i` reads commands from stdin, so the secret never appears in argv.
-    const escaped = value.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
-    await exec("security", ["-i"], {
-      input: `add-generic-password -U -s "${SERVICE_PREFIX}${key}" -a openclaw -w "${escaped}"\n`,
-    });
+    // `security -i` reads commands from stdin, so the secret never appears in argv. The value is
+    // hex-encoded (not quoted/escaped into the command text) so it can never break out of the
+    // command line via a quote, backslash, or newline in the value: the hex alphabet [0-9a-f]
+    // contains no shell/security metacharacters. We store the hex text itself (via `-w`) and
+    // decode it back to bytes ourselves in credGet, rather than relying on `security add-generic-
+    // password -X <hex>` to decode it: on this OS, `-X` only decodes hex that maps to printable
+    // ASCII bytes and silently falls back to storing the hex text literally for non-printable or
+    // multi-byte UTF-8 content (verified against a real keychain with a value containing a quote,
+    // backslash, newline, and non-ASCII character) — precisely the values this needs to protect.
+    const hex = Buffer.from(value, "utf8").toString("hex");
+    try {
+      await exec("security", ["-i"], {
+        input: `add-generic-password -U -s "${SERVICE_PREFIX}${key}" -a openclaw -w ${hex}\n`,
+      });
+    } catch {
+      throw new Error(`could not store credential ${key}`);
+    }
     return;
   }
   if (platform === "win32") {
-    await exec("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", WIN_WRITE], {
-      env: { ...process.env, OCD_TARGET: SERVICE_PREFIX + key, OCD_SECRET: value },
-    });
+    try {
+      await exec("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", WIN_WRITE], {
+        env: { ...process.env, OCD_TARGET: SERVICE_PREFIX + key, OCD_SECRET: value },
+      });
+    } catch {
+      throw new Error(`could not store credential ${key}`);
+    }
     return;
   }
   throw new Error(`credential store not supported on ${platform}`);
