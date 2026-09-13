@@ -154,6 +154,80 @@ describe("createBrowserAdapter", () => {
     expect(await b.evaluate("T1", "() => undefined")).toBeUndefined();
   });
 
+  it("labels the tab it opens with the duty it is replaying", async () => {
+    const request = vi.fn(async () => ({ targetId: "T1" }));
+    const b = createBrowserAdapter({ request, profile: "chrome", tabLabel: "duty:book-flight" });
+    await b.open("https://x");
+    expect(request.mock.calls[0]?.[1]).toMatchObject({
+      path: "/tabs/open",
+      body: { url: "https://x", label: "duty:book-flight" },
+    });
+  });
+
+  it("carries the authored wait budget into the act body and the request timeout", async () => {
+    const request = vi.fn(async () => ({ ok: true }));
+    const b = createBrowserAdapter({ request, profile: "chrome" });
+    await b.waitFor("T1", { text: "Booked", timeoutMs: 60_000 });
+    const [, params] = request.mock.calls[0]!;
+    expect(params).toMatchObject({
+      timeoutMs: 65_000,
+      body: { kind: "wait", text: "Booked", timeoutMs: 60_000, targetId: "T1" },
+    });
+  });
+
+  it("carries a step's budget into an acting verb's request timeout", async () => {
+    const request = vi.fn(async (_m: string, params: Record<string, unknown>) =>
+      (params.path as string) === "/snapshot" ? { refs: REFS } : { ok: true },
+    );
+    const b = createBrowserAdapter({ request, profile: "chrome" });
+    await b.click("T1", { role: "textbox", name: "User Name" }, 45_000);
+    const clickCall = request.mock.calls.find(
+      ([, p]) => ((p.body as { kind?: string }) ?? {}).kind === "click",
+    )?.[1];
+    expect(clickCall).toMatchObject({ timeoutMs: 45_000 });
+
+    request.mockClear();
+    await b.navigate("T1", "https://x", 45_000);
+    expect(request.mock.calls[0]?.[1]).toMatchObject({ path: "/navigate", timeoutMs: 45_000 });
+  });
+
+  it("rethrows a transport failure from a css visibility probe instead of reporting not visible", async () => {
+    const request = vi.fn(async () => {
+      throw new Error("browser.request failed: connectOverCDP: Timeout 9000ms exceeded");
+    });
+    const b = createBrowserAdapter({ request, profile: "chrome" });
+    await expect(b.isVisible("T1", { css: "#account" })).rejects.toThrow(/connectOverCDP/u);
+  });
+
+  it("retries an idempotent read once on a transport failure and reports the retry", async () => {
+    let snapshots = 0;
+    const request = vi.fn(async (_m: string, params: Record<string, unknown>) => {
+      if ((params.path as string) !== "/snapshot") return { ok: true };
+      snapshots += 1;
+      if (snapshots === 1) throw new Error("connectOverCDP: Timeout 9000ms exceeded");
+      return { refs: REFS };
+    });
+    const b = createBrowserAdapter({ request, profile: "chrome" });
+    await b.click("T1", { role: "textbox", name: "User Name" });
+    expect(snapshots).toBe(2);
+    expect(b.drainRetryNotes?.()).toEqual(["retried snapshot once"]);
+    expect(b.drainRetryNotes?.()).toEqual([]);
+  });
+
+  it("never retries a click, fill or navigate", async () => {
+    let navigates = 0;
+    const request = vi.fn(async (_m: string, params: Record<string, unknown>) => {
+      if ((params.path as string) === "/navigate") {
+        navigates += 1;
+        throw new Error("ECONNRESET");
+      }
+      return { ok: true };
+    });
+    const b = createBrowserAdapter({ request, profile: "chrome" });
+    await expect(b.navigate("T1", "https://x")).rejects.toThrow(/ECONNRESET/u);
+    expect(navigates).toBe(1);
+  });
+
   it("maps an unconditional waitFor to a single timed wait action", async () => {
     const request = vi.fn(async () => ({ ok: true }));
     const b = createBrowserAdapter({ request, profile: "chrome" });

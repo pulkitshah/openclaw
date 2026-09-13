@@ -48,9 +48,44 @@ type RefInfo = { role: string; name?: string; nth?: number };
 type RefsMap = Record<string, RefInfo>;
 
 const DEFAULT_WAIT_TIMEOUT_MS = 15_000;
+const DEFAULT_CALL_TIMEOUT_MS = 30_000;
 const UNCONDITIONAL_WAIT_DEFAULT_MS = 1_000;
 const CSS_VISIBILITY_PROBE_TIMEOUT_MS = 1_500;
 const POLL_INTERVAL_MS = 250;
+
+/**
+ * Paths that only READ page state, so a transient transport fault can be retried without the risk
+ * of repeating an action. Every acting verb (`/act`, `/navigate`, `/tabs/open`, tab close) stays
+ * single-attempt: a retried click can double-submit.
+ */
+const RETRYABLE_READ_PATHS = new Set(["/snapshot", "/text", "/tabs", "/screenshot"]);
+const READ_RETRY_BACKOFF_MS = [250, 1_000] as const;
+const RETRY_ORDINAL = ["once", "twice"] as const;
+
+/** Transport-shaped failures: the CDP link, the socket, or the target, not the page's content. */
+const TRANSPORT_ERROR_RE =
+  /econnreset|econnrefused|epipe|etimedout|socket hang up|connectovercdp|target (?:is )?closed|browser (?:has been )?(?:closed|disconnected)|websocket|disconnected/iu;
+const WAIT_TIMEOUT_RE = /timeout|timed out|exceeded/iu;
+
+function errorText(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+/** A read worth one bounded retry: a transport fault, or a plain timeout on that read. */
+function isRetryableReadError(error: unknown): boolean {
+  const text = errorText(error);
+  return TRANSPORT_ERROR_RE.test(text) || WAIT_TIMEOUT_RE.test(text);
+}
+
+/**
+ * True only for the act route's own wait timeout. A transport failure that merely mentions a
+ * timeout (`connectOverCDP: Timeout 9000ms exceeded`) is NOT one: reporting it as "not visible"
+ * is how a healthy signed-in session gets signed in again.
+ */
+function isWaitTimeout(error: unknown): boolean {
+  const text = errorText(error);
+  return !TRANSPORT_ERROR_RE.test(text) && WAIT_TIMEOUT_RE.test(text);
+}
 
 /**
  * Mirrors extensions/browser/src/browser/snapshot-roles.ts INTERACTIVE_ROLES. Extension code
@@ -100,22 +135,43 @@ async function sleep(ms: number): Promise<void> {
 export function createBrowserAdapter(params: {
   request: Request;
   profile: string;
+  /** Tab label, so concurrent runs are distinguishable in `browser tabs` and screencasts. */
+  tabLabel?: string;
   blobs?: { put(bytes: Uint8Array, contentType: string): Promise<string> };
 }): BrowserAdapter {
   const { request, profile } = params;
+  const retryNotes: string[] = [];
 
-  const call = <T = unknown>(
+  const sendOnce = <T = unknown>(
     method: "GET" | "POST" | "DELETE",
     path: string,
-    opts: { query?: Record<string, unknown>; body?: unknown; timeoutMs?: number } = {},
+    opts: { query?: Record<string, unknown>; body?: unknown; timeoutMs?: number },
   ) =>
     request<T>("browser.request", {
       method,
       path,
       query: { profile, ...opts.query },
       body: opts.body,
-      timeoutMs: opts.timeoutMs ?? 30_000,
+      timeoutMs: opts.timeoutMs ?? DEFAULT_CALL_TIMEOUT_MS,
     });
+
+  const call = async <T = unknown>(
+    method: "GET" | "POST" | "DELETE",
+    path: string,
+    opts: { query?: Record<string, unknown>; body?: unknown; timeoutMs?: number } = {},
+  ): Promise<T> => {
+    if (!RETRYABLE_READ_PATHS.has(path)) return sendOnce<T>(method, path, opts);
+    for (let attempt = 0; ; attempt += 1) {
+      try {
+        return await sendOnce<T>(method, path, opts);
+      } catch (error) {
+        const backoff = READ_RETRY_BACKOFF_MS[attempt];
+        if (backoff === undefined || !isRetryableReadError(error)) throw error;
+        await sleep(backoff);
+        retryNotes.push(`retried ${path.slice(1)} ${RETRY_ORDINAL[attempt]}`);
+      }
+    }
+  };
 
   const act = <T = unknown>(targetId: string, body: Record<string, unknown>, timeoutMs?: number) =>
     call<T>("POST", "/act", { body: { ...body, targetId }, timeoutMs });
@@ -199,14 +255,18 @@ export function createBrowserAdapter(params: {
   };
 
   return {
-    async open(url) {
+    drainRetryNotes() {
+      return retryNotes.splice(0, retryNotes.length);
+    },
+    async open(url, timeoutMs) {
       const r = await call<{ targetId: string }>("POST", "/tabs/open", {
-        body: { url, label: "duty" },
+        body: { url, label: params.tabLabel ?? "duty" },
+        timeoutMs,
       });
       return { targetId: r.targetId };
     },
-    async navigate(targetId, url) {
-      await call("POST", "/navigate", { body: { url, targetId } });
+    async navigate(targetId, url, timeoutMs) {
+      await call("POST", "/navigate", { body: { url, targetId }, timeoutMs });
     },
     async isVisible(targetId, target) {
       if (target.role || target.name || target.text) {
@@ -221,33 +281,43 @@ export function createBrowserAdapter(params: {
           CSS_VISIBILITY_PROBE_TIMEOUT_MS + 500,
         );
         return true;
-      } catch {
-        return false;
+      } catch (error) {
+        // Only the probe's own wait timeout means "the element is absent". A transport failure
+        // reported as "not visible" is what re-runs a login on an already signed-in session.
+        if (isWaitTimeout(error)) return false;
+        throw error;
       }
     },
-    async click(targetId, target) {
-      await act(targetId, { kind: "click", ...(await locate(targetId, target)) });
+    async click(targetId, target, timeoutMs) {
+      await act(targetId, { kind: "click", ...(await locate(targetId, target)) }, timeoutMs);
     },
-    async fill(targetId, target, value) {
+    async fill(targetId, target, value, timeoutMs) {
       const loc = await locate(targetId, target);
       if (loc.ref) {
-        await act(targetId, { kind: "fill", fields: [{ ref: loc.ref, value }] });
+        await act(targetId, { kind: "fill", fields: [{ ref: loc.ref, value }] }, timeoutMs);
       } else if (loc.selector) {
-        await act(targetId, { kind: "type", selector: loc.selector, text: value });
+        await act(targetId, { kind: "type", selector: loc.selector, text: value }, timeoutMs);
       } else {
         throw new Error(`${describeTarget(target)}: not found on the page`);
       }
     },
-    async select(targetId, target, value) {
-      await act(targetId, { kind: "select", ...(await locate(targetId, target)), values: [value] });
+    async select(targetId, target, value, timeoutMs) {
+      await act(
+        targetId,
+        { kind: "select", ...(await locate(targetId, target)), values: [value] },
+        timeoutMs,
+      );
     },
-    async press(targetId, key) {
-      await act(targetId, { kind: "press", key });
+    async press(targetId, key, timeoutMs) {
+      await act(targetId, { kind: "press", key }, timeoutMs);
     },
     async waitFor(targetId, opts) {
       const timeoutMs = opts.timeoutMs ?? DEFAULT_WAIT_TIMEOUT_MS;
       const deadline = Date.now() + timeoutMs;
-      const body: Record<string, unknown> = { kind: "wait" };
+      // The server otherwise applies its own default wait budget (ACT_DEFAULT_WAIT_TIMEOUT_MS),
+      // so an authored `timeoutMs: 60000` has to travel in the act body, not only in the outer
+      // request timeout.
+      const body: Record<string, unknown> = { kind: "wait", timeoutMs };
       let hasCondition = false;
       if (opts.text) {
         body.text = opts.text;
@@ -271,9 +341,10 @@ export function createBrowserAdapter(params: {
         await waitForTarget(targetId, opts.target, Math.max(0, deadline - Date.now()));
       }
     },
-    async text(targetId, target) {
+    async text(targetId, target, timeoutMs) {
       const r = await call<{ text?: string }>("GET", "/text", {
         query: { targetId, ...(target?.css ? { selector: target.css } : {}) },
+        timeoutMs,
       });
       return r.text ?? "";
     },
@@ -284,8 +355,8 @@ export function createBrowserAdapter(params: {
       );
       return res.tabs.find((t) => t.targetId === targetId)?.url ?? "";
     },
-    async evaluate(targetId, fn) {
-      const r = await act<{ result?: unknown }>(targetId, { kind: "evaluate", fn });
+    async evaluate(targetId, fn, timeoutMs) {
+      const r = await act<{ result?: unknown }>(targetId, { kind: "evaluate", fn }, timeoutMs);
       return "result" in r ? r.result : undefined;
     },
     async screenshot(targetId) {
