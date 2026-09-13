@@ -101,6 +101,206 @@ describe("validateDuty", () => {
       expect(result.errors).toEqual(expect.arrayContaining([expect.stringContaining("source")]));
     }
   });
+  it("rejects a check that only Part 2 will support", () => {
+    const bad = {
+      ...base,
+      steps: [
+        {
+          id: "x",
+          kind: "browser",
+          label: "Bad check",
+          params: {},
+          check: { attribute: { target: { css: "#x" }, name: "value" } },
+        },
+      ],
+    };
+    const result = validateDuty(bad);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toEqual(
+        expect.arrayContaining([expect.stringContaining("attribute checks arrive in Part 2")]),
+      );
+    }
+  });
+  it("rejects an unknown check key instead of treating it as an empty check", () => {
+    const bad = {
+      ...base,
+      steps: [
+        { id: "x", kind: "browser", label: "Typo check", params: {}, check: { url_match: "/x" } },
+      ],
+    };
+    const result = validateDuty(bad);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toEqual(
+        expect.arrayContaining([expect.stringContaining("unknown check key")]),
+      );
+    }
+  });
+  it("rejects an unknown target key instead of silently ignoring it", () => {
+    const bad = {
+      ...base,
+      steps: [
+        {
+          id: "x",
+          kind: "browser",
+          label: "Typo target",
+          params: {},
+          target: { role: "button", nome: "Sign in" },
+        },
+      ],
+    };
+    const result = validateDuty(bad);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toEqual(
+        expect.arrayContaining([expect.stringContaining("unknown target key")]),
+      );
+    }
+  });
+  it("accepts a when whose cond matches the url and rejects an unknown cond kind", () => {
+    const good = {
+      ...base,
+      steps: [
+        {
+          kind: "when",
+          label: "Already on the dashboard",
+          cond: { url_matches: "/Home/Dashboard" },
+          then: [],
+        },
+      ],
+    };
+    expect(validateDuty(good).ok).toBe(true);
+
+    const bad = {
+      ...base,
+      steps: [{ kind: "when", label: "Typo cond", cond: { url_match: "/x" }, then: [] }],
+    };
+    const result = validateDuty(bad);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toEqual(
+        expect.arrayContaining([expect.stringContaining("unknown condition kind")]),
+      );
+    }
+  });
+  it("requires at least one trigger so an active Duty is always runnable", () => {
+    const result = validateDuty({ ...base, triggers: [] });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toEqual(
+        expect.arrayContaining([expect.stringContaining("at least one trigger")]),
+      );
+    }
+  });
+  it("accepts a cred placeholder in a fill value but rejects it anywhere else", () => {
+    expect(validateDuty(base).ok).toBe(true);
+
+    const inSelect = {
+      ...base,
+      steps: [
+        {
+          id: "s1",
+          kind: "browser",
+          label: "Pick the account",
+          params: { action: "select", value: "{{cred:amigos.account}}" },
+          target: { css: "#acct" },
+        },
+      ],
+    };
+    expect(validateDuty(inSelect).ok).toBe(true);
+
+    const cases: Array<{ what: string; steps: unknown[] }> = [
+      {
+        what: "an ai instruction",
+        steps: [
+          {
+            id: "s1",
+            kind: "ai",
+            label: "Read the mail",
+            params: { instruction: "sign in with {{cred:amigos.password}}", input: "x" },
+          },
+        ],
+      },
+      {
+        what: "a nested ai input",
+        steps: [
+          {
+            id: "s1",
+            kind: "ai",
+            label: "Read the mail",
+            params: { instruction: "read", input: { token: "{{cred:amigos.token}}" } },
+          },
+        ],
+      },
+      {
+        what: "an ask question",
+        steps: [
+          {
+            id: "s1",
+            kind: "ask",
+            label: "Confirm",
+            params: { question: "Use {{cred:amigos.token}}?" },
+          },
+        ],
+      },
+      {
+        what: "a navigate url",
+        steps: [
+          {
+            id: "s1",
+            kind: "browser",
+            label: "Open the reset link",
+            params: { action: "navigate", url: "https://x/?t={{cred:amigos.token}}" },
+          },
+        ],
+      },
+      {
+        what: "a press key",
+        steps: [
+          {
+            id: "s1",
+            kind: "browser",
+            label: "Press the key",
+            params: { action: "press", key: "{{cred:amigos.token}}" },
+          },
+        ],
+      },
+      {
+        what: "an evaluate body",
+        steps: [
+          {
+            id: "s1",
+            kind: "browser.evaluate",
+            label: "Read the token",
+            params: { fn: "() => '{{cred:amigos.token}}'" },
+          },
+        ],
+      },
+      {
+        what: "a stop reason",
+        steps: [{ kind: "stop", label: "Done", reason: "used {{cred:amigos.token}}" }],
+      },
+      {
+        what: "a when cond",
+        steps: [
+          {
+            kind: "when",
+            label: "Token already set",
+            cond: { text_matches: "{{cred:amigos.token}}" },
+            then: [],
+          },
+        ],
+      },
+    ];
+    for (const { what, steps } of cases) {
+      const result = validateDuty({ ...base, steps });
+      expect(result.ok, what).toBe(false);
+      if (!result.ok) {
+        expect(result.errors.join("; "), what).toContain("only allowed in a browser fill/select");
+      }
+    }
+  });
   it("accepts unique nested when ids and rejects duplicate ids across branches", () => {
     const nested = {
       ...base,

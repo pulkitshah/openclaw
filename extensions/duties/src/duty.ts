@@ -8,10 +8,9 @@ export type Check = {
   text_matches?: string;
   url_matches?: string;
   non_empty?: string;
-  attribute?: { target: Target; name: string };
 };
-export type StepKind = "browser" | "browser.evaluate" | "ai" | "ask";
-export const STEP_KINDS: readonly StepKind[] = ["browser", "browser.evaluate", "ai", "ask"];
+type StepKind = "browser" | "browser.evaluate" | "ai" | "ask";
+const STEP_KINDS: readonly StepKind[] = ["browser", "browser.evaluate", "ai", "ask"];
 export type Step = {
   id: string;
   kind: StepKind;
@@ -22,15 +21,19 @@ export type Step = {
   saveAs?: string | string[];
   timeoutMs?: number;
 };
-export type Cond = { visible: Target } | { equals: [string, string] } | { text_matches: string };
-export type WhenNode = {
+export type Cond =
+  | { visible: Target }
+  | { equals: [string, string] }
+  | { text_matches: string }
+  | { url_matches: string };
+type WhenNode = {
   kind: "when";
   label: string;
   cond: Cond;
   then: DutyNode[];
   else?: DutyNode[];
 };
-export type StopNode = { kind: "stop"; label: string; reason: string };
+type StopNode = { kind: "stop"; label: string; reason: string };
 export type DutyNode = Step | WhenNode | StopNode;
 export type DutyInput = {
   name: string;
@@ -57,14 +60,45 @@ export type Duty = {
 const ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 const SELECTOR_LABEL_RE = /^[#.[]|^role=|^css=/u;
 
+const TARGET_KEYS = ["role", "name", "text", "css"] as const;
+const COND_KEYS = ["visible", "equals", "text_matches", "url_matches"] as const;
+const CHECK_KEYS = ["visible", "text_matches", "url_matches", "non_empty"] as const;
+
+function rejectUnknownKeys(
+  value: Record<string, unknown>,
+  known: readonly string[],
+  what: string,
+  path: string,
+  errors: string[],
+): void {
+  const unknown = Object.keys(value).filter((key) => !known.includes(key));
+  if (unknown.length) {
+    errors.push(`${path}: unknown ${what} key(s) ${unknown.join(", ")}`);
+  }
+}
+
 function validateTarget(target: unknown, path: string, errors: string[]): void {
   if (!isRecord(target)) {
     errors.push(`${path}: target must be an object`);
     return;
   }
-  if (!["role", "name", "text", "css"].some((k) => typeof target[k] === "string" && target[k])) {
+  rejectUnknownKeys(target, TARGET_KEYS, "target", path, errors);
+  if (!TARGET_KEYS.some((k) => typeof target[k] === "string" && target[k])) {
     errors.push(`${path}: target needs at least one of role, name, text, css`);
   }
+}
+
+function requireNonEmptyString(
+  value: unknown,
+  path: string,
+  errors: string[],
+): value is string | undefined {
+  if (value === undefined) return true;
+  if (typeof value !== "string" || !value.trim()) {
+    errors.push(`${path}: must be a non-empty string`);
+    return false;
+  }
+  return true;
 }
 
 function validateCond(cond: unknown, path: string, errors: string[]): void {
@@ -74,7 +108,7 @@ function validateCond(cond: unknown, path: string, errors: string[]): void {
   }
   const keys = Object.keys(cond);
   if (keys.length !== 1) {
-    errors.push(`${path}: cond must have exactly one of visible, equals, text_matches`);
+    errors.push(`${path}: cond must have exactly one of ${COND_KEYS.join(", ")}`);
     return;
   }
   const key = keys[0];
@@ -89,13 +123,12 @@ function validateCond(cond: unknown, path: string, errors: string[]): void {
     ) {
       errors.push(`${path}.equals: must be [string, string]`);
     }
-  } else if (key === "text_matches") {
-    if (typeof cond.text_matches !== "string" || !cond.text_matches.trim()) {
-      errors.push(`${path}.text_matches: must be a non-empty string`);
-    }
+  } else if (key === "text_matches" || key === "url_matches") {
+    requireNonEmptyString(cond[key], `${path}.${key}`, errors);
   } else {
     errors.push(`${path}: unknown condition kind "${key}"`);
   }
+  rejectCredStrings(cond, `${path}`, errors);
 }
 
 function validateCheck(check: unknown, path: string, errors: string[]): void {
@@ -103,32 +136,53 @@ function validateCheck(check: unknown, path: string, errors: string[]): void {
     errors.push(`${path}: check must be an object`);
     return;
   }
-  if (check.visible !== undefined) validateTarget(check.visible, `${path}.visible`, errors);
-  if (typeof check.text_matches !== "undefined") {
-    if (typeof check.text_matches !== "string" || !check.text_matches.trim()) {
-      errors.push(`${path}.text_matches: must be a non-empty string`);
-    }
-  }
-  if (typeof check.url_matches !== "undefined") {
-    if (typeof check.url_matches !== "string" || !check.url_matches.trim()) {
-      errors.push(`${path}.url_matches: must be a non-empty string`);
-    }
-  }
-  if (typeof check.non_empty !== "undefined") {
-    if (typeof check.non_empty !== "string" || !check.non_empty.trim()) {
-      errors.push(`${path}.non_empty: must be a non-empty string`);
-    }
-  }
+  // `attribute` is taught nowhere and evaluated nowhere in Part 1; accepting it would let a gate
+  // that never runs read as a pass, which is the worst failure mode a check can have.
   if (check.attribute !== undefined) {
-    if (!isRecord(check.attribute)) {
-      errors.push(`${path}.attribute: must be an object`);
-    } else {
-      if (check.attribute.target !== undefined)
-        validateTarget(check.attribute.target, `${path}.attribute.target`, errors);
-      if (typeof check.attribute.name !== "string" || !check.attribute.name.trim()) {
-        errors.push(`${path}.attribute.name: must be a non-empty string`);
-      }
-    }
+    errors.push(`${path}.attribute: attribute checks arrive in Part 2`);
+  }
+  rejectUnknownKeys(check, [...CHECK_KEYS, "attribute"], "check", path, errors);
+  if (check.visible !== undefined) validateTarget(check.visible, `${path}.visible`, errors);
+  requireNonEmptyString(check.text_matches, `${path}.text_matches`, errors);
+  requireNonEmptyString(check.url_matches, `${path}.url_matches`, errors);
+  requireNonEmptyString(check.non_empty, `${path}.non_empty`, errors);
+}
+
+/** Walks every string reachable from `value` (objects and arrays included). */
+function forEachString(value: unknown, visit: (text: string) => void): void {
+  if (typeof value === "string") {
+    visit(value);
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) forEachString(item, visit);
+    return;
+  }
+  if (isRecord(value)) {
+    for (const item of Object.values(value)) forEachString(item, visit);
+  }
+}
+
+const CRED_PLACEHOLDER_RULE =
+  "{{cred:...}} is only allowed in a browser fill/select step's params.value";
+
+/** A resolved credential must never reach the model, a channel, a URL, or a page script, so a
+ *  cred placeholder is authorable in exactly one place: the value a `fill`/`select` types into a
+ *  form field. Everywhere else it is rejected here rather than resolved at run time. */
+function rejectCredStrings(value: unknown, path: string, errors: string[]): void {
+  forEachString(value, (text) => {
+    if (containsCredPlaceholder(text)) errors.push(`${path}: ${CRED_PLACEHOLDER_RULE}`);
+  });
+}
+
+function validateStepParams(node: Record<string, unknown>, path: string, errors: string[]): void {
+  if (!isRecord(node.params)) return;
+  const params = node.params;
+  const credValueAllowed =
+    node.kind === "browser" && (params.action === "fill" || params.action === "select");
+  for (const [key, value] of Object.entries(params)) {
+    if (credValueAllowed && key === "value" && typeof value === "string") continue;
+    rejectCredStrings(value, `${path}.params.${key}`, errors);
   }
 }
 
@@ -158,6 +212,7 @@ function validateNodes(nodes: unknown, path: string, errors: string[], seenIds: 
     if (node.kind === "stop") {
       if (typeof node.reason !== "string" || !node.reason.trim())
         errors.push(`${p}: stop needs a reason`);
+      else rejectCredStrings(node.reason, `${p}.reason`, errors);
       return;
     }
     // SAFETY: includes() is the actual runtime membership check; the cast only lets an arbitrary node.kind be compared, and a non-StepKind value is reported as an error on the next line.
@@ -169,6 +224,7 @@ function validateNodes(nodes: unknown, path: string, errors: string[], seenIds: 
     else if (seenIds.has(node.id)) errors.push(`${p}: duplicate step id "${node.id}"`);
     else seenIds.add(node.id);
     if (!isRecord(node.params)) errors.push(`${p}: params must be an object`);
+    else validateStepParams(node, p, errors);
     if (node.target !== undefined) validateTarget(node.target, p, errors);
     if (node.check !== undefined) validateCheck(node.check, p, errors);
   });
@@ -205,6 +261,7 @@ export function validateDuty(
   }
   if (!Array.isArray(input.triggers)) errors.push("triggers must be an array");
   else {
+    if (input.triggers.length === 0) errors.push("triggers must have at least one trigger");
     input.triggers.forEach((trg, idx) => {
       if (!isRecord(trg)) {
         errors.push(`triggers[${idx}]: must be an object`);

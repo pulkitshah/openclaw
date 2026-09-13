@@ -49,7 +49,8 @@ and `saveAs`.
   - `target` is `{ role, name }`, `{ text }`, or `{ css }` — prefer role+name or visible
     text; use `css` only when nothing else identifies the element.
   - `check` (on any step) is one of `visible: <target>`, `text_matches: <regex>`,
-    `url_matches: <regex>`, `non_empty: <outputKey>`, `attribute: { target, name }`.
+    `url_matches: <regex>`, `non_empty: <outputKey>`. Anything else is rejected — a check that
+    cannot be evaluated would read as a pass.
 - **`browser.evaluate`** — fallback only, for when nothing above can express the action.
   `params.fn` is a function body string run in the page. Prefer the named `browser`
   actions whenever they suffice.
@@ -59,15 +60,22 @@ and `saveAs`.
 - **`ask`** — `params.question`, optional `params.header`, optional `params.options`
   (multiple-choice). Answer is saved via `saveAs`.
 - **`when`** — `cond` is one of `{ visible: <target> }`, `{ equals: [a, b] }`,
-  `{ text_matches: <regex> }`; has `then` and optional `else` node lists.
+  `{ text_matches: <regex> }`, `{ url_matches: <regex> }`; has `then` and optional `else` node
+  lists.
 - **`stop`** — ends the run early with a `reason` (e.g. once a login gateway determines no
   further action is needed).
 
 ## Placeholders
 
-Strings in `params`/`reason` may use `{{in:name}}` (a Duty input), `{{out:key}}` (a value
-an earlier step saved), and `{{cred:key}}` (a stored credential, resolved only at run
-time — the value never appears in your context or in evidence/logs).
+Strings in `params`/`reason` may use `{{in:name}}` (a Duty input) and `{{out:key}}` (a value
+an earlier step saved).
+
+`{{cred:key}}` (a stored credential) is valid in **exactly one place**: the `params.value` of a
+`browser` `fill` or `select` step. There it is resolved at run time, typed into the field, and
+masked in evidence — the value never appears in your context, in evidence, or in logs. Anywhere
+else (an `ai` instruction or input, an `ask` question, a `navigate`/`open` url, a `press` key, an
+`evaluate` body, a `stop` reason, a `when` cond) it is rejected when the Duty is saved, because
+resolving it there would ship the secret to a model, a channel, a URL, or a page script.
 
 ## The login gateway pattern
 
@@ -98,3 +106,6 @@ when:
 Never ask the owner for a password (or any secret) in chat. Before authoring a step that
 needs one, call `cred_needed { key, reason }` — it tells you whether it's already stored
 and, if not, how the owner stores it out-of-band. It never accepts or echoes a value.
+
+The owner saves a login themselves on the **Duties → Logins** page; it goes straight into this
+machine's keychain. There is no tool, chat message, or file through which you can receive one.
