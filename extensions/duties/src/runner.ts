@@ -111,6 +111,10 @@ export async function runDuty(
    *  run resumes it instead of replaying the whole flow in a fresh tab; a later `open` in the
    *  same run means the author wants another tab, so it gets one. */
   let resumeTargetId = options.targetId;
+  /** Every tab this run drove (the handed-in one included): all are closed at the end, except
+   *  the current tab when `keepOpen` hands it to the next stage. */
+  const ownedTabs = new Set<string>();
+  if (targetId) ownedTabs.add(targetId);
   let reachedStop = false;
   const trackedCred = async (key: string): Promise<string> => {
     const value = await deps.cred(key);
@@ -203,6 +207,7 @@ export async function runDuty(
             resumeTargetId = undefined;
           } else {
             targetId = (await deps.browser.open(url, budget)).targetId;
+            ownedTabs.add(targetId);
           }
           summary = url;
         } else if (action === "navigate") {
@@ -383,8 +388,9 @@ export async function runDuty(
       report = redact(errorMessage(signal));
     }
   }
-  if (targetId && !options.keepOpen) {
-    await deps.browser.close(targetId).catch(() => {});
+  const keptTab = options.keepOpen ? targetId : undefined;
+  for (const tab of ownedTabs) {
+    if (tab !== keptTab) await deps.browser.close(tab).catch(() => {});
   }
   return {
     status,

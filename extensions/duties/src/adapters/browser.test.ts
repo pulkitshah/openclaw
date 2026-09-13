@@ -216,6 +216,21 @@ describe("createBrowserAdapter", () => {
     expect(b.drainRetryNotes?.()).toEqual([]);
   });
 
+  it("does not retry a read whose failure is a page-side wait timeout", async () => {
+    let snapshots = 0;
+    const request = vi.fn(async (_m: string, params: Record<string, unknown>) => {
+      if ((params.path as string) !== "/snapshot") return { ok: true };
+      snapshots += 1;
+      throw new Error("act wait timed out after 20000ms");
+    });
+    const b = createBrowserAdapter({ request, profile: "chrome" });
+    await expect(b.click("T1", { role: "textbox", name: "User Name" })).rejects.toThrow(
+      /timed out/u,
+    );
+    expect(snapshots).toBe(1);
+    expect(b.drainRetryNotes?.()).toEqual([]);
+  });
+
   it("never retries a click, fill or navigate", async () => {
     let navigates = 0;
     const request = vi.fn(async (_m: string, params: Record<string, unknown>) => {

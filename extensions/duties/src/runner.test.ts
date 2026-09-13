@@ -31,8 +31,8 @@ function fakeDeps(over: Partial<RunnerDeps> = {}): RunnerDeps & { calls: string[
       return 42;
     },
     screenshot: async () => "blob-1",
-    close: async () => {
-      calls.push("close");
+    close: async (id) => {
+      calls.push(`close ${id}`);
     },
   };
   return {
@@ -112,7 +112,7 @@ describe("runDuty", () => {
     expect(deps.calls).toContain("fill #UserId cred(amigos.username)");
     expect(outcome.steps.map((s) => s.status)).toEqual(["ok", "ok", "ok", "ok", "ok"]);
     expect(outcome.steps[3]!.summary).not.toContain("cred(");
-    expect(deps.calls.at(-1)).toBe("close");
+    expect(deps.calls.at(-1)).toBe("close t1");
   });
   it("skips a when-group whose probe is visible and stops with the resolved reason", async () => {
     const deps = fakeDeps({ browser: { isVisible: async () => true } as never });
@@ -197,7 +197,7 @@ describe("runDuty", () => {
     );
     expect(partial.status).toBe("ok");
     expect(partial.targetId).toBe("t1");
-    expect(deps.calls).not.toContain("close");
+    expect(deps.calls.some((c) => c.startsWith("close"))).toBe(false);
   });
   it("resumes an open step in the tab it was handed instead of opening a new one", async () => {
     const deps = fakeDeps();
@@ -228,7 +228,12 @@ describe("runDuty", () => {
       { inputs: {}, keepOpen: true, targetId: "handed-tab" },
     );
     expect(outcome.status).toBe("ok");
-    expect(deps.calls).toEqual(["navigate handed-tab https://a", "open https://b"]);
+    // The handed-in tab is no longer the run's tab, so it is closed rather than leaked.
+    expect(deps.calls).toEqual([
+      "navigate handed-tab https://a",
+      "open https://b",
+      "close handed-tab",
+    ]);
     expect(outcome.targetId).toBe("t1");
   });
   it("resolves placeholders in a press key and an evaluate body", async () => {

@@ -72,9 +72,10 @@ function errorText(error: unknown): string {
 }
 
 /** A read worth one bounded retry: a transport fault, or a plain timeout on that read. */
+/** Only transport faults earn a retry: a read that timed out inside the page is the page's
+ *  answer, and retrying it just doubles the wait before the same failure. */
 function isRetryableReadError(error: unknown): boolean {
-  const text = errorText(error);
-  return TRANSPORT_ERROR_RE.test(text) || WAIT_TIMEOUT_RE.test(text);
+  return TRANSPORT_ERROR_RE.test(errorText(error));
 }
 
 /**
