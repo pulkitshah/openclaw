@@ -42,11 +42,17 @@ describe("createRouteResolver", () => {
 
 describe("createDeliverAdapter", () => {
   it("sends text and files through the durable batch and surfaces a failed status", async () => {
-    const sendBatch = vi.fn(async () => ({
-      status: "sent" as const,
-      results: [{ messageId: "m1" }],
-      receipt: {},
-    }));
+    const sendBatch = vi.fn(
+      async (
+        _params: Parameters<
+          typeof import("openclaw/plugin-sdk/channel-outbound").sendDurableMessageBatch
+        >[0],
+      ) => ({
+        status: "sent" as const,
+        results: [{ messageId: "m1" }],
+        receipt: {},
+      }),
+    );
     // SAFETY: the adapter only forwards cfg; the stub never inspects it.
     const cfg = {} as unknown as import("openclaw/plugin-sdk/core").OpenClawConfig;
     // SAFETY: the stub returns the subset of DurableMessageBatchSendResult the adapter reads.
@@ -66,10 +72,16 @@ describe("createDeliverAdapter", () => {
       to: "222",
       payloads: [{ text: "hi", mediaUrls: ["/x/a.pdf"] }],
     });
-    const failing = vi.fn(async () => ({
-      status: "failed" as const,
-      error: new Error("channel down"),
-    }));
+    const failing = vi.fn(
+      async (
+        _params: Parameters<
+          typeof import("openclaw/plugin-sdk/channel-outbound").sendDurableMessageBatch
+        >[0],
+      ) => ({
+        status: "failed" as const,
+        error: new Error("channel down"),
+      }),
+    );
     // SAFETY: as above.
     const bad = createDeliverAdapter({
       cfg,
@@ -84,23 +96,29 @@ describe("createDeliverAdapter", () => {
     // SAFETY: the adapter only forwards cfg; the stub never inspects it.
     const cfg = {} as unknown as import("openclaw/plugin-sdk/core").OpenClawConfig;
     const originalError = new Error("upload timeout");
-    const partial = vi.fn(async () => ({
-      status: "partial_failed" as const,
-      results: [{ messageId: "m1" }],
-      receipt: {},
-      error: originalError,
-      sentBeforeError: true as const,
-      payloadOutcomes: [
-        { index: 0, status: "sent" as const, results: [{ messageId: "m1" }] },
-        {
-          index: 1,
-          status: "failed" as const,
-          error: originalError,
-          sentBeforeError: true,
-          stage: "platform_send" as const,
-        },
-      ],
-    }));
+    const partial = vi.fn(
+      async (
+        _params: Parameters<
+          typeof import("openclaw/plugin-sdk/channel-outbound").sendDurableMessageBatch
+        >[0],
+      ) => ({
+        status: "partial_failed" as const,
+        results: [{ messageId: "m1" }],
+        receipt: {},
+        error: originalError,
+        sentBeforeError: true as const,
+        payloadOutcomes: [
+          { index: 0, status: "sent" as const, results: [{ messageId: "m1" }] },
+          {
+            index: 1,
+            status: "failed" as const,
+            error: originalError,
+            sentBeforeError: true,
+            stage: "platform_send" as const,
+          },
+        ],
+      }),
+    );
     // SAFETY: the stub returns the subset of DurableMessageBatchSendResult the adapter reads.
     const adapter = createDeliverAdapter({
       cfg,
@@ -123,20 +141,26 @@ describe("createDeliverAdapter", () => {
     // SAFETY: the adapter only forwards cfg; the stub never inspects it.
     const cfg = {} as unknown as import("openclaw/plugin-sdk/core").OpenClawConfig;
     const originalError = new Error("channel down");
-    const failing = vi.fn(async () => ({
-      status: "failed" as const,
-      error: originalError,
-      stage: "queue" as const,
-      payloadOutcomes: [
-        {
-          index: 0,
-          status: "failed" as const,
-          error: originalError,
-          sentBeforeError: false,
-          stage: "queue" as const,
-        },
-      ],
-    }));
+    const failing = vi.fn(
+      async (
+        _params: Parameters<
+          typeof import("openclaw/plugin-sdk/channel-outbound").sendDurableMessageBatch
+        >[0],
+      ) => ({
+        status: "failed" as const,
+        error: originalError,
+        stage: "queue" as const,
+        payloadOutcomes: [
+          {
+            index: 0,
+            status: "failed" as const,
+            error: originalError,
+            sentBeforeError: false,
+            stage: "queue" as const,
+          },
+        ],
+      }),
+    );
     // SAFETY: as above.
     const bad = createDeliverAdapter({
       cfg,

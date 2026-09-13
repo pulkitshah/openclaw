@@ -55,7 +55,7 @@ describe("createRenderAdapter", () => {
     await writeFile(produced, "%PDF-1.4 fake");
     const server = createRenderServer({ baseUrl: "http://127.0.0.1:19001" });
     const browser = {
-      open: vi.fn(async () => ({ targetId: "T9" })),
+      open: vi.fn(async (_url: string, _timeoutMs?: number) => ({ targetId: "T9" })),
       pdf: vi.fn(async () => produced),
       close: vi.fn(async () => undefined),
     };
@@ -73,7 +73,7 @@ describe("createRenderAdapter", () => {
   it("closes the tab and rethrows when printing fails", async () => {
     const server = createRenderServer({ baseUrl: "http://127.0.0.1:19001" });
     const browser = {
-      open: vi.fn(async () => ({ targetId: "T9" })),
+      open: vi.fn(async (_url: string, _timeoutMs?: number) => ({ targetId: "T9" })),
       pdf: vi.fn(async () => {
         throw new Error("pdf unsupported on this profile");
       }),
@@ -87,7 +87,7 @@ describe("createRenderAdapter", () => {
   it("names the render url when the page cannot be opened, so a wrong scheme or port is not opaque", async () => {
     const server = createRenderServer({ baseUrl: "http://127.0.0.1:19001" });
     const browser = {
-      open: vi.fn(async () => {
+      open: vi.fn(async (_url: string, _timeoutMs?: number) => {
         throw new Error("net::ERR_CONNECTION_REFUSED");
       }),
       pdf: vi.fn(async () => "/never"),
