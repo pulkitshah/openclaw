@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { Duty } from "./duty.js";
+import type { Duty, Target } from "./duty.js";
 import { runDuty, type RunnerDeps } from "./runner.js";
 
 function fakeDeps(over: Partial<RunnerDeps> = {}): RunnerDeps & { calls: string[] } {
@@ -193,5 +193,85 @@ describe("runDuty", () => {
     expect(partial.status).toBe("ok");
     expect(partial.targetId).toBe("t1");
     expect(deps.calls).not.toContain("close");
+  });
+});
+
+// Matches runner.ts's private MASK constant; kept local since the runner does not
+// (and should not) export it as part of its public surface.
+const MASK = "••••••";
+
+describe("runDuty credential redaction", () => {
+  it("masks a resolved credential that leaks into a failed step's summary and the outer report", async () => {
+    const secret = "cred(amigos.username)";
+    const deps = fakeDeps({
+      browser: {
+        fill: async (_t: string, target: Target, value: string) => {
+          throw new Error(`could not locate ${target.css}: got value "${value}"`);
+        },
+      } as never,
+    });
+    const outcome = await runDuty(
+      duty([
+        { id: "s1", kind: "browser", label: "Open", params: { action: "open", url: "https://x" } },
+        {
+          id: "s2",
+          kind: "browser",
+          label: "Fill username",
+          params: { action: "fill", value: "{{cred:amigos.username}}" },
+          target: { css: "#UserId" },
+        },
+      ]),
+      deps,
+      { inputs: {} },
+    );
+    expect(outcome.status).toBe("failed");
+    expect(outcome.steps[1]!.summary).toContain(MASK);
+    expect(outcome.steps[1]!.summary).not.toContain(secret);
+    expect(outcome.report).toContain(MASK);
+    expect(outcome.report).not.toContain(secret);
+  });
+
+  it("masks a resolved credential inside a navigate step's url summary", async () => {
+    const secret = "cred(amigos.token)";
+    const deps = fakeDeps();
+    const outcome = await runDuty(
+      duty([
+        { id: "s1", kind: "browser", label: "Open", params: { action: "open", url: "https://x" } },
+        {
+          id: "s2",
+          kind: "browser",
+          label: "Navigate with token",
+          params: { action: "navigate", url: "https://x/reset?token={{cred:amigos.token}}" },
+        },
+      ]),
+      deps,
+      { inputs: {} },
+    );
+    expect(outcome.status).toBe("ok");
+    expect(outcome.steps[1]!.summary).toContain(MASK);
+    expect(outcome.steps[1]!.summary).not.toContain(secret);
+  });
+
+  it("masks a resolved credential that echoes back through an ask answer", async () => {
+    const secret = "cred(amigos.token)";
+    const deps = fakeDeps({
+      ask: { ask: async (params) => ({ status: "answered", answer: params.question }) },
+    });
+    const outcome = await runDuty(
+      duty([
+        {
+          id: "s1",
+          kind: "ask",
+          label: "Confirm",
+          params: { question: "Use {{cred:amigos.token}} to confirm?" },
+          saveAs: "confirmed",
+        },
+      ]),
+      deps,
+      { inputs: {} },
+    );
+    expect(outcome.status).toBe("ok");
+    expect(outcome.steps[0]!.summary).toContain(MASK);
+    expect(outcome.steps[0]!.summary).not.toContain(secret);
   });
 });

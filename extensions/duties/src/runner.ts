@@ -95,9 +95,20 @@ export async function runDuty(
   const now = deps.now ?? Date.now;
   const outputs: Record<string, unknown> = {};
   const evidence: StepEvidence[] = [];
+  const secrets = new Set<string>();
   let targetId = options.targetId;
   let reachedStop = false;
-  const ctx = () => ({ out: outputs, in: options.inputs, cred: deps.cred });
+  const trackedCred = async (key: string): Promise<string> => {
+    const value = await deps.cred(key);
+    if (value.length >= 4) secrets.add(value);
+    return value;
+  };
+  const redact = (text: string): string => {
+    let result = text;
+    for (const secret of secrets) result = result.split(secret).join(MASK);
+    return result;
+  };
+  const ctx = () => ({ out: outputs, in: options.inputs, cred: trackedCred });
   const resolve = (value: unknown) =>
     typeof value === "string" ? resolvePlaceholders(value, ctx()) : Promise.resolve(value);
   const requireTab = (): string => {
@@ -107,7 +118,11 @@ export async function runDuty(
 
   const record = (partial: Omit<StepEvidence, "durationMs"> & { startedAt: number }) => {
     const { startedAt, ...rest } = partial;
-    const item: StepEvidence = { ...rest, durationMs: now() - startedAt };
+    const item: StepEvidence = {
+      ...rest,
+      summary: redact(rest.summary),
+      durationMs: now() - startedAt,
+    };
     evidence.push(item);
     deps.onStep?.(item);
   };
@@ -283,14 +298,14 @@ export async function runDuty(
     await walk(duty.steps);
   } catch (signal) {
     if (signal instanceof StopSignal) {
-      report = reachedStop ? signal.reason : undefined;
+      report = reachedStop ? redact(signal.reason) : undefined;
     } else if (signal instanceof HaltSignal) {
       status = signal.outcome;
       failedStep = signal.stepId;
-      report = signal.message;
+      report = redact(signal.message);
     } else {
       status = "failed";
-      report = errorMessage(signal);
+      report = redact(errorMessage(signal));
     }
   }
   if (targetId && !options.keepOpen) {
