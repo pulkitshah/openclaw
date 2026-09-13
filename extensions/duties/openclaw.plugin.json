@@ -7,7 +7,10 @@
   ],
   "enabledByDefault": true,
   "activation": {
-    "onStartup": true
+    "onStartup": true,
+    "onCommands": [
+      "duties"
+    ]
   },
   "contracts": {
     "tools": [
