@@ -1,5 +1,9 @@
-import { capturePluginRegistration } from "openclaw/plugin-sdk/plugin-test-runtime";
+import {
+  capturePluginRegistration,
+  createCapturedPluginRegistration,
+} from "openclaw/plugin-sdk/plugin-test-runtime";
 import { describe, expect, it, vi } from "vitest";
+import { RENDER_ROUTE_PATH } from "./src/adapters/render.js";
 
 vi.mock("./src/store.js", () => ({
   DutyStore: { open: () => ({}) },
@@ -30,5 +34,23 @@ describe("duties plugin registration", () => {
     expect(resolveBrowserProfile({ browserProfile: "  " })).toBe("openclaw");
     expect(resolveBrowserProfile({ browserProfile: 7 })).toBe("openclaw");
     expect(resolveBrowserProfile({ browserProfile: "chrome" })).toBe("chrome");
+  });
+
+  it("serves rendered documents to the managed browser on a plugin-authenticated prefix route", () => {
+    const captured = createCapturedPluginRegistration({ id: "duties", name: "Duties" });
+    const registerHttpRoute = vi.fn();
+    captured.api.registerHttpRoute = registerHttpRoute;
+
+    plugin.register(captured.api);
+
+    expect(registerHttpRoute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: RENDER_ROUTE_PATH,
+        match: "prefix",
+        auth: "plugin",
+        handler: expect.any(Function),
+      }),
+    );
+    expect(RENDER_ROUTE_PATH).toBe("/plugins/duties/render/");
   });
 });

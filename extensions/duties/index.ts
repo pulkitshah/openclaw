@@ -1,16 +1,33 @@
 import { randomUUID } from "node:crypto";
+import path from "node:path";
+import { resolveGatewayPort } from "openclaw/plugin-sdk/core";
+import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import { definePluginEntry } from "./api.js";
 import { createAiAdapter } from "./src/adapters/ai.js";
 import { createAskAdapter } from "./src/adapters/ask.js";
 import { createBrowserAdapter } from "./src/adapters/browser.js";
+import {
+  createDeliverAdapter,
+  createRouteResolver,
+  sessionRouteFromStore,
+} from "./src/adapters/deliver.js";
+import {
+  createRenderAdapter,
+  createRenderServer,
+  RENDER_ROUTE_PATH,
+} from "./src/adapters/render.js";
 import { credDelete, credGet, credHas, credSet } from "./src/creds.js";
 import { createDutiesEventService } from "./src/events.js";
+import { createRunFiles } from "./src/files.js";
 import { registerDutiesGatewayMethods } from "./src/gateway-methods.js";
 import { RunManager } from "./src/run-service.js";
 import { DutyStore } from "./src/store.js";
 import { registerDutyTools } from "./src/tools.js";
 
 const EVIDENCE_BLOB_TTL_MS = 90 * 24 * 3600 * 1000;
+/** Rendered run documents are kept a month: long enough to re-send a delivery the owner missed,
+ *  short enough that a year of runs does not accumulate on disk. */
+const RUN_FILES_TTL_MS = 30 * 24 * 3600 * 1000;
 
 export const DEFAULT_BROWSER_PROFILE = "openclaw";
 
@@ -64,9 +81,47 @@ export default definePluginEntry({
       blobs ??= openEvidenceBlobs();
       return blobs;
     };
+    // Rendered documents live on disk (delivery needs a path), under the plugin's own state dir so
+    // the whole tree can be dropped with the plugin and swept by age.
+    const runFiles = createRunFiles(
+      path.join(api.runtime.state.resolveStateDir(), "plugins", "duties", "files"),
+    );
+    // The managed browser only navigates to http(s), so rendered HTML is served to it through this
+    // plugin-authenticated route, one single-use token at a time.
+    const renderServer = createRenderServer({
+      baseUrl: `http://127.0.0.1:${resolveGatewayPort(api.config)}`,
+    });
+    api.registerHttpRoute({
+      path: RENDER_ROUTE_PATH,
+      match: "prefix",
+      auth: "plugin",
+      handler: (req, res) => renderServer.handler(req, res),
+    });
+    const render = createRenderAdapter({
+      server: renderServer,
+      // A render owns its own tab (it navigates to the token URL and prints), so it never shares
+      // the tab a duty's browser steps are driving.
+      browser: createBrowserAdapter({
+        request,
+        profile: browserProfile,
+        tabLabel: "duty:render",
+      }),
+    });
+    const deliver = createDeliverAdapter({ cfg: api.config });
+    const resolveRoute = createRouteResolver({
+      ownerTarget: async () => (await store.getSettings()).owner,
+      sessionRoute: sessionRouteFromStore,
+    });
+    // Read through the store on every run so an edit on the Duties page is picked up by the next
+    // run without rebuilding the deps.
+    const templates = {
+      get: (id: string) => store.getTemplate(id),
+      brand: () => store.getBrand(),
+    };
+
     const runs = new RunManager({
       store,
-      deps: (duty) => {
+      deps: async (duty, run) => {
         const evidenceBlobs = evidence();
         return {
           browser: createBrowserAdapter({
@@ -84,39 +139,31 @@ export default definePluginEntry({
           ai: createAiAdapter({ request, sessionKey: "main" }),
           ask: createAskAdapter({ request, sessionKey: "main" }),
           cred: (key: string) => credGet(key),
-          // Task 7 wires the real template store, render server, deliver adapter, route resolver
-          // and per-run files directory. Until then every document path throws on its own step, so
-          // a duty that renders or delivers fails loudly instead of silently doing nothing.
-          templates: {
-            get: async () => {
-              throw new Error("templates not wired");
-            },
-            brand: async () => {
-              throw new Error("templates not wired");
-            },
-          },
-          render: {
-            toPdf: async () => {
-              throw new Error("render not wired");
-            },
-          },
-          deliver: {
-            send: async () => {
-              throw new Error("deliver not wired");
-            },
-          },
-          resolveRoute: async () => {
-            throw new Error("delivery routes not wired");
-          },
-          filesDir: "",
+          templates,
+          render,
+          deliver,
+          resolveRoute,
+          filesDir: await runFiles.runDir(run.id),
         };
       },
       emit: (event) => events.emit("run", event),
+      // Status lines go back to the conversation the run was started from. No route (the session
+      // is gone, or it was never an external chat) means no status line, not a failure.
+      notify: async (origin, text) => {
+        const route = sessionRouteFromStore(origin);
+        if (!route) return;
+        await deliver.send({ route, text });
+      },
     });
     api.registerService({
       id: "duties:runs",
       async start() {
         await runs.recoverOrphans();
+        // Best-effort: a sweep that cannot remove an old run's directory is a disk-space note,
+        // never a reason for the Duties service to fail to start.
+        await runFiles.cleanup(RUN_FILES_TTL_MS).catch((error: unknown) => {
+          api.logger.warn(`duties: rendered-file cleanup failed: ${coerceErrorMessage(error)}`);
+        });
       },
       stop() {},
     });
@@ -128,7 +175,16 @@ export default definePluginEntry({
       emit: events.emit,
       creds: { set: (key, value) => credSet(key, value), delete: (key) => credDelete(key) },
       evidence,
+      render,
+      previewDir: () => runFiles.previewDir(),
     });
-    registerDutyTools({ api, store, runs, credHas: (key) => credHas(key) });
+    registerDutyTools({
+      api,
+      store,
+      runs,
+      credHas: (key) => credHas(key),
+      render,
+      previewDir: () => runFiles.previewDir(),
+    });
   },
 });

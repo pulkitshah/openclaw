@@ -1,9 +1,14 @@
+import { readFile } from "node:fs/promises";
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { OpenClawPluginApi } from "../api.js";
+import type { RenderAdapter } from "./adapters/render.js";
 import { DUTY_STATUSES, validateDuty, type DutyStatus } from "./duty.js";
+import { mailStatusFromConfig } from "./mail.js";
+import { renderTemplatePreview } from "./preview.js";
 import type { RunManager } from "./run-service.js";
 import type { DutyStore } from "./store.js";
+import { validateBrand } from "./template.js";
 
 type Ctx = Parameters<Parameters<OpenClawPluginApi["registerGatewayMethod"]>[1]>[0];
 type Scope = "operator.read" | "operator.write" | "operator.admin";
@@ -31,8 +36,10 @@ export function registerDutiesGatewayMethods(params: {
    *  echoed in a result, or emitted in an event. */
   creds: { set(key: string, value: string): Promise<void>; delete(key: string): Promise<boolean> };
   evidence: () => EvidenceBlobs;
+  render: RenderAdapter;
+  previewDir: () => Promise<string>;
 }): void {
-  const { api, store, runs, emit, creds, evidence } = params;
+  const { api, store, runs, emit, creds, evidence, render, previewDir } = params;
 
   // A committed write (save/delete/status) must still be reported as `ok: true` even if
   // best-effort event delivery fails after it; `createDutiesEventService`'s own `emit` never
@@ -196,4 +203,90 @@ export function registerDutiesGatewayMethods(params: {
     await store.forgetCredKey(key);
     return { ok: removed };
   });
+
+  register("duties.run.file", "operator.read", async (params) => {
+    const runId = readRunId(params);
+    if (typeof params.stepId !== "string" || !params.stepId) throw new Error("stepId is required");
+    const run = await store.getRun(runId);
+    if (!run) throw new Error("no such run");
+    // Only a path this run itself recorded is ever read: the caller never names a path, so this
+    // method cannot be turned into an arbitrary file read.
+    const file = (run.files ?? []).find((f) => f.stepId === params.stepId);
+    if (!file) throw new Error("no document for that step");
+    return {
+      name: file.name,
+      contentType: file.contentType,
+      base64: (await readFile(file.path)).toString("base64"),
+    };
+  });
+
+  register("duties.template.list", "operator.read", async () => ({
+    templates: await store.listTemplates(),
+  }));
+
+  register("duties.template.get", "operator.read", async (params) => {
+    const id = readId(params);
+    const template = await store.getTemplate(id);
+    if (!template) throw new Error(`no template "${id}"`);
+    return { template };
+  });
+
+  register("duties.template.delete", "operator.admin", async (params) => {
+    const id = readId(params);
+    const deleted = await store.deleteTemplate(id);
+    if (deleted) safeEmit("changed", { templateId: id });
+    return { ok: deleted };
+  });
+
+  register("duties.template.preview", "operator.read", async (params) => {
+    const id = readId(params);
+    const data = isRecord(params.data) ? params.data : undefined;
+    const preview = await renderTemplatePreview({
+      store,
+      render,
+      previewDir,
+      id,
+      ...(data ? { data } : {}),
+    });
+    return {
+      contentType: "application/pdf",
+      base64: (await readFile(preview.path)).toString("base64"),
+    };
+  });
+
+  register("duties.brand.get", "operator.read", async () => ({ brand: await store.getBrand() }));
+
+  register("duties.brand.set", "operator.write", async (params) => {
+    const candidate = isRecord(params.brand)
+      ? { ...params.brand, updatedAt: Date.now() }
+      : params.brand;
+    const result = validateBrand(candidate);
+    if (!result.ok) throw new Error(`invalid brand: ${result.errors.join("; ")}`);
+    await store.saveBrand(result.brand);
+    safeEmit("changed", { brand: true });
+    return { brand: result.brand };
+  });
+
+  register("duties.settings.get", "operator.read", async () => ({
+    settings: await store.getSettings(),
+  }));
+
+  register("duties.settings.set", "operator.admin", async (params) => {
+    const owner = params.owner;
+    if (!isRecord(owner)) throw new Error("owner is required");
+    const channel = owner.channel;
+    const target = owner.target;
+    if (typeof channel !== "string" || !channel.trim())
+      throw new Error("owner.channel is required");
+    if (typeof target !== "string" || !target.trim()) throw new Error("owner.target is required");
+    const settings = await store.updateSettings({
+      owner: { channel: channel.trim(), target: target.trim() },
+    });
+    safeEmit("changed", { settings: true });
+    return { settings };
+  });
+
+  register("duties.mail.status", "operator.read", async () =>
+    mailStatusFromConfig(api.config, await store.getSettings()),
+  );
 }

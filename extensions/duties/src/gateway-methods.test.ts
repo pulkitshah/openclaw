@@ -1,4 +1,9 @@
+import { mkdtemp, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { describe, expect, it, vi, type Mock } from "vitest";
+import type { RenderAdapter } from "./adapters/render.js";
 import type { Duty } from "./duty.js";
 import { registerDutiesGatewayMethods } from "./gateway-methods.js";
 import { DutyStore } from "./store.js";
@@ -26,16 +31,24 @@ function harness(params?: {
   emit?: Mock<EmitFn>;
   runs?: { start: ReturnType<typeof vi.fn>; cancel: ReturnType<typeof vi.fn> };
   blob?: { bytes: Uint8Array; metadata: { contentType: string } };
+  config?: OpenClawConfig;
+  render?: RenderAdapter;
+  previewDir?: string;
 }) {
   const methods = new Map<string, { handler: Handler; scope: string }>();
   const api = {
     registerGatewayMethod: (name: string, handler: never, opts: { scope: string }) =>
       methods.set(name, { handler, scope: opts.scope }),
+    config: params?.config ?? {},
+    // SAFETY: the Gateway methods under test only touch `registerGatewayMethod` and `config`.
   } as never;
   const store = new DutyStore({
     duties: memoryKeyed() as never,
     runs: memoryKeyed() as never,
     creds: memoryKeyed() as never,
+    templates: memoryKeyed() as never,
+    brands: memoryKeyed() as never,
+    settings: memoryKeyed() as never,
   });
   const emit = params?.emit ?? vi.fn<EmitFn>();
   const runs = params?.runs ?? { start: vi.fn(), cancel: vi.fn() };
@@ -50,6 +63,12 @@ function harness(params?: {
     emit,
     creds,
     evidence: () => ({ lookup: async () => params?.blob }),
+    render: params?.render ?? {
+      toPdf: async () => {
+        throw new Error("render not expected");
+      },
+    },
+    previewDir: async () => params?.previewDir ?? tmpdir(),
   });
 
   const call = async (name: string, callParams: Record<string, unknown>) =>
@@ -250,5 +269,125 @@ describe("duties gateway methods", () => {
 
     const missingRun = await call("duties.run.get", { runId: "does-not-exist" });
     expect(missingRun.ok).toBe(false);
+  });
+
+  it("duties.settings.set is admin-only and needs a non-empty channel and target", async () => {
+    const { call, methods } = harness();
+
+    expect(methods.get("duties.settings.set")?.scope).toBe("operator.admin");
+    expect(methods.get("duties.settings.get")?.scope).toBe("operator.read");
+
+    expect((await call("duties.settings.set", {})).ok).toBe(false);
+    expect((await call("duties.settings.set", { owner: { channel: "telegram" } })).ok).toBe(false);
+    expect((await call("duties.settings.set", { owner: { channel: " ", target: "111" } })).ok).toBe(
+      false,
+    );
+
+    const saved = await call("duties.settings.set", {
+      owner: { channel: "telegram", target: " 111 " },
+    });
+    expect(saved.ok).toBe(true);
+    expect((await call("duties.settings.get", {})).result).toEqual({
+      settings: { owner: { channel: "telegram", target: "111" } },
+    });
+  });
+
+  it("duties.run.file serves a document this run recorded and refuses any other step", async () => {
+    const { call, store, methods } = harness();
+    const dir = await mkdtemp(path.join(tmpdir(), "duties-run-file-"));
+    const filePath = path.join(dir, "p1.pdf");
+    await writeFile(filePath, "%PDF-1.4");
+    expect(methods.get("duties.run.file")?.scope).toBe("operator.read");
+    await store.createRun({
+      id: "r1",
+      dutyId: "d1",
+      status: "ok",
+      startedAt: 1,
+      trigger: "manual",
+      inputs: {},
+      outputs: {},
+      steps: [],
+      files: [
+        {
+          stepId: "p1",
+          name: "p1.pdf",
+          path: filePath,
+          bytes: 8,
+          contentType: "application/pdf",
+        },
+      ],
+    });
+
+    const served = await call("duties.run.file", { runId: "r1", stepId: "p1" });
+    expect(served.result).toEqual({
+      name: "p1.pdf",
+      contentType: "application/pdf",
+      base64: Buffer.from("%PDF-1.4").toString("base64"),
+    });
+
+    expect((await call("duties.run.file", { runId: "r1", stepId: "nope" })).ok).toBe(false);
+    expect((await call("duties.run.file", { runId: "nope", stepId: "p1" })).ok).toBe(false);
+  });
+
+  it("duties.template.preview renders a pdf template and reports its content type", async () => {
+    const previews = await mkdtemp(path.join(tmpdir(), "duties-preview-"));
+    const { call, store, methods } = harness({
+      previewDir: previews,
+      render: {
+        toPdf: async (_html, dest) => {
+          await writeFile(dest, "%PDF-preview");
+          return { bytes: 12 };
+        },
+      },
+    });
+    expect(methods.get("duties.template.preview")?.scope).toBe("operator.read");
+    expect(methods.get("duties.template.delete")?.scope).toBe("operator.admin");
+    await store.saveTemplate({
+      id: "note",
+      name: "Note",
+      kind: "pdf",
+      html: "<p>{{slot:who}}</p>",
+      slots: [{ name: "who", kind: "text", description: "Who" }],
+      updatedAt: 1,
+    });
+
+    const preview = await call("duties.template.preview", { id: "note" });
+    expect(preview.result).toEqual({
+      contentType: "application/pdf",
+      base64: Buffer.from("%PDF-preview").toString("base64"),
+    });
+    expect((await call("duties.template.preview", { id: "missing" })).ok).toBe(false);
+  });
+
+  it("duties.mail.status reports each missing piece of the Gmail path without leaking the address", async () => {
+    const bare = harness();
+    expect((await bare.call("duties.mail.status", {})).result).toEqual({
+      hooksEnabled: false,
+      gmailAccountSet: false,
+      mappingPresent: false,
+      agentPresent: false,
+    });
+
+    const wired = harness({
+      config: {
+        hooks: {
+          enabled: true,
+          gmail: { account: "owner@example.com" },
+          mappings: [{ agentId: "duties-mail" }],
+        },
+        agents: { entries: { "duties-mail": {} } },
+      },
+    });
+    await wired.store.updateSettings({ lastMailDispatchAt: 5, lastMailDispatchDutyId: "d1" });
+    const status = await wired.call("duties.mail.status", {});
+    expect(status.result).toEqual({
+      hooksEnabled: true,
+      gmailAccountSet: true,
+      mappingPresent: true,
+      agentPresent: true,
+      lastDispatchAt: 5,
+      lastDispatchDutyId: "d1",
+    });
+    expect(JSON.stringify(status)).not.toContain("owner@example.com");
   });
 });

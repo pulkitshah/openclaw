@@ -17,7 +17,13 @@
       "duty_set_steps",
       "duty_run",
       "duty_save",
-      "cred_needed"
+      "cred_needed",
+      "template_list",
+      "template_get",
+      "template_set",
+      "template_preview",
+      "brand_get",
+      "brand_set"
     ]
   },
   "skills": [

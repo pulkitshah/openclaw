@@ -1,17 +1,22 @@
 import { jsonResult } from "openclaw/plugin-sdk/core";
-import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
+import type { AnyAgentTool, OpenClawPluginToolContext } from "openclaw/plugin-sdk/plugin-entry";
 import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import { Type } from "typebox";
 import type { OpenClawPluginApi } from "../api.js";
+import type { RenderAdapter } from "./adapters/render.js";
 import {
   validateDuty,
+  validateRunInputs,
   type Duty,
   type DutyInput,
   type DutyNode,
   type DutyTrigger,
 } from "./duty.js";
+import { MAIL_AGENT_ID } from "./mail.js";
+import { renderTemplatePreview } from "./preview.js";
 import type { RunManager } from "./run-service.js";
-import type { DutyStore } from "./store.js";
+import type { DutyStore, RunOrigin } from "./store.js";
+import { validateBrand, validateTemplate } from "./template.js";
 
 /** Sensible header defaults for a freshly-drafted Duty that hasn't stated who runs it or
  *  reports on it yet, so `duty_draft` can save a valid-enough header immediately and let
@@ -59,19 +64,42 @@ function raceAbort<T>(
   });
 }
 
+/** Where a `duty_run` call came from, read off the trusted tool context rather than anything the
+ *  model can write: the mail agent id marks a mail dispatch, an active message channel marks a
+ *  chat, and everything else (a CLI or Control UI turn) is a manual run. Only fields the host
+ *  actually supplied are included — the plugin state store rejects explicit `undefined` values. */
+function originFromToolContext(ctx: OpenClawPluginToolContext): RunOrigin {
+  const kind: RunOrigin["kind"] =
+    ctx.agentId === MAIL_AGENT_ID ? "mail" : ctx.messageChannel ? "chat" : "manual";
+  return {
+    kind,
+    ...(ctx.sessionKey ? { sessionKey: ctx.sessionKey } : {}),
+    ...(ctx.agentId ? { agentId: ctx.agentId } : {}),
+    ...(ctx.messageChannel ? { channel: ctx.messageChannel } : {}),
+    ...(ctx.agentAccountId ? { accountId: ctx.agentAccountId } : {}),
+  };
+}
+
 /**
- * Registers the seven agent-facing Duties tools (`duty_list`, `duty_get`, `duty_draft`,
- * `duty_set_steps`, `duty_run`, `duty_save`, `cred_needed`) declared in `openclaw.plugin.json`'s
- * `contracts.tools`. Every tool returns `jsonResult(payload)`; failures are thrown as `Error`s,
- * following the same shape as `registerDutiesGatewayMethods` in `gateway-methods.ts`.
+ * Registers the thirteen agent-facing Duties tools (`duty_list`, `duty_get`, `duty_draft`,
+ * `duty_set_steps`, `duty_run`, `duty_save`, `cred_needed`, `template_list`, `template_get`,
+ * `template_set`, `template_preview`, `brand_get`, `brand_set`) declared in
+ * `openclaw.plugin.json`'s `contracts.tools`. Every tool returns `jsonResult(payload)`; failures
+ * are thrown as `Error`s, following the same shape as `registerDutiesGatewayMethods` in
+ * `gateway-methods.ts`.
+ *
+ * `duty_run` is registered as a factory so each turn's tool instance closes over that turn's
+ * trusted context (session key, agent, channel, account) and can record the run's origin.
  */
 export function registerDutyTools(params: {
   api: OpenClawPluginApi;
   store: DutyStore;
   runs: Pick<RunManager, "start" | "wait" | "cancel">;
   credHas: (key: string) => Promise<boolean>;
+  render: RenderAdapter;
+  previewDir: () => Promise<string>;
 }): void {
-  const { api, store, runs, credHas } = params;
+  const { api, store, runs, credHas, render, previewDir } = params;
 
   const register = (tool: AnyAgentTool) => api.registerTool(tool, { name: tool.name });
 
@@ -188,7 +216,7 @@ export function registerDutyTools(params: {
     },
   });
 
-  register({
+  const dutyRunTool = (ctx: OpenClawPluginToolContext): AnyAgentTool => ({
     name: "duty_run",
     label: "Run Duty",
     description:
@@ -213,10 +241,20 @@ export function registerDutyTools(params: {
       const id = readId(rawInput);
       const duty = await store.getDuty(id);
       if (!duty) throw new Error(`no Duty "${id}"`);
+      const inputs = isRecord(rawInput.inputs) ? rawInput.inputs : {};
+      // A `mail`/`file` input the caller never supplied would otherwise surface deep inside the
+      // run as an unresolved placeholder, so the run is refused before it is even created.
+      const errors = validateRunInputs(duty, inputs);
+      if (errors.length) return jsonResult({ ok: false, errors });
+      const origin = originFromToolContext(ctx);
+      if (origin.kind === "mail") {
+        await store.updateSettings({ lastMailDispatchAt: Date.now(), lastMailDispatchDutyId: id });
+      }
       const { runId } = await runs.start({
         duty,
-        inputs: isRecord(rawInput.inputs) ? rawInput.inputs : {},
-        trigger: "manual",
+        inputs,
+        trigger: origin.kind,
+        origin,
         toStepId: typeof rawInput.toStepId === "string" ? rawInput.toStepId : undefined,
         keepOpen: rawInput.keepOpen === true,
         targetId: typeof rawInput.targetId === "string" ? rawInput.targetId : undefined,
@@ -237,6 +275,7 @@ export function registerDutyTools(params: {
       });
     },
   });
+  api.registerTool(dutyRunTool, { name: "duty_run" });
 
   register({
     name: "duty_save",
@@ -271,6 +310,112 @@ export function registerDutyTools(params: {
         stored,
         howTo: `Ask the owner to open Duties → Logins and save the key ${input.key}`,
       });
+    },
+  });
+
+  register({
+    name: "template_list",
+    label: "List Templates",
+    description: "List every saved document/message template with its id, name, kind and slots.",
+    parameters: Type.Object({}),
+    execute: async () => {
+      const templates = await store.listTemplates();
+      return jsonResult({
+        templates: templates.map((t) => ({
+          id: t.id,
+          name: t.name,
+          kind: t.kind,
+          slots: t.slots.map((s) => s.name),
+        })),
+      });
+    },
+  });
+
+  register({
+    name: "template_get",
+    label: "Get Template",
+    description: "Get one template's full definition, including its html and slot declarations.",
+    parameters: Type.Object({ id: Type.String({ description: "Template id." }) }),
+    execute: async (_toolCallId, input) => {
+      const id = readId(input);
+      const template = await store.getTemplate(id);
+      if (!template) throw new Error(`no template "${id}"`);
+      return jsonResult({ template });
+    },
+  });
+
+  register({
+    name: "template_set",
+    label: "Set Template",
+    description:
+      "Create or replace a template, validating its slots against its html first. Returns validation errors verbatim on failure.",
+    parameters: Type.Object({
+      template: Type.Record(Type.String(), Type.Unknown(), {
+        description: "The full template: id, name, kind (pdf|message), html, slots.",
+      }),
+    }),
+    execute: async (_toolCallId, rawInput) => {
+      if (!isRecord(rawInput) || !isRecord(rawInput.template)) {
+        throw new Error("template is required");
+      }
+      const result = validateTemplate({ ...rawInput.template, updatedAt: Date.now() });
+      if (!result.ok) return jsonResult({ ok: false, errors: result.errors });
+      await store.saveTemplate(result.template);
+      return jsonResult({ ok: true, template: result.template });
+    },
+  });
+
+  register({
+    name: "template_preview",
+    label: "Preview Template",
+    description:
+      "Render a pdf template to a throwaway PDF and return its path, so the owner can be shown the layout before a Duty uses it. Fills every slot with a placeholder unless data is given.",
+    parameters: Type.Object({
+      id: Type.String({ description: "Template id." }),
+      data: Type.Optional(
+        Type.Record(Type.String(), Type.Unknown(), {
+          description: "Slot values to render; placeholders are used for anything omitted.",
+        }),
+      ),
+    }),
+    execute: async (_toolCallId, rawInput) => {
+      const id = readId(rawInput);
+      const data = isRecord(rawInput) && isRecord(rawInput.data) ? rawInput.data : undefined;
+      const preview = await renderTemplatePreview({
+        store,
+        render,
+        previewDir,
+        id,
+        ...(data ? { data } : {}),
+      });
+      return jsonResult({ path: preview.path });
+    },
+  });
+
+  register({
+    name: "brand_get",
+    label: "Get Brand",
+    description: "Get the install's brand block (name, logo, colours, contact lines).",
+    parameters: Type.Object({}),
+    execute: async () => jsonResult({ brand: await store.getBrand() }),
+  });
+
+  register({
+    name: "brand_set",
+    label: "Set Brand",
+    description:
+      "Replace the install's brand block. Returns validation errors verbatim on failure.",
+    parameters: Type.Object({
+      brand: Type.Record(Type.String(), Type.Unknown(), {
+        description: "The full brand block: name plus optional logoDataUrl, colours and contacts.",
+      }),
+    }),
+    execute: async (_toolCallId, rawInput) => {
+      if (!isRecord(rawInput) || !isRecord(rawInput.brand)) throw new Error("brand is required");
+      const result = validateBrand({ ...rawInput.brand, updatedAt: Date.now() });
+      if (!result.ok) return jsonResult({ ok: false, errors: result.errors });
+      await store.saveBrand(result.brand);
+      return jsonResult({ ok: true, brand: result.brand });
     },
   });
 }
