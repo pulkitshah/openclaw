@@ -19,4 +19,13 @@ describe("createRunFiles", () => {
     await expect(stat(fresh)).resolves.toBeTruthy();
     expect(await files.previewDir()).toBe(path.join(root, "previews"));
   });
+
+  it("rejects a run id that would escape the runs directory", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "duties-files-"));
+    const files = createRunFiles(root);
+    await expect(files.runDir("../x")).rejects.toThrow('invalid run id "../x"');
+    await expect(files.runDir("550e8400-e29b-41d4-a716-446655440000")).resolves.toContain(
+      "550e8400-e29b-41d4-a716-446655440000",
+    );
+  });
 });
