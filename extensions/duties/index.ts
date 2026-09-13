@@ -3,11 +3,12 @@ import { definePluginEntry } from "./api.js";
 import { createAiAdapter } from "./src/adapters/ai.js";
 import { createAskAdapter } from "./src/adapters/ask.js";
 import { createBrowserAdapter } from "./src/adapters/browser.js";
-import { credGet } from "./src/creds.js";
+import { credGet, credHas } from "./src/creds.js";
 import { createDutiesEventService } from "./src/events.js";
 import { registerDutiesGatewayMethods } from "./src/gateway-methods.js";
 import { RunManager } from "./src/run-service.js";
 import { DutyStore } from "./src/store.js";
+import { registerDutyTools } from "./src/tools.js";
 
 const EVIDENCE_BLOB_TTL_MS = 90 * 24 * 3600 * 1000;
 
@@ -79,5 +80,6 @@ export default definePluginEntry({
     });
 
     registerDutiesGatewayMethods({ api, store, runs, emit: events.emit });
+    registerDutyTools({ api, store, runs, credHas: (key) => credHas(key) });
   },
 });
