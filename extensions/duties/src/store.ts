@@ -1,5 +1,6 @@
 import type { OpenClawPluginApi } from "../api.js";
 import type { Duty } from "./duty.js";
+import type { Brand, Template } from "./template.js";
 
 export type RunStatus =
   | "queued"
@@ -69,10 +70,21 @@ type Keyed<T> = {
  *  index is what the Logins panel reads. */
 export type CredKeyRecord = { key: string; updatedAt: number };
 
+/** Owner-facing preferences shared across duties: who "the owner" resolves to for approvals
+ *  and questions, and when the mail trigger last dispatched (so it can skip mail seen before). */
+export type DutiesSettings = {
+  owner?: { channel: string; target: string };
+  lastMailDispatchAt?: number;
+  lastMailDispatchDutyId?: string;
+};
+
 export type DutyStores = {
   duties: Keyed<Duty>;
   runs: Keyed<DutyRun>;
   creds: Keyed<CredKeyRecord>;
+  templates: Keyed<Template>;
+  brands: Keyed<Brand>;
+  settings: Keyed<DutiesSettings>;
 };
 
 /** Drops keys whose value is `undefined`. A run patch built from optional outcome fields
@@ -108,6 +120,24 @@ export class DutyStore {
         overflowPolicy: "reject-new",
         // SAFETY: same PluginStateKeyedStore superset relationship as the duties store above.
       }) as unknown as Keyed<CredKeyRecord>,
+      templates: api.runtime.state.openKeyedStore<Template>({
+        namespace: "templates",
+        maxEntries: 1_000,
+        overflowPolicy: "reject-new",
+        // SAFETY: same PluginStateKeyedStore superset relationship as the duties store above.
+      }) as unknown as Keyed<Template>,
+      brands: api.runtime.state.openKeyedStore<Brand>({
+        namespace: "brands",
+        maxEntries: 10,
+        overflowPolicy: "reject-new",
+        // SAFETY: same PluginStateKeyedStore superset relationship as the duties store above.
+      }) as unknown as Keyed<Brand>,
+      settings: api.runtime.state.openKeyedStore<DutiesSettings>({
+        namespace: "settings",
+        maxEntries: 10,
+        overflowPolicy: "reject-new",
+        // SAFETY: same PluginStateKeyedStore superset relationship as the duties store above.
+      }) as unknown as Keyed<DutiesSettings>,
     });
   }
 
@@ -134,6 +164,49 @@ export class DutyStore {
   }
   deleteDuty(id: string) {
     return this.stores.duties.delete(id);
+  }
+
+  async listTemplates(): Promise<Template[]> {
+    const entries = await this.stores.templates.entries();
+    return entries.map((e) => e.value).toSorted((a, b) => a.name.localeCompare(b.name));
+  }
+  getTemplate(id: string) {
+    return this.stores.templates.lookup(id);
+  }
+  saveTemplate(template: Template) {
+    return this.stores.templates.register(template.id, template);
+  }
+  deleteTemplate(id: string) {
+    return this.stores.templates.delete(id);
+  }
+
+  /** One brand per install, stored under a fixed key — there is no per-brand id to key on. */
+  getBrand() {
+    return this.stores.brands.lookup("default");
+  }
+  saveBrand(brand: Brand) {
+    return this.stores.brands.register("default", brand);
+  }
+
+  async getSettings(): Promise<DutiesSettings> {
+    return (await this.stores.settings.lookup("default")) ?? {};
+  }
+  /** Merges `patch` onto the current settings (or `{}` if unset) and returns the merged record,
+   *  preferring the store's atomic `update` so concurrent patches never drop each other's fields. */
+  async updateSettings(patch: Partial<DutiesSettings>): Promise<DutiesSettings> {
+    const store = this.stores.settings;
+    let merged: DutiesSettings = {};
+    if (store.update) {
+      await store.update("default", (cur) => {
+        merged = { ...(cur ?? {}), ...patch };
+        return merged;
+      });
+      return merged;
+    }
+    const current = (await store.lookup("default")) ?? {};
+    merged = { ...current, ...patch };
+    await store.register("default", merged);
+    return merged;
   }
 
   createRun(run: DutyRun) {
@@ -170,6 +243,23 @@ export class DutyStore {
     const current = await store.lookup(id);
     if (!current) return undefined;
     const next = { ...current, steps: [...current.steps, step] };
+    await store.register(id, next);
+    return next;
+  }
+  /** Appends one rendered file to a run's outputs, mirroring `appendRunStep`'s atomic-update
+   *  preference so concurrent deliveries against the same run can never drop each other's file. */
+  async appendRunFile(id: string, file: RunFile): Promise<DutyRun | undefined> {
+    const store = this.stores.runs;
+    if (store.update) {
+      const applied = await store.update(id, (cur) =>
+        cur ? { ...cur, files: [...(cur.files ?? []), file] } : undefined,
+      );
+      if (!applied) return undefined;
+      return store.lookup(id);
+    }
+    const current = await store.lookup(id);
+    if (!current) return undefined;
+    const next = { ...current, files: [...(current.files ?? []), file] };
     await store.register(id, next);
     return next;
   }

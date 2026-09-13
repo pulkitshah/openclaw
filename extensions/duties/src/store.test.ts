@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Duty } from "./duty.js";
-import { DutyStore, type DutyRun } from "./store.js";
+import { DutyStore, type DutyRun, type DutyStores } from "./store.js";
 
 function memoryKeyed<T>() {
   const map = new Map<string, T>();
@@ -87,8 +87,21 @@ const run = (id: string, status: DutyRun["status"]): DutyRun => ({
   steps: [],
 });
 
+/** Builds a DutyStore over in-memory Keyed<T> fakes, overriding only the stores a test cares about. */
+function makeStore(overrides: Partial<DutyStores> = {}): DutyStore {
+  return new DutyStore({
+    duties: memoryKeyed(),
+    runs: memoryKeyed(),
+    creds: memoryKeyed(),
+    templates: memoryKeyed(),
+    brands: memoryKeyed(),
+    settings: memoryKeyed(),
+    ...overrides,
+  });
+}
+
 describe("DutyStore", () => {
-  const store = new DutyStore({ duties: memoryKeyed(), runs: memoryKeyed(), creds: memoryKeyed() });
+  const store = makeStore();
   it("saves, lists, gets and deletes duties", async () => {
     await store.saveDuty(duty);
     expect((await store.listDuties()).map((d) => d.id)).toEqual(["d1"]);
@@ -120,7 +133,7 @@ describe("DutyStore", () => {
   });
   it("lists recent runs newest-first across every duty regardless of status", async () => {
     const runs = memoryKeyed<DutyRun>();
-    const withRuns = new DutyStore({ duties: memoryKeyed(), runs, creds: memoryKeyed() });
+    const withRuns = makeStore({ runs });
     await withRuns.createRun(run("r20", "ok"));
     await withRuns.saveDuty({ ...duty, id: "d2" });
     await withRuns.createRun({ ...run("r21", "failed"), dutyId: "d2" });
@@ -139,7 +152,7 @@ describe("DutyStore", () => {
 
   it("updateRun drops undefined patch fields instead of storing them", async () => {
     const runs = memoryKeyed<DutyRun>();
-    const withRuns = new DutyStore({ duties: memoryKeyed(), runs, creds: memoryKeyed() });
+    const withRuns = makeStore({ runs });
     await withRuns.createRun(run("r10", "running"));
     const patched = await withRuns.updateRun("r10", {
       status: "ok",
@@ -150,11 +163,7 @@ describe("DutyStore", () => {
     expect(Object.keys(patched ?? {})).not.toContain("failedStep");
     expect(Object.keys(patched ?? {})).not.toContain("targetId");
 
-    const noUpdate = new DutyStore({
-      duties: memoryKeyed(),
-      runs: memoryKeyedNoUpdate<DutyRun>(),
-      creds: memoryKeyed(),
-    });
+    const noUpdate = makeStore({ runs: memoryKeyedNoUpdate<DutyRun>() });
     await noUpdate.createRun(run("r11", "running"));
     const fallback = await noUpdate.updateRun("r11", { status: "ok", failedStep: undefined });
     expect(Object.keys(fallback ?? {})).not.toContain("failedStep");
@@ -162,7 +171,7 @@ describe("DutyStore", () => {
 
   it("updateRun uses the store's atomic update when available", async () => {
     const runs = spyKeyed<DutyRun>();
-    const withSpy = new DutyStore({ duties: memoryKeyed(), runs, creds: memoryKeyed() });
+    const withSpy = makeStore({ runs });
     await withSpy.createRun(run("r5", "running"));
     const patched = await withSpy.updateRun("r5", { report: "atomic" });
     expect(patched?.report).toBe("atomic");
@@ -172,7 +181,7 @@ describe("DutyStore", () => {
 
   it("updateRun falls back to lookup+register when atomic update is absent", async () => {
     const runs = memoryKeyedNoUpdate<DutyRun>();
-    const noUpdate = new DutyStore({ duties: memoryKeyed(), runs, creds: memoryKeyed() });
+    const noUpdate = makeStore({ runs });
     await noUpdate.createRun(run("r6", "running"));
     const patched = await noUpdate.updateRun("r6", { report: "fallback" });
     expect(patched?.report).toBe("fallback");
@@ -180,23 +189,15 @@ describe("DutyStore", () => {
   });
 
   it("updateRun returns undefined for a missing run with and without atomic update", async () => {
-    const withSpy = new DutyStore({
-      duties: memoryKeyed(),
-      runs: spyKeyed<DutyRun>(),
-      creds: memoryKeyed(),
-    });
-    const withoutUpdate = new DutyStore({
-      duties: memoryKeyed(),
-      runs: memoryKeyedNoUpdate<DutyRun>(),
-      creds: memoryKeyed(),
-    });
+    const withSpy = makeStore({ runs: spyKeyed<DutyRun>() });
+    const withoutUpdate = makeStore({ runs: memoryKeyedNoUpdate<DutyRun>() });
     expect(await withSpy.updateRun("missing", { report: "x" })).toBeUndefined();
     expect(await withoutUpdate.updateRun("missing", { report: "x" })).toBeUndefined();
   });
 
   it("markRunningRunsLost uses the store's atomic update when available", async () => {
     const runs = spyKeyed<DutyRun>();
-    const withSpy = new DutyStore({ duties: memoryKeyed(), runs, creds: memoryKeyed() });
+    const withSpy = makeStore({ runs });
     await withSpy.createRun(run("r7", "running"));
     await withSpy.createRun(run("r8", "ok"));
     const count = await withSpy.markRunningRunsLost();
@@ -208,10 +209,59 @@ describe("DutyStore", () => {
 
   it("markRunningRunsLost falls back to lookup+register when atomic update is absent", async () => {
     const runs = memoryKeyedNoUpdate<DutyRun>();
-    const noUpdate = new DutyStore({ duties: memoryKeyed(), runs, creds: memoryKeyed() });
+    const noUpdate = makeStore({ runs });
     await noUpdate.createRun(run("r9", "queued"));
     const count = await noUpdate.markRunningRunsLost();
     expect(count).toBe(1);
     expect((await noUpdate.getRun("r9"))?.status).toBe("lost");
+  });
+
+  it("stores templates, one brand, settings, and appends run files atomically", async () => {
+    const templateStore = makeStore();
+    await templateStore.saveTemplate({
+      id: "t",
+      name: "T",
+      kind: "pdf",
+      html: "{{slot:a}}",
+      slots: [{ name: "a", kind: "text", description: "" }],
+      updatedAt: 1,
+    });
+    expect((await templateStore.listTemplates()).map((t) => t.id)).toEqual(["t"]);
+    expect((await templateStore.getTemplate("t"))?.name).toBe("T");
+    expect(await templateStore.deleteTemplate("t")).toBe(true);
+    expect(await templateStore.listTemplates()).toEqual([]);
+
+    await templateStore.saveBrand({ name: "Amigos", updatedAt: 1 });
+    expect((await templateStore.getBrand())?.name).toBe("Amigos");
+
+    expect(await templateStore.getSettings()).toEqual({});
+    await templateStore.updateSettings({ owner: { channel: "telegram", target: "123" } });
+    await templateStore.updateSettings({ lastMailDispatchAt: 5 });
+    expect(await templateStore.getSettings()).toEqual({
+      owner: { channel: "telegram", target: "123" },
+      lastMailDispatchAt: 5,
+    });
+
+    await templateStore.createRun(run("r1", "ok"));
+    const appended = await templateStore.appendRunFile("r1", {
+      stepId: "t1",
+      name: "a.pdf",
+      path: "/x/a.pdf",
+      bytes: 10,
+      contentType: "application/pdf",
+    });
+    expect(appended?.files).toHaveLength(1);
+    expect((await templateStore.getRun("r1"))?.files).toHaveLength(1);
+    expect(
+      await templateStore.appendRunFile("missing", { ...appended!.files![0]! }),
+    ).toBeUndefined();
+  });
+
+  it("updateSettings falls back to lookup+register when atomic update is absent", async () => {
+    const noUpdate = makeStore({ settings: memoryKeyedNoUpdate() });
+    expect(await noUpdate.updateSettings({ lastMailDispatchAt: 9 })).toEqual({
+      lastMailDispatchAt: 9,
+    });
+    expect(await noUpdate.getSettings()).toEqual({ lastMailDispatchAt: 9 });
   });
 });
