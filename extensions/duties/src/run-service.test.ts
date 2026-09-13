@@ -1,8 +1,15 @@
+import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import type { Duty } from "./duty.js";
 import { RunManager } from "./run-service.js";
 import type { RunnerDeps } from "./runner.js";
 import { DutyStore } from "./store.js";
+import type { RunOrigin } from "./store.js";
+import type { Template } from "./template.js";
+
+type Notify = (origin: RunOrigin, text: string) => Promise<void>;
 
 function memoryKeyed<T>() {
   const m = new Map<string, T>();
@@ -47,6 +54,9 @@ function newStore(runs: unknown = memoryKeyed()): DutyStore {
     duties: memoryKeyed() as never,
     runs: runs as never,
     creds: memoryKeyed() as never,
+    templates: memoryKeyed() as never,
+    brands: memoryKeyed() as never,
+    settings: memoryKeyed() as never,
   });
 }
 
@@ -118,12 +128,45 @@ function deps(delayMs: number, openTracker?: { current: number; max: number }): 
       evaluate: async () => null,
       screenshot: async () => undefined,
       close: async () => {},
+      pdf: async () => "/tmp/duties-run-service-fake.pdf",
     },
     ai: { extract: async () => ({}) },
     ask: { ask: async () => ({ status: "answered", answer: "" }) },
     cred: async () => "",
+    templates: { get: async () => undefined, brand: async () => undefined },
+    render: {
+      toPdf: async (_html: string, dest: string) => {
+        await mkdir(path.dirname(dest), { recursive: true });
+        await writeFile(dest, "%PDF");
+        return { bytes: 4 };
+      },
+    },
+    deliver: { send: async () => ({ messageIds: ["m-1"] }) },
+    resolveRoute: async () => ({ channel: "telegram", to: "222" }),
+    filesDir: "",
   };
 }
+
+/** A one-step duty that prints a pdf template, so `onFile` has a real document to record. */
+const pdfTemplate: Template = {
+  id: "note",
+  name: "Note",
+  kind: "pdf",
+  html: "<p>{{slot:route}}</p>",
+  slots: [{ name: "route", kind: "text", description: "The route" }],
+  updatedAt: 1,
+};
+const printingDuty = (id: string): Duty => ({
+  ...duty(id),
+  steps: [
+    {
+      id: "p1",
+      kind: "template",
+      label: "Print the note",
+      params: { template: "note", fill: { route: { from: "{{in:route}}" } } },
+    },
+  ],
+});
 
 describe("RunManager", () => {
   it("runs two different duties in parallel, overlapping, and records ok runs", async () => {
@@ -315,6 +358,122 @@ describe("RunManager", () => {
     const final = await mgr.wait(runId);
     expect(final.status).toBe("cancelled");
     expect(clicks).toBe(0);
+  });
+
+  it("stores the run's origin so a deliver step can route back to the chat it came from", async () => {
+    const store = newStore();
+    const mgr = new RunManager({ store, deps: () => deps(0), emit: () => {} });
+    const { runId } = await mgr.start({
+      duty: duty("origin-me"),
+      inputs: {},
+      trigger: "chat",
+      origin: { kind: "chat", sessionKey: "s" },
+    });
+    expect((await store.getRun(runId))?.origin).toEqual({ kind: "chat", sessionKey: "s" });
+    await mgr.wait(runId);
+    expect((await store.getRun(runId))?.origin).toEqual({ kind: "chat", sessionKey: "s" });
+  });
+
+  it("records each rendered document on the run as it is produced and in the terminal row", async () => {
+    const store = newStore();
+    const root = await mkdtemp(path.join(tmpdir(), "duties-run-service-"));
+    const seen: string[] = [];
+    const mgr = new RunManager({
+      store,
+      deps: (_duty, run) => ({
+        ...deps(0),
+        templates: { get: async () => pdfTemplate, brand: async () => undefined },
+        filesDir: path.join(root, run.id),
+      }),
+      emit: () => {},
+    });
+    const { runId } = await mgr.start({
+      duty: printingDuty("print-me"),
+      inputs: { route: "IXU → COK" },
+      trigger: "manual",
+    });
+    // Observe the store mid-run-agnostically: the append chain must have landed the file before
+    // the terminal row is written, so the stored run carries it either way.
+    const final = await mgr.wait(runId);
+    seen.push(...(final.files ?? []).map((f) => f.name));
+    expect(final.status).toBe("ok");
+    expect(seen).toEqual(["p1.pdf"]);
+    const stored = await store.getRun(runId);
+    expect(stored?.files?.map((f) => f.path)).toEqual([path.join(root, runId, "p1.pdf")]);
+  });
+
+  it("posts a chat status line when the run starts and finishes, and none for a manual run", async () => {
+    const store = newStore();
+    const chat = vi.fn<Notify>(async () => {});
+    const chatMgr = new RunManager({
+      store,
+      deps: () => deps(0),
+      emit: () => {},
+      notify: chat,
+    });
+    const started = await chatMgr.start({
+      duty: duty("chatty"),
+      inputs: {},
+      trigger: "chat",
+      origin: { kind: "chat", sessionKey: "s" },
+    });
+    await chatMgr.wait(started.runId);
+    await flushMacrotasks(3);
+    expect(chat.mock.calls.map((c) => c[1])).toEqual(["Running chatty…", "Done — ok"]);
+
+    const quiet = vi.fn<Notify>(async () => {});
+    const manualMgr = new RunManager({
+      store,
+      deps: () => deps(0),
+      emit: () => {},
+      notify: quiet,
+    });
+    const manual = await manualMgr.start({
+      duty: duty("quiet"),
+      inputs: {},
+      trigger: "manual",
+      origin: { kind: "manual" },
+    });
+    await manualMgr.wait(manual.runId);
+    await flushMacrotasks(3);
+    expect(quiet).not.toHaveBeenCalled();
+  });
+
+  it("reports a failed chat run's failing step in its status line and never lets notify break the run", async () => {
+    const store = newStore();
+    const notify = vi.fn<Notify>(async () => {
+      throw new Error("chat is gone");
+    });
+    const mgr = new RunManager({
+      store,
+      deps: () => {
+        const base = deps(0);
+        return {
+          ...base,
+          browser: {
+            ...base.browser,
+            open: async () => {
+              throw new Error("no such host");
+            },
+          },
+        };
+      },
+      emit: () => {},
+      notify,
+    });
+    const { runId } = await mgr.start({
+      duty: duty("broken"),
+      inputs: {},
+      trigger: "chat",
+      origin: { kind: "chat", sessionKey: "s" },
+    });
+    const final = await mgr.wait(runId);
+    await flushMacrotasks(3);
+    expect(final.status).toBe("failed");
+    expect(notify.mock.calls.map((c) => c[1])).toEqual([
+      "Running broken…",
+      "Failed at s1: no such host",
+    ]);
   });
 
   it("skips setting lastRunAt when the duty was deleted while running", async () => {

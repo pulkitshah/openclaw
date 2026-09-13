@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import type { Duty } from "./duty.js";
 import { runDuty, type RunnerDeps } from "./runner.js";
-import type { DutyRun, DutyStore, RunStatus, StepEvidence } from "./store.js";
+import type { DutyRun, DutyStore, RunFile, RunOrigin, RunStatus, StepEvidence } from "./store.js";
 
 export type RunEvent = {
   type: "run";
@@ -19,6 +19,25 @@ type Pending = {
   targetId?: string;
 };
 
+/** The one-line chat status a terminal run reports back to the chat it was started from.
+ *  `undefined` for any non-terminal status, so a status line is never posted mid-run. */
+function terminalStatusLine(run: Pick<DutyRun, "status" | "report" | "failedStep">): string {
+  switch (run.status) {
+    case "ok":
+      return `Done — ${run.report ?? "ok"}`;
+    case "failed":
+      return run.failedStep
+        ? `Failed at ${run.failedStep}: ${run.report ?? "failed"}`
+        : `Failed — ${run.report ?? "failed"}`;
+    case "blocked":
+      return `Blocked — ${run.report ?? "blocked"}`;
+    case "cancelled":
+      return "Cancelled";
+    default:
+      return "";
+  }
+}
+
 export class RunManager {
   private readonly active = new Map<string, Promise<DutyRun>>();
   private readonly waiters = new Map<string, Array<(run: DutyRun) => void>>();
@@ -33,12 +52,28 @@ export class RunManager {
   constructor(
     private readonly params: {
       store: DutyStore;
-      deps: (duty: Duty) => RunnerDeps;
+      /** Built per run, not per duty: the run's own id decides its `filesDir`, and resolving that
+       *  directory is asynchronous, so this may return a promise. */
+      deps: (duty: Duty, run: DutyRun) => Promise<RunnerDeps> | RunnerDeps;
       emit: (event: RunEvent) => void;
+      /** Posts one status line back to a chat-started run's own conversation. Best-effort: the
+       *  run's outcome never depends on it, and it is never awaited on the critical path. */
+      notify?: (origin: RunOrigin, text: string) => Promise<void>;
       maxParallel?: number;
     },
   ) {
     this.maxParallel = params.maxParallel ?? 4;
+  }
+
+  /** Chat status lines only: a mail- or manually-triggered run has no conversation to post into.
+   *  Swallows both a synchronous throw and a rejection so `notify` can never break a run. */
+  private announce(origin: RunOrigin | undefined, text: string): void {
+    if (origin?.kind !== "chat" || !this.params.notify || !text) return;
+    try {
+      this.params.notify(origin, text).catch(() => {});
+    } catch {
+      // status lines are decoration; a broken notifier must not affect the run.
+    }
   }
 
   async recoverOrphans(): Promise<number> {
@@ -52,6 +87,7 @@ export class RunManager {
     toStepId?: string;
     keepOpen?: boolean;
     targetId?: string;
+    origin?: RunOrigin;
   }): Promise<{ runId: string; queued: boolean; reason?: string }> {
     const run: DutyRun = {
       id: randomUUID(),
@@ -62,6 +98,8 @@ export class RunManager {
       inputs: p.inputs,
       outputs: {},
       steps: [],
+      // Only when present: the state store rejects an explicit `undefined` value.
+      ...(p.origin ? { origin: p.origin } : {}),
     };
     await this.params.store.createRun(run);
     this.params.emit({ type: "run", runId: run.id, dutyId: p.duty.id, status: "queued" });
@@ -142,7 +180,8 @@ export class RunManager {
       try {
         await this.params.store.updateRun(run.id, { status: "running", startedAt: Date.now() });
         this.params.emit({ type: "run", runId: run.id, dutyId: duty.id, status: "running" });
-        const deps = this.params.deps(duty);
+        this.announce(run.origin, `Running ${duty.name}…`);
+        const deps = await this.params.deps(duty, run);
         const outcome = await runDuty(
           duty,
           {
@@ -171,12 +210,23 @@ export class RunManager {
                 step,
               });
             },
+            // Rendered documents go through the same per-run chain as evidence appends, so a
+            // long run's files are recorded as they are produced and `finish` still waits for
+            // every append before writing the terminal row.
+            onFile: (file) => {
+              const prior = this.appendChains.get(run.id) ?? Promise.resolve();
+              this.appendChains.set(
+                run.id,
+                prior.then(() => this.appendFile(run.id, file)),
+              );
+            },
           },
           {
             inputs: run.inputs,
             toStepId: item.toStepId,
             keepOpen: item.keepOpen,
             targetId: item.targetId,
+            origin: run.origin,
           },
         );
         const status: RunStatus = this.cancelled.has(run.id) ? "cancelled" : outcome.status;
@@ -184,6 +234,7 @@ export class RunManager {
           status,
           outputs: outcome.outputs,
           steps: outcome.steps,
+          files: outcome.files,
           failedStep: outcome.failedStep,
           report: outcome.report,
           targetId: item.keepOpen && outcome.targetId ? outcome.targetId : undefined,
@@ -241,6 +292,16 @@ export class RunManager {
     }
   }
 
+  /** Appends one rendered document to the run's stored `files`. Callers serialize per run (see
+   *  `appendChains`). Best-effort: `finish` still writes the outcome's full file list. */
+  private async appendFile(runId: string, file: RunFile): Promise<void> {
+    try {
+      await this.params.store.appendRunFile(runId, file);
+    } catch {
+      // file bookkeeping is best-effort; finish() writes outcome.files for the whole run.
+    }
+  }
+
   private async finish(run: DutyRun, patch: Partial<DutyRun>): Promise<DutyRun> {
     // Flush any pending evidence appends first so a late append can never land after — and
     // silently revert — the terminal status/steps written below.
@@ -254,6 +315,7 @@ export class RunManager {
       ...patch,
     };
     this.params.emit({ type: "run", runId: run.id, dutyId: run.dutyId, status: final.status });
+    this.announce(run.origin, terminalStatusLine(final));
     const resolvers = this.waiters.get(run.id);
     if (resolvers) for (const resolve of resolvers) resolve(final);
     this.waiters.delete(run.id);
