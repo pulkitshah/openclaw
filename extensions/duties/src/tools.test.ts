@@ -73,7 +73,7 @@ describe("duty tools as gateway clients", () => {
     await run("duty_draft", { id: "d1", name: "D", summary: "s" });
     await run("duty_set_steps", { id: "d1", steps: [] });
     await run("duty_save", { id: "d1" });
-    expect((await run("cred_needed", { key: "amigos.password", reason: "login" })).stored).toBe(
+    expect((await run("cred_needed", { key: "acme-demo.password", reason: "login" })).stored).toBe(
       true,
     );
     await run("template_list", {});

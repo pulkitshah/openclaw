@@ -96,10 +96,13 @@ export async function credSet(
   exec: ExecFn = defaultExec,
 ): Promise<void> {
   assertKey(key);
-  if (platform === "linux") return linux().set(key, value);
-  // An empty value would render as `-w \n` with no token, leaving `security -i` waiting for an
-  // interactive password; there is also no legitimate empty credential to store.
+  // One condition, one message, on every platform — this check used to sit after the Linux
+  // dispatch below, so an empty value reported "credential value is empty" on Linux and
+  // "credential value must not be empty" everywhere else. On macOS it also matters mechanically:
+  // an empty value would render as `-w \n` with no token, leaving `security -i` waiting for an
+  // interactive password. There is no legitimate empty credential to store on either.
   if (!value) throw new Error("credential value must not be empty");
+  if (platform === "linux") return linux().set(key, value);
   if (platform === "darwin") {
     // `security -i` reads commands from stdin, so the secret never appears in argv. The value is
     // hex-encoded (not quoted/escaped into the command text) so it can never break out of the

@@ -110,16 +110,16 @@ describe("DutyStore", () => {
     expect(await store.listDuties()).toEqual([]);
   });
   it("indexes credential keys without ever storing a value", async () => {
-    await store.recordCredKey("amigos.password", 5);
-    await store.recordCredKey("amigos.username", 7);
+    await store.recordCredKey("acme-demo.password", 5);
+    await store.recordCredKey("acme-demo.username", 7);
     const listed = await store.listCredKeys();
     expect(listed).toEqual([
-      { key: "amigos.password", updatedAt: 5 },
-      { key: "amigos.username", updatedAt: 7 },
+      { key: "acme-demo.password", updatedAt: 5 },
+      { key: "acme-demo.username", updatedAt: 7 },
     ]);
-    expect(await store.forgetCredKey("amigos.password")).toBe(true);
-    expect((await store.listCredKeys()).map((entry) => entry.key)).toEqual(["amigos.username"]);
-    await store.forgetCredKey("amigos.username");
+    expect(await store.forgetCredKey("acme-demo.password")).toBe(true);
+    expect((await store.listCredKeys()).map((entry) => entry.key)).toEqual(["acme-demo.username"]);
+    await store.forgetCredKey("acme-demo.username");
   });
   it("lists runs newest first and can filter to successful ones", async () => {
     await store.createRun(run("r1", "ok"));

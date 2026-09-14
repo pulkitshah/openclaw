@@ -16,6 +16,10 @@ import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 export type DeskHealth = {
   hosted: boolean;
   at?: number;
+  /** False when first boot left `/var/lib/openclaw/provision-failed` behind (the fork checkout,
+   *  the Claude CLI install, or the managed Chromium install failed). Such a desk still answers
+   *  /healthz, so this is the only in-product signal that browser Duties cannot work yet. */
+  provisioned?: boolean;
   gateway?: boolean;
   display?: boolean;
   chromium?: boolean;
@@ -46,6 +50,7 @@ function boolField(value: unknown): boolean | undefined {
  *  absent/unparseable case in `readDeskHealth` below). */
 function toDeskHealth(parsed: Record<string, unknown>): DeskHealth {
   const at = numberField(parsed.at);
+  const provisioned = boolField(parsed.provisioned);
   const gateway = boolField(parsed.gateway);
   const display = boolField(parsed.display);
   const chromium = boolField(parsed.chromium);
@@ -56,6 +61,7 @@ function toDeskHealth(parsed: Record<string, unknown>): DeskHealth {
   return {
     hosted: true,
     ...(at !== undefined ? { at } : {}),
+    ...(provisioned !== undefined ? { provisioned } : {}),
     ...(gateway !== undefined ? { gateway } : {}),
     ...(display !== undefined ? { display } : {}),
     ...(chromium !== undefined ? { chromium } : {}),

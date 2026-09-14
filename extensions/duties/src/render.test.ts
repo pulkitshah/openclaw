@@ -174,13 +174,13 @@ describe("render", () => {
 
   it("logins panel lists keys with a masked add form and never renders a value", () => {
     const html = renderLogins({
-      keys: ["amigos.password"],
-      updatedAt: { "amigos.password": 1_700_000_000_000 },
+      keys: ["acme-demo.password"],
+      updatedAt: { "acme-demo.password": 1_700_000_000_000 },
     });
-    expect(html).toContain("amigos.password");
+    expect(html).toContain("acme-demo.password");
     expect(html).toContain('type="password"');
     expect(html).toContain("data-cred-value");
-    expect(html).toContain('data-cred-delete="amigos.password"');
+    expect(html).toContain('data-cred-delete="acme-demo.password"');
     expect(html).toContain("data-cred-save");
     expect(html).not.toMatch(/value="[^"]/u);
 
@@ -499,6 +499,8 @@ describe("render", () => {
       settings: { maxParallelRuns: 3 },
       deskStatus: {
         hosted: true,
+        at: Date.now(),
+        provisioned: true,
         gateway: true,
         display: true,
         chromium: false,
@@ -514,8 +516,50 @@ describe("render", () => {
     expect(html).toContain("data-parallel-save");
     expect(html).toContain('value="3"');
     expect(html).toContain("Gateway");
+    expect(html).toContain("Provisioned");
     expect(html).toContain("mcheck ok");
     expect(html).toContain("mcheck bad");
+    // A fresh reading is stated as such, and carries no staleness warning.
+    expect(html).toContain("checked just now");
+    expect(html).not.toContain("Health readings are stale");
+  });
+
+  it("board's Desk card greys the chips and says so when the health reading has gone stale", () => {
+    // The health file is written by a timer ON the desk; when that timer (or the box) stops, the
+    // file keeps its last values. Rendering them green would make the card actively mislead during
+    // exactly the incident it exists for.
+    const html = renderBoard([duty as unknown as Duty], [], {
+      deskStatus: {
+        hosted: true,
+        at: Date.now() - 42 * 60_000,
+        provisioned: true,
+        gateway: true,
+        display: false,
+        maxParallelRuns: 4,
+        active: 0,
+        queued: 0,
+      },
+    });
+    expect(html).toContain("mcheck stale");
+    expect(html).not.toContain("mcheck ok");
+    expect(html).toContain("checked 42m ago");
+    expect(html).toContain("Health readings are stale");
+  });
+
+  it("board's Desk card treats a health file with no timestamp as stale rather than fresh", () => {
+    const html = renderBoard([duty as unknown as Duty], [], {
+      deskStatus: {
+        hosted: true,
+        provisioned: false,
+        gateway: true,
+        maxParallelRuns: 4,
+        active: 0,
+        queued: 0,
+      },
+    });
+    expect(html).toContain("mcheck stale");
+    expect(html).not.toContain("mcheck ok");
+    expect(html).toContain("Health readings are stale");
   });
 
   it("board's Desk card hides the health chips (never the parallel input) when not hosted", () => {

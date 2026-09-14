@@ -189,7 +189,7 @@ describe("runDuty", () => {
           id: "s0",
           kind: "browser",
           label: "Open the search page",
-          params: { action: "open", url: "https://amigosalliance.co.in" },
+          params: { action: "open", url: "https://portal.example.com" },
         },
         {
           id: "gate",
@@ -231,7 +231,7 @@ describe("runDuty", () => {
           id: "s1",
           kind: "browser",
           label: "Open Amigos",
-          params: { action: "open", url: "https://amigosalliance.co.in" },
+          params: { action: "open", url: "https://portal.example.com" },
         },
         {
           id: "s2",
@@ -254,7 +254,7 @@ describe("runDuty", () => {
           id: "s4",
           kind: "browser",
           label: "Fill username",
-          params: { action: "fill", value: "{{cred:amigos.username}}" },
+          params: { action: "fill", value: "{{cred:acme-demo.username}}" },
           target: { css: "#UserId" },
         },
         {
@@ -270,7 +270,7 @@ describe("runDuty", () => {
     );
     expect(outcome.status).toBe("ok");
     expect(outcome.outputs).toEqual({ origin: "IXU", destination: "COK", account: "LIC Nagpur" });
-    expect(deps.calls).toContain("fill #UserId cred(amigos.username)");
+    expect(deps.calls).toContain("fill #UserId cred(acme-demo.username)");
     expect(outcome.steps.map((s) => s.status)).toEqual(["ok", "ok", "ok", "ok", "ok"]);
     expect(outcome.steps[3]!.summary).not.toContain("cred(");
     expect(deps.calls.at(-1)).toBe("close t1");
@@ -1129,7 +1129,7 @@ const MASK = "••••••";
 
 describe("runDuty credential redaction", () => {
   it("masks a resolved credential that leaks into a failed step's summary and the outer report", async () => {
-    const secret = "cred(amigos.username)";
+    const secret = "cred(acme-demo.username)";
     const deps = fakeDeps({
       browser: {
         fill: async (_t: string, target: Target, value: string) => {
@@ -1144,7 +1144,7 @@ describe("runDuty credential redaction", () => {
           id: "s2",
           kind: "browser",
           label: "Fill username",
-          params: { action: "fill", value: "{{cred:amigos.username}}" },
+          params: { action: "fill", value: "{{cred:acme-demo.username}}" },
           target: { css: "#UserId" },
         },
       ]),
@@ -1159,7 +1159,7 @@ describe("runDuty credential redaction", () => {
   });
 
   it("masks a credential a later step echoes back, once a fill has resolved it", async () => {
-    const secret = "cred(amigos.token)";
+    const secret = "cred(acme-demo.token)";
     const deps = fakeDeps({
       ask: { ask: async () => ({ status: "answered", answer: `saw ${secret}` }) },
     });
@@ -1170,7 +1170,7 @@ describe("runDuty credential redaction", () => {
           id: "s2",
           kind: "browser",
           label: "Fill the token",
-          params: { action: "fill", value: "{{cred:amigos.token}}" },
+          params: { action: "fill", value: "{{cred:acme-demo.token}}" },
           target: { css: "#token" },
         },
         { id: "s3", kind: "ask", label: "Confirm", params: { question: "All good?" } },
@@ -1199,7 +1199,7 @@ describe("runDuty credential confinement", () => {
           id: "s1",
           kind: "ai",
           label: "Read the mail",
-          params: { instruction: "sign in with {{cred:amigos.password}}", input: "x" },
+          params: { instruction: "sign in with {{cred:acme-demo.password}}", input: "x" },
         },
       ]),
       deps,
@@ -1207,7 +1207,7 @@ describe("runDuty credential confinement", () => {
     );
     expect(outcome.status).toBe("failed");
     expect(outcome.failedStep).toBe("s1");
-    expect(outcome.report).toContain("no credential stored for amigos.password");
+    expect(outcome.report).toContain("no credential stored for acme-demo.password");
     expect(credCalls).toEqual([]);
   });
 
@@ -1219,7 +1219,7 @@ describe("runDuty credential confinement", () => {
           id: "s2",
           kind: "browser",
           label: "Open the reset link",
-          params: { action: "navigate", url: "https://x/?t={{cred:amigos.token}}" },
+          params: { action: "navigate", url: "https://x/?t={{cred:acme-demo.token}}" },
         },
       },
       {
@@ -1228,7 +1228,7 @@ describe("runDuty credential confinement", () => {
           id: "s2",
           kind: "browser",
           label: "Press the key",
-          params: { action: "press", key: "{{cred:amigos.token}}" },
+          params: { action: "press", key: "{{cred:acme-demo.token}}" },
         },
       },
       {
@@ -1237,7 +1237,7 @@ describe("runDuty credential confinement", () => {
           id: "s2",
           kind: "browser.evaluate",
           label: "Read the token",
-          params: { fn: "() => '{{cred:amigos.token}}'" },
+          params: { fn: "() => '{{cred:acme-demo.token}}'" },
         },
       },
       {
@@ -1246,7 +1246,7 @@ describe("runDuty credential confinement", () => {
           id: "s2",
           kind: "ask",
           label: "Confirm",
-          params: { question: "Use {{cred:amigos.token}}?" },
+          params: { question: "Use {{cred:acme-demo.token}}?" },
         },
       },
     ];
@@ -1267,7 +1267,7 @@ describe("runDuty credential confinement", () => {
         { inputs: {} },
       );
       expect(outcome.status, what).toBe("failed");
-      expect(outcome.report, what).toContain("no credential stored for amigos.token");
+      expect(outcome.report, what).toContain("no credential stored for acme-demo.token");
       expect(credCalls, what).toEqual([]);
     }
   });

@@ -224,15 +224,21 @@ function mailHealthLine(status: MailStatus | undefined): string {
  *  service user (`desk-health.sh` checks the Playwright cache dir), not that a run currently has
  *  one open — a run-only reading would make "all chips green" unreachable at idle. */
 const DESK_CHECKS: ReadonlyArray<{
-  key: "gateway" | "display" | "chromium" | "tailscale" | "mailWatcher";
+  key: "provisioned" | "gateway" | "display" | "chromium" | "tailscale" | "mailWatcher";
   label: string;
 }> = [
+  { key: "provisioned", label: "Provisioned" },
   { key: "gateway", label: "Gateway" },
   { key: "display", label: "Display" },
   { key: "chromium", label: "Chromium ready" },
   { key: "tailscale", label: "Tailscale" },
   { key: "mailWatcher", label: "Mail watcher" },
 ];
+
+/** Past this, the chips are shown greyed with their age spelled out: the probe runs every two
+ *  minutes, so anything older than two misses means the timer (or the box) is in trouble and the
+ *  last reading is not evidence of anything. */
+const DESK_STALE_AFTER_MS = 5 * 60_000;
 
 function deskLoadLine(desk: DeskHealth): string {
   const parts: string[] = [];
@@ -241,12 +247,36 @@ function deskLoadLine(desk: DeskHealth): string {
   return parts.join(" · ");
 }
 
-/** Spec §8: health chips (Gateway · Display · Chromium · Tailscale · Mail · load) plus the
- *  `maxParallelRuns` number input. The chips (and the load/activity lines) only mean anything on
- *  an actual hosted desk, so they are hidden — never the input itself — on a laptop install or
- *  before the first `duties.desk.status` reply, so the owner can still change the limit on a
- *  install that has never been "hosted" at all. */
-function deskCard(settings: DutiesSettings | undefined, desk: DeskStatusView | undefined): string {
+/** How old the reading is, in the words the owner needs when chips disagree with reality. Empty
+ *  when the file carries no usable `at` (or one in the future — a clock that has just been set),
+ *  since "unknown age" must not read as "fresh". */
+function deskAgeLabel(at: number | undefined, nowMs: number): string {
+  if (typeof at !== "number" || !Number.isFinite(at)) return "";
+  const ageMs = nowMs - at;
+  if (ageMs < 0) return "";
+  const minutes = Math.floor(ageMs / 60_000);
+  if (minutes < 1) return "checked just now";
+  if (minutes < 60) return `checked ${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `checked ${hours}h ago`;
+  return `checked ${Math.floor(hours / 24)}d ago`;
+}
+
+/** Spec §8: health chips (Provisioned · Gateway · Display · Chromium · Tailscale · Mail · load)
+ *  plus the `maxParallelRuns` number input. The chips (and the load/activity lines) only mean
+ *  anything on an actual hosted desk, so they are hidden — never the input itself — on a laptop
+ *  install or before the first `duties.desk.status` reply, so the owner can still change the limit
+ *  on a install that has never been "hosted" at all.
+ *
+ *  Every chip row carries the reading's age, and goes grey past `DESK_STALE_AFTER_MS`: the health
+ *  file is written by a timer on the desk, so when that timer stops (or the box wedges) the file
+ *  keeps its last values. Rendering green chips from a file nobody is updating any more is the one
+ *  way this card can actively mislead during an incident. */
+function deskCard(
+  settings: DutiesSettings | undefined,
+  desk: DeskStatusView | undefined,
+  nowMs: number = Date.now(),
+): string {
   const parallelValue = settings?.maxParallelRuns ?? desk?.maxParallelRuns ?? 4;
   const input = `<label class="fld"><span>Max parallel runs</span><input type="number" min="1" max="8" step="1" data-parallel-save value="${esc(parallelValue)}"></label>`;
   if (!desk) {
@@ -255,13 +285,23 @@ function deskCard(settings: DutiesSettings | undefined, desk: DeskStatusView | u
   if (!desk.hosted) {
     return `<div><h3>Desk</h3><p class="muted small">Not a hosted desk.</p>${input}</div>`;
   }
+  const age = deskAgeLabel(desk.at, nowMs);
+  const stale =
+    typeof desk.at !== "number" || !Number.isFinite(desk.at)
+      ? true
+      : nowMs - desk.at > DESK_STALE_AFTER_MS;
   const marks = DESK_CHECKS.map(({ key, label }) => {
     const ok = desk[key] === true;
-    return `<span class="mcheck ${ok ? "ok" : "bad"}">${ok ? "✓" : "✗"} ${esc(label)}</span>`;
+    const tone = stale ? "stale" : ok ? "ok" : "bad";
+    return `<span class="mcheck ${tone}">${ok ? "✓" : "✗"} ${esc(label)}</span>`;
   }).join("");
   const load = deskLoadLine(desk);
   const activity = `${desk.active}/${desk.maxParallelRuns} running${desk.queued ? `, ${desk.queued} queued` : ""}`;
-  return `<div><h3>Desk</h3><div class="mchecks">${marks}</div><p class="muted small">${esc([load, activity].filter(Boolean).join(" · "))}</p>${input}</div>`;
+  const staleNote = stale
+    ? `<p class="muted small">Health readings are stale${age ? ` (${age})` : ""} — the desk's health timer has not reported recently, so the chips above are its last known state, not its current one.</p>`
+    : "";
+  const facts = [load, activity, age].filter(Boolean).join(" · ");
+  return `<div><h3>Desk</h3><div class="mchecks">${marks}</div><p class="muted small">${esc(facts)}</p>${staleNote}${input}</div>`;
 }
 
 function settingsStrip(

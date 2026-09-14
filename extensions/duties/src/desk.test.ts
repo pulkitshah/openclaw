@@ -19,6 +19,7 @@ describe("readDeskHealth", () => {
       JSON.stringify({
         hosted: true,
         at: 12345,
+        provisioned: true,
         gateway: true,
         display: true,
         chromium: false,
@@ -31,6 +32,7 @@ describe("readDeskHealth", () => {
     expect(await readDeskHealth(file)).toEqual({
       hosted: true,
       at: 12345,
+      provisioned: true,
       gateway: true,
       display: true,
       chromium: false,
@@ -39,6 +41,16 @@ describe("readDeskHealth", () => {
       load1: 0.42,
       memFreeMb: 512,
     });
+  });
+
+  it("carries provisioned:false through, so a desk whose first boot failed is visible", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "duties-desk-"));
+    const file = path.join(dir, "desk-health.json");
+    // desk-health.sh writes this when cloud-init left /var/lib/openclaw/provision-failed behind
+    // (the fork checkout, the Claude CLI install, or the managed Chromium install failed). Such a
+    // desk still answers /healthz, so this field is the only in-product signal.
+    await writeFile(file, JSON.stringify({ hosted: true, at: 1, provisioned: false }));
+    expect(await readDeskHealth(file)).toEqual({ hosted: true, at: 1, provisioned: false });
   });
 
   it("reports not hosted for malformed JSON instead of throwing", async () => {

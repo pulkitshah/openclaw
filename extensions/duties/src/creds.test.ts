@@ -20,16 +20,16 @@ describe("creds (macOS)", () => {
     // Stored values are hex text (see credSet); credGet decodes them back to the original bytes.
     const hex = Buffer.from("s3cret", "utf8").toString("hex");
     const exec = mockExec(async () => ({ stdout: `${hex}\n` }));
-    await expect(credGet("amigos.password", "darwin", exec)).resolves.toBe("s3cret");
+    await expect(credGet("acme-demo.password", "darwin", exec)).resolves.toBe("s3cret");
     expect(exec).toHaveBeenCalledWith(
       "security",
-      ["find-generic-password", "-s", "openclaw-duties.amigos.password", "-w"],
+      ["find-generic-password", "-s", "openclaw-duties.acme-demo.password", "-w"],
       undefined,
     );
   });
   it("never puts the value on argv when saving; it goes via stdin (hex-encoded)", async () => {
     const exec = mockExec(async () => ({ stdout: "" }));
-    await credSet("amigos.password", "s3cret", "darwin", exec);
+    await credSet("acme-demo.password", "s3cret", "darwin", exec);
     const [file, args, opts] = exec.mock.calls[0]!;
     expect(file).toBe("security");
     expect(args.join(" ")).not.toContain("s3cret");
@@ -55,7 +55,7 @@ describe("creds (macOS)", () => {
   it("hex-encodes the value so quotes, backslashes, and newlines can't break out of the stdin command", async () => {
     const exec = mockExec(async () => ({ stdout: "" }));
     const value = 'p"a\\ss\nword';
-    await credSet("amigos.password", value, "darwin", exec);
+    await credSet("acme-demo.password", value, "darwin", exec);
     const [file, args, opts] = exec.mock.calls[0]!;
     expect(file).toBe("security");
     expect(args).toEqual(["-i"]);
@@ -67,49 +67,49 @@ describe("creds (macOS)", () => {
   });
   it("refuses a value written by anything but OpenClaw instead of filling the wrong bytes", async () => {
     const exec = mockExec(async () => ({ stdout: "mypassword\n" }));
-    await expect(credGet("amigos.password", "darwin", exec)).rejects.toThrow(
-      "credential amigos.password was not stored by OpenClaw",
+    await expect(credGet("acme-demo.password", "darwin", exec)).rejects.toThrow(
+      "credential acme-demo.password was not stored by OpenClaw",
     );
     const oddLength = mockExec(async () => ({ stdout: "abc\n" }));
-    await expect(credGet("amigos.password", "darwin", oddLength)).rejects.toThrow(
+    await expect(credGet("acme-demo.password", "darwin", oddLength)).rejects.toThrow(
       "was not stored by OpenClaw",
     );
   });
   it("rejects an empty value instead of leaving `security` waiting on stdin", async () => {
     const exec = mockExec(async () => ({ stdout: "" }));
-    await expect(credSet("amigos.password", "", "darwin", exec)).rejects.toThrow(
+    await expect(credSet("acme-demo.password", "", "darwin", exec)).rejects.toThrow(
       "credential value must not be empty",
     );
     expect(exec).not.toHaveBeenCalled();
   });
   it("deletes through `security delete-generic-password` and reports a missing item", async () => {
     const exec = mockExec(async () => ({ stdout: "" }));
-    await expect(credDelete("amigos.password", "darwin", exec)).resolves.toBe(true);
+    await expect(credDelete("acme-demo.password", "darwin", exec)).resolves.toBe(true);
     expect(exec).toHaveBeenCalledWith(
       "security",
-      ["delete-generic-password", "-s", "openclaw-duties.amigos.password"],
+      ["delete-generic-password", "-s", "openclaw-duties.acme-demo.password"],
       undefined,
     );
     const missing = mockExec(async () => {
       throw new Error("security: SecKeychainSearchCopyNext");
     });
-    await expect(credDelete("amigos.password", "darwin", missing)).resolves.toBe(false);
+    await expect(credDelete("acme-demo.password", "darwin", missing)).resolves.toBe(false);
   });
   it("maps a failed save to a plain error without echoing the value or security's stderr", async () => {
     const value = "s3cret-value";
     const exec = mockExec(async () => {
       throw new Error(`security: some failure involving ${value}`);
     });
-    await expect(credSet("amigos.password", value, "darwin", exec)).rejects.toThrow(
-      "could not store credential amigos.password",
+    await expect(credSet("acme-demo.password", value, "darwin", exec)).rejects.toThrow(
+      "could not store credential acme-demo.password",
     );
     try {
-      await credSet("amigos.password", value, "darwin", exec);
+      await credSet("acme-demo.password", value, "darwin", exec);
       throw new Error("expected credSet to reject");
     } catch (error) {
       expect(error).toBeInstanceOf(Error);
       const message = (error as Error).message;
-      expect(message).toBe("could not store credential amigos.password");
+      expect(message).toBe("could not store credential acme-demo.password");
       expect(message).not.toContain(value);
     }
   });
@@ -175,30 +175,30 @@ describe("creds (linux)", () => {
   it("credGet delegates to the injected Linux store", async () => {
     const store = fakeStore();
     setLinuxCredStoreForTests(store);
-    await store.set("amigos.password", "s3cret");
-    await expect(credGet("amigos.password", "linux")).resolves.toBe("s3cret");
+    await store.set("acme-demo.password", "s3cret");
+    await expect(credGet("acme-demo.password", "linux")).resolves.toBe("s3cret");
   });
 
   it("credSet delegates to the injected Linux store", async () => {
     const store = fakeStore();
     setLinuxCredStoreForTests(store);
-    await credSet("amigos.password", "s3cret", "linux");
-    await expect(store.get("amigos.password")).resolves.toBe("s3cret");
+    await credSet("acme-demo.password", "s3cret", "linux");
+    await expect(store.get("acme-demo.password")).resolves.toBe("s3cret");
   });
 
   it("credDelete delegates to the injected Linux store", async () => {
     const store = fakeStore();
     setLinuxCredStoreForTests(store);
-    await store.set("amigos.password", "s3cret");
-    await expect(credDelete("amigos.password", "linux")).resolves.toBe(true);
-    await expect(credDelete("amigos.password", "linux")).resolves.toBe(false);
+    await store.set("acme-demo.password", "s3cret");
+    await expect(credDelete("acme-demo.password", "linux")).resolves.toBe(true);
+    await expect(credDelete("acme-demo.password", "linux")).resolves.toBe(false);
   });
 
   it("credHas delegates to the injected Linux store", async () => {
     const store = fakeStore();
     setLinuxCredStoreForTests(store);
-    await expect(credHas("amigos.password", "linux")).resolves.toBe(false);
-    await store.set("amigos.password", "s3cret");
-    await expect(credHas("amigos.password", "linux")).resolves.toBe(true);
+    await expect(credHas("acme-demo.password", "linux")).resolves.toBe(false);
+    await store.set("acme-demo.password", "s3cret");
+    await expect(credHas("acme-demo.password", "linux")).resolves.toBe(true);
   });
 });

@@ -1,7 +1,7 @@
 import { createCipheriv, createDecipheriv, hkdfSync, randomBytes } from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 
 const KEY_RE = /^[a-z0-9][a-z0-9_.-]{0,63}$/u;
 const MAGIC = "OCDC1"; // openclaw duties creds, format 1
@@ -21,8 +21,13 @@ export function createLinuxCredStore(opts?: {
   storePath?: string;
   keyfilePath?: string;
 }): LinuxCredStore {
+  // The state dir comes from the SDK's owner (`resolveStateDir`, honouring OPENCLAW_STATE_DIR),
+  // not from `~/.openclaw` computed here: every other piece of Duties state already goes through
+  // it, and an install whose state dir is elsewhere (the owner's own `~/.openclaw-duties`, for
+  // one) would otherwise save logins outside the Gateway's state tree — invisible to
+  // `duties.cred.list` and not carried by a state backup or migration.
   const storePath =
-    opts?.storePath ?? path.join(os.homedir(), ".openclaw", "plugins", "duties", "creds.enc");
+    opts?.storePath ?? path.join(resolveStateDir(), "plugins", "duties", "creds.enc");
   const keyfilePath =
     opts?.keyfilePath ?? process.env.DUTIES_CRED_KEYFILE ?? "/etc/openclaw/keyfile";
   let chain: Promise<void> = Promise.resolve();
@@ -37,7 +42,9 @@ export function createLinuxCredStore(opts?: {
       );
     }
     if (raw.length < 16)
-      throw new Error(`credential keyfile at ${keyfilePath} is too short (need 32 random bytes)`);
+      throw new Error(
+        `credential keyfile at ${keyfilePath} is too short (need at least 16 bytes; a desk's cloud-init writes 32 random ones)`,
+      );
     return Buffer.from(hkdfSync("sha256", raw, "", "openclaw-duties-creds", 32));
   };
 
@@ -83,6 +90,9 @@ export function createLinuxCredStore(opts?: {
     await rename(tmp, storePath);
   };
 
+  /** Serializes writes within THIS process only — the whole map is re-encrypted per write, so two
+   *  processes sharing one store would be last-writer-wins. A desk runs exactly one Gateway, which
+   *  is the only writer, so an inter-process lock would buy nothing here. */
   const locked = <T>(fn: () => Promise<T>): Promise<T> => {
     const run = chain.then(fn, fn);
     chain = run.then(
@@ -105,7 +115,9 @@ export function createLinuxCredStore(opts?: {
     },
     set(key, value) {
       assertKey(key);
-      if (!value) throw new Error("credential value is empty");
+      // Same message the platform-independent caller uses (creds.ts credSet), so a direct store
+      // user and the dispatcher never report one condition two ways.
+      if (!value) throw new Error("credential value must not be empty");
       return locked(async () => {
         const map = await readMap();
         map[key] = value;

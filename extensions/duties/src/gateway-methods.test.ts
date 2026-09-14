@@ -71,7 +71,7 @@ function harness(params?: {
   const creds = {
     set: vi.fn<(key: string, value: string) => Promise<void>>(async () => {}),
     delete: vi.fn<(key: string) => Promise<boolean>>(async () => true),
-    has: vi.fn<(key: string) => Promise<boolean>>(async (key) => key === "amigos.password"),
+    has: vi.fn<(key: string) => Promise<boolean>>(async (key) => key === "acme-demo.password"),
   };
   registerDutiesGatewayMethods({
     api,
@@ -209,21 +209,21 @@ describe("duties gateway methods", () => {
     expect(methods.get("duties.cred.list")?.scope).toBe("operator.read");
     expect(methods.get("duties.cred.delete")?.scope).toBe("operator.admin");
 
-    const saved = await call("duties.cred.set", { key: "amigos.password", value: "s3cret" });
+    const saved = await call("duties.cred.set", { key: "acme-demo.password", value: "s3cret" });
     expect(saved).toEqual({ ok: true, result: { ok: true }, error: undefined });
     expect(JSON.stringify(saved)).not.toContain("s3cret");
-    expect(creds.set).toHaveBeenCalledWith("amigos.password", "s3cret");
+    expect(creds.set).toHaveBeenCalledWith("acme-demo.password", "s3cret");
 
-    const empty = await call("duties.cred.set", { key: "amigos.password", value: "" });
+    const empty = await call("duties.cred.set", { key: "acme-demo.password", value: "" });
     expect(empty.ok).toBe(false);
 
     const listed = await call("duties.cred.list", {});
-    expect((listed.result as { keys: string[] }).keys).toEqual(["amigos.password"]);
+    expect((listed.result as { keys: string[] }).keys).toEqual(["acme-demo.password"]);
     expect(JSON.stringify(listed)).not.toContain("s3cret");
 
-    const deleted = await call("duties.cred.delete", { key: "amigos.password" });
+    const deleted = await call("duties.cred.delete", { key: "acme-demo.password" });
     expect(deleted).toEqual({ ok: true, result: { ok: true }, error: undefined });
-    expect(creds.delete).toHaveBeenCalledWith("amigos.password");
+    expect(creds.delete).toHaveBeenCalledWith("acme-demo.password");
     expect((await call("duties.cred.list", {})).result).toMatchObject({ keys: [] });
   });
 
@@ -803,7 +803,7 @@ describe("duties gateway methods", () => {
   it("duties.cred.has answers whether a key is stored and never a value", async () => {
     const { methods, creds, call } = harness();
     expect(methods.get("duties.cred.has")?.scope).toBe("operator.read");
-    expect(await call("duties.cred.has", { key: "amigos.password" })).toMatchObject({
+    expect(await call("duties.cred.has", { key: "acme-demo.password" })).toMatchObject({
       ok: true,
       result: { stored: true },
     });
@@ -812,10 +812,10 @@ describe("duties gateway methods", () => {
       result: { stored: false },
     });
     // The read path must never be able to return the secret itself.
-    expect(creds.has).toHaveBeenCalledWith("amigos.password");
-    expect(JSON.stringify(await call("duties.cred.has", { key: "amigos.password" }))).not.toContain(
-      "value",
-    );
+    expect(creds.has).toHaveBeenCalledWith("acme-demo.password");
+    expect(
+      JSON.stringify(await call("duties.cred.has", { key: "acme-demo.password" })),
+    ).not.toContain("value");
   });
 
   it("duties.draft keeps existing steps and duties.steps validates the whole duty", async () => {

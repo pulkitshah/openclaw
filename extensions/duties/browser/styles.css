@@ -884,6 +884,11 @@
 .dt .mcheck.bad {
   color: var(--danger, #e5484d);
 }
+/* A reading nobody is updating any more: neither green nor red, because its truth is unknown.
+   Used by the Desk card once the desk's health file is older than a few minutes. */
+.dt .mcheck.stale {
+  color: var(--muted, #8b8b8b);
+}
 .dt .card.tpl .foot {
   border-top: none;
   padding-top: 0;

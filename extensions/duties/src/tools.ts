@@ -268,7 +268,7 @@ export function registerDutyTools(params: { api: OpenClawPluginApi }): void {
     description:
       "Tell the owner a credential must be stored before a Duty can use it. Never accepts or echoes a credential value — the owner enters it out-of-band.",
     parameters: Type.Object({
-      key: Type.String({ description: "Credential key, e.g. amigos.password." }),
+      key: Type.String({ description: "Credential key, e.g. acme-portal.password." }),
       reason: Type.String({ description: "Why this credential is needed." }),
     }),
     execute: async (_toolCallId, input) => {
