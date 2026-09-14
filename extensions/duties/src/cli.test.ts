@@ -1,13 +1,20 @@
+import type { Command } from "commander";
 import { describe, expect, it } from "vitest";
-import { buildMailSetup } from "./cli.js";
+import { buildDutiesSetup, registerDutiesSetupCli } from "./cli.js";
 import { MAIL_AGENT_ID } from "./mail.js";
+import { RENDER_ALLOWLIST_KEY } from "./setup.js";
 
-describe("buildMailSetup", () => {
+describe("buildDutiesSetup", () => {
   it("reports every missing piece and the commands/snippets needed for a bare install", () => {
-    const result = buildMailSetup({
+    const result = buildDutiesSetup({
       account: "ops@example.com",
       gogPath: undefined,
-      config: { hooksEnabled: false, mappingPresent: false, agentPresent: false },
+      config: {
+        hooksEnabled: false,
+        mappingPresent: false,
+        agentPresent: false,
+        renderAllowed: false,
+      },
     });
 
     expect(result.missing).toContain(
@@ -44,10 +51,15 @@ describe("buildMailSetup", () => {
   // channels down) and left the hook receiver rejecting the per-message session key the mapping
   // itself asks for, so no mail ever reached the dispatcher.
   it("ships the ownership, bindings and hook session-key settings the dispatcher forces", () => {
-    const result = buildMailSetup({
+    const result = buildDutiesSetup({
       account: "ops@example.com",
       gogPath: "/opt/homebrew/bin/gog",
-      config: { hooksEnabled: false, mappingPresent: false, agentPresent: false },
+      config: {
+        hooksEnabled: false,
+        mappingPresent: false,
+        agentPresent: false,
+        renderAllowed: false,
+      },
     });
 
     const agentEntry = JSON.parse(result.snippets.agentEntry);
@@ -76,7 +88,7 @@ describe("buildMailSetup", () => {
   });
 
   it("finds gog on PATH and uses it in the allowlist command instead of a placeholder", () => {
-    const result = buildMailSetup({
+    const result = buildDutiesSetup({
       account: "ops@example.com",
       gogPath: "/opt/homebrew/bin/gog",
       config: {
@@ -84,6 +96,7 @@ describe("buildMailSetup", () => {
         gmailAccount: "ops@example.com",
         mappingPresent: true,
         agentPresent: true,
+        renderAllowed: true,
       },
     });
 
@@ -96,7 +109,7 @@ describe("buildMailSetup", () => {
   });
 
   it("reports the account mismatch and stops asking for webhooks setup once everything matches", () => {
-    const mismatched = buildMailSetup({
+    const mismatched = buildDutiesSetup({
       account: "ops@example.com",
       gogPath: "/usr/local/bin/gog",
       config: {
@@ -104,6 +117,7 @@ describe("buildMailSetup", () => {
         gmailAccount: "someone-else@example.com",
         mappingPresent: true,
         agentPresent: true,
+        renderAllowed: true,
       },
     });
     expect(mismatched.missing.some((m) => m.includes("someone-else@example.com"))).toBe(true);
@@ -111,7 +125,7 @@ describe("buildMailSetup", () => {
       "openclaw webhooks gmail setup --account ops@example.com",
     );
 
-    const fullySet = buildMailSetup({
+    const fullySet = buildDutiesSetup({
       account: "ops@example.com",
       gogPath: "/usr/local/bin/gog",
       config: {
@@ -119,11 +133,75 @@ describe("buildMailSetup", () => {
         gmailAccount: "ops@example.com",
         mappingPresent: true,
         agentPresent: true,
+        renderAllowed: true,
       },
     });
     expect(fullySet.missing).toEqual([]);
     expect(fullySet.commands).not.toContain(
       "openclaw webhooks gmail setup --account ops@example.com",
     );
+  });
+
+  // Regression: on a default install the managed browser refuses to open the plugin's own
+  // loopback render page, so every `template` step and every preview failed — and nothing shipped
+  // said why. Setup has to print this prerequisite next to the Gmail ones.
+  it("reports the browser render allowlist as a missing prerequisite, with the exact config key", () => {
+    const blocked = buildDutiesSetup({
+      account: "ops@example.com",
+      gogPath: "/usr/local/bin/gog",
+      config: {
+        hooksEnabled: true,
+        gmailAccount: "ops@example.com",
+        mappingPresent: true,
+        agentPresent: true,
+        renderAllowed: false,
+      },
+    });
+    expect(blocked.missing.some((m) => m.includes(RENDER_ALLOWLIST_KEY))).toBe(true);
+    expect(blocked.missing.some((m) => m.includes("127.0.0.1"))).toBe(true);
+
+    const allowed = buildDutiesSetup({
+      account: "ops@example.com",
+      gogPath: "/usr/local/bin/gog",
+      config: {
+        hooksEnabled: true,
+        gmailAccount: "ops@example.com",
+        mappingPresent: true,
+        agentPresent: true,
+        renderAllowed: true,
+      },
+    });
+    expect(allowed.missing).toEqual([]);
+  });
+});
+
+describe("registerDutiesSetupCli", () => {
+  it("registers `duties setup` and keeps `setup-mail` working as an alias", () => {
+    const registered: Array<{ name: string; aliases: string[] }> = [];
+    const subcommand = {
+      description: () => subcommand,
+      alias: (value: string) => {
+        registered.at(-1)!.aliases.push(value);
+        return subcommand;
+      },
+      requiredOption: () => subcommand,
+      action: () => subcommand,
+    };
+    const duties = {
+      description: () => duties,
+      command: (name: string) => {
+        registered.push({ name, aliases: [] });
+        return subcommand;
+      },
+    };
+    const program = {
+      command: () => duties,
+      // SAFETY: registerDutiesSetupCli only calls program.command(...).description(...) and then
+      // the subcommand builder methods this stub provides.
+    } as unknown as Command;
+
+    registerDutiesSetupCli({ program, config: {} });
+
+    expect(registered).toEqual([{ name: "setup", aliases: ["setup-mail"] }]);
   });
 });

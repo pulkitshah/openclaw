@@ -133,6 +133,13 @@ A template is a saved document (`pdf`) or message (`message`) with named slots t
 in at run time. Use `template_list` to see what already exists (id, name, kind, slots) before
 authoring a new one — reuse rather than duplicate.
 
+**Prerequisite for `pdf` templates.** Rendering serves the document to the managed browser over
+the Gateway's own loopback address, which the browser refuses by default. If a `template` step or
+`template_preview` fails with "could not open the render page", the owner has to add `127.0.0.1`
+to `browser.ssrfPolicy.allowedHostnames` and restart the Gateway — `openclaw duties setup
+--account <email>` prints that block along with the mail prerequisites. Tell the owner that; do
+not work around it.
+
 1. **Read or draft** with `template_get { id }`, or write a new one and validate/save it with
    `template_set { template }` (`{ id, name, kind, html, slots, updatedAt }`); it returns
    validation errors verbatim on a bad slot reference or an undeclared/unused slot.

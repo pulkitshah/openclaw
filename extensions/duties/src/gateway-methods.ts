@@ -20,6 +20,7 @@ import {
 import { mailStatusFromConfig } from "./mail.js";
 import { renderTemplatePreview } from "./preview.js";
 import type { RunManager } from "./run-service.js";
+import { renderStatusFromConfig } from "./setup.js";
 import type { DutyStore, RunOrigin } from "./store.js";
 import { validateBrand, validateTemplate } from "./template.js";
 
@@ -485,7 +486,10 @@ export function registerDutiesGatewayMethods(params: {
     return { settings };
   });
 
-  register("duties.mail.status", "operator.read", async () =>
-    mailStatusFromConfig(api.config, await store.getSettings()),
-  );
+  /** Setup readiness for both of Part 2's outward-facing paths: the Gmail dispatch chain and
+   *  document rendering. One readout, because one Settings strip shows it. */
+  register("duties.mail.status", "operator.read", async () => ({
+    ...mailStatusFromConfig(api.config, await store.getSettings()),
+    ...renderStatusFromConfig(api.config),
+  }));
 }

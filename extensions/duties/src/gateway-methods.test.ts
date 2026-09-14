@@ -490,6 +490,9 @@ describe("duties gateway methods", () => {
       gmailAccountSet: false,
       mappingPresent: false,
       agentPresent: false,
+      // Rendering is a prerequisite too: on a default install the managed browser refuses the
+      // plugin's own loopback render page, so every `template` step fails.
+      renderAllowed: false,
     });
 
     const wired = harness({
@@ -500,6 +503,7 @@ describe("duties gateway methods", () => {
           mappings: [{ agentId: "duties-mail" }],
         },
         agents: { entries: { "duties-mail": {} } },
+        browser: { ssrfPolicy: { allowedHostnames: ["127.0.0.1"] } },
       },
     });
     await wired.store.updateSettings({ lastMailDispatchAt: 5, lastMailDispatchDutyId: "d1" });
@@ -509,6 +513,7 @@ describe("duties gateway methods", () => {
       gmailAccountSet: true,
       mappingPresent: true,
       agentPresent: true,
+      renderAllowed: true,
       lastDispatchAt: 5,
       lastDispatchDutyId: "d1",
     });

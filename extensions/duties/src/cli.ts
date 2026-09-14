@@ -1,10 +1,11 @@
 /**
- * `openclaw duties setup-mail --account <email>` — prints the config an operator pastes in (the
- * `duties-mail` agent with the ownership and bindings that adding a second agent forces, and the
- * `hooks` block with the Gmail mapping and the session-key settings that mapping needs) plus the
- * shell commands that wire the rest up, so a Duty can be dispatched from an inbound Gmail message.
+ * `openclaw duties setup --account <email>` — prints every prerequisite a Duty needs before it can
+ * work end to end: the config an operator pastes in for mail dispatch (the `duties-mail` agent with
+ * the ownership and bindings that adding a second agent forces, and the `hooks` block with the
+ * Gmail mapping and the session-key settings that mapping needs), the shell commands that wire the
+ * rest up, and the browser allowlist entry without which every `template` step fails.
  *
- * `buildMailSetup` is pure and tested on its own; the Commander action below is the only piece
+ * `buildDutiesSetup` is pure and tested on its own; the Commander action below is the only piece
  * that touches the filesystem (a `which gog` lookup) or prints anything.
  */
 import { execFile } from "node:child_process";
@@ -12,20 +13,24 @@ import { promisify } from "node:util";
 import type { Command } from "commander";
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { MAIL_AGENT_ID, mailStatusFromConfig } from "./mail.js";
+import { RENDER_ALLOWLIST_KEY, RENDER_LOOPBACK_HOST, renderStatusFromConfig } from "./setup.js";
 
 const execFileAsync = promisify(execFile);
 
-/** Config facts `buildMailSetup` needs — the CLI reads these off `mailStatusFromConfig` plus the
- *  raw `hooks.gmail.account` value (which the status readout deliberately never repeats). */
-export type MailSetupConfigFacts = {
+/** Config facts `buildDutiesSetup` needs — the CLI reads these off `mailStatusFromConfig` and
+ *  `renderStatusFromConfig`, plus the raw `hooks.gmail.account` value (which the status readout
+ *  deliberately never repeats). */
+export type SetupConfigFacts = {
   hooksEnabled: boolean;
   gmailAccount?: string;
   mappingPresent: boolean;
   agentPresent: boolean;
+  /** Whether the managed browser may open the loopback render page (`setup.ts`). */
+  renderAllowed?: boolean;
 };
 
-export type MailSetupResult = {
-  snippets: { agentEntry: string; hookMapping: string };
+export type SetupResult = {
+  snippets: { agentEntry: string; hookMapping: string; renderAllowlist: string };
   commands: string[];
   missing: string[];
 };
@@ -114,15 +119,21 @@ const HOOK_MAPPING_SNIPPET = {
   },
 };
 
+/** The one config line that lets a `template` step render at all. Kept next to the other two
+ *  snippets so setup prints one pasteable block per prerequisite. */
+const RENDER_ALLOWLIST_SNIPPET = {
+  browser: { ssrfPolicy: { allowedHostnames: [RENDER_LOOPBACK_HOST] } },
+};
+
 /** Pure: given the account being wired up, whether `gog` was found on PATH, and the current
- *  config facts, returns what's missing, the shell commands to run, and the two config snippets
+ *  config facts, returns what's missing, the shell commands to run, and the config snippets
  *  to paste in. Never reads the filesystem or config itself — the CLI action below gathers both
  *  and passes them in. */
-export function buildMailSetup(params: {
+export function buildDutiesSetup(params: {
   account: string;
   gogPath?: string;
-  config: MailSetupConfigFacts;
-}): MailSetupResult {
+  config: SetupConfigFacts;
+}): SetupResult {
   const { account, gogPath, config } = params;
   const missing: string[] = [];
   const commands: string[] = [];
@@ -146,6 +157,13 @@ export function buildMailSetup(params: {
   if (!config.agentPresent) {
     missing.push(`no agent entry named "${MAIL_AGENT_ID}" (agents.entries)`);
   }
+  if (config.renderAllowed === false) {
+    // Rendering is the other half of Part 2: without this, every `template` step and every
+    // preview fails at the browser's navigation guard with no next action.
+    missing.push(
+      `the managed browser may not open the render page — add "${RENDER_LOOPBACK_HOST}" to ${RENDER_ALLOWLIST_KEY}`,
+    );
+  }
 
   if (!config.gmailAccount || config.gmailAccount !== account || !config.mappingPresent) {
     commands.push(`openclaw webhooks gmail setup --account ${account}`);
@@ -161,6 +179,7 @@ export function buildMailSetup(params: {
     snippets: {
       agentEntry: JSON.stringify(AGENT_ENTRY_SNIPPET, null, 2),
       hookMapping: JSON.stringify(HOOK_MAPPING_SNIPPET, null, 2),
+      renderAllowlist: JSON.stringify(RENDER_ALLOWLIST_SNIPPET, null, 2),
     },
     commands,
     missing,
@@ -179,19 +198,22 @@ async function findGogPath(): Promise<string | undefined> {
   }
 }
 
-function printMailSetup(params: {
+function printDutiesSetup(params: {
   account: string;
-  config: MailSetupConfigFacts;
-  result: MailSetupResult;
+  config: SetupConfigFacts;
+  result: SetupResult;
 }): void {
   const { account, config, result } = params;
-  console.log(`Duties mail dispatcher setup for ${account}`);
+  console.log(`Duties setup for ${account}`);
   console.log("");
   console.log("Already in place:");
   console.log(`  hooks enabled: ${config.hooksEnabled ? "yes" : "no"}`);
   console.log(`  Gmail account configured: ${config.gmailAccount ? "yes" : "no"}`);
   console.log(`  hook mapping to ${MAIL_AGENT_ID}: ${config.mappingPresent ? "yes" : "no"}`);
   console.log(`  agent entry ${MAIL_AGENT_ID}: ${config.agentPresent ? "yes" : "no"}`);
+  console.log(
+    `  rendering allowed (${RENDER_ALLOWLIST_KEY}): ${config.renderAllowed ? "yes" : "no"}`,
+  );
   console.log("");
   if (result.missing.length > 0) {
     console.log("Missing:");
@@ -206,6 +228,11 @@ function printMailSetup(params: {
   console.log("Hook mapping — merge into hooks (settings and mappings) if missing:");
   console.log(result.snippets.hookMapping);
   console.log("");
+  console.log(
+    "Rendering — merge into browser; without it every template step and preview fails at the browser's navigation guard:",
+  );
+  console.log(result.snippets.renderAllowlist);
+  console.log("");
   console.log("Commands:");
   for (const command of result.commands) console.log(`  ${command}`);
   console.log("");
@@ -216,19 +243,23 @@ export function registerDutiesSetupCli(params: { program: Command; config: OpenC
   const { program, config } = params;
   const duties = program.command("duties").description("Duties setup");
   duties
-    .command("setup-mail")
-    .description("Print the config and commands that route Gmail to the duties-mail dispatcher")
+    .command("setup")
+    // `setup-mail` was the name while mail was the only prerequisite; it is kept so the command
+    // printed in existing notes and transcripts still works.
+    .alias("setup-mail")
+    .description("Print every prerequisite a Duty needs: Gmail dispatch and document rendering")
     .requiredOption("--account <email>", "Gmail account gogcli is authenticated as")
     .action(async (options: { account: string }) => {
       const gogPath = await findGogPath();
       const status = mailStatusFromConfig(config, {});
-      const configFacts: MailSetupConfigFacts = {
+      const configFacts: SetupConfigFacts = {
         hooksEnabled: status.hooksEnabled,
         ...(config.hooks?.gmail?.account ? { gmailAccount: config.hooks.gmail.account } : {}),
         mappingPresent: status.mappingPresent,
         agentPresent: status.agentPresent,
+        renderAllowed: renderStatusFromConfig(config).renderAllowed,
       };
-      const result = buildMailSetup({ account: options.account, gogPath, config: configFacts });
-      printMailSetup({ account: options.account, config: configFacts, result });
+      const result = buildDutiesSetup({ account: options.account, gogPath, config: configFacts });
+      printDutiesSetup({ account: options.account, config: configFacts, result });
     });
 }
