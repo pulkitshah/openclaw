@@ -82,7 +82,7 @@ and `saveAs`.
   it needs a name they can read at a glance. It is an ordinary string, so `{{in:...}}`/`{{out:...}}`
   work in it (`{{cred:...}}` is rejected like anywhere else), the extension is added for you, and it
   is reduced to a safe single file name. `"Flight options {{out:origin}}-{{out:destination}}
-  {{out:date}}"` beats `"quote"`. Leave it out only when you genuinely cannot name the document
+{{out:date}}"` beats `"quote"`. Leave it out only when you genuinely cannot name the document
   from the data: the model is then asked for a name in the same call that fills the `{ ai }` slots.
   Optional `params.format` must match the template's own kind (`pdf` or `message`) when
   given — it exists to make the step's output format explicit, not to convert one kind

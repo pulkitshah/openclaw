@@ -11,14 +11,14 @@ printed or a person saw.
 
 An isolated Gateway, never the operator's live one:
 
-| | |
-| --- | --- |
-| Gateway | port 19001, state `~/.openclaw-duties`, config `~/.openclaw-duties/openclaw.json` |
-| Agents | `krishna` (the owner's authoring agent, claude-cli backend) and `duties-mail` (the dispatcher), `agents.ownership: "explicit"` |
-| Channels | Telegram, polling, as the owner's own bot |
-| Mail | `hooks.gmail` watching `pulkit.works@gmail.com` INBOX over Pub/Sub through a Tailscale Funnel; `gog` authorized for that account |
-| Owner delivery target | `duties.settings.owner` = telegram chat `5995225650` |
-| Build | source build of this branch; `pnpm build` before each Gateway restart |
+|                       |                                                                                                                                  |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Gateway               | port 19001, state `~/.openclaw-duties`, config `~/.openclaw-duties/openclaw.json`                                                |
+| Agents                | `krishna` (the owner's authoring agent, claude-cli backend) and `duties-mail` (the dispatcher), `agents.ownership: "explicit"`   |
+| Channels              | Telegram, polling, as the owner's own bot                                                                                        |
+| Mail                  | `hooks.gmail` watching `pulkit.works@gmail.com` INBOX over Pub/Sub through a Tailscale Funnel; `gog` authorized for that account |
+| Owner delivery target | `duties.settings.owner` = telegram chat `5995225650`                                                                             |
+| Build                 | source build of this branch; `pnpm build` before each Gateway restart                                                            |
 
 The operator's live Gateway on 18789 was stopped for the duration and never
 touched. Credentials, bot tokens, hook tokens and push tokens are not reproduced
@@ -55,7 +55,10 @@ Triggers:
 
 ```json
 [
-  { "kind": "mail", "match": "travel requests from clients (an itinerary in the body or an attached PDF)" },
+  {
+    "kind": "mail",
+    "match": "travel requests from clients (an itinerary in the body or an attached PDF)"
+  },
   { "kind": "chat", "match": "a travel request typed in chat or its PDF" },
   { "kind": "manual" }
 ]
@@ -111,16 +114,16 @@ LIC Office Services
 
 Parsed by the `parse-request` `ai` step:
 
-| key | value |
-| --- | --- |
-| requester | `os.nagpur@licindia.com` (from the `From:` line, not the envelope) |
-| leadPassenger | NILESH SUDAM THORAT |
-| mobile | 9011071066 |
-| passengers | `{NILESH SUDAM, THORAT}`, `{AAKANSHA, AAKANSHA}` |
-| origin → destination | IXU → COK |
-| date | 02/10/2026 |
-| adults | 2 |
-| airline / time | IndiGo / 07:15 |
+| key                  | value                                                              |
+| -------------------- | ------------------------------------------------------------------ |
+| requester            | `os.nagpur@licindia.com` (from the `From:` line, not the envelope) |
+| leadPassenger        | NILESH SUDAM THORAT                                                |
+| mobile               | 9011071066                                                         |
+| passengers           | `{NILESH SUDAM, THORAT}`, `{AAKANSHA, AAKANSHA}`                   |
+| origin → destination | IXU → COK                                                          |
+| date                 | 02/10/2026                                                         |
+| adults               | 2                                                                  |
+| airline / time       | IndiGo / 07:15                                                     |
 
 The no-surname rule is applied as the owner stated it: a passenger given only
 `AAKANSHA` becomes first name AAKANSHA, last name AAKANSHA.
@@ -187,7 +190,12 @@ The collect step read 19 real flights off the results page. The requested
 departure is there:
 
 ```json
-{"airline":"IndiGo (6E-6126, 6E-673)","depart":"07:15 Aurangabad","arrive":"14:25 Kochi","fare":"₹ 26,722"}
+{
+  "airline": "IndiGo (6E-6126, 6E-673)",
+  "depart": "07:15 Aurangabad",
+  "arrive": "14:25 Kochi",
+  "fare": "₹ 26,722"
+}
 ```
 
 which matches the Part 1 live test's 6E-6126 + 6E-673 pairing, and whose Agency
@@ -212,14 +220,14 @@ and stopped there. **Nothing was held.**
 
 The passenger form, as the Duty filled it:
 
-| Field | Adult 1 | Adult 2 |
-| --- | --- | --- |
-| Title | MR | MS |
-| First name | NILESH SUDAM | AAKANSHA |
-| Last name | THORAT | AAKANSHA |
-| Nationality | India (preset) | India (was blank, set by the Duty) |
-| Contact mobile | 9011071066 (replaced the agency's prefilled number) | 9011071066 |
-| Contact email | prefilled, untouched | copied from Adult 1 |
+| Field          | Adult 1                                             | Adult 2                            |
+| -------------- | --------------------------------------------------- | ---------------------------------- |
+| Title          | MR                                                  | MS                                 |
+| First name     | NILESH SUDAM                                        | AAKANSHA                           |
+| Last name      | THORAT                                              | AAKANSHA                           |
+| Nationality    | India (preset)                                      | India (was blank, set by the Duty) |
+| Contact mobile | 9011071066 (replaced the agency's prefilled number) | 9011071066                         |
+| Contact email  | prefilled, untouched                                | copied from Adult 1                |
 
 Date of birth, meals, seats, reporting details, the address block and GST are
 left alone. Titles come from the mail's Gender column (M → MR, F → MS), which
@@ -509,14 +517,14 @@ the run kept holding the Amigos session until the question was cancelled by hand
 
 **How the host makes a question answerable** (all read before changing anything):
 
-| | |
-| --- | --- |
-| Callback envelope | `tgq1:<ask_[a-f0-9]{32}>:<optionIndex>`, built only for a record id of that exact shape — `extensions/telegram/src/question-callback-data.ts:15-32` |
-| Button action | `{ type: "question", questionId, optionValue }` on a `presentation` buttons block — `src/interactive/payload.ts:25-31`, rendered at `extensions/telegram/src/button-types.ts:131-155` |
-| Gateway-owned option order | `channelData.askUser = { questionId, optionValues }`, 2-4 distinct values — `src/plugin-sdk/reply-payload.ts:26-60`. Presentation order is explicitly *not* authoritative |
-| Canonical producer | `buildAgentHarnessQuestionPromptPayload` — `src/agents/harness/user-input-bridge.ts:160-195`. Not exported to plugins; only the payload shape is public |
-| Tap handler | `extensions/telegram/src/bot-handlers.callback-router.ts:296-311` → `handleTelegramQuestionCallback` (`bot-handlers.callback-actions.ts:183-222`) → `resolveQuestionOverGateway` |
-| What the tap enforces | `question.get` must return `status: "pending"` with exactly one non-multiSelect, non-secret question; then `question.resolve` with `{ [question.questionId]: [optionValue] }` — `src/infra/question-gateway-resolver.ts:108-160` |
+|                             |                                                                                                                                                                                                                                                  |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Callback envelope           | `tgq1:<ask_[a-f0-9]{32}>:<optionIndex>`, built only for a record id of that exact shape — `extensions/telegram/src/question-callback-data.ts:15-32`                                                                                              |
+| Button action               | `{ type: "question", questionId, optionValue }` on a `presentation` buttons block — `src/interactive/payload.ts:25-31`, rendered at `extensions/telegram/src/button-types.ts:131-155`                                                            |
+| Gateway-owned option order  | `channelData.askUser = { questionId, optionValues }`, 2-4 distinct values — `src/plugin-sdk/reply-payload.ts:26-60`. Presentation order is explicitly _not_ authoritative                                                                        |
+| Canonical producer          | `buildAgentHarnessQuestionPromptPayload` — `src/agents/harness/user-input-bridge.ts:160-195`. Not exported to plugins; only the payload shape is public                                                                                          |
+| Tap handler                 | `extensions/telegram/src/bot-handlers.callback-router.ts:296-311` → `handleTelegramQuestionCallback` (`bot-handlers.callback-actions.ts:183-222`) → `resolveQuestionOverGateway`                                                                 |
+| What the tap enforces       | `question.get` must return `status: "pending"` with exactly one non-multiSelect, non-secret question; then `question.resolve` with `{ [question.questionId]: [optionValue] }` — `src/infra/question-gateway-resolver.ts:108-160`                 |
 | Session/ownership condition | **None at that layer.** No `sessionKey` or owner check gates the tap; the only channel-side gate is the inline-buttons scope, which defaults to `"allowlist"` (`extensions/telegram/src/inline-buttons.ts:13`) — the paired owner chat qualifies |
 
 So the question record id itself was the blocker: `question.request` mints a UUID
@@ -621,7 +629,7 @@ ordinary params.
 - A `duty_run` of `ask-probe` **started through the agent's tool** appeared in
   `duties.runs.recent` as `ask-probe needs_input chat` with its origin recorded
   as `{ kind: "chat", sessionKey: "agent:krishna:duties-tool-check", agentId:
-  "krishna", channel: "webchat" }`, and `duties.run.cancel` on it returned
+"krishna", channel: "webchat" }`, and `duties.run.cancel` on it returned
   `{"ok":true}` while it was parked; the run then read `cancelled` and the tool
   returned `status: "cancelled"`. Before the fix that run would not have been in
   the list at all.
@@ -777,16 +785,16 @@ agent calling `duty_run`, exactly as §3.2 describes.
 
 What the run worked out for itself, from the mail alone:
 
-| output | value |
-| --- | --- |
-| requester | `os.nagpur@licindia.com` |
-| client | `91925` · LIFE INSURANCE CORPORATION OF INDIA NAGPUR · Maharashtra |
-| route / date | IXU → COK, 02/10/2026 |
-| adults | 2 |
-| airline / time | IndiGo / 07:15 |
-| chosenFlight | `IndiGo (6E-6126, 6E-673) 07:15 → 14:25, 1 Stop, Economy, from ₹ 25,742` |
-| fare | **Agency Fare** ₹ 27,036 |
-| cartRef | `AAMH1776482` |
+| output         | value                                                                    |
+| -------------- | ------------------------------------------------------------------------ |
+| requester      | `os.nagpur@licindia.com`                                                 |
+| client         | `91925` · LIFE INSURANCE CORPORATION OF INDIA NAGPUR · Maharashtra       |
+| route / date   | IXU → COK, 02/10/2026                                                    |
+| adults         | 2                                                                        |
+| airline / time | IndiGo / 07:15                                                           |
+| chosenFlight   | `IndiGo (6E-6126, 6E-673) 07:15 → 14:25, 1 Stop, Economy, from ₹ 25,742` |
+| fare           | **Agency Fare** ₹ 27,036                                                 |
+| cartRef        | `AAMH1776482`                                                            |
 
 The last six steps are the hold gate working as designed:
 

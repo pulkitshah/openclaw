@@ -15,15 +15,15 @@ Duties appear as their own tab in the Control UI, and the agent works with them 
 
 A Duty is a name, a summary, and a list of steps. Each step is one of:
 
-| Step | What it does |
-| --- | --- |
-| `browser` | Opens, navigates, clicks, fills, selects, presses, waits, or reads a page |
-| `browser.evaluate` | Runs a small function in the page and saves what it returns |
-| `ai` | Reads something unstructured (a mail body, a page of text) into named values |
-| `ask` | Asks **you** a question and waits for your tapped answer |
-| `template` | Renders a saved template into a PDF, or into message text |
-| `deliver` | Sends text and/or the rendered documents to a chat |
-| `when` / `stop` | Branches on a condition, or ends the run early with a reason |
+| Step               | What it does                                                                 |
+| ------------------ | ---------------------------------------------------------------------------- |
+| `browser`          | Opens, navigates, clicks, fills, selects, presses, waits, or reads a page    |
+| `browser.evaluate` | Runs a small function in the page and saves what it returns                  |
+| `ai`               | Reads something unstructured (a mail body, a page of text) into named values |
+| `ask`              | Asks **you** a question and waits for your tapped answer                     |
+| `template`         | Renders a saved template into a PDF, or into message text                    |
+| `deliver`          | Sends text and/or the rendered documents to a chat                           |
+| `when` / `stop`    | Branches on a condition, or ends the run early with a reason                 |
 
 Steps read each other's results through placeholders: `{{in:name}}` for a Duty input, `{{out:key}}` for something an earlier step saved, `{{file:<stepId>}}` for a document an earlier `template` step produced.
 
