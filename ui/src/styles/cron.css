@@ -694,7 +694,7 @@
 
 .cron-editor input[aria-invalid="true"],
 .cron-editor textarea[aria-invalid="true"] {
-  border-color: var(--danger-text);
+  border-color: var(--danger);
 }
 
 /* Human-readable schedule line under the schedule rows. */

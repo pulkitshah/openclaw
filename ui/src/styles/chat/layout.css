@@ -2039,15 +2039,15 @@ openclaw-chat-video-player {
 }
 
 .chat-swarm__marker--running {
-  border-color: var(--info-text);
+  border-color: var(--info);
   background: var(--info);
 }
 .chat-swarm__marker--done {
-  border-color: var(--ok-text);
+  border-color: var(--ok);
   background: var(--ok);
 }
 .chat-swarm__marker--failed {
-  border-color: var(--danger-text);
+  border-color: var(--danger);
   background: var(--danger);
 }
 

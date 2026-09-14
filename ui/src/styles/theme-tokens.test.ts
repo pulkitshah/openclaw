@@ -517,7 +517,27 @@ describe("Vasudev theme tokens", () => {
           .readFileSync(filePath, "utf8")
           .split("\n")
           .flatMap((line, index) =>
-            /color:\s*var\(--(?:ok|warn|info|danger)\)/u.test(line)
+            /(?<![-\w])color:\s*var\(--(?:ok|warn|info|danger)\)/u.test(line)
+              ? [`${path.relative(stylesDir, filePath)}:${index + 1}: ${line.trim()}`]
+              : [],
+          ),
+      );
+    expect(violations).toEqual([]);
+  });
+
+  it("keeps borders and outlines on the status mark, never on the text ink", () => {
+    // Borders, outlines and fills are graphics: they paint the mark colour so a
+    // pill's edge matches its background. The -text inks exist for label text only.
+    const violations = collectStyleSources(path.dirname(stylesDir))
+      .filter((filePath) => !filePath.endsWith(".test.ts"))
+      .flatMap((filePath) =>
+        fs
+          .readFileSync(filePath, "utf8")
+          .split("\n")
+          .flatMap((line, index) =>
+            /(?:border(?:-[a-z]+)?|outline|fill|stroke|background(?:-color)?):\s*var\(--(?:ok|warn|info|danger)-text\)/u.test(
+              line,
+            )
               ? [`${path.relative(stylesDir, filePath)}:${index + 1}: ${line.trim()}`]
               : [],
           ),

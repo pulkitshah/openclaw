@@ -849,7 +849,7 @@
 }
 
 .config-content :is(input, textarea, select)[aria-invalid="true"] {
-  border-color: var(--danger-text);
+  border-color: var(--danger);
 }
 
 /* Redacted click-to-reveal inputs/textareas. */

@@ -1462,7 +1462,7 @@ h3.settings-row__title {
 }
 
 .plugin-install-wizard__progress li.is-complete > span {
-  border-color: var(--ok-text);
+  border-color: var(--ok);
   background: var(--ok-subtle);
 }
 
