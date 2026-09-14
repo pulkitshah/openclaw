@@ -1,5 +1,5 @@
 ---
-summary: "An always-on cloud machine that runs your Gateway and Duties with a real, headed browser, reachable only over your tailnet"
+summary: "An always-on cloud machine that runs your Gateway and Duties with a real, headed browser, kept tailnet-only apart from one Gmail webhook route"
 read_when:
   - You want Duties to keep running while your laptop is closed
   - You're deciding whether a hosted desk is worth the monthly cost
@@ -7,7 +7,7 @@ read_when:
 title: "Hosted desk"
 ---
 
-A **hosted desk** is an always-on Linux machine in the cloud that runs your OpenClaw Gateway with a real, headed browser attached. Duties that click through a real site keep running on their own schedule, on mail, or on demand — even while your laptop is closed. Everything a desk exposes is reachable only over your own [Tailscale](/gateway/tailscale) network, never the public internet.
+A **hosted desk** is an always-on Linux machine in the cloud that runs your OpenClaw Gateway with a real, headed browser attached. Duties that click through a real site keep running on their own schedule, on mail, or on demand — even while your laptop is closed. The Control UI and SSH are reachable only over your own [Tailscale](/gateway/tailscale) network; a desk configured for Gmail push also exposes one webhook route to the public internet (see [Gmail push per desk](#gmail-push-per-desk) below).
 
 One desk runs one Gateway. It is the same OpenClaw you already use, just running on a machine that never sleeps.
 
@@ -42,7 +42,7 @@ deploy/desk/new-desk.sh <desk-name> \
   --owner-target <telegram-user-or-chat-id>
 ```
 
-This boots a `s-2vcpu-4gb` droplet by default (pass `--size s-4vcpu-8gb` for more parallel runs), waits for the desk to join the tailnet, and prints the desk's Control UI address plus the command to reveal the first sign-in token. It takes about 10 minutes, most of it the droplet's own first-boot install. Full flag and environment-override reference: `deploy/desk/README.md`.
+This boots a `s-2vcpu-4gb` droplet by default (pass `--size s-4vcpu-8gb` for more parallel runs), waits for the desk to join the tailnet, and prints the desk's Control UI address plus the command to reveal the first sign-in token. This usually takes 10–15 minutes; the create command waits up to 15 minutes for the desk to appear on your tailnet and tells you if it does not. Full flag and environment-override reference: `deploy/desk/README.md`.
 
 ## What runs on it
 
@@ -55,7 +55,7 @@ Once first boot finishes, a desk runs:
 
 ## How to reach it
 
-- **Control UI** — `https://<desk-name>.<tailnet>.ts.net`, open to any device on your tailnet, never to the public internet ([Tailscale Serve](/gateway/tailscale)).
+- **Control UI** — `https://<desk-name>.<tailnet>.ts.net`, open to any device on your tailnet and never to the public internet ([Tailscale Serve](/gateway/tailscale)).
 - **SSH** — over the tailnet, using the desk name as the host.
 - **The Telegram bot** — the one you supplied a token for, answering only the owner target you set.
 
@@ -65,7 +65,7 @@ Open the desk's Control UI [Logins page](/plugins/duties#logins) and add whateve
 
 ## Gmail push per desk
 
-A desk that should react to inbound mail needs the same [mail-trigger setup](/plugins/duties#setup) as any other Gateway, run once on the desk itself.
+A desk that should react to inbound mail needs the same [mail-trigger setup](/plugins/duties#setup) as any other Gateway, run once on the desk itself. Gmail push needs one public URL for Google's Pub/Sub delivery; the setup command exposes only the webhook path through Tailscale Funnel. Everything else stays tailnet-only.
 
 ## Parallel runs
 
@@ -81,7 +81,8 @@ For the full command reference, health-check meaning, log locations, and trouble
 
 ## Limits for now
 
-- Linux only — a Windows desk isn't available yet.
-- Browser Duties only — a desk can't drive a desktop app; there's no desktop or whole-screen control.
-- One desk per Gateway.
+- Linux only, browser Duties only — a desk can't drive a desktop app; there's no desktop or whole-screen control yet.
+- No fleet or control-plane view — each desk is created and rolled by hand with the scripts above.
+- No shared or multi-tenant desks.
+- No autoscaling.
 - No automatic backups beyond the snapshots you take yourself.
