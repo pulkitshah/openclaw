@@ -17,15 +17,30 @@ const read = (relativePath: string) => readFileSync(path.join(repoRoot, relative
  * but the repo carries no plist parser and these files are tiny; a real
  * parser would be overkill for a handful of key/value pairs. */
 function plistString(xml: string, key: string): string {
-  const pattern = new RegExp(
-    `<key>${key}</key>\\s*<string>([^<]*)</string>`,
-    "u",
-  );
+  const pattern = new RegExp(`<key>${key}</key>\\s*<string>([^<]*)</string>`, "u");
   const match = xml.match(pattern);
-  if (!match) {
+  const value = match?.[1];
+  if (value === undefined) {
     throw new Error(`plist key ${key} not found`);
   }
-  return match[1];
+  return value;
+}
+
+/** An xcodegen target's `info.properties` block, as read from project.yml. */
+type XcodegenTarget = { info: { properties: Record<string, unknown> } };
+
+/** `targets` is keyed by target name with no static guarantee a given name
+ * exists, so `noUncheckedIndexedAccess` types the lookup as possibly
+ * `undefined`; fail fast with the missing name instead of a TS18048 access. */
+function requireTarget(
+  targets: Record<string, XcodegenTarget | undefined>,
+  name: string,
+): XcodegenTarget {
+  const target = targets[name];
+  if (!target) {
+    throw new Error(`xcodegen target ${name} not found in project.yml`);
+  }
+  return target;
 }
 
 /** Reads a PNG's width/height/color-type straight from its IHDR chunk
@@ -62,16 +77,20 @@ describe("native app display names say Vasudev", () => {
 
   it("iOS/watchOS Xcodegen project.yml (the source xcodegen writes Info.plist from)", () => {
     const project = parseYaml(read("apps/ios/project.yml")) as {
-      targets: Record<string, { info: { properties: Record<string, unknown> } }>;
+      targets: Record<string, XcodegenTarget | undefined>;
     };
-    expect(project.targets.OpenClaw.info.properties.CFBundleDisplayName).toBe("Vasudev");
-    expect(project.targets.OpenClawShareExtension.info.properties.CFBundleDisplayName).toBe(
-      "Vasudev Share",
+    expect(requireTarget(project.targets, "OpenClaw").info.properties.CFBundleDisplayName).toBe(
+      "Vasudev",
     );
-    expect(project.targets.OpenClawActivityWidget.info.properties.CFBundleDisplayName).toBe(
-      "Vasudev Activity",
-    );
-    expect(project.targets.OpenClawWatchApp.info.properties.CFBundleDisplayName).toBe("Vasudev");
+    expect(
+      requireTarget(project.targets, "OpenClawShareExtension").info.properties.CFBundleDisplayName,
+    ).toBe("Vasudev Share");
+    expect(
+      requireTarget(project.targets, "OpenClawActivityWidget").info.properties.CFBundleDisplayName,
+    ).toBe("Vasudev Activity");
+    expect(
+      requireTarget(project.targets, "OpenClawWatchApp").info.properties.CFBundleDisplayName,
+    ).toBe("Vasudev");
   });
 
   it("iOS/watchOS generated Info.plist files (checked in; xcodegen writes these from project.yml)", () => {
