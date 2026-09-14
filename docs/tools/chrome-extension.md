@@ -2,14 +2,14 @@
 summary: "Chrome extension: securely automate signed-in tabs with automatic local pairing"
 read_when:
   - You want an agent to drive your signed-in Chrome without remote-debugging prompts
-  - You are installing, pairing, disabling, or troubleshooting the OpenClaw Chrome extension
+  - You are installing, pairing, disabling, or troubleshooting the Vasudev Chrome extension
   - You need the Chrome native bootstrap security and platform support model
 title: "Chrome Extension"
 ---
 
 # Chrome extension
 
-The OpenClaw Chrome extension lets the browser tool automate eligible tabs in
+The Vasudev Chrome extension lets the browser tool automate eligible tabs in
 your signed-in Chrome profile. It uses `chrome.debugger`, so it does not require
 Chrome's blocking remote-debugging consent prompt.
 
@@ -21,13 +21,13 @@ a Settings link.
 ## Requirements
 
 - Google Chrome, Chrome for Testing, or Chromium
-- OpenClaw installed on the same machine as Chrome, or an OpenClaw browser node
+- Vasudev installed on the same machine as Chrome, or an Vasudev browser node
   on that machine
 - macOS or Linux for automatic native bootstrap
 - Chrome launched at least once so its user-data directory exists
 
 Windows keeps manual pairing. Current Chromium launches native hosts directly
-only when the registered host is a Windows executable. OpenClaw does not install
+only when the registered host is a Windows executable. Vasudev does not install
 a script launcher or registry key without a proven binary framing path.
 
 ## Install
@@ -44,7 +44,7 @@ Keep the command running while you complete Chrome's setup. On macOS, it first
 registers the native host, then asks Google Chrome to install the official
 Store extension. Chrome discovers the request at browser startup. If Chrome is
 already running, fully quit and reopen it when convenient, then approve or
-enable **OpenClaw** in Chrome. OpenClaw never restarts Chrome or approves its
+enable **Vasudev** in Chrome. Vasudev never restarts Chrome or approves its
 permission prompt for you. The request applies to all profiles in that Chrome
 user-data directory. Chrome controls approval in each profile.
 
@@ -54,17 +54,17 @@ even when the app is connected to a remote Gateway. A browser-based dashboard
 provides Store and setup-guide links instead of installing software locally.
 
 On Linux and in other supported Chromium browsers, add
-[OpenClaw from the Chrome Web Store](https://chromewebstore.google.com/detail/openclaw/kcdjddhmeafeomebliikmbpblkmkfoig)
+[Vasudev from the Chrome Web Store](https://chromewebstore.google.com/detail/openclaw/kcdjddhmeafeomebliikmbpblkmkfoig)
 after native-host registration succeeds. Linux does not support this per-user
 Store installation request. Windows requires adding the Store extension and
 [manual pairing](#advanced-manual-pairing).
 
 You can also use the Store link if Chrome does not offer the requested install.
 If you previously removed the extension, Chrome remembers that choice. Explicitly
-add it again from the Store. OpenClaw does not clear Chrome's removal decision.
+add it again from the Store. Vasudev does not clear Chrome's removal decision.
 
 On macOS and Linux, the origin-locked native host permits the exact official
-Store identity and OpenClaw's deterministic development IDs. Once enabled, the
+Store identity and Vasudev's deterministic development IDs. Once enabled, the
 extension pairs on its first native call. The installer inspects the profile's
 `Preferences` and `Secure Preferences`
 backing files and verifies the exact Store ID independently from any extension
@@ -78,7 +78,7 @@ For extension development, skip creating a Store installation request:
 openclaw browser extension install --no-store
 ```
 
-This still copies the bundled extension to a stable OpenClaw-owned directory
+This still copies the bundled extension to a stable Vasudev-owned directory
 and registers the native host. It leaves any existing Store request unchanged.
 Use the unpacked copy as a development fallback:
 
@@ -92,18 +92,18 @@ setup. For unpacked development, the installer verifies that Chrome loaded the
 approved realpath under its predicted deterministic ID.
 
 The installer recognizes the official Store installation only by the exact
-Foundation Store ID. That identity never makes a recorded path OpenClaw-owned.
+Foundation Store ID. That identity never makes a recorded path Vasudev-owned.
 For unpacked development, it accepts an ID only when all of these are true:
 
 - the ID matches Chrome's 32-character extension ID format.
 - Chrome records the install location as unpacked.
 - the recorded extension path resolves exactly to the installed or bundled
-  OpenClaw extension directory.
+  Vasudev extension directory.
 - the recorded ID equals Chromium's deterministic path ID for that exact
   canonical realpath.
 
 The extension name is not trusted. Existing native-host files with the same
-host name are not overwritten unless they are verifiably OpenClaw-owned.
+host name are not overwritten unless they are verifiably Vasudev-owned.
 
 Use a different bounded wait when needed:
 
@@ -142,7 +142,7 @@ overwritten, and older pairings keep their stored access mode.
 For fresh local setup, native bootstrap connects the extension through the local
 Gateway's exact `/browser/extension` route. That first authenticated connection
 wakes the lazy browser-control service and starts the profile's loopback relay.
-OpenClaw and local clients such as mcporter then use that profile relay port.
+Vasudev and local clients such as mcporter then use that profile relay port.
 Keep `openclaw gateway run` or the managed Gateway service running. A separate
 browser request or prewarm step is not required.
 
@@ -208,13 +208,13 @@ The daemon's stricter v2-only default is compatible with Gateway's default.
 - **All tabs** exposes every eligible ordinary tab in that Chrome profile,
   except tabs paused for the current browser session. Use **Pause on this tab**
   and **Allow on this tab** in the popup.
-- **Selected tabs** uses the **OpenClaw** tab group as the access-control
+- **Selected tabs** uses the **Vasudev** tab group as the access-control
   boundary. Moving a tab into the group grants access. Moving it out revokes
   access.
 
 Open the extension's Settings page to change the access mode. Switching to
 Selected tabs immediately detaches ungrouped tabs, including attaches already
-in flight. Agent-created tabs stay in the OpenClaw group in either mode.
+in flight. Agent-created tabs stay in the Vasudev group in either mode.
 
 The extension excludes incognito tabs, internal pages such as `chrome://` and
 `chrome-extension://`, and tabs without a usable current URL. `file://` access
@@ -222,7 +222,7 @@ also requires Chrome's **Allow access to file URLs** setting.
 
 An agent-created tab may start at `about:blank` while a CDP client initializes
 it before navigating. The extension allows that specific initial tab, keeps it
-in the OpenClaw group, and applies the same pause and access-mode controls.
+in the Vasudev group, and applies the same pause and access-mode controls.
 Existing blank tabs, manually grouped blanks, and other `about:` pages remain
 unavailable. Navigating away, replacing the tab, or restarting or reconnecting
 the extension ends the initial blank admission. Returning to `about:blank`
@@ -252,12 +252,12 @@ local setup** switch.
   new native bootstrap and standalone relay wake-up attempts.
 - **Disconnect and disable automatic setup** revokes the pairing immediately,
   detaches debugger sessions, and persists the opt-out.
-- **Use local OpenClaw** clears the opt-out and retries the native host.
+- **Use local Vasudev** clears the opt-out and retries the native host.
 - Saving an explicit manual pairing also clears the opt-out.
 
 Pre-release development installs that paired before local Gateway wakeup
 routing keep their existing pairing unchanged. In Settings, use **Disconnect
-and disable automatic setup**, then **Use local OpenClaw** to create the new
+and disable automatic setup**, then **Use local Vasudev** to create the new
 local pairing. Released builds do not require this recovery step.
 
 ### Upgrades from the retired tab copilot
@@ -265,7 +265,7 @@ local pairing. Released builds do not require this recovery step.
 If Settings says automation is paused to protect a pre-upgrade copilot
 session, confirm that old runs are finished. Then click **Disconnect and
 disable automatic setup** to discard the retired recovery state, followed by
-**Use local OpenClaw** to reconnect. Until that explicit disconnect succeeds,
+**Use local Vasudev** to reconnect. Until that explicit disconnect succeeds,
 the extension preserves the retired state and blocks relay connections, native
 setup, manual pairing, tab access changes, and debugger attachment.
 
@@ -286,7 +286,7 @@ openclaw browser extension status --json
 ```
 
 JSON `storeInstallRequests` entries report `requested` for a verified
-OpenClaw-owned request, `missing` when no request exists, `foreign` for an
+Vasudev-owned request, `missing` when no request exists, `foreign` for an
 unrecognized registration, or `invalid` when the file cannot be safely read or
 validated. `storeDiscovered` reports `enabled` and `awaitingApproval` separately.
 A requested installation, a discovered extension, or an enabled extension does
@@ -299,7 +299,7 @@ either target, rerun `openclaw browser extension install` to repair the owned
 registration. Ownership checks still refuse foreign or malformed manifests and
 launchers.
 
-Remove only OpenClaw's macOS Chrome Store installation request:
+Remove only Vasudev's macOS Chrome Store installation request:
 
 ```bash
 openclaw browser extension uninstall-store
@@ -309,7 +309,7 @@ Chrome may remove an externally installed extension on its next startup after
 the request is removed. This command leaves native-host registration and the
 development copy intact, and refuses foreign or malformed request files.
 
-Remove only OpenClaw-owned native-host manifests and launchers:
+Remove only Vasudev-owned native-host manifests and launchers:
 
 ```bash
 openclaw browser extension uninstall-host
@@ -339,7 +339,7 @@ wake-up support installed and automatic setup enabled, the extension can
 start that relay on reconnect without a local Gateway. Otherwise, the relay
 must already be running, for example through Browser control or a browser node.
 
-For a laptop that has Chrome but does not run OpenClaw or a browser node, pair
+For a laptop that has Chrome but does not run Vasudev or a browser node, pair
 directly to a remote Gateway:
 
 ```bash
@@ -356,7 +356,7 @@ path without a path-rewriting proxy prefix.
 ## External CDP clients
 
 The relay supports Browser Relay Authentication v2 clients such as mcporter.
-OpenClaw and an external client can stay connected together. When a client
+Vasudev and an external client can stay connected together. When a client
 enables Runtime, the extension checks current tab access before the relay
 replays existing execution contexts to that new subscriber. This does not
 reset another client's Runtime session.
@@ -406,7 +406,7 @@ proof that its debugger client closed. Failed CDP operations are never retried
 against a replacement session.
 
 The connection-lifetime protections require updated extension code as well as
-an updated OpenClaw installation. Update the Store extension when available.
+an updated Vasudev installation. Update the Store extension when available.
 For an unpacked development copy, rerun `openclaw browser extension install`
 and reload the installed copy from `chrome://extensions`.
 
@@ -460,14 +460,14 @@ The response is below Chrome's 1 MiB native-message limit. Pairing keys never
 appear in launcher arguments, manifests, status JSON, or diagnostics.
 
 The POSIX launcher and manifest use absolute canonical paths under an
-OpenClaw-owned mode-`0700` directory. Manifests are mode `0600`. The launcher is
+Vasudev-owned mode-`0700` directory. Manifests are mode `0600`. The launcher is
 owner-executable. Symlinks, foreign ownership, unsafe modes, path traversal,
 wildcard origins, and foreign same-name registrations fail closed.
 
 The managed manifest authorizes the exact Foundation Chrome Web Store origin
 plus deterministic development origins in canonical order. The Store identity
 is a fixed product trust grant, not proof that an arbitrary path is
-OpenClaw-owned.
+Vasudev-owned.
 
 Install the official Chrome Web Store build for normal use. Only load unpacked
 development copies you trust: Chrome can give a key-matched unpacked build the
@@ -479,7 +479,7 @@ bytes with SHA-256 (native UTF-16LE path bytes on Windows, with only a lowercase
 drive letter uppercased), keep the first 16 digest bytes, then map hexadecimal
 digits `0` through `f` to letters `a` through `p`. The unpacked extension
 manifest has no `key`. Only these development IDs depend on approved
-OpenClaw-owned realpaths.
+Vasudev-owned realpaths.
 
 The relay itself uses connection-bound HMAC proofs. The persistent per-host key
 is not sent in a URL, header, WebSocket subprotocol, or application frame during
@@ -505,13 +505,13 @@ openclaw doctor
   development fallback after the command says native bootstrap is ready.
 - **Extension was loaded before native bootstrap:** restart Chrome once to clear its
   cached native-host miss, then rerun the ordered install flow.
-- **Extension version mismatch:** reload the unpacked OpenClaw extension from
+- **Extension version mismatch:** reload the unpacked Vasudev extension from
   `chrome://extensions`, then rerun browser doctor. Fully restart Chrome if the
   running and bundled versions still differ.
-- **Waiting for local OpenClaw:** run `extension status`. Install or repair the
+- **Waiting for local Vasudev:** run `extension status`. Install or repair the
   owned native host.
 - **Automatic setup disabled:** enable it in Settings or click **Use local
-  OpenClaw**.
+  Vasudev**.
 - **Manual setup required:** use Settings for the advanced pairing flow. This
   is expected on Windows and direct extension-only remote Gateway setups.
 - **Relay unavailable:** for `/browser/extension` pairings, confirm the target

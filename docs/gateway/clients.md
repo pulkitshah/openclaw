@@ -1,7 +1,7 @@
 ---
 summary: "Build a third-party operator or WebChat client for the Gateway WebSocket protocol"
 read_when:
-  - Building an operator, dashboard, or WebChat client outside the OpenClaw repository
+  - Building an operator, dashboard, or WebChat client outside the Vasudev repository
   - Implementing Gateway reconnect, history, approvals, or device pairing
   - Updating a third-party client for a new Gateway wire version
 title: "Building a Gateway client"
@@ -28,7 +28,7 @@ If an existing lockfile still pins either package to the reserved `0.0.0`
 artifact, rerun the command above to replace it. Those reserved artifacts have no
 runnable entrypoint or TypeScript declarations.
 
-Package versions follow the OpenClaw release train and are separate from the wire
+Package versions follow the Vasudev release train and are separate from the wire
 protocol version. The `2026.8.1` packages export wire version `4`; that does not
 guarantee compatibility with every Gateway release. The root `openclaw` CLI has
 its own package versions and dist-tags. Pin and test the client and Gateway
@@ -302,12 +302,12 @@ release-vintage metadata and required scope metadata for core methods, but a wir
 version bump is still an explicit breaking event for third-party clients. Pin the
 package versions you test, upgrade the client and Gateway together when the wire
 version changes, and review the
-[OpenClaw changelog](https://github.com/openclaw/openclaw/blob/main/CHANGELOG.md)
+[Vasudev changelog](https://github.com/openclaw/openclaw/blob/main/CHANGELOG.md)
 before each upgrade.
 
 ## Related
 
 - [Gateway protocol](/gateway/protocol)
-- [Embedding OpenClaw](/gateway/embedding)
+- [Embedding Vasudev](/gateway/embedding)
 - [Gateway RPC reference](/reference/rpc)
 - [Gateway integrations for external apps](/gateway/external-apps)

@@ -49,17 +49,17 @@ Ad-hoc signatures generate a new identity every build. macOS forgets previous gr
 
 If Quick Chat still shows **Needs additional permissions: Screen Recording**:
 
-1. Click **Grant** in OpenClaw.
-2. If macOS opens System Settings, enable the running OpenClaw app under **Privacy & Security -> Screen & System Audio Recording** (called **Screen Recording** on older macOS versions).
-3. Return to OpenClaw and retry the screenshot. **Dashboard → Settings → This Mac → Permissions** shows the refreshed access status.
+1. Click **Grant** in Vasudev.
+2. If macOS opens System Settings, enable the running Vasudev app under **Privacy & Security -> Screen & System Audio Recording** (called **Screen Recording** on older macOS versions).
+3. Return to Vasudev and retry the screenshot. **Dashboard → Settings → This Mac → Permissions** shows the refreshed access status.
 
-After an explicit **Grant** request, OpenClaw checks ScreenCaptureKit as well as the macOS permission preflight. This lets it recognize access when the preflight still reports an old denial. Passive status checks do not initiate this probe before you request access.
+After an explicit **Grant** request, Vasudev checks ScreenCaptureKit as well as the macOS permission preflight. This lets it recognize access when the preflight still reports an old denial. Passive status checks do not initiate this probe before you request access.
 
-If access still appears missing, quit and reopen OpenClaw from the same app path. Some macOS permission changes require an app restart before capture works. If both release and development builds are installed, grant access to the build you are actually running: approving `/Applications/OpenClaw.app` does not grant access to a development build with a different bundle identifier.
+If access still appears missing, quit and reopen Vasudev from the same app path. Some macOS permission changes require an app restart before capture works. If both release and development builds are installed, grant access to the build you are actually running: approving `/Applications/OpenClaw.app` does not grant access to a development build with a different bundle identifier.
 
 ## Accessibility grants for Node and CLI runtimes
 
-Prefer granting Accessibility to OpenClaw.app, Peekaboo.app, or another signed helper with its own bundle identifier instead of a generic `node` binary.
+Prefer granting Accessibility to Vasudev.app, Peekaboo.app, or another signed helper with its own bundle identifier instead of a generic `node` binary.
 
 macOS TCC grants Accessibility to the code identity of the process it sees. If a Homebrew, nvm, pnpm, or npm workflow causes a shared `node` executable to receive Accessibility, any JavaScript package launched through that same executable may inherit GUI automation privileges.
 
@@ -71,9 +71,9 @@ If you accidentally granted Accessibility to `node`, remove that entry from Syst
 
 ## Separate Computer Control grants
 
-macOS keeps Accessibility, Event Posting, input listening, and Screen Recording in separate TCC buckets. One successful grant does not prove the others are usable. OpenClaw's Computer Control status checks Accessibility, Event Posting, and Screen Recording separately; this is why screenshots can succeed while clicks and typing fail.
+macOS keeps Accessibility, Event Posting, input listening, and Screen Recording in separate TCC buckets. One successful grant does not prove the others are usable. Vasudev's Computer Control status checks Accessibility, Event Posting, and Screen Recording separately; this is why screenshots can succeed while clicks and typing fail.
 
-An Accessibility row can also remain visibly enabled while its code requirement is pinned to an older build. When OpenClaw reports **Accessibility grant may be stale**, select OpenClaw under **System Settings -> Privacy & Security -> Accessibility**, remove it with **-**, then re-add `/Applications/OpenClaw.app`. Quit and reopen OpenClaw afterward because Accessibility trust can remain cached in the running process.
+An Accessibility row can also remain visibly enabled while its code requirement is pinned to an older build. When Vasudev reports **Accessibility grant may be stale**, select Vasudev under **System Settings -> Privacy & Security -> Accessibility**, remove it with **-**, then re-add `/Applications/OpenClaw.app`. Quit and reopen Vasudev afterward because Accessibility trust can remain cached in the running process.
 
 ## Desktop availability and keeping awake
 
@@ -83,11 +83,11 @@ state is separate from permission grants and the optional **Active computer
 presence** setting. A connected node or a successful Screen Sharing connection
 does not prove that the desktop is unlocked.
 
-During a Computer execution, OpenClaw uses temporary keep-awake assertions for
+During a Computer execution, Vasudev uses temporary keep-awake assertions for
 up to one hour from that execution's first action. This includes background
 window and browser actions. Completion, cancellation, disconnect, provider
 replacement, or local Stop releases the execution's keep-awake request. The web
-Desktop viewer does not create an OpenClaw keep-awake execution.
+Desktop viewer does not create an Vasudev keep-awake execution.
 
 To keep a dedicated Mac awake between jobs, enable **Unattended desktop hosting**
 on the same settings page and accept the native confirmation. It is off by
@@ -95,10 +95,10 @@ default and takes effect only while this Mac is connected and actually hosting.
 It does not change macOS power or lock settings.
 
 Screen Sharing may request an immediate lock when its last viewer disconnects.
-OpenClaw honors that lock even when unattended desktop hosting is enabled.
+Vasudev honors that lock even when unattended desktop hosting is enabled.
 
 Manual lock, logout, or an unknown desktop state releases keep-awake assertions
-and retires active Computer executions. OpenClaw does not unlock the Mac or
+and retires active Computer executions. Vasudev does not unlock the Mac or
 resume those executions after sign-in. Use the normal macOS login screen through
 Screen Sharing or locally, then start a new Computer execution. The unattended
 option can become active again after a verified unlock while its hosting and
@@ -117,7 +117,7 @@ See [Computer use troubleshooting](/nodes/computer-use#macos-desktop-availabilit
 4. If the prompt still does not appear, reset TCC entries with `tccutil` and try again.
 5. Some permissions only reappear after a full macOS restart.
 
-Example resets (using OpenClaw's bundle ID, `ai.openclaw.mac`):
+Example resets (using Vasudev's bundle ID, `ai.openclaw.mac`):
 
 ```bash
 sudo tccutil reset Accessibility ai.openclaw.mac
@@ -129,7 +129,7 @@ sudo tccutil reset AppleEvents
 
 macOS may also gate Desktop, Documents, and Downloads for terminal/background processes. If file reads or directory listings hang, grant access to the same process context that performs file operations (for example Terminal/iTerm, LaunchAgent-launched app, or SSH process).
 
-Workaround: move files into the OpenClaw workspace (`~/.openclaw/workspace`) if you want to avoid per-folder grants.
+Workaround: move files into the Vasudev workspace (`~/.openclaw/workspace`) if you want to avoid per-folder grants.
 
 If you are testing permissions, always sign with a real certificate. Ad-hoc builds are only acceptable for quick local runs where permissions do not matter.
 

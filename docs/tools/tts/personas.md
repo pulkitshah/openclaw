@@ -92,7 +92,7 @@ Provider selection runs explicit-first:
 4. `tts.provider`.
 5. Registry auto-select.
 
-For each provider attempt, OpenClaw merges configs in this order:
+For each provider attempt, Vasudev merges configs in this order:
 
 1. `tts.providers.<id>`
 2. `tts.personas.<persona>.providers.<id>`

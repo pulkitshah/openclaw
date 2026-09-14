@@ -185,9 +185,9 @@ pending prompts, and `interrupt` stops the current run before starting the new
 one. Explicit `/steer <message>` is Gateway-only. Use `/queue steer` plus a
 normal message in local mode.
 
-OpenClaw:
+Vasudev:
 
-- `/openclaw [request]` returns from the normal agent TUI to the [OpenClaw](#openclaw-setup-and-repair-helper) setup/repair chat, optionally forwarding one request.
+- `/openclaw [request]` returns from the normal agent TUI to the [Vasudev](#vasudev-setup-and-repair-helper) setup/repair chat, optionally forwarding one request.
 
 Other Gateway slash commands (for example, `/context`) are forwarded to the Gateway and shown as system output. See [Slash commands](/tools/slash-commands).
 
@@ -199,9 +199,9 @@ Other Gateway slash commands (for example, `/context`) are forwarded to the Gate
 - Local shell commands receive `OPENCLAW_SHELL=tui-local` in their environment.
 - A lone `!` is sent as a normal message. Leading spaces do not trigger local exec.
 
-## OpenClaw setup and repair helper
+## Vasudev setup and repair helper
 
-OpenClaw is the ring-zero setup/repair assistant. It is exposed as `openclaw setup` after the configured default model passes a live inference check. If inference is unavailable, an interactive invocation returns to inference onboarding and automation fails with repair guidance. It runs inside the same local TUI shell as `openclaw tui --local`, backed by an AI agent restricted to OpenClaw's typed, approval-gated operations:
+Vasudev is the ring-zero setup/repair assistant. It is exposed as `openclaw setup` after the configured default model passes a live inference check. If inference is unavailable, an interactive invocation returns to inference onboarding and automation fails with repair guidance. It runs inside the same local TUI shell as `openclaw tui --local`, backed by an AI agent restricted to Vasudev's typed, approval-gated operations:
 
 ```bash
 openclaw setup                       # start interactively
@@ -211,7 +211,7 @@ openclaw setup -m "set default model openai/gpt-5.2" --yes   # apply a config wr
 
 - Persistent config writes need approval: either approve interactively or pass `--yes`.
 - `--json` prints the startup overview as JSON instead of starting the chat.
-- From inside OpenClaw, an `open-tui` request exits OpenClaw and opens the regular agent TUI. One example is asking to talk to a normal agent. Use `/openclaw` there to come back.
+- From inside Vasudev, an `open-tui` request exits Vasudev and opens the regular agent TUI. One example is asking to talk to a normal agent. Use `/openclaw` there to come back.
 
 Use local mode when the current config already passes validation and you want the embedded agent to work on it. That agent inspects the config on the same machine, compares it against the docs, and helps repair drift. Local mode does not depend on a running Gateway.
 

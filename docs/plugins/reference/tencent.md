@@ -1,5 +1,5 @@
 ---
-summary: "Adds Tencent TokenHub, Tencent Tokenplan model provider support to OpenClaw."
+summary: "Adds Tencent TokenHub, Tencent Tokenplan model provider support to Vasudev."
 read_when:
   - You are installing, configuring, or auditing the tencent plugin
 title: "Tencent plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-Adds Tencent TokenHub, Tencent Tokenplan model provider support to OpenClaw.
+Adds Tencent TokenHub, Tencent Tokenplan model provider support to Vasudev.
 
 ## Distribution
 

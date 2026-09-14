@@ -8,7 +8,7 @@ title: "Doctor"
 sidebarTitle: "Doctor"
 ---
 
-`openclaw doctor` is the repair and migration tool for OpenClaw. It fixes stale config/state, checks health, and provides actionable repair steps.
+`openclaw doctor` is the repair and migration tool for Vasudev. It fixes stale config/state, checks health, and provides actionable repair steps.
 
 This page is an index. Doctor is documented on seven pages, one per reader job.
 Open the page that matches your task.

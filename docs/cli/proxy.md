@@ -2,7 +2,7 @@
 summary: "CLI reference for `openclaw proxy`, including operator-managed proxy validation and the local debug proxy capture inspector"
 read_when:
   - You need to validate operator-managed proxy routing before deployment
-  - You need to capture OpenClaw transport traffic locally for debugging
+  - You need to capture Vasudev transport traffic locally for debugging
   - You want to inspect debug proxy sessions, blobs, or built-in query presets
 title: "Proxy"
 ---
@@ -28,7 +28,7 @@ openclaw proxy purge
 
 Checks the effective operator-managed proxy URL from `--proxy-url`, config (`proxy.proxyUrl`), or `OPENCLAW_PROXY_URL`, in that precedence order. Reports a config problem if no proxy is enabled and configured. Pass `--proxy-url` for a one-off preflight without touching config.
 
-Managed proxy URLs use `http://` for a plain forward-proxy listener, or `https://` when OpenClaw must open TLS to the proxy endpoint itself before sending proxy requests. Use `--proxy-ca-file` to trust a private CA for that TLS connection.
+Managed proxy URLs use `http://` for a plain forward-proxy listener, or `https://` when Vasudev must open TLS to the proxy endpoint itself before sending proxy requests. Use `--proxy-ca-file` to trust a private CA for that TLS connection.
 
 By default it runs:
 
@@ -62,7 +62,7 @@ See [Network Proxy](/security/network-proxy) for deployment guidance and denial 
 
 `run` starts a local debug proxy, then runs `<cmd...>` (after `--`) with the proxy env applied, under its own capture session.
 
-The debug proxy's direct upstream forwarding opens upstream sockets for diagnostics. When OpenClaw managed proxy mode is active, direct forwarding for proxy requests and CONNECT tunnels is disabled by default. Set `OPENCLAW_DEBUG_PROXY_ALLOW_DIRECT_CONNECT_WITH_MANAGED_PROXY=1` only for approved local diagnostics.
+The debug proxy's direct upstream forwarding opens upstream sockets for diagnostics. When Vasudev managed proxy mode is active, direct forwarding for proxy requests and CONNECT tunnels is disabled by default. Set `OPENCLAW_DEBUG_PROXY_ALLOW_DIRECT_CONNECT_WITH_MANAGED_PROXY=1` only for approved local diagnostics.
 
 `coverage` prints a JSON report (`summary` + per-transport `entries`) of which transports are captured, proxy-only, or uncovered.
 

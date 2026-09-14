@@ -1,14 +1,14 @@
 ---
 summary: "CLI reference for `openclaw docs` (search the live docs index)"
 read_when:
-  - You want to search the live OpenClaw docs from the terminal
+  - You want to search the live Vasudev docs from the terminal
   - You need to know which hosted search API the docs CLI calls
 title: "Docs"
 ---
 
 # `openclaw docs`
 
-Search the live OpenClaw docs index from the terminal.
+Search the live Vasudev docs index from the terminal.
 
 ## Usage
 

@@ -1282,7 +1282,7 @@
     },
     {
       "source": "/ci/openclaw-performance",
-      "destination": "/ci/scheduled-workflows#openclaw-performance"
+      "destination": "/ci/scheduled-workflows#vasudev-performance"
     },
     {
       "source": "/ci/full-release-validation",

@@ -1,5 +1,5 @@
 ---
-summary: "OpenClaw Nostr channel plugin for NIP-04 encrypted direct messages."
+summary: "Vasudev Nostr channel plugin for NIP-04 encrypted direct messages."
 read_when:
   - You are installing, configuring, or auditing the nostr plugin
 title: "Nostr plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-OpenClaw Nostr channel plugin for NIP-04 encrypted direct messages.
+Vasudev Nostr channel plugin for NIP-04 encrypted direct messages.
 
 ## Distribution
 

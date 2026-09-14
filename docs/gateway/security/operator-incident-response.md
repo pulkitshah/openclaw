@@ -31,7 +31,7 @@ sidebarTitle: "Incident response"
 
 ### Collect for a report
 
-- Timestamp, gateway host OS + OpenClaw version.
+- Timestamp, gateway host OS + Vasudev version.
 - The session transcript(s) + a short log tail (after redacting).
 - What the attacker sent and what the agent did.
 - Whether the Gateway was exposed beyond loopback (LAN/Tailscale Funnel/Serve).

@@ -81,7 +81,7 @@ the finalized context message id identifies the last source result.
 An identity descriptor may provide `resolveParticipant(subject)`, returning
 `{ domain, idKind, id }` only when the plugin can prove those remote facts.
 The domain belongs to the remote service: for example, a Slack workspace or
-an application-scoped identity issuer. It is not OpenClaw's local `accountId`.
+an application-scoped identity issuer. It is not Vasudev's local `accountId`.
 Keep user IDs, bot IDs, and proxy identities distinct when the service gives
 them different meanings. Names and successful Gateway profile lookups are
 not identity evidence.

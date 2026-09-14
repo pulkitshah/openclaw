@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/slack",
   "version": "2026.9.4",
-  "description": "OpenClaw Slack channel plugin for channels, DMs, commands, and app events.",
+  "description": "Vasudev Slack channel plugin for channels, DMs, commands, and app events.",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

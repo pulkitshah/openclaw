@@ -5,7 +5,7 @@ read_when:
 title: "Discord"
 ---
 
-OpenClaw connects to Discord as a bot over the official Discord gateway. DMs and guild channels are supported.
+Vasudev connects to Discord as a bot over the official Discord gateway. DMs and guild channels are supported.
 
 <CardGroup cols={3}>
   <Card title="Pairing" icon="link" href="/channels/pairing">
@@ -64,7 +64,7 @@ Every section heading from the previous single-page version keeps its anchor her
 - <a id="enable-developer-mode-and-collect-your-ids" />[Enable Developer Mode and collect your IDs](/channels/discord/setup#enable-developer-mode-and-collect-your-ids)
 - <a id="allow-dms-from-server-members" />[Allow DMs from server members](/channels/discord/setup#allow-dms-from-server-members)
 - <a id="set-your-bot-token-securely-do-not-send-it-in-chat" />[Set your bot token securely (do not send it in chat)](/channels/discord/setup#set-your-bot-token-securely-do-not-send-it-in-chat)
-- <a id="configure-openclaw-and-pair" />[Configure OpenClaw and pair](/channels/discord/setup#configure-openclaw-and-pair)
+- <a id="configure-openclaw-and-pair" />[Configure Vasudev and pair](/channels/discord/setup#configure-vasudev-and-pair)
 - <a id="ask-your-agent" />[Ask your agent](/channels/discord/setup#ask-your-agent)
 - <a id="cli-%2F-config" />[CLI / config](/channels/discord/setup#cli-%2F-config)
 - <a id="approve-first-dm-pairing" />[Approve first DM pairing](/channels/discord/setup#approve-first-dm-pairing)
@@ -142,7 +142,7 @@ Set `channels.discord.activities` to let the core `show_widget` tool post self-c
 
 - Treat bot tokens as secrets (`DISCORD_BOT_TOKEN` preferred in supervised environments).
 - `DISCORD_API_URL` overrides the process-wide, versioned Discord REST base (for example,
-  `https://discord.example.com/api/v10`). OpenClaw also uses that origin for Gateway discovery,
+  `https://discord.example.com/api/v10`). Vasudev also uses that origin for Gateway discovery,
   WebSocket connections, media, webhooks, OAuth, and command registration; requests do not fall
   back to public Discord while the override is set. Plain HTTP/WS is accepted only on loopback,
   and Discord voice transport is unavailable with the override. Set it in the Gateway process

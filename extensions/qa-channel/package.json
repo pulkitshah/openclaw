@@ -2,7 +2,7 @@
   "name": "@openclaw/qa-channel",
   "version": "2026.9.4",
   "private": true,
-  "description": "OpenClaw QA synthetic channel plugin",
+  "description": "Vasudev QA synthetic channel plugin",
   "type": "module",
   "exports": {
     ".": "./index.ts",
@@ -38,7 +38,7 @@
       "detailLabel": "QA Channel",
       "docsPath": "/channels/qa-channel",
       "docsLabel": "qa-channel",
-      "blurb": "Synthetic Slack-class transport for automated OpenClaw QA scenarios.",
+      "blurb": "Synthetic Slack-class transport for automated Vasudev QA scenarios.",
       "systemImage": "checklist",
       "order": 999,
       "exposure": {

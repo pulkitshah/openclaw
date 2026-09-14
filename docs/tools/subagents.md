@@ -1,5 +1,5 @@
 ---
-summary: "Index of the OpenClaw sub-agent documentation, one page per reader job"
+summary: "Index of the Vasudev sub-agent documentation, one page per reader job"
 read_when:
   - You want background or parallel work via the agent
   - You are changing sessions_spawn or sub-agent tool policy

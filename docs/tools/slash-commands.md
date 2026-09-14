@@ -13,7 +13,7 @@ Host-only bash commands use `! <cmd>` (with `/bash <cmd>` as an alias).
 
 When a conversation is bound to an ACP session, normal text routes to the ACP
 harness. Gateway management commands remain local: `/acp ...` always reaches
-the OpenClaw command handler, and `/status` plus `/session` stay local whenever
+the Vasudev command handler, and `/status` plus `/session` stay local whenever
 command handling is enabled for the surface.
 
 ## Three command types
@@ -121,7 +121,7 @@ command handling is enabled for the surface.
 </ParamField>
 
 <ParamField path="commands.mcp" type="boolean" default="false">
-  Enables `/mcp` (reads/writes OpenClaw-managed MCP config under `mcp.servers`). Owner-only.
+  Enables `/mcp` (reads/writes Vasudev-managed MCP config under `mcp.servers`). Owner-only.
 </ParamField>
 
 <ParamField path="commands.plugins" type="boolean" default="false">
@@ -299,7 +299,7 @@ plugins, and installed skills.
     | `/goal [status\|start\|edit\|pause\|resume\|complete\|block\|clear] ...` | Manage the current session's durable [goal](/tools/goal) |
     | `/dashboard [request]` | Create or update the current session's dashboard using the Control UI dashboard workflow |
     | `/diagnostics [note]` | Owner-only support-report flow. Asks for exec approval every time |
-    | `/openclaw <request>` | Run the OpenClaw setup and repair helper from an owner DM |
+    | `/openclaw <request>` | Run the Vasudev setup and repair helper from an owner DM |
     | `/tasks` | List active/recent background tasks for the current session |
     | `/context [list\|detail\|map\|json]` | Explain how context is assembled |
     | `/whoami` | Show your sender id. Alias: `/id` |
@@ -337,11 +337,11 @@ user skill directly.
     | Command | Requires | Description |
     | --- | --- | --- |
     | `/config show\|get\|set\|unset` | `commands.config: true` | Read or write `openclaw.json`. Owner-only |
-    | `/mcp show\|get\|set\|unset` | `commands.mcp: true` | Read or write OpenClaw-managed MCP server config. Owner-only |
+    | `/mcp show\|get\|set\|unset` | `commands.mcp: true` | Read or write Vasudev-managed MCP server config. Owner-only |
     | `/plugins list\|inspect\|show\|get\|install\|enable\|disable` | `commands.plugins: true` | Inspect or mutate plugin state. Owner-only for writes. Alias: `/plugin` |
     | `/debug show\|set\|unset\|reset` | `commands.debug: true` | Runtime-only config overrides. Owner-only |
-    | `/restart` | `commands.restart: true` (default) | Restart OpenClaw |
-    | `/update` | `commands.restart: true` (default), owner | Update OpenClaw using its configured update channel; works with default tool profiles and sends a completion or failure notice in the same chat |
+    | `/restart` | `commands.restart: true` (default) | Restart Vasudev |
+    | `/update` | `commands.restart: true` (default), owner | Update Vasudev using its configured update channel; works with default tool profiles and sends a completion or failure notice in the same chat |
     | `/send on\|off\|inherit` | owner | Set send policy |
 
     Natural-language update requests use the `gateway` tool's `update.run`
@@ -493,7 +493,7 @@ updates persist across restarts.
 /mcp unset context7
 ```
 
-`/mcp` stores config in OpenClaw config, not embedded-agent project settings.
+`/mcp` stores config in Vasudev config, not embedded-agent project settings.
 `/mcp show` redacts credential-bearing fields, recognized credential flag
 values, and known secret-shaped arguments. When run from a group, the
 configuration is routed privately to the owner. The group notice distinguishes
@@ -556,7 +556,7 @@ that reply, then rerun with `--accept-capabilities`:
 /plugins enable <plugin-id> --accept-capabilities
 ```
 
-Bundled plugins and verified plugins from OpenClaw's official catalog are exempt
+Bundled plugins and verified plugins from Vasudev's official catalog are exempt
 from capability consent. Third-party capability consent is separate from the
 source acknowledgement provided by `--force`.
 

@@ -25,7 +25,7 @@ openclaw approvals pending
 openclaw approvals resolve <id> <allow-once|allow-always|deny>
 ```
 
-`get` shows the effective exec policy for the target: the requested `tools.exec` policy, the host approvals-file policy, and the merged effective result. Nodes with a host-native policy, such as the Windows companion, show that policy directly instead of applying OpenClaw approvals-file policy math.
+`get` shows the effective exec policy for the target: the requested `tools.exec` policy, the host approvals-file policy, and the merged effective result. Nodes with a host-native policy, such as the Windows companion, show that policy directly instead of applying Vasudev approvals-file policy math.
 
 For file-backed nodes, the merged view requires a host-resolved policy snapshot. Older nodes show the effective policy as unavailable instead of assuming the Gateway's requested policy also applies on the host.
 
@@ -42,7 +42,7 @@ Precedence:
 
 ## Pending approvals
 
-List pending exec, plugin, and OpenClaw system-agent approvals from the Gateway:
+List pending exec, plugin, and Vasudev system-agent approvals from the Gateway:
 
 ```bash
 openclaw approvals pending
@@ -142,9 +142,9 @@ openclaw approvals set --stdin <<'EOF'
 EOF
 ```
 
-For nodes that expose an OpenClaw approvals document, use the same body with `openclaw approvals set --node <id|name|ip> --stdin`. Host-native nodes require their owner-specific shape shown above.
+For nodes that expose an Vasudev approvals document, use the same body with `openclaw approvals set --node <id|name|ip> --stdin`. Host-native nodes require their owner-specific shape shown above.
 
-This changes the **host approvals document** only. To keep the requested OpenClaw policy aligned, also set:
+This changes the **host approvals document** only. To keep the requested Vasudev policy aligned, also set:
 
 ```bash
 openclaw config set tools.exec.host gateway

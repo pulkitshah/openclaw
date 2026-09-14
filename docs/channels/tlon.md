@@ -5,7 +5,7 @@ read_when:
 title: "Tlon"
 ---
 
-Tlon is a decentralized messenger built on Urbit. OpenClaw connects to your Urbit ship and
+Tlon is a decentralized messenger built on Urbit. Vasudev connects to your Urbit ship and
 responds to DMs and group chat messages. Group replies require an @ mention by default, with
 authorization rules and an owner-approval flow layered on top.
 
@@ -14,7 +14,7 @@ owner approval system are supported. Reactions and polls are not.
 
 ## Bundled plugin
 
-Tlon ships bundled in current OpenClaw releases; packaged builds do not need a separate install.
+Tlon ships bundled in current Vasudev releases; packaged builds do not need a separate install.
 
 On an older build or custom install that excludes it, install from npm:
 
@@ -63,13 +63,13 @@ channel.
 
 ## Inbound durability
 
-OpenClaw persists accepted Tlon DM and group-chat events before agent dispatch. Pending or retryable turns survive a Gateway restart, and work remains serialized per group channel or direct peer. Stable Urbit message IDs also suppress a redelivered event while its queue record or retained completion record exists.
+Vasudev persists accepted Tlon DM and group-chat events before agent dispatch. Pending or retryable turns survive a Gateway restart, and work remains serialized per group channel or direct peer. Stable Urbit message IDs also suppress a redelivered event while its queue record or retained completion record exists.
 
 Delivery is at least once across the queue-to-agent boundary: a crash during handoff can replay a turn. Agent actions that produce external side effects should therefore remain idempotent where practical.
 
 ## Private/LAN ships
 
-OpenClaw blocks private/internal hostnames and IP ranges for SSRF protection by default. If your
+Vasudev blocks private/internal hostnames and IP ranges for SSRF protection by default. If your
 ship runs on a private network (localhost, LAN IP, internal hostname), opt in explicitly:
 
 ```json5
@@ -110,7 +110,7 @@ Pin channels manually, or turn on auto-discovery:
 ```
 
 `autoDiscoverChannels` defaults to `false` when unset in config; the setup wizard defaults the
-prompt to yes and writes `true` explicitly. With it on, OpenClaw scries joined groups on startup,
+prompt to yes and writes `true` explicitly. With it on, Vasudev scries joined groups on startup,
 watches new channels as group invites are accepted, and rechecks every 2 minutes.
 
 ## Access control

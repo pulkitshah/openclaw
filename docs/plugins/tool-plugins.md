@@ -3,14 +3,14 @@ summary: "Build simple typed agent tools with defineToolPlugin and openclaw plug
 title: "Tool plugins"
 sidebarTitle: "Tool Plugins"
 read_when:
-  - You want to build a simple OpenClaw plugin that only adds agent tools
+  - You want to build a simple Vasudev plugin that only adds agent tools
   - You want to use defineToolPlugin instead of hand-writing plugin manifest metadata
   - You need to scaffold, generate, validate, test, or publish a tool-only plugin
 ---
 
 `defineToolPlugin` builds a plugin that only adds agent-callable tools: no
 channel, model provider, hook, service, or setup backend. It generates the
-manifest metadata OpenClaw needs to discover tools without loading plugin
+manifest metadata Vasudev needs to discover tools without loading plugin
 runtime code.
 
 For provider, channel, hook, service, or mixed-capability plugins, start with
@@ -122,7 +122,7 @@ specific enough to avoid collisions with core tools or other plugins.
 
 Set `optional: true` when users should explicitly allowlist the tool before it
 is sent to a model. `openclaw plugins build` writes the matching
-`toolMetadata.<tool>.optional` manifest entry, so OpenClaw can see that the
+`toolMetadata.<tool>.optional` manifest entry, so Vasudev can see that the
 tool is optional without loading plugin runtime code.
 
 ```typescript
@@ -181,7 +181,7 @@ retired.
 
 Set `hideFromChannelProgress: true` on the concrete factory tool to keep its
 transient activity out of channel progress drafts. Lifecycle events and the
-final tool result still flow normally. OpenClaw preserves the current factory's
+final tool result still flow normally. Vasudev preserves the current factory's
 flag when normalizing its schema; omitted or `false` leaves normal progress
 behavior in place. See [Progress drafts](/concepts/progress-drafts).
 
@@ -191,12 +191,12 @@ with hooks, services, providers, or commands.
 
 ## Return values
 
-`defineToolPlugin` wraps plain return values into the OpenClaw tool-result
+`defineToolPlugin` wraps plain return values into the Vasudev tool-result
 format:
 
 - Return a string when the model should see that exact text.
 - Return a JSON-compatible value when you want the model to see formatted JSON
-  and OpenClaw to keep the original value in `details`.
+  and Vasudev to keep the original value in `details`.
 
 ```typescript
 tool({
@@ -256,7 +256,7 @@ schema into a bounded TypeScript-style output hint. That lets a model call and
 transform a known result in one program instead of spending another model turn
 observing its shape.
 
-OpenClaw compiles the schema before executing a catalog call, then validates the
+Vasudev compiles the schema before executing a catalog call, then validates the
 final `details` value after tool hooks before returning it through the bridge.
 An invalid schema cannot run the tool; a result mismatch fails the completed
 call. Include every non-throwing result variant, including structured error
@@ -272,7 +272,7 @@ Factory tools declare `outputSchema` on the concrete `AnyAgentTool` they
 return. The static `tool({ factory })` declaration does not accept a separate
 output schema because it could drift from the runtime tool.
 
-OpenClaw also grades the call outcome from `details`, so `status`, `ok`,
+Vasudev also grades the call outcome from `details`, so `status`, `ok`,
 `success`, `error`, `timedOut`, and `exitCode` are reserved names. A `status`
 of `blocked`, `denied`, `invalid`, `cancelled`, or any other failure value
 marks the call failed unless `ok` or `success` is explicitly `true`, even when
@@ -282,7 +282,7 @@ instead of at the top level of `details`.
 
 ## Configuration
 
-`configSchema` is optional. Omit it and OpenClaw applies a strict empty object
+`configSchema` is optional. Omit it and Vasudev applies a strict empty object
 schema; the generated manifest still includes `configSchema`.
 
 ```typescript
@@ -317,13 +317,13 @@ export default defineToolPlugin({
 });
 ```
 
-OpenClaw reads plugin config from the plugin's entry in the Gateway config. Do
+Vasudev reads plugin config from the plugin's entry in the Gateway config. Do
 not hard-code secrets in source or docs examples; use config, environment
 variables, or SecretRefs per the plugin's security model.
 
 ## Generated metadata
 
-OpenClaw must read the plugin manifest before importing plugin runtime code.
+Vasudev must read the plugin manifest before importing plugin runtime code.
 `defineToolPlugin` exposes static metadata for this, and
 `openclaw plugins build` writes it into the package. Rerun the generator after
 changing plugin id, name, description, config schema, activation, or tool
@@ -356,7 +356,7 @@ Generated manifest for a one-tool plugin:
 }
 ```
 
-`contracts.tools` is the important discovery contract: it tells OpenClaw which
+`contracts.tools` is the important discovery contract: it tells Vasudev which
 plugin owns each tool without loading every installed plugin's runtime. A
 stale manifest means a tool can go missing from discovery, or a registration
 error gets blamed on the wrong plugin.
@@ -397,7 +397,7 @@ openclaw plugins validate --entry ./dist/index.js
 npm test
 ```
 
-OpenClaw SDK compatibility fields carry TypeScript `@deprecated` annotations,
+Vasudev SDK compatibility fields carry TypeScript `@deprecated` annotations,
 which editors surface as migration warnings. To enforce them in CI, enable a
 type-aware rule such as
 [`@typescript-eslint/no-deprecated`](https://typescript-eslint.io/rules/no-deprecated/).
@@ -414,7 +414,7 @@ Oxlint is not type-aware, so it cannot enforce these annotations. The generated
 
 ## Install and inspect locally
 
-From a separate OpenClaw checkout or installed CLI, install the package path:
+From a separate Vasudev checkout or installed CLI, install the package path:
 
 ```bash
 openclaw plugins install ./stock-quotes
@@ -451,7 +451,7 @@ openclaw plugins install clawhub:your-org/stock-quotes
 ```
 
 Bare npm package specs install from npm, but ClawHub is the preferred
-discovery and distribution surface for OpenClaw plugins. See [ClawHub publishing](/clawhub/publishing) for owner scope and
+discovery and distribution surface for Vasudev plugins. See [ClawHub publishing](/clawhub/publishing) for owner scope and
 release review.
 
 ## Troubleshooting

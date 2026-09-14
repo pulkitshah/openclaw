@@ -1,7 +1,7 @@
 ---
-summary: "How OpenClaw discovers Ollama models implicitly, plus narrow smoke tests"
+summary: "How Vasudev discovers Ollama models implicitly, plus narrow smoke tests"
 read_when:
-  - You want to know which models OpenClaw discovers and how
+  - You want to know which models Vasudev discovers and how
   - You need capability, reasoning, or cost detection rules
   - You want a narrow text or vision probe that skips the agent tool surface
 title: "Ollama model discovery"
@@ -12,7 +12,7 @@ sidebarTitle: "Model discovery"
 
 When `OLLAMA_API_KEY` (or an auth profile) is set and neither
 `models.providers.ollama` nor another custom provider with `api: "ollama"` is
-defined, OpenClaw discovers models from `http://127.0.0.1:11434`:
+defined, Vasudev discovers models from `http://127.0.0.1:11434`:
 
 | Behavior             | Detail                                                                                                                                                                                                                                                                                        |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -20,7 +20,7 @@ defined, OpenClaw discovers models from `http://127.0.0.1:11434`:
 | Capability detection | Best-effort `/api/show` reads `contextWindow`, `num_ctx` Modelfile parameters, and capabilities (vision/tools/thinking)                                                                                                                                                                       |
 | Vision models        | A `vision` capability from `/api/show` marks the model image-capable (`input: ["text", "image"]`)                                                                                                                                                                                             |
 | Reasoning detection  | Uses the `thinking` capability from `/api/show` when available; falls back to a name heuristic (`r1`, `reason`, `reasoning`, `think`) when Ollama omits capabilities. `glm-5.2:cloud` and `deepseek-v4-flash\|pro:cloud` are always treated as reasoning regardless of reported capabilities. |
-| Token limits         | `maxTokens` defaults to OpenClaw's Ollama max-token cap                                                                                                                                                                                                                                       |
+| Token limits         | `maxTokens` defaults to Vasudev's Ollama max-token cap                                                                                                                                                                                                                                        |
 | Costs                | All costs are `0`                                                                                                                                                                                                                                                                             |
 
 ```bash
@@ -46,7 +46,7 @@ discovery; list that custom provider's models manually (see
 `http://127.0.0.2:11434` keep ambient local discovery eligible.
 
 You can use a full ref such as `ollama/<pulled-model>:latest` without a
-hand-written `models.json` entry; OpenClaw resolves it live. For signed-in
+hand-written `models.json` entry; Vasudev resolves it live. For signed-in
 hosts, selecting an unlisted `ollama/<model>:cloud` ref validates that exact
 model with `/api/show` and adds it to the runtime catalog only if Ollama
 confirms metadata — typos still fail as unknown models.
@@ -88,7 +88,7 @@ error instead of silently falling back to another configured model.
 
 Isolated cron jobs add one local safety check before starting the agent turn:
 if the selected model resolves to a local/private-network/`.local` Ollama
-provider and `/api/tags` is unreachable, OpenClaw records that run as
+provider and `/api/tags` is unreachable, Vasudev records that run as
 `skipped` with the model in the error text. This endpoint check is cached for
 5 minutes per host, so repeated cron jobs against a stopped daemon do not all
 launch failing requests.

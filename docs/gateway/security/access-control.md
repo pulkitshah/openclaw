@@ -41,7 +41,7 @@ Details: [Configuration](/gateway/configuration) and [Groups](/channels/groups)
 
 ### DM session isolation (multi-user mode)
 
-By default, OpenClaw routes all DMs into the main session for cross-device continuity. If multiple people can DM the bot (open DMs or a multi-person allowlist), isolate DM sessions:
+By default, Vasudev routes all DMs into the main session for cross-device continuity. If multiple people can DM the bot (open DMs or a multi-person allowlist), isolate DM sessions:
 
 ```json5
 { session: { dmScope: "per-channel-peer" } }

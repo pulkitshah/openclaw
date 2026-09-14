@@ -207,7 +207,7 @@ setup, invocation, payload fields, privacy behavior, and troubleshooting.
 
 ## Apple Watch voice and chat
 
-OpenClaw has two separate Watch voice paths:
+Vasudev has two separate Watch voice paths:
 
 - **Talk to Claw** uses watchOS dictation, text relayed through the paired
   iPhone, and system-voice readback on the Watch, one turn at a time.
@@ -218,8 +218,8 @@ Neither path runs a full agent or the stock Codex runtime on the Watch. The
 Gateway owns agent execution and tool policy; the Watch provides input,
 playback, and call controls.
 
-Pair the Watch with the iPhone in Apple's Watch app, install OpenClaw from
-**Watch app -> My Watch -> Available Apps**, then open OpenClaw once on both
+Pair the Watch with the iPhone in Apple's Watch app, install Vasudev from
+**Watch app -> My Watch -> Available Apps**, then open Vasudev once on both
 devices.
 
 ### Talk to Claw with the iPhone
@@ -230,14 +230,14 @@ Watch call.
 
 1. Connect the iPhone to your Gateway and select the chat you want to use.
 2. On the Watch, open **Talk to Claw**, then tap the voice button beside
-   **Message OpenClaw**.
+   **Message Vasudev**.
 3. Use the native input sheet to dictate and submit your message. Keep Chat
    open on the Watch to hear the reply. The message pill also opens native
    input, but does not request a spoken reply.
 
 The iPhone must remain available to relay messages. If its Gateway connection
 is asleep, Watch messages use the same bounded background reconnect as Watch
-quick replies, respecting the iPhone's auto-connect setting. Update OpenClaw on
+quick replies, respecting the iPhone's auto-connect setting. Update Vasudev on
 both devices. A companion chat payload without ownership information cannot
 prove safe delivery, so the phone rejects it with an update-required error.
 A Watch app that predates that ownership check can still label a background
@@ -331,10 +331,10 @@ tailnet-only route is not enough when the Watch is away from the phone.
 2. On iPhone, open **Settings -> This iPhone -> Apple Watch -> Connect Apple Watch**.
    Voice access is included in normal Watch setup; there is no separate
    voice enable setting.
-3. Open OpenClaw on the Watch before the setup code expires. Open **Talk on
+3. Open Vasudev on the Watch before the setup code expires. Open **Talk on
    Watch** and wait for **Ready to talk**.
 4. Tap **Start**, allow microphone access, and choose an agent if prompted.
-   Keep OpenClaw on screen until it shows **Connected**. Opening the voice
+   Keep Vasudev on screen until it shows **Connected**. Opening the voice
    screen alone does not start the microphone.
 5. Speak, use **Mute** or **Unmute** as needed, and tap **End** to finish.
    The screen shows the latest user and assistant transcripts; the Gateway
@@ -371,13 +371,13 @@ chat, and the companion chat and approval features still use the iPhone relay.
 For OpenAI Gateway-controlled WebRTC calls, the Gateway schedules a 30-minute
 active-session lease during setup; audio activity does not renew it. When the
 Watch receives the session-ended event from lease expiry, it shows **Call unavailable**
-and does not retry automatically. Bring OpenClaw to the foreground and tap
+and does not retry automatically. Bring Vasudev to the foreground and tap
 **Try Again** to start a new call. The lease is not a guarantee of 30 minutes of
 usable audio, and calls may end earlier.
 
 An established call uses background audio and is not intentionally ended merely
 because the display dims or the app backgrounds. Startup that backgrounds before
-connecting stops with a message asking you to keep OpenClaw on screen. Navigating
+connecting stops with a message asking you to keep Vasudev on screen. Navigating
 back, tapping **End**, disabling, changing or forgetting the Watch's Gateway connection,
 an audio interruption, or an unrecoverable failure ends the call.
 
@@ -425,7 +425,7 @@ question expires or is cancelled.
 
 Direct mode gives the watch its own signed node identity and Gateway connection.
 Supported node commands continue to work over watch Wi-Fi or cellular while
-OpenClaw is active, even when the paired iPhone is unavailable.
+Vasudev is active, even when the paired iPhone is unavailable.
 
 Requirements:
 
@@ -436,7 +436,7 @@ Requirements:
   pairing](/gateway/pairing) for endpoint configuration. Loopback, iPhone-only,
   and tailnet-only routes are not independently reachable by the watch.
 - Cellular use requires a cellular-capable Apple Watch with active service.
-- OpenClaw is active on the watch. The non-voice direct node uses short HTTPS
+- Vasudev is active on the watch. The non-voice direct node uses short HTTPS
   polls and reconnects when the app returns to the foreground; it does not
   maintain a generic background connection. Standalone voice uses the separate
   active-audio networking path. See Apple's
@@ -446,7 +446,7 @@ Setup:
 
 1. On iPhone, open **Settings -> This iPhone -> Apple Watch** (or **Device -> Apple Watch** in the offline fallback).
 2. Tap **Connect Apple Watch**.
-3. Open OpenClaw on the watch before the short-lived setup code expires.
+3. Open Vasudev on the watch before the short-lived setup code expires.
 4. Verify the separate Apple Watch row with `openclaw nodes status`.
 
 The setup code contains a short-lived bootstrap credential for the Watch's
@@ -516,7 +516,7 @@ When iOS wakes the app for a silent push, background refresh, or significant-loc
 
 The app treats a background wake as successfully recorded only when the Gateway response includes `handled: true`. Older Gateways may acknowledge `node.event` with `{ "ok": true }`; that response is compatible but does not count as a durable last-seen update.
 
-Background refresh wakes are requested through the system BackgroundTasks scheduler whenever the app moves to the background, after a silent push that could not be applied, and again after each refresh run; iOS decides when they actually execute. They stop if Background App Refresh is turned off for OpenClaw in iOS Settings, leaving push and significant-location wakes.
+Background refresh wakes are requested through the system BackgroundTasks scheduler whenever the app moves to the background, after a silent push that could not be applied, and again after each refresh run; iOS decides when they actually execute. They stop if Background App Refresh is turned off for Vasudev in iOS Settings, leaving push and significant-location wakes.
 
 Compatibility note:
 
@@ -527,7 +527,7 @@ Compatibility note:
 
 The relay exists to enforce two constraints direct APNs-on-gateway cannot provide for official iOS builds:
 
-- Only genuine OpenClaw iOS builds distributed through Apple can use the hosted relay.
+- Only genuine Vasudev iOS builds distributed through Apple can use the hosted relay.
 - A Gateway can send relay-backed pushes only for iOS devices that paired with that specific Gateway.
 
 Hop by hop:
@@ -538,7 +538,7 @@ Hop by hop:
 4. `gateway -> relay`: the Gateway stores the relay handle and send grant from `push.apns.register`. On `push.test`, reconnect wakes, and wake nudges, the Gateway signs the send request with its own device identity; the relay verifies both the stored send grant and the Gateway signature against the delegated Gateway identity from registration. Another Gateway cannot reuse that stored registration, even if it somehow obtains the handle.
 5. `relay -> APNs`: the relay owns the production APNs credentials and the raw APNs token for the official build. The Gateway never stores the raw APNs token for relay-backed official builds; the relay sends the final push to APNs on behalf of the paired Gateway.
 
-Why this design was created: to keep production APNs credentials out of user Gateways, avoid storing raw official-build APNs tokens on the Gateway, allow hosted relay usage only for official OpenClaw iOS builds, and prevent one Gateway from sending wake pushes to iOS devices owned by a different Gateway.
+Why this design was created: to keep production APNs credentials out of user Gateways, avoid storing raw official-build APNs tokens on the Gateway, allow hosted relay usage only for official Vasudev iOS builds, and prevent one Gateway from sending wake pushes to iOS devices owned by a different Gateway.
 
 Local/manual builds remain on direct APNs. If you are testing those builds without the relay, the Gateway still needs direct APNs credentials:
 
@@ -587,9 +587,9 @@ The app keeps a registry of every Gateway it has paired with, so you can switch 
 
 ## Computer Use relationship
 
-The iOS app is a mobile node surface, not a Codex Computer Use backend. Codex Computer Use and `cua-driver mcp` control a local macOS desktop through MCP tools; the iOS app exposes iPhone capabilities through OpenClaw node commands such as `camera.*`, `screen.*`, `location.*`, and `talk.*`.
+The iOS app is a mobile node surface, not a Codex Computer Use backend. Codex Computer Use and `cua-driver mcp` control a local macOS desktop through MCP tools; the iOS app exposes iPhone capabilities through Vasudev node commands such as `camera.*`, `screen.*`, `location.*`, and `talk.*`.
 
-Agents can still operate the iOS app through OpenClaw by invoking node commands, but those calls go through the Gateway node protocol and follow iOS foreground/background limits. Use [Codex Computer Use](/plugins/codex-computer-use) for local desktop control and this page for iOS node capabilities.
+Agents can still operate the iOS app through Vasudev by invoking node commands, but those calls go through the Gateway node protocol and follow iOS foreground/background limits. Use [Codex Computer Use](/plugins/codex-computer-use) for local desktop control and this page for iOS node capabilities.
 
 ## Voice wake + talk mode
 
@@ -601,16 +601,16 @@ Agents can still operate the iOS app through OpenClaw by invoking node commands,
 
 ### Start live voice with Siri or Shortcuts
 
-The **Start Live Voice** App Shortcut opens OpenClaw to the current
+The **Start Live Voice** App Shortcut opens Vasudev to the current
 chat and starts the same Talk path as the inline Talk control.
 
-1. Open OpenClaw and [pair and connect to your Gateway](/platforms/ios#quick-start-pair-+-connect)
+1. Open Vasudev and [pair and connect to your Gateway](/platforms/ios#quick-start-pair-+-connect)
    first. Live voice uses your existing [Talk mode voice provider configuration](/nodes/talk);
    the shortcut does not configure a provider or bypass pairing.
-2. In **Shortcuts → Apps → OpenClaw**, choose **Start Live Voice**. You can also
-   ask Siri: **"Start live voice with OpenClaw"**.
+2. In **Shortcuts → Apps → Vasudev**, choose **Start Live Voice**. You can also
+   ask Siri: **"Start live voice with Vasudev"**.
 3. Allow microphone access when iOS prompts. Unlock your iPhone if asked, and
-   keep OpenClaw in the foreground while Talk starts. The shortcut does not
+   keep Vasudev in the foreground while Talk starts. The shortcut does not
    bypass iOS unlock or foreground restrictions.
 
 For quick access, save a shortcut containing **Start Live Voice**, then assign
@@ -626,7 +626,7 @@ same iOS limits as Talk started inside the app.
 - Watch shows no iPhone state: confirm the iPhone reports `watchPaired: true`
   and `watchAppInstalled: true` in `watch.status`. If pairing is false, pair the
   Watch in Apple's Watch app. If installation is false, install the companion
-  from **My Watch -> Available Apps**. After either change, open OpenClaw on the
+  from **My Watch -> Available Apps**. After either change, open Vasudev on the
   Watch once; immediate reachability still requires both apps to be running,
   while queued updates can arrive later in the background.
 - Reconnect fails after reinstall: the Keychain pairing token was cleared; re-pair the node.

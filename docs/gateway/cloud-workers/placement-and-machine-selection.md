@@ -15,10 +15,10 @@ machine uses a plugin allowlist. It also requires a connected session-capable
 node that advertises `codex.exec-server`, and an explicit
 `gateway.nodes.commands.allow` entry for `codex.exec-server.stdio.v1`. Approve
 the node's updated pairing surface if needed. Before each exec-server launch,
-OpenClaw also requires the normal node invocation approval; denying that
+Vasudev also requires the normal node invocation approval; denying that
 request does not start a process.
 
-Codex launches its exec-server directly, so paired-device and cloud-node placement do not consume an OpenClaw worker slot and remain eligible when those slots are full. OpenClaw `worker-turn` placement still requires an available worker slot.
+Codex launches its exec-server directly, so paired-device and cloud-node placement do not consume an Vasudev worker slot and remain eligible when those slots are full. Vasudev `worker-turn` placement still requires an available worker slot.
 
 Approval permits process execution and filesystem access anywhere the node's
 operating system account allows. The exact placement workspace controls the
@@ -39,7 +39,7 @@ The Codex app-server, model connection, provider credentials, and transcript
 remain on the Gateway. The paired node runs the managed Codex exec-server in
 the transferred workspace and receives only sanitized process, filesystem,
 capability-discovery, and HTTP operations over the existing node channel. It
-does not launch an OpenClaw worker child. Credential-bearing HTTP requests are
+does not launch an Vasudev worker child. Credential-bearing HTTP requests are
 rejected before they reach the paired device; run authenticated requests on the
 Gateway or use an intentionally credential-free endpoint. Normal Codex turns
 are supported, but `/btw` side questions are not yet placement-bound and fail
@@ -48,9 +48,9 @@ reconciliation as worker turns. See
 [Run Codex on a paired device](/plugins/codex-harness/placement#run-codex-on-a-paired-device)
 for the exact allowlist configuration and lifecycle.
 
-## Codex or OpenClaw on a cloud profile
+## Codex or Vasudev on a cloud profile
 
-The same configured Crabbox profile can host either harness. Select its profile row under **Cloud** after choosing an OpenClaw or Codex model; the selected runtime determines whether provisioning prepares a worker child or the managed Codex exec-server. Codex cloud-node execution requires the same explicit Gateway command allowlist and placement-scoped approval as paired-device execution. It never falls back to Gateway-local or SSH execution if the node command is missing, denied, or disconnected.
+The same configured Crabbox profile can host either harness. Select its profile row under **Cloud** after choosing an Vasudev or Codex model; the selected runtime determines whether provisioning prepares a worker child or the managed Codex exec-server. Codex cloud-node execution requires the same explicit Gateway command allowlist and placement-scoped approval as paired-device execution. It never falls back to Gateway-local or SSH execution if the node command is missing, denied, or disconnected.
 
 For cloud-profile placement, the equivalent RPC flow is:
 
@@ -71,7 +71,7 @@ To keep the existing Gateway-source flow, create with `{"worktree":true,"cwd":"/
 
 Repository preparation pins immutable source metadata before eligible cloud allocation without creating a managed Gateway checkout. Selecting prepared capacity and binding it to a session verify current access and visibility, including when interrupted provisioning resumes after a Gateway restart. Public and private preparation identities remain separate. Private preparation uses authenticated temporary Git objects on the Gateway and transfers only a verified pack to the worker. An already-active session keeps its checkout and saved changes across restart; this does not re-admit prepared capacity or revoke downloaded files when GitHub access changes. Providers without project preparation keep ordinary checkout after enrollment. Public sources can use anonymous access only when no shared or native GitHub identity is configured; an unavailable configured identity remains an error.
 
-Repository preparation and prepared checkout adoption do not transfer GitHub credentials to workers. Subsequent OpenClaw worker turns use the effective shared or native GitHub identity through the existing [per-turn credential binding](/gateway/config-tools/github-identity), when one is available.
+Repository preparation and prepared checkout adoption do not transfer GitHub credentials to workers. Subsequent Vasudev worker turns use the effective shared or native GitHub identity through the existing [per-turn credential binding](/gateway/config-tools/github-identity), when one is available.
 
 Private repository fetches use the effective shared [`tools.github`](/gateway/config-tools#tools-github) identity. Access through the Control UI repository picker does not by itself authorize that worker identity, and personal publication credentials are never used for the checkout.
 
@@ -99,4 +99,4 @@ The provider reads `classCatalog.profiles` from `crabbox providers --json` when 
 
 Successful catalogs, including valid empty catalogs, are cached for the Gateway lifetime. Failed probes are retried by the next discovery request; a Gateway restart is not needed to recover.
 
-Mapped Machine0 classes appear even when Crabbox omits the legacy `classes` summary. These static mappings describe class choices, not current capacity or availability. OpenClaw does not translate provider-native size catalogs into classes. Keep native size selection in Crabbox's configuration: an explicitly configured native size still takes precedence over a class, so the picker cannot override that pin or promise a resize. Acceptance of native server types through `machineClass` is backend-specific, not a universal Crabbox contract. An admitted machine choice remains fixed for that placement and is reused by provisioning retries; catalog changes do not rewrite it. `os` and `machineClass` are valid only with `profileId`, not `deviceId` or `autoDevice`. Omitting either field uses the corresponding profile default.
+Mapped Machine0 classes appear even when Crabbox omits the legacy `classes` summary. These static mappings describe class choices, not current capacity or availability. Vasudev does not translate provider-native size catalogs into classes. Keep native size selection in Crabbox's configuration: an explicitly configured native size still takes precedence over a class, so the picker cannot override that pin or promise a resize. Acceptance of native server types through `machineClass` is backend-specific, not a universal Crabbox contract. An admitted machine choice remains fixed for that placement and is reused by provisioning retries; catalog changes do not rewrite it. `os` and `machineClass` are valid only with `profileId`, not `deviceId` or `autoDevice`. Omitting either field uses the corresponding profile default.

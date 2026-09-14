@@ -174,6 +174,6 @@ exception), so the agent can self-correct:
   </Card>
   <Card title="Code Mode" href="/tools/code-mode" icon="code">
     A separate surface: JavaScript/TypeScript orchestration of enabled tools in
-    OpenClaw's own worker, not this remote Python tool.
+    Vasudev's own worker, not this remote Python tool.
   </Card>
 </CardGroup>

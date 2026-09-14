@@ -2,7 +2,7 @@
   "name": "@openclaw/openai-provider",
   "version": "2026.9.4",
   "private": true,
-  "description": "OpenClaw OpenAI provider plugins",
+  "description": "Vasudev OpenAI provider plugins",
   "type": "module",
   "dependencies": {
     "libopus-wasm": "0.2.0",

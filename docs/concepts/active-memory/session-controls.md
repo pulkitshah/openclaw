@@ -46,7 +46,7 @@ output you want:
 /trace on
 ```
 
-With those on, OpenClaw appends diagnostic lines after the normal reply (as a
+With those on, Vasudev appends diagnostic lines after the normal reply (as a
 follow-up, so channel clients do not flash a separate pre-reply bubble):
 
 - `/verbose on` adds a status line: `🧩 Active Memory: status=ok elapsed=842ms query=recent summary=34 chars`

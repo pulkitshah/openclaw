@@ -21,7 +21,7 @@ Topologies for running `imsg` next to a signed-in Messages account, and the conf
     1. Create/sign in a dedicated macOS user.
     2. Sign into Messages with the bot Apple ID in that user.
     3. Install `imsg` in that user.
-    4. Create an SSH wrapper so OpenClaw can run `imsg` in that user context.
+    4. Create an SSH wrapper so Vasudev can run `imsg` in that user context.
     5. Point `channels.imessage.accounts.<id>.cliPath` and `.dbPath` to that user profile.
 
     First run may require GUI approvals (Automation + Full Disk Access) in that bot user session.

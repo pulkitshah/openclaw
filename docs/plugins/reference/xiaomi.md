@@ -1,5 +1,5 @@
 ---
-summary: "Adds Xiaomi, Xiaomi Token Plan model provider support to OpenClaw."
+summary: "Adds Xiaomi, Xiaomi Token Plan model provider support to Vasudev."
 read_when:
   - You are installing, configuring, or auditing the xiaomi plugin
 title: "Xiaomi plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-Adds Xiaomi, Xiaomi Token Plan model provider support to OpenClaw.
+Adds Xiaomi, Xiaomi Token Plan model provider support to Vasudev.
 
 ## Distribution
 

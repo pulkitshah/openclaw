@@ -3,7 +3,7 @@ summary: "Plugin install checks, Gateway start and stop, and Gateway-owned cron 
 read_when:
   - You are inspecting staged install material from a plugin runtime
   - You are starting or stopping plugin-owned services with the Gateway
-  - You are projecting OpenClaw cron wakes into an external host scheduler
+  - You are projecting Vasudev cron wakes into an external host scheduler
 title: "Gateway and install lifecycle hooks"
 sidebarTitle: "Lifecycle"
 ---
@@ -14,7 +14,7 @@ projection. Part of the [Plugin hooks](/plugins/hooks) guide.
 ## Install hooks
 
 Use `security.installPolicy` for operator-owned allow/warn/block decisions. That
-policy runs from OpenClaw config, covers CLI install and update paths, and
+policy runs from Vasudev config, covers CLI install and update paths, and
 fails closed when enabled but unavailable.
 
 `before_install` is a plugin-runtime lifecycle hook. It can run after
@@ -24,7 +24,7 @@ install paths can skip this hook; they still run the operator install policy.
 It is useful for plugin-owned observations, warnings, and compatibility checks,
 but it is not the primary enterprise or host security boundary for installs. The
 `builtinScan` field remains in the event payload for compatibility, but
-OpenClaw no longer runs built-in install-time dangerous-code blocking, so it
+Vasudev no longer runs built-in install-time dangerous-code blocking, so it
 is an empty `ok` result. Return additional findings or
 `{ block: true, blockReason }` to stop the install in that process.
 
@@ -79,7 +79,7 @@ explicit `added`, `updated`, or `removed` lifecycle event. The top-level
 no next wake. Treat these events as reconciliation hints, not an ordered delta
 log. Use them as coalescible hints to reread the scheduler last captured by
 `cron_reconciled`; do not adopt the scheduler from a `cron_changed` context.
-Keep OpenClaw as the source of truth for due checks and execution.
+Keep Vasudev as the source of truth for due checks and execution.
 
 ### Safe external cron projection
 
@@ -226,7 +226,7 @@ export function registerCronProjection(api: OpenClawPluginApi, host: ExternalWak
 When `cron_reconciled` reports `enabled: false`, the same path calls
 `replaceAll([])` and clears stale external wakes. Retry/backoff in this example
 is process-local and treats runtime adapter failures as transient; validate
-non-retryable configuration before registration. OpenClaw does not provide an
+non-retryable configuration before registration. Vasudev does not provide an
 outbox for plugin hook effects. If the process exits before durable acceptance,
 the next Gateway start emits a new authoritative `cron_reconciled` snapshot.
 `gateway_stop` aborts in-flight host work, waits for the worker to settle, then

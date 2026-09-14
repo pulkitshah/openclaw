@@ -2,14 +2,14 @@
 summary: "Exposure, prompt injection, third-party skills, pairing, and how much autonomy to grant"
 title: "Security and access control"
 read_when:
-  - You are exposing OpenClaw to inbound messages
+  - You are exposing Vasudev to inbound messages
   - You are judging plugin, skill, or autonomy risk
 ---
 
 ## Security and access control
 
 <AccordionGroup>
-  <Accordion title="Is it safe to expose OpenClaw to inbound DMs?">
+  <Accordion title="Is it safe to expose Vasudev to inbound DMs?">
     Yes - on channels that default to **pairing** (most DM-capable channels), a stranger who DMs your bot never reaches the model:
 
     - With the pairing default, unknown senders receive a pairing code and their message is not processed. Approve with `openclaw pairing approve --channel <channel> [--account <id>] <code>`. Pending requests are capped at **3 per channel**; check `openclaw pairing list --channel <channel> [--account <id>]` if a code did not arrive.
@@ -33,7 +33,7 @@ read_when:
 
   </Accordion>
 
-  <Accordion title="Is OpenClaw less safe because it uses TypeScript/Node instead of Rust/WASM?">
+  <Accordion title="Is Vasudev less safe because it uses TypeScript/Node instead of Rust/WASM?">
     Language and runtime matter, but are not the main risk for a personal agent. The practical risks are gateway exposure, who can message the bot, prompt injection, tool scope, credential handling, browser access, exec access, and third-party skill/plugin trust.
 
     Rust and WASM can provide stronger isolation for some code classes, but do not solve prompt injection, bad allowlists, public gateway exposure, overbroad tools, or a browser profile already logged in to sensitive accounts. Treat these as the primary controls: keep the Gateway private or authenticated, use pairing and allowlists for DMs/groups, deny or sandbox risky tools for untrusted inputs, install only trusted plugins and skills, and run `openclaw security audit --deep` after config changes.
@@ -42,7 +42,7 @@ read_when:
 
   </Accordion>
 
-  <Accordion title="I saw reports about exposed OpenClaw instances. What should I check?">
+  <Accordion title="I saw reports about exposed Vasudev instances. What should I check?">
     ```bash
     openclaw security audit --deep
     openclaw gateway status
@@ -55,7 +55,7 @@ read_when:
   </Accordion>
 
   <Accordion title="Are ClawHub skills and third-party plugins safe to install?">
-    Treat third-party skills and plugins as code you are choosing to trust. ClawHub skill pages expose scan state before install, but scans are not a complete security boundary. OpenClaw does not run built-in local dangerous-code blocking during plugin/skill install or update; use operator-owned `security.installPolicy` for local allow/warn/block decisions.
+    Treat third-party skills and plugins as code you are choosing to trust. ClawHub skill pages expose scan state before install, but scans are not a complete security boundary. Vasudev does not run built-in local dangerous-code blocking during plugin/skill install or update; use operator-owned `security.installPolicy` for local allow/warn/block decisions.
 
     Safer pattern: prefer trusted authors and pinned versions, read the skill/plugin before enabling it, keep plugin/skill allowlists narrow, run untrusted-input workflows in a sandbox with minimal tools, and avoid giving third-party code broad filesystem, exec, browser, or secret access.
 
@@ -97,7 +97,7 @@ read_when:
   </Accordion>
 
   <Accordion title="WhatsApp: will it message my contacts? How does pairing work?">
-    No. Default WhatsApp DM policy is **pairing**. Unknown senders only get a pairing code; their message is **not processed**. OpenClaw only replies to chats it receives or to explicit sends you trigger.
+    No. Default WhatsApp DM policy is **pairing**. Unknown senders only get a pairing code; their message is **not processed**. Vasudev only replies to chats it receives or to explicit sends you trigger.
 
     ```bash
     openclaw pairing approve whatsapp <code>

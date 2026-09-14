@@ -2,17 +2,17 @@
 summary: "Inline audio and video playback across the Control UI and native apps"
 read_when:
   - Playing or troubleshooting audio and video attachments in chat
-  - Comparing media format support across OpenClaw clients
+  - Comparing media format support across Vasudev clients
   - Debugging playback metadata, transcoding, or codec availability
 title: "Media playback"
 ---
 
-OpenClaw chat clients play assistant audio and video attachments inline. The
+Vasudev chat clients play assistant audio and video attachments inline. The
 Gateway keeps those attachments behind session-scoped access, serves seekable
 byte ranges, and can prepare a portable playback rendition for recognized
 formats that are not safe across every client.
 
-This page covers playback in OpenClaw clients. Channel delivery, inbound media
+This page covers playback in Vasudev clients. Channel delivery, inbound media
 understanding, and live voice conversations use separate paths; see
 [Image and media support](/nodes/images),
 [Media understanding](/nodes/media-understanding), and [Talk mode](/nodes/talk).
@@ -38,7 +38,7 @@ browser, Apple players, and Android Media3:
 
 The Linux companion can also play formats supplied by its installed GStreamer
 plugins. Browser and operating-system updates may add native formats, but the
-table above is the cross-client contract OpenClaw targets.
+table above is the cross-client contract Vasudev targets.
 
 ## Lazy playback renditions
 
@@ -103,7 +103,7 @@ ticket from the authenticated Gateway when needed.
 ## Metadata and limits
 
 Chat attachments may include `sizeBytes`, `durationMs`, `width`, and `height`.
-OpenClaw also uses `ffprobe`, when available, to fill audio duration and video
+Vasudev also uses `ffprobe`, when available, to fill audio duration and video
 duration/dimensions for media facts and the Control UI `?meta=1` availability
 probe. Video dimensions account for non-square pixels and quarter-turn display
 rotation; image dimensions account for EXIF orientation. Probing is best-effort:
@@ -144,7 +144,7 @@ ffprobe -version
 ```
 
 `ffprobe` classifies codecs and duration; `ffmpeg` creates the portable
-rendition. If either step cannot safely handle the source, OpenClaw serves the
+rendition. If either step cannot safely handle the source, Vasudev serves the
 original file and the client keeps its fallback/download path.
 
 ### Playback stays in preparing state

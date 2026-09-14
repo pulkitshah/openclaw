@@ -185,7 +185,7 @@ Cross-cutting notes not obvious from the [rule tables](/cli/policy/rules):
   redaction invariant. It does not inspect logs, telemetry exports,
   transcripts, or memory files, and a clean result does not prove that no
   personal data or secrets exist in them.
-- Routing probes reuse OpenClaw's runtime binding resolver. Routing evidence
+- Routing probes reuse Vasudev's runtime binding resolver. Routing evidence
   records only the probe id, resolved agent, match kind, and redacted binding
   metadata. It never records peer, account, guild, team, or role identifiers.
   Adding a routing section intentionally changes the policy and attestation

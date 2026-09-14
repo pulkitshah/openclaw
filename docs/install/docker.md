@@ -1,5 +1,5 @@
 ---
-summary: "Optional Docker-based setup and onboarding for OpenClaw"
+summary: "Optional Docker-based setup and onboarding for Vasudev"
 read_when:
   - You want a containerized Gateway instead of local installs
   - You are validating the Docker flow
@@ -44,7 +44,7 @@ Hosting multiple users? See [Multi-tenant hosting](/gateway/multi-tenant-hosting
     ./scripts/docker/setup.sh
     ```
 
-    Use `ghcr.io/openclaw/openclaw` or `openclaw/openclaw` and avoid unofficial mirrors, which don't share OpenClaw's release timing or retention policy. Version-specific tags include releases such as `2026.9.3` and prereleases such as `2026.9.1-beta.1`. Stable releases move `latest` and `main`; trailing-month Gateway releases move only `extended-stable`. Variants include `slim`, `main-slim`, `extended-stable-slim`, `latest-browser`, `main-browser`, and `extended-stable-browser`. The default images bundle the `codex` and `diagnostics-otel` plugins. A `-browser` variant also ships with Chromium baked in for the [Gateway-controlled browser](/install/docker#using-the-control-ui-browser). The agent sandbox browser uses a separate image.
+    Use `ghcr.io/openclaw/openclaw` or `openclaw/openclaw` and avoid unofficial mirrors, which don't share Vasudev's release timing or retention policy. Version-specific tags include releases such as `2026.9.3` and prereleases such as `2026.9.1-beta.1`. Stable releases move `latest` and `main`; trailing-month Gateway releases move only `extended-stable`. Variants include `slim`, `main-slim`, `extended-stable-slim`, `latest-browser`, `main-browser`, and `extended-stable-browser`. The default images bundle the `codex` and `diagnostics-otel` plugins. A `-browser` variant also ships with Chromium baked in for the [Gateway-controlled browser](/install/docker#using-the-control-ui-browser). The agent sandbox browser uses a separate image.
 
   </Step>
 
@@ -154,7 +154,7 @@ The image supplies Chromium, not a replacement for your browser configuration:
 - Keep browser control enabled (`browser.enabled`). Use a local managed profile
   such as `openclaw` for the container's Chromium, not an extension, attach-only,
   or remote-CDP profile intended for another browser.
-- OpenClaw auto-detects the image's Playwright-managed Chromium on Linux. An
+- Vasudev auto-detects the image's Playwright-managed Chromium on Linux. An
   explicit `browser.executablePath` or profile executable path must point to a
   binary inside the container; a path from your laptop will not work there.
 - A headless container needs headless browser operation. Check explicit
@@ -227,7 +227,7 @@ Run `docker compose` from the repo root. If you enabled `OPENCLAW_EXTRA_MOUNTS` 
 
 ### Upgrading container images
 
-When you replace the OpenClaw image but keep the same mounted state/config, the
+When you replace the Vasudev image but keep the same mounted state/config, the
 new Gateway runs startup-safe upgrade migrations and plugin convergence before
 readiness. Routine image upgrades should not require a separate
 `openclaw doctor --fix` pass.
@@ -274,7 +274,7 @@ runtime output are pruned.
 
 For example, these commands build separate, multi-architecture standalone
 FakeCo Gateway images for ClickClack, Slack, and Microsoft Teams. ClawRouter is
-already part of the root OpenClaw runtime, so the ClickClack image selects only
+already part of the root Vasudev runtime, so the ClickClack image selects only
 `clickclack`. The explicit empty browser argument keeps the default image free
 of Chromium:
 
@@ -318,9 +318,9 @@ docker buildx imagetools inspect \
 
 These images are for standalone OCI-based Gateways and generic Docker users.
 Crabhelm-managed Gateways do not consume them: that delivery path builds a
-separate x86_64 appliance archive containing an OpenClaw npm tarball and pins
+separate x86_64 appliance archive containing a Vasudev npm tarball and pins
 the Node, archive, and manifest digests. Build that appliance independently
-from the same landed OpenClaw source.
+from the same landed Vasudev source.
 
 To test bundled plugin source against a packaged image, mount one plugin source directory over its packaged source path, e.g. `OPENCLAW_EXTRA_MOUNTS=/path/to/fork/extensions/synology-chat:/app/extensions/synology-chat:ro`. That overrides the matching compiled `/app/dist/extensions/synology-chat` bundle for the same plugin id. Restart the Gateway after adding or changing a mount; runtime loading and setup use the mounted source.
 
@@ -417,5 +417,5 @@ docker compose exec openclaw-gateway sh -lc 'node dist/index.js gateway health -
 - [Kubernetes](/install/kubernetes) — a minimal Kustomize starting point for running the Gateway on a cluster
 - [Ansible](/install/ansible) — automated server deployment with Tailscale VPN and firewall isolation
 - [Cloudflare Containers](/install/cloudflare) — experimental Worker plus container deployment with Litestream backups to R2
-- [Updating](/install/updating) — keeping OpenClaw up to date
+- [Updating](/install/updating) — keeping Vasudev up to date
 - [Configuration](/gateway/configuration) — Gateway configuration after install

@@ -10,14 +10,14 @@ title: "Update"
 
 # `openclaw update`
 
-Update OpenClaw and switch between stable/extended-stable/beta/dev channels.
+Update Vasudev and switch between stable/extended-stable/beta/dev channels.
 
 If you installed via **npm/pnpm/bun** (global install, no git metadata),
 updates go through the package-manager flow described in
 [Updating](/install/updating).
 
 Custom npm prefixes such as `~/.npm-global` are recognized from npm's configured
-prefix and the installed OpenClaw launcher. A prefix configured in `~/.npmrc`
+prefix and the installed Vasudev launcher. A prefix configured in `~/.npmrc`
 does not need a matching `NPM_CONFIG_PREFIX` environment variable. If no owner
 can be identified, the CLI includes the inspected package, prefix, and launcher
 paths and the package-manager probe results in its guidance.
@@ -87,18 +87,18 @@ not prompt after rollback.
 After a final interactive update failure, **Diagnose update failure** and
 **Report update failure** are separate choices. Reporting first shows the exact
 sanitized issue body and defaults confirmation to **No**. After confirmation,
-OpenClaw checks the GitHub CLI's active `github.com` account with a silent,
+Vasudev checks the GitHub CLI's active `github.com` account with a silent,
 read-only request before issue creation. Fallback and pending outcomes retain the
 sanitized report locally; a confirmed issue keeps only its durable issue URL.
-If the CLI is missing or that check cannot confirm authentication, OpenClaw
+If the CLI is missing or that check cannot confirm authentication, Vasudev
 provides a prefilled issue link without starting issue creation. If the exact
-report exceeds the browser URL limit, OpenClaw keeps the sanitized body locally
+report exceeds the browser URL limit, Vasudev keeps the sanitized body locally
 and returns to the action menu, where reporting can be chosen and confirmed
 again. A report preparation or submission
 error also returns to that menu; Diagnose runs only when selected explicitly.
 In the Control UI, an interrupted
 pre-create preparation becomes retryable after its local reservation expires.
-After an uncertain creation result, OpenClaw checks for an issue matching the
+After an uncertain creation result, Vasudev checks for an issue matching the
 exact report. If neither a verified issue URL nor a definitive rejection is
 available, the report stays pending with no replay link because an issue may
 already exist.
@@ -201,7 +201,7 @@ compatible state before the updater records history. The selected release's
 Doctor runs before activation, including when npm's install hooks already created
 the database. Existing databases retain their downgrade protections.
 
-Explicit package specs on a fresh profile first stage with a temporary OpenClaw
+Explicit package specs on a fresh profile first stage with a temporary Vasudev
 profile. The updater inspects the staged runtime's declared schema and Node
 requirements before admitting changes to the selected profile. Artifacts without
 declared schema support are refused without creating the profile's runtime database.

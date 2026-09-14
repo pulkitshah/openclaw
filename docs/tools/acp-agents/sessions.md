@@ -28,7 +28,7 @@ Two ways to start an ACP session:
 
     <Note>
     `runtime` defaults to `subagent`, so set `runtime: "acp"` explicitly for
-    ACP sessions. If `agentId` is omitted, OpenClaw uses `acp.defaultAgent`
+    ACP sessions. If `agentId` is omitted, Vasudev uses `acp.defaultAgent`
     when configured. `mode: "session"` requires `thread: true` to keep a
     persistent bound conversation.
     </Note>
@@ -73,7 +73,7 @@ Two ways to start an ACP session:
 </ParamField>
 <ParamField path="mode" type='"run" | "session"' default="run">
   `"run"` is one-shot; `"session"` is persistent. If `thread: true` and
-  `mode` is omitted, OpenClaw may default to persistent behaviour per
+  `mode` is omitted, Vasudev may default to persistent behaviour per
   runtime path. `mode: "session"` requires `thread: true`.
 </ParamField>
 <ParamField path="cwd" type="string">
@@ -92,7 +92,7 @@ Two ways to start an ACP session:
 </ParamField>
 <ParamField path="streamTo" type='"parent"'>
   `"parent"` streams initial ACP run progress summaries back to the requester
-  session as system events. OpenClaw records the full relay history in the
+  session as system events. Vasudev records the full relay history in the
   child agent's SQLite state and removes it with the child session. Parent
   progress streams show assistant commentary and ACP status progress by default unless
   `streaming.progress.commentary=false`. Discord parent progress requires an

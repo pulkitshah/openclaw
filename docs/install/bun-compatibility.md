@@ -6,13 +6,13 @@ read_when:
   - You need to select a SQLite library for Bun on macOS
 ---
 
-Bun is an explicit opt-in runtime for OpenClaw's CLI, Gateway, and managed node host. Node remains the primary and recommended runtime. This reference covers Bun requirements and compatibility; see [Bun](/install/bun) for installation and opt-in steps, or [Node.js compatibility](/install/node-compatibility) for Node requirements.
+Bun is an explicit opt-in runtime for Vasudev's CLI, Gateway, and managed node host. Node remains the primary and recommended runtime. This reference covers Bun requirements and compatibility; see [Bun](/install/bun) for installation and opt-in steps, or [Node.js compatibility](/install/node-compatibility) for Node requirements.
 
 ## Requirements
 
-OpenClaw requires **Bun 1.4.0+**, an available **`node:sqlite`** API, and the same [WAL-safe SQLite floor as Node](/install/node-compatibility#why-the-floors-exist).
+Vasudev requires **Bun 1.4.0+**, an available **`node:sqlite`** API, and the same [WAL-safe SQLite floor as Node](/install/node-compatibility#why-the-floors-exist).
 
-| Platform | SQLite library Bun uses                       | Extension loading              | What OpenClaw does                                   |
+| Platform | SQLite library Bun uses                       | Extension loading              | What Vasudev does                                    |
 | -------- | --------------------------------------------- | ------------------------------ | ---------------------------------------------------- |
 | Linux    | Statically linked SQLite; 3.53.2 in Bun 1.4.2 | Supported                      | No additional library setup needed.                  |
 | macOS    | Apple system SQLite by default                | Unavailable in Apple's library | Automatically selects a suitable library; see below. |
@@ -30,7 +30,7 @@ Install Homebrew SQLite for native `sqlite-vec` KNN memory queries:
 brew install sqlite
 ```
 
-Before opening databases, OpenClaw selects a library in this order:
+Before opening databases, Vasudev selects a library in this order:
 
 1. An explicit library path supplied internally, otherwise `OPENCLAW_SQLITE_LIBRARY`.
 2. `$HOMEBREW_PREFIX/opt/sqlite/lib/libsqlite3.dylib`.
@@ -42,7 +42,7 @@ Candidates must meet the WAL safety floor and support extension loading before s
 
 SQLite storage workers inherit the main process's selected library. Opening another database or restarting a storage worker reuses that selection without repeating Bun's one-shot library initialization.
 
-Set `OPENCLAW_SQLITE_LIBRARY` in the process environment before starting OpenClaw to override discovery:
+Set `OPENCLAW_SQLITE_LIBRARY` in the process environment before starting Vasudev to override discovery:
 
 ```sh
 OPENCLAW_SQLITE_LIBRARY=/path/to/libsqlite3.dylib bun openclaw.mjs gateway
@@ -60,7 +60,7 @@ Node and non-macOS Bun ignore this override, with a warning in Gateway startup l
 
 Daemon install, `openclaw gateway start` repair, `openclaw doctor`, and service audits probe candidate Bun executables through the same selection, so they judge and report the library the Gateway will actually open rather than Bun's runtime SQLite. An invalid override fails those probes with the message above instead of advising a Bun upgrade or switching the service to Node.
 
-If you previously used a preload that calls `Database.setCustomSQLite()`, remove it and set `OPENCLAW_SQLITE_LIBRARY` to the same path instead. The hook is one-shot: keeping the preload causes `SQLite already loaded`, even if both selections name the same library. OpenClaw's override also forwards the path to the KNN child.
+If you previously used a preload that calls `Database.setCustomSQLite()`, remove it and set `OPENCLAW_SQLITE_LIBRARY` to the same path instead. The hook is one-shot: keeping the preload causes `SQLite already loaded`, even if both selections name the same library. Vasudev's override also forwards the path to the KNN child.
 
 ## Memory search without an extension-capable library
 
@@ -68,10 +68,10 @@ When the KNN child cannot load extensions, memory search falls back to a batched
 
 ## Known limitations
 
-- **Desktop WebSockets:** OpenClaw uses the installed `ws` transport for desktop observers and paired-node desktop/portal streams. Bun 1.4.2's built-in `ws` server adapter lacks pause/resume and the Duplex stream bridge; the installed transport preserves backpressure, payload limits, and cleanup when a desktop disconnects.
+- **Desktop WebSockets:** Vasudev uses the installed `ws` transport for desktop observers and paired-node desktop/portal streams. Bun 1.4.2's built-in `ws` server adapter lacks pause/resume and the Duplex stream bridge; the installed transport preserves backpressure, payload limits, and cleanup when a desktop disconnects.
 - **Lifecycle scripts:** Bun blocks dependency lifecycle scripts unless explicitly trusted with `bun pm trust`.
 - **Package scripts:** Some scripts hardcode pnpm, so `bun run` still invokes pnpm internally.
-- **SQLite handles:** Bun 1.4.2 can retain statement handles and WAL/shared-memory files after `DatabaseSync.close()` or `Symbol.dispose()`; OpenClaw cannot finalize them through Bun's public `node:sqlite` API. See the [upstream close fix](https://github.com/oven-sh/bun/pull/40005); use Node when prompt file release matters.
+- **SQLite handles:** Bun 1.4.2 can retain statement handles and WAL/shared-memory files after `DatabaseSync.close()` or `Symbol.dispose()`; Vasudev cannot finalize them through Bun's public `node:sqlite` API. See the [upstream close fix](https://github.com/oven-sh/bun/pull/40005); use Node when prompt file release matters.
 - **SQLite storage workers:** Bun uses one worker per distinct database, up to four open databases. Clients of the same database share its worker. Closing the last client waits for worker exit to release native handles; opening a fifth distinct database fails without interrupting existing stores. Node workers can share multiple databases. This temporary Bun limit can be revisited after the upstream close fix ships and repeated close/reopen tests prove native handles and locks are released.
 - **Workspace installation:** `bun install` cannot resolve this repository's pnpm workspace layout. Use `pnpm install`.
 

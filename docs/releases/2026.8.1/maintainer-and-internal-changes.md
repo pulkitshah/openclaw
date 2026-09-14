@@ -1,9 +1,9 @@
 ---
 title: "v2026.8.1: Maintainer and Internal Changes"
-description: "The 6,364 changes that primarily affect the people who build and maintain OpenClaw: release and CI work, tests, internal refactors, and documentation maintenance."
+description: "The 6,364 changes that primarily affect the people who build and maintain Vasudev: release and CI work, tests, internal refactors, and documentation maintenance."
 ---
 
-Another 6,364 changes in this release primarily affect the people who build and maintain OpenClaw. They cover [release and CI work](/reference/RELEASING), tests, internal refactors, documentation maintenance, and narrow fixes that sit outside the user-facing product areas of this release.
+Another 6,364 changes in this release primarily affect the people who build and maintain Vasudev. They cover [release and CI work](/reference/RELEASING), tests, internal refactors, documentation maintenance, and narrow fixes that sit outside the user-facing product areas of this release.
 
 <AccordionGroup>
 
@@ -228,7 +228,7 @@ This completes the record for all 17,675 analyzed PRs and commits in v2026.8.1. 
 - test(gateway): fix flaky settled-run-ownership assertion in gateway chat suite [#129033](https://github.com/openclaw/openclaw/pull/129033)
 - fix(release): preserve focused evidence lineage [#129060](https://github.com/openclaw/openclaw/pull/129060)
 - test(google): isolate Vertex streams from ambient ADC [#129121](https://github.com/openclaw/openclaw/pull/129121)
-- fix(qa): OpenClaw harness planning check fails after progress-card migration [#129143](https://github.com/openclaw/openclaw/pull/129143)
+- fix(qa): Vasudev harness planning check fails after progress-card migration [#129143](https://github.com/openclaw/openclaw/pull/129143)
 - fix(release): full validation survives queued parent states [#129166](https://github.com/openclaw/openclaw/pull/129166)
 - fix(pr): keep older contributor worktree checkouts within OS argument limits [#129169](https://github.com/openclaw/openclaw/pull/129169)
 - fix(release): approved VCR mirror recovery never starts [#129829](https://github.com/openclaw/openclaw/pull/129829)
@@ -341,7 +341,7 @@ This completes the record for all 17,675 analyzed PRs and commits in v2026.8.1. 
 - Document draft-then-ready PR creation for reliable CI [#110970](https://github.com/openclaw/openclaw/pull/110970)
 - Update stale debugging skill file references [#111474](https://github.com/openclaw/openclaw/pull/111474)
 - Document script and dependency troubleshooting rules for agents [#112543](https://github.com/openclaw/openclaw/pull/112543)
-- Attribute published packages and docs to the OpenClaw Foundation [#112633](https://github.com/openclaw/openclaw/pull/112633)
+- Attribute published packages and docs to the Vasudev Foundation [#112633](https://github.com/openclaw/openclaw/pull/112633)
 - Make Auto QA campaign evidence verifiable [#113857](https://github.com/openclaw/openclaw/pull/113857)
 - Replace the rate-limited Star History badge [#114762](https://github.com/openclaw/openclaw/pull/114762)
 - Fix the security warning's line wrapping [#115388](https://github.com/openclaw/openclaw/pull/115388)
@@ -362,11 +362,11 @@ This completes the record for all 17,675 analyzed PRs and commits in v2026.8.1. 
 - docs: require discussion for material SQLite changes [#128876](https://github.com/openclaw/openclaw/pull/128876)
 - docs(plan): record CUA production vertical, node-channel fix, and channel schema repair [#130117](https://github.com/openclaw/openclaw/pull/130117)
 - docs: compact generated maturity scorecard rows [#130331](https://github.com/openclaw/openclaw/pull/130331)
-- docs(start): add Why OpenClaw enterprise architecture page [#130709](https://github.com/openclaw/openclaw/pull/130709)
-- docs(start): add architecture diagrams to Why OpenClaw [#130776](https://github.com/openclaw/openclaw/pull/130776)
-- docs(start): human introduction for Why OpenClaw [#130812](https://github.com/openclaw/openclaw/pull/130812)
-- docs(start): restructure Why OpenClaw intro into a question-answer flow [#130874](https://github.com/openclaw/openclaw/pull/130874)
-- docs(start): bridge paragraph for personal readers on Why OpenClaw [#131105](https://github.com/openclaw/openclaw/pull/131105)
+- docs(start): add Why Vasudev enterprise architecture page [#130709](https://github.com/openclaw/openclaw/pull/130709)
+- docs(start): add architecture diagrams to Why Vasudev [#130776](https://github.com/openclaw/openclaw/pull/130776)
+- docs(start): human introduction for Why Vasudev [#130812](https://github.com/openclaw/openclaw/pull/130812)
+- docs(start): restructure Why Vasudev intro into a question-answer flow [#130874](https://github.com/openclaw/openclaw/pull/130874)
+- docs(start): bridge paragraph for personal readers on Why Vasudev [#131105](https://github.com/openclaw/openclaw/pull/131105)
 - docs: prohibit publishing unreleased model identifiers [#131942](https://github.com/openclaw/openclaw/pull/131942)
 - docs(ci): correct SDK declaration ownership and caching [#132728](https://github.com/openclaw/openclaw/pull/132728)
 - docs: remove AI-assistance disclosure requirement for PRs [#132968](https://github.com/openclaw/openclaw/pull/132968)

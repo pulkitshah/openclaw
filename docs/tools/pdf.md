@@ -11,14 +11,14 @@ read_when:
 
 ## Availability
 
-The tool registers only when OpenClaw can resolve a PDF-capable model for the agent. Resolution order:
+The tool registers only when Vasudev can resolve a PDF-capable model for the agent. Resolution order:
 
 1. `agents.defaults.pdfModel` (explicit primary/fallbacks)
 2. `agents.defaults.imageModel` (explicit primary/fallbacks)
 3. The agent's resolved session/default model, if its provider supports native PDF input (Anthropic, Google) or already has a configured vision model
 4. Auto-detected image/vision-capable providers with usable auth, preferring native-PDF providers first
 
-Every fallback candidate is auth-checked before use, so a configured `provider/model` only counts if OpenClaw can authenticate that provider for the agent. If no usable model resolves, the `pdf` tool is not exposed.
+Every fallback candidate is auth-checked before use, so a configured `provider/model` only counts if Vasudev can authenticate that provider for the agent. If no usable model resolves, the `pdf` tool is not exposed.
 
 ## Input reference
 
@@ -60,9 +60,9 @@ Notes:
 - Local file path (including `~` expansion)
 - `file://` URL
 - `http://` and `https://` URL
-- OpenClaw-managed inbound refs such as `media://inbound/<id>`
+- Vasudev-managed inbound refs such as `media://inbound/<id>`
 
-Other URI schemes (for example `ftp://`) return `details.error = "unsupported_pdf_reference"`. Remote `http(s)` URLs are rejected when the tool runs sandboxed. With workspace-only file policy enabled, local paths outside allowed roots are rejected; managed inbound refs and replayed paths under OpenClaw's inbound media store are still allowed.
+Other URI schemes (for example `ftp://`) return `details.error = "unsupported_pdf_reference"`. Remote `http(s)` URLs are rejected when the tool runs sandboxed. With workspace-only file policy enabled, local paths outside allowed roots are rejected; managed inbound refs and replayed paths under Vasudev's inbound media store are still allowed.
 
 ## Execution modes
 
@@ -88,8 +88,8 @@ Details:
 - Local extraction runs in a reusable worker so PDF text and image processing do not block the Gateway. Cancelling the agent run stops queued or active extraction.
 - Encrypted PDFs open with the top-level `password` parameter.
 - If the model has no image input and there is no extractable text, the tool errors.
-- If image rendering fails, OpenClaw drops the images and continues with the extracted text.
-- If the target model is text-only and extraction produced images, OpenClaw drops the images and sends text only.
+- If image rendering fails, Vasudev drops the images and continues with the extracted text.
+- If the target model is text-only and extraction produced images, Vasudev drops the images and sends text only.
 
 ## Config
 

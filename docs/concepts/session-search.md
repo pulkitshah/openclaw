@@ -42,7 +42,7 @@ length, and total response size.
 
 ## Index lifecycle
 
-OpenClaw stores a full-text index next to the transcript rows in each agent's SQLite database.
+Vasudev stores a full-text index next to the transcript rows in each agent's SQLite database.
 New user and assistant messages are indexed in the same transaction that persists them, so the
 index never lags live conversations; tool results, reasoning blocks, and images are excluded.
 Only the transcript's active branch is searchable.

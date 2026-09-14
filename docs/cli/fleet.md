@@ -1,5 +1,5 @@
 ---
-summary: "CLI reference for provisioning and managing isolated per-tenant OpenClaw cells"
+summary: "CLI reference for provisioning and managing isolated per-tenant Vasudev cells"
 read_when:
   - You host multiple tenant trust domains on one machine
   - You need to create, inspect, upgrade, or remove fleet cells
@@ -8,7 +8,7 @@ title: "Fleet"
 
 # `openclaw fleet`
 
-`openclaw fleet` manages complete OpenClaw instances called **cells**. Each cell has its own Gateway, state, credentials, channel accounts, container, and loopback-only host port. Use one cell for each tenant trust boundary; do not use one shared Gateway as a hostile multi-tenant boundary.
+`openclaw fleet` manages complete Vasudev instances called **cells**. Each cell has its own Gateway, state, credentials, channel accounts, container, and loopback-only host port. Use one cell for each tenant trust boundary; do not use one shared Gateway as a hostile multi-tenant boundary.
 
 Fleet is **experimental**. Command names, flags, output shapes, and the container profile can change between releases without a deprecation window.
 
@@ -267,7 +267,7 @@ Purge is retryable when an exact expected tenant directory is already absent. Th
 
 ## Storage and container layout
 
-Cell state and the legacy auth-profile encryption key use separate per-tenant host paths under the active OpenClaw state directory:
+Cell state and the legacy auth-profile encryption key use separate per-tenant host paths under the active Vasudev state directory:
 
 ```text
 <state-dir>/fleet/cells/<tenant>/

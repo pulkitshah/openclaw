@@ -2,7 +2,7 @@
 summary: "Tencent Cloud TokenHub and TokenPlan setup for hy4-preview"
 title: "Tencent Cloud (TokenHub / TokenPlan)"
 read_when:
-  - You want to use Tencent hy4-preview with OpenClaw
+  - You want to use Tencent hy4-preview with Vasudev
   - You need the TokenHub or TokenPlan API key setup
 ---
 
@@ -129,7 +129,7 @@ review its different pricing and verify model access for the selected endpoint.
 
 <AccordionGroup>
   <Accordion title="Endpoint override">
-    OpenClaw's built-in catalog uses Tencent Cloud's `https://tokenhub.tencentmaas.com/v1` endpoint. Override it only if your TokenHub account or region requires a different one:
+    Vasudev's built-in catalog uses Tencent Cloud's `https://tokenhub.tencentmaas.com/v1` endpoint. Override it only if your TokenHub account or region requires a different one:
 
     ```bash
     openclaw config set models.providers.tencent-tokenhub.baseUrl "https://your-endpoint/v1"

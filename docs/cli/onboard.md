@@ -1,7 +1,7 @@
 ---
 summary: "CLI reference for `openclaw onboard` (interactive onboarding)"
 read_when:
-  - You want to establish inference, then finish setup with OpenClaw
+  - You want to establish inference, then finish setup with Vasudev
 title: "Onboard"
 ---
 
@@ -9,7 +9,7 @@ title: "Onboard"
 
 Guided setup that establishes inference first: it detects existing AI access,
 waits for your provider choice, verifies that connection, persists only the working route, and then starts
-OpenClaw to configure the rest. `openclaw setup` reaches this flow on fresh
+Vasudev to configure the rest. `openclaw setup` reaches this flow on fresh
 systems or whenever an onboarding option is present; configured systems use
 bare `openclaw setup` for system-agent chat. `openclaw setup --baseline` only
 writes the baseline config/workspace.
@@ -19,7 +19,7 @@ writes the baseline config/workspace.
     Walkthrough of the interactive CLI flow.
   </Card>
   <Card title="Onboarding overview" href="/start/onboarding-overview" icon="map">
-    How OpenClaw onboarding fits together.
+    How Vasudev onboarding fits together.
   </Card>
   <Card title="CLI setup reference" href="/start/wizard-cli-reference" icon="book">
     Outputs, internals, and per-step behavior.
@@ -112,7 +112,7 @@ not overwrite the existing skill.
   clients can send it in either `auth.token` or `auth.password`.
 - `--flow import`: runs a detected migration provider (for example Hermes via `--import-from hermes`) against a fresh setup. After confirmation, onboarding stages config, credentials, workspace files, memory, and skills under private temporary targets; imported inference must pass a live completion before workspace and agent state are promoted and configuration is committed. Failure or cancellation before promotion leaves the live target untouched. External activation steps that cannot be rolled back, such as Codex plugin installation, run afterward and remain retryable from the migration report. Migration import options (`--flow import`, `--import-from`, `--import-source`, and `--import-secrets`) cannot be combined with `--reset`; run the import without `--reset`. Use [`openclaw migrate`](/cli/migrate) for dry-run plans, overwrite mode, verified backups, reports, and exact mappings.
 - `--remote-url`, `--remote-token`, and `--remote-password`: prefill the classic remote Gateway step and override stored remote values for this run. Pass either a token or a password, not both. Changing the URL does not reuse stored credentials unless you also provide a new token or password. The interactive step asks for one **Gateway secret**, whether the remote Gateway calls it a token or password, and stores it as `gateway.remote.token`. Credentials stay masked and follow the plaintext or SecretRef storage choice. Leave the secret blank and confirm to keep an existing credential. To connect without a shared secret, leave it blank, decline keeping an existing credential if offered, then explicitly confirm **Continue without a Gateway secret?**. Reference storage offers the same confirmation before asking for the reference.
-- `--modern` is a compatibility alias for the OpenClaw conversational setup
+- `--modern` is a compatibility alias for the Vasudev conversational setup
   assistant. It uses the same live-inference gate as `openclaw setup` and
   accepts only `--workspace`, `--agent-name`, `--accept-risk`,
   `--non-interactive`, and `--json`. Other setup flags are rejected instead of
@@ -137,7 +137,7 @@ trying another provider.
 The provider picker includes installed and installable official providers.
 Choose **More…** for additional provider groups; regions, plans, and auth methods
 then appear in a second menu. Supported browser or device sign-in and masked
-API-key or token methods use the same live completion path. OpenClaw persists
+API-key or token methods use the same live completion path. Vasudev persists
 only the verified model route and its credential after the test succeeds; a
 failed candidate does not replace the configured model or save the attempted
 credential. In local onboarding, **Skip for now** prepares the named agent's
@@ -145,9 +145,9 @@ workspace and local Gateway configuration, then exits without starting the Gatew
 or AI chat. Rerun `openclaw onboard` when you are ready to connect AI; interrupted
 baseline setup resumes under its existing onboarding owner.
 
-In guided mode, `--workspace <dir>` supplies OpenClaw's proposed workspace
+In guided mode, `--workspace <dir>` supplies Vasudev's proposed workspace
 and the isolated inference context. It is not persisted until you approve the
-OpenClaw setup proposal. Classic and noninteractive onboarding persist their
+Vasudev setup proposal. Classic and noninteractive onboarding persist their
 workspace through their normal setup flow. On a rerun with an existing agent
 roster, onboarding preserves the configured fleet workspace: the classic
 wizard shows both paths and requires explicit confirmation before moving it,
@@ -182,13 +182,13 @@ loopback Gateway, and waits up to five minutes. A successful connection
 continues in the browser; an unreachable Gateway or a timeout falls back to the
 same terminal hatch as before. Pass `--tui` to skip the browser handoff and
 force that terminal hatch.
-If applying setup fails, onboarding falls back to the conversational OpenClaw
+If applying setup fails, onboarding falls back to the conversational Vasudev
 chat to finish interactively. Channels, agents,
-plugins, and other optional features remain OpenClaw chat territory: run
+plugins, and other optional features remain Vasudev chat territory: run
 `openclaw` and use `open channel wizard for <channel>` to hand channel
 credential collection to a masked terminal wizard. To change the model
-provider or its authentication, exit OpenClaw and run `openclaw onboard`;
-OpenClaw does not open the guided or classic provider flows.
+provider or its authentication, exit Vasudev and run `openclaw onboard`;
+Vasudev does not open the guided or classic provider flows.
 
 On a configured install, running `openclaw onboard` again offers the current
 default model in the detected-connections group. Choose it for a verification
@@ -202,7 +202,7 @@ remote Gateway setup, imports, or full Gateway controls. For conversational
 non-inference setup and repair, run `openclaw setup`; `openclaw onboard
 --modern` is a compatibility alias through the same inference gate. The classic
 wizard can optionally verify the default model with a live completion, but
-OpenClaw will not start until its own live inference check passes.
+Vasudev will not start until its own live inference check passes.
 
 In an interactive terminal, bare `openclaw` (no subcommand) routes by config
 state:
@@ -210,11 +210,11 @@ state:
 - If the active config file is missing or has no authored settings (empty or
   metadata-only), it starts guided onboarding.
 - If the config file exists but fails validation, it starts the classic
-  onboarding path with `openclaw doctor` guidance. OpenClaw needs working
+  onboarding path with `openclaw doctor` guidance. Vasudev needs working
   inference and is not used to repair this pre-inference state.
 - If the config file is valid, it opens the normal agent TUI. A reachable
   configured Gateway with an agent and model goes directly to that UI without
-  onboarding or OpenClaw. On a configured install, reach OpenClaw with
+  onboarding or Vasudev. On a configured install, reach Vasudev with
   `/openclaw` inside the TUI or `openclaw setup`.
 
 Remote setup reuses device pairing for the selected Gateway, including a
@@ -291,7 +291,7 @@ openclaw onboard --non-interactive --accept-risk --skip-health \
 ```
 
 Set `OPENAI_API_KEY` before running this example. The `codex` selector uses
-OpenClaw's official plugin catalog. If the required plugin is already installed
+Vasudev's official plugin catalog. If the required plugin is already installed
 but needs approval to enable it, use
 `openclaw plugins enable <plugin-id> --accept-capabilities` instead. The flag
 approves only that plugin operation; it is not a global bypass. The same
@@ -314,7 +314,7 @@ openclaw onboard --non-interactive --accept-risk --skip-health \
   --custom-image-input
 ```
 
-`--custom-api-key` is optional; if omitted, onboarding checks `CUSTOM_API_KEY` in env. OpenClaw marks common vision model IDs (GPT-4o/4.1/5.x, Claude 3/4, Gemini, Qwen-VL, LLaVA, Pixtral, and similar) as image-capable automatically. Pass `--custom-image-input` for unknown custom vision IDs, or `--custom-text-input` to force text-only metadata. Use `--custom-compatibility openai-responses` for OpenAI-compatible endpoints that support `/v1/responses` but not `/v1/chat/completions`; valid values are `openai` (default), `openai-responses`, `anthropic`.
+`--custom-api-key` is optional; if omitted, onboarding checks `CUSTOM_API_KEY` in env. Vasudev marks common vision model IDs (GPT-4o/4.1/5.x, Claude 3/4, Gemini, Qwen-VL, LLaVA, Pixtral, and similar) as image-capable automatically. Pass `--custom-image-input` for unknown custom vision IDs, or `--custom-text-input` to force text-only metadata. Use `--custom-compatibility openai-responses` for OpenAI-compatible endpoints that support `/v1/responses` but not `/v1/chat/completions`; valid values are `openai` (default), `openai-responses`, `anthropic`.
 
 LM Studio also has a provider-specific key flag:
 
@@ -461,7 +461,7 @@ Output: `--suppress-gateway-token-output` disables the automatic Control UI hand
 `--json` does not imply non-interactive mode in guided or classic onboarding.
 Without an interactive terminal, both onboarding modes return a structured
 JSON error; add `--non-interactive --accept-risk` for automation.
-With `--modern`, JSON is a one-shot OpenClaw overview and exits after that
+With `--modern`, JSON is a one-shot Vasudev overview and exits after that
 single result. Use `--non-interactive` for other scripts. Invalid existing
 configuration also returns one JSON failure; repair guidance remains on stderr.
 </Note>

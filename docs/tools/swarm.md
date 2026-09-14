@@ -76,7 +76,7 @@ include values you want to change:
 | `waitTimeoutSecondsMax` | `600`   | Maximum timeout accepted by one `agents_wait` call. The call default is 30 seconds.                                            |
 | `defaultAgentId`        | `""`    | Target agent used when a spawn omits `agentId`. An empty value uses the requesting agent. Existing sub-agent allowlists apply. |
 
-Numeric values must be positive integers. OpenClaw bounds
+Numeric values must be positive integers. Vasudev bounds
 `maxConcurrent` to `1`–`1000`, `maxChildrenPerGroup` to `1`–`10000`,
 `maxTotalPerGroup` to `1`–`100000`, and `waitTimeoutSecondsMax` to
 `1`–`86400`.
@@ -90,7 +90,7 @@ re-enable a global `false`.
 
 ## Requirements
 
-To use the `agents.run`, `phase`, and `log` guest globals, enable OpenClaw Code
+To use the `agents.run`, `phase`, and `log` guest globals, enable Vasudev Code
 Mode and leave Swarm enabled:
 
 ```json5
@@ -102,7 +102,7 @@ Mode and leave Swarm enabled:
 ```
 
 Code Mode exposes these globals, `API.read("agents.d.ts")`, and Swarm prompt
-hints only when its catalog contains the native OpenClaw `sessions_spawn`
+hints only when its catalog contains the native Vasudev `sessions_spawn`
 tool and the run's execution allowlist permits it. An MCP tool with the same
 name does not qualify. Tool profiles, allow/deny policy, provider rules, and
 sandbox policy can remove the native tool. If the Swarm API is absent, check
@@ -116,7 +116,7 @@ not require the standalone `agents_wait` tool to be allowed. The
 or bypasses policy.
 
 `defaultAgentId` and per-run `agentId` values must name a configured target
-permitted by the requester's `subagents.allowAgents` policy. OpenClaw rejects
+permitted by the requester's `subagents.allowAgents` policy. Vasudev rejects
 an unknown or disallowed target instead of falling back to another agent.
 
 ## Write a Swarm script
@@ -221,7 +221,7 @@ outcomes for you. Keep completed work and report failed lanes. Do not respawn
 the batch automatically. A later provider failure can still prevent a final
 model reply, so retain the collected results for recovery.
 
-OpenClaw starts up to `maxConcurrent` children for the group and queues the rest
+Vasudev starts up to `maxConcurrent` children for the group and queues the rest
 in submission order.
 
 Code Mode separately bounds concurrent guest bridge calls with
@@ -296,7 +296,7 @@ Collector children are ordinary isolated sub-agent sessions with a different
 completion path. They write a durable collector result for the parent to
 await instead of announcing or steering a reply back into the parent session.
 The accepted spawn receipt describes this path: collect the result with
-`agents_wait`, or await `agents.run()` in OpenClaw Code Mode. Do not use
+`agents_wait`, or await `agents.run()` in Vasudev Code Mode. Do not use
 `sessions_yield` to wait for collector children. They do not send completion notifications.
 
 The target agent resolves in this order:
@@ -306,7 +306,7 @@ The target agent resolves in this order:
 3. The requesting agent.
 
 A dedicated, lean worker agent is useful when collector children need a smaller
-tool surface, cheaper model, or tighter sandbox policy. OpenClaw does not ship
+tool surface, cheaper model, or tighter sandbox policy. Vasudev does not ship
 a built-in `worker` agent id. Configure one before naming it as the default.
 Harden that worker with `tools.swarm: false` in its per-agent configuration so
 it can be spawned but cannot start swarms from its own top-level sessions:
@@ -330,7 +330,7 @@ Collector approvals fail closed. A child never opens an operator approval
 prompt. A tool action that would require approval is denied, and the child can
 report that denial in its result so the script can decide what to do next.
 
-For structured output, OpenClaw adds a synthetic `structured_output` tool to
+For structured output, Vasudev adds a synthetic `structured_output` tool to
 the child and validates its payload against the supplied JSON Schema. An
 invalid payload gets one corrective nudge. If no payload is submitted, or the
 retry still does not validate, the collector completion keeps the child's raw
@@ -427,20 +427,20 @@ session-wide Stop scopes.
 
 ## Use Swarm from other harnesses
 
-You can use Swarm without OpenClaw Code Mode. Its core tools are
+You can use Swarm without Vasudev Code Mode. Its core tools are
 harness-independent: start collector children with
 `sessions_spawn({ collect: true })` and drain them with bounded `agents_wait`
 calls. Both tools must be allowed by the effective tool policy. Default-on
 Swarm does not add them to a restrictive tool profile or allowlist.
 
-Codex Code Mode automatically exposes eligible dynamic OpenClaw tools under
-`tools.*`. It does not use OpenClaw's QuickJS guest API or require
+Codex Code Mode automatically exposes eligible dynamic Vasudev tools under
+`tools.*`. It does not use Vasudev's QuickJS guest API or require
 `tools.codeMode`, but `tools.swarm` must still be enabled. Codex harness
 `agents_wait` calls support the full 600-second timeout.
 
 Codex records its dynamic tool catalog when a native thread starts. A thread
 created without `agents_wait` cannot gain that reader just by enabling Swarm or
-upgrading OpenClaw, so collector spawn fields remain unavailable on that thread.
+upgrading Vasudev, so collector spawn fields remain unavailable on that thread.
 For an ordinary unlocked chat, use `/new` or `/reset` to start with current tools.
 For a [supervised, model-locked Chat](/plugins/codex-supervision#branch-from-a-local-session),
 open the Control UI's global **New Session** page and select a concrete
@@ -448,7 +448,7 @@ Codex-backed model to start a separate ordinary session. Keep the supervised
 Chat intact: `/new`, `/reset`, and parent-linked **New chat** are blocked there.
 The new session still needs a tool policy that permits both collector tools.
 
-With the currently supported Codex runtime, dynamic OpenClaw tool results reach
+With the currently supported Codex runtime, dynamic Vasudev tool results reach
 Code Mode as JSON text. Parse each result before reading fields. Codex also
 serializes dynamic tool calls, so `Promise.all` does not submit several
 `sessions_spawn` calls concurrently. Launch collector children in a bounded loop.
@@ -564,7 +564,7 @@ or its authorized parent chain can wait on a collector.
 
 This is bounded long polling, not a busy status loop. Keep passing only the
 remaining run ids until `pending` is empty. Collector mode supports native
-OpenClaw sub-agents. It does not support ACP runtime, thread binding, visible
+Vasudev sub-agents. It does not support ACP runtime, thread binding, visible
 sessions, or persistent session mode.
 
 <a id="limits-and-roadmap" />

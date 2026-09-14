@@ -2,7 +2,7 @@
   "name": "@openclaw/fal-provider",
   "version": "2026.9.4",
   "private": true,
-  "description": "OpenClaw fal provider plugin",
+  "description": "Vasudev fal provider plugin",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

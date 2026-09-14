@@ -1,6 +1,6 @@
 ---
 title: "v2026.8.1: Maintenance changes (part 6 of 8)"
-description: "Part 6 of the 6,016 routine maintenance changes in OpenClaw v2026.8.1, with a source link for each one."
+description: "Part 6 of the 6,016 routine maintenance changes in Vasudev v2026.8.1, with a source link for each one."
 ---
 
 Maintenance changes 3,761 to 4,512 of 6,016. See [Maintainer and Internal Changes](/releases/2026.8.1/maintainer-and-internal-changes) for the other categories and the remaining parts.
@@ -488,7 +488,7 @@ Maintenance changes 3,761 to 4,512 of 6,016. See [Maintainer and Internal Change
 - Consolidate repeated runtime and tooling paths [#122656](https://github.com/openclaw/openclaw/pull/122656)
 - Split Control UI authentication tests into focused suites [#122660](https://github.com/openclaw/openclaw/pull/122660)
 - Consolidate repeated runtime shaping logic [#122661](https://github.com/openclaw/openclaw/pull/122661)
-- Remove the orphaned Ask OpenClaw panel toggle contract [#122663](https://github.com/openclaw/openclaw/pull/122663)
+- Remove the orphaned Ask Vasudev panel toggle contract [#122663](https://github.com/openclaw/openclaw/pull/122663)
 - Preserve output across background-process test polls [#122664](https://github.com/openclaw/openclaw/pull/122664)
 - Route recurring compact CI queue tails to 8-vCPU runners [#122666](https://github.com/openclaw/openclaw/pull/122666)
 - Consolidate OpenAI realtime test fixtures [#122670](https://github.com/openclaw/openclaw/pull/122670)

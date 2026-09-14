@@ -1,5 +1,5 @@
 ---
-summary: "Connect OpenClaw agents to Buzz rooms."
+summary: "Connect Vasudev agents to Buzz rooms."
 read_when:
   - You are installing, configuring, or auditing the buzz plugin
 title: "Buzz plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-Connect OpenClaw agents to Buzz rooms.
+Connect Vasudev agents to Buzz rooms.
 
 ## Distribution
 

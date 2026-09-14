@@ -93,13 +93,13 @@ Reach the Gateway and paired nodes from plugin code, and the events a long-lived
     `maxMessageBytes`, cannot be smaller than that limit, and cannot exceed
     100 MiB. A protocol that can follow a maximum-sized response with a bounded
     asynchronous notification may request a larger outstanding-delivery budget
-    without raising its per-message ceiling. OpenClaw splits each binary message
+    without raising its per-message ceiling. Vasudev splits each binary message
     into ordered 8 KiB payload fragments that fit the existing 16 KiB
     transport-frame limit; callers always send and receive complete
     `Uint8Array` messages. Concurrent sends preserve message boundaries.
 
     Register the channel's single message listener immediately after
-    `openDuplex` resolves. Before a listener is registered, OpenClaw buffers at
+    `openDuplex` resolves. Before a listener is registered, Vasudev buffers at
     most eight complete messages and 1 MiB total; exceeding either limit closes
     the invocation. The unsubscribe callback removes that listener. Listeners
     may return `Promise<void>`; a thrown error or rejected promise, caller
@@ -179,7 +179,7 @@ Reach the Gateway and paired nodes from plugin code, and the events a long-lived
     for later availability changes and `onDisconnect` for execution cleanup.
 
     <Warning>
-    The optional `scopes` field requests Gateway operator scopes for the invocation. OpenClaw honors it only for bundled plugins and trusted official plugin installations; requests from other plugins do not elevate the call. When `openDuplex` runs inside an authenticated Gateway request, its effective scopes never exceed that authenticated caller's actual scopes, even if a trusted plugin requests stronger scopes. Without an authenticated incoming client, existing trusted-plugin scope behavior applies. Use requested scopes only when a trusted plugin must invoke a node command with a stricter Gateway scope, such as `operator.admin`.
+    The optional `scopes` field requests Gateway operator scopes for the invocation. Vasudev honors it only for bundled plugins and trusted official plugin installations; requests from other plugins do not elevate the call. When `openDuplex` runs inside an authenticated Gateway request, its effective scopes never exceed that authenticated caller's actual scopes, even if a trusted plugin requests stronger scopes. Without an authenticated incoming client, existing trusted-plugin scope behavior applies. Use requested scopes only when a trusted plugin must invoke a node command with a stricter Gateway scope, such as `operator.admin`.
     </Warning>
 
   </Accordion>
@@ -263,7 +263,7 @@ returned unsubscribe function and call it during service cleanup. The payload is
 change notice; use `api.runtime.agent.session.getSessionEntry(...)` when the plugin needs the full
 current session entry.
 
-OpenClaw calls a service's `stop()` at most once per startup attempt, including when a replacement
+Vasudev calls a service's `stop()` at most once per startup attempt, including when a replacement
 times out before startup fails. Failed-start rollback and shutdown share the same cleanup result;
 a cleanup failure is recorded rather than retried within that attempt.
 

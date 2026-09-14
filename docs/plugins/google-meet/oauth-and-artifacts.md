@@ -47,7 +47,7 @@ http://localhost:8085/oauth2callback
 </Step>
 </Steps>
 
-`meetings.space.created` is required by `spaces.create`. `meetings.space.readonly` resolves Meet URLs/codes to spaces. `meetings.space.settings` lets OpenClaw pass `SpaceConfig` settings such as `accessType` during API room creation. `meetings.conference.media.readonly` is for Meet Media API preflight and media work; Google may require Developer Preview enrollment for actual Media API use. `calendar.events.readonly` is only needed for `--today`/`--event` calendar lookup. `drive.meet.readonly` is only needed for `--include-doc-bodies` export. If you only need browser-based Chrome joins, skip OAuth entirely.
+`meetings.space.created` is required by `spaces.create`. `meetings.space.readonly` resolves Meet URLs/codes to spaces. `meetings.space.settings` lets Vasudev pass `SpaceConfig` settings such as `accessType` during API room creation. `meetings.conference.media.readonly` is for Meet Media API preflight and media work; Google may require Developer Preview enrollment for actual Media API use. `calendar.events.readonly` is only needed for `--today`/`--event` calendar lookup. `drive.meet.readonly` is only needed for `--include-doc-bodies` export. If you only need browser-based Chrome joins, skip OAuth entirely.
 
 ### Mint the refresh token
 
@@ -133,7 +133,7 @@ openclaw googlemeet resolve-space --meeting https://meet.google.com/abc-defg-hij
 
 A `403` from these checks usually means the Meet REST API is disabled, the refresh token is missing the required scope, or the Google account cannot access that space. A refresh-token error means rerun `openclaw googlemeet auth login --json` and store the new `oauth` block.
 
-No OAuth is needed for the browser fallback; Google auth there comes from the signed-in Chrome profile on the selected node, not OpenClaw config.
+No OAuth is needed for the browser fallback; Google auth there comes from the signed-in Chrome profile on the selected node, not Vasudev config.
 
 These environment variables are accepted as fallbacks:
 
@@ -187,7 +187,7 @@ Close the room for an API-created space:
 openclaw googlemeet end-active-conference https://meet.google.com/abc-defg-hij
 ```
 
-Calls `spaces.endActiveConference` and requires OAuth with the `meetings.space.created` scope for a space the authorized account can manage. Accepts a Meet URL, meeting code, or `spaces/{id}` and resolves it to the API space resource first. This is separate from `googlemeet leave`: `leave` stops OpenClaw's local/session participation; `end-active-conference` asks Google Meet to end the active conference for the space.
+Calls `spaces.endActiveConference` and requires OAuth with the `meetings.space.created` scope for a space the authorized account can manage. Accepts a Meet URL, meeting code, or `spaces/{id}` and resolves it to the API space resource first. This is separate from `googlemeet leave`: `leave` stops Vasudev's local/session participation; `end-active-conference` asks Google Meet to end the active conference for the space.
 
 Write a readable report:
 
@@ -210,7 +210,7 @@ Agents use the same actions through the `google_meet` tool (`export`, `create` w
 
 ### Live smoke test
 
-`pnpm test:live` requires a source checkout of the OpenClaw repo; the `openclaw googlemeet` commands below run from any install.
+`pnpm test:live` requires a source checkout of the Vasudev repo; the `openclaw googlemeet` commands below run from any install.
 
 ```bash
 OPENCLAW_LIVE_TEST=1 \
@@ -299,6 +299,6 @@ API create JSON:
 }
 ```
 
-Creating joins by default, but Chrome/Chrome-node still needs a signed-in Google profile to join through the browser; if signed out, OpenClaw returns `manualAction` or a browser fallback error and asks the operator to finish Google login before retrying.
+Creating joins by default, but Chrome/Chrome-node still needs a signed-in Google profile to join through the browser; if signed out, Vasudev returns `manualAction` or a browser fallback error and asks the operator to finish Google login before retrying.
 
 Set `preview.enrollmentAcknowledged: true` only after confirming your Cloud project, OAuth principal, and meeting participants are enrolled in the Google Workspace Developer Preview Program for Meet media APIs.

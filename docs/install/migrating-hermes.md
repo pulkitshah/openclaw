@@ -1,8 +1,8 @@
 ---
-summary: "Move from Hermes to OpenClaw with a previewed, reversible import"
+summary: "Move from Hermes to Vasudev with a previewed, reversible import"
 read_when:
   - You are coming from Hermes and want to keep your model config, prompts, memory, and skills
-  - You want to know what OpenClaw imports automatically and what stays archive-only
+  - You want to know what Vasudev imports automatically and what stays archive-only
   - You need a clean, scripted migration path (CI, fresh laptop, automation)
 title: "Migrating from Hermes"
 ---
@@ -10,7 +10,7 @@ title: "Migrating from Hermes"
 The bundled Hermes migration provider follows `HERMES_HOME` and the active Hermes profile, falling back to `~/.hermes` on macOS/Linux or `%LOCALAPPDATA%\hermes` on Windows. It previews every change before applying and redacts secrets in plans and reports. Standalone `openclaw migrate` writes a verified backup; the fresh onboarding path stages config, credentials, and files and publishes them only after imported inference verifies. An explicit `--from` path always wins.
 
 <Note>
-Imports require a fresh OpenClaw setup. If you already have local OpenClaw state, reset config, credentials, sessions, and the workspace first, or use `openclaw migrate apply hermes` directly with `--overwrite` after reviewing the plan.
+Imports require a fresh Vasudev setup. If you already have local Vasudev state, reset config, credentials, sessions, and the workspace first, or use `openclaw migrate apply hermes` directly with `--overwrite` after reviewing the plan.
 </Note>
 
 ## Two ways to import
@@ -52,31 +52,31 @@ Imports require a fresh OpenClaw setup. If you already have local OpenClaw state
 
   </Accordion>
   <Accordion title="MCP servers">
-    MCP server definitions from `mcp_servers` or `mcp.servers`, including disabled state, timeouts, parallel-tool support, OAuth scope, compatible TLS fields, and native/resource/prompt tool policy. Literal environment variables and headers require credential-import consent. Hermes-only lifecycle, sampling, elicitation, preflight, keepalive, CA-bundle, password-protected client-key, and pre-registered OAuth-client settings become manual-review items instead of invalid OpenClaw config.
+    MCP server definitions from `mcp_servers` or `mcp.servers`, including disabled state, timeouts, parallel-tool support, OAuth scope, compatible TLS fields, and native/resource/prompt tool policy. Literal environment variables and headers require credential-import consent. Hermes-only lifecycle, sampling, elicitation, preflight, keepalive, CA-bundle, password-protected client-key, and pre-registered OAuth-client settings become manual-review items instead of invalid Vasudev config.
 
-    An empty `tools.include` keeps native tools disabled while preserving the resource and prompt utility settings. OpenClaw tool filters support exact names and `*`; Hermes `?` and bracket patterns need manual review. Unsupported include patterns are omitted, and a server with unsupported exclusion patterns is imported disabled until you replace its filter and enable it.
+    An empty `tools.include` keeps native tools disabled while preserving the resource and prompt utility settings. Vasudev tool filters support exact names and `*`; Hermes `?` and bracket patterns need manual review. Unsupported include patterns are omitted, and a server with unsupported exclusion patterns is imported disabled until you replace its filter and enable it.
 
   </Accordion>
   <Accordion title="Workspace files">
-    - `SOUL.md` and `AGENTS.md` are copied into the OpenClaw agent workspace.
-    - `memories/MEMORY.md` and `memories/USER.md` are **appended** to the matching OpenClaw memory files instead of overwriting them.
+    - `SOUL.md` and `AGENTS.md` are copied into the Vasudev agent workspace.
+    - `memories/MEMORY.md` and `memories/USER.md` are **appended** to the matching Vasudev memory files instead of overwriting them.
     - Memory-only surfaces behave differently: the onboarding memory page and the Control UI Memory import page copy these two files under `memory/imports/hermes/` for indexed recall and leave existing workspace memory untouched.
 
   </Accordion>
   <Accordion title="Memory configuration">
-    Memory config defaults for OpenClaw file memory. External memory providers such as Honcho are recorded as archive or manual-review items so you can move them deliberately.
+    Memory config defaults for Vasudev file memory. External memory providers such as Honcho are recorded as archive or manual-review items so you can move them deliberately.
   </Accordion>
   <Accordion title="Skills">
-    Skills with a `SKILL.md` file under active directories in `skills/` are discovered recursively, flattened into the OpenClaw workspace skill directory, and copied with their support files. Per-skill config values from `skills.config` and global disabled state from `skills.disabled` are preserved. With `--skill`, only the selected skills' config and disabled state are imported. Only the organization mirror selected by `_org/.active_org` is imported.
+    Skills with a `SKILL.md` file under active directories in `skills/` are discovered recursively, flattened into the Vasudev workspace skill directory, and copied with their support files. Per-skill config values from `skills.config` and global disabled state from `skills.disabled` are preserved. With `--skill`, only the selected skills' config and disabled state are imported. Only the organization mirror selected by `_org/.active_org` is imported.
   </Accordion>
   <Accordion title="Auth credentials">
-    Interactive `openclaw migrate` asks before importing auth credentials, with yes selected by default. Accepted imports include current Hermes OpenAI Codex OAuth entries, OpenCode OpenAI OAuth and GitHub Copilot entries, and the [supported Hermes `.env` keys](/cli/migrate#supported-env-keys). Use `--include-secrets` for non-interactive import, `--no-auth-credentials` to skip credentials, or onboarding's `--import-secrets` flag. After importing Hermes OAuth, do not keep Hermes and OpenClaw using the same refresh grant; reauthenticate one side before running both.
+    Interactive `openclaw migrate` asks before importing auth credentials, with yes selected by default. Accepted imports include current Hermes OpenAI Codex OAuth entries, OpenCode OpenAI OAuth and GitHub Copilot entries, and the [supported Hermes `.env` keys](/cli/migrate#supported-env-keys). Use `--include-secrets` for non-interactive import, `--no-auth-credentials` to skip credentials, or onboarding's `--import-secrets` flag. After importing Hermes OAuth, do not keep Hermes and Vasudev using the same refresh grant; reauthenticate one side before running both.
   </Accordion>
 </AccordionGroup>
 
 ## What stays archive-only
 
-The provider copies these into the migration report directory for manual review, but does **not** load them into live OpenClaw config or credentials:
+The provider copies these into the migration report directory for manual review, but does **not** load them into live Vasudev config or credentials:
 
 - `plugins/`
 - `sessions/`
@@ -87,7 +87,7 @@ The provider copies these into the migration report directory for manual review,
 - `pairing/` and `platforms/` stores, plus gateway routing/process state
 - `state.db`, `hermes_state.db`, `projects.db`, `response_store.db`, `memory_store.db`, `verification_evidence.db`, `kanban.db`, and `retaindb_queue.db`
 
-OpenClaw refuses to execute or trust this state automatically because formats and trust assumptions can drift between systems. Move what you need by hand after reviewing the archive.
+Vasudev refuses to execute or trust this state automatically because formats and trust assumptions can drift between systems. Move what you need by hand after reviewing the archive.
 
 ## Recommended flow
 
@@ -105,7 +105,7 @@ OpenClaw refuses to execute or trust this state automatically because formats an
     openclaw migrate apply hermes --yes
     ```
 
-    OpenClaw creates and verifies a backup before applying. This non-interactive example imports non-secret state only. Run without `--yes` to answer the credential prompt interactively, or add `--include-secrets` to include supported credentials in an unattended run.
+    Vasudev creates and verifies a backup before applying. This non-interactive example imports non-secret state only. Run without `--yes` to answer the credential prompt interactively, or add `--include-secrets` to include supported credentials in an unattended run.
 
   </Step>
   <Step title="Run doctor">
@@ -178,6 +178,6 @@ openclaw migrate apply hermes --json --yes
 
 - [`openclaw migrate`](/cli/migrate): full CLI reference, plugin contract, and JSON shapes.
 - [Onboarding](/cli/onboard): wizard flow and non-interactive flags.
-- [Migrating](/install/migrating): move an OpenClaw install between machines.
+- [Migrating](/install/migrating): move an Vasudev install between machines.
 - [Doctor](/gateway/doctor): post-migration health check.
 - [Agent workspace](/concepts/agent-workspace): where `SOUL.md`, `AGENTS.md`, and memory files live.

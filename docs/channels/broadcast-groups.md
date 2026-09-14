@@ -149,7 +149,7 @@ Legacy single-pass setup uses unqualified WhatsApp peer IDs as keys and arrays o
 }
 ```
 
-**Result:** when OpenClaw would reply in this chat, it runs all three agents.
+**Result:** when Vasudev would reply in this chat, it runs all three agents.
 
 Every listed agent ID must exist in the configured roster: config validation rejects unknown IDs in both arrays and objects. Deleting an agent prunes it from both forms.
 
@@ -213,10 +213,10 @@ Runtime membership uses the canonical `agents.entries` roster when present, incl
     A channel message arrives.
   </Step>
   <Step title="Route and admission">
-    OpenClaw applies channel allowlists, group activation rules, and configured ACP binding ownership.
+    Vasudev applies channel allowlists, group activation rules, and configured ACP binding ownership.
   </Step>
   <Step title="Broadcast check">
-    If no configured ACP binding owns the route, OpenClaw checks the qualified channel/peer key, then the legacy peer key for WhatsApp.
+    If no configured ACP binding owns the route, Vasudev checks the qualified channel/peer key, then the legacy peer key for WhatsApp.
   </Step>
   <Step title="If broadcast applies">
     - Selected participants process the message within the round and turn limits.
@@ -226,7 +226,7 @@ Runtime membership uses the canonical `agents.entries` roster when present, incl
 
   </Step>
   <Step title="If broadcast does not apply">
-    OpenClaw dispatches the ordinary route or the configured ACP session route selected during routing.
+    Vasudev dispatches the ordinary route or the configured ACP session route selected during routing.
   </Step>
 </Steps>
 
@@ -356,7 +356,7 @@ Broadcast groups work alongside existing routing:
 - `GROUP_B`: agent1 AND agent2 respond (broadcast).
 
 <Note>
-**Precedence:** `broadcast` takes priority over ordinary route bindings. Configured ACP bindings (`bindings[].type="acp"`) are exclusive: when one matches, OpenClaw dispatches to the configured ACP session instead of fan-out broadcast.
+**Precedence:** `broadcast` takes priority over ordinary route bindings. Configured ACP bindings (`bindings[].type="acp"`) are exclusive: when one matches, Vasudev dispatches to the configured ACP session instead of fan-out broadcast.
 </Note>
 
 ## Troubleshooting

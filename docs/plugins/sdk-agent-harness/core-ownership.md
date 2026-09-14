@@ -1,5 +1,5 @@
 ---
-summary: "What OpenClaw core prepares and owns before a harness runs an attempt, and the contracts a harness can declare to take some of it back"
+summary: "What Vasudev core prepares and owns before a harness runs an attempt, and the contracts a harness can declare to take some of it back"
 read_when:
   - You need to know which attempt inputs core prepares for a harness
   - You are declaring native tool-policy, auth bootstrap, or session ownership
@@ -8,17 +8,17 @@ title: "Agent harness core ownership"
 sidebarTitle: "Core ownership"
 ---
 
-What OpenClaw prepares before it calls `runAttempt`, and the narrow contracts a harness declares to own tool policy, auth bootstrap, a bound native session, or its own request transport. Part of the [Agent harness plugins](/plugins/sdk-agent-harness) reference.
+What Vasudev prepares before it calls `runAttempt`, and the narrow contracts a harness declares to own tool policy, auth bootstrap, a bound native session, or its own request transport. Part of the [Agent harness plugins](/plugins/sdk-agent-harness) reference.
 
 ## What core still owns
 
-For ordinary concrete-model turns, OpenClaw prepares these inputs before
+For ordinary concrete-model turns, Vasudev prepares these inputs before
 calling `runAttempt`:
 
 - provider and model, including discovery and concrete request parameters
 - runtime auth state, unless the harness declares that it owns auth bootstrap
 - thinking level and context budget
-- the OpenClaw transcript/session file
+- the Vasudev transcript/session file
 - workspace, sandbox, and tool policy
 - channel reply callbacks and streaming callbacks
 - model fallback and live model switching policy
@@ -33,13 +33,13 @@ ownership contract below.
 ### Native tool-policy enforcement
 
 Set `conversationToolPolicySupport: "exact"` only when `runAttempt` enforces every
-explicit OpenClaw tool-policy layer across native and built-in tools, OpenClaw
+explicit Vasudev tool-policy layer across native and built-in tools, Vasudev
 tools, requester and configured MCP servers, apps, delegation, and resumed
 threads. Core passes `params.pluginHarnessToolPolicyRestricted` as the prepared
 decision that the native surface must be isolated.
 
 If the native surface exposes several capabilities together, declare their
-canonical OpenClaw tool names in `conversationToolPolicyNativeTools`. Core checks
+canonical Vasudev tool names in `conversationToolPolicyNativeTools`. Core checks
 every requirement against the effective tool profile and provider profile,
 including agent overrides and `alsoAllow`. A missing capability sets the same
 restriction flag. For example, Codex declares its shell and filesystem tools, so
@@ -49,7 +49,7 @@ denylists, sandbox policy, or runtime caps. Omitting it preserves existing
 profile handling for harnesses that enforce native availability independently.
 
 Harnesses with an independently managed native surface can also declare
-`conversationToolPolicySafeDenyTools` using canonical OpenClaw tool names. Core
+`conversationToolPolicySafeDenyTools` using canonical Vasudev tool names. Core
 preserves the native surface only when every expanded deny is a known core tool
 in that audited safe list and passes the matching names in
 `params.pluginHarnessToolPolicySafeDeniedTools`. The harness must disable any
@@ -60,7 +60,7 @@ where every explicit restriction isolates the native surface. Because omissions
 fail closed, new tools cannot silently relax the policy boundary.
 
 Omit the declaration when any native capability can bypass those layers.
-OpenClaw then visibly rejects explicitly restricted turns before invoking the
+Vasudev then visibly rejects explicitly restricted turns before invoking the
 harness. The operator can switch the session to the embedded runtime or upgrade
 the harness. Channel `/btw` side questions with a restrictive direct policy are
 rejected by core and are not covered by this declaration.
@@ -74,7 +74,7 @@ then delegate credential bootstrap instead of rejecting a route merely because
 generic provider credentials are absent. Prepared route and explicit profile
 requirements still apply.
 
-Core still forwards a compatible, explicitly selected or ordered OpenClaw auth
+Core still forwards a compatible, explicitly selected or ordered Vasudev auth
 profile and its scoped store when one exists. The harness must resolve that
 profile or its native credentials before issuing model requests, keep secrets
 scoped to the attempt, and surface actionable authentication failures. Do not
@@ -171,15 +171,15 @@ implementation that completed the probe. When
 matching `runtimeArtifact.validate(...)` capability that rechecks that binding
 without loading a different harness or scanning unrelated plugins.
 
-Verified OpenClaw continuations also pass `params.expectedRuntimeArtifact`.
+Verified Vasudev continuations also pass `params.expectedRuntimeArtifact`.
 The harness must compare it with the exact native process it acquired and fail
 before starting or resuming a native thread if they differ. Ordinary agent
 turns omit both fields, so content hashing stays out of the normal request hot
 path. Remote/WebSocket harnesses need a server attestation contract before
 they can participate; a version string alone is not an artifact identity.
 
-The prepared attempt also includes `params.runtimePlan`, an OpenClaw-owned
-policy bundle for runtime decisions that must stay shared across OpenClaw and
+The prepared attempt also includes `params.runtimePlan`, an Vasudev-owned
+policy bundle for runtime decisions that must stay shared across Vasudev and
 native harnesses:
 
 - `runtimePlan.tools.normalize(...)` and `runtimePlan.tools.logDiagnostics(...)`
@@ -192,7 +192,7 @@ native harnesses:
   classification
 - `runtimePlan.observability` for resolved provider/model/harness metadata
 
-Harnesses may use the plan for decisions that need to match OpenClaw behavior,
+Harnesses may use the plan for decisions that need to match Vasudev behavior,
 but treat it as host-owned attempt state: do not mutate it or use it to switch
 providers/models inside a turn.
 
@@ -241,15 +241,15 @@ retry sets. Leave it absent for provider, route, or authentication failures
 that must remain fail-closed.
 
 When auth preparation yields multiple retry routes, one harness must support
-all of them before dispatch. Implicit selection uses OpenClaw if no plugin can
+all of them before dispatch. Implicit selection uses Vasudev if no plugin can
 own the full set; an explicit or persisted plugin selection fails closed unless
-the plugin declares the lossless OpenClaw fallback.
+the plugin declares the lossless Vasudev fallback.
 
 ### Per-turn temporal context
 
 Native harnesses that own their model prompt can use `buildTemporalContextText`
 from `openclaw/plugin-sdk/agent-harness-runtime`. It renders the same current
-local date and time zone as the built-in OpenClaw runtime. It uses
+local date and time zone as the built-in Vasudev runtime. It uses
 `agents.defaults.userTimezone` when configured and the host zone otherwise.
 
 Call it for each turn, after the final tool surface is known. Pass

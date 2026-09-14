@@ -5,7 +5,7 @@ read_when:
 title: "Remote access"
 ---
 
-OpenClaw runs one Gateway (the master) on a host and connects every client to it. The Gateway owns sessions, auth profiles, channels, and state; everything else is a client.
+Vasudev runs one Gateway (the master) on a host and connects every client to it. The Gateway owns sessions, auth profiles, channels, and state; everything else is a client.
 
 - **Operators** (you, or the macOS app): direct LAN/Tailnet WebSocket is simplest when the Gateway is reachable; SSH tunneling is the universal fallback.
 - **Nodes** (iOS/Android and other devices): connect to the Gateway **WebSocket** (LAN/tailnet or SSH tunnel).
@@ -19,11 +19,11 @@ The Gateway WebSocket binds to **loopback** by default, on port `18789` (`gatewa
 
 ## Topology options
 
-| Setup                             | Where the Gateway runs                                                                                    | Best for                                                                                                                                          |
-| --------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Always-on Gateway in your tailnet | Persistent host (VPS or home server), reached via Tailscale or SSH                                        | Laptops that sleep often but need the agent always-on. See [exe.dev](/install/exe-dev) (easy VM) or [Hetzner](/install/hetzner) (production VPS). |
-| Home desktop                      | Desktop; laptop connects remotely via the macOS app's remote mode (Settings → Connection → OpenClaw runs) | Keeping the agent on hardware that stays powered on. Runbook: [macOS remote access](/platforms/mac/remote).                                       |
-| Laptop                            | Laptop, exposed safely via SSH tunnel or Tailscale Serve (keep `gateway.bind: "loopback"`)                | Single-machine setups. See [Tailscale](/gateway/tailscale) and [Web](/web).                                                                       |
+| Setup                             | Where the Gateway runs                                                                                   | Best for                                                                                                                                          |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Always-on Gateway in your tailnet | Persistent host (VPS or home server), reached via Tailscale or SSH                                       | Laptops that sleep often but need the agent always-on. See [exe.dev](/install/exe-dev) (easy VM) or [Hetzner](/install/hetzner) (production VPS). |
+| Home desktop                      | Desktop; laptop connects remotely via the macOS app's remote mode (Settings → Connection → Vasudev runs) | Keeping the agent on hardware that stays powered on. Runbook: [macOS remote access](/platforms/mac/remote).                                       |
+| Laptop                            | Laptop, exposed safely via SSH tunnel or Tailscale Serve (keep `gateway.bind: "loopback"`)               | Single-machine setups. See [Tailscale](/gateway/tailscale) and [Web](/web).                                                                       |
 
 For the always-on and laptop setups, prefer keeping `gateway.bind: "loopback"` and using **Tailscale Serve** for the Control UI, or a trusted LAN/Tailnet bind with `gateway.remote.transport: "direct"`. SSH tunnel is the fallback that works from any machine.
 
@@ -191,7 +191,7 @@ SecretRefs:
 }
 ```
 
-OpenClaw's Gateway connection code never runs `cloudflared` itself and has no
+Vasudev's Gateway connection code never runs `cloudflared` itself and has no
 Cloudflare dependency or login flow. Only the generic exec secret provider
 invokes the exact command an operator configures. Resolved edge-auth headers are
 sent only when the target matches the configured `gateway.remote.url` scope,
@@ -314,7 +314,7 @@ launchctl bootstrap gui/$UID ~/Library/LaunchAgents/ai.openclaw.ssh-tunnel.plist
 
 The tunnel starts automatically at login, restarts on crash, and keeps the forwarded port live.
 
-Open or reopen OpenClaw.app after setup, then verify the connection using the
+Open or reopen Vasudev.app after setup, then verify the connection using the
 [macOS remote access](/platforms/mac/remote) checks.
 
 <Note>
@@ -347,4 +347,4 @@ launchctl bootout gui/$UID/ai.openclaw.ssh-tunnel
 - [Tailscale](/gateway/tailscale)
 - [Authentication](/gateway/authentication)
 - [Trusted proxy auth](/gateway/trusted-proxy-auth) — authenticating remote access through a reverse proxy
-- [Network](/network) — the hub for how OpenClaw connects, pairs, and secures devices across localhost, LAN, and tailnet
+- [Network](/network) — the hub for how Vasudev connects, pairs, and secures devices across localhost, LAN, and tailnet

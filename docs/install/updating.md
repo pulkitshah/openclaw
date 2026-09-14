@@ -1,12 +1,12 @@
 ---
-summary: "Updating OpenClaw safely (global install or source), plus rollback strategy"
+summary: "Updating Vasudev safely (global install or source), plus rollback strategy"
 read_when:
-  - Updating OpenClaw
+  - Updating Vasudev
   - Something breaks after an update
 title: "Updating"
 ---
 
-Keep OpenClaw up to date.
+Keep Vasudev up to date.
 
 For Docker, Podman, and Kubernetes image replacements, see
 [Upgrading container images](/install/docker#upgrading-container-images). The
@@ -26,10 +26,10 @@ the old Gateway serves, then activates and verifies the update.
 openclaw update
 ```
 
-An already-installed registry package version or Git target SHA still runs plugin maintenance, repairs eligible old OpenClaw release pins, and restarts a running managed Gateway only when plugins change and `--no-restart` is not set; unchanged runs finish as `skipped` / `already-current`.
+An already-installed registry package version or Git target SHA still runs plugin maintenance, repairs eligible old Vasudev release pins, and restarts a running managed Gateway only when plugins change and `--no-restart` is not set; unchanged runs finish as `skipped` / `already-current`.
 
 Plugin maintenance does not fail an otherwise successful core update. If a plugin
-cannot be updated, OpenClaw continues with the remaining plugins, keeps the previous
+cannot be updated, Vasudev continues with the remaining plugins, keeps the previous
 installation where possible, and prints a short next action. A running updated
 Gateway can also report a plugin that did not load without turning the core update
 into a failure. Individual plugin outcomes remain available in `--json` output.
@@ -102,7 +102,7 @@ beta updates. Plugins still follow the installed core version where required
 for compatibility.
 
 `--channel extended-stable` is package-only, and installation remains
-foreground-only. OpenClaw reads the public npm `extended-stable` selector,
+foreground-only. Vasudev reads the public npm `extended-stable` selector,
 verifies the selected exact package, and installs that exact version. Missing
 or inconsistent registry data fails closed; it never falls back to `latest`.
 If the selected version is older than the installed version, the normal
@@ -114,15 +114,15 @@ checks only the verified `extended-stable` selector for update availability.
 That direct command is for npm 12 or npm 11.16+. On npm 11.15 and earlier,
 omit `--allow-scripts=openclaw`.
 After the core swap, eligible official npm and trusted official ClawHub plugins with bare/default or
-`latest` intent converge to that exact core version. Eligible older OpenClaw release
+`latest` intent converge to that exact core version. Eligible older Vasudev release
 pins resume that default update policy. Explicit non-`latest` tags, independently
 versioned pins, third-party plugins, custom ClawHub registries, and other sources retain
 their existing behavior.
 Version-bound runtime plugins converge to the base release cohort when the
 core is a correction release (for example, `YYYY.M.P-2` uses plugin
 `YYYY.M.P`).
-Catalog installs created by current OpenClaw versions retain that default
-intent. Verified OpenClaw-owned packages recorded at an exact OpenClaw release
+Catalog installs created by current Vasudev versions retain that default
+intent. Verified Vasudev-owned packages recorded at an exact Vasudev release
 no newer than core resume their catalog's default selector after a successful
 update. This includes old automatic and manual pins. Their recorded registry
 and plugin settings are preserved, and subsequent updates continue following
@@ -152,7 +152,7 @@ See [Release channels](/install/development-channels) for channel semantics.
 
 ### Updating from 2026.9.2 across a schema bump
 
-Updates driven by OpenClaw 2026.9.2 can cross a shared-state schema bump normally.
+Updates driven by Vasudev 2026.9.2 can cross a shared-state schema bump normally.
 The target applies the migration content while retaining the old published
 schema version, so the old updater can finish its ledger writes and final
 report. Doctor explains that schema content is applied and version publication
@@ -168,7 +168,7 @@ old-CLI limitation in [Database schemas](/reference/database-schemas#schema-bump
 If an agent database also needs migration, required state metadata is missing,
 or the state-content migration fails, Doctor instead reports
 `update-schema-bump-unfenced` with database versions and manual update commands.
-Let the failed update finish restoring the previous package. OpenClaw 2026.9.2
+Let the failed update finish restoring the previous package. Vasudev 2026.9.2
 leaves the Gateway service stopped after failed post-install verification. Run
 the manual update from a shell outside the Gateway, replacing `<target>` with
 the exact target version from the refusal:
@@ -193,7 +193,7 @@ starting the Gateway.
 
 ### From chat
 
-Ask the agent to update OpenClaw, or send `/update` from Discord or another
+Ask the agent to update Vasudev, or send `/update` from Discord or another
 connected chat. Natural-language requests use the existing `gateway` tool's
 `update.run` action. The minimal, coding, and messaging profiles expose that update
 action without granting configuration reads or other Gateway controls. Explicit tool
@@ -214,7 +214,7 @@ in that chat as the Gateway observes the recorded milestones:
 
 External update and restart notices go only to destinations listed in
 `commands.ownerAllowFrom`. Selecting a non-owner chat in the Control UI does not
-authorize notices to that contact. If no owner destination resolves, OpenClaw
+authorize notices to that contact. If no owner destination resolves, Vasudev
 logs the skipped notice and keeps the update outcome in the run record and
 Control UI; it does not redirect the notice to another chat or wake the rejected
 session with diagnostics.
@@ -284,7 +284,7 @@ live drivers are protected. Identityless rows outside the legacy-expiry shape
 require explicit recovery; the Control UI's configuration-write suspension clears
 after reconciliation.
 
-OpenClaw 2026.9.2 does not reject a new CLI update because an older running row
+Vasudev 2026.9.2 does not reject a new CLI update because an older running row
 exists: its [admission path](https://github.com/openclaw/openclaw/blob/v2026.9.2/src/cli/update-cli/update-command-run.ts#L77)
 creates a new run, and its [ledger](https://github.com/openclaw/openclaw/blob/v2026.9.2/src/infra/update-run-ledger.ts#L250)
 checks only for a duplicate run ID. Upgrade normally, then use the updated
@@ -332,7 +332,7 @@ Use these steps after a manual installation or when checking a reported problem.
 openclaw doctor
 ```
 
-Migrates config, audits DM policies, and checks gateway health. Doctor also compares active official plugins with the OpenClaw package the managed service will load after restart. Resolve any plugin restart-readiness warning before continuing. Details: [Doctor](/gateway/doctor)
+Migrates config, audits DM policies, and checks gateway health. Doctor also compares active official plugins with the Vasudev package the managed service will load after restart. Resolve any plugin restart-readiness warning before continuing. Details: [Doctor](/gateway/doctor)
 
 If you use the unpacked Chrome extension, also run `openclaw browser doctor --browser-profile chrome`.
 For a version-mismatch warning, reload the extension from `chrome://extensions`;

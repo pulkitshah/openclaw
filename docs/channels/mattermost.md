@@ -1,5 +1,5 @@
 ---
-summary: "Mattermost bot setup and OpenClaw config"
+summary: "Mattermost bot setup and Vasudev config"
 read_when:
   - Setting up Mattermost
   - Debugging Mattermost routing
@@ -38,7 +38,7 @@ Details: [Plugins](/tools/plugin)
   <Step title="Copy the base URL">
     Copy the Mattermost **base URL** (e.g., `https://chat.example.com`). A trailing `/api/v4` is stripped automatically.
   </Step>
-  <Step title="Configure OpenClaw and start the gateway">
+  <Step title="Configure Vasudev and start the gateway">
     Minimal config:
 
     ```json5
@@ -69,7 +69,7 @@ Self-hosted Mattermost on a private/LAN/tailnet address: outbound Mattermost API
 
 ## Native slash commands
 
-Native slash commands are opt-in. When enabled, OpenClaw registers `oc_*` slash commands on every team the bot is a member of and receives callback POSTs on the gateway HTTP server.
+Native slash commands are opt-in. When enabled, Vasudev registers `oc_*` slash commands on every team the bot is a member of and receives callback POSTs on the gateway HTTP server.
 
 ```json5
 {
@@ -93,11 +93,11 @@ Registered commands: `/oc_status`, `/oc_model`, `/oc_models`, `/oc_new`, `/oc_he
   <Accordion title="Behavior notes">
     - `native` and `nativeSkills` default to `"auto"`, which resolves to disabled for Mattermost. Set them to `true` explicitly.
     - `callbackPath` defaults to `/api/channels/mattermost/command`.
-    - If `callbackUrl` is omitted, OpenClaw derives `http://<gateway.customBindHost or localhost>:<gateway.port, default 18789><callbackPath>`. Wildcard bind hosts (`0.0.0.0`, `::`) fall back to `localhost`.
+    - If `callbackUrl` is omitted, Vasudev derives `http://<gateway.customBindHost or localhost>:<gateway.port, default 18789><callbackPath>`. Wildcard bind hosts (`0.0.0.0`, `::`) fall back to `localhost`.
     - For multi-account setups, `commands` can be set at the top level or under `channels.mattermost.accounts.<id>.commands` (account values override top-level fields).
     - Existing slash commands with the same trigger created by other integrations are left untouched (registration skips them); commands the bot created are updated or recreated when the callback URL drifts.
-    - Command callbacks are validated with the per-command tokens returned by Mattermost when OpenClaw registers `oc_*` commands.
-    - OpenClaw refreshes current Mattermost command registration before accepting each callback, so stale tokens from deleted or regenerated slash commands stop being accepted without a gateway restart.
+    - Command callbacks are validated with the per-command tokens returned by Mattermost when Vasudev registers `oc_*` commands.
+    - Vasudev refreshes current Mattermost command registration before accepting each callback, so stale tokens from deleted or regenerated slash commands stop being accepted without a gateway restart.
     - Callback validation fails closed if the Mattermost API cannot confirm the command is still current; failed validations are cached briefly, concurrent lookups are coalesced, and fresh lookup starts are rate-limited per command to bound replay pressure.
     - Slash callbacks fail closed when registration failed, startup was partial, or the callback token does not match the resolved command's registered token (a token valid for one command cannot reach upstream validation for a different command).
     - Accepted callbacks are acknowledged with an ephemeral "Processing..." reply; the real answer arrives as a normal message.
@@ -106,9 +106,9 @@ Registered commands: `/oc_status`, `/oc_model`, `/oc_models`, `/oc_new`, `/oc_he
   <Accordion title="Reachability requirement">
     The callback endpoint must be reachable from the Mattermost server.
 
-    - Do not set `callbackUrl` to `localhost` unless Mattermost runs on the same host/network namespace as OpenClaw.
-    - Do not set `callbackUrl` to your Mattermost base URL unless that URL reverse-proxies `/api/channels/mattermost/command` to OpenClaw.
-    - A quick check is `curl https://<gateway-host>/api/channels/mattermost/command`; a GET should return `405 Method Not Allowed` from OpenClaw, not `404`.
+    - Do not set `callbackUrl` to `localhost` unless Mattermost runs on the same host/network namespace as Vasudev.
+    - Do not set `callbackUrl` to your Mattermost base URL unless that URL reverse-proxies `/api/channels/mattermost/command` to Vasudev.
+    - A quick check is `curl https://<gateway-host>/api/channels/mattermost/command`; a GET should return `405 Method Not Allowed` from Vasudev, not `404`.
 
   </Accordion>
   <Accordion title="Mattermost egress allowlist">
@@ -265,9 +265,9 @@ URL. Without a configured cap, the existing URL fallback remains available.
 <Warning>
 Bare opaque IDs (like `64ifufp...`) are **ambiguous** in Mattermost (user ID vs channel ID).
 
-OpenClaw resolves them **user-first**:
+Vasudev resolves them **user-first**:
 
-- If the ID exists as a user (`GET /api/v4/users/<id>` succeeds), OpenClaw sends a **DM** by resolving the direct channel via `/api/v4/channels/direct`.
+- If the ID exists as a user (`GET /api/v4/users/<id>` succeeds), Vasudev sends a **DM** by resolving the direct channel via `/api/v4/channels/direct`.
 - Otherwise the ID is treated as a **channel ID**.
 
 If you need deterministic behavior, always use the explicit prefixes (`user:<id>` / `channel:<id>`).
@@ -275,7 +275,7 @@ If you need deterministic behavior, always use the explicit prefixes (`user:<id>
 
 ## DM channel retry
 
-When OpenClaw sends to a Mattermost DM target and needs to resolve the direct channel first, it retries transient direct-channel creation failures by default.
+When Vasudev sends to a Mattermost DM target and needs to resolve the direct channel first, it retries transient direct-channel creation failures by default.
 
 Use `channels.mattermost.dmChannelRetry` to tune that behavior globally for the Mattermost plugin, or `channels.mattermost.accounts.<id>.dmChannelRetry` for one account. Defaults:
 
@@ -325,7 +325,7 @@ Preview streaming is **on by default** in `partial` mode. Configure via `channel
 
   </Accordion>
   <Accordion title="Streaming behavior notes">
-    - If the stream cannot be finalized in place (for example the post was deleted mid-stream), OpenClaw falls back to sending a fresh final post so the reply is never lost.
+    - If the stream cannot be finalized in place (for example the post was deleted mid-stream), Vasudev falls back to sending a fresh final post so the reply is never lost.
     - Clearing a plan removes an otherwise empty preview; a replacement plan gets a fresh preview even when its text is unchanged. At turn completion, failed deletions of old previews are attempted once more without deleting the finalized reply. If deletion still fails, the old preview may remain; verbose logs include the cleanup failure.
     - Thinking-only payloads are suppressed from channel posts, including text that arrives as a `> Thinking` blockquote. Set `/reasoning on` to see thinking in other surfaces; the Mattermost final post keeps the answer only.
     - See [Streaming](/concepts/streaming#preview-streaming-modes) for the channel-mapping matrix.
@@ -371,7 +371,7 @@ Config:
 
 Send messages with clickable buttons. When a user clicks a button, the agent receives the selection and can respond.
 
-Buttons come from the semantic `presentation` payload (in normal agent replies and in `message action=send`). OpenClaw renders value buttons as Mattermost interactive buttons, keeps URL buttons visible in the message text, and downgrades select menus to readable text.
+Buttons come from the semantic `presentation` payload (in normal agent replies and in `message action=send`). Vasudev renders value buttons as Mattermost interactive buttons, keeps URL buttons visible in the message text, and downgrades select menus to readable text.
 
 The options an `ask_user` question offers are also rendered as buttons, and tapping one answers
 that question directly. The question stays answerable by typing, and an option the Gateway does
@@ -438,8 +438,8 @@ When a user clicks a button:
     - `channels.mattermost.capabilities`: array of capability strings. Add `"inlineButtons"` to enable the buttons tool description in the agent system prompt.
     - `channels.mattermost.interactions.callbackBaseUrl`: optional external base URL for button callbacks (for example `https://gateway.example.com`). Use this when Mattermost cannot reach the gateway at its bind host directly.
     - In multi-account setups, you can also set the same field under `channels.mattermost.accounts.<id>.interactions.callbackBaseUrl`.
-    - If `interactions.callbackBaseUrl` is omitted, OpenClaw derives the callback URL from `gateway.customBindHost` + `gateway.port` (default 18789), then falls back to `http://localhost:<port>`. The callback path is `/mattermost/interactions/<accountId>`.
-    - Reachability rule: the button callback URL must be reachable from the Mattermost server. `localhost` only works when Mattermost and OpenClaw run on the same host/network namespace.
+    - If `interactions.callbackBaseUrl` is omitted, Vasudev derives the callback URL from `gateway.customBindHost` + `gateway.port` (default 18789), then falls back to `http://localhost:<port>`. The callback path is `/mattermost/interactions/<accountId>`.
+    - Reachability rule: the button callback URL must be reachable from the Mattermost server. `localhost` only works when Mattermost and Vasudev run on the same host/network namespace.
     - `channels.mattermost.interactions.allowedSourceIps`: source-IP allowlist for button callbacks. Without it, only loopback sources (`127.0.0.1`, `::1`) are accepted, so a remote Mattermost server must be allowlisted here or its clicks are rejected with `403`. Behind a reverse proxy, also set `gateway.trustedProxies` so the real client IP is derived from forwarded headers.
     - If your callback target is private/tailnet/internal, add its host/domain to Mattermost `ServiceSettings.AllowedUntrustedInternalConnections`.
 
@@ -448,7 +448,7 @@ When a user clicks a button:
 
 ### Direct API integration (external scripts)
 
-External scripts and webhooks can post buttons directly via the Mattermost REST API instead of going through the agent's `message` tool. Prefer OpenClaw's `message` tool. For direct integrations, import `buildButtonAttachments` from `@openclaw/mattermost/api.js`; if posting raw JSON, follow these rules:
+External scripts and webhooks can post buttons directly via the Mattermost REST API instead of going through the agent's `message` tool. Prefer Vasudev's `message` tool. For direct integrations, import `buildButtonAttachments` from `@openclaw/mattermost/api.js`; if posting raw JSON, follow these rules:
 
 **Payload structure:**
 
@@ -582,13 +582,13 @@ Account values override top-level fields; `channels.mattermost.defaultAccount` p
 
   </Accordion>
   <Accordion title="Native slash commands fail">
-    - `Unauthorized: invalid command token.`: OpenClaw did not accept the callback token. Typical causes:
+    - `Unauthorized: invalid command token.`: Vasudev did not accept the callback token. Typical causes:
       - slash command registration failed or only partially completed at startup
       - the callback is hitting the wrong gateway/account
       - Mattermost still has old commands pointing at a previous callback target
       - the gateway restarted without reactivating slash commands
     - If native slash commands stop working, check logs for `mattermost: failed to register slash commands` or `mattermost: native slash commands enabled but no commands could be registered`.
-    - If `callbackUrl` is omitted and logs warn that the callback resolved to a loopback URL like `http://localhost:18789/...`, that URL is probably only reachable when Mattermost runs on the same host/network namespace as OpenClaw. Set an explicit externally reachable `commands.callbackUrl` instead.
+    - If `callbackUrl` is omitted and logs warn that the callback resolved to a loopback URL like `http://localhost:18789/...`, that URL is probably only reachable when Mattermost runs on the same host/network namespace as Vasudev. Set an explicit externally reachable `commands.callbackUrl` instead.
 
   </Accordion>
   <Accordion title="Buttons issues">

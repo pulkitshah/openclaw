@@ -86,7 +86,7 @@ Directory discovery merges hooks by **name** using these rules:
 
 | Source            | Location and collision behavior                                                                                                                                         |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Bundled           | Shipped with OpenClaw.                                                                                                                                                  |
+| Bundled           | Shipped with Vasudev.                                                                                                                                                   |
 | Plugin            | Hook directories declared by active plugins; can replace bundled names.                                                                                                 |
 | Managed           | `<stateDir>/hooks/`, normally `~/.openclaw/hooks/`; can replace bundled and plugin names.                                                                               |
 | Extra directories | `hooks.internal.load.extraDirs`; same source policy as managed hooks. Later extra directories win over earlier ones; the managed directory wins over extra directories. |

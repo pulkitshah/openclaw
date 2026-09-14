@@ -6,7 +6,7 @@ read_when:
 title: "Bonjour discovery"
 ---
 
-OpenClaw can use Bonjour (mDNS/DNS-SD) to discover an active gateway (WebSocket endpoint). Multicast `local.` browsing is a **LAN-only convenience**: the bundled `bonjour` plugin owns LAN advertising, auto-starting on macOS hosts and opt-in on Linux, Windows, and containerized gateway deployments. The same beacon can also publish through a configured wide-area DNS-SD domain for cross-network discovery. Discovery is best-effort and does **not** replace SSH or Tailnet-based connectivity.
+Vasudev can use Bonjour (mDNS/DNS-SD) to discover an active gateway (WebSocket endpoint). Multicast `local.` browsing is a **LAN-only convenience**: the bundled `bonjour` plugin owns LAN advertising, auto-starting on macOS hosts and opt-in on Linux, Windows, and containerized gateway deployments. The same beacon can also publish through a configured wide-area DNS-SD domain for cross-network discovery. Discovery is best-effort and does **not** replace SSH or Tailnet-based connectivity.
 
 ## Wide-area Bonjour (Unicast DNS-SD) over Tailscale
 
@@ -16,7 +16,7 @@ If the node and gateway are on different networks, multicast mDNS can't cross th
 2. Publish DNS-SD records for `_openclaw-gw._tcp` under a dedicated zone (example: `openclaw.internal.`).
 3. Configure Tailscale **split DNS** so your chosen domain resolves via that DNS server for clients, including iOS.
 
-`openclaw.internal.` above is just an example — OpenClaw supports any discovery domain. iOS/Android nodes browse both `local.` and your configured wide-area domain.
+`openclaw.internal.` above is just an example — Vasudev supports any discovery domain. iOS/Android nodes browse both `local.` and your configured wide-area domain.
 
 ### Gateway config
 
@@ -118,11 +118,11 @@ The gateway writes a rolling log file (printed on startup as `gateway log file: 
 - `bonjour: suppressing ciao netmask assertion ...`
 - `bonjour: ... name conflict resolved` / `hostname conflict resolved`
 
-OpenClaw starts each Bonjour service once and leaves probing, retry, name-conflict resolution, and interface-change republishing to the mDNS responder. This avoids overlapping publish attempts during normal network churn. Repeated internal self-probe messages are suppressed so they cannot flood the gateway log, as are transient `ENODEV` MDNS socket warnings that occur when a network interface (for example a short-lived Docker bridge) is removed between the responder's interface polls.
+Vasudev starts each Bonjour service once and leaves probing, retry, name-conflict resolution, and interface-change republishing to the mDNS responder. This avoids overlapping publish attempts during normal network churn. Repeated internal self-probe messages are suppressed so they cannot flood the gateway log, as are transient `ENODEV` MDNS socket warnings that occur when a network interface (for example a short-lived Docker bridge) is removed between the responder's interface polls.
 
-When multiple OpenClaw gateways advertise from the same host, Bonjour may append suffixes such as `(2)` or `(3)` to keep service instance names unique. Those suffixes are normal conflict resolution.
+When multiple Vasudev gateways advertise from the same host, Bonjour may append suffixes such as `(2)` or `(3)` to keep service instance names unique. Those suffixes are normal conflict resolution.
 
-Bonjour uses the system hostname for the advertised `.local` host when it's a valid DNS label. If the system hostname contains spaces, underscores, or another invalid DNS-label character, OpenClaw falls back to `openclaw.local`. Set `OPENCLAW_MDNS_HOSTNAME=<name>` before starting the gateway when you need an explicit host label.
+Bonjour uses the system hostname for the advertised `.local` host when it's a valid DNS label. If the system hostname contains spaces, underscores, or another invalid DNS-label character, Vasudev falls back to `openclaw.local`. Set `OPENCLAW_MDNS_HOSTNAME=<name>` before starting the gateway when you need an explicit host label.
 
 ## Debugging on iOS node
 
@@ -163,7 +163,7 @@ Use the env override for deployment-scoped problems (safe for Docker images, ser
 OPENCLAW_DISABLE_BONJOUR=1
 ```
 
-Use plugin configuration when you intentionally want to turn off the bundled LAN discovery plugin for that OpenClaw config:
+Use plugin configuration when you intentionally want to turn off the bundled LAN discovery plugin for that Vasudev config:
 
 ```bash
 openclaw plugins disable bonjour

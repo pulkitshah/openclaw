@@ -45,7 +45,7 @@ identifies their separate roles so deliverables stay in the working directory.
 
 ## `agents.defaults.repoRoot`
 
-Optional repository root shown in the system prompt's Runtime line. If unset, OpenClaw auto-detects by walking upward from the workspace.
+Optional repository root shown in the system prompt's Runtime line. If unset, Vasudev auto-detects by walking upward from the workspace.
 
 ```json5
 {
@@ -173,7 +173,7 @@ injection behavior from the shared defaults. Omitted fields inherit from
 
 ## Bootstrap truncation notice
 
-When bootstrap context is truncated, OpenClaw always injects a concise
+When bootstrap context is truncated, Vasudev always injects a concise
 agent-visible notice into the system prompt saying some bootstrap files were
 truncated and to read the affected files directly. This notice is built in
 and not configurable, and it deliberately omits per-file diagnostics: file
@@ -182,7 +182,7 @@ context/status reports and logs.
 
 ## Context budget ownership map
 
-OpenClaw has multiple high-volume prompt/context budgets, and they are
+Vasudev has multiple high-volume prompt/context budgets, and they are
 intentionally split by subsystem instead of all flowing through one generic
 knob.
 
@@ -243,7 +243,7 @@ Shared defaults for bounded runtime context surfaces.
 
 - `memoryGetMaxChars`: default `memory_get` excerpt cap before truncation
   metadata and continuation notice are added.
-- When `memory_get` omits `lines`, OpenClaw uses a built-in 120-line window and
+- When `memory_get` omits `lines`, Vasudev uses a built-in 120-line window and
   then applies `memoryGetMaxChars`.
 - Live tool results use a model-context auto cap: `16000` chars below 100K
   tokens, `32000` chars at 100K+ tokens, and `64000` chars at 200K+ tokens.
@@ -316,7 +316,7 @@ Higher values preserve more visual detail.
 Image-tool compression/detail preference for images loaded from file paths, URLs, and media references.
 Default: `auto`.
 
-OpenClaw adapts the resize ladder to the selected image model. For example, Claude Opus 4.8, OpenAI GPT-6 Astra, Qwen VL, and hosted Llama 4 vision models can use larger images than older/default high-detail vision paths, while multi-image turns are compressed more aggressively in `auto` mode to control token and latency cost.
+Vasudev adapts the resize ladder to the selected image model. For example, Claude Opus 4.8, OpenAI GPT-6 Astra, Qwen VL, and hosted Llama 4 vision models can use larger images than older/default high-detail vision paths, while multi-image turns are compressed more aggressively in `auto` mode to control token and latency cost.
 
 Values:
 

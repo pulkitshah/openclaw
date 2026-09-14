@@ -1,12 +1,12 @@
 ---
-summary: "Get OpenClaw installed and run your first chat in minutes."
+summary: "Get Vasudev installed and run your first chat in minutes."
 read_when:
   - First time setup from zero
   - You want the fastest path to a working chat
 title: "Getting started"
 ---
 
-Install OpenClaw, run onboarding, and chat with your AI assistant in about 5
+Install Vasudev, run onboarding, and chat with your AI assistant in about 5
 minutes. By the end you will have a running Gateway, configured auth, and a
 working chat session.
 
@@ -30,7 +30,7 @@ npx openclaw@latest
 
 On a fresh install, choose **Quick start** after a one-line pointer to the
 [security guide](/gateway/security). That is the only onboarding prompt when
-usable AI access is already available: OpenClaw
+usable AI access is already available: Vasudev
 finds an existing Claude Code or Codex CLI login or API key, verifies it with a
 real completion, saves the config, and opens the web dashboard.
 
@@ -45,7 +45,7 @@ run `openclaw gateway install`. Run `openclaw` for the TUI or
 ## Quick setup
 
 <Steps>
-  <Step title="Install OpenClaw">
+  <Step title="Install Vasudev">
     <Tabs>
       <Tab title="macOS / Linux">
         ```bash
@@ -161,7 +161,7 @@ One command turns the current state of your install into a diagnosis you can act
 openclaw triage
 ```
 
-It runs read-only health checks, writes a sanitized prompt describing what it found, and then offers to hand that prompt to a coding agent it detects on your machine — Claude Code, Codex CLI, or the built-in OpenClaw agent — so the agent starts with the diagnosis already loaded. Pick "just print the commands" if you would rather run the handoff yourself.
+It runs read-only health checks, writes a sanitized prompt describing what it found, and then offers to hand that prompt to a coding agent it detects on your machine — Claude Code, Codex CLI, or the built-in Vasudev agent — so the agent starts with the diagnosis already loaded. Pick "just print the commands" if you would rather run the handoff yourself.
 
 Nothing leaves your machine until you choose an agent, and secrets, tokens, raw chat payloads, and raw logs are excluded from the prompt.
 
@@ -185,7 +185,7 @@ To read the findings yourself instead, run [`openclaw doctor`](/cli/doctor). For
 </Columns>
 
 <Accordion title="Advanced: environment variables">
-  If you run OpenClaw as a service account or want custom paths:
+  If you run Vasudev as a service account or want custom paths:
 
 - `OPENCLAW_HOME` — home directory for internal path resolution
 - `OPENCLAW_STATE_DIR` — override the state directory

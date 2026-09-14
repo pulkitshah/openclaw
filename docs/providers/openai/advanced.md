@@ -10,26 +10,26 @@ sidebarTitle: "Advanced configuration"
 
 ## GPT-5 prompt contribution
 
-OpenClaw adds a shared GPT-5 prompt contribution to matching GPT-5-family
-OpenClaw-assembled prompts. The OpenAI plugin setting below controls the
+Vasudev adds a shared GPT-5 prompt contribution to matching GPT-5-family
+Vasudev-assembled prompts. The OpenAI plugin setting below controls the
 friendly style on OpenAI-family routes. Older GPT-4.x model ids do not match.
 
 The native Codex app-server harness does not receive the persona/tool-
 discipline behavior contract or the friendly interaction-style overlay through
 developer instructions; native Codex keeps Codex-owned base, model, and
-project-doc behavior, and OpenClaw disables Codex's built-in personality for
+project-doc behavior, and Vasudev disables Codex's built-in personality for
 native threads so agent workspace personality files stay authoritative.
-OpenClaw contributes only runtime context to native Codex threads: channel
-delivery, OpenClaw dynamic tools, ACP delegation, workspace context, and
-OpenClaw skills. The heartbeat-guidance text from this same contribution is the
+Vasudev contributes only runtime context to native Codex threads: channel
+delivery, Vasudev dynamic tools, ACP delegation, workspace context, and
+Vasudev skills. The heartbeat-guidance text from this same contribution is the
 one exception: native Codex heartbeat turns do get it, injected as dedicated
 collaboration instructions rather than through the shared prompt-contribution
 hook.
 
 The GPT-5 contribution adds a tagged behavior contract for persona
 persistence, execution safety, tool discipline, output shape, completion
-checks, and verification on matching OpenClaw-assembled prompts. Channel-
-specific reply and silent-message behavior stays in the shared OpenClaw system
+checks, and verification on matching Vasudev-assembled prompts. Channel-
+specific reply and silent-message behavior stays in the shared Vasudev system
 prompt and outbound delivery policy. The friendly interaction-style layer is
 separate and configurable.
 
@@ -74,12 +74,12 @@ value into `plugins.entries.openai.config.personality` when that key is unset.
 ## Advanced configuration
 
 The `transport` and `serviceTier` examples below are authored embedded-provider
-request settings, so an otherwise eligible `auto` route stays on OpenClaw
+request settings, so an otherwise eligible `auto` route stays on Vasudev
 instead of selecting Codex implicitly. Valid `fastMode` / `fast_mode` values
 and valid cutoff keys are typed agent-runtime controls and do not select a
 runtime. Runtime-specific examples therefore pin `agentRuntime.id` explicitly.
 The native Codex app-server harness owns its transport and request settings.
-Authored embedded-provider settings can therefore select the declared OpenClaw
+Authored embedded-provider settings can therefore select the declared Vasudev
 fallback even with explicit `agentRuntime.id: "codex"`; see
 [Runtime selection](/concepts/agent-runtimes#runtime-selection).
 
@@ -96,7 +96,7 @@ fallback even with explicit `agentRuntime.id: "codex"`; see
     | `"websocket"`         | Use a transient WebSocket for the request, with pre-dispatch SSE fallback |
 
     Cached modes keep one eligible connection per session. When the prior
-    request and response still match the current history, OpenClaw sends only
+    request and response still match the current history, Vasudev sends only
     the new input and references the prior response with
     `previous_response_id`. Otherwise it sends full history without that
     reference.
@@ -105,7 +105,7 @@ fallback even with explicit `agentRuntime.id: "codex"`; see
     is not retried or reconnected first. After dispatch, failures with an
     unknown outcome remain replay-unsafe and fail closed. The explicit server
     rejections `previous_response_not_found` and
-    `websocket_connection_limit_reached` are safe exceptions: OpenClaw closes
+    `websocket_connection_limit_reached` are safe exceptions: Vasudev closes
     the failed socket and retries that turn once over SSE with full history and
     no rejected `previous_response_id`.
 
@@ -131,17 +131,17 @@ fallback even with explicit `agentRuntime.id: "codex"`; see
   </Accordion>
 
   <Accordion title="Fast mode">
-    OpenClaw exposes a shared fast-mode toggle for `openai/*`:
+    Vasudev exposes a shared fast-mode toggle for `openai/*`:
 
     - **Chat/UI:** `/fast status|auto|on|off`
     - **Config:** `agents.defaults.models["<provider>/<model>"].params.fastMode`
 
     Valid `params.fastMode` / `params.fast_mode` values and valid cutoff keys
     are typed runtime controls. They do not count as authored provider request
-    params and do not select OpenClaw or Codex. The example below pins embedded
-    OpenClaw because it describes a direct provider request.
+    params and do not select Vasudev or Codex. The example below pins embedded
+    Vasudev because it describes a direct provider request.
 
-    When enabled on the embedded runtime, OpenClaw maps fast mode to OpenAI API
+    When enabled on the embedded runtime, Vasudev maps fast mode to OpenAI API
     Fast mode (formerly Priority processing) and sends
     `service_tier = "priority"`. Fast mode does not rewrite `reasoning` or
     `text.verbosity`. `fastMode: "auto"` starts new model calls fast until the
@@ -167,7 +167,7 @@ fallback even with explicit `agentRuntime.id: "codex"`; see
     <Note>
     The full precedence is inline message, stored session, per-agent default,
     global default, per-model `params.fastMode`, then off. `/fast default`
-    clears only the session layer. `/status` reports the resolved OpenClaw
+    clears only the session layer. `/status` reports the resolved Vasudev
     policy and runtime, not the upstream service tier actually honored or
     returned. See [Thinking levels](/tools/thinking#fast-mode-%2Ffast) and
     [Codex harness](/plugins/codex-harness/commands#shared-fast-mode-and-codex-fast-mode).
@@ -186,9 +186,9 @@ fallback even with explicit `agentRuntime.id: "codex"`; see
 
   <Accordion title="OpenAI API Fast mode with service_tier">
     OpenAI now calls this API product Fast mode; it was formerly Priority
-    processing. OpenClaw sends the wire value
+    processing. Vasudev sends the wire value
     `service_tier = "priority"`. Set an explicit tier per
-    model on the embedded OpenClaw runtime:
+    model on the embedded Vasudev runtime:
 
     ```json5
     {
@@ -212,7 +212,7 @@ fallback even with explicit `agentRuntime.id: "codex"`; see
     Codex app-server configuration. It is forwarded only by the embedded
     runtime to native OpenAI endpoints (`api.openai.com`) and native ChatGPT
     endpoints (`chatgpt.com/backend-api`). If you route either provider through
-    a proxy, OpenClaw leaves `service_tier` untouched. Configure the native
+    a proxy, Vasudev leaves `service_tier` untouched. Configure the native
     harness separately with `plugins.entries.codex.config.appServer.serviceTier`;
     the shared Fast-mode run control can supersede that value.
     </Warning>
@@ -221,7 +221,7 @@ fallback even with explicit `agentRuntime.id: "codex"`; see
 
   <Accordion title="Server-side compaction (Responses API)">
     For store-capable direct OpenAI Responses models (`openai/*` resolved to
-    `api.openai.com`), the OpenAI plugin's OpenClaw stream wrapper auto-enables
+    `api.openai.com`), the OpenAI plugin's Vasudev stream wrapper auto-enables
     server-side compaction:
 
     - Forces `store: true` (unless model compat sets `supportsStore: false`)
@@ -230,17 +230,17 @@ fallback even with explicit `agentRuntime.id: "codex"`; see
       unavailable)
 
     The same resolved route and effective threshold gate the client preflight,
-    so OpenClaw does not delay local compaction unless the transport will inject
+    so Vasudev does not delay local compaction unless the transport will inject
     `context_management`. ChatGPT OAuth, custom proxies, and routes with
     `compat.supportsStore: false` are not store-capable and therefore ignore
-    these server-compaction controls. This applies to the built-in OpenClaw
+    these server-compaction controls. This applies to the built-in Vasudev
     runtime path and to OpenAI provider hooks used by embedded runs. The native
     Codex app-server harness manages its own context through Codex and is not
     affected by this setting.
 
     OpenAI emits the compacted state as an encrypted `compaction` output item.
     Keep that item opaque. For stateless continuation, carry the newest item
-    forward and drop the earlier input prefix it replaces. OpenClaw does this
+    forward and drop the earlier input prefix it replaces. Vasudev does this
     automatically: it persists and replays the item only for the matching
     route, session, and auth identity, preserves it across worker transcript
     commits, and filters it from user-visible history and diagnostics. Never
@@ -309,8 +309,8 @@ fallback even with explicit `agentRuntime.id: "codex"`; see
   </Accordion>
 
   <Accordion title="Strict-agentic GPT mode">
-    For `openai` provider GPT-5-family models run through OpenClaw's embedded
-    runtime, OpenClaw already defaults to a stricter execution contract called
+    For `openai` provider GPT-5-family models run through Vasudev's embedded
+    runtime, Vasudev already defaults to a stricter execution contract called
     `strict-agentic`. It auto-activates whenever the resolved provider is
     `openai` and the model id matches the GPT-5 family, unless config
     explicitly opts back out:
@@ -328,18 +328,18 @@ fallback even with explicit `agentRuntime.id: "codex"`; see
     Setting `"strict-agentic"` explicitly is a no-op on a supported lane (it
     is already the default) and inert on unsupported provider/model pairs.
 
-    With `strict-agentic` active, OpenClaw:
+    With `strict-agentic` active, Vasudev:
     - Makes `progress_card` available for substantial work unless `tools.updatePlan` disables it
     - Retries structurally empty or reasoning-only turns with a visible-answer
       continuation
     - Uses explicit harness plan events when the selected harness provides
       them
 
-    OpenClaw does not classify assistant prose to decide whether a turn is a
+    Vasudev does not classify assistant prose to decide whether a turn is a
     plan, progress update, or final answer.
 
     <Note>
-    This contract lives entirely in OpenClaw's embedded agent runner. It does
+    This contract lives entirely in Vasudev's embedded agent runner. It does
     not apply to the native Codex app-server harness, which manages its own
     turn and plan behavior; the harness selection matters more than the
     execution-contract setting for native Codex runs.
@@ -348,7 +348,7 @@ fallback even with explicit `agentRuntime.id: "codex"`; see
   </Accordion>
 
   <Accordion title="Native vs OpenAI-compatible routes">
-    OpenClaw treats direct OpenAI, Codex, and Azure OpenAI endpoints
+    Vasudev treats direct OpenAI, Codex, and Azure OpenAI endpoints
     differently from generic OpenAI-compatible `/v1` proxies:
 
     **Native routes** (`openai/*`, Azure OpenAI):

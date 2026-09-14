@@ -13,8 +13,8 @@ Opt-in streaming for sandboxed native execution, and how node-backed remote exec
 
 Native sandbox execution remains opt-in through
 `appServer.experimental.sandboxExecServer`. When enabled for an active
-OpenClaw sandbox, sandboxed processes stream ordered stdout, stderr, or PTY
-output notifications. OpenClaw retains only a bounded recent-output buffer for
+Vasudev sandbox, sandboxed processes stream ordered stdout, stderr, or PTY
+output notifications. Vasudev retains only a bounded recent-output buffer for
 polling and replay, so long-running processes cannot grow the app-server bridge
 without limit. Process exit and cleanup remain tied to the sandbox-owned
 process. Failed environment registration never falls back to host execution.
@@ -23,14 +23,14 @@ See [Sandboxed native execution](/plugins/codex-harness-reference#sandboxed-nati
 for configuration and local-only transport restrictions.
 
 Node-backed `remote-exec`, whether on a paired device or the same Crabbox cloud
-profile used for OpenClaw worker turns, is separate from the experimental
+profile used for Vasudev worker turns, is separate from the experimental
 local sandbox flag. Codex app-server and model auth stay on the Gateway, while
 an explicitly authorized managed exec-server on the enrolled node owns
 process, filesystem, capability, and credential-free HTTP operations. The
 Gateway rejects authentication, cookie, API-key, and other sensitive HTTP
 headers before they reach the node; authenticated HTTP must run on the
 Gateway. The existing duplex node channel carries the Codex JSON-RPC stream
-without starting an OpenClaw worker child or consuming a worker slot. Explicit
+without starting an Vasudev worker child or consuming a worker slot. Explicit
 Gateway command allowlisting remains required. Launch needs per-attempt
 allow-once approval or exact admitted session Full access with node-local
 full/off policy. Full access never overrides local deny, ask, or allowlist

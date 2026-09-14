@@ -1,5 +1,5 @@
 ---
-summary: "How OpenClaw binds native Codex threads, changes models, and continues supervised sessions"
+summary: "How Vasudev binds native Codex threads, changes models, and continues supervised sessions"
 read_when:
   - You are switching models on an attached Codex thread
   - You are branching or archiving a supervised Codex session
@@ -11,17 +11,17 @@ Thread binding rules for ordinary and supervised Codex sessions, including safe 
 
 ## Thread bindings and model changes
 
-When an OpenClaw session is attached to an existing Codex thread, the next
+When an Vasudev session is attached to an existing Codex thread, the next
 turn resends the currently selected model, approval policy, sandbox,
 approvals reviewer, and service tier to app-server. Switching from
 `openai/gpt-5.5` to `openai/gpt-5.2` keeps the thread binding but asks Codex to
 continue with the newly selected model.
 
-Supervised bindings are the exception. The OpenClaw model picker stays locked,
+Supervised bindings are the exception. The Vasudev model picker stays locked,
 and resumes omit model and provider overrides so Codex restores the canonical
 thread's persisted model and provider. A separate native Codex control can
 change that persisted pair, and the initial snapshot can produce Codex's normal
-model-difference warning; the outer OpenClaw model and fallback chain never
+model-difference warning; the outer Vasudev model and fallback chain never
 substitute for either.
 
 ## Supervision and safe continuation
@@ -31,7 +31,7 @@ native threads through a separate connection and projects only non-archived
 sessions into the Gateway catalog. Without explicit `appServer` connection
 settings, that connection uses managed user-home stdio while the ordinary
 harness remains agent-scoped. Listing and metadata reads are passive: they do
-not resume a thread, subscribe OpenClaw to its live events, or answer its
+not resume a thread, subscribe Vasudev to its live events, or answer its
 approvals.
 
 For a stored or idle session on the Gateway computer, **Continue as branch**
@@ -41,12 +41,12 @@ Chat turn installs the real approval handlers and uses an ephemeral native fork
 to pin the snapshot without a model or provider override. Codex App Server uses
 its current native configuration and returns the selected pair; it emits its
 normal warning if that model differs from the source's last recorded model.
-OpenClaw confirms the fork's subscription is released before starting the canonical
+Vasudev confirms the fork's subscription is released before starting the canonical
 `appServer`-source Codex harness thread under its cwd and runtime policy with
 exactly the returned model and provider for that initial start. It then injects the
 bounded visible history and commits the binding on the same supervision connection.
 The probe is never persisted or archived. The source is never
-resumed. The canonical thread has the full OpenClaw harness tool surface;
+resumed. The canonical thread has the full Vasudev harness tool surface;
 reasoning, tool calls, and tool results from the source are not cloned into it.
 The private connection scope survives pending and committed binding states, so
 every later turn remains on that connection with native auth and provider
@@ -60,11 +60,11 @@ Codex Desktop is not guaranteed.
 
 Active sources cannot start a new branch or be archived; an existing supervised
 Chat can still be opened. `notLoaded` means activity is unknown, not idle;
-OpenClaw allows archive for a local `idle` or `notLoaded` row only after explicit
+Vasudev allows archive for a local `idle` or `notLoaded` row only after explicit
 no-other-runner confirmation and a fresh process-local status read. Codex
 serializes thread mutations within one App Server process but does not provide
 an exclusive cross-process runner or approval-owner lease, so that read cannot
-prove that another process is not using the thread. OpenClaw blocks a known
+prove that another process is not using the thread. Vasudev blocks a known
 active binding owner for the exact target or any non-archived spawned descendant
 returned by Codex's paginated descendant query. Enumeration errors, cycles, and
 safety-limit exhaustion fail closed. Native archive can still race a new turn

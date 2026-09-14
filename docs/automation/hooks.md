@@ -11,9 +11,9 @@ doc-schema-version: 1
 # Hooks
 
 Internal hooks are small JavaScript or TypeScript handlers that run in the
-Gateway process when OpenClaw emits an event. Use them to save session context,
+Gateway process when Vasudev emits an event. Use them to save session context,
 log reset commands, or perform short side effects during message and session
-lifecycle events. OpenClaw includes [bundled hooks](/automation/hooks/bundled-hooks)
+lifecycle events. Vasudev includes [bundled hooks](/automation/hooks/bundled-hooks)
 for common tasks; you do not need to write a plugin to use them.
 
 ## Choose the right surface

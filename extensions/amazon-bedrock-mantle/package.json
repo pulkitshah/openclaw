@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/amazon-bedrock-mantle-provider",
   "version": "2026.9.4",
-  "description": "OpenClaw Amazon Bedrock Mantle provider plugin for OpenAI-compatible model routing.",
+  "description": "Vasudev Amazon Bedrock Mantle provider plugin for OpenAI-compatible model routing.",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

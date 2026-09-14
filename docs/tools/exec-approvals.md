@@ -43,7 +43,7 @@ Exec approvals are enforced locally on the execution host:
 
 The `claude-cli` backend also checks native Bash commands against the agent's
 exec allowlist when `ask: "on-miss"`. This authorizes command arguments while
-Claude Code owns execution. It does not provide OpenClaw sandboxing. See
+Claude Code owns execution. It does not provide Vasudev sandboxing. See
 [Native Bash and the exec allowlist](/gateway/cli-backends#native-bash-and-the-exec-allowlist)
 for matching, prompting, and binding restrictions.
 
@@ -55,8 +55,8 @@ for matching, prompting, and binding restrictions.
 - Once approved, a command can mutate files according to the selected host or sandbox filesystem permissions.
 - Approved node-host runs bind canonical execution context: cwd, exact argv, env binding when present, and pinned executable path when applicable.
 - Gateway approval-backed commands bind every resolved command-segment executable before review and re-check it before launch. Node hosts capture these identities during local policy evaluation and re-check before dispatch. This does not cover inner shell executables across a remote human approval wait. Protected executables use resolved real-path identity only. Writable executables also use a content hash. A changed resolution during the bound window, including a new executable earlier on `PATH`, denies the run. Identity-only binding preserves otherwise eligible `allow-always` decisions. See [Interpreter/runtime commands](/tools/exec-approvals-advanced#interpreter%2Fruntime-commands).
-- For shell scripts and direct interpreter/runtime file invocations, OpenClaw also tries to bind one concrete local file operand. If that file changes after approval but before execution, the run is denied instead of executing drifted content.
-- File binding is best-effort, not a complete model of every interpreter/runtime loader path. If exactly one concrete local file cannot be identified, OpenClaw refuses to mint an approval-backed run rather than pretend full coverage.
+- For shell scripts and direct interpreter/runtime file invocations, Vasudev also tries to bind one concrete local file operand. If that file changes after approval but before execution, the run is denied instead of executing drifted content.
+- File binding is best-effort, not a complete model of every interpreter/runtime loader path. If exactly one concrete local file cannot be identified, Vasudev refuses to mint an approval-backed run rather than pretend full coverage.
 
 ### macOS split
 
@@ -101,7 +101,7 @@ not that the command may have run.
 
 Approvals live in the shared SQLite state database on the execution host. When
 `OPENCLAW_STATE_DIR` is set, the database follows that state directory.
-Otherwise it uses the default OpenClaw state directory:
+Otherwise it uses the default Vasudev state directory:
 
 ```text
 $OPENCLAW_STATE_DIR/state/openclaw.sqlite#exec_approvals_config
@@ -119,7 +119,7 @@ The default approval socket follows the same root:
 `~/.openclaw/exec-approvals.sock` when the variable is unset.
 
 State directories are independent trust scopes. When `OPENCLAW_STATE_DIR`
-points somewhere else, OpenClaw never imports or archives approvals from the
+points somewhere else, Vasudev never imports or archives approvals from the
 default state directory. Configure approvals separately for the custom state
 directory. If the active state directory still contains a legacy
 `exec-approvals.json`, stop the Gateway and run `openclaw doctor --fix` once to
@@ -288,7 +288,7 @@ exception. See [Inline eval](/tools/exec#inline-eval-strictinlineeval).
 ### `tools.exec.commandHighlighting`
 
 <ParamField path="commandHighlighting" type="boolean" default="false">
-  Presentation only: when enabled, OpenClaw may attach parser-derived
+  Presentation only: when enabled, Vasudev may attach parser-derived
   command spans so Web approval prompts can highlight command tokens. Does
   **not** change `security`, `ask`, allowlist matching, strict inline-eval
   behavior, approval forwarding, or command execution.
@@ -300,7 +300,7 @@ Set globally under `tools.exec.commandHighlighting` or per agent under
 ## YOLO mode (no-approval)
 
 To run host exec without approval prompts, open **both** policy layers:
-requested exec policy in OpenClaw config (`tools.exec.*`) **and**
+requested exec policy in Vasudev config (`tools.exec.*`) **and**
 host-local approvals policy in the execution host approvals document.
 
 For ordinary configured full-mode execution of recognized inline-eval forms
@@ -327,13 +327,13 @@ explicitly when a no-UI approval prompt should fall back to allow.
 
 </Warning>
 
-For OpenClaw-managed Claude sessions, OpenClaw launches Claude Code in its
-`default` permission mode. OpenClaw's effective exec policy remains
+For Vasudev-managed Claude sessions, Vasudev launches Claude Code in its
+`default` permission mode. Vasudev's effective exec policy remains
 authoritative through native tool hooks and permission requests, including YOLO and
 restrictive policies, even if raw Claude backend args request
 `bypassPermissions`.
 
-If you want a more conservative setup, tighten OpenClaw exec policy back to
+If you want a more conservative setup, tighten Vasudev exec policy back to
 `allowlist` / `on-miss` or `deny`.
 
 ### Persistent gateway-host "never prompt" setup
@@ -443,7 +443,7 @@ Examples:
 ### Restricting arguments with argPattern
 
 Add `argPattern` when an allowlist entry should match a binary and a
-specific argument shape. OpenClaw uses ECMAScript (JavaScript) regular
+specific argument shape. Vasudev uses ECMAScript (JavaScript) regular
 expression semantics on every host and evaluates the expression against
 the parsed command arguments, excluding the executable token (`argv[0]`).
 For hand-authored entries, arguments are joined with a single space, so
@@ -472,7 +472,7 @@ entry when the goal is to restrict the binary to the declared arguments.
 
 Entries saved by approval flows use an internal separator format for exact
 argv matching. Prefer the UI or approval flow to regenerate those entries
-instead of hand-editing the encoded value. If OpenClaw cannot parse argv
+instead of hand-editing the encoded value. If Vasudev cannot parse argv
 for a command segment, entries with `argPattern` do not match.
 
 Generated `allow-always` entries are bound to both the exact argv and the working
@@ -509,8 +509,8 @@ It does not grant access to other agents, servers, or tools.
 
 Each entry has `server`, `tool`, `source: "allow-always"`, and `addedAt`
 (Unix milliseconds). `lastUsedAt` is optional. Codex apps, native plugin
-servers, and computer-use servers do not receive OpenClaw MCP tool grants.
-OpenClaw only mints when durable persistence is offered and it can unambiguously
+servers, and computer-use servers do not receive Vasudev MCP tool grants.
+Vasudev only mints when durable persistence is offered and it can unambiguously
 match the approval to a live Gateway-owned tool call. Missing or ambiguous
 correlation retains Codex's existing native/session behavior instead.
 
@@ -519,10 +519,10 @@ unspecified. Explicit `prompt` wins over a stored grant and keeps asking.
 Explicit `approve` already bypasses per-call approval. See
 [Codex tool approvals](/cli/mcp#codex-tool-approvals).
 
-The durable grant is read when OpenClaw next prepares the Codex thread
+The durable grant is read when Vasudev next prepares the Codex thread
 configuration and hook registration, such as for a new session or after a
 restart. The current session continues using Codex's remembered decision.
-OpenClaw does not reload grants for every tool call.
+Vasudev does not reload grants for every tool call.
 
 To inspect grants, run `openclaw approvals get --gateway`. To revoke one,
 export the document, remove its entry from `agents.<agentId>.mcpTools`, and
@@ -693,7 +693,7 @@ context when forwarding approved `system.run` requests:
 ## Approval scope summaries
 
 An approval owner can attach a typed, display-only scope describing the action's
-blast radius. OpenClaw renders the sanitized summary on channel approval cards
+blast radius. Vasudev renders the sanitized summary on channel approval cards
 and includes the bounded scope in the safe approval presentation available to
 Control UI clients. Scope never grants authorization or changes approval policy.
 
@@ -718,17 +718,17 @@ Diagnostic and export commands that explicitly use asynchronous execution retain
 their separate follow-up delivery. For those workflows:
 
 Exec lifecycle posts an `Exec finished` system message to the agent's
-session after the node reports completion. OpenClaw can also emit an
+session after the node reports completion. Vasudev can also emit an
 in-progress notice once an approval is granted, after
 `tools.exec.approvalRunningNoticeMs` elapses (default `10000`, `0` disables
 it). Denied exec approvals are terminal for the host command: the command
 does not run.
 
-- For main-agent async approvals with an originating session, OpenClaw
+- For main-agent async approvals with an originating session, Vasudev
   posts the denial back into that session as an internal followup so the
   agent can stop waiting on the async command and avoid a missing-result
   repair.
-- If there is no session or the session cannot be resumed, OpenClaw can
+- If there is no session or the session cannot be resumed, Vasudev can
   still report a concise denial to the operator or direct chat route.
 - Denials for subagent and cron sessions are not posted back into that
   session.

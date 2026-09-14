@@ -1,5 +1,5 @@
 ---
-summary: "How OpenClaw resolves provider/model refs, config keys, and the `/model` chat command"
+summary: "How Vasudev resolves provider/model refs, config keys, and the `/model` chat command"
 read_when:
   - Changing model fallback behavior or selection UX
   - Debugging "model is not allowed" or a stale default provider fallback
@@ -28,7 +28,7 @@ agent runtime. With runtime policy unset or `auto`, OpenAI's provider-owned
 route policy may select Codex only for an exact official HTTPS Platform
 Responses or ChatGPT Responses route with no authored request override. The
 `openai/*` prefix alone never selects Codex. Completions adapters, custom
-endpoints, and authored request behavior stay on OpenClaw. Plaintext official
+endpoints, and authored request behavior stay on Vasudev. Plaintext official
 HTTP endpoints are rejected. See [OpenAI implicit agent runtime](/providers/openai/runtimes#implicit-agent-runtime).
 
 Subscription Copilot refs (`github-copilot/*`) can be opted into the external
@@ -49,7 +49,7 @@ OpenAI API-key and ChatGPT/Codex subscription credentials remain distinct. See
     `agents.defaults.model.fallbacks`, tried in order.
   </Step>
   <Step title="Auth failover">
-    Auth-profile rotation happens inside a provider before OpenClaw moves to the next fallback model.
+    Auth-profile rotation happens inside a provider before Vasudev moves to the next fallback model.
   </Step>
 </Steps>
 
@@ -58,7 +58,7 @@ Related model-config surfaces:
 - `agents.defaults.models` stores aliases and per-model settings. After legacy-policy migration, adding an entry does not restrict model overrides.
 - `agents.defaults.modelSelectionScope` chooses the scope of chat commands and Gateway session model updates without an explicit scope. The default is the current session. See [Model selection scope](/gateway/config-agents/models#agentsdefaultsmodelselectionscope).
 - `agents.defaults.modelPolicy.allow` is the optional override allowlist. Use exact refs or trailing prefix wildcards such as `provider/*` and `provider/namespace/*`. Omit it or set `[]` to allow any model. Per-agent `agents.entries.*.modelPolicy.allow` replaces the default policy for that agent.
-- `agents.defaults.utilityModel` is an optional lower-cost model for short internal tasks. Those tasks include generated dashboard session titles, supported channel thread or topic titles, and progress narration. Per-agent `agents.entries.*.utilityModel` overrides it. When unset, OpenClaw uses the primary provider's declared small-model default when one exists (OpenAI → `gpt-5.6-luna`, Anthropic → `claude-haiku-4-5`), otherwise the agent's primary model. Set it to an empty string to disable utility routing. Generated titles retry once with the primary model when a distinct utility model fails. For dashboard titles, automatic utility derivation and the regular fallback follow the effective session provider and auth profile. An explicit utility model keeps its configured provider and auth. An empty utility model skips only the alternate small-model route, not dashboard title generation. Utility tasks are separate model calls and may send bounded task content to the selected model provider.
+- `agents.defaults.utilityModel` is an optional lower-cost model for short internal tasks. Those tasks include generated dashboard session titles, supported channel thread or topic titles, and progress narration. Per-agent `agents.entries.*.utilityModel` overrides it. When unset, Vasudev uses the primary provider's declared small-model default when one exists (OpenAI → `gpt-5.6-luna`, Anthropic → `claude-haiku-4-5`), otherwise the agent's primary model. Set it to an empty string to disable utility routing. Generated titles retry once with the primary model when a distinct utility model fails. For dashboard titles, automatic utility derivation and the regular fallback follow the effective session provider and auth profile. An explicit utility model keeps its configured provider and auth. An empty utility model skips only the alternate small-model route, not dashboard title generation. Utility tasks are separate model calls and may send bounded task content to the selected model provider.
 - `agents.defaults.imageModel` is used only when the primary model cannot accept images.
 - `agents.defaults.pdfModel` is used by the `pdf` tool. If unset, the tool falls back to `imageModel`, then the resolved session/default model.
 - `agents.defaults.mediaModels.{image,music,video}` backs the shared media-generation tools. If unset, each tool infers an auth-backed provider default: current default provider first, then the remaining registered providers for that capability in provider-id order. Cross-provider fallback is the fixed default behavior.
@@ -77,7 +77,7 @@ The same `provider/model` behaves differently depending on where it came from:
 | Source                                                                  | Behavior                                                                                                                                                                                                                                                       |
 | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Configured default (`agents.defaults.model.primary`, per-agent primary) | Normal starting point; uses `agents.defaults.model.fallbacks`.                                                                                                                                                                                                 |
-| Auto fallback                                                           | Temporary recovery state, stored as `modelOverrideSource: "auto"`. OpenClaw periodically reprobes the original primary, clears the auto selection on recovery, and announces fallback/recovery transitions once per state change.                              |
+| Auto fallback                                                           | Temporary recovery state, stored as `modelOverrideSource: "auto"`. Vasudev periodically reprobes the original primary, clears the auto selection on recovery, and announces fallback/recovery transitions once per state change.                               |
 | User session selection                                                  | Exact and strict. `/model`, the model picker, `session_status(model=...)`, and `sessions.patch` store `modelOverrideSource: "user"`. If that provider/model becomes unreachable, the run fails visibly instead of falling through to another configured model. |
 | Cron `--model` / payload `model`                                        | Per-job primary. Still uses configured fallbacks unless the job supplies its own payload `fallbacks` (`fallbacks: []` forces a strict run).                                                                                                                    |
 
@@ -103,7 +103,7 @@ For models configured to use a CLI runtime, channel picker availability follows 
 runtime's prepared authentication. A provider API key does not substitute for its
 native login.
 
-If discovery fails, OpenClaw reports the failure and keeps the last compatible
+If discovery fails, Vasudev reports the failure and keeps the last compatible
 model list. Without one, it shows prepared starter models with the failure.
 Other providers can still update. A successful empty response clears that
 provider's discovered models; it does not restore old choices. Explicitly
@@ -140,7 +140,7 @@ setup select the exact `openai/gpt-6-astra` catalog ref. The bare direct-API
 `openai/gpt-5.6` alias remains supported and resolves to the Sol tier.
 Reauthentication preserves an existing explicit primary model, including
 `openai/gpt-5.5`. If GPT-5.6 is unavailable to the account, select
-`openai/gpt-5.5` explicitly. OpenClaw does not silently downgrade it.
+`openai/gpt-5.5` explicitly. Vasudev does not silently downgrade it.
 
 ## "Model is not allowed" (and why replies stop)
 
@@ -297,7 +297,7 @@ Without a scope flag, selections change only the current session. `agents.defaul
 - If the agent is idle, a model change applies to the next run immediately. If a run is already active, the switch is queued for the next clean retry point. It can be queued for a later point, if tool activity or reply output already started.
 - A user-selected `/model` ref is strict for that session: if it becomes unreachable, the reply fails visibly instead of silently falling back through `agents.defaults.model.fallbacks`. Configured defaults and cron job primaries still use fallback chains.
 - `/model status` is the detailed view: auth candidates per provider, and (when configured) the provider endpoint `baseUrl` plus `api` mode.
-- Model refs are parsed by splitting on the first `/`. Type `provider/model`. If the model ID itself contains `/` (OpenRouter-style), include the provider prefix, for example `/model openrouter/moonshotai/kimi-k2`. If you omit the provider, OpenClaw tries an alias match first. It then tries a unique configured-provider match for that exact unprefixed model id. It then tries the configured default provider, which is a deprecated fallback. If that provider no longer exposes the configured default model, OpenClaw uses the first configured provider and model instead. This avoids surfacing a stale removed-provider default.
+- Model refs are parsed by splitting on the first `/`. Type `provider/model`. If the model ID itself contains `/` (OpenRouter-style), include the provider prefix, for example `/model openrouter/moonshotai/kimi-k2`. If you omit the provider, Vasudev tries an alias match first. It then tries a unique configured-provider match for that exact unprefixed model id. It then tries the configured default provider, which is a deprecated fallback. If that provider no longer exposes the configured default model, Vasudev uses the first configured provider and model instead. This avoids surfacing a stale removed-provider default.
 - When inferring a provider, exact model ID case takes precedence over case-insensitive matches within the same configuration scope. A case-insensitive match is used only when it identifies one provider. Per-agent model entries take precedence over global entries and configured provider catalogs.
 - Provider IDs are normalized to lowercase. Model IDs follow the provider's normalization rules. Use the spelling advertised by the plugin.
 
@@ -332,8 +332,8 @@ openclaw models auth list|add|login|paste-api-key|paste-token|setup-token|order
 
 ### Hosted catalog updates
 
-OpenClaw can refresh the model metadata shipped by installed provider plugins
-without waiting for a new OpenClaw release. The Gateway makes one background
+Vasudev can refresh the model metadata shipped by installed provider plugins
+without waiting for a new Vasudev release. The Gateway makes one background
 JSON `GET` at startup and then checks at most every six hours. The request sends
 no prompts, credentials, model usage, or configuration payload beyond the
 normal HTTP user agent and conditional cache headers.
@@ -363,13 +363,13 @@ or retired are skipped. Hydration errors fail publication and preserve the last
 published artifact instead of publishing an incomplete replacement. This is a
 publication-time contract: it adds no Gateway fetches or hot reload, and updated
 metadata still becomes visible after a Gateway restart.
-Its scheduled workflow checks OpenClaw's default-branch plugin manifests and
+Its scheduled workflow checks Vasudev's default-branch plugin manifests and
 public pricing sources every four hours. Every catalog content change is
 preserved as a public commit. Provider-owned policies select complete price
 schedules, including context tiers, without mixing rates from different sources.
 Declared native sources read the public Cerebras, Chutes, DeepInfra, OpenCode, and Venice
 catalogs, so connected installations can receive advertised price changes without
-a new OpenClaw release. When a valid native feed no longer supplies a model's
+a new Vasudev release. When a valid native feed no longer supplies a model's
 price, publication preserves the model metadata without an estimate. It does not
 infer retirement or substitute another source's rate. Explicit user costs still
 win. DeepInfra uses its agent projection for model metadata and its native
@@ -421,11 +421,11 @@ apart from built-in corrections for retired Google and Together model names.
   </Accordion>
 </AccordionGroup>
 
-Marker persistence is source-authoritative. OpenClaw writes markers from the active source config snapshot (pre-resolution), not from resolved runtime secret values. It does this whenever it regenerates `models.json`, including command-driven paths like `openclaw agent`.
+Marker persistence is source-authoritative. Vasudev writes markers from the active source config snapshot (pre-resolution), not from resolved runtime secret values. It does this whenever it regenerates `models.json`, including command-driven paths like `openclaw agent`.
 
 ## Related
 
-- [Agent runtimes](/concepts/agent-runtimes) — OpenClaw, Codex, and other agent loop runtimes
+- [Agent runtimes](/concepts/agent-runtimes) — Vasudev, Codex, and other agent loop runtimes
 - [Configuration reference](/gateway/config-agents#agent-defaults) — model config keys
 - [Image generation](/tools/image-generation) — image model configuration
 - [Model failover](/concepts/model-failover) — fallback chains

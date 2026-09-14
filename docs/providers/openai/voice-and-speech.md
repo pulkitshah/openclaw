@@ -31,7 +31,7 @@ sidebarTitle: "Voice and speech"
     `echo`, `fable`, `juniper`, `marin`, `onyx`, `nova`, `sage`, `shimmer`,
     `verse`.
 
-    `extraBody` is merged into `/audio/speech` request JSON after OpenClaw's
+    `extraBody` is merged into `/audio/speech` request JSON after Vasudev's
     generated fields, so use it for OpenAI-compatible endpoints that require
     additional keys such as `lang`. Prototype keys are ignored.
 
@@ -60,7 +60,7 @@ sidebarTitle: "Voice and speech"
 
   <Accordion title="Speech-to-text">
     The bundled `openai` plugin registers batch speech-to-text through
-    OpenClaw's media-understanding transcription surface.
+    Vasudev's media-understanding transcription surface.
 
     Batch transcription can use the selected OpenAI API-key or ChatGPT OAuth
     profile on the standard transcription endpoint when the account permits it.
@@ -182,7 +182,7 @@ sidebarTitle: "Voice and speech"
     client secret and the browser performs the SDP exchange directly.
 
     When no Platform credential source is configured, ordinary GA browser Talk
-    falls back to the OpenClaw ChatGPT OAuth subscription profile. The
+    falls back to the Vasudev ChatGPT OAuth subscription profile. The
     single-use Gateway offer broker keeps OAuth server-side, exchanges the
     browser's SDP, and returns only the answer SDP. An explicitly configured but
     unavailable Platform credential fails instead of falling back to OAuth.
@@ -216,7 +216,7 @@ sidebarTitle: "Voice and speech"
     Set `talk.realtime.model` explicitly to `gpt-live-1` for the public
     [GPT-Live API](https://developers.openai.com/api/docs/guides/live). GPT-Live
     handles the spoken conversation while delegated tasks run through your
-    configured OpenClaw agent. It can listen while speaking; interrupting speech
+    configured Vasudev agent. It can listen while speaking; interrupting speech
     does not itself cancel agent work.
 
     This model requires an OpenAI Platform API key with model access, selected
@@ -279,7 +279,7 @@ sidebarTitle: "Voice and speech"
     #### Released GPT-Live browser and Gateway relay authentication
 
     The separate Codex GPT-Live model, `gpt-live-1-codex`, retains its ChatGPT
-    subscription route. Its browser and Gateway-relay WebRTC try the OpenClaw ChatGPT
+    subscription route. Its browser and Gateway-relay WebRTC try the Vasudev ChatGPT
     OAuth subscription profile first. When OAuth is unavailable, the Gateway
     falls back to Platform auth in this order: the configured realtime key, an
     `openai` API-key profile, then `OPENAI_API_KEY`. Create the OAuth profile
@@ -300,7 +300,7 @@ sidebarTitle: "Voice and speech"
     `consultPolicy: "always"` is rejected because GPT-Live cannot enforce those
     host policies; its default uses automatic provider delegation. Each
     speaker's delegated work retains their Discord identity and permissions.
-    The shared OpenClaw agent conversation supplies room context, while each
+    The shared Vasudev agent conversation supplies room context, while each
     speaker's voice-model connection has separate acoustic conversation history.
     See [GPT-Live in Discord](/channels/discord/voice-channels#gpt-live-in-discord).
 
@@ -335,7 +335,7 @@ sidebarTitle: "Voice and speech"
     or diagnostics. Opt in explicitly with `talk.realtime.model`; the released
     model remains the default.
 
-    Current Platform-key sessions accept `marin` and `cedar`. OpenClaw defaults
+    Current Platform-key sessions accept `marin` and `cedar`. Vasudev defaults
     to `marin` and maps unsupported configured voices back to it.
 
     Unlisted or private browser WebRTC prerequisites, in order:
@@ -404,10 +404,10 @@ sidebarTitle: "Voice and speech"
     project.
 
     The Codex GPT-Live Gateway-owned WebRTC route uses OAuth first with Platform
-    fallback, routes sideband delegations through the configured OpenClaw
+    fallback, routes sideband delegations through the configured Vasudev
     agent, and keeps credentials away from relay clients. Unlisted or private
     browser WebRTC and the direct backend socket remain Platform-only. The
-    direct socket enables Discord voice and Voice Call/telephony; OpenClaw
+    direct socket enables Discord voice and Voice Call/telephony; Vasudev
     converts G.711 u-law telephony audio to and from the provider's 24 kHz PCM
     stream. Android's client-side gate stays closed until the Gateway relay
     path has live proof from an Android device.
@@ -441,7 +441,7 @@ sidebarTitle: "Voice and speech"
     Realtime voice is selected when the session is created. GA Realtime allows
     most session fields to change later, but the voice cannot be changed after
     the model has emitted audio. GPT-Live fixes its model, voice, audio format,
-    and delegation mode at startup. OpenClaw exposes the
+    and delegation mode at startup. Vasudev exposes the
     built-in Realtime voice ids as strings.
     </Note>
 

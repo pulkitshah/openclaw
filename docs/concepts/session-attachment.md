@@ -8,7 +8,7 @@ read_when:
 title: "Session synchronization and attachment"
 ---
 
-OpenClaw keeps shared session state on the Gateway. The Control UI, mobile
+Vasudev keeps shared session state on the Gateway. The Control UI, mobile
 clients, ACP, `openclaw tui <target>`, and `openclaw attach <target>` project
 that Gateway-owned state instead of keeping independent session copies. This
 lets you open one session in several clients without exporting or copying its
@@ -102,7 +102,7 @@ one opaque, versioned handoff argument. The argument encodes only the exact
 agent-qualified session key and selected Gateway WebSocket URL. The key is
 bounded to 512 user-perceived characters. Its URL-safe alphabet needs no shell
 quoting, so the command is safe to paste in common POSIX shells, PowerShell, and
-`cmd.exe`. Run it in an OpenClaw CLI profile that is already configured for that
+`cmd.exe`. Run it in an Vasudev CLI profile that is already configured for that
 Gateway; the terminal authenticates independently. The Gateway canonicalizes
 the key before the TUI attaches, and a missing session produces recovery
 guidance instead of creating another session. The session ACL still applies.
@@ -156,7 +156,7 @@ launch options.
 ## Pair once per Gateway origin
 
 A URL or gateway shorthand authoritatively selects one normalized Gateway
-origin. OpenClaw never reuses configured credentials or a stored device token
+origin. Vasudev never reuses configured credentials or a stored device token
 from another origin for that target. The credential-free command copied by
 **Continue in terminal…** has a narrower rule: `openclaw resume` may reuse the
 current CLI profile only when its explicit WebSocket URL byte-for-byte matches
@@ -180,7 +180,7 @@ On first contact:
    pending request. On the Gateway host, you can instead preview the newest
    request with `openclaw devices approve --latest`, verify it, and run the
    printed `openclaw devices approve <requestId>` command.
-3. Retry the original command. OpenClaw stores the issued operator device token
+3. Retry the original command. Vasudev stores the issued operator device token
    in SQLite under that exact normalized Gateway origin.
 4. Later connections to the same origin can use the stored device token. An
    explicit `--token` or `--password` always wins for the entire connection.
@@ -213,7 +213,7 @@ TUI give the same category and recovery guidance.
 | Session missing                    | The selected Gateway cannot find that key or short ID.                                   | For the configured Gateway, run `openclaw sessions list`. For a URL target, choose the session in that Gateway's Control UI.                                    |
 | Session reference ambiguous        | More than one visible session shares the prefix and the slug did not select one.         | Use one of the longer ID prefixes shown by the CLI, or copy the full key.                                                                                       |
 | `pairing-required`                 | The device is new or an existing device needs a role, scope, or metadata approval.       | Approve the pending request in **Settings > Devices**, or preview it with `openclaw devices approve --latest` and run the printed exact-ID command, then retry. |
-| `device-identity-required`         | The Gateway requires a signed device identity for this connection.                       | Use a current OpenClaw client, let it create its device identity, and complete pairing.                                                                         |
+| `device-identity-required`         | The Gateway requires a signed device identity for this connection.                       | Use a current Vasudev client, let it create its device identity, and complete pairing.                                                                          |
 | `scope-mismatch`                   | The stored device token is valid but lacks the requested operator scope.                 | Review `openclaw devices list`, approve the pending scope upgrade, and reconnect.                                                                               |
 | `auth-rejected`                    | An explicit shared credential is wrong, or a paired-device token was revoked or rotated. | Verify explicit Gateway auth. For a stale device token, rotate it with `openclaw devices rotate --device <deviceId> --role operator` or pair again.             |
 | `rate-limited`                     | Too many failed authentication attempts caused a temporary lockout.                      | Wait for the lockout to expire, then retry. Do not rotate credentials merely because the Gateway is rate-limited.                                               |

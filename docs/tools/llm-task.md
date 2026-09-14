@@ -9,7 +9,7 @@ title: "LLM task"
 `llm-task` is a bundled **optional plugin tool** that runs a single JSON-only
 LLM call and returns structured output, optionally validated against a JSON
 Schema. It gives workflow engines like Lobster an LLM step without custom
-OpenClaw code per workflow.
+Vasudev code per workflow.
 
 ## Enable
 
@@ -97,7 +97,7 @@ and `details.model` naming what actually ran.
 
 Each call starts a fresh prompt-only inference operation. It does not reuse the
 calling agent's transcript or native runtime session, run agent lifecycle hooks,
-or deliver model output to a channel. OpenClaw uses the selected provider,
+or deliver model output to a channel. Vasudev uses the selected provider,
 model, auth profile, and runtime exactly once; it does not fall back to another
 route when that owner cannot provide a literal zero-tool call.
 
@@ -123,7 +123,7 @@ fail before inference because Gemini CLI has no literal raw-input mode.
 The example below assumes the **standalone Lobster CLI** is running where
 `openclaw.invoke` already has the correct gateway URL/auth context.
 
-For the bundled **embedded** Lobster runner inside OpenClaw, this nested CLI
+For the bundled **embedded** Lobster runner inside Vasudev, this nested CLI
 pattern is **not currently reliable**:
 
 ```lobster
@@ -162,7 +162,7 @@ openclaw.invoke --tool llm-task --action json --args-json '{
 - **JSON-only**: the model is instructed to return only a JSON value, no code
   fences, no commentary.
 - **No tools**: the selected runtime must expose a literal empty model-callable
-  tool surface. OpenClaw rejects tool-shaped results instead of treating them as
+  tool surface. Vasudev rejects tool-shaped results instead of treating them as
   task output.
 - **Isolated**: the run has no agent transcript, session reuse, lifecycle hooks,
   channel delivery, or provider fallback.

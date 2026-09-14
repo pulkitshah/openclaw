@@ -15,7 +15,7 @@ Adds text-to-speech provider support.
 ## Distribution
 
 - Package: `@openclaw/tts-local-cli`
-- Install route: included in OpenClaw
+- Install route: included in Vasudev
 
 ## Surface
 

@@ -50,12 +50,12 @@ openclaw devices approve --latest
 ```
 
 <Note>
-If a device retries pairing with changed auth details (role, scopes, or public key), OpenClaw supersedes the previous pending entry with a new `requestId`. Run `openclaw devices list` right before approval to get the current id.
+If a device retries pairing with changed auth details (role, scopes, or public key), Vasudev supersedes the previous pending entry with a new `requestId`. Run `openclaw devices list` right before approval to get the current id.
 </Note>
 
 Approval behavior:
 
-- If the device is already paired and requests broader scopes or role, OpenClaw keeps the existing approval and creates a new pending upgrade request. Compare `Requested` vs `Approved` in `openclaw devices list`, or preview with `--latest`, before approving.
+- If the device is already paired and requests broader scopes or role, Vasudev keeps the existing approval and creates a new pending upgrade request. Compare `Requested` vs `Approved` in `openclaw devices list`, or preview with `--latest`, before approving.
 - Approving a `node` role or other non-operator role requires `operator.admin`. `operator.pairing` is enough for operator-device approvals, but only when the requested operator scopes stay within the caller's own scopes. See [Operator scopes](/gateway/operator-scopes).
 - If `gateway.nodes.pairing.autoApproveCidrs` is configured, first-time `role: node` requests from matching client IPs can be auto-approved before they appear in this list. Disabled by default; never applies to operator/browser clients or upgrade requests.
 - `gateway.nodes.pairing.sshVerify` (on by default) auto-approves first-time `role: node` requests when the gateway verifies the device key over SSH to the node host. Requests may therefore resolve to approved shortly after appearing. Set `sshVerify: false` to disable SSH verification; this is independent of `autoApproveCidrs`, so unset that too for manual-only pairing.

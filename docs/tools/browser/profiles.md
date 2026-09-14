@@ -10,10 +10,10 @@ read_when:
 - `openclaw`: managed, isolated browser (no extension required).
 - `user`: built-in Chrome DevTools MCP attach profile for your **real
   signed-in Chrome** session. Chrome shows a blocking "Allow remote debugging?"
-  prompt the first time OpenClaw attaches, so someone must be at the computer.
+  prompt the first time Vasudev attaches, so someone must be at the computer.
 - `chrome`: built-in [Chrome extension](/tools/chrome-extension) profile for
   your **real signed-in Chrome** session. Works from a phone with nobody at the
-  desk because it drives tabs through the OpenClaw browser extension instead of
+  desk because it drives tabs through the Vasudev browser extension instead of
   the remote-debugging port, so there is no "Allow remote debugging?" prompt.
 
 For agent browser tool calls:
@@ -44,7 +44,7 @@ After an established stream disconnects, the panel refreshes its screenshot
 and retries the stream automatically after a short delay. Annotation and
 inspection keep their captured image until you return to interaction mode.
 
-Preview cards appear only for HTTP(S) page URLs when OpenClaw can identify the
+Preview cards appear only for HTTP(S) page URLs when Vasudev can identify the
 browser's route. Blank or internal pages remain ordinary tool results. Tab
 actions without a page URL still update the Browser panel's selection. Sandbox
 browser results remain available to the agent but do not open a host-browser preview.
@@ -60,7 +60,7 @@ preview cards keep their title and URL without a thumbnail when that target
 is unavailable. Click **Start browser** to launch the browser and show its current tabs.
 
 For local `attachOnly` CDP profiles on macOS and Linux, direct preview screenshots
-preserve the active Chrome tab when OpenClaw can verify that the attached browser
+preserve the active Chrome tab when Vasudev can verify that the attached browser
 is running with a visible window. Headless browsers and browsers whose mode cannot
 be verified keep the existing activation behavior so screenshots remain reliable.
 Explicit tab-focus actions still activate the requested tab.

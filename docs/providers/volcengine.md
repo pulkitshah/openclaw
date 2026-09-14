@@ -2,7 +2,7 @@
 summary: "Volcano Engine setup (Doubao models, coding endpoints, and Seed Speech TTS)"
 title: "Volcengine (Doubao)"
 read_when:
-  - You want to use Volcano Engine or Doubao models with OpenClaw
+  - You want to use Volcano Engine or Doubao models with Vasudev
   - You need the Volcengine API key setup
   - You want to use Volcengine Speech text-to-speech
 ---
@@ -132,7 +132,7 @@ Then enable it in `openclaw.json`:
 
 Available fields under `tts.providers.volcengine`: `apiKey`, `voice`, `speedRatio` (0.2-3.0), `emotion`, `cluster`, `resourceId`, `appKey`, and `baseUrl`. `!emotion=<value>` also works as an inline voice directive when voice-setting overrides are allowed.
 
-For voice-note targets, OpenClaw requests provider-native `ogg_opus`. For normal audio attachments, it requests `mp3`. Provider aliases `bytedance` and `doubao` also resolve to this speech provider.
+For voice-note targets, Vasudev requests provider-native `ogg_opus`. For normal audio attachments, it requests `mp3`. Provider aliases `bytedance` and `doubao` also resolve to this speech provider.
 
 The default resource id is `seed-tts-1.0`, the entitlement BytePlus grants to newly created Seed Speech API keys by default. If your project has TTS 2.0 entitlement, set `VOLCENGINE_TTS_RESOURCE_ID=seed-tts-2.0`.
 
@@ -158,7 +158,7 @@ Other optional TTS env vars: `VOLCENGINE_TTS_VOICE`, `VOLCENGINE_TTS_APP_KEY`, a
   </Accordion>
 
   <Accordion title="Model picker fallback behavior">
-    During onboarding/configure model selection, the Volcengine auth choice prefers both `volcengine/*` and `volcengine-plan/*` rows. If those models are not loaded yet, OpenClaw falls back to the unfiltered catalog instead of showing an empty provider-scoped picker.
+    During onboarding/configure model selection, the Volcengine auth choice prefers both `volcengine/*` and `volcengine-plan/*` rows. If those models are not loaded yet, Vasudev falls back to the unfiltered catalog instead of showing an empty provider-scoped picker.
   </Accordion>
 
   <Accordion title="Environment variables for daemon processes">
@@ -167,7 +167,7 @@ Other optional TTS env vars: `VOLCENGINE_TTS_VOICE`, `VOLCENGINE_TTS_APP_KEY`, a
 </AccordionGroup>
 
 <Warning>
-When running OpenClaw as a background service, environment variables set in your interactive shell are not automatically inherited. See the daemon note above.
+When running Vasudev as a background service, environment variables set in your interactive shell are not automatically inherited. See the daemon note above.
 </Warning>
 
 ## Related
@@ -183,6 +183,6 @@ When running OpenClaw as a background service, environment variables set in your
     Common issues and debugging steps.
   </Card>
   <Card title="FAQ" href="/help/faq" icon="circle-question">
-    Frequently asked questions about OpenClaw setup.
+    Frequently asked questions about Vasudev setup.
   </Card>
 </CardGroup>

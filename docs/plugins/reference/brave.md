@@ -1,5 +1,5 @@
 ---
-summary: "OpenClaw Brave Search provider plugin for web search."
+summary: "Vasudev Brave Search provider plugin for web search."
 read_when:
   - You are installing, configuring, or auditing the brave plugin
 title: "Brave plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-OpenClaw Brave Search provider plugin for web search.
+Vasudev Brave Search provider plugin for web search.
 
 ## Distribution
 

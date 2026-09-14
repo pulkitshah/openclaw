@@ -8,7 +8,7 @@ title: "Cloudflare Tunnel and Access"
 ---
 
 Run the Gateway on loopback, publish it through a Cloudflare Tunnel, and let Cloudflare
-Access authenticate every request before it reaches OpenClaw. The Gateway keeps
+Access authenticate every request before it reaches Vasudev. The Gateway keeps
 `gateway.bind: "loopback"`, so no port is exposed and no inbound firewall rule is
 needed; `cloudflared` dials out from the host.
 
@@ -58,7 +58,7 @@ users. Note the two headers Access adds to authenticated requests, because the G
 consumes them in the next step:
 
 - `cf-access-authenticated-user-email` — the authenticated identity.
-- `cf-access-jwt-assertion` — Access's signed assertion. OpenClaw checks only that this
+- `cf-access-jwt-assertion` — Access's signed assertion. Vasudev checks only that this
   header is present and non-blank; it does not verify the JWT signature.
 
 ## Step 3: Trust those headers in the Gateway

@@ -7,7 +7,7 @@ read_when:
 title: "Transcript hygiene"
 ---
 
-OpenClaw applies **provider-specific fixes** to transcripts before a run
+Vasudev applies **provider-specific fixes** to transcripts before a run
 (building model context). These are **in-memory** adjustments used to satisfy
 strict provider requirements. Runtime transcript state stays in SQLite;
 provider-specific
@@ -50,9 +50,9 @@ This uses existing assistant-row shapes and requires no database migration.
 ## Global rule: runtime context is not user transcript
 
 Runtime/system context can be added to the model prompt for a turn, but it is
-not end-user-authored content. OpenClaw keeps a separate transcript-facing
+not end-user-authored content. Vasudev keeps a separate transcript-facing
 prompt body for Gateway replies, queued followups, ACP, CLI, and embedded
-OpenClaw runs. Stored visible user turns use that transcript body instead of
+Vasudev runs. Stored visible user turns use that transcript body instead of
 the runtime-enriched prompt.
 
 For legacy sessions that already persisted runtime wrappers, Gateway history
@@ -159,10 +159,10 @@ Implementation: `normalizeAssistantReplayContent` in
 ## Global rule: inter-session input provenance
 
 When an agent sends a prompt into another session via `sessions_send`
-(including agent-to-agent reply/announce steps), OpenClaw persists the
+(including agent-to-agent reply/announce steps), Vasudev persists the
 created user turn with `message.provenance.kind = "inter_session"`.
 
-OpenClaw also prepends a same-turn `[Inter-session message] ... isUser=false`
+Vasudev also prepends a same-turn `[Inter-session message] ... isUser=false`
 marker before the routed prompt text so the active model call can
 distinguish foreign session output from external end-user instructions. This
 marker includes the source session, channel, and tool when available. The
@@ -170,7 +170,7 @@ transcript still uses `role: "user"` for provider compatibility, but the
 visible text and provenance metadata both mark the turn as inter-session
 data.
 
-During context rebuild, OpenClaw applies the same marker to older persisted
+During context rebuild, Vasudev applies the same marker to older persisted
 inter-session user turns that only have provenance metadata.
 
 ---
@@ -248,7 +248,7 @@ inter-session user turns that only have provenance metadata.
   rule below.
 - Thinking blocks with missing, empty, or blank replay signatures are
   stripped before provider conversion. If that empties an assistant turn,
-  OpenClaw keeps turn shape with non-empty omitted-reasoning text.
+  Vasudev keeps turn shape with non-empty omitted-reasoning text.
 - Older thinking-only assistant turns that must be stripped are replaced
   with non-empty omitted-reasoning text so provider adapters do not drop
   the replay turn.
@@ -265,11 +265,11 @@ inter-session user turns that only have provenance metadata.
   Anthropic above.
 - Claude thinking blocks with missing, empty, or blank replay signatures
   are stripped before Converse replay. If that empties an assistant turn,
-  OpenClaw keeps turn shape with non-empty omitted-reasoning text.
+  Vasudev keeps turn shape with non-empty omitted-reasoning text.
 - Older thinking-only assistant turns that must be stripped are replaced
   with non-empty omitted-reasoning text so the Converse replay keeps
   strict turn shape.
-- Replay filters OpenClaw delivery-mirror and gateway-injected assistant
+- Replay filters Vasudev delivery-mirror and gateway-injected assistant
   turns.
 - Image sanitization applies through the global rule.
 
@@ -296,7 +296,7 @@ inter-session user turns that only have provenance metadata.
 
 ## Historical behavior (pre-2026.1.22)
 
-Before the 2026.1.22 release, OpenClaw applied multiple layers of transcript
+Before the 2026.1.22 release, Vasudev applied multiple layers of transcript
 hygiene:
 
 - A **transcript-sanitize extension** ran on every context build and could:

@@ -35,7 +35,7 @@ Npm preflight, test types, core type stripes, and runtime-topology checks reques
 `blacksmith-32vcpu-ubuntu-2404` to compensate for smaller delivered machines.
 In the [2026-09-01 capacity probe](https://github.com/openclaw/openclaw/actions/runs/33538827388),
 that label was the first measured class meeting the eight-CPU/24-GiB threshold
-used by OpenClaw's parallel-check policy:
+used by Vasudev's parallel-check policy:
 
 | Requested x64 Ubuntu 24.04 label | Observed CPUs | Observed RAM |
 | -------------------------------- | ------------: | -----------: |

@@ -144,7 +144,7 @@ Who is admitted, how messages route to sessions, and which chats can write confi
     Group-ish thread behavior:
 
     Some multi-participant iMessage threads can arrive with `is_group=false`.
-    If that `chat_id` is explicitly configured under `channels.imessage.groups`, OpenClaw treats it as group traffic (group gating + group session isolation).
+    If that `chat_id` is explicitly configured under `channels.imessage.groups`, Vasudev treats it as group traffic (group gating + group session isolation).
 
   </Tab>
 </Tabs>

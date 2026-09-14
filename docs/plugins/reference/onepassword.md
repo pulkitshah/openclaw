@@ -15,7 +15,7 @@ openclaw-plugin-reference:manual-end comment markers. -->
 ## Distribution
 
 - Package: `@openclaw/onepassword`
-- Install route: included in OpenClaw
+- Install route: included in Vasudev
 
 ## Surface
 

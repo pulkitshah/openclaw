@@ -34,7 +34,7 @@ The machine-readable `personal-agent` profile lives in root `taxonomy.yaml` as
 semantic coverage IDs. QA Lab resolves every primary owner from the catalog;
 there is no second scenario-ID list.
 
-Running the pack needs a source checkout of the OpenClaw repository — `pnpm
+Running the pack needs a source checkout of the Vasudev repository — `pnpm
 openclaw` is a workspace script, not the published CLI — and
 `OPENCLAW_ENABLE_PRIVATE_QA_CLI=1`, which is what exposes the private `qa`
 command group. Run it with:
@@ -56,7 +56,7 @@ lane. Do not point it at live chat services or real personal accounts.
 
 Scenarios use only fake users, fake preferences, fake secrets, and the
 temporary QA gateway workspace created by the suite. They must not read or
-write real OpenClaw user memory, sessions, credentials, launch agents, global
+write real Vasudev user memory, sessions, credentials, launch agents, global
 configs, or live gateway state.
 
 Artifacts stay under the existing QA suite artifact directory and are treated

@@ -1,6 +1,6 @@
 ---
 doc-schema-version: 1
-summary: "Wire Gmail inbox events into OpenClaw through Google Pub/Sub and a restricted reader"
+summary: "Wire Gmail inbox events into Vasudev through Google Pub/Sub and a restricted reader"
 read_when:
   - Triggering an agent from new Gmail messages
   - Building a restricted, sandboxed mail reader agent
@@ -9,16 +9,16 @@ title: "Gmail PubSub triggers"
 sidebarTitle: "Gmail PubSub"
 ---
 
-Wiring Gmail inbox events into OpenClaw through Google Pub/Sub, with a restricted reader agent for untrusted mail. Part of the [Automations](/automation/cron-jobs) guide.
+Wiring Gmail inbox events into Vasudev through Google Pub/Sub, with a restricted reader agent for untrusted mail. Part of the [Automations](/automation/cron-jobs) guide.
 
 ## Gmail PubSub integration
 
-Wire Gmail inbox triggers to OpenClaw through Google Pub/Sub and `gog gmail watch serve`. Pub/Sub calls the watcher; the watcher forwards email data to the [Gateway HTTP hook](/automation/cron-jobs/webhooks#webhooks). This does not load or invoke an internal `HOOK.md` handler.
+Wire Gmail inbox triggers to Vasudev through Google Pub/Sub and `gog gmail watch serve`. Pub/Sub calls the watcher; the watcher forwards email data to the [Gateway HTTP hook](/automation/cron-jobs/webhooks#webhooks). This does not load or invoke an internal `HOOK.md` handler.
 
 Not on Gmail? The [IMAP email trigger plugin](/automation/imap) watches an existing IMAP mailbox without Google PubSub or a public webhook.
 
 <Note>
-**Prerequisites:** `gcloud` CLI, `gog` (gogcli) authorized for the watched Gmail account, OpenClaw hooks enabled, an HTTPS push endpoint reachable by Pub/Sub (Tailscale Funnel in the recommended setup), and a working sandbox backend. The example below uses the default Docker backend; build its image first by following [Sandbox images and setup](/gateway/sandboxing#images-and-setup), or configure another supported backend.
+**Prerequisites:** `gcloud` CLI, `gog` (gogcli) authorized for the watched Gmail account, Vasudev hooks enabled, an HTTPS push endpoint reachable by Pub/Sub (Tailscale Funnel in the recommended setup), and a working sandbox backend. The example below uses the default Docker backend; build its image first by following [Sandbox images and setup](/gateway/sandboxing#images-and-setup), or configure another supported backend.
 </Note>
 
 ### Configure a restricted Gmail reader (recommended)
@@ -110,7 +110,7 @@ openclaw webhooks gmail setup --account reader@example.com
 
 This writes `hooks.gmail` transport settings, enables the Gmail preset, preserves the restricted mapping above, and defaults to Tailscale Funnel for the push endpoint (`--tailscale funnel|serve|off`). The wizard does not create a reader agent or session-key policy, so apply the restricted configuration first. `--tailscale serve` is tailnet-only; it is not a publicly reachable Pub/Sub endpoint without another ingress arrangement. Use `--tailscale off --push-endpoint <url>` for an externally managed endpoint. See [all setup flags](/cli/webhooks).
 
-The two tokens protect different hops: `hooks.gmail.pushToken` authenticates Pub/Sub to the watcher, while `hooks.token` authenticates the watcher to OpenClaw using a header. A token-bearing Pub/Sub push URL is not an example for `/hooks` authentication; query-string tokens are rejected by OpenClaw. Setup output can contain these tokens, so redact it before sharing.
+The two tokens protect different hops: `hooks.gmail.pushToken` authenticates Pub/Sub to the watcher, while `hooks.token` authenticates the watcher to Vasudev using a header. A token-bearing Pub/Sub push URL is not an example for `/hooks` authentication; query-string tokens are rejected by Vasudev. Setup output can contain these tokens, so redact it before sharing.
 
 <Warning>
 The built-in Gmail preset's per-message session separates conversation context; it does not restrict the target agent's tools or workspace. Without a custom mapping that sets `agentId`, Gmail hooks run as the default agent.

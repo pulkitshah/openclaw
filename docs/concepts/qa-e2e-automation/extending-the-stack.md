@@ -62,7 +62,7 @@ The baseline list should stay broad enough to cover:
 
 `qa suite` has two local provider mock lanes:
 
-- `mock-openai` is the scenario-aware OpenClaw mock. It remains the default
+- `mock-openai` is the scenario-aware Vasudev mock. It remains the default
   deterministic mock lane for repo-backed QA and parity gates.
 - `aimock` starts an AIMock-backed provider server for experimental
   protocol, fixture, record/replay, and chaos coverage. It is additive and
@@ -83,7 +83,7 @@ provider names.
 
 `qa-lab` owns a generic transport seam for YAML QA scenarios. `qa-channel` is
 the synthetic default. `crabline` starts separate local provider servers and
-runs OpenClaw's normal channel plugins against their provider-shaped REST and
+runs Vasudev's normal channel plugins against their provider-shaped REST and
 streaming boundaries; it does not use Crabline's fixture-level local mock
 providers. `live` is reserved for real provider credentials and external
 channels.

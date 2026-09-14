@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/diagnostics-prometheus",
   "version": "2026.9.4",
-  "description": "OpenClaw diagnostics Prometheus exporter for runtime metrics.",
+  "description": "Vasudev diagnostics Prometheus exporter for runtime metrics.",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

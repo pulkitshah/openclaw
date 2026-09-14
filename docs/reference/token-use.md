@@ -1,17 +1,17 @@
 ---
-summary: "How OpenClaw builds prompt context and reports token usage + costs"
+summary: "How Vasudev builds prompt context and reports token usage + costs"
 read_when:
   - Explaining token usage, costs, or context windows
   - Debugging context growth or compaction behavior
 title: "Token use and costs"
 ---
 
-OpenClaw tracks **tokens**, not characters. Tokens are model-specific, but most
+Vasudev tracks **tokens**, not characters. Tokens are model-specific, but most
 OpenAI-style models average ~4 characters per token for English text.
 
 ## How the system prompt is built
 
-OpenClaw assembles its own system prompt on every run. It includes:
+Vasudev assembles its own system prompt on every run. It includes:
 
 - Tool list + short descriptions
 - Skills list (metadata only; instructions load on demand with `read`). Native
@@ -77,7 +77,7 @@ These are bounded runtime excerpts and injected runtime-owned blocks,
 separate from bootstrap limits, startup-context limits, and skills prompt
 limits.
 
-OpenClaw derives the live tool-result cap from the effective model context
+Vasudev derives the live tool-result cap from the effective model context
 window: `16000` chars below
 100K tokens, `32000` chars at 100K+ tokens, `64000` chars at 200K+ tokens.
 The runtime context-share guard also caps a single tool result at 30% of the
@@ -85,13 +85,13 @@ context window.
 
 Large provider windows are not enabled automatically when they materially
 change cost or latency. For example, direct OpenAI GPT-5.5 and GPT-5.6 models
-publish a `1050000` token total window, but OpenClaw defaults their active
+publish a `1050000` token total window, but Vasudev defaults their active
 runtime budget to `272000` tokens. The opt-in `922000` input budget reserves the
 full `128000` output allowance, and OpenAI applies higher long-context pricing
 to the entire request once input exceeds `272000` tokens. See
 [OpenAI context window defaults](/providers/openai/setup#context-window-defaults-and-long-context-opt-in).
 
-For images, OpenClaw downscales transcript/tool image payloads before
+For images, Vasudev downscales transcript/tool image payloads before
 provider calls. Tune with `agents.defaults.imageMaxDimensionPx` (default:
 `1200`):
 
@@ -117,7 +117,7 @@ In chat:
   - `/usage full` shows compact model/context/cost details. Cost comes from a
     recorded amount or usage metadata with local pricing for the active model.
     Custom `messages.usageTemplate` layouts can include token/cache fields.
-- `/usage cost` -> local cost summary from OpenClaw session logs.
+- `/usage cost` -> local cost summary from Vasudev session logs.
 
 Other surfaces:
 
@@ -157,7 +157,7 @@ transcript totals can win when stored totals are missing or smaller.
 
 Usage auth for provider quota windows comes from provider-specific hooks
 first; if a provider has no hook (or the hook does not resolve a token),
-OpenClaw falls back to matching OAuth/API-key credentials from auth
+Vasudev falls back to matching OAuth/API-key credentials from auth
 profiles, env, or config.
 
 Assistant transcript entries persist the same normalized usage shape,
@@ -166,7 +166,7 @@ reports a billed amount. This gives `/usage cost` and
 transcript-backed session status a stable source even after the live
 runtime state is gone.
 
-OpenClaw keeps provider usage accounting separate from the current context
+Vasudev keeps provider usage accounting separate from the current context
 snapshot. Provider `usage.total` can include cached input, output, and
 multiple tool-loop model calls, so it is useful for cost and telemetry but
 can overstate the live context window. Context displays and diagnostics use
@@ -238,7 +238,7 @@ use this fallback. Priority and flex billing can differ from the base estimate.
 
 ## Cache TTL and pruning impact
 
-Provider prompt caching only applies within the cache TTL window. OpenClaw
+Provider prompt caching only applies within the cache TTL window. Vasudev
 can optionally run **cache-ttl pruning**: it prunes the session once the
 cache TTL has expired, then resets the cache window so subsequent requests
 re-use the freshly cached context instead of re-caching the full history.
@@ -303,7 +303,7 @@ unchanged.
 
 ### Anthropic 1M context
 
-OpenClaw sizes GA-capable Claude 4.x models such as Opus 4.8, Opus 4.7, Opus
+Vasudev sizes GA-capable Claude 4.x models such as Opus 4.8, Opus 4.7, Opus
 4.6, and Sonnet 4.6 with Anthropic's 1M context window. You do not need
 `params.context1m: true` for those models.
 
@@ -315,7 +315,7 @@ agents:
         alias: opus
 ```
 
-Older configs can keep `context1m: true`, but OpenClaw no longer sends
+Older configs can keep `context1m: true`, but Vasudev no longer sends
 Anthropic's retired `context-1m-2025-08-07` beta header for this setting and
 does not expand unsupported older Claude models to 1M.
 
@@ -323,7 +323,7 @@ Requirement: the credential must be eligible for long-context usage. If not,
 Anthropic responds with a provider-side rate limit error for that request.
 
 If you authenticate Anthropic with OAuth/subscription tokens
-(`sk-ant-oat-*`), OpenClaw preserves the OAuth-required Anthropic beta
+(`sk-ant-oat-*`), Vasudev preserves the OAuth-required Anthropic beta
 headers while stripping the retired `context-1m-*` beta if it remains in
 older config.
 

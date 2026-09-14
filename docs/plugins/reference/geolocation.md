@@ -15,7 +15,7 @@ Resolves client IP addresses to a coarse city using a locally cached IP-geolocat
 ## Distribution
 
 - Package: `@openclaw/geolocation-plugin`
-- Install route: included in OpenClaw
+- Install route: included in Vasudev
 
 ## Surface
 

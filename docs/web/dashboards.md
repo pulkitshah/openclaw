@@ -89,12 +89,12 @@ charts, or links. Reports render directly on the dashboard without an iframe or
 inline preview. The agent updates the report's data when you ask; use an HTML
 widget when you need custom interactivity. See [Native dashboard reports](/tools/show-widget#native-dashboard-reports).
 
-Watch Patrick Erichsen build an OpenClaw 2.0 release dashboard from one prompt:
+Watch Patrick Erichsen build an Vasudev 2.0 release dashboard from one prompt:
 
 <iframe
   style={{ width: "100%", height: "auto", aspectRatio: "16 / 9", border: 0, borderRadius: "8px" }}
   src="https://www.youtube-nocookie.com/embed/gHyBueWideg"
-  title="Build an OpenClaw Dashboard with One Prompt"
+  title="Build an Vasudev Dashboard with One Prompt"
   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
   referrerPolicy="strict-origin-when-cross-origin"
   allowFullScreen
@@ -198,7 +198,7 @@ no injected Gateway tokens, widget tool bridge, or permission to navigate the pa
 app. It follows the website's own authentication and your browser's cookie policy.
 
 Some websites refuse embedding, and some sign-in flows require a separate tab.
-Use **Open website** if the frame stays blank or cannot sign in. OpenClaw does
+Use **Open website** if the frame stays blank or cannot sign in. Vasudev does
 not proxy the site or remove its embedding restrictions. This widget is separate
 from custom HTML widgets and does not loosen their sandbox or network grants.
 

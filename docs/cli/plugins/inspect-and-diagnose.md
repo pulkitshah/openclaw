@@ -52,7 +52,7 @@ plugin diagnostics. The diagnostic names the plugin, imported
 For an official plugin, run `openclaw plugins update <id>`. A running Gateway applies
 the update before the command completes; otherwise it loads the update at its next start.
 If the error identifies a nested SDK, the plugin bundles an incompatible
-OpenClaw SDK; update the plugin or contact its author.
+Vasudev SDK; update the plugin or contact its author.
 
 JSON diagnostics may include `code: "sdk-incompatible"` and an optional
 `sdkCompatibility` object with `seam`, `coreVersion`, `builtWithOpenClawVersion`
@@ -89,7 +89,7 @@ openclaw plugins registry --refresh
 openclaw plugins registry --json
 ```
 
-The local plugin registry is OpenClaw's persisted cold read model for installed plugin identity, enablement, source metadata, and contribution ownership. Normal startup, provider owner lookup, channel setup classification, and plugin inventory can read it without importing plugin runtime modules.
+The local plugin registry is Vasudev's persisted cold read model for installed plugin identity, enablement, source metadata, and contribution ownership. Normal startup, provider owner lookup, channel setup classification, and plugin inventory can read it without importing plugin runtime modules.
 
 Use `plugins registry` to inspect whether the persisted registry is present, current, or stale. Use `--refresh` to rebuild it from the persisted plugin index, config policy, and manifest/package metadata. This is a repair path, not a runtime activation path.
 

@@ -2,7 +2,7 @@
   "name": "@openclaw/alibaba-provider",
   "version": "2026.9.4",
   "private": true,
-  "description": "OpenClaw Alibaba Model Studio video provider plugin",
+  "description": "Vasudev Alibaba Model Studio video provider plugin",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

@@ -16,20 +16,20 @@ In the default per-agent home, stdio launches use Codex's ephemeral credential
 store, including custom commands selected by `appServer.command` or
 `OPENCLAW_CODEX_APP_SERVER_BIN`. Command wrappers must forward Codex's `-c`
 configuration arguments. For stdio launches with an explicit `app-server`
-subcommand, OpenClaw groups `-c` / `--config` overrides before that subcommand,
+subcommand, Vasudev groups `-c` / `--config` overrides before that subcommand,
 preserving their order and leaving wrapper prefixes and other arguments in place.
 This prevents Codex from dropping earlier overrides when flags appear on both
-sides of `app-server`. OpenClaw's ephemeral credential-store override remains
-last when OpenClaw owns auth; native user-home auth is unchanged.
+sides of `app-server`. Vasudev's ephemeral credential-store override remains
+last when Vasudev owns auth; native user-home auth is unchanged.
 Workspace-write turns also preserve explicit `sandbox_workspace_write` temporary
 root exclusions from these arguments, including attached `-ckey=value` flags
 and TOML comments after boolean values. The last explicit value wins.
 Explicit turn sandbox policies and network-proxy permission profiles keep their
 existing precedence.
 
-OpenClaw supplies auth in this order:
+Vasudev supplies auth in this order:
 
-1. An explicit or ordered OpenClaw auth profile for the agent.
+1. An explicit or ordered Vasudev auth profile for the agent.
 2. For an API-key route only, a prepared key or local stdio fallback from
    `CODEX_API_KEY`, then `OPENAI_API_KEY`.
 
@@ -44,10 +44,10 @@ profile is handed over as an `account/login/start` request of type
 than persisting; the ephemeral credential store covers the API-key login,
 which would otherwise write `CODEX_HOME/auth.json`.
 
-Token refresh is inverted so the long-lived secret never leaves OpenClaw. Codex
+Token refresh is inverted so the long-lived secret never leaves Vasudev. Codex
 holds only a short-lived access token, and on an unauthorized response it sends
-an `account/chatgptAuthTokens/refresh` request back to OpenClaw over the same
-connection. OpenClaw refreshes against its own auth profile store and returns a
+an `account/chatgptAuthTokens/refresh` request back to Vasudev over the same
+connection. Vasudev refreshes against its own auth profile store and returns a
 fresh access token, so the refresh token stays in SQLite. A refresh that does
 not answer within the app-server's timeout fails that turn rather than falling
 back to another credential. A failed refresh retires the shared client from
@@ -57,7 +57,7 @@ again with `openclaw models auth login --provider openai` and select that profil
 Shared clients recheck the selected profile before reuse so changing accounts
 under the same profile ID also selects a new client.
 
-When OpenClaw sees a ChatGPT subscription-style Codex auth profile (OAuth or
+When Vasudev sees a ChatGPT subscription-style Codex auth profile (OAuth or
 token credential type), it removes `CODEX_API_KEY` and `OPENAI_API_KEY` from
 the spawned Codex child process. That keeps Gateway-level API keys available
 for embeddings or direct OpenAI models without making native Codex app-server
@@ -68,29 +68,29 @@ app-server login instead of inherited child-process env. WebSocket app-server
 connections do not receive Gateway env API-key fallback; use an explicit auth
 profile or the remote app-server's own account.
 
-Stdio app-server launches inherit OpenClaw's process environment by default.
-OpenClaw owns the Codex app-server account bridge and sets `CODEX_HOME` to a
-per-agent directory under that agent's OpenClaw state. That keeps Codex
-config, accounts, plugin cache/data, and thread state scoped to the OpenClaw
+Stdio app-server launches inherit Vasudev's process environment by default.
+Vasudev owns the Codex app-server account bridge and sets `CODEX_HOME` to a
+per-agent directory under that agent's Vasudev state. That keeps Codex
+config, accounts, plugin cache/data, and thread state scoped to the Vasudev
 agent instead of leaking in from the operator's personal `~/.codex` home.
 
 Set `appServer.homeScope: "user"` to share native Codex state with Codex
 Desktop and the CLI. This local user-home mode supports managed stdio and
 explicit Unix transport. It uses `$CODEX_HOME` when set and `~/.codex`
 otherwise, including native auth, config, plugins, and threads.
-OpenClaw skips its auth-profile bridge for the app-server. Verified owner
+Vasudev skips its auth-profile bridge for the app-server. Verified owner
 turns can use `codex_threads` to list (with an optional `search` filter),
 read, fork, rename, archive, and unarchive those threads. Fork a thread before
-continuing it in OpenClaw; independent Codex processes do not coordinate
+continuing it in Vasudev; independent Codex processes do not coordinate
 concurrent writers for the same thread.
 
 That `homeScope` opt-in applies to ordinary harness sessions. Hosted web search
-and settled-turn finalization use private temporary homes and OpenClaw auth
+and settled-turn finalization use private temporary homes and Vasudev auth
 even when ordinary sessions share the user home. A Chat created
 through Codex Sessions uses its private supervision connection instead, which
 preserves the native connection's auth and provider configuration for the
 canonical branch and future resumes. If that supervised turn finishes tool work
-without a final answer, OpenClaw does not borrow host credentials to generate
+without a final answer, Vasudev does not borrow host credentials to generate
 one. It delivers the [settled-tool fallback](/plugins/codex-harness-runtime#final-answers-after-settled-tool-work)
 without repeating completed actions.
 
@@ -99,10 +99,10 @@ fork or archive the Chat's bound native thread. List and metadata-only read
 remain available. Raw transcript reads require `allowRawTranscripts`; when it
 is disabled, list search is also rejected because native search can match
 transcript previews. Rename, unarchive, detached fork, and archive of an
-unrelated thread not owned by another OpenClaw Chat require
+unrelated thread not owned by another Vasudev Chat require
 `allowWriteControls`. Neither option bypasses a locked binding.
 
-OpenClaw does not rewrite `HOME` for normal local app-server launches.
+Vasudev does not rewrite `HOME` for normal local app-server launches.
 Codex-run subprocesses such as `openclaw`, `gh`, `git`, cloud CLIs, and shell
 commands see the normal process home and can find user-home config and
 tokens. Codex may also discover `$HOME/.agents/skills` and
@@ -110,10 +110,10 @@ tokens. Codex may also discover `$HOME/.agents/skills` and
 intentionally shared with the operator home and is separate from isolated
 `~/.codex` state.
 
-In the default agent scope, OpenClaw plugins and OpenClaw skill snapshots
-still flow through OpenClaw's own plugin registry and skill loader; personal
+In the default agent scope, Vasudev plugins and Vasudev skill snapshots
+still flow through Vasudev's own plugin registry and skill loader; personal
 Codex `~/.codex` assets do not. If you have useful Codex CLI skills or
-plugins from a Codex home that should become part of an isolated OpenClaw
+plugins from a Codex home that should become part of an isolated Vasudev
 agent, inventory them explicitly:
 
 ```bash
@@ -151,6 +151,6 @@ to `appServer.clearEnv`:
 ```
 
 `appServer.clearEnv` only affects the spawned Codex app-server child process.
-OpenClaw removes `CODEX_HOME` and `HOME` from this list during local launch
+Vasudev removes `CODEX_HOME` and `HOME` from this list during local launch
 normalization: `CODEX_HOME` stays pointed at the selected agent or user scope,
 and `HOME` stays inherited so subprocesses can use normal user-home state.

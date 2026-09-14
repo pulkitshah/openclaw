@@ -1,7 +1,7 @@
 ---
-summary: "Run the OpenClaw Gateway on ChromeOS inside a Crostini Linux container"
+summary: "Run the Vasudev Gateway on ChromeOS inside a Crostini Linux container"
 read_when:
-  - Installing OpenClaw on a Chromebook or ChromeOS device
+  - Installing Vasudev on a Chromebook or ChromeOS device
   - Debugging missing provider keys or a Gateway that is gone after a reboot
 title: "ChromeOS"
 ---
@@ -65,13 +65,13 @@ filesystem directly, so a Docker image rebuild cannot wipe it.
 
 ## Node version
 
-The Node version available in a Crostini container may be below OpenClaw's
-minimum. OpenClaw requires Node 24.16+ or Node 26.1+; Node 26
+The Node version available in a Crostini container may be below Vasudev's
+minimum. Vasudev requires Node 24.16+ or Node 26.1+; Node 26
 is the recommended default. The installer script detects a missing or
 unsupported Node version and provisions a supported release automatically.
 
-If you installed Node yourself before OpenClaw, upgrade it **before** installing
-OpenClaw:
+If you installed Node yourself before Vasudev, upgrade it **before** installing
+Vasudev:
 
 ```bash
 node -v

@@ -36,7 +36,7 @@ Both options default to off.
 
 Run the command on the Gateway host in an interactive terminal. The command
 updates that host's file-transfer policy, so it refuses to run when
-`gateway.mode` is `remote`. It also refuses when the OpenClaw config is invalid.
+`gateway.mode` is `remote`. It also refuses when the Vasudev config is invalid.
 Fix the config first, then rerun.
 
 ### What the interactive run asks

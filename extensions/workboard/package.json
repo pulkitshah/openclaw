@@ -2,7 +2,7 @@
   "name": "@openclaw/workboard",
   "version": "2026.9.4",
   "private": true,
-  "description": "OpenClaw dashboard workboard plugin",
+  "description": "Vasudev dashboard workboard plugin",
   "type": "module",
   "dependencies": {
     "@openclaw/gateway-protocol": "workspace:*",

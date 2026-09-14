@@ -23,10 +23,10 @@ troubleshooting, see the main [FAQ](/help/faq).
 
     Models are `provider/model` refs (example: `openai/gpt-5.5`,
     `anthropic/claude-sonnet-4-6`). Always set `provider/model` explicitly. If
-    you omit the provider, OpenClaw tries an alias match first, then a unique
+    you omit the provider, Vasudev tries an alias match first, then a unique
     configured-provider match for that model id, then falls back to the
     configured default provider (deprecated compatibility path). If that
-    provider no longer has the configured default model, OpenClaw falls back
+    provider no longer has the configured default model, Vasudev falls back
     to the first configured provider/model instead of a stale default.
 
   </Accordion>
@@ -117,7 +117,7 @@ troubleshooting, see the main [FAQ](/help/faq).
   <Accordion title="If two providers expose the same model id, which one does /model use?">
     `/model provider/model` selects that exact provider route. For example,
     `qianfan/deepseek-v4-flash` and `deepseek/deepseek-v4-flash` are different
-    refs even though the model id matches — OpenClaw does not silently switch
+    refs even though the model id matches — Vasudev does not silently switch
     providers on a bare id match.
 
     A user-selected `/model` ref is strict for fallback: if that
@@ -125,7 +125,7 @@ troubleshooting, see the main [FAQ](/help/faq).
     falling back to `agents.defaults.model.fallbacks`. Configured fallback
     chains still apply to configured defaults, cron job primaries, and
     auto-selected fallback state. When a non-session-override run is allowed
-    to use fallback, OpenClaw tries the requested provider/model first, then
+    to use fallback, Vasudev tries the requested provider/model first, then
     configured fallbacks, then the configured primary — so duplicate bare
     model ids never jump straight back to the default provider.
 
@@ -206,7 +206,7 @@ troubleshooting, see the main [FAQ](/help/faq).
   </Accordion>
 
   <Accordion title='Why do I see "Unknown model: minimax/MiniMax-M3"?'>
-    If you're on an older OpenClaw release, upgrade first (or run from source
+    If you're on an older Vasudev release, upgrade first (or run from source
     `main`) and restart the gateway — `MiniMax-M3` may not be in your
     installed release's catalog yet. Otherwise the MiniMax provider is not
     configured (no provider entry or auth profile found), so the model can't
@@ -348,7 +348,7 @@ troubleshooting, see the main [FAQ](/help/faq).
     1. **Auth profile rotation** within the same provider.
     2. **Model fallback** to the next model in `agents.defaults.model.fallbacks`.
 
-    Cooldowns apply to failing profiles (exponential backoff), so OpenClaw
+    Cooldowns apply to failing profiles (exponential backoff), so Vasudev
     keeps responding when a provider is rate-limited or temporarily failing.
 
     The rate-limit bucket covers more than plain `429`: `Too many concurrent
@@ -424,7 +424,7 @@ troubleshooting, see the main [FAQ](/help/faq).
 
   <Accordion title="Why did it also try Google Gemini and fail?">
     If your model config includes Google Gemini as a fallback (or you
-    switched to a Gemini shorthand), OpenClaw tries it during fallback. No
+    switched to a Gemini shorthand), Vasudev tries it during fallback. No
     Google credentials configured gives `No API key found for provider
     "google"`. Fix: add Google auth, or remove Google models from
     `agents.defaults.model.fallbacks`/aliases.
@@ -433,7 +433,7 @@ troubleshooting, see the main [FAQ](/help/faq).
 
     Cause: session history has thinking blocks without signatures (often
     from an aborted/partial stream); Google Antigravity requires signatures
-    on thinking blocks. OpenClaw strips unsigned thinking blocks for Google
+    on thinking blocks. Vasudev strips unsigned thinking blocks for Google
     Antigravity Claude; if it still appears, start a new session or set
     `/thinking off` for that agent.
 
@@ -470,7 +470,7 @@ Related: [/concepts/oauth](/concepts/oauth) (OAuth flows, token storage, multi-a
     Yes. `auth.order.<provider>` config sets rotation order per provider
     (metadata only — no secrets stored).
 
-    OpenClaw may skip a profile in a short **cooldown** (rate limits,
+    Vasudev may skip a profile in a short **cooldown** (rate limits,
     timeouts, auth failures) or a longer **disabled** state
     (billing/insufficient credits). Inspect with `openclaw models status
     --json` and check `auth.unusableProfiles`. Rate-limit cooldowns can be
@@ -506,7 +506,7 @@ Related: [/concepts/oauth](/concepts/oauth) (OAuth flows, token storage, multi-a
 
   <Accordion title="OAuth vs API key - what is the difference?">
     - **OAuth / CLI login** often uses subscription access where the
-      provider supports it. For Anthropic, OpenClaw's Claude CLI backend
+      provider supports it. For Anthropic, Vasudev's Claude CLI backend
       uses Claude Code `claude -p`, which Anthropic currently treats as
       Agent SDK/programmatic usage drawing from subscription usage limits —
       see [Anthropic](/providers/anthropic) for the current billing-pause

@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/deepinfra-provider",
   "version": "2026.9.4",
-  "description": "OpenClaw DeepInfra provider plugin.",
+  "description": "Vasudev DeepInfra provider plugin.",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

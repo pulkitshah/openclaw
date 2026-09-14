@@ -1,5 +1,5 @@
 ---
-summary: "OpenClaw diagnostics Prometheus exporter for runtime metrics."
+summary: "Vasudev diagnostics Prometheus exporter for runtime metrics."
 read_when:
   - You are installing, configuring, or auditing the diagnostics-prometheus plugin
 title: "Diagnostics Prometheus plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-OpenClaw diagnostics Prometheus exporter for runtime metrics.
+Vasudev diagnostics Prometheus exporter for runtime metrics.
 
 ## Distribution
 

@@ -1,24 +1,24 @@
 ---
-summary: "Run OpenClaw through llmman (OpenAI-compatible local server)"
+summary: "Run Vasudev through llmman (OpenAI-compatible local server)"
 read_when:
-  - You want to run OpenClaw against a local llmman server
+  - You want to run Vasudev against a local llmman server
   - You are serving Gemma or another model through llmman
-  - You need the exact OpenClaw compat flags for llmman
+  - You need the exact Vasudev compat flags for llmman
 title: "llmman"
 ---
 
-[llmman](https://github.com/llmmanorg/llmman) pulls GGUF/safetensors models from OCI registries and serves them behind Ollama-, OpenAI-, and Anthropic-compatible APIs. It uses `llama-server` for GGUF models and `vllm` or `mlx_lm.server` for safetensors models. OpenClaw talks to it through the generic `openai-completions` adapter.
+[llmman](https://github.com/llmmanorg/llmman) pulls GGUF/safetensors models from OCI registries and serves them behind Ollama-, OpenAI-, and Anthropic-compatible APIs. It uses `llama-server` for GGUF models and `vllm` or `mlx_lm.server` for safetensors models. Vasudev talks to it through the generic `openai-completions` adapter.
 
 | Property         | Value                                                        |
 | ---------------- | ------------------------------------------------------------ |
 | Provider id      | `llmman` (custom; configure under `models.providers.llmman`) |
-| Plugin           | none — not a bundled OpenClaw provider plugin                |
+| Plugin           | none — not a bundled Vasudev provider plugin                 |
 | Auth env var     | none required; any value works, `llmman serve` has no auth   |
 | API              | OpenAI-compatible (`openai-completions`)                     |
 | Default base URL | `http://127.0.0.1:17434/v1`                                  |
 
 <Note>
-  `llmman` is a custom self-hosted OpenAI-compatible backend, not a dedicated OpenClaw provider plugin: you configure it under `models.providers.llmman` instead of picking an onboarding auth choice. For a bundled plugin with auto-discovery, see [SGLang](/providers/sglang) or [vLLM](/providers/vllm).
+  `llmman` is a custom self-hosted OpenAI-compatible backend, not a dedicated Vasudev provider plugin: you configure it under `models.providers.llmman` instead of picking an onboarding auth choice. For a bundled plugin with auto-discovery, see [SGLang](/providers/sglang) or [vLLM](/providers/vllm).
 </Note>
 
 <Info>
@@ -35,7 +35,7 @@ title: "llmman"
 
     `llmman serve` listens on `127.0.0.1:17434` by default. Set `LLMMAN_HOST` before startup to override the bind address; there are no `--host`/`--port` flags. GPU acceleration (CUDA, ROCm, Vulkan, or Metal) is auto-detected; set `LLMMAN_LLM_LIBRARY` to override it because there is no `--device` flag. The model argument is optional — omit it to start the server and load models on the first request that names them instead.
 
-    The example fixes the server context at 65,536 tokens and uses the same value in OpenClaw below. If you change `LLMMAN_CONTEXT_LENGTH`, keep the OpenClaw model's `contextWindow` at or below that value.
+    The example fixes the server context at 65,536 tokens and uses the same value in Vasudev below. If you change `LLMMAN_CONTEXT_LENGTH`, keep the Vasudev model's `contextWindow` at or below that value.
 
   </Step>
   <Step title="Verify the server is reachable">
@@ -47,7 +47,7 @@ title: "llmman"
     `llmman serve` has no dedicated `/health` route at the top level; use `/v1/models` or `/api/version` for a readiness probe.
 
   </Step>
-  <Step title="Add an OpenClaw provider entry">
+  <Step title="Add an Vasudev provider entry">
     Add an explicit provider entry and point your default model at it. See the config example below.
   </Step>
 </Steps>
@@ -94,7 +94,7 @@ Gemma 4 on a local `llmman` server:
 
 ## On-demand startup
 
-OpenClaw can start `llmman` itself only when an `llmman/...` model is selected. Add `localService` to the same provider entry:
+Vasudev can start `llmman` itself only when an `llmman/...` model is selected. Add `localService` to the same provider entry:
 
 ```json5
 {
@@ -139,19 +139,19 @@ OpenClaw can start `llmman` itself only when an `llmman/...` model is selected. 
     `llmman` resolves and loads the requested model, rewrites its id for the selected backend, and adds generation defaults such as `repeat_penalty`. It forwards message content and tool schemas without normalizing them, so compatibility for those fields depends on the selected backend and model.
 
     <Warning>
-    If OpenClaw runs fail with:
+    If Vasudev runs fail with:
 
     ```text
     messages[1].content: invalid type: sequence, expected a string
     ```
 
-    set `compat.requiresStringContent: true` in the model entry. OpenClaw then flattens pure text content parts into plain strings before sending the request.
+    set `compat.requiresStringContent: true` in the model entry. Vasudev then flattens pure text content parts into plain strings before sending the request.
     </Warning>
 
   </Accordion>
 
   <Accordion title="Tool-schema caveat">
-    If a model accepts small direct `/v1/chat/completions` requests but fails on full OpenClaw agent-runtime turns, try disabling the tool schema surface first:
+    If a model accepts small direct `/v1/chat/completions` requests but fails on full Vasudev agent-runtime turns, try disabling the tool schema surface first:
 
     ```json5
     compat: {
@@ -159,7 +159,7 @@ OpenClaw can start `llmman` itself only when an `llmman/...` model is selected. 
     }
     ```
 
-    That reduces prompt pressure on stricter local backends. If tiny direct requests still work but normal OpenClaw agent turns keep crashing inside `llama-server`, treat it as an upstream model/server limitation rather than an OpenClaw transport issue.
+    That reduces prompt pressure on stricter local backends. If tiny direct requests still work but normal Vasudev agent turns keep crashing inside `llama-server`, treat it as an upstream model/server limitation rather than an Vasudev transport issue.
 
   </Accordion>
 
@@ -192,7 +192,7 @@ OpenClaw can start `llmman` itself only when an `llmman/...` model is selected. 
 
 <AccordionGroup>
   <Accordion title="curl /v1/models fails">
-    `llmman serve` is not running or is not reachable at the configured address. The default is `127.0.0.1:17434`; if you set `LLMMAN_HOST`, update the OpenClaw `baseUrl` and `healthUrl` to match.
+    `llmman serve` is not running or is not reachable at the configured address. The default is `127.0.0.1:17434`; if you set `LLMMAN_HOST`, update the Vasudev `baseUrl` and `healthUrl` to match.
   </Accordion>
 
   <Accordion title="messages[].content expected a string">
@@ -220,7 +220,7 @@ For general help, see [Troubleshooting](/help/troubleshooting) and [FAQ](/help/f
 
 <CardGroup cols={2}>
   <Card title="Local models" href="/gateway/local-models" icon="server">
-    Running OpenClaw against local model servers.
+    Running Vasudev against local model servers.
   </Card>
   <Card title="Local model services" href="/gateway/local-model-services" icon="play">
     Starting local model servers on demand for configured providers.

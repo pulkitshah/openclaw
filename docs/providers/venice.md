@@ -1,7 +1,7 @@
 ---
-summary: "Use Venice AI privacy-focused models in OpenClaw"
+summary: "Use Venice AI privacy-focused models in Vasudev"
 read_when:
-  - You want privacy-focused inference in OpenClaw
+  - You want privacy-focused inference in Vasudev
   - You want Venice AI setup guidance
 title: "Venice AI"
 ---
@@ -34,7 +34,7 @@ Anonymized models are not fully private. Venice strips metadata before forwardin
     2. Go to **Settings > API Keys > Create new key**
     3. Copy your API key (format: `vapi_xxxxxxxxxxxx`)
   </Step>
-  <Step title="Configure OpenClaw">
+  <Step title="Configure Vasudev">
     <Tabs>
       <Tab title="Interactive (recommended)">
         ```bash
@@ -133,17 +133,17 @@ tool-call format.
 ## Model discovery
 
 The built-in catalog above is the manifest-backed seed catalog. At runtime
-OpenClaw refreshes it from the Venice `/models` API and falls back to the seed
+Vasudev refreshes it from the Venice `/models` API and falls back to the seed
 catalog if the API is unreachable. The `/models` endpoint is public (no auth needed for
 listing), but inference requires a valid API key.
 
 Venice may continue accepting retired model IDs as provider-owned aliases. The
-OpenClaw catalog advertises only the canonical model IDs returned by `/models`.
+Vasudev catalog advertises only the canonical model IDs returned by `/models`.
 
 ## DeepSeek V4 replay behavior
 
 If Venice exposes DeepSeek V4 models such as `deepseek-v4-pro` or
-`deepseek-v4-flash`, OpenClaw fills the required `reasoning_content` replay
+`deepseek-v4-flash`, Vasudev fills the required `reasoning_content` replay
 field on assistant messages when Venice omits it, and strips `thinking`/
 `reasoning`/`reasoning_effort` from the request payload (Venice rejects
 DeepSeek's native `thinking` control on these models). This replay fix is
@@ -164,7 +164,7 @@ Venice uses a credit-based system. Anonymized models cost roughly the same as
 direct API pricing plus a small Venice fee. See
 [venice.ai/pricing](https://venice.ai/pricing) for current rates.
 
-OpenClaw reads live prices from Venice's public
+Vasudev reads live prices from Venice's public
 [`GET /api/v1/models`](https://docs.venice.ai/api-reference/endpoint/models/list)
 response during model discovery. The same plugin parser supplies the hosted
 catalog publisher. Known and newly discovered models use the API's complete

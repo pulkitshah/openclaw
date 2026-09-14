@@ -1,16 +1,16 @@
 ---
-summary: "Run OpenClaw as a stdio MCP server so an MCP client can read and send channel conversations"
-title: "Run OpenClaw as an MCP server"
+summary: "Run Vasudev as a stdio MCP server so an MCP client can read and send channel conversations"
+title: "Run Vasudev as an MCP server"
 read_when:
-  - Connecting Codex, Claude Code, or another MCP client to OpenClaw-backed channels
+  - Connecting Codex, Claude Code, or another MCP client to Vasudev-backed channels
   - Running `openclaw mcp serve`
   - Debugging bridge events, Claude notifications, or missing conversations
 ---
 
-This page covers the `openclaw mcp serve` path: OpenClaw acting as an MCP
+This page covers the `openclaw mcp serve` path: Vasudev acting as an MCP
 server over stdio, its tools, its event model, and its limits.
 
-## OpenClaw as an MCP server
+## Vasudev as an MCP server
 
 This is the `openclaw mcp serve` path.
 
@@ -18,22 +18,22 @@ This is the `openclaw mcp serve` path.
 
 Use `openclaw mcp serve` when:
 
-- Codex, Claude Code, or another MCP client should talk directly to OpenClaw-backed channel conversations
-- you already have a local or remote OpenClaw Gateway with routed sessions
-- you want one MCP server that works across OpenClaw's channel backends instead of running separate per-channel bridges
+- Codex, Claude Code, or another MCP client should talk directly to Vasudev-backed channel conversations
+- you already have a local or remote Vasudev Gateway with routed sessions
+- you want one MCP server that works across Vasudev's channel backends instead of running separate per-channel bridges
 
-Use [`openclaw acp`](/cli/acp) instead when OpenClaw should host the coding runtime itself and keep the agent session inside OpenClaw.
+Use [`openclaw acp`](/cli/acp) instead when Vasudev should host the coding runtime itself and keep the agent session inside Vasudev.
 
 ### How it works
 
-`openclaw mcp serve` starts a stdio MCP server. The MCP client owns that process. While the client keeps the stdio session open, the bridge connects to a local or remote OpenClaw Gateway over WebSocket and exposes routed channel conversations over MCP.
+`openclaw mcp serve` starts a stdio MCP server. The MCP client owns that process. While the client keeps the stdio session open, the bridge connects to a local or remote Vasudev Gateway over WebSocket and exposes routed channel conversations over MCP.
 
 <Steps>
   <Step title="Client spawns the bridge">
     The MCP client spawns `openclaw mcp serve`.
   </Step>
   <Step title="Bridge connects to Gateway">
-    The bridge connects to the OpenClaw Gateway over WebSocket.
+    The bridge connects to the Vasudev Gateway over WebSocket.
   </Step>
   <Step title="Sessions become MCP conversations">
     Routed sessions become MCP conversations and transcript/history tools.
@@ -55,7 +55,7 @@ Use [`openclaw acp`](/cli/acp) instead when OpenClaw should host the coding runt
     - cancelling an `events_wait` request immediately releases its server-side wait and timeout
     - bridge or MCP transport close failures make `openclaw mcp serve` fail instead of reporting a clean shutdown
     - one-shot agent entry points such as `openclaw agent` and `openclaw infer model run` retire any bundled MCP runtimes they open when the reply completes, so repeated scripted runs do not accumulate stdio MCP child processes
-    - stdio MCP servers launched by OpenClaw (bundled or user-configured) are torn down as a process tree on shutdown, so child subprocesses started by the server do not survive after the parent stdio client exits
+    - stdio MCP servers launched by Vasudev (bundled or user-configured) are torn down as a process tree on shutdown, so child subprocesses started by the server do not survive after the parent stdio client exits
     - deleting or resetting a session disposes that session's MCP clients through the shared runtime cleanup path, so there are no lingering stdio connections tied to a removed session
 
   </Accordion>
@@ -78,7 +78,7 @@ Use [`openclaw acp`](/cli/acp) instead when OpenClaw should host the coding runt
 
 ### What serve exposes
 
-The bridge uses existing Gateway session route metadata to expose channel-backed conversations. A conversation appears when OpenClaw already has session state with a known route such as:
+The bridge uses existing Gateway session route metadata to expose channel-backed conversations. A conversation appears when Vasudev already has session state with a known route such as:
 
 - `channel`
 - recipient or destination metadata
@@ -193,7 +193,7 @@ Current event types:
 
 ### Claude channel notifications
 
-The bridge can also expose Claude-specific channel notifications. This is the OpenClaw equivalent of a Claude Code channel adapter: standard MCP tools remain available, but live inbound messages can also arrive as Claude-specific MCP notifications.
+The bridge can also expose Claude-specific channel notifications. This is the Vasudev equivalent of a Claude Code channel adapter: standard MCP tools remain available, but live inbound messages can also arrive as Claude-specific MCP notifications.
 
 <Tabs>
   <Tab title="off">
@@ -281,7 +281,7 @@ The bridge does not invent routing. It only exposes conversations that Gateway a
 
 That means:
 
-- sender allowlists, pairing, and channel-level trust still belong to the underlying OpenClaw channel configuration
+- sender allowlists, pairing, and channel-level trust still belong to the underlying Vasudev channel configuration
 - `messages_send` can only reply through an existing stored route
 - approval state is live/in-memory only for the current bridge session
 - bridge auth should use the same Gateway token or password controls you would trust for any other remote Gateway client
@@ -290,7 +290,7 @@ If a conversation is missing from `conversations_list`, the usual cause is not M
 
 ### Testing
 
-OpenClaw ships a deterministic Docker smoke for this bridge:
+Vasudev ships a deterministic Docker smoke for this bridge:
 
 ```bash
 pnpm test:docker:mcp-channels

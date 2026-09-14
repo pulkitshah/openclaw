@@ -10,7 +10,7 @@ read_when:
 
 ## Environment variables
 
-OpenClaw reads env vars from the parent process plus:
+Vasudev reads env vars from the parent process plus:
 
 - `.env` from the current working directory (if present)
 - `~/.openclaw/.env` (global fallback)
@@ -29,7 +29,7 @@ Neither file overrides existing env vars. You can also set inline env vars in co
 ```
 
 <Accordion title="Shell env import (optional)">
-  If enabled and expected keys aren't set, OpenClaw runs your login shell and imports only the missing keys:
+  If enabled and expected keys aren't set, Vasudev runs your login shell and imports only the missing keys:
 
 ```json5
 {

@@ -32,15 +32,15 @@ The request's provider, endpoint, and authentication determine where it runs.
 ### Direct Anthropic API-key requests
 
 For provider `anthropic` with the `anthropic-messages` API, API-key authentication,
-and the default endpoint or `api.anthropic.com`, OpenClaw delegates pruning to
+and the default endpoint or `api.anthropic.com`, Vasudev delegates pruning to
 Anthropic's [server-side tool-result clearing](https://platform.claude.com/docs/en/build-with-claude/context-editing).
-OpenClaw opens no new client-side pruning rounds, and the server clears old
+Vasudev opens no new client-side pruning rounds, and the server clears old
 results before the model sees them. Projections made earlier in the same session
 (for example on a proxy route, or restored from the transcript marker) still
 replay unchanged. Full local history is retained. `ttl` does
 not gate this path.
 
-OpenClaw derives the request parameters without adding config options:
+Vasudev derives the request parameters without adding config options:
 
 | Parameter           | Value                                                                                               |
 | ------------------- | --------------------------------------------------------------------------------------------------- |
@@ -58,7 +58,7 @@ settings do not change the server's clearing policy.
 
 Clearing invalidates the prompt cache from the first cleared result;
 `clear_at_least` prevents a clearing event that would remove too few tokens to
-justify the new cache write. When clearing occurs, OpenClaw logs this info line:
+justify the new cache write. When clearing occurs, Vasudev logs this info line:
 
 ```text
 [anthropic] server-side context edit: cleared N tool results (M input tokens)
@@ -94,7 +94,7 @@ Only `toolResult` messages are eligible; normal conversation text is left alone.
 
 ## Legacy image cleanup
 
-OpenClaw also builds a separate idempotent replay view for sessions that persist raw image blocks or prompt-hydration media markers in history.
+Vasudev also builds a separate idempotent replay view for sessions that persist raw image blocks or prompt-hydration media markers in history.
 
 - It preserves the **3 most recent completed turns** byte-for-byte so prompt cache prefixes for recent follow-ups stay stable. This count includes all completed turns, not just image-bearing ones, so text-only turns consume the window too.
 - The window advances only when a new user turn begins, never within a tool loop.
@@ -112,7 +112,7 @@ The bundled Anthropic plugin auto-configures pruning and heartbeat cadence the f
 | OAuth/token (including Claude CLI reuse) | `cache-ttl`           | `1h`                 | `1h`              |
 | API key                                  | `cache-ttl`           | `1h`                 | `30m`             |
 
-If you set `agents.defaults.contextPruning.mode` or `agents.defaults.heartbeat.every` yourself, OpenClaw does not override them. This auto-default only fires for Anthropic-family auth; other providers get pruning `off` unless you configure it.
+If you set `agents.defaults.contextPruning.mode` or `agents.defaults.heartbeat.every` yourself, Vasudev does not override them. This auto-default only fires for Anthropic-family auth; other providers get pruning `off` unless you configure it.
 
 The seeded `ttl` applies to client-side pruning. Direct Anthropic API-key requests
 use the token thresholds above while retaining the same heartbeat defaults.

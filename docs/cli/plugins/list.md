@@ -32,7 +32,7 @@ openclaw plugins list --json
 `plugins list` reads the persisted local plugin registry first, with a manifest-only derived fallback when the registry is missing or invalid. It is useful for checking whether a plugin is installed, enabled, and visible to cold startup planning, but it is not a live runtime probe of an already-running Gateway process. After editing plugin code, run [`plugins reload <id>`](/cli/plugins/uninstall-and-update#reload) against the Gateway that serves the channel before expecting new `register(api)` code or hooks to run. The default hybrid reload mode also applies plugin config and discovery-path changes; the admin `plugins.refresh` RPC explicitly refreshes the inventory when passive reload is disabled.
 
 `plugins list --json` includes each plugin's `dependencyStatus` from `package.json`
-`dependencies` and `optionalDependencies`. OpenClaw checks whether those package
+`dependencies` and `optionalDependencies`. Vasudev checks whether those package
 names are present along the plugin's normal Node `node_modules` lookup path; it
 does not import plugin runtime code, run a package manager, or repair missing
 dependencies.
@@ -46,11 +46,11 @@ warning can list every discovered plugin, it prints a ready-to-paste
 `plugins.allow` snippet that already includes those ids. If a plugin loads
 without install/load-path provenance, inspect that plugin id, then either pin
 the trusted id in `plugins.allow` or reinstall the plugin from a trusted source
-so OpenClaw records install provenance.
+so Vasudev records install provenance.
 
 For bundled plugin work inside a packaged Docker image, bind-mount the plugin
 source directory over the matching packaged source path, such as
-`/app/extensions/synology-chat`. OpenClaw discovers that mounted source overlay
+`/app/extensions/synology-chat`. Vasudev discovers that mounted source overlay
 before `/app/dist/extensions/synology-chat`; a plain copied source directory
 remains inert, so normal packaged installs still use compiled dist.
 
@@ -63,7 +63,7 @@ For runtime hook debugging:
 
 ### Plugin index
 
-Plugin install metadata is machine-managed state, not user config. Installs and updates write it to the shared SQLite state database under the active OpenClaw state directory. The `config_machine_state` value keyed by `plugins.installedIndex` stores durable `installRecords` metadata, including records for broken or missing plugin manifests, plus a manifest-derived cold registry cache used by `openclaw plugins update`, uninstall, diagnostics, and the cold plugin registry.
+Plugin install metadata is machine-managed state, not user config. Installs and updates write it to the shared SQLite state database under the active Vasudev state directory. The `config_machine_state` value keyed by `plugins.installedIndex` stores durable `installRecords` metadata, including records for broken or missing plugin manifests, plus a manifest-derived cold registry cache used by `openclaw plugins update`, uninstall, diagnostics, and the cold plugin registry.
 
 An unreadable index is not invalid data. Permission, lock, and other read errors stop fallback, migration, and refresh with the original error. Restore database access, then rerun `openclaw plugins registry` to inspect the state before attempting repair. Do not delete the `plugins.installedIndex` row unless inspection succeeds and confirms invalid install records; a failed read alone does not justify deletion.
 

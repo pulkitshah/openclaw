@@ -17,7 +17,7 @@ Use [`defineToolPlugin`](/plugins/tool-plugins) for simple tool-only plugins
 with fixed tool names. Use `api.registerTool(...)` directly for mixed plugins
 or fully dynamic tool registration.
 
-When OpenClaw invokes a plugin tool with an `AbortSignal` inside a managed
+When Vasudev invokes a plugin tool with an `AbortSignal` inside a managed
 operation, cancellation callbacks retain the executing plugin's runtime context
 and the original cancellation reason. The tool can return a result before
 already-started SDK work finishes; that work remains owned until its cleanup

@@ -1,14 +1,14 @@
 ---
-summary: "Run OpenClaw in a Daytona cloud sandbox with SSH access and signed preview URLs"
+summary: "Run Vasudev in a Daytona cloud sandbox with SSH access and signed preview URLs"
 read_when:
-  - Running OpenClaw in a Daytona sandbox
-  - You want a cloud sandbox for OpenClaw without managing a VPS
+  - Running Vasudev in a Daytona sandbox
+  - You want a cloud sandbox for Vasudev without managing a VPS
 title: "Daytona"
 ---
 
-Run a persistent OpenClaw Gateway in a [Daytona](https://www.daytona.io) cloud
+Run a persistent Vasudev Gateway in a [Daytona](https://www.daytona.io) cloud
 sandbox: an isolated Linux environment with SSH access and built-in preview
-URLs, no VPS management required. OpenClaw comes pre-installed in the
+URLs, no VPS management required. Vasudev comes pre-installed in the
 `daytona-medium` snapshot, so setup starts immediately after SSH.
 
 Keep the Gateway on loopback and reach the dashboard through Daytona's signed
@@ -69,7 +69,7 @@ daytona ssh openclaw
 
 ## Run onboarding
 
-Inside the sandbox, configure OpenClaw in one command:
+Inside the sandbox, configure Vasudev in one command:
 
 ```bash
 openclaw onboard --non-interactive --accept-risk \
@@ -190,7 +190,7 @@ Unknown senders require pairing approval by default; see
 ### Telegram
 
 Create a bot with [@BotFather](https://t.me/botfather) (`/newbot`), copy the
-token, then configure OpenClaw from the sandbox SSH session:
+token, then configure Vasudev from the sandbox SSH session:
 
 ```bash
 export TELEGRAM_BOT_TOKEN="<bot-token>"
@@ -233,7 +233,7 @@ openclaw channels login --channel whatsapp
 
 On your phone: **Settings → Linked Devices → Link a Device**, then scan the QR
 code shown in the terminal. Restart the Gateway after linking, then message
-yourself on WhatsApp and OpenClaw replies in that chat.
+yourself on WhatsApp and Vasudev replies in that chat.
 
 No pairing approval is needed: with no allowlist configured, the linked
 account's own number is allowed by default. Pairing applies to unknown
@@ -313,10 +313,10 @@ If you changed the Gateway port, pass the same port to `daytona preview-url`.
 ## Notes
 
 - For programmatic sandbox provisioning, see the
-  [Daytona OpenClaw SDK guide](https://www.daytona.io/docs/en/guides/openclaw/openclaw-sdk-sandbox/)
+  [Daytona Vasudev SDK guide](https://www.daytona.io/docs/en/guides/openclaw/openclaw-sdk-sandbox/)
 
 ## Related
 
 - [Gateway remote access](/gateway/remote)
 - [Gateway security](/gateway/security)
-- [Updating OpenClaw](/install/updating)
+- [Updating Vasudev](/install/updating)

@@ -2,12 +2,12 @@
 summary: "Visual summary and technical evidence for the May 2026 performance, package-size, dependency, and shrinkwrap cleanup"
 read_when:
   - You are validating the May 2026 performance and package-size cleanup
-  - You need the numbers behind the OpenClaw performance and dependency blog post
+  - You need the numbers behind the Vasudev performance and dependency blog post
   - You need historical context before changing current policy at /gateway/security/dependency-locking
 title: "Release performance sweep"
 ---
 
-This page captures the evidence behind the May 2026 OpenClaw performance,
+This page captures the evidence behind the May 2026 Vasudev performance,
 package-size, dependency, and shrinkwrap cleanup. It is the technical companion
 to the public blog post.
 
@@ -58,7 +58,7 @@ and **3 unavailable CI runs**. Latest stable measured point: `v2026.5.28`.
   <Card title="Latest stable install" icon="hard-drive">
     **361.7MiB fresh install**
 
-    Cuts the nested OpenClaw dependency tree sharply from the `2026.5.22`
+    Cuts the nested Vasudev dependency tree sharply from the `2026.5.22`
     shrinkwrap-introduction peak, though a smaller 259.7MiB nested tree still
     remains in the local install audit.
 
@@ -235,20 +235,20 @@ targeted CLI or gateway regressions.
 Dependency samples use one stable release per month, plus the
 `2026.5.22` shrinkwrap-introduction event and the latest `2026.5.28` release.
 
-| Point              | Installed deps | Fresh install | OpenClaw package | Nested `openclaw/node_modules` | Root shrinkwrap | Canvas install behavior                   |
-| ------------------ | -------------: | ------------: | ---------------: | -----------------------------: | --------------- | ----------------------------------------- |
-| Jan `2026.1.30`    |            605 |       438.4MB |           45.8MB |                          2.4MB | no              | top-level wrapper + `darwin-arm64`        |
-| Feb `2026.2.26`    |            645 |       575.7MB |          110.1MB |                          3.5MB | no              | top-level wrapper + `darwin-arm64`        |
-| Mar `2026.3.31`    |            438 |       584.1MB |          234.8MB |                            0MB | no              | top-level wrapper + `darwin-arm64`        |
-| Apr `2026.4.29`    |            392 |       335.0MB |           97.4MB |                            0MB | no              | none installed                            |
-| `2026.5.22`        |            401 |     1,020.6MB |        1,020.4MB |                        911.8MB | yes             | nested: all 12 `@napi-rs/canvas` packages |
-| May `2026.5.26`    |            371 |       767.5MB |          767.4MB |                        656.4MB | yes             | nested: all 12 `@napi-rs/canvas` packages |
-| `2026.5.27`        |            371 |      767.1MiB |         766.9MiB |                       656.1MiB | yes             | nested: all 12 `@napi-rs/canvas` packages |
-| Latest `2026.5.28` |            300 |      361.7MiB |         361.6MiB |                       259.7MiB | yes             | none installed                            |
+| Point              | Installed deps | Fresh install | Vasudev package | Nested `openclaw/node_modules` | Root shrinkwrap | Canvas install behavior                   |
+| ------------------ | -------------: | ------------: | --------------: | -----------------------------: | --------------- | ----------------------------------------- |
+| Jan `2026.1.30`    |            605 |       438.4MB |          45.8MB |                          2.4MB | no              | top-level wrapper + `darwin-arm64`        |
+| Feb `2026.2.26`    |            645 |       575.7MB |         110.1MB |                          3.5MB | no              | top-level wrapper + `darwin-arm64`        |
+| Mar `2026.3.31`    |            438 |       584.1MB |         234.8MB |                            0MB | no              | top-level wrapper + `darwin-arm64`        |
+| Apr `2026.4.29`    |            392 |       335.0MB |          97.4MB |                            0MB | no              | none installed                            |
+| `2026.5.22`        |            401 |     1,020.6MB |       1,020.4MB |                        911.8MB | yes             | nested: all 12 `@napi-rs/canvas` packages |
+| May `2026.5.26`    |            371 |       767.5MB |         767.4MB |                        656.4MB | yes             | nested: all 12 `@napi-rs/canvas` packages |
+| `2026.5.27`        |            371 |      767.1MiB |        766.9MiB |                       656.1MiB | yes             | nested: all 12 `@napi-rs/canvas` packages |
+| Latest `2026.5.28` |            300 |      361.7MiB |        361.6MiB |                       259.7MiB | yes             | none installed                            |
 
 ### Shrinkwrap boundary
 
-`2026.5.20` shipped with no root shrinkwrap and no large nested OpenClaw
+`2026.5.20` shipped with no root shrinkwrap and no large nested Vasudev
 dependency tree. `2026.5.22` introduced root shrinkwrap and installed 911.8MB
 under nested `openclaw/node_modules`. `2026.5.28` keeps shrinkwrap and still
 installs 259.7MiB under nested `openclaw/node_modules`, but no longer installs
@@ -270,7 +270,7 @@ Published tarball inspection verifies the boundary:
 
 The important distinction: **shrinkwrap itself is not the problem**.
 `v2026.5.28` still ships root shrinkwrap. The problem was the package shape
-that made npm materialize a large nested OpenClaw dependency tree and all 12
+that made npm materialize a large nested Vasudev dependency tree and all 12
 `@napi-rs/canvas` platform packages. The nested tree is smaller in `v2026.5.28`,
 and the canvas platform fanout no longer lands in the local audit.
 

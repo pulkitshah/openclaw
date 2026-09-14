@@ -1,5 +1,5 @@
 ---
-summary: "OpenClaw diagnostics OpenTelemetry exporter for metrics, traces, and logs."
+summary: "Vasudev diagnostics OpenTelemetry exporter for metrics, traces, and logs."
 read_when:
   - You are installing, configuring, or auditing the diagnostics-otel plugin
 title: "Diagnostics OpenTelemetry plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-OpenClaw diagnostics OpenTelemetry exporter for metrics, traces, and logs.
+Vasudev diagnostics OpenTelemetry exporter for metrics, traces, and logs.
 
 ## Distribution
 

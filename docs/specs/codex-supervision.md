@@ -1,6 +1,6 @@
 ---
 title: Codex supervision
-summary: "Architecture and product boundary for supervising native Codex sessions from OpenClaw."
+summary: "Architecture and product boundary for supervising native Codex sessions from Vasudev."
 read_when:
   - Designing Codex session discovery, continuation, or archive behavior
   - Changing the native session catalog UI or Gateway RPCs
@@ -11,10 +11,10 @@ read_when:
 
 ## Goal
 
-Codex supervision lets an OpenClaw operator discover native Codex sessions,
+Codex supervision lets an Vasudev operator discover native Codex sessions,
 create a Gateway-local branch, or continue an eligible paired-node thread
-through the normal OpenClaw Chat surface.
-Codex App Server remains the thread and model-loop owner. OpenClaw supplies the
+through the normal Vasudev Chat surface.
+Codex App Server remains the thread and model-loop owner. Vasudev supplies the
 fleet catalog, authenticated operator UI, session binding, and channel delivery.
 
 The feature belongs to the official `codex` plugin. There is no separate
@@ -22,7 +22,7 @@ Supervisor plugin or second Codex protocol implementation.
 
 This spec uses these stage names:
 
-- **Gateway-local branch**: the new supervised Chat that OpenClaw creates from a
+- **Gateway-local branch**: the new supervised Chat that Vasudev creates from a
   stored or idle local Codex source instead of resuming that source thread.
 - **Pending harness branch**: that branch before its first turn, when the bounded
   history is projected but no canonical Codex thread exists yet.
@@ -34,8 +34,8 @@ This spec uses these stage names:
 - **Canonical appServer-source branch**: the native Codex thread the plugin
   creates with `threadSource: "appServer"` after pinning the source snapshot.
 - **Canonical full Codex harness thread**: that canonical thread once it runs
-  with OpenClaw's full harness tool surface; every later model turn runs on it.
-- **Supervised model-locked Chat**: an OpenClaw Chat bound to a supervised
+  with Vasudev's full harness tool surface; every later model turn runs on it.
+- **Supervised model-locked Chat**: an Vasudev Chat bound to a supervised
   thread under the Codex-only model and runtime lock.
 
 ## Product boundary
@@ -94,7 +94,7 @@ The `codex` plugin owns all Codex App Server behavior:
 - protocol initialization and version checks
 - thread list, read, resume, archive, and event handling
 - approval and user-input bridges
-- native thread bindings to OpenClaw sessions
+- native thread bindings to Vasudev sessions
 - Codex-only model and harness enforcement after continuation
 
 The Control UI and Gateway consume that plugin-owned service. They do not read
@@ -125,11 +125,11 @@ explicitly only when the ordinary harness should also share the native Codex
 home. A Gateway-local Chat adopted from the Codex sidebar group is the exception:
 its private supervision binding keeps source reads, canonical branch creation, and later
 turns on the supervision connection. Live status and ownership remain
-process-local; a thread unknown to OpenClaw's supervision process is `notLoaded`
+process-local; a thread unknown to Vasudev's supervision process is `notLoaded`
 even when Codex Desktop is actively running it.
 
 Catalog reads and pinned source leases explicitly select native authentication.
-They do not import or replace credentials in either OpenClaw's auth store or the
+They do not import or replace credentials in either Vasudev's auth store or the
 selected Codex home. This also applies to a primary catalog source configured
 with agent home scope: its physical home and connection fingerprint remain
 unchanged. Ordinary managed inference keeps its agent-auth preflight.
@@ -154,7 +154,7 @@ the versioned `codex.appServer.thread.turns.list.v1` command on the selected
 node. Every response contains at most 20 persisted turns plus opaque
 forward/backward cursors. The Control UI requests newest-first pages, renders each page in
 chronological order, and prepends older pages. It never falls back to an
-unbounded `thread/read`. OpenClaw also rejects any serialized item page above
+unbounded `thread/read`. Vasudev also rejects any serialized item page above
 20 MiB before it can cross the node or Gateway transport.
 
 The native macOS paired-node implementation supports only an unset/default or
@@ -206,10 +206,10 @@ appears when its own App Server listing settles; the aggregate response remains
 the compatibility and recovery snapshot. The visible page reconciles after
 connectivity changes, on focus, and at most every 30 seconds, with a faster pass
 after changes. Native Codex sessions created in another client are therefore
-eventually discovered without importing them into OpenClaw storage.
+eventually discovered without importing them into Vasudev storage.
 
 Catalog discovery is passive. Listing or reading metadata must not call
-`thread/resume`, subscribe the OpenClaw client to live thread requests, or
+`thread/resume`, subscribe the Vasudev client to live thread requests, or
 answer an approval.
 
 Search is title-only and case-insensitive. For each returned catalog page, the
@@ -338,7 +338,7 @@ source. The exact final generic body remains native configuration for compaction
 and native-child inheritance. Full hook replacement and explicit empty bodies
 retain their existing meaning; post-hook diagnostics remain part of that body.
 
-The notice supersedes only earlier OpenClaw generic policy. Independent managed,
+The notice supersedes only earlier Vasudev generic policy. Independent managed,
 guardian, security, collaboration, and native project instructions remain
 authoritative. Supersession is prose, not machine-enforced deletion. The append
 is session configuration history: a later rejected user turn does not roll it
@@ -383,10 +383,10 @@ ids. The plugin:
 1. Reuses the existing supervised Chat when the source already has one.
 2. Otherwise projects bounded user and assistant history through the source's
    last terminal persisted turn (completed, interrupted, or failed) into a new
-   OpenClaw Chat and records a pending harness branch.
+   Vasudev Chat and records a pending harness branch.
 3. Stores the pending Codex-only model-lock policy, not a concrete model or
    provider selection, plus the private supervision connection scope, and
-   returns the OpenClaw `sessionKey`.
+   returns the Vasudev `sessionKey`.
 
 The history projection selects the newest tail of visible user and assistant
 messages, with hard limits of 200 messages, 512 KiB of UTF-8 text in total, and
@@ -407,8 +407,8 @@ Codex approval, elicitation, event, and delivery handlers, then:
    confirms `thread/unsubscribe` on that exact probe and physical connection
    before creating the canonical thread. The probe is never persisted or archived.
 2. On that same connection, starts the canonical full Codex harness thread with
-   `threadSource: "appServer"`, OpenClaw's cwd, policy, config, environment, the
-   full OpenClaw harness tool surface, and exactly the model and provider
+   `threadSource: "appServer"`, Vasudev's cwd, policy, config, environment, the
+   full Vasudev harness tool surface, and exactly the model and provider
    returned by the fork for this initial start.
 3. Injects the bounded visible user and assistant history through that
    connection, commits the canonical binding without dropping its supervision
@@ -426,9 +426,9 @@ of falling back to the ordinary agent-home harness.
 This guarantees Codex-owned selection, not preservation of the source's
 historical model. The fork's returned pair is used for the canonical thread
 start, and Codex persists that thread's native model and provider. Later resumes
-omit OpenClaw model and provider overrides, so Codex restores the persisted pair.
-If a separate native Codex control changes the canonical thread, OpenClaw accepts
-that native persisted selection. The outer OpenClaw model and fallback chain
+omit Vasudev model and provider overrides, so Codex restores the persisted pair.
+If a separate native Codex control changes the canonical thread, Vasudev accepts
+that native persisted selection. The outer Vasudev model and fallback chain
 never substitute for it.
 
 Model changes, session deletion, and session reset/new operations fail closed
@@ -441,7 +441,7 @@ fork or archive the bound native thread. List and metadata-only read remain
 available; transcript fields require `supervision.allowRawTranscripts`, while
 rename, unarchive, detached fork, and archive of an unrelated thread require
 `supervision.allowWriteControls`. Neither option can replace the locked binding.
-Deleting or resetting the OpenClaw entry would otherwise discard the native
+Deleting or resetting the Vasudev entry would otherwise discard the native
 binding and create or permit a generic thread behind a Codex-looking session.
 Retention maintenance therefore preserves model-locked entries even when they
 exceed ordinary age, count, or disk-budget limits. Disabling or uninstalling the
@@ -451,11 +451,11 @@ converts it into an ordinary model session.
 
 The source is never resumed or mutated by this action. The temporary fork pins a
 snapshot; it is not the durable continuation thread. Starting a distinct
-canonical harness thread on the first turn prevents OpenClaw from becoming a
+canonical harness thread on the first turn prevents Vasudev from becoming a
 competing source writer merely because process-local status failed to see a
 Desktop-owned turn. The visible-history mirror and pinned snapshot may omit work
 that has not yet completed in an active source. The original CLI, VS Code,
-Atlas, or ChatGPT source remains eligible for both native and OpenClaw catalogs.
+Atlas, or ChatGPT source remains eligible for both native and Vasudev catalogs.
 The canonical branch remains a native Codex thread in the supervision store,
 but native clients may filter its `appServer` source kind, so Codex Desktop
 visibility is not a contract.
@@ -472,8 +472,8 @@ the non-archived catalog.
 An active or error status from the fresh read rejects archive. So does an
 initializing or pending supervised branch from the source: the first Chat turn
 must materialize its canonical branch before the source can be archived. A
-known active OpenClaw binding owner for the exact target or any non-archived
-spawned descendant also rejects archive. OpenClaw paginates Codex's experimental
+known active Vasudev binding owner for the exact target or any non-archived
+spawned descendant also rejects archive. Vasudev paginates Codex's experimental
 `thread/list ancestorThreadId` relation and fails closed on request or response
 errors, cursor or thread cycles, and safety-limit exhaustion. Native archive can
 shut down loaded parent and descendant work, so archive is not an interrupt
@@ -544,9 +544,9 @@ that exact native thread on the owning node, with the prompt on stdin, and
 return the final text using the node's native CLI configuration. They do not
 start the Gateway-local canonical branch or forward the full App Server
 approval, tool, and delta stream or structured attachments. Bound turns retain
-the owner/admin check and are blocked while OpenClaw sandboxing is active.
+the owner/admin check and are blocked while Vasudev sandboxing is active.
 
-The node runner rejects overlapping OpenClaw resume turns for the same thread
+The node runner rejects overlapping Vasudev resume turns for the same thread
 within its process; it does not provide a lease across native Codex clients.
 Operators must avoid concurrent use of that thread elsewhere. Nodes missing the
 required capabilities remain readable without Chat continuation. Paired-node
@@ -609,7 +609,7 @@ without a second runtime facade.
 - explicit runner and approval-owner leases for simultaneous client handoff
 - remote archive after a runner-ownership lease or equivalent fencing exists
 - interrupt and richer active-session observation
-- audited handoff between Codex Desktop, CLI, and OpenClaw
+- audited handoff between Codex Desktop, CLI, and Vasudev
 
 Archived browsing is not part of the planned supervision sidebar. Native Codex
 surfaces remain the recovery path for archived threads.
@@ -629,9 +629,9 @@ surfaces remain the recovery path for archived threads.
 - Pending and committed supervised bindings use the supervision connection for
   source access, canonical branch creation, and every later turn; ordinary
   Codex sessions remain agent-scoped.
-- Later resumes omit OpenClaw model/provider overrides, preserve Codex's
+- Later resumes omit Vasudev model/provider overrides, preserve Codex's
   canonical persisted selection, accept separate native changes to that thread,
-  and never substitute the outer OpenClaw model or fallback chain.
+  and never substitute the outer Vasudev model or fallback chain.
 - Disabling supervision or losing the binding/connection lifecycle fails closed
   instead of moving the Chat to the ordinary agent-home harness.
 - A supervised model-locked Chat cannot be deleted while it protects the native

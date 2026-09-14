@@ -1,5 +1,5 @@
 ---
-summary: "Contributor guide for adding a new shared capability to the OpenClaw plugin system"
+summary: "Contributor guide for adding a new shared capability to the Vasudev plugin system"
 read_when:
   - Adding a new core capability and plugin registration surface
   - Deciding whether code belongs in core, a vendor plugin, or a feature plugin
@@ -9,13 +9,13 @@ sidebarTitle: "Adding capabilities"
 ---
 
 <Info>
-  This is a **contributor guide** for OpenClaw core developers. If you are
+  This is a **contributor guide** for Vasudev core developers. If you are
   building an external plugin, see [Building plugins](/plugins/building-plugins)
   instead. For the deep architecture reference (capability model, ownership,
   load pipeline, runtime helpers), see [Plugin internals](/plugins/architecture).
 </Info>
 
-Use this when OpenClaw needs a new shared domain such as embeddings, image
+Use this when Vasudev needs a new shared domain such as embeddings, image
 generation, video generation, or some future vendor-backed feature area.
 
 The rule:

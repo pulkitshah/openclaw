@@ -21,13 +21,13 @@ review.
 
 Pick the gate that matches the decision point you need:
 
-| Gate                             | Use it when                                                              | What it controls                                                                                                  |
-| -------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| Optional tools                   | A tool should not be visible to the model until the user opts in.        | Tool exposure through `tools.allow`.                                                                              |
-| Plugin permission requests       | A plugin hook or plugin-owned operation must ask before one action runs. | Runtime approval through `plugin.approval.*`.                                                                     |
-| Exec approvals                   | A host command or shell-like tool needs operator approval.               | Host exec policy and durable exec allowlists.                                                                     |
-| Codex native permission requests | Codex asks before native shell, file, MCP, or app-server actions.        | Codex app-server or native hook approval handling, routed through plugin approvals when OpenClaw owns the prompt. |
-| MCP approval elicitations        | A Codex MCP server requests approval for a tool call.                    | MCP approval responses bridged through OpenClaw plugin approvals.                                                 |
+| Gate                             | Use it when                                                              | What it controls                                                                                                 |
+| -------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| Optional tools                   | A tool should not be visible to the model until the user opts in.        | Tool exposure through `tools.allow`.                                                                             |
+| Plugin permission requests       | A plugin hook or plugin-owned operation must ask before one action runs. | Runtime approval through `plugin.approval.*`.                                                                    |
+| Exec approvals                   | A host command or shell-like tool needs operator approval.               | Host exec policy and durable exec allowlists.                                                                    |
+| Codex native permission requests | Codex asks before native shell, file, MCP, or app-server actions.        | Codex app-server or native hook approval handling, routed through plugin approvals when Vasudev owns the prompt. |
+| MCP approval elicitations        | A Codex MCP server requests approval for a tool call.                    | MCP approval responses bridged through Vasudev plugin approvals.                                                 |
 
 Optional tools are a discovery-time gate. Plugin permission requests are a
 per-call gate. Use both when a sensitive tool should require explicit opt-in
@@ -36,7 +36,7 @@ before the model can see it and approval before the action runs.
 ## Request approval before a tool call
 
 Most plugin-authored prompts should start in a `before_tool_call` hook. The hook
-runs after the model selects a tool and before OpenClaw executes it:
+runs after the model selects a tool and before Vasudev executes it:
 
 ```typescript
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
@@ -144,12 +144,12 @@ Message audiences can be `internal` or `external`. External-post visibility can
 be `public` or `restricted`. Recipient previews contain at most five identities.
 All strings are sanitized and bounded before display: targets and recipient
 identities are limited to 128 characters, payment amounts to 40, and currencies
-to 12. If sanitization would exceed a bound, OpenClaw omits the scope while
+to 12. If sanitization would exceed a bound, Vasudev omits the scope while
 preserving the normal approval prompt.
 
 ## Decision behavior
 
-OpenClaw creates a pending approval with a `plugin:` ID, delivers it to the
+Vasudev creates a pending approval with a `plugin:` ID, delivers it to the
 available approval surfaces, and waits for a decision.
 
 | Decision          | Result                                                                    |
@@ -168,12 +168,12 @@ plugin compatibility but is deprecated and ignored. Do not set it in new hooks.
 
 `allow-always` is only durable when the requesting plugin or runtime implements
 that persistence. For ordinary `before_tool_call.requireApproval` hooks,
-OpenClaw treats `allow-once` and `allow-always` as approval decisions for the
+Vasudev treats `allow-once` and `allow-always` as approval decisions for the
 current call and passes the resolved value to `onResolution`. If your plugin
 offers `allow-always`, document and implement exactly what future calls it
 trusts.
 
-If the hook also returns `params`, OpenClaw snapshots the base parameters and
+If the hook also returns `params`, Vasudev snapshots the base parameters and
 those overrides when approval is requested, then applies the overrides only
 after approval succeeds. A lower-priority hook can still block, but cannot
 rewrite the parameters covered by the pending approval.
@@ -222,7 +222,7 @@ delivery, and channel-specific approver rules.
 Codex native permission prompts can also travel through plugin approvals, but
 they have different ownership than plugin-authored hooks.
 
-- Codex app-server approval requests route through OpenClaw after Codex review.
+- Codex app-server approval requests route through Vasudev after Codex review.
 - The native hook `permission_request` relay can ask through
   `plugin.approval.request` when that relay is enabled.
 - MCP tool approval elicitations route through plugin approvals when Codex marks

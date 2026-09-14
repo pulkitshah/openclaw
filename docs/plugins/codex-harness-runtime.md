@@ -4,7 +4,7 @@ title: "Codex harness runtime"
 read_when:
   - You need the Codex harness runtime support contract
   - You are debugging native Codex tools, hooks, compaction, or feedback upload
-  - You are changing plugin behavior across OpenClaw and Codex harness turns
+  - You are changing plugin behavior across Vasudev and Codex harness turns
 ---
 
 Runtime contract for Codex harness turns. For setup and routing, see
@@ -14,8 +14,8 @@ Runtime contract for Codex harness turns. For setup and routing, see
 ## Overview
 
 Codex owns the native model loop, native thread resume, native tool
-continuation, and native compaction. OpenClaw owns channel routing, session
-files, visible message delivery, OpenClaw dynamic tools, approvals, media
+continuation, and native compaction. Vasudev owns channel routing, session
+files, visible message delivery, Vasudev dynamic tools, approvals, media
 delivery, and a transcript mirror around that boundary.
 
 Successful `/btw` side questions report aggregate usage to reply usage hooks and,
@@ -25,7 +25,7 @@ loop; replayed response IDs are counted once. The visible reply still contains
 only the last answer, and the main session's usage and context snapshot stay unchanged.
 
 For native connected apps, Codex also owns the final per-thread app and tool
-policy. OpenClaw caches a runtime-and-workspace-scoped `plugin/installed`
+policy. Vasudev caches a runtime-and-workspace-scoped `plugin/installed`
 snapshot, reads exact configured plugin details, provisionally admits only
 explicitly allowed, ownership-proven apps, and creates a deny-by-default
 native thread. One `app/installed` request verifies the actual thread ID
@@ -33,34 +33,34 @@ without forcing an inventory refresh. Missing, disabled, or non-callable apps
 produce one warning; the conversation continues with the remaining tools.
 Codex still enforces app and tool permissions for the actual thread.
 
-This check finishes before OpenClaw injects history, starts a turn, or commits a
+This check finishes before Vasudev injects history, starts a turn, or commits a
 thread binding. If the snapshot request fails, persistent provisional threads
-are deleted and ephemeral threads are unsubscribed. OpenClaw retires the app-server connection when safe
+are deleted and ephemeral threads are unsubscribed. Vasudev retires the app-server connection when safe
 cleanup cannot be confirmed. Supervised branches also clean up their temporary
 probe and preserve recovery state if cleanup fails.
 
 Account-wide app access cannot override an explicitly disabled configured
-workspace plugin. OpenClaw uses its installed snapshot and reads only that
+workspace plugin. Vasudev uses its installed snapshot and reads only that
 exact plugin's details to identify and deny its apps; it never scans unrelated
 marketplaces or activates the plugin.
 
 Prompt routing follows the selected runtime, not just the provider string. A
 native Codex turn gets Codex app-server developer instructions; an explicit
-OpenClaw compatibility route keeps the normal OpenClaw system prompt even when
+Vasudev compatibility route keeps the normal Vasudev system prompt even when
 it uses Codex-flavored OpenAI auth or transport.
 
-OpenClaw starts and resumes native Codex threads with Codex's built-in
+Vasudev starts and resumes native Codex threads with Codex's built-in
 personality disabled (`personality: "none"`) so workspace personality files
-and OpenClaw agent identity stay authoritative. Native Codex keeps Codex-owned
+and Vasudev agent identity stay authoritative. Native Codex keeps Codex-owned
 base/model instructions and project-doc loading otherwise. An ordinary
-policy-restricted turn has no native filesystem environment, so OpenClaw carries
+policy-restricted turn has no native filesystem environment, so Vasudev carries
 the bounded workspace `AGENTS.md` snapshot as thread-level developer
 instructions instead. Lightweight, ring-zero, message-only, and tool-disabled
 internal turns suppress project-doc loading and that fallback carrier.
 
-OpenClaw developer instructions cover OpenClaw runtime concerns: source-channel
-delivery, OpenClaw dynamic tools, ACP delegation, adapter context, and the
-active agent workspace profile files. With the OpenClaw-managed bundled stdio
+Vasudev developer instructions cover Vasudev runtime concerns: source-channel
+delivery, Vasudev dynamic tools, ACP delegation, adapter context, and the
+active agent workspace profile files. With the Vasudev-managed bundled stdio
 app-server using standard OpenAI endpoints, skill catalogs, persona files, and tool-routed `MEMORY.md` guidance
 are appended to the parent model request instructions by a private inference
 relay. Native base and catalog instructions remain unchanged; this new context
@@ -77,7 +77,7 @@ Custom commands, Desktop attachments, external Unix/WebSocket app-server
 connections, non-OpenAI native providers, custom upstream endpoints, unsupported
 native accounts, locked upstreams, and native `features.respect_system_proxy` profiles retain their existing
 collaboration carrier. Managed relay requests use the Gateway's HTTP(S) proxy
-and TLS configuration instead of changing native networking settings. OpenClaw reports that
+and TLS configuration instead of changing native networking settings. Vasudev reports that
 the parent-local workaround is unavailable there rather than replacing another
 application's live configuration. Existing history, including any older embedded
 persona or explicitly shared task text, is preserved; this is not a retroactive
@@ -97,28 +97,28 @@ arrive in a later turn. Native `wait_agent` remains for an intentional same-turn
 wait when the immediate next step is blocked on the child; completion polling
 loops are not a substitute.
 
-Most OpenClaw dynamic tools use the searchable `openclaw` namespace. Tools
+Most Vasudev dynamic tools use the searchable `openclaw` namespace. Tools
 marked `catalogMode: "direct-only"` use `openclaw_direct`, which Codex keeps
 directly model-visible as `DirectModelOnly` instead of exposing it to nested
 Code Mode execution.
 
 Tool-schema repairs preserve literal property and definition names, including
 `__proto__`. The schema advertised to Codex and the schema used to validate
-OpenClaw tool calls retain the same required fields and constraints.
+Vasudev tool calls retain the same required fields and constraints.
 
-For a [managed GitHub identity](/gateway/config-tools#tools.github), `gateway_exec` uses OpenClaw's private local process-launch credential binding. Native Codex shell instead receives only the non-secret `GH_CONFIG_DIR` and token-clearing overlay; a missing or tokenless profile can still let GitHub CLI fall back to the OS keyring. Status and Gateway-owned publication guarantees do not cover that native shell path. Use `gateway_exec` when launch-bound managed GitHub credentials are required.
+For a [managed GitHub identity](/gateway/config-tools#tools.github), `gateway_exec` uses Vasudev's private local process-launch credential binding. Native Codex shell instead receives only the non-secret `GH_CONFIG_DIR` and token-clearing overlay; a missing or tokenless profile can still let GitHub CLI fall back to the OS keyring. Status and Gateway-owned publication guarantees do not cover that native shell path. Use `gateway_exec` when launch-bound managed GitHub credentials are required.
 
 ## Media and delivery
 
-OpenClaw continues to own media delivery and media provider selection. Image,
+Vasudev continues to own media delivery and media provider selection. Image,
 video, music, PDF, TTS, and media understanding use matching provider/model
 settings such as `agents.defaults.mediaModels.image`,
 `agents.defaults.mediaModels.video`, `pdfModel`, and `tts`.
 
 Text, images, video, music, TTS, approvals, and messaging-tool output continue
-through the normal OpenClaw delivery path; media generation does not require
+through the normal Vasudev delivery path; media generation does not require
 the legacy runtime. When Codex emits a native image-generation item with a
-`savedPath`, OpenClaw forwards that exact file through the normal reply-media
+`savedPath`, Vasudev forwards that exact file through the normal reply-media
 path even if the Codex turn has no assistant text.
 
 ## Where each section moved
@@ -134,7 +134,7 @@ nine child pages below. The anchors from the single-page version still resolve h
 
 ### Codex thread bindings and supervision
 
-[Codex thread bindings and supervision](/plugins/codex-harness-runtime/threads) — How OpenClaw binds native Codex threads, changes models, and continues supervised sessions.
+[Codex thread bindings and supervision](/plugins/codex-harness-runtime/threads) — How Vasudev binds native Codex threads, changes models, and continues supervised sessions.
 
 - <a id="thread-bindings-and-model-changes"></a>[Thread bindings and model changes](/plugins/codex-harness-runtime/threads#thread-bindings-and-model-changes)
 - <a id="supervision-and-safe-continuation"></a>[Supervision and safe continuation](/plugins/codex-harness-runtime/threads#supervision-and-safe-continuation)
@@ -179,7 +179,7 @@ nine child pages below. The anchors from the single-page version still resolve h
 
 ### Codex compaction and transcript mirror
 
-[Codex compaction and transcript mirror](/plugins/codex-harness-runtime/compaction) — Native Codex compaction, the OpenClaw transcript mirror, and continuity projection.
+[Codex compaction and transcript mirror](/plugins/codex-harness-runtime/compaction) — Native Codex compaction, the Vasudev transcript mirror, and continuity projection.
 
 - <a id="compaction-and-transcript-mirror"></a>[Compaction and transcript mirror](/plugins/codex-harness-runtime/compaction#compaction-and-transcript-mirror)
 

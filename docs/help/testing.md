@@ -1,5 +1,5 @@
 ---
-summary: "Index of the OpenClaw testing kit, one page per reader job"
+summary: "Index of the Vasudev testing kit, one page per reader job"
 read_when:
   - Running tests locally or in CI
   - Adding regressions for model/provider bugs
@@ -7,7 +7,7 @@ read_when:
 title: "Testing"
 ---
 
-OpenClaw has three Vitest suites (unit/integration, e2e, live) plus Docker
+Vasudev has three Vitest suites (unit/integration, e2e, live) plus Docker
 runners. This page covers what each suite covers, which command to run for a
 given workflow, how live tests discover credentials, and how to add
 regressions for real-world provider/model bugs.
@@ -77,4 +77,4 @@ resolves. Each entry points at the page that now holds the content.
 - [Testing live](/help/testing-live)
 - [Testing updates and plugins](/help/testing-updates-plugins)
 - [CI](/ci)
-- [OpenClaw agent runtime workflow](/openclaw-agent-runtime) - the build, test, and live-validation loop for agent runtime code in `src/agents/`
+- [Vasudev agent runtime workflow](/openclaw-agent-runtime) - the build, test, and live-validation loop for agent runtime code in `src/agents/`

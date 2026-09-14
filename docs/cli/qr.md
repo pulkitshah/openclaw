@@ -22,7 +22,7 @@ openclaw qr --voice-node
 openclaw qr --url wss://gateway.example/ws
 ```
 
-Official OpenClaw iOS and Android apps connect automatically when their
+Official Vasudev iOS and Android apps connect automatically when their
 setup-code metadata matches. If a request remains pending (for example, for a
 non-official client or mismatched metadata), review and approve it:
 
@@ -57,7 +57,7 @@ Use `--limited` to keep the same node token while omitting `operator.admin` from
 
 Use `--voice-node` for an embedded or room voice client. It keeps the node token and hands off a separate operator token limited to `operator.read` and `operator.talk`; it cannot send messages, mutate configuration, or invoke general write-scoped Gateway methods.
 
-Plaintext LAN `ws://` setup remains available, but OpenClaw automatically uses
+Plaintext LAN `ws://` setup remains available, but Vasudev automatically uses
 the limited profile because a network observer could capture and race the bearer
 bootstrap token. Configure `wss://` or Tailscale Serve, then generate a new code
 to get full access.
@@ -66,7 +66,7 @@ to get full access.
 
 Mobile pairing fails closed for Tailscale/public `ws://` gateway URLs: use Tailscale Serve/Funnel or a `wss://` gateway URL for those. Private LAN addresses and `.local` Bonjour hosts remain supported over plain `ws://`, with limited operator access as described above.
 
-The QR command advertises Tailscale URLs only when OpenClaw owns the route through `gateway.tailscale.mode=serve|funnel`. Legacy external Serve routes that target the ordinary Gateway listener are not advertised because that listener rejects Tailscale-shaped proxy ingress.
+The QR command advertises Tailscale URLs only when Vasudev owns the route through `gateway.tailscale.mode=serve|funnel`. Legacy external Serve routes that target the ordinary Gateway listener are not advertised because that listener rejects Tailscale-shaped proxy ingress.
 
 If an older setup used `gateway.bind=lan` with a persistent default HTTPS Serve
 route, run `openclaw doctor` to inspect it. Doctor does not migrate or clear the

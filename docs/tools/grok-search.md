@@ -6,7 +6,7 @@ read_when:
 title: "Grok search"
 ---
 
-OpenClaw supports Grok as a `web_search` provider, using xAI web-grounded
+Vasudev supports Grok as a `web_search` provider, using xAI web-grounded
 responses to produce AI-synthesized answers backed by live search results
 with citations.
 
@@ -14,7 +14,7 @@ Grok web search prefers an existing xAI OAuth sign-in when one is available.
 If no OAuth profile exists, the same xAI API key also powers the built-in
 `x_search` tool for X (formerly Twitter) post search and the `code_execution`
 tool. Storing the key at `plugins.entries.xai.config.webSearch.apiKey` also
-lets OpenClaw reuse it as a fallback for the bundled xAI model provider.
+lets Vasudev reuse it as a fallback for the bundled xAI model provider.
 
 For post-level X metrics (reposts, replies, bookmarks, views), use
 [`x_search`](/tools/web#x_search) with the exact post URL or status ID
@@ -23,10 +23,10 @@ instead of a broad search query.
 ## Onboarding and configure
 
 Choosing **Grok** during `openclaw onboard` or `openclaw configure --section
-web` lets OpenClaw reuse an existing xAI OAuth profile without prompting for
+web` lets Vasudev reuse an existing xAI OAuth profile without prompting for
 a separate web-search key. Without OAuth, it falls back to xAI API-key setup.
 
-OpenClaw then offers a follow-up step to enable `x_search` with the same xAI
+Vasudev then offers a follow-up step to enable `x_search` with the same xAI
 credential. That follow-up:
 
 - only appears after you choose Grok for `web_search`
@@ -37,7 +37,7 @@ Skip it to enable or change `x_search` later in config.
 
 ## Sign in or get an API key
 
-The `xai` plugin that provides Grok web search ships with OpenClaw, so there is
+The `xai` plugin that provides Grok web search ships with Vasudev, so there is
 no `openclaw plugins install` step. Start at the credential you already have.
 
 <Steps>
@@ -114,7 +114,7 @@ with `tools.web.search.timeoutSeconds`.
 ## Base URL overrides
 
 Set `plugins.entries.xai.config.webSearch.baseUrl` to route Grok web search
-through an operator proxy or xAI-compatible Responses endpoint. OpenClaw
+through an operator proxy or xAI-compatible Responses endpoint. Vasudev
 posts to `<baseUrl>/responses` after trimming trailing slashes. `x_search`
 falls back to the same `webSearch.baseUrl` unless
 `plugins.entries.xai.config.xSearch.baseUrl` is set.

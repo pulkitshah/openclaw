@@ -15,7 +15,7 @@ Saved, replayable automations the agent authors from your instructions.
 ## Distribution
 
 - Package: `@openclaw/duties`
-- Install route: included in OpenClaw
+- Install route: included in Vasudev
 
 ## Surface
 

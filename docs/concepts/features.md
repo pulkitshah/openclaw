@@ -1,7 +1,7 @@
 ---
-summary: "OpenClaw capabilities across channels, routing, media, and UX."
+summary: "Vasudev capabilities across channels, routing, media, and UX."
 read_when:
-  - You want a full list of what OpenClaw supports
+  - You want a full list of what Vasudev supports
 title: "Features"
 ---
 
@@ -38,7 +38,7 @@ title: "Features"
 - Official plugin channels: Discord, Feishu, Google Chat, iMessage, IRC, LINE, Matrix, Mattermost,
   Microsoft Teams, Nextcloud Talk, Nostr, QQ Bot, Raft, Signal, Slack, SMS, Synology Chat,
   Tlon, Twitch, Voice Call, WhatsApp, Zalo, and Zalo Personal
-- External plugin channels maintained outside the OpenClaw repo: WeChat, Yuanbao, and Zalo ClawBot
+- External plugin channels maintained outside the Vasudev repo: WeChat, Yuanbao, and Zalo ClawBot
 - Group chat support with mention-based activation
 - DM safety with allowlists and pairing
 
@@ -92,6 +92,6 @@ title: "Features"
     Connect Telegram, WhatsApp, Discord, Slack, and more from one Gateway.
   </Card>
   <Card title="Plugins" href="/tools/plugin" icon="plug">
-    Official and external plugins that extend OpenClaw.
+    Official and external plugins that extend Vasudev.
   </Card>
 </CardGroup>

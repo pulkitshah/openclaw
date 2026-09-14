@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/tokenjuice",
   "version": "2026.9.4",
-  "description": "OpenClaw tokenjuice exec output compaction plugin",
+  "description": "Vasudev tokenjuice exec output compaction plugin",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

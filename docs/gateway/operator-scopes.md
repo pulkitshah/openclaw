@@ -44,7 +44,7 @@ Personal GitHub connection management is a narrowly self-scoped exception to
 read-only behavior: `users.github.*` requires `operator.read` plus the exact
 authenticated durable profile. That person can connect, poll, cancel,
 reconnect, or disconnect only their own account. These methods do not expose
-team secrets, mutate shared configuration, or grant OpenClaw write/admin scopes. System
+team secrets, mutate shared configuration, or grant Vasudev write/admin scopes. System
 and per-agent GitHub changes remain `operator.admin`. Publication remains
 `operator.write` plus current session authorization. See
 [GitHub connections](/concepts/user-model#github-connections).
@@ -130,7 +130,7 @@ per agent or per session. Different guests using the same agent receive separate
 sandbox environments and workspaces. Multiple sessions created by the same guest
 reuse that guest's environment and workspace. This per-guest boundary applies
 regardless of the configured sandbox scope. If the agent configures
-`workspaceAccess: "rw"`, OpenClaw reduces access to `"ro"` for role-required
+`workspaceAccess: "rw"`, Vasudev reduces access to `"ro"` for role-required
 sessions and logs an `agent/sandbox` warning, preventing the shared agent
 workspace from becoming a writable bridge between guests. Maintainer sessions
 and other sessions without a role-required sandbox keep their configured scope
@@ -213,11 +213,11 @@ Connection authority is resolved in this order:
    device enrollment or upgrade requests. Device authorization then establishes
    the persistent scopes. A device-less session contributes no self-declared
    scopes.
-2. OpenClaw unions a matching server-side identity grant with those scopes.
-3. OpenClaw applies `x-openclaw-scopes` to the final union as the session cap.
+2. Vasudev unions a matching server-side identity grant with those scopes.
+3. Vasudev applies `x-openclaw-scopes` to the final union as the session cap.
    An absent header means no cap. A present-but-empty header yields no scopes.
 4. If the authenticated profile has an effective named operator role,
-   OpenClaw intersects the result with that role's configured scope ceiling.
+   Vasudev intersects the result with that role's configured scope ceiling.
 
 The result is used for both `hello.auth.scopes` and Gateway method
 authorization. Identity grants are session-only: they do not create or modify

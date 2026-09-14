@@ -45,7 +45,7 @@ the failed native probe:
   Keep the same `HOME`, `OPENCLAW_STATE_DIR`, and `OPENCLAW_CONFIG_PATH` selectors
   used by the service. See [Existing system LaunchDaemons](/gateway#existing-system-launchdaemons).
 
-OpenClaw does not manage custom system LaunchDaemons. Running Doctor as root
+Vasudev does not manage custom system LaunchDaemons. Running Doctor as root
 with another account's `HOME` does not add that capability and can create
 root-owned state files.
 

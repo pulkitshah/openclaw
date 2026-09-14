@@ -2,25 +2,25 @@
 summary: "Meta setup, authentication, and Muse Spark model selection"
 title: "Meta"
 read_when:
-  - You want to use Meta with OpenClaw
+  - You want to use Meta with Vasudev
   - You need the MODEL_API_KEY env var or CLI auth choice
 ---
 
 The **Meta API** uses the OpenAI-compatible **Responses API** (`POST /v1/responses`)
-for the Muse Spark reasoning models. OpenClaw provides Meta as an official external
+for the Muse Spark reasoning models. Vasudev provides Meta as an official external
 plugin.
 
-| Property                   | Value                              |
-| -------------------------- | ---------------------------------- |
-| Provider id                | `meta`                             |
-| Plugin                     | `@openclaw/meta-provider`          |
-| Auth env var               | `MODEL_API_KEY`                    |
-| Onboarding flag            | `--auth-choice meta-api-key`       |
-| Direct CLI flag            | `--meta-api-key <key>`             |
-| API                        | Responses API (`openai-responses`) |
-| Base URL                   | `https://api.meta.ai/v1`           |
-| Default model              | `meta/muse-spark-1.3`              |
-| OpenClaw reasoning default | `high` (`reasoning.effort`)        |
+| Property                  | Value                              |
+| ------------------------- | ---------------------------------- |
+| Provider id               | `meta`                             |
+| Plugin                    | `@openclaw/meta-provider`          |
+| Auth env var              | `MODEL_API_KEY`                    |
+| Onboarding flag           | `--auth-choice meta-api-key`       |
+| Direct CLI flag           | `--meta-api-key <key>`             |
+| API                       | Responses API (`openai-responses`) |
+| Base URL                  | `https://api.meta.ai/v1`           |
+| Default model             | `meta/muse-spark-1.3`              |
+| Vasudev reasoning default | `high` (`reasoning.effort`)        |
 
 ## Getting started
 
@@ -85,13 +85,13 @@ documentation.
 Meta's [model catalog](https://dev.meta.ai/docs/models) identifies Muse Spark 1.3
 as the latest version and recommends it for new work.
 
-| Model ref                         | Name                       | OpenClaw input | Reasoning | Context window | Input / cached input / output per 1M tokens |
-| --------------------------------- | -------------------------- | -------------- | --------- | -------------- | ------------------------------------------- |
-| `meta/muse-spark-1.3`             | Muse Spark 1.3             | text, image    | yes       | 1,048,576      | $1.25 / $0.15 / $4.25                       |
-| `meta/muse-spark-1.3-contributor` | Muse Spark 1.3 Contributor | text, image    | yes       | 1,048,576      | $0.10 / $0.002 / $0.20                      |
-| `meta/muse-spark-1.2`             | Muse Spark 1.2             | text, image    | yes       | 1,048,576      | $1.25 / $0.15 / $4.25                       |
-| `meta/muse-spark-1.2-contributor` | Muse Spark 1.2 Contributor | text, image    | yes       | 1,048,576      | $0.10 / $0.002 / $0.20                      |
-| `meta/muse-spark-1.1`             | Muse Spark 1.1             | text, image    | yes       | 1,048,576      | $1.25 / $0.15 / $4.25                       |
+| Model ref                         | Name                       | Vasudev input | Reasoning | Context window | Input / cached input / output per 1M tokens |
+| --------------------------------- | -------------------------- | ------------- | --------- | -------------- | ------------------------------------------- |
+| `meta/muse-spark-1.3`             | Muse Spark 1.3             | text, image   | yes       | 1,048,576      | $1.25 / $0.15 / $4.25                       |
+| `meta/muse-spark-1.3-contributor` | Muse Spark 1.3 Contributor | text, image   | yes       | 1,048,576      | $0.10 / $0.002 / $0.20                      |
+| `meta/muse-spark-1.2`             | Muse Spark 1.2             | text, image   | yes       | 1,048,576      | $1.25 / $0.15 / $4.25                       |
+| `meta/muse-spark-1.2-contributor` | Muse Spark 1.2 Contributor | text, image   | yes       | 1,048,576      | $0.10 / $0.002 / $0.20                      |
+| `meta/muse-spark-1.1`             | Muse Spark 1.1             | text, image   | yes       | 1,048,576      | $1.25 / $0.15 / $4.25                       |
 
 <Warning>
 Meta's [pricing documentation](https://dev.meta.ai/docs/pricing-rate-limits/) and
@@ -114,23 +114,23 @@ Standard Services.
 
 Capabilities:
 
-- Text and image input through OpenClaw
+- Text and image input through Vasudev
 - Tool calling and streaming
-- Reasoning effort: `minimal`, `low`, `medium`, `high`, `xhigh` (OpenClaw default: `high`)
+- Reasoning effort: `minimal`, `low`, `medium`, `high`, `xhigh` (Vasudev default: `high`)
 - Stateless encrypted reasoning replay (`store: false`, `include: ["reasoning.encrypted_content"]`)
 
 Meta's [model catalog](https://dev.meta.ai/docs/models) lists text, image, video,
-audio, and PDF input for these models. OpenClaw's model catalog directly represents
+audio, and PDF input for these models. Vasudev's model catalog directly represents
 text and image input only; the other upstream modalities are not model-manifest input
 values.
 
-OpenClaw explicitly selects `high` when no thinking level is configured. This is an
-OpenClaw default, not Meta's omitted-parameter behavior: Meta's
+Vasudev explicitly selects `high` when no thinking level is configured. This is an
+Vasudev default, not Meta's omitted-parameter behavior: Meta's
 [reasoning documentation](https://dev.meta.ai/docs/reasoning/) says that when
 `reasoning.effort` is omitted, the model reasons at a model-determined level.
 
 <Warning>
-Muse Spark does not accept `reasoning.effort: "none"`. OpenClaw maps
+Muse Spark does not accept `reasoning.effort: "none"`. Vasudev maps
 `--thinking off` to `minimal` for this provider.
 </Warning>
 

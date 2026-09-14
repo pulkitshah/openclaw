@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/linux-node",
   "version": "2026.9.4",
-  "description": "OpenClaw Linux node device capabilities",
+  "description": "Vasudev Linux node device capabilities",
   "type": "module",
   "dependencies": {
     "zod": "4.5.4"

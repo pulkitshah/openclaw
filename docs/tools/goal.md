@@ -2,7 +2,7 @@
 doc-schema-version: 1
 summary: "Session goals: durable per-session objectives, /goal controls, model goal tools, token budgets, and TUI status"
 read_when:
-  - You want OpenClaw to keep one objective visible across a long session
+  - You want Vasudev to keep one objective visible across a long session
   - You need to pause, resume, block, complete, or clear a session goal
   - You want to understand the get_goal, create_goal, and update_goal tools
   - You want to use the Goal composer in the Control UI or see goals in the TUI
@@ -11,7 +11,7 @@ title: "Goal"
 
 <a id="goal" />
 
-A **goal** is one durable objective attached to the current OpenClaw session.
+A **goal** is one durable objective attached to the current Vasudev session.
 It gives the agent and the operator a shared target for long-running work,
 without turning that target into a background task, reminder, cron job, or
 standing order.
@@ -37,7 +37,7 @@ a separate sandbox policy session.
 ```
 
 `start` is optional: `/goal get CI green for PR 87469` also creates a goal,
-OpenClaw treats any text after `/goal` that is not a known action word as a
+Vasudev treats any text after `/goal` that is not a known action word as a
 new objective.
 
 Explicit actions such as `start` and `edit` preserve line breaks, indentation,
@@ -119,7 +119,7 @@ start fresh session context.
 Goals can have an optional positive token budget, set through the
 `create_goal` tool's `token_budget` parameter. The budget is measured from the
 session's fresh token count at goal-creation time. If the session only has a
-stale or unknown token snapshot when the goal starts, OpenClaw waits for the
+stale or unknown token snapshot when the goal starts, Vasudev waits for the
 next fresh snapshot and uses that as the baseline, so tokens spent before the
 goal existed are not charged to it.
 
@@ -134,11 +134,11 @@ count.
 
 Token budgets are a session-goal guardrail, not a billing cap. Provider
 quota, cost reporting, and context-window behavior still use the normal
-OpenClaw usage and model controls.
+Vasudev usage and model controls.
 
 ## Model tools
 
-OpenClaw exposes three goal tools to agent harnesses:
+Vasudev exposes three goal tools to agent harnesses:
 
 | Tool          | Purpose                                                                                                                  |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------ |
@@ -169,7 +169,7 @@ Every user/chat turn with an active goal includes this user-role context line:
 Active goal: <objective> — advance; keep active until fully achieved; block only after the same blocker on 3 consecutive turns; after update_goal, provide the requested visible final.
 ```
 
-OpenClaw keeps the line compact by truncating long objectives. Paused,
+Vasudev keeps the line compact by truncating long objectives. Paused,
 blocked, budget-limited, usage-limited, and complete goals are not injected,
 so an operator stop remains in effect until the goal is resumed.
 
@@ -260,7 +260,7 @@ note, token budget, and available commands.
 
 ## Channel behavior
 
-`/goal` works in command-capable OpenClaw sessions, including the TUI and
+`/goal` works in command-capable Vasudev sessions, including the TUI and
 chat surfaces that permit text commands. Goal state attaches to the
 session key, not the transport, so two surfaces sharing a session key see the
 same goal.
@@ -277,7 +277,7 @@ channel, change queue behavior, approve tools, or schedule work.
 | `Goal error: goal is already complete` | The goal is terminal. Clear it before starting or resuming another objective.                                                                |
 
 If token usage shows `0` or looks stale, the active session may not have a
-fresh token snapshot yet. Usage refreshes as OpenClaw records session usage
+fresh token snapshot yet. Usage refreshes as Vasudev records session usage
 and transcript-derived totals.
 
 ## Related

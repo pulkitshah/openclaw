@@ -44,7 +44,7 @@ does not establish that model runtime publication completed.
 
 Use when a gateway service unexpectedly stops after an update, or logs show one `openclaw` binary is older than the version that last wrote `openclaw.json`.
 
-OpenClaw stamps config writes with `meta.lastTouchedVersion`. Read-only commands can inspect a config written by a newer OpenClaw, but process and service mutations refuse to run from an older binary. Blocked actions: gateway service start/stop/restart/uninstall, forced service reinstall, service-mode gateway startup, and `gateway --force` port cleanup.
+Vasudev stamps config writes with `meta.lastTouchedVersion`. Read-only commands can inspect a config written by a newer Vasudev, but process and service mutations refuse to run from an older binary. Blocked actions: gateway service start/stop/restart/uninstall, forced service reinstall, service-mode gateway startup, and `gateway --force` port cleanup.
 
 ```bash
 which openclaw
@@ -94,12 +94,12 @@ Look for:
 
 - `protocol mismatch ... client=... v<version> min=<n> max=<n> expected=<n>` in Gateway logs.
 - `Established clients:` in `openclaw gateway status --deep` or `Gateway clients` in `openclaw doctor --deep`: active TCP clients connected to the Gateway port, with PIDs and command lines when the OS allows it.
-- A client process whose command line points at the newer OpenClaw install or wrapper you rolled back from.
+- A client process whose command line points at the newer Vasudev install or wrapper you rolled back from.
 
 Fix:
 
-1. Stop or restart the stale OpenClaw client process shown by `gateway status --deep`.
-2. Restart apps or wrappers that embed OpenClaw: local dashboards, editors, app-server helpers, or long-running `openclaw logs --follow` shells.
+1. Stop or restart the stale Vasudev client process shown by `gateway status --deep`.
+2. Restart apps or wrappers that embed Vasudev: local dashboards, editors, app-server helpers, or long-running `openclaw logs --follow` shells.
 3. Re-run `openclaw gateway status --deep` or `openclaw doctor --deep` and confirm the stale client PID is gone.
 
 Do not make an older Gateway accept a newer incompatible protocol. Protocol bumps protect the wire contract; rollback recovery is a process/version cleanup problem.

@@ -1,5 +1,5 @@
 ---
-summary: "Route channel accounts and conversations to the right OpenClaw agent"
+summary: "Route channel accounts and conversations to the right Vasudev agent"
 title: "Agent bindings"
 read_when:
   - Routing channel accounts to different agents
@@ -7,7 +7,7 @@ read_when:
   - Deciding whether the default agent is sufficient
 ---
 
-When a message arrives on a channel, OpenClaw has to decide which agent answers it. By default that is easy: the agent marked `default: true` gets everything. An agent binding overrides that decision for a slice of your traffic — each binding names an `agentId` and matches channel facts such as the account, peer, guild, team, or Discord roles, and the matched agent owns the resulting session.
+When a message arrives on a channel, Vasudev has to decide which agent answers it. By default that is easy: the agent marked `default: true` gets everything. An agent binding overrides that decision for a slice of your traffic — each binding names an `agentId` and matches channel facts such as the account, peer, guild, team, or Discord roles, and the matched agent owns the resulting session.
 
 Bindings only pick the agent. They do not create channel accounts and they do not grant access — a binding is consulted only after the channel has already accepted the message through its normal pairing, allowlist, and account rules.
 

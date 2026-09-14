@@ -101,7 +101,7 @@ handle remains callable.
 the handle's `describe()` when the exact full schema is still needed. Client
 entries use `input: "unknown"` so their untrusted schemas stay deferred until
 `describe()`. `output` is
-present only for a complete compact hint derived from a trusted OpenClaw core
+present only for a complete compact hint derived from a trusted Vasudev core
 or plugin `outputSchema`. MCP and client output-schema claims are not promoted
 into this trusted catalog hint.
 

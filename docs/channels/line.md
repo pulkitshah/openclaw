@@ -1,13 +1,13 @@
 ---
 summary: "LINE Messaging API plugin setup, config, and usage"
 read_when:
-  - You want to connect OpenClaw to LINE
+  - You want to connect Vasudev to LINE
   - You need LINE webhook + credential setup
   - You want LINE-specific message options
 title: LINE
 ---
 
-LINE connects to OpenClaw via the LINE Messaging API. The plugin runs as a webhook
+LINE connects to Vasudev via the LINE Messaging API. The plugin runs as a webhook
 receiver on the Gateway and uses your channel access token + channel secret for
 authentication.
 
@@ -61,8 +61,8 @@ If you need a custom path, set `channels.line.webhookPath` or
 
 Security notes:
 
-- LINE signature verification is body-dependent (HMAC over the raw body), so OpenClaw applies a strict pre-auth body limit (64 KB) and read timeout before verification.
-- OpenClaw processes webhook events from the verified raw request bytes. Upstream middleware-transformed `req.body` values are ignored for signature-integrity safety.
+- LINE signature verification is body-dependent (HMAC over the raw body), so Vasudev applies a strict pre-auth body limit (64 KB) and read timeout before verification.
+- Vasudev processes webhook events from the verified raw request bytes. Upstream middleware-transformed `req.body` values are ignored for signature-integrity safety.
 
 ## Inbound durability
 
@@ -332,7 +332,7 @@ the agent writes is still honoured. Replies quote inline and stay visible in the
 conversation, so nothing is hidden by threading them.
 
 LINE quotes by a token it issues with each inbound message rather than by message
-id, and OpenClaw can only quote a message it kept that token for. Quoting
+id, and Vasudev can only quote a message it kept that token for. Quoting
 therefore has limits the setting cannot lift:
 
 - LINE issues a quote token only for text, image, video, and sticker messages.
@@ -340,10 +340,10 @@ therefore has limits the setting cannot lift:
 - LINE rejects a quote on a Flex card, on media, and on a location pin, so one
   reply quotes once, on the first message that can carry it. A reply made only of
   those is sent unquoted.
-- A reply can only quote a message OpenClaw received. LINE also returns a quote
+- A reply can only quote a message Vasudev received. LINE also returns a quote
   token for each message the bot itself sends, but those are not kept, so a reply
   that answers one of the bot's own earlier messages is sent unquoted.
-- Only a message OpenClaw handed to the agent as its own turn is remembered. In
+- Only a message Vasudev handed to the agent as its own turn is remembered. In
   a group with `requireMention` on, a skipped message still reaches the agent as
   a line of group history, but that line carries no id the reply can name, so it
   cannot be quoted.
@@ -353,7 +353,7 @@ therefore has limits the setting cannot lift:
   of its chats. A reply that answers a message from before the last restart, one
   a busier chat on the same account has since pushed out, or one sent by a
   separate process such as `openclaw message send`, is sent unquoted.
-- If LINE rejects a request carrying a quote token with HTTP 400, OpenClaw
+- If LINE rejects a request carrying a quote token with HTTP 400, Vasudev
   retries the same reply without the quote. Deleting or unsending the quoted
   message does not itself invalidate its token; LINE may instead show the quoted
   content as unavailable. See [LINE quote messages](https://developers.line.biz/en/docs/messaging-api/sending-messages/#send-quote-messages).
@@ -383,7 +383,7 @@ block-mode streaming controls shared across channels; see
 Each block LINE receives is a separate message, and LINE counts messages against
 the channel's monthly quota, so leaving this off keeps a long reply to the fewest
 messages. `coalesce.minChars` is the lever if you want blocks to arrive early but
-not one paragraph at a time — OpenClaw's own default is 800 characters.
+not one paragraph at a time — Vasudev's own default is 800 characters.
 
 LINE cannot edit a message it has already sent, so it has no preview streaming
 mode: there is no `streaming.mode` or `streaming.preview` here, and a reply is
@@ -503,7 +503,7 @@ The LINE plugin also ships a `/card` command for Flex message presets:
 /card info "Welcome" "Thanks for joining!"
 ```
 
-Card images and icons must use HTTPS. OpenClaw removes images with malformed or
+Card images and icons must use HTTPS. Vasudev removes images with malformed or
 non-HTTPS URLs and adds an "Image unavailable" note when it fits within LINE's
 30 KB bubble and 50 KB carousel limits. Video
 heroes keep their required alternative content: an unusable video or preview URL
@@ -533,7 +533,7 @@ suffix. Native suffix inference supports JPEG/PNG, MP4, and MP3/M4A. Suffixless 
 retain the image fallback. Other suffixed URLs and inferred MP4 without a preview
 become text links. Explicit video still requires `previewImageUrl`.
 
-Outbound media URLs must be public HTTPS URLs of at most 2000 characters. OpenClaw
+Outbound media URLs must be public HTTPS URLs of at most 2000 characters. Vasudev
 validates the target hostname before handing the URL to LINE and rejects loopback,
 link-local, and private-network targets.
 
@@ -545,8 +545,8 @@ link-local, and private-network targets.
   events while the channel's webhook URL is registered and **Use webhook** is on in
   the Messaging API tab of the LINE Developers Console, and the probe reports both —
   a channel whose webhook is off or unregistered is named with the setting to change.
-  OpenClaw does not set either for you: the URL has an API but depends on a public
-  address OpenClaw does not know, and the **Use webhook** switch has no API at all.
+  Vasudev does not set either for you: the URL has an API but depends on a public
+  address Vasudev does not know, and the **Use webhook** switch has no API at all.
   The webhook state comes from the probe, so
   `openclaw channels status` without `--probe` does not report it. If the probe
   reports the webhook as on, confirm the webhook path matches

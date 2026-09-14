@@ -15,7 +15,7 @@ Fetch, list, and write files on paired nodes via dedicated node commands. Bypass
 ## Distribution
 
 - Package: `@openclaw/file-transfer`
-- Install route: included in OpenClaw
+- Install route: included in Vasudev
 
 ## Surface
 
@@ -58,7 +58,7 @@ runs never guess; they list unresolved items and direct you back to the same
 interactive command.
 
 The migration writes the new format once after confirmation and reports whether
-the adjacent config backup was verified. Older OpenClaw versions cannot read
+the adjacent config backup was verified. Older Vasudev versions cannot read
 the migrated format. To downgrade, restore that reported `.bak` file before
 starting the older version; doing so also restores the older permission
 semantics.

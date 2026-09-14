@@ -10,7 +10,7 @@ title: "Audit history"
 
 # Audit history
 
-The Gateway keeps a bounded, metadata-only audit ledger in the shared OpenClaw
+The Gateway keeps a bounded, metadata-only audit ledger in the shared Vasudev
 state database. It answers operational questions such as "which agent ran,
 when, and how did it end", "which tool actions did a run execute", and, when
 message auditing is enabled, "did an accepted inbound message reach dispatch"
@@ -70,7 +70,7 @@ stops new contexts after restart; no environment-variable alias or silent
 migration enables the feature. Retained contexts remain inspectable until
 their 30-day expiry.
 
-After session work admission succeeds, OpenClaw validates and freezes
+After session work admission succeeds, Vasudev validates and freezes
 one bounded identity envelope, immediately offers it to the existing audit
 writer queue, and continues the run without waiting for writer readiness,
 SQLite, or persistence. The queue drain initializes schema and HMAC-key state,
@@ -101,7 +101,7 @@ execution with `audit.run.inspect` or
 [`openclaw audit --execution <id> --explain`](/cli/audit). Use `--run <id>
 --explain` to discover executions for a run correlation. One retained match
 resolves directly. Multiple matches return `ambiguous` with at most 50
-candidate execution ids and require exact selection; OpenClaw never chooses the
+candidate execution ids and require exact selection; Vasudev never chooses the
 first or latest execution silently. The result explicitly states the evidence
 state for these fields:
 
@@ -139,7 +139,7 @@ Plugin-owned node actions distinguish the Gateway gate from the action result.
 Pairing, live connection, command capability, plugin policy, and active
 authority checks are enforced. A node-reported success is attribution-only. If
 the plugin policy returns without calling the supplied node callback, the
-action is unknown with `node.action_callback` missing; OpenClaw does not infer a
+action is unknown with `node.action_callback` missing; Vasudev does not infer a
 send from the plugin result.
 
 An attached worker records its current credential, bundle/version/features,
@@ -159,7 +159,7 @@ in-process boundary verification, not an independent core query to Telegram,
 Discord, or another remote service. Collected messages retain a person only
 when every contribution proves the same participant. Mixed, missing, invalid,
 stale, replayed, or unminted evidence is unknown, and an adapter that explicitly
-lacks support is unsupported. OpenClaw never reconstructs a participant from
+lacks support is unsupported. Vasudev never reconstructs a participant from
 `SenderId`, `From`, session keys, or routing metadata. Plugins cannot publicly
 mint or upgrade participant evidence; fake, copied, changed, stale, reused, or
 lost host carriers remain unknown.

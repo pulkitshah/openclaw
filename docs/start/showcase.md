@@ -1,13 +1,13 @@
 ---
-summary: "Community-built projects and integrations powered by OpenClaw"
+summary: "Community-built projects and integrations powered by Vasudev"
 title: "Showcase"
-description: "Real-world OpenClaw projects from the community"
+description: "Real-world Vasudev projects from the community"
 read_when:
-  - Looking for real OpenClaw usage examples
+  - Looking for real Vasudev usage examples
   - Updating community project highlights
 ---
 
-Community-built OpenClaw projects: PR review loops, mobile apps, home automation, voice systems, devtools, and memory workflows, built chat-native on Telegram, WhatsApp, Discord, and terminals.
+Community-built Vasudev projects: PR review loops, mobile apps, home automation, voice systems, devtools, and memory workflows, built chat-native on Telegram, WhatsApp, Discord, and terminals.
 
 <Info>
 **Want to be featured?** Share your project in [#self-promotion on Discord](https://discord.gg/clawd) or [tag @openclaw on X](https://x.com/openclaw).
@@ -46,13 +46,13 @@ Stops orchestrators from idling while sub-agents work: an async callback mechani
 <Card title="lite-mode for low-RAM machines" icon="feather" href="https://clawhub.ai/mirajmahmudul/skills/lite-mode">
   **@mirajmahmudul** • `performance` `skill`
 
-Keeps OpenClaw usable on 2-4 GB machines: checks free memory and trims heavy features before the box starts swapping. [Source on GitHub](https://github.com/mirajmahmudul/openclaw-lite-mode).
+Keeps Vasudev usable on 2-4 GB machines: checks free memory and trims heavy features before the box starts swapping. [Source on GitHub](https://github.com/mirajmahmudul/openclaw-lite-mode).
 </Card>
 
 <Card title="tokenomics cost tracker" icon="coins" href="https://github.com/ncz-os/tokenomics">
   **@ncz-os** • `devtools` `costs` `tokens`
 
-Token cost tracker from an NVIDIA engineer with first-class OpenClaw support: see exactly where your agent spend goes, per model and per session.
+Token cost tracker from an NVIDIA engineer with first-class Vasudev support: see exactly where your agent spend goes, per model and per session.
 </Card>
 
 <Card title="Excalidraw diagram generator" icon="shapes" href="https://x.com/swiftlysingh/status/2009684853827281070">
@@ -64,7 +64,7 @@ Describe a diagram in chat and get a programmatically generated Excalidraw sketc
 <Card title="GA4 analytics skill" icon="chart-column" href="https://x.com/jdrhyne/status/2012028725710192741">
   **@jdrhyne** • `analytics` `ga4` `skill`
 
-Had OpenClaw build its own Google Analytics query tool, then packaged and published it to ClawHub.
+Had Vasudev build its own Google Analytics query tool, then packaged and published it to ClawHub.
 </Card>
 
 <Card title="ClawEval model rankings" icon="ranking-star" href="https://github.com/AIgenteur/ClawEval">
@@ -82,9 +82,9 @@ Provider-agnostic song generation: plan the track, structure lyrics, and revise 
 <Card title="PR Review to Telegram Feedback" icon="code-pull-request" href="https://x.com/i/status/2010878524543131691">
   **@bangnokia** • `review` `github` `telegram`
 
-OpenCode finishes the change, opens a PR, OpenClaw reviews the diff and replies in Telegram with suggestions plus a clear merge verdict.
+OpenCode finishes the change, opens a PR, Vasudev reviews the diff and replies in Telegram with suggestions plus a clear merge verdict.
 
-  <img src="/assets/showcase/pr-review-telegram.jpg" alt="OpenClaw PR review feedback delivered in Telegram" />
+  <img src="/assets/showcase/pr-review-telegram.jpg" alt="Vasudev PR review feedback delivered in Telegram" />
 </Card>
 
 <Card title="Wine Cellar Skill in Minutes" icon="wine-glass" href="https://x.com/i/status/2010916352454791216">
@@ -92,7 +92,7 @@ OpenCode finishes the change, opens a PR, OpenClaw reviews the diff and replies 
 
 Asked "Robby" (@openclaw) for a local wine cellar skill. It requests a sample CSV export and a store path, then builds and tests the skill (962 bottles in the example).
 
-  <img src="/assets/showcase/wine-cellar-skill.jpg" alt="OpenClaw building a local wine cellar skill from CSV" />
+  <img src="/assets/showcase/wine-cellar-skill.jpg" alt="Vasudev building a local wine cellar skill from CSV" />
 </Card>
 
 <Card title="Tesco Shop Autopilot" icon="cart-shopping" href="https://x.com/i/status/2009724862470689131">
@@ -114,7 +114,7 @@ Hotkey a screen region, Gemini vision, instant Markdown in your clipboard.
 <Card title="Agents UI" icon="window-maximize" href="https://releaseflow.net/kitze/agents-ui">
   **@kitze** • `ui` `skills` `sync`
 
-Desktop app to manage skills and commands across Agents, Claude, Codex, and OpenClaw.
+Desktop app to manage skills and commands across Agents, Claude, Codex, and Vasudev.
 
   <img src="/assets/showcase/agents-ui.jpg" alt="Agents UI app" />
 </Card>
@@ -160,7 +160,7 @@ Automated UK school meal booking via ParentPay. Uses mouse coordinates for relia
 <Card title="R2 upload (Send Me My Files)" icon="cloud-arrow-up" href="https://clawhub.ai/julianengel/skills/r2-upload">
   **@julianengel** • `files` `r2` `presigned-urls`
 
-Upload to Cloudflare R2/S3 and generate secure presigned download links. Useful for remote OpenClaw instances.
+Upload to Cloudflare R2/S3 and generate secure presigned download links. Useful for remote Vasudev instances.
 
   <img src="/assets/showcase/r2-upload.png" alt="R2 upload skill on ClawHub" />
 </Card>
@@ -188,7 +188,7 @@ Personal AI health assistant integrating Oura ring data with calendar, appointme
 <Card title="Linear CLI" icon="terminal" href="https://github.com/Finesssee/linear-cli">
   **@NessZerra** • `devtools` `linear` `cli`
 
-CLI for Linear that integrates with agentic workflows (Claude Code, OpenClaw). Manage issues, projects, and workflows from the terminal.
+CLI for Linear that integrates with agentic workflows (Claude Code, Vasudev). Manage issues, projects, and workflows from the terminal.
 </Card>
 
 <Card title="Beeper CLI" icon="message" href="https://github.com/blqke/beepcli">
@@ -208,23 +208,23 @@ Scheduling, browser control, support loops, and the "just do the task for me" si
 <Card title="Winix air purifier control" icon="wind" href="https://x.com/antonplex/status/2010518442471006253">
   **@antonplex** • `automation` `hardware` `air-quality`
 
-Claude Code discovered and confirmed the purifier controls, then OpenClaw takes over to manage room air quality.
+Claude Code discovered and confirmed the purifier controls, then Vasudev takes over to manage room air quality.
 
-  <img src="/assets/showcase/winix-air-purifier.jpg" alt="Winix air purifier control via OpenClaw" />
+  <img src="/assets/showcase/winix-air-purifier.jpg" alt="Winix air purifier control via Vasudev" />
 </Card>
 
 <Card title="Pretty sky camera shots" icon="camera" href="https://x.com/signalgaining/status/2010523120604746151">
   **@signalgaining** • `automation` `camera` `skill`
 
-Triggered by a roof camera: ask OpenClaw to snap a sky photo whenever it looks pretty. It designed a skill and took the shot.
+Triggered by a roof camera: ask Vasudev to snap a sky photo whenever it looks pretty. It designed a skill and took the shot.
 
-  <img src="/assets/showcase/roof-camera-sky.jpg" alt="Roof camera sky snapshot captured by OpenClaw" />
+  <img src="/assets/showcase/roof-camera-sky.jpg" alt="Roof camera sky snapshot captured by Vasudev" />
 </Card>
 
 <Card title="Visual morning briefing scene" icon="robot" href="https://x.com/buddyhadry/status/2010005331925954739">
   **@buddyhadry** • `automation` `briefing` `telegram`
 
-A scheduled prompt generates one scene image each morning (weather, tasks, date, favorite post or quote) via an OpenClaw persona.
+A scheduled prompt generates one scene image each morning (weather, tasks, date, favorite post or quote) via an Vasudev persona.
 </Card>
 
 <Card title="Padel court booking" icon="calendar-check" href="https://github.com/joshp123/padel-cli">
@@ -256,13 +256,13 @@ Searches job listings, matches against CV keywords, and returns relevant opportu
 <Card title="Jira skill builder" icon="diagram-project" href="https://x.com/jdrhyne/status/2008336434827002232">
   **@jdrhyne** • `jira` `skill` `devtools`
 
-OpenClaw connected to Jira, then generated a new skill on the fly (before it existed on ClawHub).
+Vasudev connected to Jira, then generated a new skill on the fly (before it existed on ClawHub).
 </Card>
 
 <Card title="Todoist skill via Telegram" icon="list-check" href="https://x.com/iamsubhrajyoti/status/2009949389884920153">
   **@iamsubhrajyoti** • `todoist` `skill` `telegram`
 
-Automated Todoist tasks and had OpenClaw generate the skill directly in Telegram chat.
+Automated Todoist tasks and had Vasudev generate the skill directly in Telegram chat.
 </Card>
 
 <Card title="TradingView analysis" icon="chart-line">
@@ -274,7 +274,7 @@ Logs into TradingView via browser automation, screenshots charts, and performs t
 <Card title="Car negotiation ($4,200 saved)" icon="car-side" href="https://x.com/astuyve/status/2014147784098681217">
   **@astuyve** • `negotiation` `email` `automation`
 
-Set OpenClaw loose on car dealers: it handled the back-and-forth negotiation and knocked $4,200 off the price.
+Set Vasudev loose on car dealers: it handled the back-and-forth negotiation and knocked $4,200 off the price.
 </Card>
 
 <Card title="Flight check-in autopilot" icon="plane-departure" href="https://x.com/armanddp/status/2008767951340794245">
@@ -318,7 +318,7 @@ Systems that index, search, remember, and reason over personal or team knowledge
 <Card title="xuezh Chinese learning" icon="language" href="https://github.com/joshp123/xuezh">
   **@joshp123** • `learning` `voice` `skill`
 
-Chinese learning engine with pronunciation feedback and study flows via OpenClaw.
+Chinese learning engine with pronunciation feedback and study flows via Vasudev.
 
   <img src="/assets/showcase/xuezh-pronunciation.jpeg" alt="xuezh pronunciation feedback" />
 </Card>
@@ -376,7 +376,7 @@ Speech-first entry points, phone bridges, and transcription-heavy workflows.
 <Card title="Pebble Ring one-tap voice" icon="ring" href="https://x.com/thekitze/status/2014765279650189578">
   **@thekitze** • `voice` `wearable` `hardware`
 
-One tap on a Pebble Ring starts a voice conversation with OpenClaw — agent access from a wearable.
+One tap on a Pebble Ring starts a voice conversation with Vasudev — agent access from a wearable.
 </Card>
 
 <Card title="Creator media studio" icon="clapperboard" href="https://x.com/cedric_chee/status/2014608153393168425">
@@ -388,13 +388,13 @@ A full media studio in chat: TTS, transcription, and browser automation hooked u
 <Card title="Action Button walkie-talkie" icon="walkie-talkie" href="https://x.com/i/status/2072766510053888497">
   **@buddyhadry** • `voice` `ios` `mobile`
 
-iPhone Action Button wired to OpenClaw: press, talk, and the agent talks back like a walkie-talkie.
+iPhone Action Button wired to Vasudev: press, talk, and the agent talks back like a walkie-talkie.
 </Card>
 
 <Card title="Clawdia phone bridge" icon="phone" href="https://github.com/alejandroOPI/clawdia-bridge">
   **@alejandroOPI** • `voice` `vapi` `bridge`
 
-Vapi voice assistant to OpenClaw HTTP bridge. Near real-time phone calls with your agent.
+Vapi voice assistant to Vasudev HTTP bridge. Near real-time phone calls with your agent.
 </Card>
 
 <Card title="OpenRouter transcription" icon="microphone" href="https://clawhub.ai/obviyus/skills/openrouter-transcribe">
@@ -409,14 +409,14 @@ Multi-lingual audio transcription via OpenRouter (Gemini, and more). Available o
 
 ## Infrastructure and deployment
 
-Packaging, deployment, and integrations that make OpenClaw easier to run and extend.
+Packaging, deployment, and integrations that make Vasudev easier to run and extend.
 
 <CardGroup cols={2}>
 
 <Card title="Home Assistant add-on" icon="home" href="https://github.com/ngutman/openclaw-ha-addon">
   **@ngutman** • `homeassistant` `docker` `raspberry-pi`
 
-OpenClaw gateway running on Home Assistant OS with SSH tunnel support and persistent state.
+Vasudev gateway running on Home Assistant OS with SSH tunnel support and persistent state.
 </Card>
 
 <Card title="Home Assistant skill" icon="toggle-on" href="https://clawhub.ai/homeofe/skills/openclaw-homeassistant">
@@ -436,7 +436,7 @@ Native Swift menu bar app showing agent status with quick controls.
 <Card title="Nix packaging" icon="snowflake" href="https://github.com/openclaw/nix-openclaw">
   **@openclaw** • `nix` `packaging` `deployment`
 
-Batteries-included nixified OpenClaw configuration for reproducible deployments.
+Batteries-included nixified Vasudev configuration for reproducible deployments.
 </Card>
 
 <Card title="CalDAV calendar" icon="calendar" href="https://clawhub.ai/asleep123/skills/caldav-calendar">
@@ -451,14 +451,14 @@ Calendar skill using khal and vdirsyncer. Self-hosted calendar integration.
 
 ## Home and hardware
 
-The physical-world side of OpenClaw: homes, sensors, cameras, vacuums, and other devices.
+The physical-world side of Vasudev: homes, sensors, cameras, vacuums, and other devices.
 
 <CardGroup cols={2}>
 
 <Card title="Self-built HomePod skill" icon="volume-high" href="https://x.com/localghost/status/2014763987683225685">
   **@localghost** • `homepod` `discovery` `skill`
 
-OpenClaw found the HomePods on the local network and wrote itself a skill to control them.
+Vasudev found the HomePods on the local network and wrote itself a skill to control them.
 </Card>
 
 <Card title="$35 holo cube interface" icon="cube" href="https://x.com/andrewjiang/status/2013140793649734032">
@@ -470,7 +470,7 @@ A cheap holographic cube as the agent's physical face on the desk.
 <Card title="GoHome automation" icon="house-signal" href="https://github.com/joshp123/gohome">
   **@joshp123** • `home` `nix` `grafana`
 
-Nix-native home automation with OpenClaw as the interface, plus Grafana dashboards.
+Nix-native home automation with Vasudev as the interface, plus Grafana dashboards.
 
   <img src="/assets/showcase/gohome-grafana.png" alt="GoHome Grafana dashboard" />
 </Card>
@@ -494,7 +494,7 @@ Things that grew beyond a single workflow into broader products or ecosystems.
 <Card title="StarSwap marketplace" icon="star" href="https://star-swap.com/">
   **Community** • `marketplace` `astronomy` `webapp`
 
-Full astronomy gear marketplace. Built with and around the OpenClaw ecosystem.
+Full astronomy gear marketplace. Built with and around the Vasudev ecosystem.
 </Card>
 
 <Card title="Clinch agent negotiation protocol" icon="handshake" href="https://clawhub.ai/publicstringapps/clinch">
@@ -522,5 +522,5 @@ Open agent-to-agent negotiation: your agent haggles deals, schedules, and servic
 ## Related
 
 - [Getting started](/start/getting-started)
-- [OpenClaw](/start/openclaw)
+- [Vasudev](/start/openclaw)
 - [Full X showcase on openclaw.ai](https://openclaw.ai/showcase/)

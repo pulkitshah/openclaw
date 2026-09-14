@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/chutes-provider",
   "version": "2026.9.4",
-  "description": "OpenClaw Chutes.ai provider plugin.",
+  "description": "Vasudev Chutes.ai provider plugin.",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

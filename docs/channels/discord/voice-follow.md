@@ -35,14 +35,14 @@ Use `voice.followUsers` when you want the Discord voice bot to stay with one or 
 
 Behavior:
 
-- `followUsers` accepts raw Discord user IDs and `discord:<id>` values. OpenClaw normalizes both forms before matching voice-state events.
+- `followUsers` accepts raw Discord user IDs and `discord:<id>` values. Vasudev normalizes both forms before matching voice-state events.
 - `followUsersEnabled` defaults to `true` when `followUsers` is configured. Set it to `false` to keep the saved list but stop automatic voice following.
 - `followUsers` controls voice residency only. It does not grant speaker access or owner authority; configure `commands.ownerAllowFrom` and guild or channel users and roles separately.
-- When a followed user joins an allowed voice channel, OpenClaw joins that channel. When the user moves, OpenClaw moves with them. When the active followed user disconnects, OpenClaw leaves.
-- If multiple followed users are in the same guild and the active followed user leaves, OpenClaw moves to another tracked followed user's channel before leaving the guild. If several followed users move at once, the latest observed voice-state event wins.
+- When a followed user joins an allowed voice channel, Vasudev joins that channel. When the user moves, Vasudev moves with them. When the active followed user disconnects, Vasudev leaves.
+- If multiple followed users are in the same guild and the active followed user leaves, Vasudev moves to another tracked followed user's channel before leaving the guild. If several followed users move at once, the latest observed voice-state event wins.
 - `allowedChannels` still applies. A followed user in a disallowed channel is ignored, and a follow-owned session moves to another followed user or leaves.
-- OpenClaw reconciles missed voice-state events on startup and at a bounded interval. Reconciliation samples configured guilds and caps REST lookups per run, so very large `followUsers` lists may take more than one interval to converge.
-- If Discord or an admin moves the bot while it is following a user, OpenClaw rebuilds the voice session and preserves follow ownership when the destination is allowed. If the bot is moved outside `allowedChannels`, OpenClaw leaves and rejoins the configured target when one exists.
+- Vasudev reconciles missed voice-state events on startup and at a bounded interval. Reconciliation samples configured guilds and caps REST lookups per run, so very large `followUsers` lists may take more than one interval to converge.
+- If Discord or an admin moves the bot while it is following a user, Vasudev rebuilds the voice session and preserves follow ownership when the destination is allowed. If the bot is moved outside `allowedChannels`, Vasudev leaves and rejoins the configured target when one exists.
 - DAVE receive recovery may leave and rejoin the same channel after repeated decrypt failures. Follow-owned sessions keep their follow ownership through that recovery path, so a later followed-user disconnect still leaves the channel.
 
 Choose between the join modes:
@@ -88,7 +88,7 @@ Default agent-proxy voice-channel session example:
 }
 ```
 
-With no `voice.agentSession` block, each voice channel gets its own routed OpenClaw session. For example, `/vc join channel:234567890123456789` talks to the session for that Discord voice channel. The realtime model is only the voice front end; substantive requests are handed to the configured OpenClaw agent. If the realtime model produces a final transcript without calling the consult tool, OpenClaw forces the consult as a fallback so the default still behaves like talking to the agent.
+With no `voice.agentSession` block, each voice channel gets its own routed Vasudev session. For example, `/vc join channel:234567890123456789` talks to the session for that Discord voice channel. The realtime model is only the voice front end; substantive requests are handed to the configured Vasudev agent. If the realtime model produces a final transcript without calling the consult tool, Vasudev forces the consult as a fallback so the default still behaves like talking to the agent.
 
 Legacy STT plus TTS example:
 
@@ -163,11 +163,11 @@ Voice as an extension of an existing Discord channel session:
 }
 ```
 
-In `agent-proxy` mode the bot joins the configured voice channel, but OpenClaw agent turns use the target channel's normal routed session and agent. The realtime voice session speaks the returned result back into the voice channel. The supervisor agent can still use normal message tools according to its tool policy, including sending a separate Discord message if that is the right action.
+In `agent-proxy` mode the bot joins the configured voice channel, but Vasudev agent turns use the target channel's normal routed session and agent. The realtime voice session speaks the returned result back into the voice channel. The supervisor agent can still use normal message tools according to its tool policy, including sending a separate Discord message if that is the right action.
 
-While a delegated OpenClaw run is active, command-authorized Discord conversation transcripts are treated as live run control before starting another agent turn. Phrases such as "status", "cancel that", "use the smaller fix", or "when you're done also check tests" are classified as status, cancel, steering, or follow-up input for the active session. Status, cancel, accepted steering, and follow-up outcomes are spoken back into the voice channel so the caller knows whether OpenClaw handled the request.
+While a delegated Vasudev run is active, command-authorized Discord conversation transcripts are treated as live run control before starting another agent turn. Phrases such as "status", "cancel that", "use the smaller fix", or "when you're done also check tests" are classified as status, cancel, steering, or follow-up input for the active session. Status, cancel, accepted steering, and follow-up outcomes are spoken back into the voice channel so the caller knows whether Vasudev handled the request.
 
-When OpenClaw cancels a delegated consult, Discord records cancellation rather than a failure and does not play the generic error fallback. Matching late provider tool calls receive the same terminal cancellation instead of restarting the work. The voice session remains available for the next request; timeouts and genuine failures keep their normal error handling.
+When Vasudev cancels a delegated consult, Discord records cancellation rather than a failure and does not play the generic error fallback. Matching late provider tool calls receive the same terminal cancellation instead of restarting the work. The voice session remains available for the next request; timeouts and genuine failures keep their normal error handling.
 
 Useful target forms:
 
@@ -204,7 +204,7 @@ Echo-heavy OpenAI Realtime example:
 }
 ```
 
-Use this when the model hears its own Discord playback through an open mic, but you still want to interrupt it by speaking. OpenClaw keeps OpenAI from auto-interrupting on raw input audio, while `bargeIn: true` lets Discord speaker-start events and already-active speaker audio cancel active realtime responses before the next captured turn reaches OpenAI. Very early barge-in signals with `audioEndMs` below `minBargeInAudioEndMs` are treated as likely echo/noise and ignored so the model does not cut off at the first playback frame.
+Use this when the model hears its own Discord playback through an open mic, but you still want to interrupt it by speaking. Vasudev keeps OpenAI from auto-interrupting on raw input audio, while `bargeIn: true` lets Discord speaker-start events and already-active speaker audio cancel active realtime responses before the next captured turn reaches OpenAI. Very early barge-in signals with `audioEndMs` below `minBargeInAudioEndMs` are treated as likely echo/noise and ignored so the model does not cut off at the first playback frame.
 
 Expected voice logs:
 
@@ -230,15 +230,15 @@ To debug cut-off audio, read the realtime voice logs as a timeline:
 1. `realtime audio playback started` means Discord has begun playing assistant audio. The bridge starts counting assistant output chunks, Discord PCM bytes, provider realtime bytes, and synthesized audio duration from this point.
 2. `realtime speaker turn opened` marks a Discord speaker becoming active. If playback is already active and `bargeIn` is enabled, this can be followed by `barge-in detected source=speaker-start`.
 3. `realtime input audio started` marks the first actual audio frame received for that speaker turn. `outputActive=true` or a nonzero `outputAudioMs` here means the mic is sending input while assistant playback is still active.
-4. `barge-in detected source=active-speaker-audio` means OpenClaw saw live speaker audio while assistant playback was active. This is useful for distinguishing a real interruption from a Discord speaker-start event with no useful audio.
-5. `barge-in requested reason=...` means OpenClaw asked the realtime provider to cancel or truncate the active response. `outputAudioMs` and `playbackChunks` describe generated audio; the subsequent `audioEndMs` truncation field records consumed audio for each native item. Discord measures local consumption from Opus packets prepared by AudioPlayer, at 20 ms granularity; it cannot measure remote listener playout.
+4. `barge-in detected source=active-speaker-audio` means Vasudev saw live speaker audio while assistant playback was active. This is useful for distinguishing a real interruption from a Discord speaker-start event with no useful audio.
+5. `barge-in requested reason=...` means Vasudev asked the realtime provider to cancel or truncate the active response. `outputAudioMs` and `playbackChunks` describe generated audio; the subsequent `audioEndMs` truncation field records consumed audio for each native item. Discord measures local consumption from Opus packets prepared by AudioPlayer, at 20 ms granularity; it cannot measure remote listener playout.
 6. `realtime audio playback stopped reason=...` is the local Discord playback reset point. `player-idle` means Discord finished consuming the audio; provider `response.done` and encoder completion alone do not mean playback is finished. Other reasons include `barge-in`, `provider-clear-audio`, `forced-agent-consult`, `stream-close`, `output-audio-overflow`, and `session-close`.
 7. `realtime speaker turn closed` summarizes the captured input turn. `chunks=0` or `hasAudio=false` means the speaker turn opened but no usable audio reached the realtime bridge. `interruptedPlayback=true` means that input turn overlapped assistant output and triggered barge-in logic.
 
 Useful fields:
 
 - `outputAudioMs`: assistant audio duration generated by the realtime provider before the log line.
-- `audioMs`: assistant audio duration that OpenClaw counted before playback stopped.
+- `audioMs`: assistant audio duration that Vasudev counted before playback stopped.
 - `elapsedMs`: wall-clock time between opening and closing the playback stream or speaker turn.
 - `discordBytes`: 48 kHz stereo PCM bytes sent to or received from Discord voice.
 - `realtimeBytes`: provider-format PCM bytes sent to or received from the realtime provider.
@@ -248,13 +248,13 @@ Useful fields:
 Common patterns:
 
 - Immediate cut-off with `source=active-speaker-audio`, small `outputAudioMs`, and the same user nearby usually points to speaker echo entering the mic. Raise `voice.realtime.minBargeInAudioEndMs`, lower speaker volume, use headphones, or set `voice.realtime.providers.openai.interruptResponseOnInputAudio: false`.
-- `source=speaker-start` followed by `speaker turn closed ... hasAudio=false` means Discord reported a speaker start but no audio reached OpenClaw. That can be a transient Discord voice event, noise gate behavior, or a client briefly keying the mic.
+- `source=speaker-start` followed by `speaker turn closed ... hasAudio=false` means Discord reported a speaker start but no audio reached Vasudev. That can be a transient Discord voice event, noise gate behavior, or a client briefly keying the mic.
 - `audio playback stopped reason=output-audio-overflow` means sustained delivery problems exceeded the bounded pending-audio queue. Check the associated `Discord realtime audio playback overflow` error and preceding provider or Discord connection diagnostics; ordinary playback backpressure should not produce this error.
-- `Discord voice receive backlog exceeded` means identity lookup, decoding, or local disk could not keep up with incoming audio. OpenClaw bounds each receive stream at 1,000 pending packets and 1 MiB of encoded audio; speak again after the bottleneck clears. Other speakers and any registered capture remain active, and incomplete speech cannot become a new conversation command.
+- `Discord voice receive backlog exceeded` means identity lookup, decoding, or local disk could not keep up with incoming audio. Vasudev bounds each receive stream at 1,000 pending packets and 1 MiB of encoded audio; speak again after the bottleneck clears. Other speakers and any registered capture remain active, and incomplete speech cannot become a new conversation command.
 - `conversation audio backlog exceeded`, `conversation is busy`, or `conversation transcript limit exceeded` means a conversation limit was reached. Recording continues; wait for pending requests to finish or repeat a shorter, complete request.
 - `Discord voice recording backlog exceeded` means pending WAV files reached the recording queue's chunk or byte limit. The affected utterance stops, and the registered capture remains available after pending audio processing catches up.
 - `audio playback stopped reason=stream-close` without a nearby barge-in or `provider-clear-audio` means the local Discord playback stream ended unexpectedly. Check the preceding provider and Discord player logs.
-- `capture ignored: ... reason=protected playback` means OpenClaw intentionally withheld conversational input while assistant audio was active. An explicitly started capture still records that speech. Enable `voice.realtime.bargeIn` if you want speech to interrupt playback.
-- `barge-in ignored ... outputActive=false` means Discord or provider VAD reported speech, but OpenClaw had no active playback to interrupt. This should not cut off audio.
+- `capture ignored: ... reason=protected playback` means Vasudev intentionally withheld conversational input while assistant audio was active. An explicitly started capture still records that speech. Enable `voice.realtime.bargeIn` if you want speech to interrupt playback.
+- `barge-in ignored ... outputActive=false` means Discord or provider VAD reported speech, but Vasudev had no active playback to interrupt. This should not cut off audio.
 
 Credentials are resolved per component: LLM route auth for `voice.model`, STT auth for `tools.media.audio`, TTS auth for `tts`/`voice.tts`, and realtime provider auth for `voice.realtime.providers` or the provider's normal auth config.

@@ -26,7 +26,7 @@ Real-Gateway browser checks use [job budgets matched to their selected runner](/
 | [CI runner classes](/ci/runners)                               | Trust-based runner routing, Blacksmith classes, and runner backend modes.                                           |
 | [CI capacity and shard weights](/ci/capacity)                  | The runner registration budget and the measured timings behind shard packing.                                       |
 | [Release validation workflows](/ci/release-validation)         | Full Release Validation, live and E2E shards, Package Acceptance, install smoke, Docker E2E, and Plugin Prerelease. |
-| [Scheduled and maintenance workflows](/ci/scheduled-workflows) | OpenClaw Performance, QA Lab, CodeQL, the maintenance jobs, and ClawSweeper activity forwarding.                    |
+| [Scheduled and maintenance workflows](/ci/scheduled-workflows) | Vasudev Performance, QA Lab, CodeQL, the maintenance jobs, and ClawSweeper activity forwarding.                     |
 | [Local checks and Testbox](/ci/local-proof)                    | Reproduce a lane locally, keep the shrink-only ratchets, and run Crabbox or Testbox proof.                          |
 
 ## Where each section moved
@@ -51,7 +51,7 @@ Every section heading from the previous single-page version keeps its anchor her
 - <a id="runner-registration-budget" />[Runner registration budget](/ci/capacity#runner-registration-budget)
 - <a id="surface-ratchets" />[Surface ratchets](/ci/local-proof#surface-ratchets)
 - <a id="local-equivalents" />[Local equivalents](/ci/local-proof#local-equivalents)
-- <a id="openclaw-performance" />[OpenClaw Performance](/ci/scheduled-workflows#openclaw-performance)
+- <a id="openclaw-performance" />[Vasudev Performance](/ci/scheduled-workflows#vasudev-performance)
 - <a id="vitest-paired-benchmark" />[Vitest paired benchmark](/ci/scheduled-workflows#vitest-paired-benchmark)
 - <a id="full-release-validation" />[Full Release Validation](/ci/release-validation#full-release-validation)
 - <a id="live-and-e2e-shards" />[Live and E2E shards](/ci/release-validation#live-and-e2e-shards)

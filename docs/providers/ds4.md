@@ -1,17 +1,17 @@
 ---
-summary: "Run OpenClaw through ds4, a local DeepSeek V4 Flash OpenAI-compatible server"
+summary: "Run Vasudev through ds4, a local DeepSeek V4 Flash OpenAI-compatible server"
 read_when:
-  - You want to run OpenClaw against antirez/ds4
+  - You want to run Vasudev against antirez/ds4
   - You want a local DeepSeek V4 Flash backend with tool calls
-  - You need the OpenClaw config for ds4-server
+  - You need the Vasudev config for ds4-server
 title: "ds4"
 ---
 
 [ds4](https://github.com/antirez/ds4) serves DeepSeek V4 Flash from a local
-Metal backend with an OpenAI-compatible `/v1` API. OpenClaw connects to ds4
+Metal backend with an OpenAI-compatible `/v1` API. Vasudev connects to ds4
 through the generic `openai-completions` provider family.
 
-ds4 is not a bundled OpenClaw provider plugin. Configure it under
+ds4 is not a bundled Vasudev provider plugin. Configure it under
 `models.providers.ds4`, then select `ds4/deepseek-v4-flash`.
 
 | Property    | Value                                                     |
@@ -32,7 +32,7 @@ ds4 is not a bundled OpenClaw provider plugin. Configure it under
   KV memory at server startup.
 
 <Warning>
-OpenClaw agent turns include tool schemas and workspace context. A tiny context
+Vasudev agent turns include tool schemas and workspace context. A tiny context
 such as `--ctx 4096` can pass direct curl tests but fail full agent runs with
 `500 prompt exceeds context`. Use at least `--ctx 32768` for agent and tool
 smoke tests. Use `--ctx 393216` only with enough memory and to enable ds4
@@ -63,7 +63,7 @@ Think Max.
     The response should include `deepseek-v4-flash`.
 
   </Step>
-  <Step title="Add the OpenClaw provider config">
+  <Step title="Add the Vasudev provider config">
     Add the config from [Full config](#full-config), then run a one-shot model
     check:
 
@@ -129,12 +129,12 @@ Use this config when ds4 is already running on `127.0.0.1:18000`.
 ```
 
 Keep `contextWindow` aligned with `ds4-server --ctx`. Keep `maxTokens` aligned
-with `--tokens` unless you intentionally want OpenClaw to request less output
+with `--tokens` unless you intentionally want Vasudev to request less output
 than the server default.
 
 ## On-demand startup
 
-OpenClaw can start ds4 only when a `ds4/...` model is selected. Add
+Vasudev can start ds4 only when a `ds4/...` model is selected. Add
 `localService` to the same provider entry:
 
 ```json5
@@ -201,7 +201,7 @@ ds4 applies Think Max only when both are true:
 - `ds4-server` starts with `--ctx 393216` or higher.
 - The request uses `reasoning_effort: "max"` (or the equivalent ds4 effort field).
 
-If you run that large context, update both the server flags and OpenClaw model
+If you run that large context, update both the server flags and Vasudev model
 metadata:
 
 ```json5
@@ -221,7 +221,7 @@ metadata:
 
 ## Test
 
-Direct HTTP check, bypassing OpenClaw:
+Direct HTTP check, bypassing Vasudev:
 
 ```bash
 curl http://127.0.0.1:18000/v1/chat/completions \
@@ -229,7 +229,7 @@ curl http://127.0.0.1:18000/v1/chat/completions \
   -d '{"model":"deepseek-v4-flash","messages":[{"role":"user","content":"Reply with exactly: ds4-ok"}],"max_tokens":16,"stream":false,"thinking":{"type":"disabled"}}'
 ```
 
-OpenClaw model routing (same as the Quickstart check):
+Vasudev model routing (same as the Quickstart check):
 
 ```bash
 openclaw infer model run \
@@ -274,7 +274,7 @@ Expected result:
   </Accordion>
 
   <Accordion title="500 prompt exceeds context">
-    The configured `--ctx` is too small for the OpenClaw turn. Raise
+    The configured `--ctx` is too small for the Vasudev turn. Raise
     `ds4-server --ctx`, then update `models.providers.ds4.models[].contextWindow`
     to match. Full agent turns with tools need substantially more context than a
     direct one-message curl request.
@@ -288,7 +288,7 @@ Expected result:
 
   <Accordion title="The first request is slow">
     ds4 has a cold Metal residency and model warmup phase. Set
-    `localService.readyTimeoutMs: 300000` when OpenClaw starts the server on
+    `localService.readyTimeoutMs: 300000` when Vasudev starts the server on
     demand.
   </Accordion>
 </AccordionGroup>

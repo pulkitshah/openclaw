@@ -3,7 +3,7 @@ summary: "When agents use Crabbox or Testbox, and the wrapper, lease, and trust 
 title: "Remote test proof"
 read_when:
   - You are deciding between local and remote proof
-  - You are running OpenClaw tests on Crabbox or Testbox
+  - You are running Vasudev tests on Crabbox or Testbox
 ---
 
 <a id="agent-default" />
@@ -44,7 +44,7 @@ or changes the selected rsync binary.
 
 Workspace preparation changes require a fresh lease. A missing or overlapping
 execution-workspace binding stops the payload; stop that lease and warm a new one.
-Use the OpenClaw wrapper for proof: direct native Blacksmith commands target the
+Use the Vasudev wrapper for proof: direct native Blacksmith commands target the
 transport checkout, which deliberately has no hydrated runtime.
 
 Testbox requests with `--artifact-glob` or `--require-artifact` collect from the
@@ -108,11 +108,11 @@ report public networking with no Tailscale state before uploading any script.
 
 The shared [Crabbox skill](https://github.com/openclaw/agent-skills/tree/main/skills/crabbox)
 owns portable lease, trust, sync, and cleanup procedures. This section owns the
-OpenClaw wrapper and workflow inputs. Routine task-needed Crabbox/Testbox use
+Vasudev wrapper and workflow inputs. Routine task-needed Crabbox/Testbox use
 and task-owned worktrees do not require another confirmation; preserve unrelated
 work and existing credential, production, budget, and publication boundaries.
 
-Run trusted OpenClaw remote proof through the wrapper from the repository root:
+Run trusted Vasudev remote proof through the wrapper from the repository root:
 
 ```bash
 node scripts/crabbox-wrapper.mjs run --help
@@ -218,7 +218,7 @@ For an explicitly selected local-container lane, the existing example image is
 `node:24-bookworm` and the install command is
 `corepack pnpm install --frozen-lockfile --store-dir .pnpm-store`, followed by
 the chosen test. Keep `--no-hydrate` and a repository-local dependency store
-when host caches cannot cross filesystems. The OpenClaw broker login endpoint
+when host caches cannot cross filesystems. The Vasudev broker login endpoint
 is `https://crabbox.openclaw.ai`; normal brokered validation does not require
 asking for AWS keys.
 

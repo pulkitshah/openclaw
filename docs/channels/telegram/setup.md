@@ -1,20 +1,20 @@
 ---
 summary: "Create the Telegram bot token, configure the channel, and approve the first DM"
 read_when:
-  - Connecting a Telegram bot to OpenClaw for the first time
+  - Connecting a Telegram bot to Vasudev for the first time
   - Adding the bot to a group and finding the group chat ID
   - Setting BotFather privacy mode and group permissions
 title: "Telegram setup"
 sidebarTitle: "Setup"
 ---
 
-Create the bot in BotFather, give OpenClaw its token, approve the first DM, and add the bot to a group.
+Create the bot in BotFather, give Vasudev its token, approve the first DM, and add the bot to a group.
 
 ## Quick setup
 
 <Steps>
   <Step title="Create the bot token in BotFather">
-    Both flows end with a token you paste into OpenClaw — pick one:
+    Both flows end with a token you paste into Vasudev — pick one:
 
     - **Chat flow**: open Telegram and chat with **@BotFather**. Confirm the handle is exactly `@BotFather`. Run `/newbot`, follow the prompts, and save the token.
     - **Web flow**: open [BotFather's web app](https://t.me/BotFather?startapp). It runs in every Telegram client, including [web.telegram.org](https://web.telegram.org). Create the bot in the UI, then copy its token.
@@ -87,7 +87,7 @@ openclaw pairing approve telegram <CODE>
 </Steps>
 
 <Note>
-Token resolution is account-aware. `tokenFile` beats `botToken`, and `botToken` beats env. Config always wins over `TELEGRAM_BOT_TOKEN`, which only resolves for the default account. After a successful startup, OpenClaw caches the bot identity for up to 24 hours, so restarts skip an extra `getMe` call. Changing or removing the token clears that cache.
+Token resolution is account-aware. `tokenFile` beats `botToken`, and `botToken` beats env. Config always wins over `TELEGRAM_BOT_TOKEN`, which only resolves for the default account. After a successful startup, Vasudev caches the bot identity for up to 24 hours, so restarts skip an extra `getMe` call. Changing or removing the token clears that cache.
 </Note>
 
 ## Telegram side settings

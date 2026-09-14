@@ -3,8 +3,8 @@ summary: "Pairing, operator scopes, role ceilings, and the one-gateway-is-one-tr
 title: "Identity and roles"
 read_when:
   - You are configuring gateway roles, scopes, or an identity-aware front door
-  - You need to know how OpenClaw bounds what a person can reach
-  - You are evaluating OpenClaw for multi-tenant use
+  - You need to know how Vasudev bounds what a person can reach
+  - You are evaluating Vasudev for multi-tenant use
 ---
 
 Device-authenticated control-plane clients present signed identities and go through [pairing](/gateway/pairing). Reconnecting with broader device scopes requires approval. Other admission paths include verified front doors and configured local or shared-secret access. With DM policy set to [pairing](/channels/pairing), unknown senders get a pairing code, not the agent. Identity-aware front doors ([Tailscale](/gateway/tailscale), [trusted proxy](/gateway/trusted-proxy-auth), [Cloudflare Access](/gateway/cloudflare-access)) map verified identities to scopes.

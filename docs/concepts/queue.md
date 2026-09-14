@@ -7,7 +7,7 @@ read_when:
 title: "Command queue"
 ---
 
-OpenClaw serializes inbound auto-reply runs (all channels) through a tiny in-process queue to prevent multiple agent runs from colliding, while still allowing safe parallelism across sessions.
+Vasudev serializes inbound auto-reply runs (all channels) through a tiny in-process queue to prevent multiple agent runs from colliding, while still allowing safe parallelism across sessions.
 
 ## Why
 
@@ -32,13 +32,13 @@ When unset, all inbound channel surfaces use:
 - `cap: 20`
 - `drop: "summarize"`
 
-Same-turn steering is the default. A prompt that arrives mid-run is injected into the active runtime when the run can accept steering, so no second session run is started. If the active run cannot accept steering, OpenClaw waits for the active run to finish before starting the prompt.
+Same-turn steering is the default. A prompt that arrives mid-run is injected into the active runtime when the run can accept steering, so no second session run is started. If the active run cannot accept steering, Vasudev waits for the active run to finish before starting the prompt.
 
 ## Queue modes
 
 `/queue` controls what normal inbound messages do while a session already has an active run:
 
-- `steer`: inject messages into the active runtime. OpenClaw lets an already-running tool finish, skips sequential calls that have not started, and makes the steer visible before the next tool launch or model decision. Parallel calls continue once their batch has crossed its launch checkpoint. Codex app-server receives one batched `turn/steer` and applies it at the next model boundary. If the run is not actively streaming or steering is unavailable, OpenClaw waits until the active run ends before starting the prompt.
+- `steer`: inject messages into the active runtime. Vasudev lets an already-running tool finish, skips sequential calls that have not started, and makes the steer visible before the next tool launch or model decision. Parallel calls continue once their batch has crossed its launch checkpoint. Codex app-server receives one batched `turn/steer` and applies it at the next model boundary. If the run is not actively streaming or steering is unavailable, Vasudev waits until the active run ends before starting the prompt.
 - `followup`: do not steer. Enqueue each message for a later agent turn after the current run ends.
 - `collect`: do not steer. Coalesce queued messages into a **single** followup turn after the quiet window. If messages target different channels/threads, they drain individually to preserve routing.
 - `interrupt`: abort the active run for that session, then run the newest message.
@@ -81,24 +81,24 @@ When channel streaming is `partial` or `block`, steering can look like several s
 - `block`: draft-sized blocks can create the same sequential appearance.
 - Without streaming, steering falls back to a followup after the active run when the runtime cannot accept same-turn steering.
 
-`steer` does not abort in-flight tools. Skipped OpenClaw tool calls receive synthetic paired error results so the transcript remains valid. Use `/queue interrupt` when the newest message should abort the current run.
+`steer` does not abort in-flight tools. Skipped Vasudev tool calls receive synthetic paired error results so the transcript remains valid. Use `/queue interrupt` when the newest message should abort the current run.
 
 ## Answering a pending question
 
 A plain-text answer to a pending agent question goes to that question before
 ordinary queue handling, including when a native CLI cannot accept steering.
-OpenClaw checks the answer against the question creator's permissions and active
+Vasudev checks the answer against the question creator's permissions and active
 run, not the model selected for your next turn. Changed permissions or a closed
 creator produce an explicit refusal rather than starting another turn.
 
-If the answer may have committed but confirmation is lost, OpenClaw reports that
+If the answer may have committed but confirmation is lost, Vasudev reports that
 uncertainty and does not resend it as steering or a followup. Check the conversation
 before retrying. A later delivery or source-cleanup failure does not make the
 answer replayable, and uncertainty alone does not cancel the original agent run.
 
 ## Precedence
 
-For mode selection, OpenClaw resolves:
+For mode selection, Vasudev resolves:
 
 1. Inline or stored per-session `/queue` override.
 2. `messages.queue.byChannel.<channel>`.

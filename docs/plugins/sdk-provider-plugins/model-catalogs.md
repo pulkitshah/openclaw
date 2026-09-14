@@ -41,7 +41,7 @@ behaviors:
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Credentials    | Discovery uses the catalog's resolved provider credential, preferring `discoveryApiKey` when auth supplies one. Secret-reference markers are never sent as tokens. The default request uses `Authorization: Bearer <token>`; use `buildRequestHeaders` for another vendor auth scheme.                                                                                                                                                                                                                                                                                                                            |
 | Endpoint       | The default URL is `models` relative to the effective provider `baseUrl`, including an operator override when `allowExplicitBaseUrl` is enabled. Use `endpointPath` for another relative path. Use `endpointUrl: { url, requireBaseUrl }` only for a fixed vendor URL; discovery is skipped unless the effective base URL still equals `requireBaseUrl`, so a custom proxy credential is not sent to the vendor.                                                                                                                                                                                                  |
-| Network limits | Fetches use OpenClaw's SSRF guard, one 5-second timeout budget across pagination, a 4 MiB response limit per page, and a 50-page limit. Cross-origin pagination links are rejected; credentials are removed after a cross-origin redirect.                                                                                                                                                                                                                                                                                                                                                                        |
+| Network limits | Fetches use Vasudev's SSRF guard, one 5-second timeout budget across pagination, a 4 MiB response limit per page, and a 50-page limit. Cross-origin pagination links are rejected; credentials are removed after a cross-origin redirect.                                                                                                                                                                                                                                                                                                                                                                         |
 | Cache          | Successful, non-empty catalogs are cached for 60 seconds by provider, endpoint, and resolved credential. Empty or unusable results are not cached.                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | Filtering      | Exact live IDs keep their trusted static metadata. New rows are projected conservatively as text/chat models. Disabled, archived, deprecated, explicitly non-chat, embedding, reranking, moderation, speech, image-only, and video-only rows are excluded. Use `readRows` only to select rows from a nonstandard response envelope; provider-specific model semantics still belong in a custom catalog.                                                                                                                                                                                                           |
 | Admission      | Optional. Set `acceptUnknownModel: ({ id, record }) => boolean` when your request shaping is model-version specific, so discovery cannot publish a model you cannot yet build a valid request for. It is called only for IDs your static catalog does not already publish; known IDs bypass it and keep their published metadata. Return `false` to drop the row. Providers that omit it keep the previous behavior unchanged. Prefer comparing the vendor's advertised capabilities against your own contract checks over a hand-maintained model list, and fail closed when the row carries no capability data. |
@@ -284,10 +284,10 @@ This top-level selector is separate from the `catalog.run` callback context.
 When `ctx.providerIds` is present, it contains the normalized provider
 identities selected for that catalog owner. Return `null` before resolving
 credentials or making network requests when the hook serves none of them;
-OpenClaw also filters returned identities to that scope. An absent scope
+Vasudev also filters returned identities to that scope. An absent scope
 means the caller requested the full catalog.
 
-If the upstream provider uses different control tokens than OpenClaw, add a
+If the upstream provider uses different control tokens than Vasudev, add a
 small bidirectional text transform instead of replacing the stream path:
 
 ```typescript
@@ -307,7 +307,7 @@ api.registerTextTransforms({
 
 `input` rewrites the final system prompt and text message content before
 transport. `output` rewrites assistant text deltas and final text before
-OpenClaw parses its own control markers or channel delivery.
+Vasudev parses its own control markers or channel delivery.
 
 For bundled providers that only register one text provider with API-key
 auth plus a single catalog-backed runtime, prefer the narrower
@@ -351,11 +351,11 @@ export default defineSingleProviderPluginEntry({
 });
 ```
 
-`buildProvider` is the live catalog path used when OpenClaw can resolve real
+`buildProvider` is the live catalog path used when Vasudev can resolve real
 provider auth. It may perform provider-specific discovery. Use
 `buildStaticProvider` only for offline rows that are safe to show before auth
 is configured; it must not require credentials or make network requests.
-OpenClaw's `models list --all` display currently executes static catalogs
+Vasudev's `models list --all` display currently executes static catalogs
 only for bundled provider plugins, with an empty config, empty env, and no
 agent/workspace paths.
 

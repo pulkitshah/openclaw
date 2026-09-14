@@ -1,39 +1,39 @@
 ---
-summary: "Expose OpenClaw channel conversations over MCP and manage saved MCP server definitions"
+summary: "Expose Vasudev channel conversations over MCP and manage saved MCP server definitions"
 read_when:
-  - Connecting Codex, Claude Code, or another MCP client to OpenClaw-backed channels
+  - Connecting Codex, Claude Code, or another MCP client to Vasudev-backed channels
   - Running `openclaw mcp serve`
-  - Managing OpenClaw-saved MCP server definitions
+  - Managing Vasudev-saved MCP server definitions
 title: "MCP"
 sidebarTitle: "MCP"
 ---
 
 `openclaw mcp` has two jobs:
 
-- run OpenClaw as an MCP server with `openclaw mcp serve`
-- manage OpenClaw-managed outbound MCP server definitions with `list`, `show`, `status`, `doctor`, `probe`, `add`, `set`, `configure`, `tools`, `login`, `logout`, `reload`, and `unset`
+- run Vasudev as an MCP server with `openclaw mcp serve`
+- manage Vasudev-managed outbound MCP server definitions with `list`, `show`, `status`, `doctor`, `probe`, `add`, `set`, `configure`, `tools`, `login`, `logout`, `reload`, and `unset`
 
-`serve` is OpenClaw acting as an MCP server. The other subcommands are OpenClaw acting as an MCP client-side registry for servers its own runtimes may consume later.
+`serve` is Vasudev acting as an MCP server. The other subcommands are Vasudev acting as an MCP client-side registry for servers its own runtimes may consume later.
 
 <Note>
-  `list`, `show`, `set`, and `unset` only read and write OpenClaw-managed `mcp.servers` entries in OpenClaw config. They do not include mcporter servers from `config/mcporter.json`; use `mcporter list` for that registry.
+  `list`, `show`, `set`, and `unset` only read and write Vasudev-managed `mcp.servers` entries in Vasudev config. They do not include mcporter servers from `config/mcporter.json`; use `mcporter list` for that registry.
 </Note>
 
-Use [`openclaw acp`](/cli/acp) when OpenClaw should host a coding harness session itself and route that runtime through ACP.
+Use [`openclaw acp`](/cli/acp) when Vasudev should host a coding harness session itself and route that runtime through ACP.
 
 ## Choose the right MCP path
 
-| Goal                                                                | Use                                                                  | Why                                                                                                             |
-| ------------------------------------------------------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Let an external MCP client read/send OpenClaw channel conversations | `openclaw mcp serve`                                                 | OpenClaw is the MCP server and exposes Gateway-backed conversations over stdio.                                 |
-| Save third-party MCP servers for OpenClaw-managed agent runs        | `openclaw mcp add`, `set`, `configure`, `tools`, `login`             | OpenClaw is the MCP client-side registry and later projects those servers into eligible runtimes.               |
-| Check a saved server without running an agent turn                  | `openclaw mcp status`, `doctor`, `probe`                             | `status` and `doctor` inspect config; `probe` opens a live MCP connection and lists capabilities.               |
-| Edit MCP config from a browser                                      | Control UI `/settings/mcp` (`/mcp` alias)                            | The page shows inventory, enablement, OAuth/filter summaries, command hints, and a scoped `mcp` editor.         |
-| Give Codex app-server a scoped native MCP server                    | `mcp.servers.<name>.codex`                                           | The `codex` block only affects Codex app-server thread projection and is stripped before native config handoff. |
-| Run ACP-hosted harness sessions                                     | [`openclaw acp`](/cli/acp) and [ACP Agents](/tools/acp-agents-setup) | ACP bridge mode does not accept per-session MCP server injection; configure gateway/plugin bridges instead.     |
+| Goal                                                               | Use                                                                  | Why                                                                                                             |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Let an external MCP client read/send Vasudev channel conversations | `openclaw mcp serve`                                                 | Vasudev is the MCP server and exposes Gateway-backed conversations over stdio.                                  |
+| Save third-party MCP servers for Vasudev-managed agent runs        | `openclaw mcp add`, `set`, `configure`, `tools`, `login`             | Vasudev is the MCP client-side registry and later projects those servers into eligible runtimes.                |
+| Check a saved server without running an agent turn                 | `openclaw mcp status`, `doctor`, `probe`                             | `status` and `doctor` inspect config; `probe` opens a live MCP connection and lists capabilities.               |
+| Edit MCP config from a browser                                     | Control UI `/settings/mcp` (`/mcp` alias)                            | The page shows inventory, enablement, OAuth/filter summaries, command hints, and a scoped `mcp` editor.         |
+| Give Codex app-server a scoped native MCP server                   | `mcp.servers.<name>.codex`                                           | The `codex` block only affects Codex app-server thread projection and is stripped before native config handoff. |
+| Run ACP-hosted harness sessions                                    | [`openclaw acp`](/cli/acp) and [ACP Agents](/tools/acp-agents-setup) | ACP bridge mode does not accept per-session MCP server injection; configure gateway/plugin bridges instead.     |
 
 <Tip>
-If you are not sure which path you need, start with `openclaw mcp status --verbose`. It shows what OpenClaw has saved without starting any MCP servers.
+If you are not sure which path you need, start with `openclaw mcp status --verbose`. It shows what Vasudev has saved without starting any MCP servers.
 </Tip>
 
 ## MCP pages
@@ -41,14 +41,14 @@ If you are not sure which path you need, start with `openclaw mcp status --verbo
 This page is an index. `openclaw mcp` has six pages, one per reader job. Open
 the page that matches your task.
 
-| Page                                            | Read it when                                                                                   |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| [Run OpenClaw as an MCP server](/cli/mcp/serve) | An MCP client should read or send OpenClaw channel conversations through `openclaw mcp serve`. |
-| [Manage saved MCP servers](/cli/mcp/registry)   | You are saving, inspecting, or approving third-party MCP servers for OpenClaw-managed runs.    |
-| [JSON output shapes](/cli/mcp/json-output)      | You are scripting against `status --json`, `doctor --json`, or `probe --json`.                 |
-| [Transports and OAuth](/cli/mcp/transports)     | You need a transport config field, or you are running the MCP OAuth login flow.                |
-| [MCP in the Control UI](/cli/mcp/control-ui)    | You want to edit or inspect MCP config from a browser.                                         |
-| [MCP Apps](/cli/mcp/apps)                       | You are enabling or securing the MCP Apps host bridge.                                         |
+| Page                                           | Read it when                                                                                  |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| [Run Vasudev as an MCP server](/cli/mcp/serve) | An MCP client should read or send Vasudev channel conversations through `openclaw mcp serve`. |
+| [Manage saved MCP servers](/cli/mcp/registry)  | You are saving, inspecting, or approving third-party MCP servers for Vasudev-managed runs.    |
+| [JSON output shapes](/cli/mcp/json-output)     | You are scripting against `status --json`, `doctor --json`, or `probe --json`.                |
+| [Transports and OAuth](/cli/mcp/transports)    | You need a transport config field, or you are running the MCP OAuth login flow.               |
+| [MCP in the Control UI](/cli/mcp/control-ui)   | You want to edit or inspect MCP config from a browser.                                        |
+| [MCP Apps](/cli/mcp/apps)                      | You are enabling or securing the MCP Apps host bridge.                                        |
 
 ## Where each section moved
 
@@ -56,7 +56,7 @@ Every anchor from the previous single-page version still resolves here, so an
 existing link such as `/cli/mcp#bridge-tools` keeps working. Each entry points at
 the page that now holds the content.
 
-- <a id="openclaw-as-an-mcp-server" />[OpenClaw as an MCP server](/cli/mcp/serve#openclaw-as-an-mcp-server)
+- <a id="openclaw-as-an-mcp-server" />[Vasudev as an MCP server](/cli/mcp/serve#vasudev-as-an-mcp-server)
 - <a id="when-to-use-serve" />[When to use serve](/cli/mcp/serve#when-to-use-serve)
 - <a id="how-it-works" />[How it works](/cli/mcp/serve#how-it-works)
 - <a id="client-spawns-the-bridge" />[Client spawns the bridge](/cli/mcp/serve#client-spawns-the-bridge)
@@ -105,7 +105,7 @@ the page that now holds the content.
 - <a id="events-poll-or-events-wait-misses-older-messages" />[events_poll or events_wait misses older messages](/cli/mcp/serve#events-poll-or-events-wait-misses-older-messages)
 - <a id="claude-notifications-do-not-show-up" />[Claude notifications do not show up](/cli/mcp/serve#claude-notifications-do-not-show-up)
 - <a id="approvals-are-missing" />[Approvals are missing](/cli/mcp/serve#approvals-are-missing)
-- <a id="openclaw-as-an-mcp-client-registry" />[OpenClaw as an MCP client registry](/cli/mcp/registry#openclaw-as-an-mcp-client-registry)
+- <a id="openclaw-as-an-mcp-client-registry" />[Vasudev as an MCP client registry](/cli/mcp/registry#vasudev-as-an-mcp-client-registry)
 - <a id="important-behavior-1" />[Important behavior](/cli/mcp/registry#important-behavior)
 - <a id="codex-tool-approvals" />[Codex tool approvals](/cli/mcp/registry#codex-tool-approvals)
 - <a id="saved-mcp-server-definitions" />[Saved MCP server definitions](/cli/mcp/registry#saved-mcp-server-definitions)

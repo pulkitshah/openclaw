@@ -8,7 +8,7 @@ read_when:
   - You need to understand how the Codex plugin relates to model providers
 ---
 
-An **agent harness** is the low level executor for one prepared OpenClaw agent
+An **agent harness** is the low level executor for one prepared Vasudev agent
 turn. It is not a model provider, not a channel, and not a tool registry. For
 the user-facing mental model, see [Agent runtimes](/concepts/agent-runtimes).
 
@@ -19,11 +19,11 @@ current embedded runner.
 ## When to use a harness
 
 Register an agent harness when a model family has its own native session
-runtime and the normal OpenClaw provider transport is the wrong abstraction:
+runtime and the normal Vasudev provider transport is the wrong abstraction:
 
 - a native coding-agent server that owns threads and compaction
 - a local CLI or daemon that must stream native plan/reasoning/tool events
-- a model runtime that needs its own resume id in addition to the OpenClaw
+- a model runtime that needs its own resume id in addition to the Vasudev
   session transcript
 
 Do **not** register a harness just to add a new LLM API. For normal HTTP or
@@ -56,7 +56,7 @@ eight child pages below. The anchors from the single-page version still resolve 
 
 ### Harness selection and provider pairing
 
-[Agent harness selection policy](/plugins/sdk-agent-harness/selection-policy) — How OpenClaw picks a harness after provider and model resolution, and why a harness normally ships with a provider plugin.
+[Agent harness selection policy](/plugins/sdk-agent-harness/selection-policy) — How Vasudev picks a harness after provider and model resolution, and why a harness normally ships with a provider plugin.
 
 - <a id="selection-policy"></a>[Selection policy](/plugins/sdk-agent-harness/selection-policy#selection-policy)
 - <a id="provider-plus-harness-pairing"></a>[Provider plus harness pairing](/plugins/sdk-agent-harness/selection-policy#provider-plus-harness-pairing)

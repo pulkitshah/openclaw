@@ -30,7 +30,7 @@ root `openclaw` CLI release.
 For application lifecycle guidance, see
 [Building a Gateway client](/gateway/clients). For apps
 that supervise the Gateway as a child process, see
-[Embedding OpenClaw](/gateway/embedding).
+[Embedding Vasudev](/gateway/embedding).
 
 ## Transport and framing
 

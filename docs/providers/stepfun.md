@@ -1,7 +1,7 @@
 ---
-summary: "Use StepFun models with OpenClaw"
+summary: "Use StepFun models with Vasudev"
 read_when:
-  - You want StepFun models in OpenClaw
+  - You want StepFun models in Vasudev
   - You need StepFun setup guidance
 title: "StepFun"
 ---
@@ -230,7 +230,7 @@ A single auth flow writes region-matched profiles for both `stepfun` and `stepfu
   </Accordion>
 
   <Accordion title="Notes">
-    - `step-3.7-flash` accepts text and image input through OpenClaw. StepFun's API also supports video, which OpenClaw does not declare as an input modality for StepFun models.
+    - `step-3.7-flash` accepts text and image input through Vasudev. StepFun's API also supports video, which Vasudev does not declare as an input modality for StepFun models.
     - Step 3.7 supports `low`, `medium`, and `high` reasoning effort. Because the model has no non-reasoning mode, `/think off` maps to `low`.
     - `step-3.5-flash-2603` is exposed only on `stepfun-plan`.
     - Use `openclaw models list` and `openclaw models set <provider/model>` to inspect or switch models.

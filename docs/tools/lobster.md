@@ -1,5 +1,5 @@
 ---
-summary: "Typed workflow runtime for OpenClaw with resumable approval gates."
+summary: "Typed workflow runtime for Vasudev with resumable approval gates."
 title: Lobster
 read_when:
   - You want deterministic multi-step workflows with explicit approvals
@@ -187,7 +187,7 @@ For a **structured LLM step** inside a workflow, enable the optional
 
 The installed Lobster plugin runs workflows **in-process** inside the gateway.
 In that embedded mode, `openclaw.invoke` does **not** automatically inherit a
-gateway URL/auth context for nested OpenClaw CLI tool calls.
+gateway URL/auth context for nested Vasudev CLI tool calls.
 
 That means this pattern is **not currently reliable in the embedded runner**:
 
@@ -326,7 +326,7 @@ run returned. `approve` is required.
 Passing `flowControllerId` and `flowGoal` on `run` (or `flowId` and
 `flowExpectedRevision` on `resume`) drives the call through the plugin
 runtime's managed [Task Flow](/automation/taskflow) API instead of returning
-a bare envelope: OpenClaw creates or resumes a durable flow record and applies
+a bare envelope: Vasudev creates or resumes a durable flow record and applies
 the Lobster outcome to it (`waiting` on approval, `succeeded`/`failed`/`cancelled`
 on completion). The tool returns the envelope fields at the top level, alongside
 `flow` and `mutation`. Check `mutation.applied` for a successful state transition
@@ -337,7 +337,7 @@ inspect the persisted flow rather than assuming the failure write succeeded.
 
 This mode requires a non-sandboxed tool context with a bound session. It records
 a managed flow, not detached ACP/subagent tasks for each shell step. Flow state
-persists in OpenClaw SQLite; Lobster's approval checkpoint is separate and must
+persists in Vasudev SQLite; Lobster's approval checkpoint is separate and must
 also remain available for resume. After a restart, the controller must inspect
 the latest flow and explicitly resume it with the matching approval token or ID.
 Neither Task Flow nor a skill automatically replays arbitrary JavaScript. See
@@ -373,7 +373,7 @@ pointer to that state, not the full pipeline state.
 
 - **Local in-process only** - workflows execute inside the gateway process; no
   network calls from the plugin itself.
-- **No secrets** - Lobster doesn't manage OAuth; it calls OpenClaw tools that
+- **No secrets** - Lobster doesn't manage OAuth; it calls Vasudev tools that
   do.
 - **Sandbox-aware** - disabled when the tool context is sandboxed.
 - **Hardened** - timeouts and output caps enforced by the embedded runner.

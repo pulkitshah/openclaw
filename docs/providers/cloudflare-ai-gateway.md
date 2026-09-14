@@ -2,11 +2,11 @@
 summary: "Cloudflare AI Gateway setup (auth + model selection)"
 title: "Cloudflare AI gateway"
 read_when:
-  - You want to use Cloudflare AI Gateway with OpenClaw
+  - You want to use Cloudflare AI Gateway with Vasudev
   - You need the account ID, gateway ID, or API key env var
 ---
 
-[Cloudflare AI Gateway](https://developers.cloudflare.com/ai-gateway/) sits in front of provider APIs and adds analytics, caching, and controls. For Anthropic, OpenClaw uses the Anthropic Messages API through your Gateway endpoint.
+[Cloudflare AI Gateway](https://developers.cloudflare.com/ai-gateway/) sits in front of provider APIs and adds analytics, caching, and controls. For Anthropic, Vasudev uses the Anthropic Messages API through your Gateway endpoint.
 
 | Property      | Value                                                                                    |
 | ------------- | ---------------------------------------------------------------------------------------- |
@@ -20,7 +20,7 @@ read_when:
 For Anthropic models routed through Cloudflare AI Gateway, use your **Anthropic API key** as the provider key.
 </Note>
 
-When thinking is enabled for Anthropic Messages models, OpenClaw strips trailing
+When thinking is enabled for Anthropic Messages models, Vasudev strips trailing
 assistant prefill turns before sending the payload through Cloudflare AI Gateway.
 Anthropic rejects response prefilling with extended thinking, while ordinary
 non-thinking prefill remains available.
@@ -48,7 +48,7 @@ openclaw gateway restart
 
   </Step>
   <Step title="Set a default model">
-    Add the model to your OpenClaw config:
+    Add the model to your Vasudev config:
 
     ```json5
     {

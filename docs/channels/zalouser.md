@@ -1,7 +1,7 @@
 ---
 summary: "Zalo personal account support via native zca-js (QR login), capabilities, and configuration"
 read_when:
-  - Setting up Zalo Personal for OpenClaw
+  - Setting up Zalo Personal for Vasudev
   - Debugging Zalo Personal login or message flow
 title: "Zalo personal"
 ---
@@ -80,9 +80,9 @@ selection and the tool's literal `default` profile remain unchanged.
 
 ## Inbound durability
 
-OpenClaw stores each raw `zca-js` message callback before processing it. Pending messages resume from the account queue after a Gateway restart, and processing stays serialized per direct chat or group.
+Vasudev stores each raw `zca-js` message callback before processing it. Pending messages resume from the account queue after a Gateway restart, and processing stays serialized per direct chat or group.
 
-The `zca-js` socket listener does not expose a delivery acknowledgement or automatically replay old messages after reconnect. The durable queue therefore protects the local crash window after a callback reaches OpenClaw; it cannot recover a message the socket never delivered. Replay tombstones are mostly a safeguard against a repeated callback with the same Zalo message id.
+The `zca-js` socket listener does not expose a delivery acknowledgement or automatically replay old messages after reconnect. The durable queue therefore protects the local crash window after a callback reaches Vasudev; it cannot recover a message the socket never delivered. Replay tombstones are mostly a safeguard against a repeated callback with the same Zalo message id.
 
 ## Access control (DMs)
 
@@ -138,7 +138,7 @@ Example:
 - Applies both to allowlisted groups and open group mode.
 - Quoting a bot message counts as an implicit mention for group activation.
 - Authorized control commands (for example `/new`) can bypass mention gating.
-- When a group message is skipped because a mention is required, OpenClaw stores it as pending group history and includes it on the next processed group message.
+- When a group message is skipped because a mention is required, Vasudev stores it as pending group history and includes it on the next processed group message.
 - Group history limit: `channels.zalouser.historyLimit`, then `messages.groupChat.historyLimit`, then a fallback of `50`.
 
 Example:
@@ -159,7 +159,7 @@ Example:
 
 ## Multi-account
 
-Accounts map to `zalouser` profiles in OpenClaw state. Example:
+Accounts map to `zalouser` profiles in Vasudev state. Example:
 
 ```json5
 {
@@ -185,7 +185,7 @@ Profile selection can also come from environment variables:
 | `ZALOUSER_PROFILE` | Profile name to use when no `profile` is set in channel or account config. |
 | `ZCA_PROFILE`      | Legacy fallback, used only when `ZALOUSER_PROFILE` is not set.             |
 
-Profile names select the saved Zalo login credentials in OpenClaw state. Resolution order:
+Profile names select the saved Zalo login credentials in Vasudev state. Resolution order:
 
 1. Explicit `profile` in config.
 2. `ZALOUSER_PROFILE`.
@@ -196,11 +196,11 @@ For multi-account setups, prefer setting `profile` on each account in config so 
 
 ## Typing, reactions, and delivery acknowledgements
 
-- OpenClaw sends a typing event before dispatching a reply (best-effort).
+- Vasudev sends a typing event before dispatching a reply (best-effort).
 - Message reaction action `react` is supported for `zalouser` in channel actions.
   - Use `remove: true` to remove a specific reaction emoji from a message.
   - Reaction semantics: [Reactions](/tools/reactions)
-- For inbound messages that include event metadata, OpenClaw sends delivered + seen acknowledgements (best-effort).
+- For inbound messages that include event metadata, Vasudev sends delivered + seen acknowledgements (best-effort).
 
 ## Troubleshooting
 

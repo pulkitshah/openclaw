@@ -6,7 +6,7 @@ read_when:
 title: "Brave search"
 ---
 
-OpenClaw supports Brave Search API as a `web_search` provider.
+Vasudev supports Brave Search API as a `web_search` provider.
 
 ## Get an API key
 
@@ -51,7 +51,7 @@ Provider-specific Brave search settings live under `plugins.entries.brave.config
 - `llm-context`: Brave LLM Context API with pre-extracted text chunks and sources for grounding
 
 `webSearch.baseUrl` can point Brave requests at a trusted Brave-compatible proxy
-or gateway. OpenClaw appends `/res/v1/web/search` or `/res/v1/llm/context` to
+or gateway. Vasudev appends `/res/v1/web/search` or `/res/v1/llm/context` to
 the configured base URL and keeps the base URL in the cache key. Public
 endpoints must use `https://`; `http://` is accepted only for trusted loopback
 or private-network proxy hosts.
@@ -123,10 +123,10 @@ await web_search({
 - Results expose `published` from Brave's ISO publication metadata: `page_age`
   in web mode and the matching source's ISO timestamp or date in `llm-context`
   mode. Relative age and fetch timestamps are not publication dates. Offsetless
-  timestamps remain offsetless; OpenClaw does not invent a timezone. Verify the
+  timestamps remain offsetless; Vasudev does not invent a timezone. Verify the
   source date when freshness matters.
 
-- OpenClaw uses the Brave **Search** plan. If you have a legacy subscription (e.g. the original Free plan with 2,000 queries/month), it remains valid but does not include newer features like LLM Context or higher rate limits.
+- Vasudev uses the Brave **Search** plan. If you have a legacy subscription (e.g. the original Free plan with 2,000 queries/month), it remains valid but does not include newer features like LLM Context or higher rate limits.
 - Each Brave plan includes **\$5/month in free credit** (renewing). The Search plan costs \$5 per 1,000 requests, so the credit covers 1,000 queries/month. Set your usage limit in the Brave dashboard to avoid unexpected charges. See the [Brave API portal](https://brave.com/search/api/) for current plans.
 - The Search plan includes the LLM Context endpoint and AI inference rights. Storing results to train or tune models requires a plan with explicit storage rights. See the Brave [Terms of Service](https://api-dashboard.search.brave.com/terms-of-service).
 - `llm-context` mode returns grounded source entries instead of the normal web-search snippet shape.

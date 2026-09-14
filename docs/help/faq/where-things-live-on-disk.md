@@ -2,15 +2,15 @@
 summary: "Data locations, AGENTS.md and SOUL.md placement, backups, and uninstalling"
 title: "Where things live on disk"
 read_when:
-  - You need to find, back up, or move OpenClaw data
+  - You need to find, back up, or move Vasudev data
   - You are deciding where agent instruction files belong
 ---
 
 ## Where things live on disk
 
 <AccordionGroup>
-  <Accordion title="Is all data used with OpenClaw saved locally?">
-    No: **OpenClaw's own state is local**, but **external services still see what you send them**.
+  <Accordion title="Is all data used with Vasudev saved locally?">
+    No: **Vasudev's own state is local**, but **external services still see what you send them**.
 
     - **Local by default**: sessions, memory files, config, and workspace live on the Gateway host (`~/.openclaw` plus your workspace directory).
     - **Remote by necessity**: messages sent to model providers (Anthropic/OpenAI/etc.) go to their APIs, and chat platforms (Slack/Telegram/WhatsApp/etc.) store message data on their servers.
@@ -20,7 +20,7 @@ read_when:
 
   </Accordion>
 
-  <Accordion title="Where does OpenClaw store its data?">
+  <Accordion title="Where does Vasudev store its data?">
     Everything lives under `$OPENCLAW_STATE_DIR` (default: `~/.openclaw`):
 
     | Path                                                               | Purpose                                                            |
@@ -101,12 +101,12 @@ read_when:
 
   </Accordion>
 
-  <Accordion title="How do I completely uninstall OpenClaw?">
+  <Accordion title="How do I completely uninstall Vasudev?">
     See [Uninstall](/install/uninstall).
   </Accordion>
 
   <Accordion title="Can agents work outside the workspace?">
-    Yes. The workspace is the **default cwd** and memory anchor, not a hard sandbox. Relative paths resolve inside the workspace; absolute paths can access other host locations unless sandboxing is enabled. For isolation, use [`agents.defaults.sandbox`](/gateway/sandboxing) or per-agent sandbox settings. To make a repo the default working directory, point that agent's `workspace` at the repo root - the OpenClaw repo itself is just source code, so keep the workspace separate unless you intentionally want the agent to work inside it.
+    Yes. The workspace is the **default cwd** and memory anchor, not a hard sandbox. Relative paths resolve inside the workspace; absolute paths can access other host locations unless sandboxing is enabled. For isolation, use [`agents.defaults.sandbox`](/gateway/sandboxing) or per-agent sandbox settings. To make a repo the default working directory, point that agent's `workspace` at the repo root - the Vasudev repo itself is just source code, so keep the workspace separate unless you intentionally want the agent to work inside it.
 
     ```json5
     {

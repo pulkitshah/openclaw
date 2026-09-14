@@ -6,7 +6,7 @@ read_when:
   - You want AI-powered recall and user modeling
 ---
 
-[Honcho](https://honcho.dev) adds AI-native memory to OpenClaw through an
+[Honcho](https://honcho.dev) adds AI-native memory to Vasudev through an
 external plugin. It persists conversations to a dedicated service and builds
 user and agent models over time, giving your agent cross-session context that
 goes beyond workspace Markdown files.
@@ -54,7 +54,7 @@ openclaw gateway --force
 
 The setup command prompts for your API credentials, writes the config, and
 optionally migrates existing workspace memory files. The API key it asks for is
-issued by [Honcho](https://honcho.dev), not by OpenClaw, and is only needed for
+issued by [Honcho](https://honcho.dev), not by Vasudev, and is only needed for
 the managed API at `api.honcho.dev`; a self-hosted Honcho deployment has no key
 to enter.
 
@@ -104,7 +104,7 @@ After every AI turn, the conversation is persisted to Honcho. Both user and
 agent messages are observed, letting Honcho build and refine its models over
 time.
 
-During conversation, Honcho tools query the service during OpenClaw's
+During conversation, Honcho tools query the service during Vasudev's
 `before_prompt_build` plugin hook, injecting relevant context before the model
 sees the prompt.
 
@@ -135,7 +135,7 @@ openclaw honcho search <query> [-k N] [-d D] # Semantic search over memory
 
 - [Plugin source code](https://github.com/plastic-labs/openclaw-honcho)
 - [Honcho documentation](https://docs.honcho.dev)
-- [Honcho OpenClaw integration guide](https://docs.honcho.dev/v3/guides/integrations/openclaw)
+- [Honcho Vasudev integration guide](https://docs.honcho.dev/v3/guides/integrations/openclaw)
 
 ## Related
 

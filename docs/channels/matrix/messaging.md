@@ -7,11 +7,11 @@ title: "Matrix message behavior"
 sidebarTitle: "Messaging"
 ---
 
-How OpenClaw delivers replies into Matrix rooms: streaming previews, inbound voice notes, and reactions.
+How Vasudev delivers replies into Matrix rooms: streaming previews, inbound voice notes, and reactions.
 
 ## Streaming previews
 
-Matrix reply streaming is opt-in. `streaming.mode` controls how OpenClaw delivers the in-flight assistant reply; `streaming.block.enabled` controls whether each completed block is kept as its own Matrix message.
+Matrix reply streaming is opt-in. `streaming.mode` controls how Vasudev delivers the in-flight assistant reply; `streaming.block.enabled` controls whether each completed block is kept as its own Matrix message.
 
 ```json5
 {
@@ -83,8 +83,8 @@ The full config accepts `{ mode, chunkMode, block, preview, progress }`:
 
 Notes:
 
-- If a preview grows past Matrix's per-event size limit, OpenClaw stops preview streaming and falls back to final-only delivery.
-- Media replies always send attachments normally. If a visible preview cannot be reused safely, OpenClaw keeps it until the complete replacement is confirmed and then redacts it. If replacement delivery fails, is partial, or produces no visible event, the preview remains visible.
+- If a preview grows past Matrix's per-event size limit, Vasudev stops preview streaming and falls back to final-only delivery.
+- Media replies always send attachments normally. If a visible preview cannot be reused safely, Vasudev keeps it until the complete replacement is confirmed and then redacts it. If replacement delivery fails, is partial, or produces no visible event, the preview remains visible.
 - Tool-progress preview updates are on by default when preview streaming is active. Set `streaming.preview.toolProgress: false` to keep preview edits for answer text but leave tool progress on the normal delivery path.
 - Preview edits cost extra Matrix API calls. Leave `streaming.mode: "off"` for the most conservative rate-limit profile.
 - Legacy scalar/boolean `streaming` values and the flat `blockStreaming` / `chunkMode` keys are rewritten to this nested shape by `openclaw doctor --fix`.
@@ -96,7 +96,7 @@ Inbound Matrix voice notes are transcribed before the room mention gate, so a vo
 Matrix uses the shared audio media provider under `tools.media.audio`, such as OpenAI `gpt-4o-mini-transcribe`. See [Media tools overview](/tools/media-overview) for provider setup and limits.
 
 - `m.audio` events and `m.file` events with an `audio/*` MIME type are eligible.
-- In encrypted rooms, OpenClaw decrypts the attachment through the existing Matrix media path before transcription.
+- In encrypted rooms, Vasudev decrypts the attachment through the existing Matrix media path before transcription.
 - The transcript is marked machine-generated and untrusted in the agent prompt.
 - The attachment is marked as already transcribed so downstream media tools do not transcribe it again.
 - Set `tools.media.audio.enabled: false` to disable audio transcription globally.

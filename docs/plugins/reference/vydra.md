@@ -1,5 +1,5 @@
 ---
-summary: "Adds Vydra model provider support to OpenClaw."
+summary: "Adds Vydra model provider support to Vasudev."
 read_when:
   - You are installing, configuring, or auditing the vydra plugin
 title: "Vydra plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-Adds Vydra model provider support to OpenClaw.
+Adds Vydra model provider support to Vasudev.
 
 ## Distribution
 

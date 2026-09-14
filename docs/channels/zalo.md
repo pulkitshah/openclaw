@@ -9,7 +9,7 @@ Status: experimental. Direct messages and group chats are both implemented. The 
 
 ## Bundled plugin
 
-Zalo ships as a bundled plugin in current OpenClaw releases, so packaged builds do not need a separate install.
+Zalo ships as a bundled plugin in current Vasudev releases, so packaged builds do not need a separate install.
 
 On an older build or a custom install that excludes Zalo, install the npm package directly:
 
@@ -86,7 +86,7 @@ Group chats are supported by the plugin (`chatTypes: ["direct", "group"]`) and g
 - `channels.zalo.groupPolicy`: `open` | `allowlist` | `disabled`.
 - `channels.zalo.groupAllowFrom` restricts which sender IDs can trigger the bot in groups. Falls back to `allowFrom` when unset.
 - Default resolution: when `channels.zalo` is configured, an unset `groupPolicy` resolves to `open`. When `channels.zalo` is missing entirely, runtime fails closed to `allowlist`.
-- Reported real-world caveat: on some Marketplace-bot setups the bot could not be added to a group at all. If you hit that, verify with your bot's Zalo Bot Platform settings. It is a platform-side constraint, not an OpenClaw policy.
+- Reported real-world caveat: on some Marketplace-bot setups the bot could not be added to a group at all. If you hit that, verify with your bot's Zalo Bot Platform settings. It is a platform-side constraint, not an Vasudev policy.
 
 ## Long-polling vs webhook
 
@@ -97,7 +97,7 @@ Group chats are supported by the plugin (`chatTypes: ["direct", "group"]`) and g
   - Zalo sends events with an `X-Bot-Api-Secret-Token` header, checked with a constant-time comparison.
   - Gateway HTTP handles webhook requests at `channels.zalo.webhookPath` (defaults to the webhook URL's path).
   - Requests must use `Content-Type: application/json` (or a `+json` media type).
-  - OpenClaw returns HTTP 200 only after it durably stores the raw event. Storage failures return HTTP 500. The durable `200` carries `x-openclaw-delivery-accepted: durable`. Reverse proxies can require that header to distinguish OpenClaw acceptance from a generic `200`. Authentication, validation, and storage-error responses omit it.
+  - Vasudev returns HTTP 200 only after it durably stores the raw event. Storage failures return HTTP 500. The durable `200` carries `x-openclaw-delivery-accepted: durable`. Reverse proxies can require that header to distinguish Vasudev acceptance from a generic `200`. Authentication, validation, and storage-error responses omit it.
   - getUpdates polling and webhook are mutually exclusive per Zalo API docs.
 
 ## Supported message types

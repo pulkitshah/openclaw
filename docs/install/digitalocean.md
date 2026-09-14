@@ -1,12 +1,12 @@
 ---
-summary: "Host OpenClaw on a DigitalOcean Droplet"
+summary: "Host Vasudev on a DigitalOcean Droplet"
 read_when:
-  - Setting up OpenClaw on DigitalOcean
-  - Looking for a simple paid VPS for OpenClaw
+  - Setting up Vasudev on DigitalOcean
+  - Looking for a simple paid VPS for Vasudev
 title: "DigitalOcean"
 ---
 
-Run a persistent OpenClaw Gateway on a DigitalOcean Droplet (~$6/month for the 1 GB Basic plan).
+Run a persistent Vasudev Gateway on a DigitalOcean Droplet (~$6/month for the 1 GB Basic plan).
 
 DigitalOcean is a straightforward paid VPS path. For cheaper or free options:
 
@@ -60,7 +60,7 @@ DigitalOcean is a straightforward paid VPS path. For cheaper or free options:
     openclaw --version
     ```
 
-    Use the root shell only for system bootstrap. Run OpenClaw commands as the non-root `openclaw` user so state lives under `/home/openclaw/.openclaw/` and the Gateway installs as that user's systemd `--user` service.
+    Use the root shell only for system bootstrap. Run Vasudev commands as the non-root `openclaw` user so state lives under `/home/openclaw/.openclaw/` and the Gateway installs as that user's systemd `--user` service.
 
   </Step>
 
@@ -121,7 +121,7 @@ DigitalOcean is a straightforward paid VPS path. For cheaper or free options:
 
 ## Persistence and backups
 
-OpenClaw state lives under:
+Vasudev state lives under:
 
 - `~/.openclaw/` -- `openclaw.json`, channel/provider credentials, shared and per-agent SQLite auth stores, and session data.
 - `~/.openclaw/workspace/` -- the agent workspace (SOUL.md, memory, artifacts).
@@ -133,7 +133,7 @@ openclaw backup create
 openclaw backup restore <archive.tar.gz> --target <fresh-directory>
 ```
 
-DigitalOcean snapshots back up the whole Droplet. OpenClaw archives can be
+DigitalOcean snapshots back up the whole Droplet. Vasudev archives can be
 transferred to another host. Absolute symbolic links keep their original target
 locations, including links to separately backed-up config or credentials.
 Review these links before activating state on another host or at another path;
@@ -163,7 +163,7 @@ The $6 Droplet only has 1 GB RAM. To keep things smooth:
 
 - [Channels](/channels) -- connect Telegram, WhatsApp, Discord, and more
 - [Gateway configuration](/gateway/configuration) -- all config options
-- [Updating](/install/updating) -- keep OpenClaw up to date
+- [Updating](/install/updating) -- keep Vasudev up to date
 
 ## Related
 

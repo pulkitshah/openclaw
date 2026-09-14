@@ -33,7 +33,7 @@ outcome instead of separate coverage counters. A manual request does not change
 the self-learning setting. Normal session capacity, permissions, provider pricing,
 and data-handling terms apply.
 
-In `propose` and `auto` modes, OpenClaw can review one finished substantial turn
+In `propose` and `auto` modes, Vasudev can review one finished substantial turn
 after the agent system becomes idle. It records the finished turn's boundary and
 reads that turn's model context asynchronously with the same provider and model.
 Review transcript and session metadata stay detached from foreground work.

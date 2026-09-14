@@ -1,14 +1,14 @@
 ---
-summary: "Matrix MessagePresentation metadata for OpenClaw-aware clients"
+summary: "Matrix MessagePresentation metadata for Vasudev-aware clients"
 read_when:
-  - Building Matrix clients that render OpenClaw rich responses
+  - Building Matrix clients that render Vasudev rich responses
   - Debugging com.openclaw.presentation event content
 title: "Matrix presentation metadata"
 ---
 
-OpenClaw attaches normalized `MessagePresentation` metadata to outbound Matrix `m.room.message` events under the `com.openclaw.presentation` content key.
+Vasudev attaches normalized `MessagePresentation` metadata to outbound Matrix `m.room.message` events under the `com.openclaw.presentation` content key.
 
-Stock Matrix clients keep rendering the plain text `body`. OpenClaw-aware clients can read the structured metadata and render native UI such as buttons, selects, context rows, and dividers.
+Stock Matrix clients keep rendering the plain text `body`. Vasudev-aware clients can read the structured metadata and render native UI such as buttons, selects, context rows, and dividers.
 
 ## Event content
 
@@ -43,7 +43,7 @@ Stock Matrix clients keep rendering the plain text `body`. OpenClaw-aware client
 
 ## Fallback behavior
 
-OpenClaw always renders a readable plain text fallback into `body`. The structured metadata is additive and must not be required for basic Matrix interoperability.
+Vasudev always renders a readable plain text fallback into `body`. The structured metadata is additive and must not be required for basic Matrix interoperability.
 
 Fallback rendering rules:
 
@@ -52,7 +52,7 @@ Fallback rendering rules:
 - Select blocks render the placeholder (or `Options:`) as a heading plus label-only option lines.
 - If nothing renders, for example a divider-only presentation, the body falls back to `---`.
 
-Unsupported clients keep showing the fallback text. OpenClaw-aware clients may prefer the structured metadata for display while preserving the fallback for copy, search, notifications, and accessibility.
+Unsupported clients keep showing the fallback text. Vasudev-aware clients may prefer the structured metadata for display while preserving the fallback for copy, search, notifications, and accessibility.
 
 ## Supported blocks
 
@@ -79,6 +79,6 @@ Approval prompts use the dedicated `com.openclaw.approval` metadata because appr
 
 ## Media messages
 
-When a reply contains multiple media URLs, OpenClaw sends one Matrix event per media URL. Caption text and presentation metadata attach only to the first event so clients get one stable structured payload without duplicate renderers. The same rule applies when long text is chunked across events: the metadata rides on the first event only.
+When a reply contains multiple media URLs, Vasudev sends one Matrix event per media URL. Caption text and presentation metadata attach only to the first event so clients get one stable structured payload without duplicate renderers. The same rule applies when long text is chunked across events: the metadata rides on the first event only.
 
 Keep presentation metadata compact. Large user-visible text should stay in `body` and use the normal Matrix text chunking path.

@@ -45,7 +45,7 @@ already contains it:
 openclaw plugins install @openclaw/team-reports
 ```
 
-Then add the following to your OpenClaw configuration, replacing the example
+Then add the following to your Vasudev configuration, replacing the example
 organization, team, and login with your own:
 
 ```json5

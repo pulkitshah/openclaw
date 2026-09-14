@@ -2,14 +2,14 @@
 summary: "Microsoft Teams meetings plugin: join work or consumer meetings as a Chrome browser guest"
 doc-schema-version: 1
 read_when:
-  - You want an OpenClaw agent to join a Microsoft Teams meeting
+  - You want an Vasudev agent to join a Microsoft Teams meeting
   - You need Teams-specific guest policy or manual-action guidance
 title: "Microsoft Teams meetings plugin"
 ---
 
 The `teams-meetings` plugin joins work links under
 `teams.microsoft.com/l/meetup-join/...` and consumer links under
-`teams.live.com/meet/...` as a guest in the OpenClaw Chrome profile. It does not
+`teams.live.com/meet/...` as a guest in the Vasudev Chrome profile. It does not
 create meetings, dial in, call Microsoft Graph, or capture audio/video
 recordings.
 
@@ -26,7 +26,7 @@ join button. It recognizes the consumer launcher and Chrome's
 
 Tenant policy may require sign-in, email verification, organizer admission, or
 a browser device-permission decision. The plugin reports these as
-`manualAction`. Complete the requested step in the same OpenClaw Chrome profile,
+`manualAction`. Complete the requested step in the same Vasudev Chrome profile,
 then retry status or speech. It does not bypass tenant policy.
 
 The consumer web client was live-validated in 2026.8.1 through the

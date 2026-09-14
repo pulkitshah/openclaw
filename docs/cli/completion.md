@@ -2,13 +2,13 @@
 summary: "CLI reference for `openclaw completion` (generate/install shell completion scripts)"
 read_when:
   - You want shell completions for zsh/bash/fish/PowerShell
-  - You need to cache completion scripts under OpenClaw state
+  - You need to cache completion scripts under Vasudev state
 title: "Completion"
 ---
 
 # `openclaw completion`
 
-Generate shell completion scripts, cache them under OpenClaw state, and optionally install them into your shell profile.
+Generate shell completion scripts, cache them under Vasudev state, and optionally install them into your shell profile.
 
 ## Usage
 
@@ -42,7 +42,7 @@ The install writes a small `# OpenClaw Completion` block into your shell profile
 
 Profile changes are staged beside the destination and atomically replace it only after a complete durable write. A failed install leaves an existing profile unchanged.
 
-Installed source lines preserve literal cache paths, including spaces, quotes, dollar signs, and backslashes. Reinstalling replaces OpenClaw's previous source line after the state directory changes.
+Installed source lines preserve literal cache paths, including spaces, quotes, dollar signs, and backslashes. Reinstalling replaces Vasudev's previous source line after the state directory changes.
 
 A user-managed portable hook for the same cached script (for example `[[ -f "${HOME}/.openclaw/completions/openclaw.bash" ]] && source "${HOME}/.openclaw/completions/openclaw.bash"`, as a dotfile manager would write) is recognized as completion being configured. Doctor and `completion --install` leave such managed lines byte-for-byte untouched instead of appending a duplicate literal-path block.
 

@@ -42,7 +42,7 @@ command access. Guild/channel users and roles, `commands.ownerAllowFrom`, and
 wake-name gates still control conversation, agent tools, and active-run controls;
 recording does not grant any of those permissions. Speech during protected
 playback is recorded without interrupting playback or triggering a reply.
-If OpenClaw first subscribes to someone already speaking, it records the available
+If Vasudev first subscribes to someone already speaking, it records the available
 speech without conversational input or commands. Normal conversation requires a
 fresh receive stream after the current stream ends; brief pauses within
 `voice.captureSilenceGraceMs` keep the current stream and its recording-only behavior.

@@ -1,5 +1,5 @@
 ---
-summary: "OpenClaw Raft channel plugin for secure CLI wake bridges."
+summary: "Vasudev Raft channel plugin for secure CLI wake bridges."
 read_when:
   - You are installing, configuring, or auditing the raft plugin
 title: "Raft plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-OpenClaw Raft channel plugin for secure CLI wake bridges.
+Vasudev Raft channel plugin for secure CLI wake bridges.
 
 ## Distribution
 

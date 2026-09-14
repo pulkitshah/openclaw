@@ -217,7 +217,7 @@ plugins](/plugins/sdk-provider-plugins) guide.
     Both tool definitions accept `execute(args, context?)`, where the optional
     context carries `signal?: AbortSignal`. Forward that signal to network
     requests and check cancellation after asynchronous work. Existing
-    one-argument implementations remain valid; OpenClaw rejects late fetch
+    one-argument implementations remain valid; Vasudev rejects late fetch
     results after cancellation before publishing them to its fetch cache.
 
   </Tab>

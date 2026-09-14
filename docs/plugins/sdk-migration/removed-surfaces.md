@@ -126,7 +126,7 @@ timeline for current status.
     **Old**: `tool()` factory from `openclaw/plugin-sdk/provider-web-search`.
 
     **New**: implement `createTool(...)` directly on the provider plugin.
-    OpenClaw no longer needs the SDK helper to register the tool wrapper.
+    Vasudev no longer needs the SDK helper to register the tool wrapper.
 
   </Accordion>
 
@@ -199,7 +199,7 @@ timeline for current status.
 
     **New**: a single `resolveThinkingProfile(ctx)` that returns a
     `ProviderThinkingProfile` with the canonical `id`, optional `label`, and a
-    ranked level list. OpenClaw downgrades stale stored values by profile rank
+    ranked level list. Vasudev downgrades stale stored values by profile rank
     automatically.
 
     The context includes `provider`, `modelId`, optional merged `reasoning`,

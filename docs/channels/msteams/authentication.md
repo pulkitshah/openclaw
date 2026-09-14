@@ -11,7 +11,7 @@ Federated authentication for the Teams bot, and how it compares with a client se
 
 ## Federated authentication (certificate plus managed identity)
 
-For production, OpenClaw supports **federated authentication** as an alternative to client secrets, via `channels.msteams.authType: "federated"`. Two methods:
+For production, Vasudev supports **federated authentication** as an alternative to client secrets, via `channels.msteams.authType: "federated"`. Two methods:
 
 ### Option A: Certificate-based authentication
 
@@ -52,7 +52,7 @@ Use Azure Managed Identity for passwordless authentication on Azure infrastructu
 
 1. The bot pod/VM has a managed identity (system- or user-assigned).
 2. A federated identity credential links the managed identity to the Entra ID app registration.
-3. At runtime, OpenClaw uses `@azure/identity` to acquire tokens from the Azure IMDS endpoint.
+3. At runtime, Vasudev uses `@azure/identity` to acquire tokens from the Azure IMDS endpoint.
 4. The token is passed to the Teams SDK for bot authentication.
 
 **Prerequisites:**
@@ -133,4 +133,4 @@ For AKS deployments using workload identity:
 
 `certificateThumbprint` can be set alongside `certificatePath` but is not read by the auth path; it is accepted for forward compatibility only.
 
-**Default:** when `authType` is unset, OpenClaw uses client-secret authentication (`appPassword`). Existing configs keep working unchanged.
+**Default:** when `authType` is unset, Vasudev uses client-secret authentication (`appPassword`). Existing configs keep working unchanged.

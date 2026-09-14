@@ -161,7 +161,7 @@ Examples of channel-owned flags include:
 | Tlon        | `--ship`, `--url`, `--code`, `--group-channels`, `--dm-allowlist`, `--auto-discover-channels`        |
 | WhatsApp    | `--auth-dir`                                                                                         |
 
-If a channel plugin needs to be installed during a flag-driven add command, OpenClaw uses the channel's default install source without opening the interactive plugin install prompt.
+If a channel plugin needs to be installed during a flag-driven add command, Vasudev uses the channel's default install source without opening the interactive plugin install prompt.
 
 Both guided setup and flag-driven setup pass through the selected channel's parser, validation, account resolution, config writer, and post-write hooks. Unsupported flags fail with the owning channel's setup error instead of being accepted through a global input bag.
 
@@ -172,7 +172,7 @@ openclaw channels add telegram
 openclaw channels add --channel telegram
 ```
 
-Guided setup requires an interactive terminal. In a non-TTY shell, OpenClaw exits immediately instead of waiting for input; use `openclaw channels add --channel <id> --use-env` or pass the selected plugin's credential flags.
+Guided setup requires an interactive terminal. In a non-TTY shell, Vasudev exits immediately instead of waiting for input; use `openclaw channels add --channel <id> --use-env` or pass the selected plugin's credential flags.
 
 The wizard can prompt for:
 
@@ -184,7 +184,7 @@ If you confirm bind now, the wizard asks which agent should own each configured 
 
 You can also manage the same routing rules later with `openclaw agents bindings`, `openclaw agents bind`, and `openclaw agents unbind` (see [agents](/cli/agents)).
 
-When you add a non-default account to a channel that is still using single-account top-level settings, OpenClaw promotes those top-level values into the channel's account map before writing the new account. Promotion reuses an existing named account when the channel has exactly one, or when `defaultAccount` points at one; otherwise the values land in `channels.<channel>.accounts.default`.
+When you add a non-default account to a channel that is still using single-account top-level settings, Vasudev promotes those top-level values into the channel's account map before writing the new account. Promotion reuses an existing named account when the channel has exactly one, or when `defaultAccount` points at one; otherwise the values land in `channels.<channel>.accounts.default`.
 
 Routing behavior stays consistent:
 
@@ -196,7 +196,7 @@ If your config was already in a mixed state (named accounts present and top-leve
 
 ## Login and logout (interactive)
 
-Before `channels add` or `channels login` writes local credentials or configuration, OpenClaw compares the selected CLI state/config paths with the local Gateway or its installed service. A proven mismatch stops before the write. A remote Gateway or an authenticated path that cannot be verified produces a warning instead.
+Before `channels add` or `channels login` writes local credentials or configuration, Vasudev compares the selected CLI state/config paths with the local Gateway or its installed service. A proven mismatch stops before the write. A remote Gateway or an authenticated path that cannot be verified produces a warning instead.
 
 ```bash
 openclaw channels login --channel whatsapp

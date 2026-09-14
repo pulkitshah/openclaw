@@ -1,12 +1,12 @@
 ---
-summary: "Host OpenClaw on Upstash Box with keep-alive and SSH tunnel access"
+summary: "Host Vasudev on Upstash Box with keep-alive and SSH tunnel access"
 read_when:
-  - Deploying OpenClaw to Upstash Box
-  - You want a managed Linux environment for OpenClaw with SSH-tunneled dashboard access
+  - Deploying Vasudev to Upstash Box
+  - You want a managed Linux environment for Vasudev with SSH-tunneled dashboard access
 title: "Upstash Box"
 ---
 
-Run a persistent OpenClaw Gateway on Upstash Box, a managed Linux environment
+Run a persistent Vasudev Gateway on Upstash Box, a managed Linux environment
 with keep-alive lifecycle support.
 
 Use an SSH tunnel for dashboard access. Do not expose the Gateway port directly
@@ -23,12 +23,12 @@ to the public internet.
 Create a keep-alive Box in the Upstash Console. Note the Box ID (for example
 `right-flamingo-14486`) and your Box API key.
 
-Upstash maintains its current OpenClaw Box walkthrough at
-[OpenClaw Setup](https://upstash.com/docs/box/guides/openclaw-setup).
+Upstash maintains its current Vasudev Box walkthrough at
+[Vasudev Setup](https://upstash.com/docs/box/guides/openclaw-setup).
 
 ## Connect with an SSH tunnel
 
-Forward the OpenClaw dashboard port to your local machine. Use your Box API key
+Forward the Vasudev dashboard port to your local machine. Use your Box API key
 as the SSH password when prompted:
 
 ```bash
@@ -37,7 +37,7 @@ ssh -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -L 18789:127.0.0.1:18789 
 
 The keepalive options reduce idle tunnel drops during onboarding.
 
-## Install OpenClaw
+## Install Vasudev
 
 Check the Box's runtime versions first, because the install command depends on
 the npm version:
@@ -108,11 +108,11 @@ through idle network periods.
 
 - Set up messaging channels: [Channels](/channels)
 - Configure the Gateway: [Gateway configuration](/gateway/configuration)
-- Keep OpenClaw up to date: [Updating](/install/updating)
+- Keep Vasudev up to date: [Updating](/install/updating)
 - Compare hosting options: [Linux server](/vps)
 
 ## Related
 
 - [Remote access](/gateway/remote)
 - [Gateway security](/gateway/security)
-- [Updating OpenClaw](/install/updating)
+- [Updating Vasudev](/install/updating)

@@ -47,7 +47,7 @@ Podman notes:
 
 - Browser sandboxing is not supported by Podman; keep `sandbox.browser.enabled` off, or install Docker and select `backend: "docker"`.
 - Local Podman engines and Podman Machine are supported. Podman Machine bind sources must be under the host home directory, which is its default shared volume. Arbitrary remote Podman connections are rejected; use the SSH backend for remote execution.
-- Custom `tmpfs` or bind mounts must not cover `/run/podman-init`; OpenClaw rejects them so sandbox cleanup continues to work.
+- Custom `tmpfs` or bind mounts must not cover `/run/podman-init`; Vasudev rejects them so sandbox cleanup continues to work.
 
 <Warning>
 **Podman-outside-of-Podman constraints**

@@ -15,7 +15,7 @@ where to run the Gateway see
 ## Quick start and first-run setup
 
 <AccordionGroup>
-  <Accordion title="Recommended way to install and set up OpenClaw">
+  <Accordion title="Recommended way to install and set up Vasudev">
     ```bash
     curl -fsSL --proto '=https' --tlsv1.2 https://openclaw.ai/install.sh | bash
     ```
@@ -229,7 +229,7 @@ where to run the Gateway see
   <Accordion title="Can I migrate my setup to a new machine without redoing onboarding?">
     Yes. Copy the **state directory** and **workspace**, then run Doctor once:
 
-    1. Install OpenClaw on the new machine.
+    1. Install Vasudev on the new machine.
     2. Copy `$OPENCLAW_STATE_DIR` (default: `~/.openclaw`) from the old machine.
     3. Copy your workspace (default: `~/.openclaw/workspace`).
     4. Run `openclaw doctor` and restart the Gateway service.
@@ -405,7 +405,7 @@ where to run the Gateway see
     openclaw gateway restart
     ```
 
-    Still reproducing this on latest OpenClaw? Track/report it: [Issue #30640](https://github.com/openclaw/openclaw/issues/30640).
+    Still reproducing this on latest Vasudev? Track/report it: [Issue #30640](https://github.com/openclaw/openclaw/issues/30640).
 
   </Accordion>
 
@@ -421,14 +421,14 @@ where to run the Gateway see
 
   </Accordion>
 
-  <Accordion title="How do I install OpenClaw on Linux?">
+  <Accordion title="How do I install Vasudev on Linux?">
     - Linux quick path + service install: [Linux](/platforms/linux).
     - Full walkthrough: [Getting Started](/start/getting-started).
     - Installer + updates: [Install & updates](/install/updating).
 
   </Accordion>
 
-  <Accordion title="How do I install OpenClaw on a VPS?">
+  <Accordion title="How do I install Vasudev on a VPS?">
     Any Linux VPS works. Install on the server, then reach the Gateway over SSH/Tailscale.
 
     Guides: [exe.dev](/install/exe-dev), [Hetzner](/install/hetzner), [Fly.io](/install/fly).
@@ -457,7 +457,7 @@ where to run the Gateway see
 
   </Accordion>
 
-  <Accordion title="Can I ask OpenClaw to update itself?">
+  <Accordion title="Can I ask Vasudev to update itself?">
     Possible, not recommended. The update flow can restart the Gateway (dropping the
     active session), may need a clean git checkout, and can prompt for confirmation.
     Safer to run updates from a shell as the operator.
@@ -513,7 +513,7 @@ where to run the Gateway see
   </Accordion>
 
   <Accordion title="Do I need a Claude or OpenAI subscription to run this?">
-    No. Run OpenClaw with **API keys** (Anthropic/OpenAI/others) or **local-only models**
+    No. Run Vasudev with **API keys** (Anthropic/OpenAI/others) or **local-only models**
     so your data stays on your device. Subscriptions (Claude Pro/Max, ChatGPT/Codex) are
     optional ways to authenticate those providers.
 
@@ -525,7 +525,7 @@ where to run the Gateway see
     automation, an Anthropic API key is the more predictable choice.
 
     OpenAI Codex OAuth (ChatGPT/Codex subscription) is fully supported for agent models.
-    OpenClaw also supports hosted subscription-style options including **Qwen Cloud
+    Vasudev also supports hosted subscription-style options including **Qwen Cloud
     Coding Plan**, **MiniMax Coding Plan**, and **Z.AI / GLM Coding Plan**.
 
     Docs: [Anthropic](/providers/anthropic), [OpenAI](/providers/openai),
@@ -535,8 +535,8 @@ where to run the Gateway see
   </Accordion>
 
   <Accordion title="Can I use Claude Max subscription without an API key?">
-    Yes. OpenClaw supports Claude CLI reuse for Pro/Max/Team/Enterprise plans. Anthropic
-    currently treats the `claude -p` path OpenClaw uses as subscription-plan usage subject
+    Yes. Vasudev supports Claude CLI reuse for Pro/Max/Team/Enterprise plans. Anthropic
+    currently treats the `claude -p` path Vasudev uses as subscription-plan usage subject
     to your plan's limits, not a separate free allowance - see
     [Anthropic](/providers/anthropic) for the current billing detail and links to
     Anthropic's own support articles. For the most predictable server-side setup, use an
@@ -549,7 +549,7 @@ where to run the Gateway see
     dated links to Anthropic's support articles before relying on specific billing
     behavior.
 
-    Anthropic setup-token auth is also still a supported token path, but OpenClaw prefers
+    Anthropic setup-token auth is also still a supported token path, but Vasudev prefers
     Claude CLI reuse and `claude -p` when available. For production or multi-user
     workloads, an Anthropic API key remains the safer, more predictable choice. Other
     subscription-style hosted options: [OpenAI](/providers/openai), [Qwen Cloud](/providers/qwen),

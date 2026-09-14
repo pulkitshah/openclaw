@@ -3,13 +3,13 @@ doc-schema-version: 1
 summary: "Automations: scheduled jobs, webhooks, and Gmail PubSub triggers for the Gateway scheduler"
 read_when:
   - Scheduling background jobs or wakeups
-  - Wiring external triggers (webhooks, Gmail) into OpenClaw
+  - Wiring external triggers (webhooks, Gmail) into Vasudev
   - Deciding between heartbeat and automations for scheduled work
 title: "Automations"
 sidebarTitle: "Automations"
 ---
 
-Automations are OpenClaw's built-in scheduler. The scheduler persists jobs, wakes the agent at the right time, and can deliver output to a chat channel, a webhook, or nowhere.
+Automations are Vasudev's built-in scheduler. The scheduler persists jobs, wakes the agent at the right time, and can deliver output to a chat channel, a webhook, or nowhere.
 
 Manage automations with the `openclaw automations` CLI; `openclaw cron` remains an alias for the same commands.
 

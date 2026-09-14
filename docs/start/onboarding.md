@@ -1,5 +1,5 @@
 ---
-summary: "First-run setup flow for OpenClaw (macOS app)"
+summary: "First-run setup flow for Vasudev (macOS app)"
 read_when:
   - Setting up the macOS app for the first time
   - Choosing between a local and a remote Gateway during macOS setup
@@ -15,25 +15,25 @@ agent.
 For CLI onboarding and a comparison of both paths, see [Onboarding Overview](/start/onboarding-overview).
 
 <Tip>
-Need the app first? [Download OpenClaw for macOS](/platforms/macos#download),
+Need the app first? [Download Vasudev for macOS](/platforms/macos#download),
 then return here for first-run setup.
 </Tip>
 
 <Steps>
 <Step title="Approve macOS warning">
-The first time you open OpenClaw.app, macOS asks you to approve a downloaded
+The first time you open Vasudev.app, macOS asks you to approve a downloaded
 app. Click **Open** to continue.
 
 <Frame>
-<img src="/assets/macos-onboarding/01-macos-warning.jpeg" alt="macOS dialog that asks whether to open the downloaded OpenClaw app" />
+<img src="/assets/macos-onboarding/01-macos-warning.jpeg" alt="macOS dialog that asks whether to open the downloaded Vasudev app" />
 </Frame>
 </Step>
 <Step title="Approve find local networks">
-macOS then asks whether OpenClaw may find devices on your local network.
+macOS then asks whether Vasudev may find devices on your local network.
 Click **Allow**. The app uses this to reach a Gateway on another machine.
 
 <Frame>
-<img src="/assets/macos-onboarding/02-local-networks.jpeg" alt="macOS dialog that asks whether OpenClaw may find devices on the local network" />
+<img src="/assets/macos-onboarding/02-local-networks.jpeg" alt="macOS dialog that asks whether Vasudev may find devices on the local network" />
 </Frame>
 </Step>
 <Step title="Welcome and security notice">
@@ -41,12 +41,12 @@ The app opens on its welcome screen with the security notice. Read the notice,
 then continue when you accept the trust model below.
 
 <Frame caption="Read the security notice displayed and decide accordingly">
-<img src="/assets/macos-onboarding/03-security-notice.png" alt="OpenClaw welcome screen with the security notice" />
+<img src="/assets/macos-onboarding/03-security-notice.png" alt="Vasudev welcome screen with the security notice" />
 </Frame>
 
 Security trust model:
 
-- By default, OpenClaw is a personal agent: one trusted operator boundary.
+- By default, Vasudev is a personal agent: one trusted operator boundary.
 - Shared/multi-user setups need lock-down: split trust boundaries, keep tool access minimal, and follow [Security](/gateway/security).
 - Local onboarding defaults new configs to `tools.profile: "coding"` so fresh setups keep filesystem/runtime tools without the unrestricted `full` profile.
 - If hooks/webhooks or other untrusted content feeds are enabled, use a strong modern model tier and keep strict tool policy/sandboxing.
@@ -97,7 +97,7 @@ tool-capable model with at least 16K of measured effective context already
 loaded in a reachable LM Studio or Ollama server. Detection runs on the
 Gateway host, including when the macOS app connects to a Linux Gateway. Detection
 only presents choices: it does not test, activate, install, or save any candidate.
-Select the connection you want before OpenClaw saves any returned credential and runs one
+Select the connection you want before Vasudev saves any returned credential and runs one
 confirmation turn without tools. It activates the connection only after success.
 In particular, an existing Codex subscription is never selected automatically.
 If setup fails, the app keeps the detailed reason visible so you can retry or
@@ -106,7 +106,7 @@ Ollama checks `/api/ps` for loaded models; an eligible
 model that is only installed on disk requires explicit setup through
 **Choose connection** → **Local only**. See [Ollama](/providers/ollama).
 
-The provider picker is built from installed manifests and OpenClaw's official
+The provider picker is built from installed manifests and Vasudev's official
 provider-plugin catalog, so installable providers such as Meta appear before their
 plugin is present. When a connection needs a runtime plugin, the app and dashboard show the
 staged package's source and capabilities, with integrity when available before installing or
@@ -167,7 +167,7 @@ so another provider can opt in without adding provider-specific macOS code.
 
 The manual key/token picker uses the same provider registry. In every route,
 the provider supplies its starter model and configuration. If the starter is an
-alias, OpenClaw tests and saves the provider's canonical model name while
+alias, Vasudev tests and saves the provider's canonical model name while
 preserving existing model settings that the starter does not replace.
 A replacement credential stays inactive until you accept **Activate this saved
 sign-in?** after verification. Declining keeps your current connection and the
@@ -179,7 +179,7 @@ chat cannot start without working inference.
 </Step>
 <Step title="Continue in the dashboard">
 After a new model passes its live check, native setup closes and opens guided
-onboarding in the dashboard. OpenClaw helps configure the remaining workspace,
+onboarding in the dashboard. Vasudev helps configure the remaining workspace,
 Gateway, channels, and other optional features, then hands you off to normal
 agent chat. A verified pre-existing model opens the normal dashboard instead.
 
@@ -198,8 +198,8 @@ Location. See [macOS permissions](/platforms/mac/permissions) for grant and
 recovery guidance.
 
 See [Bootstrapping](/start/bootstrapping) for what happens on the Gateway host
-during the agent's first real turn. OpenClaw remains available later under
-**Settings → OpenClaw**.
+during the agent's first real turn. Vasudev remains available later under
+**Settings → Vasudev**.
 </Step>
 </Steps>
 

@@ -1,5 +1,5 @@
 ---
-summary: "Sign in to GitHub Copilot from OpenClaw using the device flow or non-interactive token import"
+summary: "Sign in to GitHub Copilot from Vasudev using the device flow or non-interactive token import"
 read_when:
   - You want to use GitHub Copilot as a model provider
   - You need the `openclaw models auth login-github-copilot` flow
@@ -8,16 +8,16 @@ title: "GitHub Copilot"
 ---
 
 GitHub Copilot is GitHub's AI coding assistant. It provides access to Copilot
-models for your GitHub account and plan. OpenClaw can use Copilot as a model
+models for your GitHub account and plan. Vasudev can use Copilot as a model
 provider or agent runtime in three different ways.
 
-## Three ways to use Copilot in OpenClaw
+## Three ways to use Copilot in Vasudev
 
 <Tabs>
   <Tab title="Built-in provider (github-copilot)">
     Use the native device-login flow to obtain a GitHub token. By default,
-    OpenClaw puts the token in its protected local secret store and saves only a
-    `tokenRef` in the auth profile. When OpenClaw runs, it validates Copilot access
+    Vasudev puts the token in its protected local secret store and saves only a
+    `tokenRef` in the auth profile. When Vasudev runs, it validates Copilot access
     and resolves the account-specific Copilot API endpoint. This is the **default**
     and simplest path because it does not require VS Code.
 
@@ -84,11 +84,11 @@ provider or agent runtime in three different ways.
   </Tab>
 
   <Tab title="Copilot Proxy plugin (copilot-proxy)">
-    Use the **Copilot Proxy** VS Code extension as a local bridge. OpenClaw talks to
+    Use the **Copilot Proxy** VS Code extension as a local bridge. Vasudev talks to
     the proxy's `/v1` endpoint (default `http://localhost:3000/v1`) and uses the
     model list you configure.
 
-    The `copilot-proxy` plugin ships with OpenClaw and is enabled by default.
+    The `copilot-proxy` plugin ships with Vasudev and is enabled by default.
     Configure the base URL and model ids with:
 
     ```bash
@@ -107,7 +107,7 @@ provider or agent runtime in three different ways.
 
 If your organization uses a data-residency GitHub Enterprise tenant (a
 `*.ghe.com` host such as `your-org.ghe.com`), Copilot lives on tenant-local
-endpoints rather than public `github.com`. OpenClaw exposes this as a
+endpoints rather than public `github.com`. Vasudev exposes this as a
 first-class auth choice so you do not have to hand-edit URLs.
 
 <Steps>
@@ -119,7 +119,7 @@ first-class auth choice so you do not have to hand-edit URLs.
 
     Enter the tenant root only (`your-org.ghe.com`). Derived service hosts such
     as `api.your-org.ghe.com` or `copilot-api.your-org.ghe.com` are not accepted;
-    OpenClaw derives those endpoints from the tenant root automatically.
+    Vasudev derives those endpoints from the tenant root automatically.
 
     ```bash
     openclaw models auth login --provider github-copilot --method device-enterprise
@@ -151,7 +151,7 @@ the public endpoints.
 <Note>
 Switching domains always re-runs the device login. If you already have a stored
 Copilot token and pick a different domain (public `github.com` ↔ a `*.ghe.com`
-tenant, or one tenant to another), OpenClaw will not reuse the existing token —
+tenant, or one tenant to another), Vasudev will not reuse the existing token —
 it forces a fresh login so the token is scoped to the domain being written to
 config. Re-running login for the *same* domain still offers to reuse the current
 token. Switching back to public `github.com` clears the persisted
@@ -172,7 +172,7 @@ environment variable is unset.
 
 ### Tenant request identity
 
-OpenClaw uses the `copilot-developer-cli` request identity by default, including
+Vasudev uses the `copilot-developer-cli` request identity by default, including
 for data-residency tenants. First confirm that your enterprise permits Copilot
 CLI and the selected model. A `*.ghe.com` hostname does not imply a different
 integration policy.
@@ -235,7 +235,7 @@ enable or authenticate the provider. Use
 `tokenRef` instead of plaintext in the auth profile store.
 
 Fresh non-interactive setup validates the token before saving it. When setup
-must choose a default, it also checks the live Copilot model catalog. OpenClaw
+must choose a default, it also checks the live Copilot model catalog. Vasudev
 prefers the provider's current general-purpose model when that model is
 enabled for the account; otherwise it chooses a deterministic eligible fallback.
 Setup fails without writing a new auth profile if the account has no
@@ -258,13 +258,13 @@ configured default model is never replaced.
 
   <Accordion title="Live catalog refresh from the Copilot API">
     Once the device-login (or env-var) auth path has resolved a GitHub token,
-    OpenClaw refreshes the model catalog on demand from `${baseUrl}/models`
+    Vasudev refreshes the model catalog on demand from `${baseUrl}/models`
     (the same endpoint VS Code Copilot uses) so the runtime tracks
     per-account entitlement and accurate context windows without manifest
     churn. The visible live catalog excludes models hidden from GitHub's picker
     or disabled by account policy. Automatic setup defaults additionally require
     streaming and tool-call support.
-    Newly published Copilot models become visible without an OpenClaw upgrade,
+    Newly published Copilot models become visible without an Vasudev upgrade,
     and context windows reflect the real per-model limits
     (e.g. 400k for the gpt-5.x series, 1M for the internal
     `claude-opus-*-1m` variants).
@@ -291,7 +291,7 @@ configured default model is never replaced.
   <Accordion title="Thinking levels">
     Use `/think xhigh` or `/think max` when the selected model exposes that
     level. Copilot's live catalog determines the supported efforts for your
-    account, and OpenClaw preserves those efforts in Responses requests.
+    account, and Vasudev preserves those efforts in Responses requests.
     When a Responses model starts its native effort range at `low`, `minimal`
     maps to `low` instead of sending an unsupported value.
     Explicit live limits take precedence over the bundled catalog. Gemini's
@@ -300,7 +300,7 @@ configured default model is never replaced.
   </Accordion>
 
   <Accordion title="Request compatibility">
-    OpenClaw sends Copilot-compatible request headers with a Copilot CLI request
+    Vasudev sends Copilot-compatible request headers with a Copilot CLI request
     identity, marks tool-result follow-up turns as agent-initiated, and sets the
     Copilot vision header when a turn carries image input.
   </Accordion>
@@ -319,10 +319,10 @@ configured default model is never replaced.
   </Accordion>
 
   <Accordion title="Token storage">
-    By default, device login stores the GitHub token in OpenClaw's protected local
+    By default, device login stores the GitHub token in Vasudev's protected local
     secret store and writes only a `tokenRef` to the auth profile (profile id
     `github-copilot:github`). The built-in store does not require a configured
-    external secret provider. If OpenClaw cannot write the store, login stops
+    external secret provider. If Vasudev cannot write the store, login stops
     before replacing the auth profile and reports that the state-directory or
     database permissions need repair.
 
@@ -330,9 +330,9 @@ configured default model is never replaced.
     choice for compatibility. That mode stores the token inline, reports the
     choice, and remains visible to `openclaw secrets audit --check`.
 
-    The protected store is write-only through OpenClaw's user-facing secret APIs,
+    The protected store is write-only through Vasudev's user-facing secret APIs,
     but it is not encrypted at rest; its SQLite file relies on state-directory
-    permissions. At runtime, OpenClaw resolves the reference, validates Copilot
+    permissions. At runtime, Vasudev resolves the reference, validates Copilot
     access, resolves the account-specific API endpoint, and uses the GitHub token
     for Copilot requests. You do not need to manage runtime authentication
     manually.
@@ -348,12 +348,12 @@ configured default model is never replaced.
 
 GitHub Copilot can also serve as an embedding provider for
 [memory search](/concepts/memory-search). If you have a Copilot subscription and
-have logged in, OpenClaw can use it for embeddings without a separate API key.
+have logged in, Vasudev can use it for embeddings without a separate API key.
 
 ### Config
 
 Set `memory.search.provider` explicitly to use GitHub Copilot embeddings. If a
-GitHub token is available, OpenClaw discovers available embedding models from
+GitHub token is available, Vasudev discovers available embedding models from
 the Copilot API and picks the best one automatically.
 
 ```json5
@@ -370,7 +370,7 @@ the Copilot API and picks the best one automatically.
 
 ### How it works
 
-1. OpenClaw resolves your GitHub token (from env vars or auth profile).
+1. Vasudev resolves your GitHub token (from env vars or auth profile).
 2. Validates Copilot access and resolves the account-specific API endpoint.
 3. Queries the Copilot `/models` endpoint to discover available embedding models,
    with a 10-second deadline that includes reading the response body.
@@ -379,7 +379,7 @@ the Copilot API and picks the best one automatically.
 5. Sends embedding requests to the Copilot `/embeddings` endpoint.
 
 Model availability depends on your GitHub plan. If discovery fails or no
-embedding models are available, OpenClaw uses `memory.search.fallback` only
+embedding models are available, Vasudev uses `memory.search.fallback` only
 when you explicitly configure another provider. Otherwise, setup reports the
 error instead of silently selecting a different provider.
 

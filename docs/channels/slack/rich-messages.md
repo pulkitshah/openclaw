@@ -8,12 +8,12 @@ title: "Slack charts, tables, and approvals"
 sidebarTitle: "Charts, tables, and approvals"
 ---
 
-The Block Kit surfaces OpenClaw renders natively in Slack.
+The Block Kit surfaces Vasudev renders natively in Slack.
 
 ## Native charts
 
 Slack's public [`data_visualization` Block Kit block](https://docs.slack.dev/reference/block-kit/blocks/data-visualization-block/)
-renders line, bar, area, and pie charts in messages. OpenClaw maps the portable
+renders line, bar, area, and pie charts in messages. Vasudev maps the portable
 `presentation` `chart` block to that native shape; no additional OAuth scope,
 file upload, image renderer, or Slack configuration is required beyond normal
 `chat:write` message access.
@@ -44,15 +44,15 @@ Slack's limits are enforced before native rendering:
 
 Every native chart also carries a top-level text representation for screen
 readers, notifications, session mirroring, and clients that cannot render the
-block. Standard presentation sends to other OpenClaw channels receive that same
+block. Standard presentation sends to other Vasudev channels receive that same
 deterministic chart data as text unless they advertise native chart support. If
-Slack rejects the chart with `invalid_blocks`, OpenClaw
+Slack rejects the chart with `invalid_blocks`, Vasudev
 removes the rejected native data blocks, keeps any sibling controls, and sends
 the complete chart representation as visible text.
 
 Slack accepts at most two `data_visualization` blocks per message; its public
 reference does not document this per-message subtype limit. When
-a presentation contains more than two valid charts, OpenClaw keeps their order
+a presentation contains more than two valid charts, Vasudev keeps their order
 and continues native rendering in follow-up messages, with no more than two
 charts in each message.
 
@@ -66,7 +66,7 @@ Home, modal, or Canvas content.
 ## Native tables
 
 Slack's current [`data_table` Block Kit block](https://docs.slack.dev/reference/block-kit/blocks/data-table-block/)
-renders structured rows and columns in messages. OpenClaw maps an explicit
+renders structured rows and columns in messages. Vasudev maps an explicit
 portable `presentation` `table` block to `data_table`; it does not use Slack's
 legacy [`table` block](https://docs.slack.dev/reference/block-kit/blocks/table-block/).
 No additional OAuth scope or Slack configuration is required beyond normal
@@ -89,7 +89,7 @@ No additional OAuth scope or Slack configuration is required beyond normal
 }
 ```
 
-OpenClaw maps header and string cells to Slack `raw_text` cells. Numeric cells
+Vasudev maps header and string cells to Slack `raw_text` cells. Numeric cells
 map to `raw_number`, with the finite numeric value preserved for native sorting
 and filtering. `rowHeaderColumnIndex`, when present, marks that zero-based
 column as Slack row headers.
@@ -112,7 +112,7 @@ Every native table produced from portable presentation also carries a top-level
 text representation for screen readers, notifications, session mirroring, and
 clients that cannot render the block. Raw chart and table values stay literal
 in the fallback, so cell data such as `<@U123>` does not become a Slack mention.
-If Slack rejects native chart or table blocks with `invalid_blocks`, OpenClaw
+If Slack rejects native chart or table blocks with `invalid_blocks`, Vasudev
 removes every native data block in one bounded recovery step, retains valid
 sibling blocks such as buttons and selects, and sends complete visible chart
 and table text with Slack formatting disabled. Slash-command delivery
@@ -121,15 +121,15 @@ reply batch, it selects a complete plan that fits the remaining calls or fails
 before posting that batch.
 
 Only explicit `presentation` table blocks are promoted to native tables.
-Markdown pipe tables remain authored text; OpenClaw does not guess at table
+Markdown pipe tables remain authored text; Vasudev does not guess at table
 structure or cell types. Existing trusted Slack-native producers can continue
-to pass raw blocks through `channelData.slack.blocks`; OpenClaw derives fallback
+to pass raw blocks through `channelData.slack.blocks`; Vasudev derives fallback
 text from valid raw `data_table` cells, while malformed custom blocks may
 degrade to their caption or general Block Kit fallback. Portable agent, CLI,
 and plugin output should use `presentation`.
 
 Slack clients can also deliver pasted spreadsheet content as a legacy `table`
-block in the message's top-level blocks or attachments. OpenClaw renders those
+block in the message's top-level blocks or attachments. Vasudev renders those
 inbound cells as delimiter-safe TSV for live agent input, thread context, and
 Slack `read` actions. Only native table blocks are admitted from ordinary
 attachments; link-unfurl and other non-forwarded attachment text remains
@@ -138,7 +138,7 @@ excluded.
 ## Plugin-owned modal submissions
 
 Slack plugins that register an interactive handler can also receive modal
-`view_submission` and `view_closed` lifecycle events before OpenClaw compacts
+`view_submission` and `view_closed` lifecycle events before Vasudev compacts
 the payload for the agent-visible system event. Use one of these routing
 patterns when opening a Slack modal:
 
@@ -173,7 +173,7 @@ message update. Approval delivery fails closed when an org-installed account
 does not have that event-owned workspace scope.
 
 This uses the same shared approval button surface as other channels. When `interactivity` is enabled in your Slack app settings, approval prompts render as Block Kit buttons directly in the conversation.
-When those buttons are present, they are the primary approval UX; OpenClaw
+When those buttons are present, they are the primary approval UX; Vasudev
 should only include a manual `/approve` command when the tool result says chat
 approvals are unavailable or manual approval is the only path.
 

@@ -1,12 +1,12 @@
 ---
 summary: "Nostr DM channel via NIP-04 encrypted messages"
 read_when:
-  - You want OpenClaw to receive DMs via Nostr
+  - You want Vasudev to receive DMs via Nostr
   - You're setting up decentralized messaging
 title: "Nostr"
 ---
 
-Nostr is a downloadable channel plugin (`@openclaw/nostr`) that lets OpenClaw receive and answer NIP-04 encrypted direct messages over Nostr relays. One account per gateway; DMs only.
+Nostr is a downloadable channel plugin (`@openclaw/nostr`) that lets Vasudev receive and answer NIP-04 encrypted direct messages over Nostr relays. One account per gateway; DMs only.
 
 ## Install
 

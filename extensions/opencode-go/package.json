@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/opencode-go-provider",
   "version": "2026.9.4",
-  "description": "OpenClaw OpenCode Go provider plugin",
+  "description": "Vasudev OpenCode Go provider plugin",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

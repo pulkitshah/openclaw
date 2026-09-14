@@ -1,21 +1,21 @@
 ---
 title: "v2026.8.1: Models and Providers"
-description: "Chat and the Models page open from the catalog OpenClaw already has, and requests stay inside the intended provider and authorized account order."
+description: "Chat and the Models page open from the catalog Vasudev already has, and requests stay inside the intended provider and authorized account order."
 ---
 
-Chat and the [Models page](/concepts/models) now open from the catalog OpenClaw already has, so choosing a model no longer waits for a full provider scan. Live discovery runs only when you open a model screen or explicitly refresh it, keeps the last useful list when a lookup fails, and `/model` can change only the current conversation or deliberately update one agent or the shared default.
+Chat and the [Models page](/concepts/models) now open from the catalog Vasudev already has, so choosing a model no longer waits for a full provider scan. Live discovery runs only when you open a model screen or explicitly refresh it, keeps the last useful list when a lookup fails, and `/model` can change only the current conversation or deliberately update one agent or the shared default.
 
-Once a model is selected, OpenClaw keeps the request inside the intended provider and authorized account order, preserves the real order and outcome of streamed replies and tool calls, carries reasoning and context settings with the model and runtime, and reports plan windows, token use, context pressure, and estimated cost more clearly.
+Once a model is selected, Vasudev keeps the request inside the intended provider and authorized account order, preserves the real order and outcome of streamed replies and tool calls, carries reasoning and context settings with the model and runtime, and reports plan windows, token use, context pressure, and estimated cost more clearly.
 
 <AccordionGroup>
 
 <Accordion title="Finding and choosing models">
 
-Chat and the [Models page](/concepts/models) now start from the catalog OpenClaw already has, with supported providers looking for newer chat and text models when you open a picker or request a refresh. If that lookup fails, the built-in entries and last working list remain available.
+Chat and the [Models page](/concepts/models) now start from the catalog Vasudev already has, with supported providers looking for newer chat and text models when you open a picker or request a refresh. If that lookup fails, the built-in entries and last working list remain available.
 
 A `/model` change can stay with the current conversation or deliberately apply to one agent or the shared default, with persistent changes requiring the right authority. Aliases and fallback keep the provider and account attached to the selected model.
 
-The list shows models OpenClaw can identify, while the provider, account, region, endpoint, plan, limits, and pricing determine which ones you can use.
+The list shows models Vasudev can identify, while the provider, account, region, endpoint, plan, limits, and pricing determine which ones you can use.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -41,7 +41,7 @@ The list shows models OpenClaw can identify, while the provider, account, region
 - Complete Claude Opus 5 support across Anthropic routes [#113392](https://github.com/openclaw/openclaw/pull/113392)
 - Curate model pickers around current-generation choices [#113594](https://github.com/openclaw/openclaw/pull/113594)
 - Complete Claude Opus 5 support across Anthropic routes [#113633](https://github.com/openclaw/openclaw/pull/113633)
-- Refresh model catalogs without an OpenClaw release [#113660](https://github.com/openclaw/openclaw/pull/113660)
+- Refresh model catalogs without an Vasudev release [#113660](https://github.com/openclaw/openclaw/pull/113660)
 - Refresh provider catalogs to current model lineups [#113681](https://github.com/openclaw/openclaw/pull/113681)
 - Start warm agent turns faster [#113817](https://github.com/openclaw/openclaw/pull/113817)
 - Add first-class Kimi K3 support [#113909](https://github.com/openclaw/openclaw/pull/113909)
@@ -315,11 +315,11 @@ The list shows models OpenClaw can identify, while the provider, account, region
 
 <Accordion title="Provider accounts and sign-in">
 
-OpenClaw now keeps model requests inside the [provider accounts](/concepts/model-failover) and credential order you configured. If one account hits an authentication or quota cooldown, the next authorized account for that provider can take over without changing the selected provider or model, and the saved preference resumes when it recovers. Environment keys remain available when no explicit account list is configured.
+Vasudev now keeps model requests inside the [provider accounts](/concepts/model-failover) and credential order you configured. If one account hits an authentication or quota cooldown, the next authorized account for that provider can take over without changing the selected provider or model, and the saved preference resumes when it recovers. Environment keys remain available when no explicit account list is configured.
 
 OAuth registration stays with the setup conversation where it began, failed credential writes surface as failures, and a successful login applies only to the model route that authenticated. Tenant and custom-endpoint credentials stay on the account and origin they were configured for.
 
-New GitHub Copilot device logins place the token in OpenClaw's protected local secret store by default and keep a reference in the auth profile. The store depends on state-directory permissions rather than encryption at rest, existing inline profiles are not migrated, and operators can still choose the prior plaintext mode explicitly.
+New GitHub Copilot device logins place the token in Vasudev's protected local secret store by default and keep a reference in the auth profile. The store depends on state-directory permissions rather than encryption at rest, existing inline profiles are not migrated, and operators can still choose the prior plaintext mode explicitly.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -456,7 +456,7 @@ New GitHub Copilot device logins place the token in OpenClaw's protected local s
 
 <Accordion title="Streaming Replies and Tool Calls">
 
-OpenClaw now distinguishes a complete [streamed reply](/concepts/streaming) from one that stopped partway through. On supported Responses paths, reasoning, text, tool output, and available usage remain in order; if a stream fails, valid work that already arrived is preserved, and OpenClaw retries or moves to an authorized fallback only when replay is safe. With no safe recovery path, the partial reply remains attached to the error.
+Vasudev now distinguishes a complete [streamed reply](/concepts/streaming) from one that stopped partway through. On supported Responses paths, reasoning, text, tool output, and available usage remain in order; if a stream fails, valid work that already arrived is preserved, and Vasudev retries or moves to an authorized fallback only when replay is safe. With no safe recovery path, the partial reply remains attached to the error.
 
 Tool calls wait for a complete name and arguments before they can run, including large streamed arguments and calls whose provider item IDs change along the way. Unmanaged native OpenAI Responses conversations on the official endpoint with storage enabled can continue by sending only new input after the first turn, then recover with full history if that upstream continuation state expires.
 
@@ -740,7 +740,7 @@ Tool calls wait for a complete name and arguments before they can run, including
 
 <Accordion title="Reasoning and context limits">
 
-[Reasoning settings](/concepts/context) now stay attached to the selected model and runtime when a conversation is restored or its authentication route is rebuilt. Native Codex supports Ultra for Sol and Terra and Max for Luna; embedded OpenClaw maps Ultra to the provider's highest supported effort and adds guidance for delegated work, which is a different behavior from native Codex Ultra.
+[Reasoning settings](/concepts/context) now stay attached to the selected model and runtime when a conversation is restored or its authentication route is rebuilt. Native Codex supports Ultra for Sol and Terra and Max for Luna; embedded Vasudev maps Ultra to the provider's highest supported effort and adds guidance for delegated work, which is a different behavior from native Codex Ultra.
 
 Supported GPT and Claude routes expose larger context options. Normal GPT-5.5 and GPT-5.6 runs use a 272,000-token budget with an opt-in 922,000-token input window, and the Control UI can choose 200K or 1M for supported Claude 5 CLI conversations. These options remain limited to the routes, interfaces, and accounts that support them.
 
@@ -756,7 +756,7 @@ Supported GPT and Claude routes expose larger context options. Normal GPT-5.5 an
 - Make million-token OpenAI context an explicit opt-in [#112916](https://github.com/openclaw/openclaw/pull/112916)
 - Consolidate model context budgets [#124665](https://github.com/openclaw/openclaw/pull/124665)
 - feat(agents): selectable Claude CLI context window (200K/1M) [#127951](https://github.com/openclaw/openclaw/pull/127951)
-- Add GPT-5.6 Ultra across OpenClaw and Codex runtimes [#98021](https://github.com/openclaw/openclaw/pull/98021)
+- Add GPT-5.6 Ultra across Vasudev and Codex runtimes [#98021](https://github.com/openclaw/openclaw/pull/98021)
 - Update the managed Codex app-server to 0.144.6 [#110821](https://github.com/openclaw/openclaw/pull/110821)
 - Reduce repeated per-turn conversation metadata tokens [#113616](https://github.com/openclaw/openclaw/pull/113616)
 - Stabilize Codex tool prompts and expose cache losses [#115238](https://github.com/openclaw/openclaw/pull/115238)
@@ -905,9 +905,9 @@ Supported GPT and Claude routes expose larger context options. Normal GPT-5.5 an
 
 <Accordion title="Usage, limits, and pricing">
 
-OpenClaw now separates subscription-plan information from estimated API cost. Chat can show plan windows, reset times, credits, and the account email attached to a snapshot, while completed iOS replies can show supported input, output, cache, cost, and context-pressure details. These figures are snapshots or estimates, not provider invoices, and in mixed API-key and subscription setups the account label identifies the plan snapshot rather than every run.
+Vasudev now separates subscription-plan information from estimated API cost. Chat can show plan windows, reset times, credits, and the account email attached to a snapshot, while completed iOS replies can show supported input, output, cache, cost, and context-pressure details. These figures are snapshots or estimates, not provider invoices, and in mixed API-key and subscription setups the account label identifies the plan snapshot rather than every run.
 
-The Control UI adds a Profile page for lifetime activity recorded by OpenClaw, with [Usage](/concepts/usage-tracking) and Profile views grouped in the selected time zone, and plugin-initiated model calls now contribute to aggregate totals. OpenClaw cannot reconstruct activity it never recorded.
+The Control UI adds a Profile page for lifetime activity recorded by Vasudev, with [Usage](/concepts/usage-tracking) and Profile views grouped in the selected time zone, and plugin-initiated model calls now contribute to aggregate totals. Vasudev cannot reconstruct activity it never recorded.
 
 Supported failed or incomplete turns can retain the provider's token and cost data without being marked successful. Permanent authentication, model, media, and long-window quota failures stop retrying, while transient rate limits and retryable server errors keep their existing retry or authorized same-provider fallback behavior; Codex subscription runs do not silently switch to pay-as-you-go API keys.
 

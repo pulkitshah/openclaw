@@ -6,7 +6,7 @@ read_when:
 title: "Matrix push rules for quiet previews"
 ---
 
-When `channels.matrix.streaming.mode` is `"quiet"`, OpenClaw streams the reply by editing a single preview event in place. Previews are sent as non-notifying `m.notice` events, and the finalized edit is marked with `content["com.openclaw.finalized_preview"] = true`. Matrix clients notify on that final edit only if a per-user push rule matches the marker. This page is for operators who self-host Matrix and want to install that rule for each recipient account.
+When `channels.matrix.streaming.mode` is `"quiet"`, Vasudev streams the reply by editing a single preview event in place. Previews are sent as non-notifying `m.notice` events, and the finalized edit is marked with `content["com.openclaw.finalized_preview"] = true`. Matrix clients notify on that final edit only if a per-user push rule matches the marker. This page is for operators who self-host Matrix and want to install that rule for each recipient account.
 
 `streaming.mode: "progress"` finalizes its drafts through the same path, so the same rule also fires for progress-mode finalized edits.
 
@@ -15,7 +15,7 @@ If you only want stock Matrix notification behavior, use `streaming.mode: "parti
 ## Prerequisites
 
 - recipient user = the person who should receive the notification
-- bot user = the OpenClaw Matrix account that sends the reply
+- bot user = the Vasudev Matrix account that sends the reply
 - use the recipient user's access token for the API calls below
 - match `sender` in the push rule against the bot user's full MXID
 - the recipient account must already have working pushers. Quiet preview rules only work when normal Matrix push delivery is healthy
@@ -109,7 +109,7 @@ curl -sS -X PUT \
     - `https://matrix.example.org`: your homeserver base URL
     - `$USER_ACCESS_TOKEN`: the recipient user's access token
     - `openclaw-finalized-preview-botname`: a rule ID unique per bot per recipient (pattern: `openclaw-finalized-preview-<botname>`)
-    - `@bot:example.org`: your OpenClaw bot MXID, not the recipient's
+    - `@bot:example.org`: your Vasudev bot MXID, not the recipient's
 
   </Step>
 
@@ -130,7 +130,7 @@ To remove the rule later, `DELETE` the same rule URL with the recipient's token.
 
 ## Multi-bot notes
 
-Push rules are keyed by `ruleId`: re-running `PUT` against the same ID updates a single rule. For multiple OpenClaw bots notifying the same recipient, create one rule per bot with a distinct sender match.
+Push rules are keyed by `ruleId`: re-running `PUT` against the same ID updates a single rule. For multiple Vasudev bots notifying the same recipient, create one rule per bot with a distinct sender match.
 
 New user-defined `override` rules are inserted ahead of server-default suppress rules, so no extra ordering parameter is needed. The rule only affects text-only preview edits that can be finalized in place. Media replies, stale-preview fallbacks, and final texts that would activate Matrix mentions are delivered as normal notifying messages instead.
 

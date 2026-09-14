@@ -2,7 +2,7 @@
   "name": "@openclaw/memory-core",
   "version": "2026.9.4",
   "private": true,
-  "description": "OpenClaw core memory search plugin",
+  "description": "Vasudev core memory search plugin",
   "type": "module",
   "exports": {
     "./api.js": "./api.ts"

@@ -5,10 +5,10 @@ sidebarTitle: "CLI backend plugins"
 read_when:
   - You are building a local AI CLI backend plugin
   - You want to register a backend for model refs such as acme-cli/model
-  - You need to map a third-party CLI into OpenClaw's text fallback runner
+  - You need to map a third-party CLI into Vasudev's text fallback runner
 ---
 
-CLI backend plugins let OpenClaw call a local AI CLI as a text inference
+CLI backend plugins let Vasudev call a local AI CLI as a text inference
 backend. The backend appears as a provider prefix in model refs:
 
 ```text
@@ -32,7 +32,7 @@ A CLI backend plugin has three contracts:
 
 | Contract             | File                   | Purpose                                                   |
 | -------------------- | ---------------------- | --------------------------------------------------------- |
-| Package entry        | `package.json`         | Points OpenClaw at the plugin runtime module              |
+| Package entry        | `package.json`         | Points Vasudev at the plugin runtime module               |
 | Manifest ownership   | `openclaw.plugin.json` | Declares the backend id before runtime loads              |
 | Runtime registration | `index.ts`             | Calls `api.registerCliBackend(...)` with command defaults |
 
@@ -96,7 +96,7 @@ runtime behavior. Runtime behavior starts when the plugin entry calls
     }
     ```
 
-    `cliBackends` is the runtime ownership list; it lets OpenClaw auto-load the
+    `cliBackends` is the runtime ownership list; it lets Vasudev auto-load the
     plugin when model selection or `agentRuntime.id` mentions `acme-cli`.
 
     `setup.cliBackends` is the descriptor-first setup surface. Add it when
@@ -167,7 +167,7 @@ runtime behavior. Runtime behavior starts when the plugin entry calls
     ```
 
     The backend id must match the manifest `cliBackends` entry. The registered
-    adapter is authoritative plugin code; OpenClaw config selects the backend
+    adapter is authoritative plugin code; Vasudev config selects the backend
     but does not rewrite its command contract.
 
   </Step>
@@ -175,7 +175,7 @@ runtime behavior. Runtime behavior starts when the plugin entry calls
 
 ## Config shape
 
-`CliBackendConfig` describes how OpenClaw should launch and parse the CLI. The
+`CliBackendConfig` describes how Vasudev should launch and parse the CLI. The
 worked example above intentionally exercises the same command, resume, JSONL,
 model-alias, session, and image fields as the bundled
 `google-gemini-cli` adapter:
@@ -192,10 +192,10 @@ model-alias, session, and image fields as the bundled
 | `maxPromptArgChars`                                       | Max prompt length for `arg` mode before falling back to stdin                     |
 | `env` / `clearEnv`                                        | Extra env vars to inject, or names to strip before launch                         |
 | `modelArg`                                                | Flag used before the model id                                                     |
-| `modelAliases`                                            | Map OpenClaw model ids to CLI-native ids                                          |
+| `modelAliases`                                            | Map Vasudev model ids to CLI-native ids                                           |
 | `sessionArgs`                                             | How to pass a session id using `{sessionId}`                                      |
 | `sessionMode`                                             | `always`, `existing`, or `none`                                                   |
-| `sessionIdFields`                                         | JSON fields OpenClaw reads from CLI output                                        |
+| `sessionIdFields`                                         | JSON fields Vasudev reads from CLI output                                         |
 | `systemPromptArg` / `systemPromptFileArg`                 | System prompt transport                                                           |
 | `systemPromptFileConfigArg` / `systemPromptFileConfigKey` | Config-override transport for a system prompt file (for example `-c`)             |
 | `systemPromptMode`                                        | `append` or `replace`                                                             |
@@ -207,7 +207,7 @@ model-alias, session, and image fields as the bundled
 | `freshSessionRecovery`                                    | Fresh recovery policy after a recoverable resumed-session failure                 |
 | `reliability.watchdog`                                    | No-output timeout tuning, separate for fresh vs resumed runs                      |
 
-`claude-stream-json` is more than a parser choice: it declares that the backend's `result` records carry Claude Code's terminal semantics, including `terminal_reason`. A reply-less `result` whose `terminal_reason` is `hook_stopped`, `stop_hook_prevented`, `aborted_tools`, `aborted_streaming`, `budget_exhausted`, or `max_turns` is a recorded turn stop: OpenClaw reports that reason to the user and does not replay the turn on a fallback model, because the backend's tool actions may already have run.
+`claude-stream-json` is more than a parser choice: it declares that the backend's `result` records carry Claude Code's terminal semantics, including `terminal_reason`. A reply-less `result` whose `terminal_reason` is `hook_stopped`, `stop_hook_prevented`, `aborted_tools`, `aborted_streaming`, `budget_exhausted`, or `max_turns` is a recorded turn stop: Vasudev reports that reason to the user and does not replay the turn on a fallback model, because the backend's tool actions may already have run.
 
 Omit `reliability.watchdog` to inherit the standard profiles, including the
 longer resumed-run budget for cron and explicit timeouts. Set it only when a
@@ -216,7 +216,7 @@ backend intentionally needs its own watchdog policy.
 `freshSessionRecovery` is a backend-owned compatibility contract:
 
 - Leave it undefined or set it to `"replace-binding"` to preserve the legacy
-  clear-and-reseed behavior. OpenClaw clears the persisted binding and retries
+  clear-and-reseed behavior. Vasudev clears the persisted binding and retries
   with a fresh session when the failure is eligible for recovery.
 - Set it to `"invalidated-only"` to suppress fresh replacement unless the
   canonical invalidation predicate proves the old session is dead. Only
@@ -241,14 +241,14 @@ only for behavior that really belongs to the backend.
 | `prepareExecution(ctx)`            | Create temporary auth, config, or environment bridges before launch         |
 | `transformSystemPrompt(ctx)`       | Apply a final CLI-specific system prompt transform                          |
 | `textTransforms`                   | Bidirectional prompt/output replacements                                    |
-| `defaultAuthProfileId`             | Prefer a specific OpenClaw auth profile                                     |
+| `defaultAuthProfileId`             | Prefer a specific Vasudev auth profile                                      |
 | `authEpochMode`                    | Decide how auth changes invalidate stored CLI sessions                      |
 | `nativeToolMode`                   | Declare whether native tools are absent, always on, or host-selectable      |
 | `toolAvailabilityEnforcement`      | Declare whether exact tool caps are enforced in argv or execution staging   |
 | `projectNativeToolAuthority`       | Map the observed native tool list to canonical capabilities for cron caps   |
 | `sideQuestionToolMode`             | Declare disabled native tools for `/btw` side questions                     |
-| `bundleMcp` / `bundleMcpMode`      | Opt into OpenClaw's loopback MCP tool bridge                                |
-| `ownsNativeCompaction`             | Backend owns its own automatic compaction - OpenClaw defers                 |
+| `bundleMcp` / `bundleMcpMode`      | Opt into Vasudev's loopback MCP tool bridge                                 |
+| `ownsNativeCompaction`             | Backend owns its own automatic compaction - Vasudev defers                  |
 | `manualCompaction`                 | Atomic command, transport, and positive-acknowledgement contract            |
 | `subscriptionAuthDispatch`         | Opted-in embedded runs on subscription credentials execute via this backend |
 | `runtimeArtifact`                  | Bound a script launcher to its complete bundled package tree                |
@@ -282,10 +282,10 @@ are private prompt-build additions and bounded saved session notes, separate fro
 the ordinary `prompt`. Saved notes are quoted reference data and may repeat on
 resumed turns; they do not assert that a native turn previously consumed them. Transport
 them through the native runtime's private context mechanism; never record them as
-operator-authored input. OpenClaw's policy and observation hooks still receive the
+operator-authored input. Vasudev's policy and observation hooks still receive the
 complete logical prompt. Native tool actions must use the provided, run-bound
 `requestToolPermission` callback rather than creating independent approval
-authority. OpenClaw retains cancellation, watchdogs, session policy, and MCP
+authority. Vasudev retains cancellation, watchdogs, session policy, and MCP
 grant ownership. Paired-node execution and
 manual compaction continue through the existing host-managed process path.
 
@@ -302,7 +302,7 @@ only when a live inference turn mints or revalidates verified setup authority;
 normal CLI runs do not require it. A backend without this declaration cannot
 mint verified CLI setup authority. A `bundled-package-tree` declaration names
 the exact `package.json` owner and requires the package entrypoint to be the
-command. OpenClaw hashes the bounded complete installed package tree, including
+command. Vasudev hashes the bounded complete installed package tree, including
 nested dependencies, and fails closed for redirecting symlinks,
 launchers outside the declared package, required external dependency
 declarations, oversized trees, and unknown scripts. Declare this only when that
@@ -318,15 +318,15 @@ ephemeral `/btw` calls. Use it when the CLI needs different one-shot flags,
 such as disabling native tools, session persistence, or resume behavior for
 BTW. If a backend normally has `nativeToolMode: "always-on"` but its
 side-question argv reliably disables those tools, also set
-`sideQuestionToolMode: "disabled"`; otherwise OpenClaw fails closed when BTW
+`sideQuestionToolMode: "disabled"`; otherwise Vasudev fails closed when BTW
 requires a no-tools CLI run.
 
 Set `nativeToolMode: "selectable"` only when the backend can disable every
 backend-native tool for an individual run. Restricted runs receive a canonical
 contract: `ctx.toolAvailability.native` is the exact backend-native list and
-`ctx.toolAvailability.openClaw` is the exact list of OpenClaw tool names. The
+`ctx.toolAvailability.openClaw` is the exact list of Vasudev tool names. The
 host independently limits the generated MCP configuration and grant to that
-OpenClaw list; plugins must not translate it in core or add transport prefixes.
+Vasudev list; plugins must not translate it in core or add transport prefixes.
 
 Declare how the backend enforces that contract:
 
@@ -337,22 +337,22 @@ Declare how the backend enforces that contract:
 - `toolAvailabilityEnforcement: "prepare-execution"` requires
   `prepareExecution`. The hook must stage an exact per-run policy and return
   `toolAvailabilityEnforced: true`; missing acknowledgement fails closed and
-  OpenClaw cleans up the staged resources before launch.
+  Vasudev cleans up the staged resources before launch.
 
 Runtime caps such as cron `toolsAllow` are normalized and group-expanded by
-OpenClaw before this contract is built. Native tools are disabled, and a
+Vasudev before this contract is built. Native tools are disabled, and a
 backend without a complete declared enforcement path fails before execution.
 
 Rooted runs such as [Skill Workshop reviews](/tools/skill-workshop) also require
 `isolatesInstructionsWithExactTools: true` on the backend registration. Declare
 this optional capability only when exact-tool execution suppresses ambient
 instruction files, skills, hooks, and plugins for both fresh and resumed runs.
-The host-prepared instruction snapshot must remain authoritative. OpenClaw
+The host-prepared instruction snapshot must remain authoritative. Vasudev
 rejects rooted runs when this declaration is absent, even if the backend can
 enforce exact tools. Existing non-rooted runs do not require this field.
 
 The bundled Claude CLI backend declares this capability. Rooted execution
-disables its native tools and serves the selected OpenClaw tools through the
+disables its native tools and serves the selected Vasudev tools through the
 host-owned MCP grant, which retains the root, filesystem policy, and configured
 sandbox. The declaration does not grant filesystem or approval authority to
 the backend.
@@ -374,7 +374,7 @@ turn. Updating the snapshot invalidates earlier cached tool projections.
 Project only equivalent capabilities: Claude's `Glob` locates paths and
 `NotebookEdit` edits notebook cells, so neither grants general `read` or `edit`.
 The native list contains tool names, not permission-rule patterns.
-Codex native code mode projects `read` and `exec` after OpenClaw explicitly
+Codex native code mode projects `read` and `exec` after Vasudev explicitly
 requests the shell and rejects managed requirements or legacy managed settings
 that disable it. The effective setting and its source are checked at each
 preflight; a user-local shell disable is overridden for native mode, while a
@@ -404,7 +404,7 @@ Lifecycle events are intentionally separate from this return union so existing
 plugins can continue to match it exhaustively. Use `parseJsonlLifecycleEvent`
 for backend-owned lifecycle records instead.
 
-Tool events describe work the backend already performed. OpenClaw renders and
+Tool events describe work the backend already performed. Vasudev renders and
 summarizes them, but does not treat them as host tool execution, trusted
 diagnostics, loopback correlation, or message-delivery evidence.
 
@@ -420,20 +420,20 @@ The current lifecycle contract supports native compaction start and end records.
 An end record includes `completed` so channels can distinguish successful and
 incomplete compaction without inferring an outcome from later messages.
 
-### `ownsNativeCompaction`: opting out of OpenClaw compaction
+### `ownsNativeCompaction`: opting out of Vasudev compaction
 
 If your backend runs an agent that compacts its **own** transcript, set
-`ownsNativeCompaction: true` so OpenClaw's safeguard summarizer never runs
+`ownsNativeCompaction: true` so Vasudev's safeguard summarizer never runs
 against its sessions - automatic CLI compaction defers to the backend and the
 turn proceeds. `claude-cli` declares it because Claude Code compacts
 internally with no harness endpoint. It also declares
-`manualCompaction`, so an explicit OpenClaw `/compact` resumes the
+`manualCompaction`, so an explicit Vasudev `/compact` resumes the
 bound Claude Code session and invokes its native `/compact` command without
 recording a conversation turn. Native-harness sessions such as Codex keep
 routing to their harness compaction endpoint instead.
 
 **Only declare it when all of the following hold**, or a deferred
-over-budget session can stay over budget or go stale (OpenClaw no longer
+over-budget session can stay over budget or go stale (Vasudev no longer
 rescues it):
 
 - the backend reliably compacts or bounds its own transcript as it nears its
@@ -466,7 +466,7 @@ ordinary model turn.
 
 ## MCP tool bridge
 
-CLI backends do not receive OpenClaw tools by default. If the CLI can consume
+CLI backends do not receive Vasudev tools by default. If the CLI can consume
 an MCP configuration, opt in explicitly:
 
 ```typescript
@@ -492,7 +492,7 @@ Supported bridge modes:
 
 Only enable the bridge when the CLI can actually consume it. If the CLI has
 its own built-in tool layer that cannot be disabled, set `nativeToolMode:
-"always-on"` so OpenClaw can fail closed when a caller requires no native
+"always-on"` so Vasudev can fail closed when a caller requires no native
 tools. If it can disable every native tool per run, use `"selectable"` with the
 `resolveExecutionArgs` contract above.
 
@@ -515,7 +515,7 @@ provider model's `agentRuntime.id`. Adapter mechanics remain in the plugin:
 }
 ```
 
-Put credentials in OpenClaw auth profiles or plugin-owned config. Ensure the
+Put credentials in Vasudev auth profiles or plugin-owned config. Ensure the
 registered command is on the gateway service's `PATH`; deployments that need a
 different path or argv should change or wrap the plugin registration.
 

@@ -1,20 +1,20 @@
 ---
-summary: "Run the OpenClaw Gateway on EasyRunner with Podman and Caddy"
+summary: "Run the Vasudev Gateway on EasyRunner with Podman and Caddy"
 read_when:
-  - Deploying OpenClaw on EasyRunner
+  - Deploying Vasudev on EasyRunner
   - Running the Gateway behind EasyRunner's Caddy proxy
   - Choosing persistent volumes and auth for a hosted Gateway
 title: "EasyRunner"
 ---
 
-EasyRunner hosts the OpenClaw Gateway as a small containerized app behind its
+EasyRunner hosts the Vasudev Gateway as a small containerized app behind its
 Caddy proxy. This guide assumes an EasyRunner host that runs Podman-compatible
 Compose apps and terminates HTTPS through Caddy.
 
 ## Before you begin
 
 - An EasyRunner server with a domain routed to it.
-- The official OpenClaw image (`ghcr.io/openclaw/openclaw`) or your own build.
+- The official Vasudev image (`ghcr.io/openclaw/openclaw`) or your own build.
 - A persistent config volume for `/home/node/.openclaw`.
 - A persistent workspace volume for `/home/node/.openclaw/workspace`.
 - A strong Gateway token or password.
@@ -58,7 +58,7 @@ committing it to the app definition. The image binds to loopback by default,
 so the explicit `--bind lan --port 1455` in `command` is required for Caddy to
 reach the container.
 
-## Configure OpenClaw
+## Configure Vasudev
 
 Inside the persistent config volume, keep the Gateway reachable only through
 the proxy and require auth:
@@ -95,7 +95,7 @@ SecretRef, plugin, or channel auth failures.
 
 ## Updates and backups
 
-- Pull or build the new OpenClaw image, then redeploy the EasyRunner app.
+- Pull or build the new Vasudev image, then redeploy the EasyRunner app.
 - Back up the `openclaw-config` volume before updates. It holds
   `openclaw.json`, shared auth in `state/openclaw.sqlite`, agent-local profiles
   in `agents/<agentId>/agent/openclaw-agent.sqlite`, and installed plugin package state.

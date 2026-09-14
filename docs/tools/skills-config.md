@@ -79,7 +79,7 @@ Most skills configuration lives under `skills` in
 
 <ParamField path="skills.install.nodeManager" type='"npm" | "pnpm" | "yarn" | "bun"' default='"npm"'>
   Node package manager preference for skill installs. This only affects skill
-  installs. Node remains the primary and recommended OpenClaw runtime; Bun 1.4+
+  installs. Node remains the primary and recommended Vasudev runtime; Bun 1.4+
   with WAL-reset-safe `node:sqlite` is supported as an explicit runtime opt-in.
   `openclaw setup --node-manager` and `openclaw onboard --node-manager` accept
   `npm`, `pnpm`, or `bun`; set `"yarn"` directly in config for Yarn-backed skill
@@ -97,7 +97,7 @@ Most skills configuration lives under `skills` in
 
 Use `security.installPolicy` when operators need a trusted local command to
 approve or block skill and plugin installs with host-specific policy. The
-policy runs after OpenClaw has staged source material and before the install
+policy runs after Vasudev has staged source material and before the install
 or update continues. It applies to ClawHub skills, uploaded skills, Git/local
 skills, skill dependency installers, and plugin install/update sources.
 
@@ -135,7 +135,7 @@ skills, skill dependency installers, and plugin install/update sources.
 </ParamField>
 
 <ParamField path="security.installPolicy.exec.command" type="string">
-  Absolute path to the trusted policy executable. OpenClaw runs it without a
+  Absolute path to the trusted policy executable. Vasudev runs it without a
   shell and validates the path before use.
 </ParamField>
 
@@ -161,7 +161,7 @@ skills, skill dependency installers, and plugin install/update sources.
 </ParamField>
 
 <ParamField path="security.installPolicy.exec.passEnv" type="string[]">
-  Environment variable names copied from the OpenClaw process into the
+  Environment variable names copied from the Vasudev process into the
   policy process. Only named variables are passed.
 </ParamField>
 
@@ -185,7 +185,7 @@ down and clamped to the safe-integer range from 1 through `Number.MAX_SAFE_INTEG
 Malformed finding entries are ignored, and
 invalid optional fields are omitted. A non-array `findings` value is treated as
 absent. Operator-facing reason and finding text are limited to 1,000 characters.
-OpenClaw retains at most 100 normalized findings for display. Only a `warn`
+Vasudev retains at most 100 normalized findings for display. Only a `warn`
 response with more than 100 valid findings fails closed and cannot be
 acknowledged; `allow` and `block` retain the first 100. A warning stops the
 install before commit. A `warn` review whose fully rendered notice, including
@@ -211,7 +211,7 @@ non-zero exit, timeout, invalid JSON, non-object response, missing or invalid
 protocol version or decision, or missing or empty `warn`/`block` reason always
 fails closed.
 
-OpenClaw does not execute install policy during normal Gateway startup.
+Vasudev does not execute install policy during normal Gateway startup.
 Installs and updates fail closed when policy is enabled but unavailable.
 `openclaw doctor` performs static validation; `openclaw doctor --deep`
 executes a synthetic install probe against the configured command.
@@ -347,7 +347,7 @@ different visible skill set per agent.
 </ParamField>
 
 <Warning>
-  Agent skill allowlists are a visibility and loading filter for OpenClaw
+  Agent skill allowlists are a visibility and loading filter for Vasudev
   skill discovery, prompts, slash-command discovery, sandbox sync, and skill
   snapshots. They are not a shell-time authorization boundary. If an agent
   can run host `exec`, that shell can still run external clients or read

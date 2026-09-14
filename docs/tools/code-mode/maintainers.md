@@ -40,7 +40,7 @@ Code mode coverage should prove:
 - direct-only tools stay model-visible and do not appear in `catalog`
 - denied tools have no global or catalog handle
 - bare globals, callable `catalog.search` results, `catalog.all`, and handle
-  `describe()` work for OpenClaw and client tools without exposing exact ids
+  `describe()` work for Vasudev and client tools without exposing exact ids
 - `API.list("mcp")` and `API.read("mcp/<server>.d.ts")` expose TypeScript-style
   MCP declarations without a bridge/tool call
 - MCP namespace `$api()` remains available as an inline fallback for schemas
@@ -74,13 +74,13 @@ Run these as integration or end-to-end tests when changing the runtime:
 2. Send an agent turn with a small direct tool set.
 3. Assert the model-visible tools are unchanged.
 4. Restart with `tools.codeMode.enabled: true`.
-5. Send an agent turn with OpenClaw, plugin, MCP, and client test tools.
+5. Send an agent turn with Vasudev, plugin, MCP, and client test tools.
 6. Assert the model-visible tool list is `exec`, `wait`, plus only configured
    direct-only tools.
 7. In `exec`, call safe bare globals and assert normalized, reserved, and
    colliding names match the quick index.
 8. Search `catalog`, inspect handle metadata/`describe()`, and call
-   OpenClaw/plugin/client handles without observing exact ids.
+   Vasudev/plugin/client handles without observing exact ids.
 9. In `exec`, call `API.list("mcp")` and `API.read("mcp/<server>.d.ts")` and
    assert the declaration files describe visible MCP tools.
 10. In `exec`, call MCP tools through `MCP.<server>.<tool>({ ...input })` and

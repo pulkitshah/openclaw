@@ -1,30 +1,30 @@
 ---
-summary: "Connect OpenClaw to Radius with browser sign-in or an organization API key"
+summary: "Connect Vasudev to Radius with browser sign-in or an organization API key"
 read_when:
-  - You want to use Radius models in OpenClaw
+  - You want to use Radius models in Vasudev
   - You need Radius authentication or model discovery help
 title: "Radius"
 ---
 
 [Radius](https://radius.earendil.com) is Earendil's model gateway for Pi-compatible
-clients. The `radius` plugin connects OpenClaw's agent loop to Radius, including
+clients. The `radius` plugin connects Vasudev's agent loop to Radius, including
 streamed responses, reasoning, images on supported models, and tool calls.
 Radius owns upstream routing, model policies, rewrites, and billing.
 
 ## Sign in
 
 Create a Radius account on the [Radius website](https://radius.earendil.com), then
-sign in from OpenClaw:
+sign in from Vasudev:
 
 ```bash
 openclaw models auth login --provider radius --method oauth --set-default
 ```
 
-OpenClaw displays a pairing code and opens the Radius verification page. Enter
+Vasudev displays a pairing code and opens the Radius verification page. Enter
 the code, choose your organization, and authorize access. This device flow also
 works on a remote Gateway: open the displayed URL in your local browser.
-OpenClaw stores the OAuth credentials in its auth profiles and refreshes them
-automatically. Signing in to Pi separately does not sign OpenClaw in.
+Vasudev stores the OAuth credentials in its auth profiles and refreshes them
+automatically. Signing in to Pi separately does not sign Vasudev in.
 
 You can also select Radius during onboarding:
 
@@ -59,7 +59,7 @@ openclaw models list --provider radius --refresh
 openclaw models set radius/balanced
 ```
 
-OpenClaw discovers the catalog from Radius using your credential. This includes
+Vasudev discovers the catalog from Radius using your credential. This includes
 organization models, reasoning capabilities, context limits, and pricing tiers.
 Sign-in recommends `radius/balanced` when available, otherwise the first model
 in your organization's catalog. Use a model ID shown by `models list`; available

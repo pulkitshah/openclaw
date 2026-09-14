@@ -2,7 +2,7 @@
   "name": "@openclaw/microsoft-speech",
   "version": "2026.9.4",
   "private": true,
-  "description": "OpenClaw Microsoft speech plugin",
+  "description": "Vasudev Microsoft speech plugin",
   "type": "module",
   "dependencies": {
     "node-edge-tts": "1.2.10"

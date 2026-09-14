@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/qwen-provider",
   "version": "2026.9.4",
-  "description": "OpenClaw Qwen Cloud provider plugin.",
+  "description": "Vasudev Qwen Cloud provider plugin.",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

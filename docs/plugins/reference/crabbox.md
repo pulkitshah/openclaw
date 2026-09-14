@@ -15,7 +15,7 @@ Cloud worker provider and lease-backed sandbox backend for the Crabbox CLI.
 ## Distribution
 
 - Package: `@openclaw/crabbox-provider`
-- Install route: included in OpenClaw
+- Install route: included in Vasudev
 
 ## Surface
 

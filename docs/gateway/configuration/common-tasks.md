@@ -223,7 +223,7 @@ read_when:
   </Accordion>
 
   <Accordion title="Enable relay-backed push for official iOS builds">
-    Relay-backed push for public App Store builds uses the hosted OpenClaw relay: `https://ios-push-relay.openclaw.ai`.
+    Relay-backed push for public App Store builds uses the hosted Vasudev relay: `https://ios-push-relay.openclaw.ai`.
 
     Custom relay deployments require a deliberately separate iOS build/deployment path whose relay URL matches the gateway relay URL. If you are using a custom relay build, set this in gateway config:
 
@@ -398,13 +398,13 @@ read_when:
     - **Sibling keys**: merged after includes (override included values)
     - **Relative paths**: resolved relative to the including file
     - **Path format**: include paths must not contain null bytes and must be strictly shorter than 4096 characters before and after resolution
-    - **OpenClaw-owned writes**: when every changed key is owned by one
-      single-file include at an object-key path, OpenClaw updates the deepest
+    - **Vasudev-owned writes**: when every changed key is owned by one
+      single-file include at an object-key path, Vasudev updates the deepest
       owning include and leaves `openclaw.json` intact. This works for both
       top-level sections such as `plugins: { $include: "./plugins.json5" }` and
       nested object-map entries. Write-through only targets include files inside
       the top-level config directory; includes admitted through
-      `OPENCLAW_INCLUDE_ROOTS` stay read-only for OpenClaw-owned writes.
+      `OPENCLAW_INCLUDE_ROOTS` stay read-only for Vasudev-owned writes.
     - **Unsupported write-through**: root includes (every section of a config
       whose root object authors `$include`), actual array-entry includes,
       include arrays, sibling overrides, files shared by multiple logical paths,

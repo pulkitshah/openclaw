@@ -1,27 +1,27 @@
 ---
-summary: "Step-by-step guide to building a model provider plugin for OpenClaw"
+summary: "Step-by-step guide to building a model provider plugin for Vasudev"
 title: "Building provider plugins"
 sidebarTitle: "Provider plugins"
 read_when:
   - You are building a new model provider plugin
-  - You want to add an OpenAI-compatible proxy or custom LLM to OpenClaw
+  - You want to add an OpenAI-compatible proxy or custom LLM to Vasudev
   - You need to understand provider auth, catalogs, and runtime hooks
 ---
 
-Build a provider plugin to add a model provider (LLM) to OpenClaw: a model
+Build a provider plugin to add a model provider (LLM) to Vasudev: a model
 catalog, API-key auth, and dynamic model resolution.
 
 Acme AI is a fictional vendor used throughout this guide and its child pages.
 Helpers named `fetchAcme*` in the samples are placeholders for your own vendor
-API calls, not exported OpenClaw functions.
+API calls, not exported Vasudev functions.
 
 <Info>
-  New to OpenClaw plugins? Read [Getting Started](/plugins/building-plugins)
+  New to Vasudev plugins? Read [Getting Started](/plugins/building-plugins)
   first for package structure and manifest setup.
 </Info>
 
 <Tip>
-  Provider plugins add models to OpenClaw's normal inference loop. If the
+  Provider plugins add models to Vasudev's normal inference loop. If the
   model must run through a native agent daemon that owns threads, compaction,
   or tool events, pair the provider with an [agent
   harness](/plugins/sdk-agent-harness) instead of putting daemon protocol
@@ -185,10 +185,10 @@ a saved policy is not proof that the running Gateway applied it.
     ```
     </CodeGroup>
 
-    `setup.providers[].envVars` lets OpenClaw detect credentials without
+    `setup.providers[].envVars` lets Vasudev detect credentials without
     loading your plugin runtime. Add `providerAuthAliases` when a provider
     variant should reuse another provider id's auth. `modelSupport` is
-    optional and lets OpenClaw auto-load your provider plugin from shorthand
+    optional and lets Vasudev auto-load your provider plugin from shorthand
     model ids like `acme-large` before runtime hooks exist. `openclaw.compat`
     and `openclaw.build` in `package.json` are required for ClawHub
     publishing (`openclaw.compat.pluginApi` and `openclaw.build.openclawVersion`
@@ -196,7 +196,7 @@ a saved policy is not proof that the running Gateway applied it.
     `openclaw.install.minHostVersion` when omitted).
 
     The version strings in the sample manifests are placeholders. Pin them to
-    the OpenClaw release your plugin builds and tests against.
+    the Vasudev release your plugin builds and tests against.
 
   </Step>
 
@@ -295,7 +295,7 @@ a saved policy is not proof that the running Gateway applied it.
     `registerModelCatalogProvider` is the newer control-plane catalog surface
     for list/help/picker UI, covering `text`, `voice`, `image_generation`,
     `video_generation`, and `music_generation` rows. Keep vendor endpoint
-    calls and response mapping in the plugin. OpenClaw owns the shared row
+    calls and response mapping in the plugin. Vasudev owns the shared row
     shape, source labels, and help rendering.
 
     That is a working provider. Users can now run
@@ -329,10 +329,10 @@ a saved policy is not proof that the running Gateway applied it.
     };
     ```
 
-    OpenClaw keeps the inline value only while staged validation runs. At the
+    Vasudev keeps the inline value only while staged validation runs. At the
     final persistence boundary it writes the value to the protected local store
     and saves a `tokenRef` or `keyRef` in the auth profile. `namePrefix` must be
-    an uppercase environment-style name. OpenClaw adds a stable suffix derived
+    an uppercase environment-style name. Vasudev adds a stable suffix derived
     from the provider and final profile id so multiple profiles remain separate.
     Use this only for provider-minted static credentials, not rotating OAuth
     credentials or values already supplied as SecretRefs.
@@ -367,7 +367,7 @@ a saved policy is not proof that the running Gateway applied it.
     ```
 
     If resolving requires a network call, return the requested model directly
-    from `prepareDynamicModel`. OpenClaw applies the same configured overrides
+    from `prepareDynamicModel`. Vasudev applies the same configured overrides
     and normalization as synchronous dynamic resolution. Existing hooks that
     return nothing still retry `resolveDynamicModel` after preparation.
 
@@ -388,7 +388,7 @@ a saved policy is not proof that the running Gateway applied it.
 
     A provider plugin can register embeddings, speech, realtime transcription,
     realtime voice, media understanding, image generation, video generation,
-    web fetch, and web search alongside text inference. OpenClaw classifies this as a
+    web fetch, and web search alongside text inference. Vasudev classifies this as a
     **hybrid-capability** plugin - the recommended pattern for company plugins
     (one plugin per vendor). See
     [Internals: Capability Ownership](/plugins/architecture#capability-ownership-model).

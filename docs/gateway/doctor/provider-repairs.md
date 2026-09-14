@@ -37,7 +37,7 @@ OAuth TLS prerequisites, and route cleanup.
 
     For initial setup, run `openclaw browser extension install`. On macOS, this
     also requests the official Store installation in Google Chrome; reopen Chrome
-    and approve or enable OpenClaw when prompted. Other browsers and platforms
+    and approve or enable Vasudev when prompted. Other browsers and platforms
     need a manual Store install. The unpacked stable path remains a development
     fallback with `openclaw browser extension install --no-store`. Explicit cookie
     import still requires its separate consent.

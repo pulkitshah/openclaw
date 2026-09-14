@@ -2,7 +2,7 @@
   "name": "@openclaw/crabbox-provider",
   "version": "2026.9.4",
   "private": true,
-  "description": "OpenClaw cloud worker provider backed by the Crabbox CLI",
+  "description": "Vasudev cloud worker provider backed by the Crabbox CLI",
   "type": "module",
   "exports": {
     "./cli-runtime-api.js": "./cli-runtime-api.ts"

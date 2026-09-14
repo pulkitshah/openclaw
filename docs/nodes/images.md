@@ -69,7 +69,7 @@ image destinations retain their URL punctuation.
 
 ## Inbound Media To Commands
 
-- When inbound web messages include media, OpenClaw downloads it to a temp file and exposes templating variables:
+- When inbound web messages include media, Vasudev downloads it to a temp file and exposes templating variables:
   - `{{AttachmentUrl}}` — original URL or provider reference for the current attachment.
   - `{{AttachmentPath}}` — local temp path written before running the command.
   - `{{AttachmentContentType}}` — MIME content type.

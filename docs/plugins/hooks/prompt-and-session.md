@@ -128,7 +128,7 @@ enrichment. A retained `toolAuthority` object fails closed after dispatch.
 
 This option requires a host that implements the post-policy phase. Published
 plugins must set `package.json` `openclaw.compat.pluginApi` to a range beginning
-with the first OpenClaw version they build against for this contract. Older
+with the first Vasudev version they build against for this contract. Older
 hosts skip incompatible packages during discovery and reject incompatible
 installs or updates. Do not publish a package that uses this option while
 claiming compatibility with an older plugin API; an older host may otherwise
@@ -143,7 +143,7 @@ to stop the run before the model reads the prompt. `reason` is internal;
 `message` is the user-facing replacement. Only `pass` and `block` outcomes are
 supported; unsupported decision shapes fail closed.
 
-When a run is blocked, OpenClaw stores only the replacement text in
+When a run is blocked, Vasudev stores only the replacement text in
 `message.content` plus non-sensitive block metadata such as the blocking
 plugin id and timestamp. The original user text is not retained in transcript
 or future context. Internal block reasons are treated as sensitive and
@@ -152,7 +152,7 @@ Observability should use sanitized fields such as blocker id, outcome,
 timestamp, or a safe category.
 
 Hooks that expose `event.runId`, such as `agent_end` and
-`before_agent_finalize`, receive it when OpenClaw can identify the active run;
+`before_agent_finalize`, receive it when Vasudev can identify the active run;
 the same value is also on `ctx.runId`. Prompt hooks do not all have an event
 `runId` field, so use their typed context for correlation. Cron-driven
 runs can also expose `ctx.jobId` (the originating cron job id) when supplied
@@ -179,7 +179,7 @@ origin and does not grant authority to use tools or access another session.
 
 For channel-originated runs, `ctx.channel` and `ctx.messageProvider` identify
 the provider surface such as `discord` or `telegram`, while `ctx.channelId` is
-the conversation target identifier when OpenClaw can derive one from the
+the conversation target identifier when Vasudev can derive one from the
 session key or delivery metadata.
 
 When sender identity is available, agent hook contexts also include:
@@ -235,7 +235,7 @@ it fire-and-forget after the turn, while local one-shot paths can wait
 for the hook promise before process cleanup so trusted plugins can flush
 terminal observability or capture state. The hook runner applies a 30 second
 default per-handler timeout so a wedged plugin or embedding endpoint cannot
-leave the hook promise pending forever. A timeout is logged and OpenClaw continues; it does not
+leave the hook promise pending forever. A timeout is logged and Vasudev continues; it does not
 cancel plugin-owned network work unless the plugin also uses its own abort
 signal.
 
@@ -243,7 +243,7 @@ Use `model_call_started` and `model_call_ended` for provider-call telemetry
 that should not receive raw prompts, history, responses, headers, request
 bodies, or provider request IDs. These hooks include stable metadata such as
 `runId`, `callId`, `provider`, `model`, optional `api`/`transport`, terminal
-`durationMs`/`outcome`, and `upstreamRequestIdHash` when OpenClaw can derive a
+`durationMs`/`outcome`, and `upstreamRequestIdHash` when Vasudev can derive a
 bounded provider request-id hash. When the runtime has resolved
 context-window metadata, the hook event and context also include
 `contextTokenBudget`, the effective token budget after model configuration,
@@ -261,13 +261,13 @@ final assistant answer. It is not the `/stop` cancellation path and does not
 run when the user aborts a turn. Return `{ action: "revise", reason }` to ask
 the harness for one more model pass before finalization, `{ action:
 "finalize", reason? }` to force finalization, or omit a result to continue.
-Handlers have a 15s default budget; on timeout, OpenClaw logs the failure and
+Handlers have a 15s default budget; on timeout, Vasudev logs the failure and
 keeps decisions from other handlers. With no revision decision, normal
 finalization continues. Multiple `revise` reasons are combined; any `finalize`
 decision overrides revision requests. This hook requires a finalization
 integration: the embedded runner and native hook relay provide it, but the
 Copilot harness does not dispatch it.
-Codex native `Stop` hooks are relayed into this hook as OpenClaw
+Codex native `Stop` hooks are relayed into this hook as Vasudev
 `before_agent_finalize` decisions.
 
 When returning `action: "revise"`, plugins can include `retry` metadata to
@@ -304,7 +304,7 @@ the `api.session.state` namespace.
 Use `api.session.workflow.enqueueNextTurnInjection(...)` when a plugin needs
 durable context queued for the next prompt build (the top-level
 `api.enqueueNextTurnInjection(...)` is a deprecated alias with the same
-behavior). On the embedded and CLI prompt-preparation paths, OpenClaw drains
+behavior). On the embedded and CLI prompt-preparation paths, Vasudev drains
 queued injections before prompt hooks. It drops expired entries and entries
 whose plugin is inactive or has prompt injection disabled. `idempotencyKey`
 deduplicates unexpired pending entries for the same plugin and session; the

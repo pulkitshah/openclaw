@@ -1,5 +1,5 @@
 ---
-summary: "Manage OpenClaw plugins from the Control UI or CLI"
+summary: "Manage Vasudev plugins from the Control UI or CLI"
 read_when:
   - You want to browse, configure, enable, disable, or reload plugins in the Control UI
   - You want quick plugin list, install, update, inspect, or uninstall examples
@@ -49,7 +49,7 @@ Open `/settings/plugins` for the searchable installed inventory. Its
 paths, and capability slots.
 
 Included plugins do not need a package install. Workboard, for example, is
-included with OpenClaw and disabled by default. Bundled plugins can be disabled
+included with Vasudev and disabled by default. Bundled plugins can be disabled
 or reloaded but not removed.
 
 Inventory, configuration, and access inspection require `operator.read`.
@@ -102,7 +102,7 @@ openclaw plugins list --json \
   | jq '.plugins[] | {id, enabled, format, source, dependencyStatus}'
 ```
 
-`plugins list` is a cold inventory check: what OpenClaw can discover from
+`plugins list` is a cold inventory check: what Vasudev can discover from
 config, manifests, and the persisted plugin registry. It does not prove an
 already-running Gateway imported the plugin runtime. JSON output includes
 registry diagnostics and each plugin's `dependencyStatus` (whether declared
@@ -124,16 +124,16 @@ are enabled by default; others require `enable` after install.
 
 ## Capability consent
 
-OpenClaw asks you to review a third-party plugin's declared capabilities before
+Vasudev asks you to review a third-party plugin's declared capabilities before
 installing or enabling it. The consent screen identifies the plugin, its
 version and source, artifact integrity, and available trust information. It
 also lists declared channels, providers, tools, hooks, MCP servers, CLI
 commands and backends, skills, and dangerous configuration flags, along with
 the operator grants that apply to hooks, model access, and subagents.
 
-Bundled plugins and verified first-party plugins from OpenClaw's official
+Bundled plugins and verified first-party plugins from Vasudev's official
 catalog do not require this capability review during setup, install, enable,
-update, or Doctor repair. For separately installed first-party plugins, OpenClaw checks
+update, or Doctor repair. For separately installed first-party plugins, Vasudev checks
 the actual package identity against its catalog and verified npm source record
 or official-channel record from `https://clawhub.ai`. A matching plugin id or
 package name alone is insufficient: local copies, archives, git installs,
@@ -160,7 +160,7 @@ replacement with unaccepted capabilities.
 
 Declining an update's capability review leaves the previous plugin enabled
 and unchanged. Repairing a missing or damaged artifact requires a fresh review;
-OpenClaw cannot carry acceptance forward from an artifact it cannot verify.
+Vasudev cannot carry acceptance forward from an artifact it cannot verify.
 
 Carrying an earlier acceptance forward requires the install record to pin
 artifact integrity, which registry and ClawHub installs provide. Sources
@@ -231,9 +231,9 @@ openclaw plugins install --link ./my-plugin
 ```
 
 Bare package specs install from npm, unless the name matches a bundled or
-official plugin id, in which case OpenClaw uses
+official plugin id, in which case Vasudev uses
 that local/official copy instead. Use `clawhub:`, `npm:`, `git:`, or
-`npm-pack:` for deterministic source selection. OpenClaw's bundled and official
+`npm-pack:` for deterministic source selection. Vasudev's bundled and official
 catalog packages are trusted alongside ClawHub packages. New arbitrary npm,
 git, local path/archive, `npm-pack:`, or marketplace sources require
 `--force` in noninteractive installs after you review
@@ -246,7 +246,7 @@ ClawHub, or hook-pack install, use `openclaw plugins update` instead. With
 copied or overwritten.
 
 If a newly installed plugin requires configuration that is not present yet,
-OpenClaw records the install but leaves the plugin disabled. Configure
+Vasudev records the install but leaves the plugin disabled. Configure
 `plugins.entries.<id>.config`, then run `openclaw plugins enable <id>`. If an
 existing config entry is present but invalid, install fails without rewriting it.
 
@@ -312,7 +312,7 @@ further model steps to wait for completion; completed actions and accepted steer
 remain in the transcript and are not replayed. Finish a running program before
 asking it to use changed tools.
 
-Managed Codex sessions continue in the same OpenClaw conversation after stopping
+Managed Codex sessions continue in the same Vasudev conversation after stopping
 the current native turn and its background terminals, then creating a thread with
 updated tools. Completed tool results, accepted follow-up messages, and ordinary
 question answers carry into that thread as bounded conversation context. If native cleanup or thread release
@@ -345,17 +345,17 @@ have their stale entries, allow/deny policy, exact load paths, channel config,
 and memory/context slot selections reconciled before the new package/index
 state commits; retained/new children and unrelated plugins are preserved.
 
-If OpenClaw cannot prove exactly one package owner and a complete child list,
+If Vasudev cannot prove exactly one package owner and a complete child list,
 update and uninstall fail closed without changing package files, config, or the
 installed index. Run `openclaw plugins registry --refresh`, inspect
 `openclaw plugins doctor`, and use `openclaw doctor --fix` for repairable legacy
 index state. If the ambiguity remains, reinstall the package before retrying.
 
 `openclaw plugins update --all` is the bulk maintenance path. It preserves
-exact version pins and explicit tags, including trusted official OpenClaw
+exact version pins and explicit tags, including trusted official Vasudev
 plugin records, because older automatic pins cannot be distinguished from an
 operator's intentional pin. When a newer default-line release exists,
-OpenClaw reports it and prints the explicit command that replaces the pin.
+Vasudev reports it and prints the explicit command that replaces the pin.
 Floating official records still follow the canonical channel resolver, which
 uses both `update.channel` and the installed core version.
 
@@ -414,7 +414,7 @@ for the install instead.
 
 | Source      | Use when                                                                    | Example                                                        |
 | ----------- | --------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| ClawHub     | You want OpenClaw-native discovery, scan summaries, versions, and hints     | `openclaw plugins install clawhub:<package>`                   |
+| ClawHub     | You want Vasudev-native discovery, scan summaries, versions, and hints      | `openclaw plugins install clawhub:<package>`                   |
 | git         | You want a branch, tag, or commit from a repository                         | `openclaw plugins install git:github.com/<owner>/<repo>@<ref>` |
 | local path  | You are developing or testing a plugin on the same machine                  | `openclaw plugins install --link ./my-plugin`                  |
 | marketplace | You are installing a Claude-compatible marketplace plugin                   | `openclaw plugins install <plugin> --marketplace <source>`     |
@@ -427,7 +427,7 @@ with `plugins install`.
 
 ## Publish plugins
 
-ClawHub is the primary public discovery surface for OpenClaw plugins. Publish
+ClawHub is the primary public discovery surface for Vasudev plugins. Publish
 there when you want users to find plugin metadata, version history, registry
 scan results, and install hints before they install.
 

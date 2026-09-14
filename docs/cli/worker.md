@@ -12,7 +12,7 @@ title: "Worker"
 launcher to start inside a prepared cloud or paired-node worker environment.
 It is not a general-purpose command for manual worker registration.
 
-The Gateway installs the matching OpenClaw bundle through the enrolled node's
+The Gateway installs the matching Vasudev bundle through the enrolled node's
 authenticated connection. The worker launcher starts this command with a
 prepared assignment, and the worker connects back to the Gateway over its own
 authenticated outbound WebSocket as the dedicated `worker` role.

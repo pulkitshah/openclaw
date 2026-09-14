@@ -1,5 +1,5 @@
 ---
-summary: "How OpenClaw presence entries are produced, merged, and displayed"
+summary: "How Vasudev presence entries are produced, merged, and displayed"
 read_when:
   - Debugging live status on the Control UI Devices page
   - Investigating duplicate or stale instance rows
@@ -7,7 +7,7 @@ read_when:
 title: "Presence"
 ---
 
-OpenClaw "presence" is a lightweight, best-effort view of:
+Vasudev "presence" is a lightweight, best-effort view of:
 
 - the **Gateway** itself, and
 - **user-visible clients connected to the Gateway** (mac app, WebChat, nodes, etc.)

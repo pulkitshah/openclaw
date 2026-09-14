@@ -8,7 +8,7 @@ read_when:
 title: "Tavily"
 ---
 
-[Tavily](https://tavily.com) is a search API designed for AI applications. OpenClaw exposes it in two ways:
+[Tavily](https://tavily.com) is a search API designed for AI applications. Vasudev exposes it in two ways:
 
 - as the `web_search` provider for the generic search tool
 - as explicit plugin tools: `tavily_search` and `tavily_extract`
@@ -88,7 +88,7 @@ Use this when you want Tavily-specific search controls instead of generic `web_s
 | `exclude_domains` | string array | (none)                                 | Exclude results from these domains.           |
 
 For publication metadata, use `topic: "news"`. When Tavily supplies a
-`published_date`, OpenClaw returns it as `published`; GMT news timestamps are
+`published_date`, Vasudev returns it as `published`; GMT news timestamps are
 converted to ISO 8601. Missing dates, relative ages, and arbitrary text stay
 absent. A `time_range` filter is not evidence of a publication date, and returned
 dates still need source verification for freshness-sensitive workflows.
@@ -138,7 +138,7 @@ The generic `web_search` tool with Tavily as provider supports `query` and `coun
 ## Advanced configuration
 
 Tavily `web_search` and `tavily_search` use `tools.web.search.cacheTtlMinutes`
-for OpenClaw's local result cache (default: 15 minutes). Set it to `0` to bypass
+for Vasudev's local result cache (default: 15 minutes). Set it to `0` to bypass
 cache reads and writes. A shorter TTL limits reuse of existing entries; a
 longer TTL does not extend their original expiry. This setting does not control
 the separate `tavily_extract` cache.

@@ -1,5 +1,5 @@
 ---
-summary: "Adds Groq model provider support to OpenClaw."
+summary: "Adds Groq model provider support to Vasudev."
 read_when:
   - You are installing, configuring, or auditing the groq plugin
 title: "Groq plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-Adds Groq model provider support to OpenClaw.
+Adds Groq model provider support to Vasudev.
 
 ## Distribution
 

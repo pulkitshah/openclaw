@@ -70,7 +70,7 @@ docker compose -f docker-compose.yml -f docker-compose.extra.yml run --rm \
 ```
 
 The native installer writes `claude` to `/home/node/.local/bin/claude`. The
-OpenClaw image includes `/home/node/.local/bin` on `PATH`, so the bundled
+Vasudev image includes `/home/node/.local/bin` on `PATH`, so the bundled
 Anthropic plugin resolves it without an adapter config override.
 
 Log in and verify from the same persisted home:
@@ -123,7 +123,7 @@ The auth-profile secret directory stores the local encryption key used to recove
 
 Current OAuth token material is stored as plaintext in SQLite under `OPENCLAW_CONFIG_DIR`, including access, refresh, and ID-token values. The separate key mount does not encrypt current SQLite rows or protect these tokens from a state-only backup or copy. Treat the config directory and its backups as credentials.
 
-Installed downloadable plugins store package state under the mounted OpenClaw home, so install records and package roots survive container replacement; gateway startup does not regenerate bundled-plugin dependency trees.
+Installed downloadable plugins store package state under the mounted Vasudev home, so install records and package roots survive container replacement; gateway startup does not regenerate bundled-plugin dependency trees.
 
 For full VM persistence details, see [Docker VM Runtime - What persists where](/install/docker-vm-runtime#what-persists-where).
 

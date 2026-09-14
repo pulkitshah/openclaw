@@ -25,28 +25,28 @@ first-run failures see
     model, or legacy `params.context1m: true` config), and your current credential is not
     eligible for long-context billing.
 
-    Set a **fallback model** so OpenClaw keeps replying while a provider is rate-limited.
+    Set a **fallback model** so Vasudev keeps replying while a provider is rate-limited.
     See [Models](/cli/models), [OAuth](/concepts/oauth), and
     [Anthropic 429 extra usage required for long context](/gateway/troubleshooting#anthropic-429-extra-usage-required-for-long-context).
 
   </Accordion>
 
   <Accordion title="Is AWS Bedrock supported?">
-    Yes. OpenClaw has a bundled **Amazon Bedrock (Converse)** provider. With AWS env
+    Yes. Vasudev has a bundled **Amazon Bedrock (Converse)** provider. With AWS env
     markers present (`AWS_ACCESS_KEY_ID`, `AWS_PROFILE`, `AWS_BEARER_TOKEN_BEDROCK`),
-    OpenClaw auto-enables the implicit Bedrock provider for model discovery; otherwise
+    Vasudev auto-enables the implicit Bedrock provider for model discovery; otherwise
     set `plugins.entries.amazon-bedrock.config.discovery.enabled: true` or add a manual
     provider entry. See [Amazon Bedrock](/providers/bedrock) and [Model providers](/providers/models).
     An OpenAI-compatible proxy in front of Bedrock is still a valid option if you prefer a managed key flow.
   </Accordion>
 
   <Accordion title="How does Codex auth work?">
-    OpenClaw supports **OpenAI Codex** via OAuth (ChatGPT sign-in). A fresh
+    Vasudev supports **OpenAI Codex** via OAuth (ChatGPT sign-in). A fresh
     setup with no primary model uses exact `openai/gpt-6-astra` for
     ChatGPT/Codex subscription auth plus native Codex app-server execution.
     Reauthentication preserves an existing explicit model, including
     `openai/gpt-5.5`. If the Codex workspace does not expose GPT-5.6, select
-    `openai/gpt-5.5` explicitly; OpenClaw does not silently downgrade. Legacy
+    `openai/gpt-5.5` explicitly; Vasudev does not silently downgrade. Legacy
     Codex-prefixed model refs are legacy config repaired by `openclaw doctor
     --fix`. Direct OpenAI API-key access remains available for non-agent OpenAI
     API surfaces and, through an ordered `openai` API-key profile, for agent
@@ -54,7 +54,7 @@ first-run failures see
     [Onboarding (CLI)](/start/wizard).
   </Accordion>
 
-  <Accordion title="Why does OpenClaw still mention legacy OpenAI Codex prefix?">
+  <Accordion title="Why does Vasudev still mention legacy OpenAI Codex prefix?">
     `openai` is the current provider and auth-profile id for both OpenAI API keys and
     ChatGPT/Codex OAuth - OpenAI Codex is folded into it. You may still see a legacy
     `openai-codex` prefix in older config and migration warnings:
@@ -85,19 +85,19 @@ first-run failures see
 
   <Accordion title="Do you support OpenAI subscription auth (Codex OAuth)?">
     Yes, fully. OpenAI explicitly allows subscription OAuth usage in external
-    tools/workflows like OpenClaw. Onboarding can run the OAuth flow for you.
+    tools/workflows like Vasudev. Onboarding can run the OAuth flow for you.
 
     See [OAuth](/concepts/oauth), [Model providers](/concepts/model-providers), and [Onboarding (CLI)](/start/wizard).
 
   </Accordion>
 
   <Accordion title="Can I use Gemini CLI or Antigravity OAuth?">
-    OpenClaw does not offer new Gemini CLI OAuth or Antigravity OAuth setup.
+    Vasudev does not offer new Gemini CLI OAuth or Antigravity OAuth setup.
     Connect Google with an AI Studio API key or Vertex AI instead.
 
     The optional `google-gemini-cli` runtime remains available for advanced
     setups using a supported Google API-key profile. Existing valid legacy
-    Gemini CLI OAuth profiles remain executable for compatibility, but OpenClaw
+    Gemini CLI OAuth profiles remain executable for compatibility, but Vasudev
     cannot create or repair them.
 
     Details: [Google](/providers/google), [Model providers](/concepts/model-providers).
@@ -105,7 +105,7 @@ first-run failures see
   </Accordion>
 
   <Accordion title="Is a local model OK for casual chats?">
-    Usually no. OpenClaw needs large context + strong safety; small cards truncate context
+    Usually no. Vasudev needs large context + strong safety; small cards truncate context
     and skip provider-side safety filters. If you must, run the **largest** model build you
     can locally (LM Studio) - see [Local models](/gateway/local-models). Smaller/quantized
     models raise prompt-injection risk - see [Security](/gateway/security).
@@ -119,7 +119,7 @@ first-run failures see
   </Accordion>
 
   <Accordion title="Do I have to buy a Mac Mini to install this?">
-    No. OpenClaw runs on macOS or Linux (Windows via WSL2). A Mac mini is a popular
+    No. Vasudev runs on macOS or Linux (Windows via WSL2). A Mac mini is a popular
     always-on host choice, but a small VPS, home server, or Raspberry Pi-class box works too.
 
     You only need a Mac **for macOS-only tools**. For iMessage, use [iMessage](/channels/imessage)
@@ -145,7 +145,7 @@ first-run failures see
 
   </Accordion>
 
-  <Accordion title="If I buy a Mac mini to run OpenClaw, can I connect it to my MacBook Pro?">
+  <Accordion title="If I buy a Mac mini to run Vasudev, can I connect it to my MacBook Pro?">
     Yes. The **Mac mini can run the Gateway**, and your MacBook Pro connects as a **node**
     (companion device). Nodes do not run the Gateway - they add capabilities like
     screen/camera and `system.run` on that device. A Mac node can also present
@@ -180,7 +180,7 @@ first-run failures see
 
   </Accordion>
 
-  <Accordion title="Can multiple people use one WhatsApp number with different OpenClaw instances?">
+  <Accordion title="Can multiple people use one WhatsApp number with different Vasudev instances?">
     Yes, via **multi-agent routing**. Bind each sender's WhatsApp DM (`peer: { kind: "direct", id: "+15551234567" }`) to a different `agentId`, giving each person their own workspace and session store. Replies still come from the **same WhatsApp account**; DM access control (`channels.whatsapp.dmPolicy` / `channels.whatsapp.allowFrom`) is global per account. See [Multi-Agent Routing](/concepts/multi-agent) and [WhatsApp](/channels/whatsapp).
   </Accordion>
 
@@ -201,7 +201,7 @@ first-run failures see
     brew install <formula>
     ```
 
-    Running OpenClaw via systemd: make sure the service PATH includes
+    Running Vasudev via systemd: make sure the service PATH includes
     `/home/linuxbrew/.linuxbrew/bin` (or your brew prefix) so `brew`-installed tools
     resolve in non-login shells. Recent builds also prepend common user bin dirs on Linux
     systemd services (for example `~/.local/bin`, `~/.npm-global/bin`,
@@ -220,7 +220,7 @@ first-run failures see
 
   <Accordion title="Can I switch between npm and git installs later?">
     Yes, with `openclaw update --channel ...` on an existing install. This does **not
-    delete your data** - only the OpenClaw code install changes. State (`~/.openclaw`) and
+    delete your data** - only the Vasudev code install changes. State (`~/.openclaw`) and
     workspace (`~/.openclaw/workspace`) stay untouched.
 
     npm to git:
@@ -273,7 +273,7 @@ first-run failures see
 
   </Accordion>
 
-  <Accordion title="How important is it to run OpenClaw on a dedicated machine?">
+  <Accordion title="How important is it to run Vasudev on a dedicated machine?">
     Not required, but recommended for reliability and isolation.
 
     - **Dedicated host (VPS/Mac mini/Raspberry Pi):** always-on, fewer sleep/reboot interruptions, cleaner permissions, easier to keep running.
@@ -294,7 +294,7 @@ first-run failures see
 
   </Accordion>
 
-  <Accordion title="Can I run OpenClaw in a VM and what are the requirements?">
+  <Accordion title="Can I run Vasudev in a VM and what are the requirements?">
     Yes. Treat a VM like a VPS: it needs to be always on, reachable, and have enough RAM
     for the Gateway and any channels you enable.
 

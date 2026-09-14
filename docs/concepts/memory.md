@@ -1,12 +1,12 @@
 ---
-summary: "How OpenClaw remembers things across sessions"
+summary: "How Vasudev remembers things across sessions"
 title: "Memory overview"
 read_when:
   - You want to understand how memory works
   - You want to know what memory files to write
 ---
 
-OpenClaw remembers things by writing plain Markdown files in your agent's
+Vasudev remembers things by writing plain Markdown files in your agent's
 workspace (default `~/.openclaw/workspace`). The model only remembers what gets
 saved to disk; there is no hidden state.
 
@@ -54,7 +54,7 @@ instructions still encourage the agent to record durable facts as it works,
 while dreaming handles background consolidation. The default heartbeat prompt
 performs no memory maintenance on its own.
 
-If `MEMORY.md` grows past the bootstrap file budget, OpenClaw keeps the file on
+If `MEMORY.md` grows past the bootstrap file budget, Vasudev keeps the file on
 disk intact but truncates the copy injected into context. Treat that as a
 signal to move detailed material into `memory/*.md`, keep only a durable
 summary in `MEMORY.md`, or raise the bootstrap limits if you want to spend more
@@ -67,9 +67,9 @@ The Control UI can import existing local memory from Codex, Claude Code, and
 Hermes.
 Open **Settings** → **Import Memory**, choose the destination agent, review the
 detected files, and confirm the import. For the existing default agent, you can
-instead open **Settings → Ask OpenClaw** and say `import memory`; this narrower
+instead open **Settings → Ask Vasudev** and say `import memory`; this narrower
 chat wizard requires completed onboarding, copies only new detected memory, and
-reports per-source failures or possible partial copies. OpenClaw copies only
+reports per-source failures or possible partial copies. Vasudev copies only
 Markdown memory:
 
 - Codex: the consolidated `MEMORY.md` and `memory_summary.md` files under
@@ -117,7 +117,7 @@ A useful action-sensitive memory makes clear:
 - who is the source or owner, if that affects trust or authority.
 
 Memory can preserve approval context, but it does not enforce policy. Use
-OpenClaw approval settings, sandboxing, and scheduled tasks for hard
+Vasudev approval settings, sandboxing, and scheduled tasks for hard
 operational controls.
 
 Example:
@@ -178,7 +178,7 @@ terms like IDs and code symbols). This works out of the box with an API key
 for any supported provider.
 
 <Info>
-OpenClaw uses OpenAI embeddings by default. Set
+Vasudev uses OpenAI embeddings by default. Set
 `memory.search.provider` explicitly to use Gemini, Voyage,
 Mistral, Bedrock, DeepInfra, local GGUF, Ollama, LM Studio, GitHub Copilot, or
 a generic OpenAI-compatible endpoint.
@@ -229,7 +229,7 @@ dashboards, bridge mode, and Obsidian-friendly workflows.
 ## Automatic memory flush
 
 Before [compaction](/concepts/compaction) summarizes your conversation,
-OpenClaw runs a silent turn that reminds the agent to save important context
+Vasudev runs a silent turn that reminds the agent to save important context
 to memory files. This is on by default; set
 `agents.defaults.compaction.memoryFlush.enabled: false` to turn it off.
 

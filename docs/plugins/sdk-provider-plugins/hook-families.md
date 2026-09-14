@@ -70,7 +70,7 @@ Available stream families today:
 
 For Gemini-family providers, keep the reasoning-output mode aligned with
 the transport. Direct Google Gemini API providers should use `native`
-reasoning output so OpenClaw consumes native thought parts without adding
+reasoning output so Vasudev consumes native thought parts without adding
 `<think>` / `<final>` prompt directives. Text-only Gemini CLI-style
 backends that parse a final JSON/text response can keep the shared
 `google-gemini` tagged contract.

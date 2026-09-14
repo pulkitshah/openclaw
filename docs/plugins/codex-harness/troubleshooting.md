@@ -17,12 +17,12 @@ configs. Select an `openai/gpt-*` model, enable
 `plugins.entries.codex.enabled`, and check whether `plugins.allow` excludes
 `codex`.
 
-**OpenClaw uses the built-in harness instead of Codex:** confirm the effective
+**Vasudev uses the built-in harness instead of Codex:** confirm the effective
 route is an exact official HTTPS Platform Responses or ChatGPT Responses route,
 has no authored provider request override, and that the Codex plugin is installed
 and enabled. Affirmative reasoning support and native reasoning-effort metadata
 do not count as request overrides. Headers, request parameters, timeouts, and
-payload compatibility switches still do: Codex declares an OpenClaw fallback
+payload compatibility switches still do: Codex declares an Vasudev fallback
 that preserves the exact request, including for explicit runtime selections.
 Other unsupported routes/authentication and missing explicit harnesses fail
 closed. The `openai/gpt-*` prefix and `agentRuntime.id: "codex"` alone are not
@@ -32,7 +32,7 @@ execution proof; inspect the actual harness in the completed result. See
 **OpenAI Codex runtime falls back to the API-key path:** collect a redacted
 gateway excerpt that shows the model, runtime, selected provider, and
 failure. Ask affected collaborators to run this read-only command on their
-OpenClaw host:
+Vasudev host:
 
 ```bash
 (
@@ -67,7 +67,7 @@ whole-agent runtime pins, and preserves existing auth-profile overrides.
 **The app-server is rejected:** use Codex `0.149.0` or newer. Older, malformed,
 and unversioned servers are rejected. Newer semantic versions continue with a
 compatibility warning and normal runtime validation against the Codex version
-OpenClaw ships. Update or remove custom, remote, or desktop
+Vasudev ships. Update or remove custom, remote, or desktop
 binary overrides that select another version.
 
 **`/codex status` cannot connect:** check that the `codex` plugin
@@ -76,7 +76,7 @@ configured, and that any custom `appServer.command`, `url`, `authToken`, or
 headers are valid.
 
 **The Codex app-server uses too much memory:** distinguish the two processes
-first. OpenClaw runs the local Codex app-server as a separate Rust child.
+first. Vasudev runs the local Codex app-server as a separate Rust child.
 `NODE_OPTIONS=--max-old-space-size=...` changes only the Gateway's Node.js V8
 heap; it does not cap or enlarge Codex. Managed Gateway installs already choose
 an adaptive V8 heap, and raising it can leave less host memory for Codex. Use
@@ -85,7 +85,7 @@ for Gateway pressure, and inspect host or container memory for the Codex child.
 
 The bundled Codex has no heap or RSS limit and no configurable idle-unload
 delay. After the last client unsubscribes, an inactive thread can remain loaded
-for up to 30 minutes. OpenClaw independently keeps up to 64 idle conversation
+for up to 30 minutes. Vasudev independently keeps up to 64 idle conversation
 threads subscribed on each Codex app-server for 30 minutes after their last
 activity. This preserves warm sessions and session-scoped approvals when several
 conversations alternate. Active turns and parents with unfinished native
@@ -125,7 +125,7 @@ allocation. An OS hard limit can terminate Codex rather than backpressure it.
 See [Codex harness reference](/plugins/codex-harness-reference#model-discovery).
 
 **Codex plugin state has reached its row limit:** run `openclaw doctor` to
-check for bindings left behind by deleted or expired OpenClaw sessions. Stop
+check for bindings left behind by deleted or expired Vasudev sessions. Stop
 the Gateway, then run `openclaw doctor --fix` to remove proven orphaned session
 bindings after session repair. Doctor preserves supervised bindings, active
 leases, ambiguous ownership, and bindings whose session store cannot be read.
@@ -139,19 +139,19 @@ and unsupported; prefer managed stdio or the local Unix control socket.
 
 **Native shell or patch tools are blocked with `Native hook relay
 unavailable`:** the Codex thread is still trying to use a native hook relay
-id that OpenClaw no longer has registered. This is a native Codex hook
+id that Vasudev no longer has registered. This is a native Codex hook
 transport problem, not an ACP backend, provider, GitHub, or shell-command
 failure. Start a fresh session in the affected chat with `/new` or `/reset`,
 then retry a harmless command. If that works once but the next native tool
 call fails again, treat `/new` as a temporary workaround only: copy the
 prompt into a fresh session after restarting the Codex app-server or
-OpenClaw Gateway so old threads are dropped and native hook registrations
+Vasudev Gateway so old threads are dropped and native hook registrations
 are recreated.
 
 **Codex tool calls create too many short-lived hook processes:** set
 `plugins.entries.codex.config.appServer.loopDetectionPreToolUseRelay: false`
 and restart the gateway. This disables only the Codex `PreToolUse` subprocess
-used for OpenClaw loop detection and its no-policy marker. Required
+used for Vasudev loop detection and its no-policy marker. Required
 `before_tool_call` and trusted-tool policy relays remain enabled.
 
 **A non-Codex model uses the built-in harness:** expected unless provider

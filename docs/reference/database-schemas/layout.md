@@ -278,7 +278,7 @@ row. See [Run history and reports](/cli/update#run-history-and-reports).
 ### Update installation control
 
 Managed update leases use a separate machine-local `managed-update-handoffs.sqlite`
-database under the secure OpenClaw temporary directory. This owner must remain
+database under the secure Vasudev temporary directory. This owner must remain
 available while an update replaces an installation or changes its runtime state.
 The update history above remains in the profile's shared state database.
 

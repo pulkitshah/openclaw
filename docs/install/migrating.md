@@ -1,17 +1,17 @@
 ---
 summary: "Migration hub: cross-system imports, machine-to-machine moves, and plugin upgrades"
 read_when:
-  - You are moving OpenClaw to a new laptop or server
+  - You are moving Vasudev to a new laptop or server
   - You are coming from another agent system and want to keep state
   - You are upgrading an in-place plugin
 title: "Migration guide"
 ---
 
-OpenClaw supports three migration paths: importing from another agent system, moving an existing install to a new machine, and upgrading a plugin in place.
+Vasudev supports three migration paths: importing from another agent system, moving an existing install to a new machine, and upgrading a plugin in place.
 
 ## Import from another agent system
 
-Bundled migration providers bring instructions, MCP servers, skills, model config, and (opt-in) API keys into OpenClaw. Plans are previewed before any change and secrets are redacted in reports. Standalone `openclaw migrate` is backed by a verified backup; fresh onboarding imports instead stage and verify local artifacts before publishing them with configuration committed before any irreversible external activation.
+Bundled migration providers bring instructions, MCP servers, skills, model config, and (opt-in) API keys into Vasudev. Plans are previewed before any change and secrets are redacted in reports. Standalone `openclaw migrate` is backed by a verified backup; fresh onboarding imports instead stage and verify local artifacts before publishing them with configuration committed before any irreversible external activation.
 
 <CardGroup cols={2}>
   <Card title="Migrating from Claude" href="/install/migrating-claude" icon="brain">
@@ -24,7 +24,7 @@ Bundled migration providers bring instructions, MCP servers, skills, model confi
 
 The CLI entry point is [`openclaw migrate`](/cli/migrate). Onboarding can also offer migration when it detects a known source (`openclaw onboard --flow import`).
 
-## Move OpenClaw to a new machine
+## Move Vasudev to a new machine
 
 Copy the **state directory** (`~/.openclaw/` by default) and your **workspace** to preserve:
 
@@ -58,7 +58,7 @@ Run `openclaw status` on the old machine to confirm your state directory path. C
 
   </Step>
 
-  <Step title="Install OpenClaw on the new machine">
+  <Step title="Install Vasudev on the new machine">
     [Install](/install) the CLI (and Node if needed) on the new machine. It is fine if onboarding creates a fresh `~/.openclaw/` — you overwrite it next.
   </Step>
 
@@ -155,5 +155,5 @@ In-place plugin upgrades preserve the same plugin id and config keys but may mov
 - [Install overview](/install): all installation methods.
 - [Doctor](/gateway/doctor): post-migration health check.
 - [Updating](/install/updating): updating an existing install in place, plus rollback strategy.
-- [Uninstall](/install/uninstall): removing OpenClaw cleanly.
+- [Uninstall](/install/uninstall): removing Vasudev cleanly.
 - [`openclaw backup`](/cli/backup) — create the archive this migration restores

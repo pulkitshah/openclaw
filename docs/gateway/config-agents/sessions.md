@@ -134,7 +134,7 @@ The worker also runs automatically without new chat activity. Inactive current
 and historical transcripts can become cold; opening or resuming one restores
 its history before use.
 
-Cold archives hold authoritative history. Supported OpenClaw backup commands
+Cold archives hold authoritative history. Supported Vasudev backup commands
 capture their verified contents with the database; direct database replication
 must also retain the referenced files. See
 [cold transcript storage](/reference/session-management-compaction/maintenance#cold-transcript-storage)

@@ -1,13 +1,13 @@
 ---
 summary: "Gateway runtime on macOS (external launchd service)"
 read_when:
-  - Packaging OpenClaw.app
+  - Packaging Vasudev.app
   - Debugging the macOS gateway launchd service
   - Installing the gateway CLI for macOS
 title: "Gateway on macOS"
 ---
 
-OpenClaw.app bundles a private Node runtime and matching OpenClaw package for
+Vasudev.app bundles a private Node runtime and matching Vasudev package for
 its app-owned `node worker` helper. Rebuilding or replacing the app replaces
 that helper too, including rebuilds with the same public version. The helper
 runs from the signed bundle, so moving the app or removing its build checkout
@@ -41,7 +41,7 @@ then installs and starts the per-user launchd service. This path needs no
 Terminal, Homebrew, or administrator access.
 
 Gateway setup still needs an internet connection to download its separate
-runtime and matching OpenClaw package. The bundled installer owns that setup;
+runtime and matching Vasudev package. The bundled installer owns that setup;
 the private worker is not a replacement for a CLI or Gateway installation.
 
 Remote connections and attachment to an independently managed local Gateway
@@ -54,7 +54,7 @@ of being treated as a missing service; check the LaunchAgent and retry.
 
 ## Manual recovery
 
-Read the version to install from the app: choose **About OpenClaw** in the
+Read the version to install from the app: choose **About Vasudev** in the
 menu bar, or run `openclaw-mac status --json`, which reports the app version
 and build.
 
@@ -86,7 +86,7 @@ Local mode. The CLI can also install it directly: `openclaw gateway install`
 
 Behavior:
 
-- "OpenClaw Active" enables/disables the LaunchAgent.
+- "Vasudev Active" enables/disables the LaunchAgent.
 - Quitting the app does **not** stop the Gateway (launchd keeps it alive).
 - If a Gateway is already running on the configured port, the app attaches to
   it instead of starting a new one.
@@ -120,7 +120,7 @@ namespace, including jobs submitted without a plist. The report shows each
 label, program, KeepAlive flag, and detected `openclaw gateway restart`,
 `start`, or `stop` invocation. Plain-text status shows the list as a warning when
 at least one job has KeepAlive or a verified lifecycle invocation. Otherwise,
-the list appears informationally under "Other OpenClaw launchd jobs (macOS)".
+the list appears informationally under "Other Vasudev launchd jobs (macOS)".
 Status JSON includes all these jobs under
 `service.foreignLaunchdJobs`. For warnings, recent external forced restarts in
 the lifecycle log provide a possible correlation; the count alone does not
@@ -138,7 +138,7 @@ openclaw health
 ```
 
 Doctor removes a foreign job only when its literal, straight-line script or
-direct arguments invoke an absolute OpenClaw path with a Gateway lifecycle
+direct arguments invoke an absolute Vasudev path with a Gateway lifecycle
 subcommand. Shell jobs must also have no launchd environment entries that alter
 shell execution. Everything outside this contract is reported and left unchanged.
 This is command-metadata verification; it does not probe binary executability,
@@ -203,7 +203,7 @@ the Dashboard cannot reach the Gateway.
 
 ## State directory on macOS
 
-Keep OpenClaw state on a local, non-synced disk. Avoid iCloud Drive and other
+Keep Vasudev state on a local, non-synced disk. Avoid iCloud Drive and other
 cloud-synced folders; sync latency and file locks can affect sessions,
 credentials, and Gateway state.
 

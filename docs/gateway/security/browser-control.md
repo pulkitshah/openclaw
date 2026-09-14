@@ -33,7 +33,7 @@ Enabling browser control gives the model a real browser. If that profile already
 - Chrome extension pairing stores its access mode in extension-owned Chrome
   storage, not Gateway config. **All tabs** exposes every eligible ordinary tab
   in that Chrome profile except session-paused tabs; **Selected tabs** uses the
-  OpenClaw tab group as its ACL. Existing pairings migrate to **Selected tabs**,
+  Vasudev tab group as its ACL. Existing pairings migrate to **Selected tabs**,
   while new personal-browser pairings recommend **All tabs**. Incognito and
   internal Chrome pages remain excluded in either mode.
 - Automatic Chrome extension setup uses an origin-locked native messaging
@@ -42,7 +42,7 @@ Enabling browser control gives the model a real browser. If that profile already
   nonce, caps input at 4 KiB, validates the Chrome-supplied origin, and returns
   only a locally owned pairing. It never transfers a remote Gateway key.
 - Native-host manifests, launchers, and status output contain no pairing key.
-  OpenClaw refuses symlinks, unsafe ownership/modes, wildcard origins, and
+  Vasudev refuses symlinks, unsafe ownership/modes, wildcard origins, and
   foreign registrations using the same host name. Windows uses the manual
   pairing fallback until an executable native-host path is supported.
 - Run a **node host** on the browser machine and let the Gateway proxy browser actions when the Gateway is remote from the browser (see [Browser tool](/tools/browser)); treat node pairing like admin access, keep Gateway and node host on the same tailnet, and avoid exposing relay/control ports over LAN, public internet, or Tailscale Funnel.
@@ -56,7 +56,7 @@ Private/internal destinations stay blocked unless you explicitly opt in.
 - `browser.ssrfPolicy.blockedHostnames` denies exact hosts and wildcard subdomains before DNS and any allow rule, including private-network exceptions. `*.example.com` does not block the apex `example.com`; add both to block the entire domain. An empty or absent list adds no denials. `tools.web.fetch.ssrfPolicy.blockedHostnames` provides the same policy for guarded fetches, including redirects.
 - In strict mode, use wildcard-aware `allowedHostnames` entries for patterns like `*.example.com` and exact host exceptions, including otherwise-blocked names like `localhost`.
 - Direct navigation requests are preflight checked. During the action and bounded post-action grace, guarded Playwright interactions (click, coordinate click, hover, drag, scroll, select, press, type, form fill, and evaluate) intercept policy-denied top-level and subframe document loads before HTTP request bytes, then best-effort re-check the final `http(s)` URL.
-- Before each fresh managed Chrome launch, OpenClaw best-effort disables network prediction, suppressing Chromium's observed speculative preconnect for those denied loads. This is defense in depth, not a policy boundary: a browser reused across a control-service restart and other browser backends may not share the hardening. Page routing remains request-level interception, not a network firewall: redirect hops, a popup's first request, Service Worker traffic, page code that runs after the bounded guard window, and some background/subresource paths can bypass it. Final-URL checks remain detection/quarantine defense; complete prevention requires owner-side egress isolation or a policy-enforcing proxy.
+- Before each fresh managed Chrome launch, Vasudev best-effort disables network prediction, suppressing Chromium's observed speculative preconnect for those denied loads. This is defense in depth, not a policy boundary: a browser reused across a control-service restart and other browser backends may not share the hardening. Page routing remains request-level interception, not a network firewall: redirect hops, a popup's first request, Service Worker traffic, page code that runs after the bounded guard window, and some background/subresource paths can bypass it. Final-URL checks remain detection/quarantine defense; complete prevention requires owner-side egress isolation or a policy-enforcing proxy.
 
 ```json5
 {

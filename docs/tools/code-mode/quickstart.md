@@ -1,8 +1,8 @@
 ---
-summary: "Enable OpenClaw Code Mode, override one model, and recover from tool errors"
+summary: "Enable Vasudev Code Mode, override one model, and recover from tool errors"
 title: "Code Mode quickstart"
 read_when:
-  - You want to enable OpenClaw code mode for an agent run
+  - You want to enable Vasudev code mode for an agent run
   - You need the per-agent or per-model override example
   - A code-mode tool call failed and you need the recovery steps
 ---
@@ -161,7 +161,7 @@ try {
 }
 ```
 
-Await every tool call or handle its rejection explicitly. OpenClaw drains
+Await every tool call or handle its rejection explicitly. Vasudev drains
 dispatched calls before completing a cell; an unhandled rejection, including
 one from an unawaited call or timer callback, fails the cell instead of silently
 reporting success. Handlers attached after a suspension still handle their
@@ -172,7 +172,7 @@ failures become failed `exec` or `wait` results. The model can read the error,
 correct its code, inspect the current state, and continue with the normal tool
 surface. A failed cell does not impose a separate recovery mode or mutation budget.
 
-OpenClaw does not automatically replay a failed program. Earlier calls may have
+Vasudev does not automatically replay a failed program. Earlier calls may have
 changed state, and a failed call may have partially applied. Inspect authoritative
 state before deciding what remains, and do not repeat completed actions. This
 also applies when `wait` resumes a suspended cell: its earlier calls belong to the
@@ -208,7 +208,7 @@ Use normal JavaScript control flow for fan-out, decision gates, and structured
 collection.
 
 The Swarm globals, `API.read("agents.d.ts")`, and Swarm prompt hints appear only
-when Swarm is enabled and the native OpenClaw `sessions_spawn` tool is present
+when Swarm is enabled and the native Vasudev `sessions_spawn` tool is present
 in the Code Mode catalog and permitted by the run's execution allowlist. An MCP
 tool with the same name does not qualify. Code Mode waits for collector results
 internally, so `agents.run()` does not require the standalone `agents_wait`

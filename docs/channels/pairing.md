@@ -3,11 +3,11 @@ summary: "Pairing overview: approve who can DM you + which nodes can join"
 read_when:
   - Setting up DM access control
   - Pairing a new iOS/Android node
-  - Reviewing OpenClaw security posture
+  - Reviewing Vasudev security posture
 title: "Pairing"
 ---
 
-"Pairing" is OpenClaw's explicit access approval step.
+"Pairing" is Vasudev's explicit access approval step.
 It is used in two places:
 
 1. **DM pairing** (who is allowed to talk to the bot)
@@ -17,7 +17,7 @@ Security context: [Security](/gateway/security)
 
 ## 1) DM pairing (inbound chat access)
 
-DM pairing applies to channels that implement OpenClaw's pairing API. With DM
+DM pairing applies to channels that implement Vasudev's pairing API. With DM
 policy `pairing`, unknown senders get a short code and their message is **not
 processed** until you approve.
 
@@ -85,14 +85,14 @@ rules still apply. The wizard never promotes chat allowlists automatically or
 replaces an existing owner.
 
 <Note>
-WhatsApp's login QR links a WhatsApp account to OpenClaw. DM access requests
+WhatsApp's login QR links a WhatsApp account to Vasudev. DM access requests
 approve people who message that account. These are separate flows.
 </Note>
 
 Supported channels include: `discord`, `feishu`, `googlechat`, `imessage`, `irc`, `line`, `matrix`, `mattermost`, `msteams`, `nextcloud-talk`, `nostr`, `signal`, `slack`, `sms`, `synology-chat`, `telegram`, `twitch`, `whatsapp`, `zalo`, `zalouser`.
 
 Installed external plugins can also support DM pairing if they implement
-OpenClaw's pairing API. Check the plugin's documentation for version-specific
+Vasudev's pairing API. Check the plugin's documentation for version-specific
 limitations.
 
 ### Reusable sender groups
@@ -126,7 +126,7 @@ Access groups are documented in detail here: [Access groups](/channels/access-gr
 
 ### Where the state lives
 
-For channels that use OpenClaw's pairing API, state is stored in the shared SQLite
+For channels that use Vasudev's pairing API, state is stored in the shared SQLite
 database at
 `~/.openclaw/state/openclaw.sqlite`:
 
@@ -167,10 +167,10 @@ Use an already connected Control UI session with `operator.admin` access:
 3. Keep **Full access (recommended)**, or select **Limited access** to omit
    administrative Gateway controls.
 4. Click **Create setup code**.
-5. On your phone, open the OpenClaw app → **Settings** → **Gateway**.
+5. On your phone, open the Vasudev app → **Settings** → **Gateway**.
 6. Scan the QR code or paste the setup code, then connect.
 
-Official OpenClaw iOS and Android apps are approved automatically when their
+Official Vasudev iOS and Android apps are approved automatically when their
 setup-code metadata matches. If **Pending approval** shows a request (for
 example, for a non-official client or mismatched metadata), review its role and
 scopes before approving it.
@@ -187,7 +187,7 @@ If you use the `device-pair` plugin, you can do first-time device pairing entire
 
 1. In Telegram, message your bot: `/pair`
 2. The bot replies with two messages: an instruction message and a separate **setup code** message (easy to copy/paste in Telegram).
-3. On your phone, open the OpenClaw iOS app → Settings → Gateway.
+3. On your phone, open the Vasudev iOS app → Settings → Gateway.
 4. Scan the QR code (`/pair qr`) or paste the setup code and connect.
 5. The official mobile app connects automatically. If `/pair pending` shows a
    request, review its role and scopes before approving it.
@@ -229,12 +229,12 @@ emulator host. Non-loopback plaintext routes receive limited access. Tailnet
 CGNAT addresses, `.ts.net` names, and public hosts still fail closed before
 QR/setup-code issuance.
 
-OpenClaw advertises Tailscale setup URLs only when it owns the route through
+Vasudev advertises Tailscale setup URLs only when it owns the route through
 `gateway.tailscale.mode=serve|funnel`. Legacy external Serve routes that proxy a
 `gateway.bind=lan` listener are not advertised because the ordinary listener
 rejects Tailscale-shaped proxy ingress. Run `openclaw doctor` to inspect the
 route; Doctor leaves the configuration unchanged because it cannot prove route
-ownership. If you confirm it is a stale route from an older OpenClaw release,
+ownership. If you confirm it is a stale route from an older Vasudev release,
 remove only its root handler with `tailscale serve --yes --https=443
 --set-path=/ off` or `tailscale funnel --yes --https=443 --set-path=/ off`, then
 configure `gateway.bind=loopback` and `gateway.tailscale.mode=serve` manually and
@@ -264,7 +264,7 @@ role/scopes/public key), the previous pending request is superseded and a new
 `requestId` is created.
 
 <Note>
-An already paired device does not get broader access silently. If it reconnects asking for more scopes or a broader role, OpenClaw keeps the existing approval as-is and creates a fresh pending upgrade request. Use `openclaw devices list` to compare the currently approved access with the newly requested access before you approve.
+An already paired device does not get broader access silently. If it reconnects asking for more scopes or a broader role, Vasudev keeps the existing approval as-is and creates a fresh pending upgrade request. Use `openclaw devices list` to compare the currently approved access with the newly requested access before you approve.
 </Note>
 
 ### Optional trusted-CIDR node auto-approve

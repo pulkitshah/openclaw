@@ -2,7 +2,7 @@
   "name": "@openclaw/image-generation-core",
   "version": "2026.9.4",
   "private": true,
-  "description": "OpenClaw image generation runtime package",
+  "description": "Vasudev image generation runtime package",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

@@ -34,7 +34,7 @@ The CLI verbs mirror the addressing model:
 
 ## Why use it
 
-OpenClaw state is spread across human-edited markdown, commented JSONC
+Vasudev state is spread across human-edited markdown, commented JSONC
 config, append-only JSONL logs, and YAML workflow/spec files. Scripts, hooks,
 and agents often need one small value from those files: a frontmatter key, a
 plugin setting, a log record field, a YAML step, or a bullet item under a

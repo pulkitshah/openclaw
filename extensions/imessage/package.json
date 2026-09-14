@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/imessage",
   "version": "2026.9.4",
-  "description": "OpenClaw iMessage channel plugin using imsg on a signed-in Mac",
+  "description": "Vasudev iMessage channel plugin using imsg on a signed-in Mac",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

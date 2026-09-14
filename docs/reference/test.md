@@ -1,5 +1,5 @@
 ---
-summary: "Index of the OpenClaw testing reference, one page per reader job"
+summary: "Index of the Vasudev testing reference, one page per reader job"
 read_when:
   - Running or fixing tests
 title: "Tests"

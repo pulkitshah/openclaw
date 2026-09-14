@@ -1,5 +1,5 @@
 ---
-summary: "Automated, hardened OpenClaw installation with Ansible, Tailscale VPN, and firewall isolation"
+summary: "Automated, hardened Vasudev installation with Ansible, Tailscale VPN, and firewall isolation"
 read_when:
   - You want automated server deployment with security hardening
   - You need firewall-isolated setup with VPN access
@@ -7,7 +7,7 @@ read_when:
 title: "Ansible"
 ---
 
-Deploy OpenClaw to production servers with **[openclaw-ansible](https://github.com/openclaw/openclaw-ansible)**, an automated installer with a security-first architecture.
+Deploy Vasudev to production servers with **[openclaw-ansible](https://github.com/openclaw/openclaw-ansible)**, an automated installer with a security-first architecture.
 
 <Info>
 The [openclaw-ansible](https://github.com/openclaw/openclaw-ansible) repo is the source of truth for Ansible deployment. This page is a quick overview.
@@ -41,8 +41,8 @@ curl -fsSL https://raw.githubusercontent.com/openclaw/openclaw-ansible/main/inst
 1. Tailscale (mesh VPN for secure remote access)
 2. UFW firewall (SSH + Tailscale ports only)
 3. Docker CE + Compose V2 (default agent sandbox backend)
-4. Node.js and pnpm (OpenClaw requires Node 24.16+ or 26.1+; Node 26 is recommended)
-5. OpenClaw, installed host-based, not containerized
+4. Node.js and pnpm (Vasudev requires Node 24.16+ or 26.1+; Node 26 is recommended)
+5. Vasudev, installed host-based, not containerized
 6. A systemd service with security hardening
 
 <Note>
@@ -60,7 +60,7 @@ backend. See [Sandboxing](/gateway/sandboxing) for other backends.
     ```
   </Step>
   <Step title="Run the onboarding wizard">
-    The post-install script guides you through configuring OpenClaw.
+    The post-install script guides you through configuring Vasudev.
   </Step>
   <Step title="Connect messaging channels">
     Log in to WhatsApp, Telegram, Discord, or Signal:
@@ -152,7 +152,7 @@ Docker is installed for agent sandboxes (isolated tool execution), not for runni
 
 ## Updating
 
-The Ansible installer sets up OpenClaw for manual updates; see [Updating](/install/updating) for the standard flow.
+The Ansible installer sets up Vasudev for manual updates; see [Updating](/install/updating) for the standard flow.
 
 To re-run the playbook (for example, after configuration changes):
 

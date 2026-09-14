@@ -14,7 +14,7 @@ CLI backends. Part of the [Plugin SDK overview](/plugins/sdk-overview).
 ## Gateway discovery registration
 
 `api.registerGatewayDiscoveryService(...)` lets a plugin advertise the active
-Gateway on a local discovery transport such as mDNS/Bonjour. OpenClaw calls the
+Gateway on a local discovery transport such as mDNS/Bonjour. Vasudev calls the
 service during Gateway startup when local discovery is enabled, passes the
 current Gateway ports and non-secret TXT hint data, and calls the returned
 `stop` handler during Gateway shutdown.
@@ -97,7 +97,7 @@ api.registerCli(
 
 A root descriptor can also declare `machineOutput({ argv, stdoutIsTTY })` when
 the command reserves stdout for JSON, JSONL, or another machine-readable format
-without relying exclusively on a literal `--json` flag. OpenClaw evaluates this
+without relying exclusively on a literal `--json` flag. Vasudev evaluates this
 resolver before plugin activation so startup diagnostics can be routed to
 stderr. The resolver must be synchronous, pure, and dependency-light: inspect
 only the supplied raw argv and stdout TTY state. Reuse the same resolver in
@@ -146,7 +146,7 @@ AI CLI backend such as `claude-cli` or `my-cli`.
 - Use `normalizeConfig` when registered static fields need a runtime-aware
   normalization pass.
 - Use `resolveExecutionArgs` for request-scoped argv rewrites that belong to
-  the CLI dialect, such as mapping OpenClaw thinking levels to a native effort
+  the CLI dialect, such as mapping Vasudev thinking levels to a native effort
   flag. The hook receives `ctx.executionMode`; use `"side-question"` to add
   backend-native isolation flags for ephemeral `/btw` calls. If those flags
   reliably disable native tools for an otherwise always-on CLI, declare
@@ -165,7 +165,7 @@ AI CLI backend such as `claude-cli` or `my-cli`.
   `ctx.toolAvailability.openClaw` names. Declare
   `toolAvailabilityEnforcement: "execution-args"` and enforce the contract in
   final fresh/resume argv, or declare `"prepare-execution"`, enforce it in
-  staged policy, and return `toolAvailabilityEnforced: true`. OpenClaw disables
+  staged policy, and return `toolAvailabilityEnforced: true`. Vasudev disables
   native tools for runtime caps such as cron `toolsAllow` and fails closed when
   the declared enforcement path is incomplete.
 

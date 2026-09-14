@@ -1,16 +1,16 @@
 ---
 summary: "Context engine: pluggable context assembly, compaction, and subagent lifecycle"
 read_when:
-  - You want to understand how OpenClaw assembles model context
+  - You want to understand how Vasudev assembles model context
   - You are switching between the legacy engine and a plugin engine
   - You are building a context engine plugin
 title: "Context engine"
 sidebarTitle: "Context engine"
 ---
 
-A **context engine** controls how OpenClaw builds model context for each run: which messages to include, how to summarize older history, and how to manage context across subagent boundaries.
+A **context engine** controls how Vasudev builds model context for each run: which messages to include, how to summarize older history, and how to manage context across subagent boundaries.
 
-OpenClaw ships with a built-in `legacy` engine and uses it by default. Install and select a plugin engine only when you want different assembly, compaction, or cross-session recall behavior.
+Vasudev ships with a built-in `legacy` engine and uses it by default. Install and select a plugin engine only when you want different assembly, compaction, or cross-session recall behavior.
 
 ## Quick start
 
@@ -23,7 +23,7 @@ OpenClaw ships with a built-in `legacy` engine and uses it by default. Install a
     ```
   </Step>
   <Step title="Install a plugin engine">
-    Context engine plugins are installed like any other OpenClaw plugin.
+    Context engine plugins are installed like any other Vasudev plugin.
 
     <Tabs>
       <Tab title="From npm">
@@ -67,7 +67,7 @@ OpenClaw ships with a built-in `legacy` engine and uses it by default. Install a
 
 ## How it works
 
-Every time OpenClaw runs a model prompt, the context engine participates at four lifecycle points:
+Every time Vasudev runs a model prompt, the context engine participates at four lifecycle points:
 
 <AccordionGroup>
   <Accordion title="1. Ingest">
@@ -98,14 +98,14 @@ Retiring the supplying registry still refuses new logical turns; existing engine
 work keeps its physical resources until cleanup finishes. Raw registrations keep
 their caller-owned lifetime.
 
-For the bundled non-ACP Codex harness, OpenClaw applies the same lifecycle by projecting assembled context into Codex developer instructions and the current turn prompt. Codex still owns its native thread history and native compactor.
+For the bundled non-ACP Codex harness, Vasudev applies the same lifecycle by projecting assembled context into Codex developer instructions and the current turn prompt. Codex still owns its native thread history and native compactor.
 
 ### Subagent lifecycle (optional)
 
-OpenClaw calls two optional subagent lifecycle hooks:
+Vasudev calls two optional subagent lifecycle hooks:
 
 <ParamField path="prepareSubagentSpawn" type="method">
-  Prepare shared context state before a child run starts. The hook receives parent/child session keys, `contextMode` (`isolated` or `fork`), available transcript ids/files, and optional TTL. If it returns a rollback handle, OpenClaw calls it when spawn fails after preparation succeeds. Native subagent spawns that request `lightContext` and resolve to `contextMode="isolated"` intentionally skip this hook so the child starts from the lightweight bootstrap context without context-engine-managed pre-spawn state.
+  Prepare shared context state before a child run starts. The hook receives parent/child session keys, `contextMode` (`isolated` or `fork`), available transcript ids/files, and optional TTL. If it returns a rollback handle, Vasudev calls it when spawn fails after preparation succeeds. Native subagent spawns that request `lightContext` and resolve to `contextMode="isolated"` intentionally skip this hook so the child starts from the lightweight bootstrap context without context-engine-managed pre-spawn state.
 </ParamField>
 <ParamField path="onSubagentEnded" type="method">
   Clean up when a subagent session completes or is swept.
@@ -113,11 +113,11 @@ OpenClaw calls two optional subagent lifecycle hooks:
 
 ### System prompt addition
 
-The `assemble` method can return a `systemPromptAddition` string. OpenClaw prepends this to the system prompt for the run. This lets engines inject dynamic recall guidance, retrieval instructions, or context-aware hints without requiring static workspace files.
+The `assemble` method can return a `systemPromptAddition` string. Vasudev prepends this to the system prompt for the run. This lets engines inject dynamic recall guidance, retrieval instructions, or context-aware hints without requiring static workspace files.
 
 ## The legacy engine
 
-The built-in `legacy` engine preserves OpenClaw's original behavior:
+The built-in `legacy` engine preserves Vasudev's original behavior:
 
 - **Ingest**: no-op (the session manager handles message persistence directly).
 - **Assemble**: pass-through (the existing sanitize → validate → limit pipeline in the runtime handles context assembly).
@@ -231,7 +231,7 @@ Required members:
 
 Set `info.acceptedHostParams` to restrict the host-added lifecycle fields the
 engine receives. Current keys are `sessionKey`, `prompt`, `runtimeSettings`,
-`sessionTarget`, `runtimeContext`, and `abortSignal`. OpenClaw intersects the
+`sessionTarget`, `runtimeContext`, and `abortSignal`. Vasudev intersects the
 declaration with the fields available for each lifecycle method, so undeclared
 or unknown keys are never injected. `abortSignal` governs optional cooperative
 cancellation for `maintain()`; the existing compact-operation abort signal is
@@ -261,9 +261,9 @@ before the current turn, with a token budget that reserves space for pending use
 and tool messages. The host appends those pending messages to the assembled history before
 the next model request, so they remain visible without entering the engine's store.
 
-Without the full declaration and method, OpenClaw uses the legacy context path
+Without the full declaration and method, Vasudev uses the legacy context path
 for the whole logical turn, including retries. The configured context-engine
-slot is not changed, and OpenClaw tries the configured engine again on the next
+slot is not changed, and Vasudev tries the configured engine again on the next
 logical turn. The same turn-local degradation applies if a declared fence
 cannot be honored because its exact admitted message is missing, rewritten, or
 already crossed by a transcript cursor.
@@ -274,7 +274,7 @@ already crossed by a transcript cursor.
   The ordered messages to send to the model.
 </ParamField>
 <ParamField path="estimatedTokens" type="number" required>
-  The engine's estimate of total tokens in the assembled context. OpenClaw uses this for compaction threshold decisions and diagnostic reporting.
+  The engine's estimate of total tokens in the assembled context. Vasudev uses this for compaction threshold decisions and diagnostic reporting.
 </ParamField>
 <ParamField path="systemPromptAddition" type="string">
   Prepended to the system prompt.
@@ -284,7 +284,7 @@ already crossed by a transcript cursor.
   prechecks. Defaults to `"assembled"`, which means only the assembled
   prompt's estimate is checked for engines that do not own compaction.
   Engines that set `ownsCompaction: true` manage their own prompt admission,
-  so OpenClaw skips the generic pre-prompt precheck by default. Set
+  so Vasudev skips the generic pre-prompt precheck by default. Set
   `"preassembly_may_overflow"` only when your assembled view can hide overflow
   risk in the underlying transcript; the runner then keeps the generic
   precheck active and takes the maximum of the assembled estimate and the
@@ -330,14 +330,14 @@ one-shot CLI cleanup-failure outcome; they do not certify resource closure.
 
 ### Runtime settings
 
-Lifecycle hooks that run inside OpenClaw receive an optional
+Lifecycle hooks that run inside Vasudev receive an optional
 `runtimeSettings` object. It is a versioned, read-only internal
-producer/consumer API surface: OpenClaw produces it for the selected context
+producer/consumer API surface: Vasudev produces it for the selected context
 engine, and the context engine consumes it inside lifecycle hooks. It is not
 rendered directly to users and does not create a dedicated reporting surface.
 
 - `schemaVersion`: currently `1`
-- `runtime`: OpenClaw host, runtime mode (`normal`, `fallback`, or
+- `runtime`: Vasudev host, runtime mode (`normal`, `fallback`, or
   `degraded`), and optional harness/runtime ids
 - `contextEngineSelection`: selected context engine id and selection source
 - `executionHost`: host id and label for the surface invoking the hook
@@ -353,7 +353,7 @@ host parameters and accept `runtimeSettings` must include it in
 ### Host requirements
 
 Context engines can declare host capability requirements on `info.hostRequirements`.
-OpenClaw checks these requirements before starting the operation and fails closed
+Vasudev checks these requirements before starting the operation and fails closed
 with a descriptive error when the selected runtime cannot satisfy them.
 
 For agent runs, declare `assemble-before-prompt` when the engine must control the
@@ -373,39 +373,39 @@ info: {
 }
 ```
 
-Native Codex and OpenClaw embedded agent runs satisfy `assemble-before-prompt`.
+Native Codex and Vasudev embedded agent runs satisfy `assemble-before-prompt`.
 Generic CLI backends do not, so engines that require it are rejected before the
 CLI process starts.
 
 ### Failure isolation
 
-OpenClaw isolates the selected plugin engine from the core reply path. If a
+Vasudev isolates the selected plugin engine from the core reply path. If a
 non-legacy engine is missing, fails contract validation, throws during factory
-creation, or throws from a lifecycle method, OpenClaw quarantines that engine
+creation, or throws from a lifecycle method, Vasudev quarantines that engine
 for the current Gateway process and downgrades context-engine work to the
 built-in `legacy` engine. The error is logged with the failed operation so the
 operator can repair, update, or disable the plugin without the agent going
 silent.
 
 Host requirement failures are different: when an engine declares that a runtime
-lacks a required capability, OpenClaw fails closed before starting the run. That
+lacks a required capability, Vasudev fails closed before starting the run. That
 protects engines that would corrupt state if they ran in an unsupported host.
 
 ### ownsCompaction
 
-`ownsCompaction` controls whether OpenClaw runtime's built-in in-attempt auto-compaction stays enabled for the run:
+`ownsCompaction` controls whether Vasudev runtime's built-in in-attempt auto-compaction stays enabled for the run:
 
 <AccordionGroup>
   <Accordion title="ownsCompaction: true">
-    The engine owns compaction behavior. OpenClaw disables OpenClaw runtime's built-in auto-compaction and generic pre-prompt overflow precheck for that run, and the engine's `compact()` implementation is responsible for `/compact`, provider overflow recovery compaction, and any proactive compaction it wants to do in `afterTurn()`. OpenClaw still runs the pre-prompt overflow safeguard when the engine returns `promptAuthority: "preassembly_may_overflow"` from `assemble()`.
+    The engine owns compaction behavior. Vasudev disables Vasudev runtime's built-in auto-compaction and generic pre-prompt overflow precheck for that run, and the engine's `compact()` implementation is responsible for `/compact`, provider overflow recovery compaction, and any proactive compaction it wants to do in `afterTurn()`. Vasudev still runs the pre-prompt overflow safeguard when the engine returns `promptAuthority: "preassembly_may_overflow"` from `assemble()`.
   </Accordion>
   <Accordion title="ownsCompaction: false or unset">
-    OpenClaw runtime's built-in auto-compaction may still run during prompt execution, but the active engine's `compact()` method is still called for `/compact` and overflow recovery.
+    Vasudev runtime's built-in auto-compaction may still run during prompt execution, but the active engine's `compact()` method is still called for `/compact` and overflow recovery.
   </Accordion>
 </AccordionGroup>
 
 <Warning>
-`ownsCompaction: false` does **not** mean OpenClaw automatically falls back to the legacy engine's compaction path.
+`ownsCompaction: false` does **not** mean Vasudev automatically falls back to the legacy engine's compaction path.
 </Warning>
 
 That means there are two valid plugin patterns:
@@ -415,7 +415,7 @@ That means there are two valid plugin patterns:
     Implement your own compaction algorithm and set `ownsCompaction: true`.
   </Tab>
   <Tab title="Delegating mode">
-    Set `ownsCompaction: false` and have `compact()` call `delegateCompactionToRuntime(...)` from `openclaw/plugin-sdk/core` to use OpenClaw's built-in compaction behavior.
+    Set `ownsCompaction: false` and have `compact()` call `delegateCompactionToRuntime(...)` from `openclaw/plugin-sdk/core` to use Vasudev's built-in compaction behavior.
   </Tab>
 </Tabs>
 
@@ -436,18 +436,18 @@ A no-op `compact()` is unsafe for an active non-owning engine because it disable
 ```
 
 <Note>
-The slot is exclusive at run time - only one registered context engine is resolved for a given run or compaction operation. Other enabled `kind: "context-engine"` plugins can still load and run their registration code; `plugins.slots.contextEngine` only selects which registered engine id OpenClaw resolves when it needs a context engine.
+The slot is exclusive at run time - only one registered context engine is resolved for a given run or compaction operation. Other enabled `kind: "context-engine"` plugins can still load and run their registration code; `plugins.slots.contextEngine` only selects which registered engine id Vasudev resolves when it needs a context engine.
 </Note>
 
 <Note>
-**Plugin uninstall:** when you uninstall the plugin currently selected as `plugins.slots.contextEngine`, OpenClaw resets the slot back to the default (`legacy`). The same reset behavior applies to `plugins.slots.memory`. No manual config edit is required.
+**Plugin uninstall:** when you uninstall the plugin currently selected as `plugins.slots.contextEngine`, Vasudev resets the slot back to the default (`legacy`). The same reset behavior applies to `plugins.slots.memory`. No manual config edit is required.
 </Note>
 
 ## Relationship to compaction and memory
 
 <AccordionGroup>
   <Accordion title="Compaction">
-    Compaction is one responsibility of the context engine. The legacy engine delegates to OpenClaw's built-in summarization. Plugin engines can implement any compaction strategy (DAG summaries, vector retrieval, etc.).
+    Compaction is one responsibility of the context engine. The legacy engine delegates to Vasudev's built-in summarization. Plugin engines can implement any compaction strategy (DAG summaries, vector retrieval, etc.).
   </Accordion>
   <Accordion title="Memory plugins">
     Memory plugins (`plugins.slots.memory`) are separate from context engines. Memory plugins provide search/retrieval; context engines control what the model sees. They can work together - a context engine might use memory plugin data during assembly. Plugin engines that want the active memory prompt path should use `buildMemorySystemPromptAddition(...)` from `openclaw/plugin-sdk/core`, which converts the host-prepared memory prompt sections into a ready-to-prepend `systemPromptAddition` without exposing memory-plugin layout.
@@ -461,7 +461,7 @@ The slot is exclusive at run time - only one registered context engine is resolv
 
 - Use `openclaw doctor` to verify your engine is loading correctly.
 - If switching engines, existing sessions continue with their current history. The new engine takes over for future runs.
-- Engine errors are logged and the selected plugin engine is quarantined for the current Gateway process. OpenClaw falls back to `legacy` for user turns so replies can continue, but you should still repair, update, disable, or uninstall the broken plugin.
+- Engine errors are logged and the selected plugin engine is quarantined for the current Gateway process. Vasudev falls back to `legacy` for user turns so replies can continue, but you should still repair, update, disable, or uninstall the broken plugin.
 - For development, use `openclaw plugins install -l ./my-engine` to link a local plugin directory without copying.
 
 ## Related
@@ -473,4 +473,4 @@ The slot is exclusive at run time - only one registered context engine is resolv
 - [Plugin manifest](/plugins/manifest) - plugin manifest fields
 - [Plugins](/tools/plugin) - plugin overview
 - [Session management deep dive](/reference/session-management-compaction) - the session store, transcript events, and auto-compaction internals
-- [System prompt](/concepts/system-prompt) - what OpenClaw assembles into the system prompt for every agent run, and the layers it renders from
+- [System prompt](/concepts/system-prompt) - what Vasudev assembles into the system prompt for every agent run, and the layers it renders from

@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/fish-audio-speech",
   "version": "2026.9.4",
-  "description": "OpenClaw Fish Audio speech plugin.",
+  "description": "Vasudev Fish Audio speech plugin.",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

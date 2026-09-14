@@ -51,7 +51,7 @@ pnpm openclaw qa buzz \
 
 Targets one real Buzz room with two dedicated Nostr identities. The driver
 publishes inbound room events; the SUT identity is configured in the child
-OpenClaw Gateway and its outbound events are observed from the relay. The
+Vasudev Gateway and its outbound events are observed from the relay. The
 default `mock-openai` provider proves the real Buzz transport without requiring
 a model-provider credential.
 
@@ -145,7 +145,7 @@ pnpm openclaw qa discord
 ```
 
 Targets one real private Discord guild channel with two bots: a driver bot
-controlled by the harness and a SUT bot started by the child OpenClaw gateway
+controlled by the harness and a SUT bot started by the child Vasudev gateway
 through the bundled Discord plugin. Verifies channel mention handling, that
 the SUT bot has registered the native `/help` command with Discord, and
 opt-in Mantis evidence scenarios.

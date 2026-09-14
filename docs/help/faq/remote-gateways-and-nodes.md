@@ -54,7 +54,7 @@ read_when:
 
   </Accordion>
 
-  <Accordion title="Can two OpenClaw instances talk to each other (local + VPS)?">
+  <Accordion title="Can two Vasudev instances talk to each other (local + VPS)?">
     Yes, though there is no built-in bot-to-bot bridge.
 
     **Simplest**: use a normal chat channel both bots can access (Slack/Telegram/WhatsApp). Have Bot A message Bot B, then let Bot B reply as usual.

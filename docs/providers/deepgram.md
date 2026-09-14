@@ -7,7 +7,7 @@ read_when:
 title: "Deepgram"
 ---
 
-Deepgram is a speech-to-text API. OpenClaw uses it for inbound audio/voice-note
+Deepgram is a speech-to-text API. Vasudev uses it for inbound audio/voice-note
 transcription through `tools.media.audio` and for Voice Call streaming STT
 through `plugins.entries.voice-call.config.streaming`.
 
@@ -47,7 +47,7 @@ returns them.
     ```
   </Step>
   <Step title="Send a voice note">
-    Send an audio message through any connected channel. OpenClaw transcribes it
+    Send an audio message through any connected channel. Vasudev transcribes it
     via Deepgram and injects the transcript into the reply pipeline.
   </Step>
 </Steps>
@@ -105,7 +105,7 @@ Deepgram `/listen` request, so any Deepgram-supported param name works
 
 ### Flux models
 
-Use `flux-general-en` or `flux-general-multi` for Deepgram Flux. OpenClaw
+Use `flux-general-en` or `flux-general-multi` for Deepgram Flux. Vasudev
 converts the voice note to 16 kHz mono linear16 audio with `ffmpeg`, then sends
 it to Deepgram's `/v2/listen` WebSocket endpoint.
 Set `tools.media.models[].model` to either Flux model in the getting-started
@@ -118,9 +118,9 @@ limits still apply; failed conversion or upload does not return a partial transc
 
 Flux supports `eager_eot_threshold`, `eot_threshold`, `eot_timeout_ms`,
 `keyterm`, `language_hint`, `mip_opt_out`, `numerals`, `profanity_filter`,
-`redact`, and `tag` in `providerOptions.deepgram`. OpenClaw ignores batch-only
+`redact`, and `tag` in `providerOptions.deepgram`. Vasudev ignores batch-only
 options such as `detect_language`, `punctuate`, and `smart_format` on Flux.
-Language hints apply only to `flux-general-multi`: OpenClaw maps the model entry's
+Language hints apply only to `flux-general-multi`: Vasudev maps the model entry's
 `language` setting to `language_hint`, with an explicit provider option taking
 precedence. Both settings are ignored for the English-only `flux-general-en` model.
 
@@ -210,6 +210,6 @@ Twilio media frames can be forwarded directly.
     Common issues and debugging steps.
   </Card>
   <Card title="FAQ" href="/help/faq" icon="circle-question">
-    Frequently asked questions about OpenClaw setup.
+    Frequently asked questions about Vasudev setup.
   </Card>
 </CardGroup>

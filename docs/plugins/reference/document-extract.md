@@ -15,7 +15,7 @@ Extract text and fallback page images from local document attachments.
 ## Distribution
 
 - Package: `@openclaw/document-extract-plugin`
-- Install route: included in OpenClaw
+- Install route: included in Vasudev
 
 ## Surface
 

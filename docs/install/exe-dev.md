@@ -1,12 +1,12 @@
 ---
-summary: "Run OpenClaw Gateway on exe.dev (VM + HTTPS proxy) for remote access"
+summary: "Run Vasudev Gateway on exe.dev (VM + HTTPS proxy) for remote access"
 read_when:
   - You want a cheap always-on Linux host for the Gateway
   - You want remote Control UI access without running your own VPS
 title: "exe.dev"
 ---
 
-**Goal:** OpenClaw Gateway running on an [exe.dev](https://exe.dev) VM, reachable at `https://<vm-name>.exe.xyz`.
+**Goal:** Vasudev Gateway running on an [exe.dev](https://exe.dev) VM, reachable at `https://<vm-name>.exe.xyz`.
 
 This guide assumes exe.dev's default **exeuntu** image. Map packages accordingly on other distros.
 
@@ -25,7 +25,7 @@ This guide assumes exe.dev's default **exeuntu** image. Map packages accordingly
 
 ## Automated install with Shelley
 
-Shelley, exe.dev's agent, can install OpenClaw from a prompt:
+Shelley, exe.dev's agent, can install Vasudev from a prompt:
 
 ```text
 Set up OpenClaw (https://docs.openclaw.ai/install) on this VM. Use the non-interactive and accept-risk flags for openclaw onboarding. Add the supplied auth or token as needed. Configure nginx to forward from the default port 18789 to the root location on the default enabled site config, making sure to enable Websocket support. Set gateway.controlUi.allowedOrigins to the exact https://<vm-name>.exe.xyz origin, and set gateway.trustedProxies to ["127.0.0.1"] because nginx connects to the Gateway over loopback and overwrites X-Forwarded-For. Pairing is done by "openclaw devices list" and "openclaw devices approve <request id>". Make sure the dashboard shows that OpenClaw's health is OK. exe.dev handles forwarding from port 8000 to port 80/443 and HTTPS for us, so the final "reachable" should be <vm-name>.exe.xyz, without port specification.
@@ -48,7 +48,7 @@ Set up OpenClaw (https://docs.openclaw.ai/install) on this VM. Use the non-inter
     ```
 
     <Tip>
-    Keep this VM **stateful**. OpenClaw stores `openclaw.json`, shared and per-agent SQLite auth stores, sessions, and channel/provider state under `~/.openclaw/`, plus the workspace under `~/.openclaw/workspace/`.
+    Keep this VM **stateful**. Vasudev stores `openclaw.json`, shared and per-agent SQLite auth stores, sessions, and channel/provider state under `~/.openclaw/`, plus the workspace under `~/.openclaw/workspace/`.
     </Tip>
 
   </Step>
@@ -60,7 +60,7 @@ Set up OpenClaw (https://docs.openclaw.ai/install) on this VM. Use the non-inter
     ```
   </Step>
 
-  <Step title="Install OpenClaw">
+  <Step title="Install Vasudev">
     ```bash
     curl -fsSL https://openclaw.ai/install.sh | bash
     ```
@@ -99,7 +99,7 @@ Set up OpenClaw (https://docs.openclaw.ai/install) on this VM. Use the non-inter
     }
     ```
 
-    Overwrite forwarding headers instead of preserving client-supplied chains. OpenClaw trusts forwarded IP metadata only from explicitly configured proxies, and append-style `X-Forwarded-For` chains are treated as a hardening risk.
+    Overwrite forwarding headers instead of preserving client-supplied chains. Vasudev trusts forwarded IP metadata only from explicitly configured proxies, and append-style `X-Forwarded-For` chains are treated as a hardening risk.
 
   </Step>
 
@@ -113,13 +113,13 @@ Set up OpenClaw (https://docs.openclaw.ai/install) on this VM. Use the non-inter
     ```
 
     The browser origin check is fail-closed for public hostnames. The proxy
-    allowlist lets OpenClaw use nginx's overwritten `X-Forwarded-For` value
+    allowlist lets Vasudev use nginx's overwritten `X-Forwarded-For` value
     instead of treating every request as if it originated from the loopback
     proxy. Keep this list limited to proxies you control.
 
   </Step>
 
-  <Step title="Access OpenClaw and approve devices">
+  <Step title="Access Vasudev and approve devices">
     Open `https://<vm-name>.exe.xyz/` (see the Control UI output from onboarding). If it prompts for auth, paste the configured shared secret from the VM.
 
     This guide uses token auth by default, so run `openclaw gateway auth-token --show` in an interactive terminal to retrieve the configured token. If no token is configured, generate one with `openclaw doctor --generate-gateway-token` and restart the Gateway. If you switched the gateway to password auth, use `gateway.auth.password` / `OPENCLAW_GATEWAY_PASSWORD` instead.

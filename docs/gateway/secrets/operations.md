@@ -53,7 +53,7 @@ Activation contract:
 
 ## Degraded and recovered signals
 
-When reload-time activation fails after a healthy state, OpenClaw enters degraded secrets state, emitting one-shot system events and log codes:
+When reload-time activation fails after a healthy state, Vasudev enters degraded secrets state, emitting one-shot system events and log codes:
 
 - `SECRETS_RELOADER_DEGRADED`
 - `SECRETS_RELOADER_RECOVERED`
@@ -183,7 +183,7 @@ If you save a plan instead of applying during `configure`, apply that saved plan
 ## One-way safety policy
 
 <Warning>
-OpenClaw intentionally does not write rollback backups containing historical plaintext secret values.
+Vasudev intentionally does not write rollback backups containing historical plaintext secret values.
 </Warning>
 
 Safety model:

@@ -2,13 +2,13 @@
 summary: "Together AI setup (auth + model selection)"
 title: "Together AI"
 read_when:
-  - You want to use Together AI with OpenClaw
+  - You want to use Together AI with Vasudev
   - You need the API key env var or CLI auth choice
 ---
 
 [Together AI](https://together.ai) provides access to leading open-source
 models including Llama, DeepSeek, Kimi, and more through a unified API.
-OpenClaw bundles it as the `together` provider.
+Vasudev bundles it as the `together` provider.
 
 | Property | Value                         |
 | -------- | ----------------------------- |

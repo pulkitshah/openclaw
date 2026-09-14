@@ -1,13 +1,13 @@
 ---
-summary: "Use GMI Cloud's OpenAI-compatible API with OpenClaw"
+summary: "Use GMI Cloud's OpenAI-compatible API with Vasudev"
 read_when:
-  - You want to run OpenClaw with GMI Cloud models
+  - You want to run Vasudev with GMI Cloud models
   - You need the GMI provider id, key, or endpoint
 title: "GMI Cloud"
 ---
 
 GMI Cloud is a hosted inference platform for frontier and open-weight models
-behind an OpenAI-compatible API. In OpenClaw it is an official external provider
+behind an OpenAI-compatible API. In Vasudev it is an official external provider
 plugin: install it once, store credentials through normal model auth, and use
 model refs like `gmi/openai/gpt-5.6-sol`.
 
@@ -15,7 +15,7 @@ Use GMI when you want one API key for several hosted model families, including
 Anthropic, DeepSeek, Google, Moonshot, OpenAI, and Z.AI routes exposed by GMI's
 catalog. It works as a secondary provider for model fallback, for comparing
 hosted routes across vendors, or when GMI has a model available before your
-primary provider does. OpenClaw owns the provider id, auth profile, aliases,
+primary provider does. Vasudev owns the provider id, auth profile, aliases,
 model catalog seed, and base URL; GMI owns live model availability, billing,
 rate limits, and any provider-side routing policy.
 
@@ -94,7 +94,7 @@ openclaw models list --provider gmi
 ## Troubleshooting
 
 - `401` or `403`: check that `GMI_API_KEY` is set for the process running
-  OpenClaw, or re-run onboarding to store the key in the provider auth profile.
+  Vasudev, or re-run onboarding to store the key in the provider auth profile.
 - Unknown model errors: confirm the model exists in your GMI account and use the
   full `gmi/<route-id>` ref shown by `openclaw models list --provider gmi`.
 - Intermittent provider errors: try a different GMI route or configure GMI as a

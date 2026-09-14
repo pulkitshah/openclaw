@@ -40,7 +40,7 @@ The override map is JSON keyed by plugin id. Values support:
 
 ## Behavior
 
-When a setup-time flow installs a plugin whose id appears in the map, OpenClaw
+When a setup-time flow installs a plugin whose id appears in the map, Vasudev
 uses the override source instead of the catalog, bundled, or default npm
 source. This applies to onboarding and any other flow using the shared
 setup-time plugin installer.
@@ -48,16 +48,16 @@ setup-time plugin installer.
 - Overrides still enforce the expected plugin id: a tarball mapped to `codex`
   must install a plugin whose manifest id is `codex`.
 - Overrides do not inherit official trusted-source status. Even when the
-  catalog entry normally represents an OpenClaw-owned package, an override is
+  catalog entry normally represents an Vasudev-owned package, an override is
   treated as operator-supplied test input.
 - Workspace `.env` files cannot enable install overrides; both env vars are on
   the blocked workspace dotenv list. Set them in the trusted shell, CI job, or
-  remote test command that launches OpenClaw.
+  remote test command that launches Vasudev.
 
 ## Package E2E
 
 Use an isolated state directory so package installs and install records do not
-touch your normal OpenClaw state:
+touch your normal Vasudev state:
 
 ```bash
 npm pack extensions/codex --pack-destination /tmp

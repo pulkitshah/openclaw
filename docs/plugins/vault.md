@@ -1,7 +1,7 @@
 ---
 summary: "Use the bundled Vault plugin to resolve SecretRefs from HashiCorp Vault"
 read_when:
-  - You want OpenClaw to read API keys from HashiCorp Vault
+  - You want Vasudev to read API keys from HashiCorp Vault
   - You are setting up SecretRefs on a local machine or server
   - You need to configure Vault-backed model provider credentials
 title: "Vault SecretRefs"
@@ -9,23 +9,23 @@ title: "Vault SecretRefs"
 
 # Vault SecretRefs
 
-The bundled Vault plugin lets OpenClaw resolve `exec` SecretRefs from
-HashiCorp Vault at Gateway startup and reload time. OpenClaw stores Vault
+The bundled Vault plugin lets Vasudev resolve `exec` SecretRefs from
+HashiCorp Vault at Gateway startup and reload time. Vasudev stores Vault
 references in config, keeps resolved values in the in-memory secrets snapshot,
 and does not write the resolved API keys back to `openclaw.json`.
 
 Use this when you already run Vault or want model provider keys to live outside
-OpenClaw config files. For the SecretRef runtime model, see
+Vasudev config files. For the SecretRef runtime model, see
 [Secrets management](/gateway/secrets).
 
 ## Before you begin
 
 You need:
 
-- OpenClaw with the bundled `vault` plugin available
+- Vasudev with the bundled `vault` plugin available
 - a reachable Vault server
 - Vault auth that can produce a client token with read access to the secret
-  paths OpenClaw should resolve
+  paths Vasudev should resolve
 - the environment that starts the Gateway must include `VAULT_ADDR` and either
   `VAULT_TOKEN`, `OPENCLAW_VAULT_AUTH_METHOD=token_file` with `VAULT_TOKEN_FILE`,
   or a configured JWT/Kubernetes login
@@ -41,9 +41,9 @@ openclaw plugins enable vault
 
 ## Store a provider key in Vault
 
-OpenClaw defaults to KV v2 mounted at `secret`, matching Vault dev-server
+Vasudev defaults to KV v2 mounted at `secret`, matching Vault dev-server
 examples. For production Vault, set `OPENCLAW_VAULT_KV_MOUNT` to your actual KV
-mount path before creating SecretRef ids. With the OpenClaw defaults, this
+mount path before creating SecretRef ids. With the Vasudev defaults, this
 SecretRef id:
 
 ```text
@@ -63,7 +63,7 @@ export OPENROUTER_API_KEY=<openrouter-api-key>
 vault kv put secret/providers/openrouter apiKey="$OPENROUTER_API_KEY"
 ```
 
-Use a scoped client token for OpenClaw, not a root token. For the default KV v2
+Use a scoped client token for Vasudev, not a root token. For the default KV v2
 layout, a minimal policy for model provider keys looks like:
 
 ```hcl
@@ -75,7 +75,7 @@ path "secret/data/providers/*" {
 ## Make Vault visible to the Gateway
 
 For an uncontainerized local Gateway, export Vault settings in the same shell
-that starts OpenClaw. The default auth method reads a Vault client token from
+that starts Vasudev. The default auth method reads a Vault client token from
 `VAULT_TOKEN`:
 
 ```bash
@@ -104,7 +104,7 @@ Or provide a PEM bundle directly:
 export NODE_EXTRA_CA_CERTS=/path/to/vault-ca.pem
 ```
 
-These variables must be present when OpenClaw starts. The Vault plugin forwards
+These variables must be present when Vasudev starts. The Vault plugin forwards
 them to its resolver process.
 
 For non-interactive JWT auth, use a workload JWT file and a Vault role of type
@@ -187,7 +187,7 @@ openclaw secrets audit --check --allow-exec
 openclaw secrets reload
 ```
 
-Use `--allow-exec` because the Vault plugin resolves through an OpenClaw-managed
+Use `--allow-exec` because the Vault plugin resolves through an Vasudev-managed
 exec SecretRef provider.
 
 If the Gateway is not running yet, start it normally after applying the plan
@@ -238,9 +238,9 @@ openclaw vault setup \
 
 Bare target paths apply to `openclaw.json`. Use
 `auth-profiles:<agentId>:<path>` for existing SQLite auth-profile targets.
-The target path must be a registered OpenClaw SecretRef target. The setup
-command does not create arbitrary named secrets in OpenClaw; Vault remains the
-secret store, and OpenClaw stores SecretRefs only on supported config fields.
+The target path must be a registered Vasudev SecretRef target. The setup
+command does not create arbitrary named secrets in Vasudev; Vault remains the
+secret store, and Vasudev stores SecretRefs only on supported config fields.
 
 ## SecretRef id format
 
@@ -272,7 +272,7 @@ Then `providers/openrouter/apiKey` reads:
 secret/providers/openrouter -> apiKey
 ```
 
-## What OpenClaw stores
+## What Vasudev stores
 
 Applying a Vault setup plan stores a plugin-managed provider:
 
@@ -318,7 +318,7 @@ token in a Kubernetes Secret. Vault Agent sidecar or injector deployments can
 use `token_file` instead.
 
 For multi-tenant Vault setups, keep tenant routing in Vault policy and
-deployment config. OpenClaw does not require a fixed mount, role, or path: each
+deployment config. Vasudev does not require a fixed mount, role, or path: each
 Gateway environment can set its own `OPENCLAW_VAULT_KV_MOUNT`,
 `OPENCLAW_VAULT_AUTH_ROLE`, and SecretRef ids. If one shared Gateway must resolve
 different Vault users at the same time, use manually configured exec providers

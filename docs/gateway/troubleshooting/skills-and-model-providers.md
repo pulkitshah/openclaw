@@ -92,7 +92,7 @@ Related:
 
 Use when an upstream LLM provider returns a generic `403` such as `Your request was blocked`.
 
-Do not assume this is always an OpenClaw configuration issue. The response can come from an upstream security layer such as a CDN, WAF, bot-management rule, or reverse proxy in front of an OpenAI-compatible endpoint.
+Do not assume this is always an Vasudev configuration issue. The response can come from an upstream security layer such as a CDN, WAF, bot-management rule, or reverse proxy in front of an OpenAI-compatible endpoint.
 
 ```bash
 openclaw status
@@ -107,7 +107,7 @@ Look for:
 - Provider-side security events for the same request time.
 - A tiny direct `curl` probe succeeding while normal SDK-shaped requests fail.
 
-Fix the provider-side filtering first when evidence points to a WAF/CDN block. Prefer a narrowly scoped allow or skip rule for the API path OpenClaw uses, and avoid disabling protection for the whole site.
+Fix the provider-side filtering first when evidence points to a WAF/CDN block. Prefer a narrowly scoped allow or skip rule for the API path Vasudev uses, and avoid disabling protection for the whole site.
 
 <Warning>
 A successful minimal `curl` does not guarantee that real SDK-style requests will pass through the same upstream security layer.
@@ -125,7 +125,7 @@ Use when:
 
 - `curl ... /v1/models` works.
 - Tiny direct `/v1/chat/completions` calls work.
-- OpenClaw model runs fail only on normal agent turns.
+- Vasudev model runs fail only on normal agent turns.
 
 ```bash
 curl http://127.0.0.1:1234/v1/models
@@ -138,7 +138,7 @@ openclaw logs --follow
 
 Look for:
 
-- Direct tiny calls succeed, but OpenClaw runs fail only on larger prompts.
+- Direct tiny calls succeed, but Vasudev runs fail only on larger prompts.
 - `model_not_found` or 404 errors even though direct `/v1/chat/completions` works with the same bare model id.
 - Backend errors about `messages[].content` expecting a string.
 - Intermittent `incomplete turn detected ... stopReason=stop payloads=0` warnings with an OpenAI-compatible local backend.
@@ -149,17 +149,17 @@ Look for:
     - `model_not_found` with a local MLX/vLLM-style server: verify `baseUrl` includes `/v1`, `api` is `"openai-completions"` for `/v1/chat/completions` backends, and `models.providers.<provider>.models[].id` is the bare provider-local id. Select it with the provider prefix once, for example `mlx/mlx-community/Qwen3-30B-A3B-6bit`; keep the catalog entry as `mlx-community/Qwen3-30B-A3B-6bit`.
     - `messages[...].content: invalid type: sequence, expected a string`: backend rejects structured Chat Completions content parts. Fix: set `models.providers.<provider>.models[].compat.requiresStringContent: true`.
     - `validation.keys` or allowed message keys like `["role","content"]`: backend rejects OpenAI-style replay metadata on Chat Completions messages. Fix: set `models.providers.<provider>.models[].compat.strictMessageKeys: true`.
-    - `incomplete turn detected ... stopReason=stop payloads=0`: the backend completed the Chat Completions request but returned no user-visible assistant text for that turn. OpenClaw retries replay-safe empty OpenAI-compatible turns once; persistent failures usually mean the backend is emitting empty/non-text content or suppressing final-answer text.
-    - Direct tiny requests succeed, but OpenClaw agent runs fail with backend/model crashes (for example Gemma on some `llama-server` builds behind `llmman`): OpenClaw transport is likely already correct; the backend is failing on the larger agent-runtime prompt shape.
+    - `incomplete turn detected ... stopReason=stop payloads=0`: the backend completed the Chat Completions request but returned no user-visible assistant text for that turn. Vasudev retries replay-safe empty OpenAI-compatible turns once; persistent failures usually mean the backend is emitting empty/non-text content or suppressing final-answer text.
+    - Direct tiny requests succeed, but Vasudev agent runs fail with backend/model crashes (for example Gemma on some `llama-server` builds behind `llmman`): Vasudev transport is likely already correct; the backend is failing on the larger agent-runtime prompt shape.
     - Failures shrink after disabling tools but do not disappear: tool schemas were part of the pressure, but the remaining issue is still upstream model/server capacity or a backend bug.
 
   </Accordion>
   <Accordion title="Fix options">
     1. Set `compat.requiresStringContent: true` for string-only Chat Completions backends.
     2. Set `compat.strictMessageKeys: true` for strict Chat Completions backends that only accept `role` and `content` on each message.
-    3. Set `compat.supportsTools: false` for models/backends that cannot handle OpenClaw's tool schema surface reliably.
+    3. Set `compat.supportsTools: false` for models/backends that cannot handle Vasudev's tool schema surface reliably.
     4. Lower prompt pressure where possible: smaller workspace bootstrap, shorter session history, lighter local model, or a backend with stronger long-context support.
-    5. If tiny direct requests keep passing while OpenClaw agent turns still crash inside the backend, treat it as an upstream server/model limitation and file a repro there with the accepted payload shape.
+    5. If tiny direct requests keep passing while Vasudev agent turns still crash inside the backend, treat it as an upstream server/model limitation and file a repro there with the accepted payload shape.
   </Accordion>
 </AccordionGroup>
 

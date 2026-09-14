@@ -2,7 +2,7 @@
 summary: "Nodes: pairing, capabilities, permissions, and CLI helpers for camera/screen/device/notifications/system and the macOS widget panel"
 read_when:
   - Pairing iOS/watchOS/Android nodes to a gateway
-  - Enabling isolated OpenClaw session hosting on a paired node
+  - Enabling isolated Vasudev session hosting on a paired node
   - Using node camera or screen capture for agent context
   - Presenting a hosted widget on a Mac
   - Adding new node commands or CLI helpers
@@ -37,7 +37,7 @@ Give a node work:
 
 - [Run commands on a node](/nodes/node-exec) - Allowlist commands, point exec at a node, invoke raw RPC, and bind a target.
 - [Node-hosted MCP servers and skills](/nodes/mcp-and-skills) - Publish MCP tools, skills, and local model inference from the node machine.
-- [Host OpenClaw sessions on a node](/nodes/session-hosting) - Worker session hosting, device placement, capacity, and container isolation.
+- [Host Vasudev sessions on a node](/nodes/session-hosting) - Worker session hosting, device placement, capacity, and container isolation.
 - [Node session catalogs](/nodes/session-catalogs) - Codex, Claude, OpenCode, and Pi sessions discovered on the Gateway and paired nodes.
 - [Node file transfers](/nodes/file-transfers) - Terminal uploads and the File Transfer plugin's directory listing, fetch, and write tools.
 
@@ -103,11 +103,11 @@ Every anchor this page used to publish still resolves here. Each entry below car
 - <a id="claude-sessions-and-transcripts" />[Claude sessions and transcripts](/nodes/session-catalogs#claude-sessions-and-transcripts)
 - <a id="opencode-and-pi-sessions" />[OpenCode and Pi sessions](/nodes/session-catalogs#opencode-and-pi-sessions)
 
-- <a id="openclaw-sessions-and-transcripts" />[OpenClaw sessions and transcripts](/nodes/session-catalogs#openclaw-sessions-and-transcripts)
+- <a id="openclaw-sessions-and-transcripts" />[Vasudev sessions and transcripts](/nodes/session-catalogs#vasudev-sessions-and-transcripts)
 
-**[Host OpenClaw sessions on a node](/nodes/session-hosting)**
+**[Host Vasudev sessions on a node](/nodes/session-hosting)**
 
-- <a id="host-openclaw-sessions" />[Host OpenClaw sessions](/nodes/session-hosting#host-openclaw-sessions)
+- <a id="host-openclaw-sessions" />[Host Vasudev sessions](/nodes/session-hosting#host-vasudev-sessions)
 - <a id="isolate-hosted-worker-sessions-in-containers" />[Isolate hosted worker sessions in containers](/nodes/session-hosting#isolate-hosted-worker-sessions-in-containers)
 
 **[Node file transfers](/nodes/file-transfers)**

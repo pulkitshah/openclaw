@@ -2,13 +2,13 @@
 summary: "Bun workflow for installs, package scripts, and opt-in runtime use"
 read_when:
   - You want to install dependencies or run package scripts with Bun
-  - You want to run OpenClaw with Bun 1.4+
+  - You want to run Vasudev with Bun 1.4+
   - You hit Bun install/patch/lifecycle script issues
 title: "Bun"
 ---
 
 <Warning>
-Node remains OpenClaw's primary, default, and recommended runtime. Bun 1.4+ builds that provide WAL-reset-safe `node:sqlite` can run the CLI, Gateway, and managed node host as an explicit opt-in. [OpenClaw requires SQLite 3.51.3+, 3.50.7+ within 3.50.x, or 3.44.6+ within 3.44.x](/install/bun-compatibility); older Bun versions and builds with unsafe SQLite are rejected.
+Node remains Vasudev's primary, default, and recommended runtime. Bun 1.4+ builds that provide WAL-reset-safe `node:sqlite` can run the CLI, Gateway, and managed node host as an explicit opt-in. [Vasudev requires SQLite 3.51.3+, 3.50.7+ within 3.50.x, or 3.44.6+ within 3.44.x](/install/bun-compatibility); older Bun versions and builds with unsafe SQLite are rejected.
 </Warning>
 
 Bun remains usable as an optional package-script runner. The default package manager remains `pnpm`, which is fully supported and used by docs tooling. Bun cannot use `pnpm-lock.yaml` and ignores it, and current Bun versions fail to resolve this repo's `pnpm-workspace.yaml` layout during `bun install`, so dependency installs should use `pnpm install`.
@@ -30,10 +30,10 @@ Bun remains usable as an optional package-script runner. The default package man
     bun run vitest run
     ```
 
-    Use Node by default for commands that launch OpenClaw.
+    Use Node by default for commands that launch Vasudev.
 
   </Step>
-  <Step title="Run OpenClaw with Bun">
+  <Step title="Run Vasudev with Bun">
     To run onboarding under Bun and install the managed Gateway under Bun:
 
     ```sh
@@ -53,7 +53,7 @@ Bun remains usable as an optional package-script runner. The default package man
 
 Bun blocks dependency lifecycle scripts unless explicitly trusted. For this repo, the commonly blocked scripts are not required:
 
-- `baileys` `preinstall`: checks Node major >= 20 (OpenClaw requires Node 24.16+ or 26.1+, with Node 26 recommended)
+- `baileys` `preinstall`: checks Node major >= 20 (Vasudev requires Node 24.16+ or 26.1+, with Node 26 recommended)
 - `protobufjs` `postinstall`: emits warnings about incompatible version schemes (no build artifacts)
 
 If you hit a runtime issue that needs these scripts, trust them explicitly:

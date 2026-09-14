@@ -1,13 +1,13 @@
 ---
-summary: "Install and configure Node.js for OpenClaw - version requirements, install options, and PATH troubleshooting"
+summary: "Install and configure Node.js for Vasudev - version requirements, install options, and PATH troubleshooting"
 title: "Node.js"
 read_when:
-  - "You need to install Node.js before installing OpenClaw"
-  - "You installed OpenClaw but `openclaw` is command not found"
+  - "You need to install Node.js before installing Vasudev"
+  - "You installed Vasudev but `openclaw` is command not found"
   - "npm install -g fails with permissions or PATH issues"
 ---
 
-OpenClaw requires **Node 24.16+ or Node 26.1+** with a WAL-reset-safe linked SQLite library. **Node 26 is the recommended runtime** — it starts the Gateway noticeably faster and uses less memory than Node 24. The installer provisions Node 26 on macOS and the supported Node 24 LTS line on Linux when Node is missing; CI and release workflows also pin Node 24. On RPM-based Linux, the installer preserves a supported distro-owned Node package that links unsafe SQLite and uses a user-space Node runtime for OpenClaw instead. Node 22, 23, and 25 are unsupported. The [installer script](/install#recommended-installer-script) detects and installs Node automatically — use this page when you want to set up Node yourself (versions, PATH, global installs).
+Vasudev requires **Node 24.16+ or Node 26.1+** with a WAL-reset-safe linked SQLite library. **Node 26 is the recommended runtime** — it starts the Gateway noticeably faster and uses less memory than Node 24. The installer provisions Node 26 on macOS and the supported Node 24 LTS line on Linux when Node is missing; CI and release workflows also pin Node 24. On RPM-based Linux, the installer preserves a supported distro-owned Node package that links unsafe SQLite and uses a user-space Node runtime for Vasudev instead. Node 22, 23, and 25 are unsupported. The [installer script](/install#recommended-installer-script) detects and installs Node automatically — use this page when you want to set up Node yourself (versions, PATH, global installs).
 
 ## Check your version
 
@@ -17,12 +17,12 @@ node -v
 
 `v26.1.0` or newer is the recommended default. `v24.16.0` or newer 24.x is also supported and is the LTS line used by CI. Node 22, 23, 25, Node 24 before 24.16.0, and Node 26 before 26.1.0 are unsupported. If Node is missing or outside this range, pick an install method below.
 
-Upgrade Node before updating OpenClaw to avoid SQLite TEXT truncation. See [Node.js compatibility](/install/node-compatibility) for the SQLite safety floors and macOS/ARMv7 support limits.
+Upgrade Node before updating Vasudev to avoid SQLite TEXT truncation. See [Node.js compatibility](/install/node-compatibility) for the SQLite safety floors and macOS/ARMv7 support limits.
 
 ### Update from the CLI
 
 If you run `openclaw` with an incompatible Node.js, startup first checks for an
-already available compatible runtime: the private OpenClaw runtime, the Node
+already available compatible runtime: the private Vasudev runtime, the Node
 recorded in the managed Gateway service, Node on PATH, then nvm, fnm, Volta, and
 Homebrew defaults. Each candidate must pass the same SQLite capability checks as
 normal startup. The first passing runtime retries the original command without
@@ -32,7 +32,7 @@ preserved. Commands with an exact process-identity requirement cannot use this
 recovery.
 
 Runtime discovery uses the environment inherited when the CLI starts, before
-OpenClaw loads any `.env` file. Configure version-manager roots in your shell environment;
+Vasudev loads any `.env` file. Configure version-manager roots in your shell environment;
 workspace `.env` values cannot select a Node executable for recovery.
 
 Home-relative service and version-manager paths expand `~` against inherited
@@ -42,12 +42,12 @@ manager metadata inside the current working directory are rejected.
 
 Recovery ignores relative PATH entries and runtimes that resolve inside the
 current working directory, unless an absolute PATH entry explicitly names their
-directory. OpenClaw's own private recovery directory is also allowed, so cached
+directory. Vasudev's own private recovery directory is also allowed, so cached
 runtime reuse and the installation offer work when you launch from your home
 directory. This exception does not extend to other in-home executables or manager
 roots. On Windows, the service reader honors recorded code pages and Unicode
 byte-order marks. If the current Node build cannot decode a service script safely,
-OpenClaw prints the code page and continues searching other sources. Unsupported
+Vasudev prints the code page and continues searching other sources. Unsupported
 OEM pages such as CP850 are skipped rather than guessed. CP949 is also skipped:
 Node's ICU `euc-kr` decoder silently misdecodes UHC extension characters. Neither
 case probes the service executable; recovery continues with PATH and the other
@@ -59,7 +59,7 @@ If none is available and you are in an interactive terminal, the CLI offers:
 Update NodeJS: Y/N [N]:
 ```
 
-Enter **Y** to download a compatible Node.js for OpenClaw and retry the same command. The download is checksum-verified and stored under `~/.openclaw/tools/cli-node` (or the home selected by `OPENCLAW_HOME`). The Node.js installation does not replace system Node.js, change shell settings, reinstall OpenClaw, or repair/restart Gateway services. The retried command keeps its normal behavior.
+Enter **Y** to download a compatible Node.js for Vasudev and retry the same command. The download is checksum-verified and stored under `~/.openclaw/tools/cli-node` (or the home selected by `OPENCLAW_HOME`). The Node.js installation does not replace system Node.js, change shell settings, reinstall Vasudev, or repair/restart Gateway services. The retried command keeps its normal behavior.
 
 Later CLI invocations reuse that runtime when the active Node.js is incompatible. A supported active Node.js still takes precedence. Enter **N**, press Enter, or cancel to leave your installation unchanged and see manual upgrade instructions.
 
@@ -92,7 +92,7 @@ Automatic installation supports macOS, Windows, and glibc-based Linux on x64/ARM
     sudo dnf install nodejs
     ```
 
-    Some distro Node packages link the system SQLite library. The recommended OpenClaw installer checks the effective Node and SQLite combination and automatically uses a user-space Node runtime when the distro build is unsafe; it does not remove the distro package.
+    Some distro Node packages link the system SQLite library. The recommended Vasudev installer checks the effective Node and SQLite combination and automatically uses a user-space Node runtime when the distro build is unsafe; it does not remove the distro package.
 
     Or use a version manager (see below).
 
@@ -188,5 +188,5 @@ Add the `export PATH=...` line to your `~/.bashrc` or `~/.zshrc` to make it perm
 ## Related
 
 - [Install Overview](/install) - all installation methods
-- [Updating](/install/updating) - keeping OpenClaw up to date
+- [Updating](/install/updating) - keeping Vasudev up to date
 - [Getting Started](/start/getting-started) - first steps after install

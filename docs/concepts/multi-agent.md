@@ -31,7 +31,7 @@ Auth profiles are per-agent, read from `<agentDir>/openclaw-agent.sqlite`. With 
 </Note>
 
 <Warning>
-Never reuse `agentDir` across agents — it causes auth/session state collisions. When a secondary agent's local OAuth credential is expired or its refresh fails, OpenClaw reads through to the default/main agent's credential for the same profile id and adopts whichever token is freshest, without copying the refresh token into the secondary agent's store. If you want a fully independent OAuth account, sign in from that agent. If you copy credentials manually, copy only portable static `api_key` or `token` profiles — OAuth refresh material is not portable by default (`copyToAgents` can opt a profile in explicitly).
+Never reuse `agentDir` across agents — it causes auth/session state collisions. When a secondary agent's local OAuth credential is expired or its refresh fails, Vasudev reads through to the default/main agent's credential for the same profile id and adopts whichever token is freshest, without copying the refresh token into the secondary agent's store. If you want a fully independent OAuth account, sign in from that agent. If you copy credentials manually, copy only portable static `api_key` or `token` profiles — OAuth refresh material is not portable by default (`copyToAgents` can opt a profile in explicitly).
 </Warning>
 
 Skills load from each agent workspace plus shared roots such as `~/.openclaw/skills`, then filter by the effective agent skill allowlist. Use `agents.defaults.skills` for a shared baseline and `agents.entries.*.skills` for a per-agent replacement (explicit entries replace the default, they do not merge). See [Skills: per-agent vs shared](/tools/skills#per-agent-vs-shared-skills) and [Skills: agent allowlists](/tools/skills#agent-allowlists).
@@ -59,7 +59,7 @@ when personas must not share compiled wiki knowledge.
 
 ### Single-agent mode (default)
 
-If you configure nothing, OpenClaw runs one agent:
+If you configure nothing, Vasudev runs one agent:
 
 - `agentId` defaults to `main`.
 - The main session key is `agent:main:main`.
@@ -94,10 +94,10 @@ edits keep their normal automatic save behavior.
 
 ### Agent provenance
 
-OpenClaw records how each configured agent was created: `operator` for CLI,
+Vasudev records how each configured agent was created: `operator` for CLI,
 onboarding, and Gateway requests; `agent` when the system agent requested it;
 and `claw` when a Claw install added it. Agent-created entries also retain the
-requesting agent id. A configured agent can ask OpenClaw to create another
+requesting agent id. A configured agent can ask Vasudev to create another
 agent through its `openclaw` tool. The system agent files the typed operation,
 shows the requesting agent id to the operator, and creates the agent only after
 operator approval. Inspect the current creation hierarchy with:
@@ -249,7 +249,7 @@ compiled knowledge separate from a marketing agent's, set
 }
 ```
 
-The configured path is the parent directory. OpenClaw appends the normalized
+The configured path is the parent directory. Vasudev appends the normalized
 agent id, producing paths such as `~/.openclaw/wiki/support` and
 `~/.openclaw/wiki/marketing`. Agent-scoped CLI and Gateway operations require
 an explicit agent when multiple agents are configured. See
@@ -335,7 +335,7 @@ from your backups; Doctor does not merge directories.
 
 Channels that support multiple accounts (e.g. WhatsApp) use `accountId` to identify each login. Each `accountId` routes to its own agent, so one server can host multiple phone numbers without mixing sessions.
 
-Set `channels.<channel>.defaultAccount` to choose the account used when `accountId` is omitted. When unset, OpenClaw falls back to `default` if present, otherwise the first configured account id (sorted).
+Set `channels.<channel>.defaultAccount` to choose the account used when `accountId` is omitted. When unset, Vasudev falls back to `default` if present, otherwise the first configured account id (sorted).
 
 Channels supporting multiple accounts: `discord`, `feishu`, `googlechat`, `imessage`, `irc`, `line`, `mattermost`, `matrix`, `nextcloud-talk`, `nostr`, `signal`, `slack`, `telegram`, `whatsapp`, `zalo`, `zalouser`.
 

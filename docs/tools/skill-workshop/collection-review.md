@@ -30,8 +30,8 @@ shell commands; a full-access policy permits them. File discovery does not need 
 
 Reviews support the embedded runtime and CLI runtimes that declare instruction
 isolation, disable their native tools, and use only the Gateway's restricted
-OpenClaw tool set, including Claude CLI. These CLI reviews retain the host-selected instruction snapshot;
-Workshop skill contents remain review material. OpenClaw carries the Workshop
+Vasudev tool set, including Claude CLI. These CLI reviews retain the host-selected instruction snapshot;
+Workshop skill contents remain review material. Vasudev carries the Workshop
 file root and prepared sandbox to the mediated tools. Changing the CLI working
 directory alone does not provide containment.
 

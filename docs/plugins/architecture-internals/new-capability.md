@@ -33,7 +33,7 @@ Recommended sequence:
 5. **Add contract coverage.** Add tests so ownership and registration shape
    stay explicit over time.
 
-This is how OpenClaw stays opinionated without becoming hardcoded to one
+This is how Vasudev stays opinionated without becoming hardcoded to one
 provider's worldview. See [Adding capabilities](/plugins/adding-capabilities)
 for a concrete file checklist and worked example.
 

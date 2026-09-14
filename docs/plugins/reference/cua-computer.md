@@ -15,7 +15,7 @@ Experimental CUA Driver computer control for macOS, Windows, and Linux node host
 ## Distribution
 
 - Package: `@openclaw/cua-computer`
-- Install route: included in OpenClaw
+- Install route: included in Vasudev
 
 ## Surface
 

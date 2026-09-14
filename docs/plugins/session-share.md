@@ -1,19 +1,19 @@
 ---
-summary: "Share selected OpenClaw sessions read-only with a paired team Gateway"
+summary: "Share selected Vasudev sessions read-only with a paired team Gateway"
 read_when:
-  - Sharing personal OpenClaw sessions with a team Gateway
+  - Sharing personal Vasudev sessions with a team Gateway
   - Pairing a node that exposes only session listings and transcripts
   - Configuring attribution for sessions from another Gateway
 title: "Session Share plugin"
 ---
 
-The bundled `session-share` plugin lets teammates read selected sessions from another OpenClaw Gateway in the Control UI. The source operator chooses session groups to publish. A node host on the source machine reads those sessions and connects to the receiver Gateway as a paired device.
+The bundled `session-share` plugin lets teammates read selected sessions from another Vasudev Gateway in the Control UI. The source operator chooses session groups to publish. A node host on the source machine reads those sessions and connects to the receiver Gateway as a paired device.
 
-Session Share is disabled by default. It publishes a read-only **OpenClaw sessions** catalog, not a second way to run agents on the source machine. For sanitized snapshots of external coding sessions without a paired node, see [Beam](/plugins/beam).
+Session Share is disabled by default. It publishes a read-only **Vasudev sessions** catalog, not a second way to run agents on the source machine. For sanitized snapshots of external coding sessions without a paired node, see [Beam](/plugins/beam).
 
 ## Before you begin
 
-Both machines need OpenClaw with the Session Share plugin. Run the source node host as the same OS user and with the same `OPENCLAW_STATE_DIR` and configuration as the source Gateway. Set `OPENCLAW_CONFIG_PATH` too when the source uses a custom config location. The node reads the configured `session.store`, including custom paths and per-agent templates. The receiver needs a reachable, authenticated Gateway endpoint and permission to approve device pairing.
+Both machines need Vasudev with the Session Share plugin. Run the source node host as the same OS user and with the same `OPENCLAW_STATE_DIR` and configuration as the source Gateway. Set `OPENCLAW_CONFIG_PATH` too when the source uses a custom config location. The node reads the configured `session.store`, including custom paths and per-agent templates. The receiver needs a reachable, authenticated Gateway endpoint and permission to approve device pairing.
 
 Use the command allowlist below for a sessions-only connection. Without an allowlist, a normal node host can advertise other capabilities.
 
@@ -70,7 +70,7 @@ Check that the pairing request and connected node declare only `openclaw.session
 
 ## Read shared sessions
 
-Open the receiver Control UI. Shared rows appear under the source node's heading in **OpenClaw sessions**. Selecting a row opens its transcript view-only. The receiver can read user messages, assistant text, reasoning, tool summaries, and bounded tool results, but cannot continue, archive, or open a terminal for that session.
+Open the receiver Control UI. Shared rows appear under the source node's heading in **Vasudev sessions**. Selecting a row opens its transcript view-only. The receiver can read user messages, assistant text, reasoning, tool summaries, and bounded tool results, but cannot continue, archive, or open a terminal for that session.
 
 Publication is shared with the receiver's permitted viewers, not just the named owner. Viewers need `operator.read`; on role-restricted Gateways, their profile's role must also permit viewing others' sessions (`sessions.others: "view"`, `"suggest"`, or `"write"`). Owner-only and unprofiled restricted viewers cannot see published rows. See [Operator scopes](/gateway/operator-scopes).
 
@@ -124,7 +124,7 @@ To undo the sessions-only setup, use `openclaw node run --all-commands` in the f
 
 Enable `session-share` on the source, set a non-empty `share.groups`, restart the node host, and check the exact command IDs. Unknown or unavailable commands are not advertised.
 
-**The node connects but no OpenClaw sessions host appears**
+**The node connects but no Vasudev sessions host appears**
 
 Enable the plugin on the receiver and restart its Gateway. Check `openclaw nodes list`: the source must declare both session commands and be approved for them.
 

@@ -1,5 +1,5 @@
 ---
-summary: "Native iMessage support via imsg (JSON-RPC over stdio), with private API actions for replies, tapbacks, effects, polls, attachments, and group management. Preferred for new OpenClaw iMessage setups when host requirements fit."
+summary: "Native iMessage support via imsg (JSON-RPC over stdio), with private API actions for replies, tapbacks, effects, polls, attachments, and group management. Preferred for new Vasudev iMessage setups when host requirements fit."
 read_when:
   - Setting up iMessage support
   - Debugging iMessage send/receive
@@ -7,18 +7,18 @@ title: "iMessage"
 ---
 
 <Note>
-For the usual OpenClaw iMessage deployment, run the Gateway and `imsg` on the same signed-in macOS Messages host. If your Gateway runs elsewhere, point `channels.imessage.cliPath` at a transparent SSH wrapper that runs `imsg` on the Mac.
+For the usual Vasudev iMessage deployment, run the Gateway and `imsg` on the same signed-in macOS Messages host. If your Gateway runs elsewhere, point `channels.imessage.cliPath` at a transparent SSH wrapper that runs `imsg` on the Mac.
 
 **Inbound recovery is automatic.** After a bridge or gateway restart, iMessage replays the messages missed while it was down and suppresses the stale "backlog bomb" Apple can flush after a Push recovery, deduping so nothing is dispatched twice. There is no config to enable — see [Inbound recovery after a bridge or gateway restart](/channels/imessage/messaging#inbound-recovery-after-a-bridge-or-gateway-restart).
 </Note>
 
 <Warning>
-BlueBubbles support was removed. Migrate `channels.bluebubbles` configs to `channels.imessage`. OpenClaw supports iMessage through `imsg` only. Start with [BlueBubbles removal and the imsg iMessage path](/announcements/bluebubbles-imessage) for the short announcement, or [Coming from BlueBubbles](/channels/imessage-from-bluebubbles) for the full migration table.
+BlueBubbles support was removed. Migrate `channels.bluebubbles` configs to `channels.imessage`. Vasudev supports iMessage through `imsg` only. Start with [BlueBubbles removal and the imsg iMessage path](/announcements/bluebubbles-imessage) for the short announcement, or [Coming from BlueBubbles](/channels/imessage-from-bluebubbles) for the full migration table.
 </Warning>
 
 Status: native external CLI integration. The Gateway spawns `imsg rpc` and speaks JSON-RPC over stdio — no separate daemon or port. Private API mode is strongly encouraged for a complete iMessage channel. Replies, tapbacks, effects, polls, attachment replies, and group actions require `imsg launch` and a successful private API probe.
 
-For the common local setup, OpenClaw setup can offer a user-confirmed Homebrew install or update for `imsg` on the signed-in Messages Mac. Manual setup and SSH-wrapper topologies remain operator-managed: install or update `imsg` in the same user context that will run the Gateway or wrapper.
+For the common local setup, Vasudev setup can offer a user-confirmed Homebrew install or update for `imsg` on the signed-in Messages Mac. Manual setup and SSH-wrapper topologies remain operator-managed: install or update `imsg` in the same user context that will run the Gateway or wrapper.
 
 <CardGroup cols={3}>
   <Card title="Setup" icon="rocket" href="/channels/imessage/setup">
@@ -71,7 +71,7 @@ Every section heading from the previous single-page version keeps its anchor her
 - <a id="coalescing-split-send-dms-command-+-url-in-one-composition" />[Coalescing split-send DMs (command + URL in one composition)](/channels/imessage/messaging#coalescing-split-send-dms-command-+-url-in-one-composition)
 - <a id="local-mac-fast-path" />[Local Mac (fast path)](/channels/imessage/setup#local-mac-fast-path)
 - <a id="install-and-verify-imsg" />[Install and verify imsg](/channels/imessage/setup#install-and-verify-imsg)
-- <a id="configure-openclaw" />[Configure OpenClaw](/channels/imessage/setup#configure-openclaw)
+- <a id="configure-openclaw" />[Configure Vasudev](/channels/imessage/setup#configure-vasudev)
 - <a id="start-gateway" />[Start gateway](/channels/imessage/setup#start-gateway)
 - <a id="approve-first-dm-pairing-default-dmpolicy" />[Approve first DM pairing (default dmPolicy)](/channels/imessage/setup#approve-first-dm-pairing-default-dmpolicy)
 - <a id="remote-mac-over-ssh" />[Remote Mac over SSH](/channels/imessage/setup#remote-mac-over-ssh)
@@ -126,9 +126,9 @@ Every section heading from the previous single-page version keeps its anchor her
     Full iMessage field reference.
   </Card>
   <Card title="RPC adapters" icon="plug" href="/reference/rpc">
-    The line-delimited JSON-RPC stdio protocol OpenClaw speaks to `imsg rpc`.
+    The line-delimited JSON-RPC stdio protocol Vasudev speaks to `imsg rpc`.
   </Card>
   <Card title="macOS VMs" icon="display" href="/install/macos-vm">
-    Run OpenClaw in a sandboxed macOS VM, local or hosted, when you want iMessage isolated from your main Mac.
+    Run Vasudev in a sandboxed macOS VM, local or hosted, when you want iMessage isolated from your main Mac.
   </Card>
 </CardGroup>

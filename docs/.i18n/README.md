@@ -1,4 +1,4 @@
-# OpenClaw docs i18n assets
+# Vasudev docs i18n assets
 
 This folder stores translation config for the source docs repo.
 
@@ -9,8 +9,8 @@ Generated locale trees and live translation memory now live in the publish repo:
 
 ## Source of truth
 
-- OpenClaw English docs are authored in `openclaw/openclaw` under `docs/`.
-- ClawHub English docs are authored in `openclaw/clawhub` under `docs/` and mirrored into the publish repo's `docs/clawhub/` tree. Do not keep competing ClawHub pages in `openclaw/openclaw`; OpenClaw-specific integration guidance stays in the owning OpenClaw docs.
+- Vasudev English docs are authored in `openclaw/openclaw` under `docs/`.
+- ClawHub English docs are authored in `openclaw/clawhub` under `docs/` and mirrored into the publish repo's `docs/clawhub/` tree. Do not keep competing ClawHub pages in `openclaw/openclaw`; Vasudev-specific integration guidance stays in the owning Vasudev docs.
 - The source repo no longer keeps committed generated locale trees such as `docs/zh-CN/**`, `docs/zh-TW/**`, `docs/ja-JP/**`, `docs/es/**`, `docs/pt-BR/**`, `docs/ko/**`, `docs/de/**`, `docs/fr/**`, `docs/hi/**`, `docs/ar/**`, `docs/it/**`, `docs/vi/**`, `docs/nl/**`, `docs/fa/**`, `docs/ru/**`, `docs/tr/**`, `docs/uk/**`, `docs/id/**`, `docs/pl/**`, or `docs/th/**`.
 
 ## End-to-end flow

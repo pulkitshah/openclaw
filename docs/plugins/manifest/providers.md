@@ -12,7 +12,7 @@ Manifest fields that tell core what a provider can do, and how to reach it, with
 
 ## Generation provider metadata reference
 
-The generation provider metadata fields describe static auth signals for providers declared in the matching `contracts.*GenerationProviders` list. OpenClaw reads these fields before provider runtime loads so core tools can decide whether a generation provider is available without importing every provider plugin.
+The generation provider metadata fields describe static auth signals for providers declared in the matching `contracts.*GenerationProviders` list. Vasudev reads these fields before provider runtime loads so core tools can decide whether a generation provider is available without importing every provider plugin.
 
 Use these fields only for cheap, declarative facts. Transport, request transforms, token refresh, credential validation, and actual generation behavior stay in the plugin runtime.
 

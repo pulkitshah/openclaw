@@ -16,7 +16,7 @@ How inbound and outbound Discord messages are routed, formatted, acknowledged, a
 - Bot replies and thread-bound persona replies share Markdown formatting, including CommonMark bold and configured table conversion.
 - Both delivery paths reapply caller-supplied character limits after formatting and mention expansion.
 - Forwarded message snapshots reach the agent together with any accompanying caption. Forwarded text is not treated as a typed command; command classification uses only the sender’s own message text.
-- Discord guild/channel metadata is added to the model prompt as untrusted context, not as a user-visible reply prefix. If a model copies that envelope back, OpenClaw strips the copied metadata from outbound replies and from future replay context.
+- Discord guild/channel metadata is added to the model prompt as untrusted context, not as a user-visible reply prefix. If a model copies that envelope back, Vasudev strips the copied metadata from outbound replies and from future replay context.
 - By default (`session.dmScope=main`), direct chats share the agent main session (`agent:main:main`).
 - Guild channels are isolated session keys (`agent:<agentId>:discord:channel:<channelId>`).
 - Group DMs are ignored by default (`channels.discord.dm.groupEnabled=false`).
@@ -28,9 +28,9 @@ How inbound and outbound Discord messages are routed, formatted, acknowledged, a
 
 <AccordionGroup>
   <Accordion title="Introductions when joining a server">
-    When the bot joins an allowed Discord server, OpenClaw posts one room-specific introduction. It prefers the server's system channel when the bot can view and send messages there; otherwise, it uses the first text channel with both **View Channel** and **Send Messages** permissions. If no eligible channel exists, no introduction is sent.
+    When the bot joins an allowed Discord server, Vasudev posts one room-specific introduction. It prefers the server's system channel when the bot can view and send messages there; otherwise, it uses the first text channel with both **View Channel** and **Send Messages** permissions. If no eligible channel exists, no introduction is sent.
 
-    Introductions use the channel name and topic, plus recent messages when available. Reading earlier messages also requires **Read Message History**; when that permission is missing, OpenClaw still introduces itself using channel metadata instead of failing.
+    Introductions use the channel name and topic, plus recent messages when available. Reading earlier messages also requires **Read Message History**; when that permission is missing, Vasudev still introduces itself using channel metadata instead of failing.
 
     Introductions are enabled by default, apply only to newly joined servers, and never run in direct messages. Set `channels.discord.joinIntro: false` to disable them, or set `channels.discord.accounts.<accountId>.joinIntro` to override one account. See [group join introductions](/channels#group-join-introductions) for the history limits, target-channel selection, once-per-room behavior, and untrusted-content handling.
 
@@ -55,7 +55,7 @@ How inbound and outbound Discord messages are routed, formatted, acknowledged, a
   </Accordion>
 
   <Accordion title="Link previews">
-    Discord generates rich link embeds for URLs by default. OpenClaw suppresses those generated embeds on outbound Discord messages by default, so agent-sent URLs stay plain links unless you opt in:
+    Discord generates rich link embeds for URLs by default. Vasudev suppresses those generated embeds on outbound Discord messages by default, so agent-sent URLs stay plain links unless you opt in:
 
 ```json5
 {
@@ -72,7 +72,7 @@ How inbound and outbound Discord messages are routed, formatted, acknowledged, a
   </Accordion>
 
   <Accordion title="Live stream preview">
-    OpenClaw can stream draft replies by sending a temporary message and editing it as text arrives. Discord preview streaming defaults to `off`; set `channels.discord.streaming.mode` to `partial`, `block`, or `progress` to opt in. `streamMode` is a legacy alias; run `openclaw doctor --fix` to rewrite persisted config to the canonical nested `streaming` shape.
+    Vasudev can stream draft replies by sending a temporary message and editing it as text arrives. Discord preview streaming defaults to `off`; set `channels.discord.streaming.mode` to `partial`, `block`, or `progress` to opt in. `streamMode` is a legacy alias; run `openclaw doctor --fix` to rewrite persisted config to the canonical nested `streaming` shape.
 
 ```json5
 {
@@ -127,7 +127,7 @@ How inbound and outbound Discord messages are routed, formatted, acknowledged, a
   <Accordion title="Ack reactions">
     Status reactions keep the acknowledgement stable throughout work. They do not add per-tool emoji, inactivity warnings, or a success flash. Actual failures retain the error reaction lifecycle.
 
-    `ackReaction` sends an acknowledgement emoji while OpenClaw processes an inbound message.
+    `ackReaction` sends an acknowledgement emoji while Vasudev processes an inbound message.
 
     Resolution order:
 
