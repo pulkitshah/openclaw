@@ -889,15 +889,26 @@
   padding-top: 0;
   flex-wrap: wrap;
 }
-.dt .tplpreview iframe,
-.dt .filewrap iframe {
+/* PNG preview thumbnails (Templates page + run Files panel) — same look as a step screenshot
+ * (`.shot img` above): a small clickable image that expands in place, never a framed document
+ * (see the `openBase64InNewTab`/"Open PDF" comments in browser/index.ts for why). */
+.dt .tplpreview img,
+.dt .filepreview img {
   display: block;
-  width: 100%;
-  height: 420px;
-  margin-top: 10px;
+  margin-top: 8px;
+  max-width: 320px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--bg);
+  cursor: zoom-in;
+}
+.dt .tplpreview img.big,
+.dt .filepreview img.big {
+  max-width: 100%;
+  cursor: zoom-out;
+}
+.dt .tplpreview,
+.dt .filepreview {
+  margin-top: 6px;
 }
 .dt .brandlogo {
   display: block;
@@ -922,7 +933,7 @@
   align-items: flex-start;
   flex-wrap: wrap;
 }
-.dt .runs.files .filewrap {
+.dt .runs.files .filepreview {
   flex-basis: 100%;
 }
 .dt .tpltext {
@@ -939,4 +950,18 @@
 .dt .tpltext .raw {
   margin-top: 8px;
   white-space: pre-wrap;
+}
+
+/* Fix wave 2: the run page's "Now" panel (I6) — the newest step's screenshot while a run is
+ * still running/queued, at the top of the page. */
+.dt .panel.now .ph {
+  align-items: baseline;
+  gap: 8px;
+}
+.dt .panel.now .nowshot {
+  display: block;
+  max-width: 100%;
+  margin-top: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
 }

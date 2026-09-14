@@ -278,7 +278,7 @@ describe("render", () => {
     expect(html).toMatch(/>Manual</u);
   });
 
-  it("run view lists files with a data-file toggle and shows a deliver step's channel:target summary", () => {
+  it("run view lists a PDF file with a Preview toggle and an Open PDF button, and shows a deliver step's channel:target summary", () => {
     const run = {
       id: "r1",
       dutyId: "d1",
@@ -308,11 +308,42 @@ describe("render", () => {
       ],
     } as unknown as DutyRun;
     const html = renderRun(run, duty as unknown as Duty);
-    expect(html).toContain('data-file="s1"');
+    expect(html).toContain('data-file-shot="s1"');
+    expect(html).toContain('data-file-shot-for="s1"');
+    expect(html).toContain('data-file-open="s1"');
+    expect(html).toContain(">Open PDF<");
     expect(html).toContain("quote.pdf");
     expect(html).toContain("→ telegram:12345");
     expect(html).toContain('class="kind deliver"');
     expect(html).toContain(">Deliver<");
+    expect(html).not.toMatch(/<iframe/u);
+  });
+
+  it("run view offers only Open (no Preview) for a non-PDF file", () => {
+    const run = {
+      id: "r1",
+      dutyId: "d1",
+      status: "ok",
+      startedAt: 1,
+      trigger: "manual",
+      inputs: {},
+      outputs: {},
+      steps: [],
+      files: [
+        {
+          stepId: "s1",
+          name: "notes.txt",
+          path: "/tmp/notes.txt",
+          bytes: 12,
+          contentType: "text/plain",
+        },
+      ],
+    } as unknown as DutyRun;
+    const html = renderRun(run, duty as unknown as Duty);
+    expect(html).toContain('data-file-open="s1"');
+    expect(html).toContain(">Open<");
+    expect(html).not.toContain("data-file-shot");
+    expect(html).not.toContain(">Open PDF<");
   });
 
   it("templates view renders a card per template with a preview toggle and the brand form", () => {
@@ -337,6 +368,9 @@ describe("render", () => {
     const html = renderTemplates({ templates });
     expect(html).toContain('data-tpl-preview="t1"');
     expect(html).toContain('data-tpl-preview="t2"');
+    expect(html).toContain('data-tpl-pdf="t1"');
+    expect(html).toContain('data-tpl-pdf="t2"');
+    expect(html).toContain(">Open PDF<");
     expect(html).toContain("Rate quote");
     expect(html).toContain("Confirmation");
     expect(html).toContain("data-brand-save");
@@ -364,6 +398,8 @@ describe("render", () => {
     const html = renderTemplates({ templates });
     expect(html).toContain('data-tpl-preview="t1"');
     expect(html).not.toContain('data-tpl-preview="t2"');
+    expect(html).toContain('data-tpl-pdf="t1"');
+    expect(html).not.toContain('data-tpl-pdf="t2"');
     expect(html).toContain("Message text");
     expect(html).toContain("Hi {{slot:y}}, thanks for booking!");
   });
@@ -467,5 +503,144 @@ describe("render", () => {
     const loading = renderPlaceholder({});
     expect(loading).toContain("Loading");
     expect(loading).not.toContain("data-retry");
+  });
+
+  it("board's duty card links its last successful run straight to the run page", () => {
+    const runs = [
+      {
+        id: "r7",
+        dutyId: "d1",
+        status: "ok",
+        startedAt: 9,
+        trigger: "manual",
+        inputs: {},
+        outputs: {},
+        steps: [],
+      },
+    ] as unknown as DutyRun[];
+    const html = renderBoard([duty as unknown as Duty], runs);
+    expect(html).toContain('data-open-run="r7"');
+    expect(html).toContain('data-duty-id="d1"');
+  });
+
+  it("board's waiting-on-you/failed banner links to the run page with both the run and duty id", () => {
+    const runs = [
+      {
+        id: "r3",
+        dutyId: "d1",
+        status: "blocked",
+        startedAt: 5,
+        trigger: "manual",
+        inputs: {},
+        outputs: {},
+        steps: [],
+      },
+    ] as unknown as DutyRun[];
+    const html = renderBoard([duty as unknown as Duty], runs);
+    expect(html).toContain('data-open-run="r3"');
+    expect(html).toContain('data-duty-id="d1"');
+  });
+
+  it("run page has a Board crumb alongside the Duty crumb", () => {
+    const run = {
+      id: "r1",
+      dutyId: "d1",
+      status: "ok",
+      startedAt: 1,
+      trigger: "manual",
+      inputs: {},
+      outputs: {},
+      steps: [],
+    } as unknown as DutyRun;
+    const html = renderRun(run, duty as unknown as Duty);
+    expect(html).toContain('data-nav="board">← Board<');
+    expect(html).toContain('data-open="d1">Book flight<');
+  });
+
+  it("the Now panel shows the newest step's label and screenshot while a run is running", () => {
+    const run = {
+      id: "r1",
+      dutyId: "d1",
+      status: "running",
+      startedAt: 1,
+      trigger: "manual",
+      inputs: {},
+      outputs: {},
+      steps: [
+        {
+          stepId: "s1",
+          label: "Open the booking site",
+          kind: "browser",
+          status: "ok",
+          durationMs: 1,
+          summary: "opened",
+          screenshotBlobId: "blob-1",
+        },
+      ],
+    } as unknown as DutyRun;
+    const withoutShot = renderRun(run, duty as unknown as Duty);
+    expect(withoutShot).toContain('class="panel now"');
+    expect(withoutShot).toContain("Open the booking site");
+    expect(withoutShot).toContain("Loading");
+    expect(withoutShot).not.toContain("nowshot");
+
+    const withShot = renderRun(run, duty as unknown as Duty, {
+      now: { stepId: "s1", imageDataUrl: "data:image/png;base64,ZZZ" },
+    });
+    expect(withShot).toContain('<img class="nowshot"');
+    expect(withShot).toContain("data:image/png;base64,ZZZ");
+  });
+
+  it("the Now panel falls back to a message instead of an image for a step with no screenshot", () => {
+    const run = {
+      id: "r1",
+      dutyId: "d1",
+      status: "queued",
+      startedAt: 1,
+      trigger: "manual",
+      inputs: {},
+      outputs: {},
+      steps: [
+        {
+          stepId: "s1",
+          label: "Confirm?",
+          kind: "ask",
+          status: "ok",
+          durationMs: 1,
+          summary: "sent",
+        },
+      ],
+    } as unknown as DutyRun;
+    const html = renderRun(run, duty as unknown as Duty);
+    expect(html).toContain("No screenshot for this step.");
+    expect(html).not.toContain("nowshot");
+  });
+
+  it("the Now panel does not render once a run has finished", () => {
+    const run = {
+      id: "r1",
+      dutyId: "d1",
+      status: "ok",
+      startedAt: 1,
+      trigger: "manual",
+      inputs: {},
+      outputs: {},
+      steps: [
+        {
+          stepId: "s1",
+          label: "Open the booking site",
+          kind: "browser",
+          status: "ok",
+          durationMs: 1,
+          summary: "opened",
+          screenshotBlobId: "blob-1",
+        },
+      ],
+    } as unknown as DutyRun;
+    const html = renderRun(run, duty as unknown as Duty, {
+      now: { stepId: "s1", imageDataUrl: "data:image/png;base64,ZZZ" },
+    });
+    expect(html).not.toContain('class="panel now"');
+    expect(html).not.toContain("nowshot");
   });
 });

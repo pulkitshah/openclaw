@@ -152,11 +152,14 @@ function dutyCard(duty: Duty, runs: readonly DutyRun[]): string {
     duty.status === "building"
       ? `<button class="btn quiet" data-build="${esc(duty.id)}">Continue with agent</button>`
       : `<button class="btn quiet" data-run="${esc(duty.id)}">Run</button><button class="btn quiet" data-edit="${esc(duty.id)}">Edit with agent</button>`;
+  const lastRun = last
+    ? `Last run <a href="#" class="ok" data-open-run="${esc(last.id)}" data-duty-id="${esc(duty.id)}">✓ ${esc(fmtWhen(last.startedAt))}</a>`
+    : "Never run";
   return `<article class="card" data-duty="${esc(duty.id)}">
   <div class="top"><h3 data-open="${esc(duty.id)}">${esc(duty.name)}</h3>${statusPill(duty.status)}</div>
   <p class="sum">${esc(duty.summary)}</p>
   <div class="chips">${triggerChips(duty.triggers)}</div>
-  <div class="foot"><span>${last ? `Last run <span class="ok">✓ ${esc(fmtWhen(last.startedAt))}</span>` : "Never run"} · updated ${esc(fmtWhen(duty.updatedAt))}</span><span>${actions}</span></div>
+  <div class="foot"><span>${lastRun} · updated ${esc(fmtWhen(duty.updatedAt))}</span><span>${actions}</span></div>
 </article>`;
 }
 
@@ -357,19 +360,59 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-/** A document a run produced (e.g. a rendered PDF). Fetched only when the owner opens the
- *  toggle, then shown inline as a `data:` iframe — same lazy-fetch shape as the screenshot
- *  toggle above; the file's disk path never reaches the page. */
+const PDF_CONTENT_TYPE = "application/pdf";
+
+/** A document a run produced (e.g. a rendered PDF). Fetched only when the owner opens a toggle;
+ *  the file's disk path never reaches the page. A PDF gets a lazily-loaded PNG preview (shown as
+ *  an `<img>`, click to expand — `data:`/`blob:` images are unaffected by the host's `frame-src`
+ *  CSP, unlike an iframe) plus an "Open PDF" button that opens a `blob:` object URL in a new tab.
+ *  A non-PDF file only gets the "Open" button, which opens the same way. Never an iframe: the
+ *  Control UI's `frame-src` does not include `data:` (or `blob:`), so a framed document is
+ *  silently blocked (final review, C4). */
 function fileRow(file: RunFile): string {
-  return `<li><span class="mono">${esc(file.name)}</span><span class="when">${esc(formatBytes(file.bytes))}</span><button class="btn quiet" data-file="${esc(file.stepId)}">Open</button><div class="filewrap" data-file-for="${esc(file.stepId)}" hidden></div></li>`;
+  const isPdf = file.contentType === PDF_CONTENT_TYPE;
+  const preview = isPdf
+    ? `<button class="btn quiet" data-file-shot="${esc(file.stepId)}">Preview</button><div class="filepreview" data-file-shot-for="${esc(file.stepId)}" hidden></div>`
+    : "";
+  const openLabel = isPdf ? "Open PDF" : "Open";
+  return `<li><span class="mono">${esc(file.name)}</span><span class="when">${esc(formatBytes(file.bytes))}</span>${preview}<button class="btn quiet" data-file-open="${esc(file.stepId)}">${esc(openLabel)}</button></li>`;
 }
 
-export function renderRun(run: DutyRun, duty: Duty | undefined, opts?: RenderOpts): string {
+/** What the run page needs to show the "Now" panel: the newest step (by evidence order) while a
+ *  run is still `running`/`queued`, plus its screenshot once `index.ts` has fetched one via
+ *  `duties.run.evidence` (fetched only when the newest step id changes, never on every redraw). */
+export type NowShot = { stepId: string; imageDataUrl?: string };
+
+/** While a run is in flight, shows the newest step's label and (once fetched) its screenshot at
+ *  the top of the page, so the owner sees where the run currently is without opening a step's
+ *  own toggle. Renders nothing once the run has finished (its own step rows carry the full
+ *  history). A step kind with no screenshot (e.g. `ask`, `deliver`) says so instead of an empty
+ *  image. */
+function nowPanel(run: DutyRun, now: NowShot | undefined): string {
+  if (run.status !== "running" && run.status !== "queued") return "";
+  const newest = run.steps.at(-1);
+  const label = newest ? esc(newest.label) : "Starting…";
+  let body: string;
+  if (!newest) {
+    body = `<p class="muted small">Waiting for the first step…</p>`;
+  } else if (!newest.screenshotBlobId) {
+    body = `<p class="muted small">No screenshot for this step.</p>`;
+  } else if (now && now.stepId === newest.stepId && now.imageDataUrl) {
+    body = `<img class="nowshot" alt="Current step" src="${esc(now.imageDataUrl)}">`;
+  } else {
+    body = `<p class="muted small">Loading…</p>`;
+  }
+  return `<div class="panel now"><div class="ph"><h2>Now</h2><span class="muted small">${label}</span></div><div class="pb">${body}</div></div>`;
+}
+
+export type RunOpts = RenderOpts & { now?: NowShot };
+
+export function renderRun(run: DutyRun, duty: Duty | undefined, opts?: RunOpts): string {
   const errorBanner = opts?.error ? renderErrorBanner(opts.error) : "";
   const outputEntries = Object.entries(run.outputs);
   const files = run.files ?? [];
   const delivered = deliveredToNote(run);
-  return `${errorBanner}<div class="head"><div><div class="small"><a href="#" data-open="${esc(duty?.id ?? run.dutyId)}">← ${esc(duty?.name ?? run.dutyId)}</a></div><h1>Run</h1>
+  return `${errorBanner}<div class="head"><div><div class="small"><a href="#" data-nav="board">← Board</a> · <a href="#" data-open="${esc(duty?.id ?? run.dutyId)}">${esc(duty?.name ?? run.dutyId)}</a></div><h1>Run</h1>
 <div class="meta">${runStatusPill(run.status)}<span>Started <b>${esc(fmtWhen(run.startedAt))}</b></span>${
     run.endedAt ? `<span>Ended <b>${esc(fmtWhen(run.endedAt))}</b></span>` : ""
   }<span>Trigger <b>${esc(run.trigger)}</b></span>${
@@ -380,6 +423,7 @@ ${
     ? `<button class="btn danger" data-cancel="${esc(run.id)}">Cancel run</button>`
     : ""
 }</div>
+${nowPanel(run, opts?.now)}
 ${run.report ? `<div class="panel"><div class="pb">${esc(run.report)}</div></div>` : ""}
 <div class="panel"><div class="ph"><h2>Steps</h2></div><div class="pb">${
     run.steps.length
@@ -445,9 +489,10 @@ function pluralSlots(count: number): string {
 }
 
 /** `duties.template.preview` (`src/preview.ts`) only ever renders `pdf` templates and throws for
- *  a `message` one, so the Preview button — which calls that method — is offered only for `pdf`
- *  templates. A `message` template's body is plain text already sitting in `template.html`, so it
- *  is shown inline behind a `<details>` toggle instead: no Gateway round trip needed or offered. */
+ *  a `message` one, so the Preview/Open PDF buttons — which call that method — are offered only
+ *  for `pdf` templates. A `message` template's body is plain text already sitting in
+ *  `template.html`, so it is shown inline behind a `<details>` toggle instead: no Gateway round
+ *  trip needed or offered. */
 function templateBody(template: Template): string {
   if (template.kind === "pdf")
     return `<div class="tplpreview" data-tpl-preview-for="${esc(template.id)}" hidden></div>`;
@@ -456,16 +501,21 @@ function templateBody(template: Template): string {
 
 /** Preview and delete are the only mutations this page performs on a template; content edits go
  *  through the agent (`data-tpl-edit`, mirroring `data-edit` on a Duty), since a template's HTML
- *  and slot contract are hand-authored and validated server-side, not form fields here. */
+ *  and slot contract are hand-authored and validated server-side, not form fields here.
+ *
+ *  A `pdf` template gets two independent actions: "Preview" toggles a lazily-loaded PNG `<img>`
+ *  (click to expand) below the card, and "Open PDF" fetches the same render and opens it as a
+ *  `blob:` object URL in a new tab — never an iframe (final review, C4: the Control UI's
+ *  `frame-src` blocks `data:`/`blob:` framed content, but a top-level navigation is unaffected). */
 function templateCard(template: Template): string {
-  const preview =
+  const pdfActions =
     template.kind === "pdf"
-      ? `<button class="btn quiet" data-tpl-preview="${esc(template.id)}">Preview</button>`
+      ? `<button class="btn quiet" data-tpl-preview="${esc(template.id)}">Preview</button><button class="btn quiet" data-tpl-pdf="${esc(template.id)}">Open PDF</button>`
       : "";
   return `<article class="card tpl" data-tpl="${esc(template.id)}">
   <div class="top"><h3>${esc(template.name)}</h3><span class="chip">${esc(template.kind)}</span></div>
   <p class="sum">${esc(pluralSlots(template.slots.length))} · updated ${esc(fmtWhen(template.updatedAt))}</p>
-  <div class="foot"><span></span><span>${preview}<button class="btn quiet" data-tpl-edit="${esc(template.id)}">Edit with agent</button><button class="btn danger" data-tpl-delete="${esc(template.id)}">Delete</button></span></div>
+  <div class="foot"><span></span><span>${pdfActions}<button class="btn quiet" data-tpl-edit="${esc(template.id)}">Edit with agent</button><button class="btn danger" data-tpl-delete="${esc(template.id)}">Delete</button></span></div>
   ${templateBody(template)}
 </article>`;
 }

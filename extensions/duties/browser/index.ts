@@ -5,6 +5,7 @@ import type { Duty } from "../src/duty.js";
 import type { MailStatus } from "../src/mail.js";
 import type { DutiesSettings, DutyRun } from "../src/store.js";
 import type { Brand, Template } from "../src/template.js";
+import type { NowShot } from "./render.js";
 import {
   renderBoard,
   renderBuildPreview,
@@ -29,9 +30,18 @@ type EvidenceResult = { contentType: string; base64: string };
 type TemplateListResult = { templates: Template[] };
 type BrandGetResult = { brand?: Brand };
 type BrandSetResult = { brand: Brand };
-type TemplatePreviewResult = { contentType: string; base64: string };
+/** `duties.template.preview`'s new shape (final review C4): the PDF itself for the "Open PDF"
+ *  button, plus an optional PNG `preview` for the inline `<img>`. `preview` is optional so an
+ *  older Gateway/plugin build that has not shipped the PNG render still degrades to the
+ *  Open-PDF-only path instead of a blocked `data:` iframe. */
+type TemplatePreviewResult = {
+  pdf: { contentType: string; base64: string };
+  preview?: { contentType: string; base64: string };
+};
 type SettingsGetResult = { settings: DutiesSettings };
 type SettingsSetResult = { settings: DutiesSettings };
+/** `duties.run.file`'s result — the same shape whether `params.kind` is omitted (the full
+ *  document) or `"preview"` (a PNG thumbnail of it). */
 type RunFileResult = { name: string; contentType: string; base64: string };
 
 function readDutyId(payload: unknown): string | undefined {
@@ -73,6 +83,19 @@ function esc(value: string): string {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
 
+/** How base64 file bytes reach a new tab (final review C4): a `blob:` object URL and a top-level
+ *  `window.open`, never a framed `data:`/`blob:` src — the host's `frame-src` CSP is `'self' http:
+ *  https:`, which blocks both, but a top-level navigation is not governed by `frame-src` at all.
+ *  The URL is revoked a minute later, long enough for the new tab to have finished loading it. */
+function openBase64InNewTab(base64: string, contentType: string): void {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([bytes], { type: contentType }));
+  window.open(url, "_blank");
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
 export default defineControlUiPlugin({
   id: "duties",
   activate(host: ControlUiHost) {
@@ -103,6 +126,12 @@ export default defineControlUiPlugin({
         let brand: Brand | undefined;
         let settings: DutiesSettings = {};
         let mailStatus: MailStatus | undefined;
+        // The run page's "Now" panel (I6): the newest step's screenshot while a run is still
+        // running/queued. `nowShotFetchedFor` guards against re-fetching for a step id we already
+        // requested (or are mid-request for); `nowShot` is what is actually shown. Keyed by
+        // `${runId}:${stepId}` so switching to a different run's page never shows a stale shot.
+        let nowShotFetchedFor: string | undefined;
+        let nowShot: { key: string; imageDataUrl: string } | undefined;
 
         const root = document.createElement("div");
         root.className = "dt";
@@ -139,6 +168,85 @@ export default defineControlUiPlugin({
               : duties.map((d, i) => (i === idx ? duty : d));
         };
 
+        // Newest-step screenshot for the run page's "Now" panel (I6). `nowShotFetchedFor` is a
+        // `${runId}:${stepId}` guard so a fetch is issued once per newest step, never on every
+        // redraw; `nowShot` is what is actually shown once that fetch lands.
+        const nowKeyFor = (run: DutyRun, stepId: string): string => `${run.id}:${stepId}`;
+
+        const currentNowShot = (run: DutyRun): NowShot | undefined => {
+          const newest = run.steps.at(-1);
+          if (!newest || !nowShot || nowShot.key !== nowKeyFor(run, newest.stepId))
+            return undefined;
+          return { stepId: newest.stepId, imageDataUrl: nowShot.imageDataUrl };
+        };
+
+        const ensureNowShot = (run: DutyRun): void => {
+          if (run.status !== "running" && run.status !== "queued") return;
+          const newest = run.steps.at(-1);
+          if (!newest?.screenshotBlobId) return;
+          const key = nowKeyFor(run, newest.stepId);
+          if (nowShotFetchedFor === key) return;
+          nowShotFetchedFor = key;
+          const { id: runId } = run;
+          const { stepId } = newest;
+          void (async () => {
+            try {
+              const shot = await host.request<EvidenceResult>("duties.run.evidence", {
+                runId,
+                stepId,
+              });
+              if (context.signal.aborted) return;
+              nowShot = { key, imageDataUrl: `data:${shot.contentType};base64,${shot.base64}` };
+              draw();
+            } catch {
+              // Leave `nowShotFetchedFor` set: retrying the same failing fetch on every redraw
+              // would spin. The panel keeps showing "Loading…" for this step, which is accurate
+              // enough — the next step event moves the key forward and tries again.
+            }
+          })();
+        };
+
+        /** What the owner had expanded before a full re-render (I6): the lazily-loaded
+         *  screenshot/file-preview/template-preview toggles and any open `<details>` (the Duty
+         *  page's `when` step groups). A redraw triggered by a `plugin.duties.changed` /
+         *  `plugin.duties.run` event must not silently collapse these. Restoring re-invokes the
+         *  same toggle handlers — the fresh DOM starts closed and unloaded, so this both reopens
+         *  the panel and re-fetches its content. */
+        type OpenToggleKind = "shot" | "fileShot" | "tplPreview";
+        type OpenState = { toggles: Array<[OpenToggleKind, string]>; detailsOpen: number[] };
+
+        const captureOpenState = (): OpenState => {
+          const toggles: Array<[OpenToggleKind, string]> = [];
+          root
+            .querySelectorAll<HTMLElement>(
+              "[data-shot-for],[data-file-shot-for],[data-tpl-preview-for]",
+            )
+            .forEach((el) => {
+              if (el.hidden) return;
+              if (el.dataset.shotFor !== undefined) toggles.push(["shot", el.dataset.shotFor]);
+              else if (el.dataset.fileShotFor !== undefined)
+                toggles.push(["fileShot", el.dataset.fileShotFor]);
+              else if (el.dataset.tplPreviewFor !== undefined)
+                toggles.push(["tplPreview", el.dataset.tplPreviewFor]);
+            });
+          const detailsOpen: number[] = [];
+          root.querySelectorAll<HTMLDetailsElement>("details").forEach((el, i) => {
+            if (el.open) detailsOpen.push(i);
+          });
+          return { toggles, detailsOpen };
+        };
+
+        const restoreOpenState = (state: OpenState): void => {
+          root.querySelectorAll<HTMLDetailsElement>("details").forEach((el, i) => {
+            if (state.detailsOpen.includes(i)) el.open = true;
+          });
+          for (const [kind, id] of state.toggles) {
+            if (kind === "shot") void toggleShot(id);
+            else if (kind === "fileShot") void toggleFilePreview(id);
+            else void previewTemplate(id);
+          }
+        };
+
         const draw = (): void => {
           if (context.signal.aborted) return;
           const view = context.props.view ?? "board";
@@ -146,6 +254,7 @@ export default defineControlUiPlugin({
           const runId = context.props.runId ?? "";
           const notice = editNotice ? `<div class="notice">${esc(editNotice)}</div>` : "";
           const errorOpts = lastError ? { error: lastError } : undefined;
+          const openState = captureOpenState();
           if (view === "build") {
             root.innerHTML = notice + renderBuildPreview();
           } else if (view === "logins") {
@@ -162,13 +271,18 @@ export default defineControlUiPlugin({
           } else if (view === "run") {
             const run = observedRuns.get(runId);
             const duty = duties.find((d) => d.id === dutyId);
+            if (run) ensureNowShot(run);
             root.innerHTML =
-              notice + (run ? renderRun(run, duty, errorOpts) : renderPlaceholder(errorOpts ?? {}));
+              notice +
+              (run
+                ? renderRun(run, duty, { ...(errorOpts ?? {}), now: currentNowShot(run) })
+                : renderPlaceholder(errorOpts ?? {}));
           } else {
             root.innerHTML =
               notice +
               renderBoard(duties, allKnownRuns(), { ...(errorOpts ?? {}), settings, mailStatus });
           }
+          restoreOpenState(openState);
         };
 
         const loadDutyRuns = async (id: string): Promise<void> => {
@@ -421,8 +535,11 @@ export default defineControlUiPlugin({
           }
         };
 
-        /** Lazily fetches one template's PDF preview and shows it inline; the same toggle shape
-         *  as `toggleShot` below. Nothing is fetched until the owner opens the toggle. */
+        /** Lazily fetches one template's PNG preview and shows it inline as an `<img>` (click to
+         *  expand, same toggle shape as `toggleShot` below) — never a `data:` iframe, which the
+         *  host's `frame-src` CSP blocks (final review C4). An older Gateway/plugin build that
+         *  has not shipped the PNG render leaves `preview` absent; that degrades to a message
+         *  pointing at the "Open PDF" button next to this toggle, never a blocked iframe. */
         const previewTemplate = async (id: string): Promise<void> => {
           const holder = root.querySelector<HTMLElement>(`[data-tpl-preview-for="${id}"]`);
           if (!holder) return;
@@ -433,17 +550,37 @@ export default defineControlUiPlugin({
           holder.hidden = false;
           if (holder.dataset.loaded === "1") return;
           try {
-            const preview = await host.request<TemplatePreviewResult>("duties.template.preview", {
+            const result = await host.request<TemplatePreviewResult>("duties.template.preview", {
               id,
             });
             if (context.signal.aborted) return;
-            const iframe = document.createElement("iframe");
-            iframe.src = `data:${preview.contentType};base64,${preview.base64}`;
-            iframe.title = "Template preview";
-            holder.replaceChildren(iframe);
+            if (result.preview) {
+              const img = document.createElement("img");
+              img.alt = "Template preview";
+              img.src = `data:${result.preview.contentType};base64,${result.preview.base64}`;
+              img.addEventListener("click", () => img.classList.toggle("big"));
+              holder.replaceChildren(img);
+            } else {
+              holder.textContent = "No preview image available — use Open PDF.";
+            }
             holder.dataset.loaded = "1";
           } catch (error) {
             holder.textContent = coerceErrorMessage(error);
+          }
+        };
+
+        /** Fetches the same render as `previewTemplate` above and opens the PDF itself as a
+         *  `blob:` object URL in a new tab (see `openBase64InNewTab`) — the way to actually view
+         *  or print the document, independent of whether a PNG preview is available. */
+        const openTemplatePdf = async (id: string): Promise<void> => {
+          try {
+            const result = await host.request<TemplatePreviewResult>("duties.template.preview", {
+              id,
+            });
+            if (context.signal.aborted) return;
+            openBase64InNewTab(result.pdf.base64, result.pdf.contentType);
+          } catch (error) {
+            fail(error, () => void openTemplatePdf(id));
           }
         };
 
@@ -464,10 +601,13 @@ export default defineControlUiPlugin({
           draw();
         };
 
-        /** Lazily fetches one run step's produced document and shows it inline as a `data:`
-         *  iframe; the file's disk path never reaches the page. Same toggle shape as `toggleShot`. */
-        const openFile = async (stepId: string): Promise<void> => {
-          const holder = root.querySelector<HTMLElement>(`[data-file-for="${stepId}"]`);
+        /** Lazily fetches a PNG thumbnail of a run-produced PDF (`duties.run.file` with
+         *  `kind: "preview"`) and shows it inline as an `<img>`; the file's disk path and its full
+         *  bytes never reach the page for this. Same toggle shape as `toggleShot`. A run recorded
+         *  before this preview existed (or any other fetch failure) collapses the toggle back
+         *  closed instead of showing an error — "Open PDF" next to it still works either way. */
+        const toggleFilePreview = async (stepId: string): Promise<void> => {
+          const holder = root.querySelector<HTMLElement>(`[data-file-shot-for="${stepId}"]`);
           const runId = context.props.runId;
           if (!holder || !runId) return;
           if (!holder.hidden) {
@@ -477,15 +617,36 @@ export default defineControlUiPlugin({
           holder.hidden = false;
           if (holder.dataset.loaded === "1") return;
           try {
+            const preview = await host.request<RunFileResult>("duties.run.file", {
+              runId,
+              stepId,
+              kind: "preview",
+            });
+            if (context.signal.aborted) return;
+            const img = document.createElement("img");
+            img.alt = "Document preview";
+            img.src = `data:${preview.contentType};base64,${preview.base64}`;
+            img.addEventListener("click", () => img.classList.toggle("big"));
+            holder.replaceChildren(img);
+            holder.dataset.loaded = "1";
+          } catch {
+            holder.hidden = true;
+          }
+        };
+
+        /** Fetches a run step's full produced document and opens it as a `blob:` object URL in a
+         *  new tab (see `openBase64InNewTab`) — replaces the old `data:` iframe, which the host's
+         *  `frame-src` CSP blocks (final review C4). Used for both PDFs ("Open PDF") and any other
+         *  file kind ("Open"); the file's disk path never reaches the page. */
+        const openRunFile = async (stepId: string): Promise<void> => {
+          const runId = context.props.runId;
+          if (!runId) return;
+          try {
             const file = await host.request<RunFileResult>("duties.run.file", { runId, stepId });
             if (context.signal.aborted) return;
-            const iframe = document.createElement("iframe");
-            iframe.src = `data:${file.contentType};base64,${file.base64}`;
-            iframe.title = file.name;
-            holder.replaceChildren(iframe);
-            holder.dataset.loaded = "1";
+            openBase64InNewTab(file.base64, file.contentType);
           } catch (error) {
-            holder.textContent = coerceErrorMessage(error);
+            fail(error, () => void openRunFile(stepId));
           }
         };
 
@@ -580,7 +741,7 @@ export default defineControlUiPlugin({
         root.addEventListener("click", (event) => {
           // SAFETY: this listener is on `root`, an HTMLElement, so its click events always target an Element.
           const target = (event.target as HTMLElement).closest<HTMLElement>(
-            "[data-open],[data-open-run],[data-run],[data-edit],[data-build],[data-status],[data-delete],[data-cancel],[data-nav],[data-retry],[data-shot],[data-cred-save],[data-cred-delete],[data-settings-save],[data-brand-save],[data-tpl-preview],[data-tpl-edit],[data-tpl-delete],[data-file]",
+            "[data-open],[data-open-run],[data-run],[data-edit],[data-build],[data-status],[data-delete],[data-cancel],[data-nav],[data-retry],[data-shot],[data-cred-save],[data-cred-delete],[data-settings-save],[data-brand-save],[data-tpl-preview],[data-tpl-pdf],[data-tpl-edit],[data-tpl-delete],[data-file-shot],[data-file-open]",
           );
           if (!target) return;
           event.preventDefault();
@@ -651,6 +812,10 @@ export default defineControlUiPlugin({
             void previewTemplate(dataset.tplPreview);
             return;
           }
+          if (dataset.tplPdf !== undefined) {
+            void openTemplatePdf(dataset.tplPdf);
+            return;
+          }
           if (dataset.tplEdit !== undefined) {
             openEditTemplateWithAgent(dataset.tplEdit);
             return;
@@ -659,8 +824,12 @@ export default defineControlUiPlugin({
             void deleteTemplate(dataset.tplDelete);
             return;
           }
-          if (dataset.file !== undefined) {
-            void openFile(dataset.file);
+          if (dataset.fileShot !== undefined) {
+            void toggleFilePreview(dataset.fileShot);
+            return;
+          }
+          if (dataset.fileOpen !== undefined) {
+            void openRunFile(dataset.fileOpen);
             return;
           }
           if (dataset.credDelete !== undefined) {
