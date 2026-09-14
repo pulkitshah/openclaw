@@ -31,7 +31,8 @@ describe("createLinuxCredStore", () => {
     await store.set("k", "SECRET-VALUE");
     const raw = await readFile(f.storePath);
     expect(raw.includes("SECRET-VALUE")).toBe(false);
-    raw[raw.length - 1] ^= 0xff;
+    const last = raw.length - 1;
+    raw[last] = (raw[last] ?? 0) ^ 0xff;
     await writeFile(f.storePath, raw);
     await expect(store.get("k")).rejects.toThrow(
       /credential store is corrupt or was written with another keyfile/u,
