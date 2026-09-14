@@ -325,7 +325,7 @@ export async function runSubagentThreadSpawnScenario(context: MatrixQaScenarioCo
     runTimeoutSeconds: 120,
   };
   const triggerBody = [
-    `${context.sutUserId} Run this exact OpenClaw Matrix thread-spawn QA check. Use tool calls, not prose.`,
+    `${context.sutUserId} Run this exact Vasudev Matrix thread-spawn QA check. Use tool calls, not prose.`,
     `Step 1: call sessions_spawn with exactly this JSON input: ${JSON.stringify(spawnArgs)}.`,
     'Step 2: after spawn returns status="accepted", wait for the child session reply in the spawned Matrix thread.',
     "Do not omit thread=true; the child must bind to this Matrix thread.",

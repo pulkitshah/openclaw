@@ -71,7 +71,7 @@ function resolveCodexCatalogTerminalHome(
 ): string {
   const runtimeConfig = sources.getRuntimeConfig();
   if (!runtimeConfig) {
-    throw new Error("OpenClaw runtime config is unavailable");
+    throw new Error("Vasudev runtime config is unavailable");
   }
   const agentDir =
     sources.source?.agentDir ??

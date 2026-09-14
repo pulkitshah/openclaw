@@ -19,7 +19,7 @@ afterEach(async () => {
   await sandboxExecServerRegistry.closeAll();
 });
 
-describe("OpenClaw Codex sandbox exec-server filesystem", () => {
+describe("Vasudev Codex sandbox exec-server filesystem", () => {
   it("returns the required Codex file size in sandbox metadata", async () => {
     const sandbox = createSandboxContext({
       stat: async () => ({ type: "file", size: 1234, mtimeMs: 5678 }),

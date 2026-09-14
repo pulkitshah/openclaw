@@ -1,5 +1,5 @@
 /**
- * Resolves Codex filesystem sandbox policy payloads into OpenClaw path/glob
+ * Resolves Codex filesystem sandbox policy payloads into Vasudev path/glob
  * checks for sandbox exec-server filesystem operations.
  */
 import { posix as pathPosix } from "node:path";

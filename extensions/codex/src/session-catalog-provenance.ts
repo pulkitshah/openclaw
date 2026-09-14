@@ -107,7 +107,7 @@ export async function readCodexSessionMeta(
 }
 
 /**
- * Codex 0.147 reports OpenClaw app-server rollouts as `vscode`, so the rollout's
+ * Codex 0.147 reports Vasudev app-server rollouts as `vscode`, so the rollout's
  * immutable session metadata is the authoritative historical provenance.
  */
 export async function isOpenClawManagedCodexThread(

@@ -10,7 +10,7 @@ import { RealtimeCallHandler } from "./realtime-handler.js";
 
 // The published minimum host has no WebSocket SDK subpath at all.
 vi.mock("openclaw/plugin-sdk/websocket-runtime", () => {
-  throw new Error("websocket-runtime is not exported by OpenClaw 2026.9.2");
+  throw new Error("websocket-runtime is not exported by Vasudev 2026.9.2");
 });
 
 function createHandler() {

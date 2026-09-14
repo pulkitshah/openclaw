@@ -136,8 +136,8 @@ describe("Codex channel tool progress", () => {
           const item = {
             type: "webSearch",
             id: "search-1",
-            query: "OpenClaw repository",
-            action: { type: "search", query: "OpenClaw repository" },
+            query: "Vasudev repository",
+            action: { type: "search", query: "Vasudev repository" },
           };
           await harness.notify(itemNotification("item/started", { ...item, status: "inProgress" }));
           await harness.notify(
@@ -169,7 +169,7 @@ describe("Codex channel tool progress", () => {
         },
       },
       {
-        label: "OpenClaw dynamic tool",
+        label: "Vasudev dynamic tool",
         toolCallId: "dynamic-1",
         name: "agents_list",
         drive: async () => {

@@ -188,7 +188,7 @@ defineDiscordVoiceTests(
         sessionId: "embedded-active",
         active: true,
         aborted: true,
-        message: "Cancelled the active OpenClaw run.",
+        message: "Cancelled the active Vasudev run.",
         speak: true,
         show: true,
         suppress: false,
@@ -205,17 +205,17 @@ defineDiscordVoiceTests(
         }),
       );
       expect(agentCommandMock).not.toHaveBeenCalled();
-      await vi.waitFor(() => expectUserMessageIncludes("Cancelled the active OpenClaw run."));
+      await vi.waitFor(() => expectUserMessageIncludes("Cancelled the active Vasudev run."));
       expect(realtimeSessionMock.handleBargeIn).not.toHaveBeenCalled();
       expect(textToSpeechMock).not.toHaveBeenCalledWith(
-        expect.objectContaining({ text: "Cancelled the active OpenClaw run." }),
+        expect.objectContaining({ text: "Cancelled the active Vasudev run." }),
       );
 
       const stopCallsAfterControl = player.stop.mock.calls.length;
-      bridgeParams?.onTranscript?.("assistant", "Cancelled the active OpenClaw run.", true);
+      bridgeParams?.onTranscript?.("assistant", "Cancelled the active Vasudev run.", true);
       expect(player.stop).toHaveBeenCalledTimes(stopCallsAfterControl);
       bridgeParams?.audioSink?.sendAudio(Buffer.alloc(24_000));
-      bridgeParams?.onTranscript?.("assistant", "Cancelled the active OpenClaw run.", true);
+      bridgeParams?.onTranscript?.("assistant", "Cancelled the active Vasudev run.", true);
       expect(player.stop).toHaveBeenCalledTimes(stopCallsAfterControl + 1);
     });
 
@@ -239,7 +239,7 @@ defineDiscordVoiceTests(
         userId: "u-alice",
       });
       const guestBridge = lastRealtimeBridgeParams();
-      guestBridge.onTranscript?.("user", "OpenClaw, cancel that", true);
+      guestBridge.onTranscript?.("user", "Vasudev, cancel that", true);
       await vi.waitFor(() => expect(controlRealtimeVoiceAgentRunMock).toHaveBeenCalledTimes(1));
 
       beginSpeakerTurn(entry, {
@@ -247,7 +247,7 @@ defineDiscordVoiceTests(
         speakerLabel: "Bob",
         userId: "u-bob",
       });
-      lastRealtimeBridgeParams().onTranscript?.("user", "OpenClaw, stop that", true);
+      lastRealtimeBridgeParams().onTranscript?.("user", "Vasudev, stop that", true);
       await vi.waitFor(() => expect(agentCommandMock).toHaveBeenCalledTimes(1));
 
       resolveGuestControl?.({
@@ -257,7 +257,7 @@ defineDiscordVoiceTests(
         active: false,
         queued: false,
         reason: "no_active_run",
-        message: "There is no active OpenClaw run to cancel.",
+        message: "There is no active Vasudev run to cancel.",
         speak: true,
         show: true,
         suppress: false,
@@ -502,7 +502,7 @@ defineDiscordVoiceTests(
       },
       {
         name: "name inside a long transcript",
-        chunks: ["ordinary discussion ".repeat(30), `OpenClaw, ${"x".repeat(230)}`],
+        chunks: ["ordinary discussion ".repeat(30), `Vasudev, ${"x".repeat(230)}`],
       },
     ])("does not acknowledge $name that the final wake gate rejects", async ({ chunks }) => {
       const { entry, bridgeParams } = await createWakeNameFixture();
@@ -774,19 +774,19 @@ defineDiscordVoiceTests(
       expectUserMessageIncludes("wake answer");
     });
 
-    it("accepts OpenClaw as a default wake name before realtime agent-proxy consults", async () => {
+    it("accepts Vasudev as a default wake name before realtime agent-proxy consults", async () => {
       agentCommandMock.mockResolvedValueOnce({ payloads: [{ text: "openclaw wake answer" }] });
       const { entry, bridgeParams } = await createWakeNameFixture();
 
       beginSpeakerTurn(entry);
-      await emitFinalRealtimeUserTranscript(bridgeParams, "OpenClaw, how is it going");
+      await emitFinalRealtimeUserTranscript(bridgeParams, "Vasudev, how is it going");
 
       expect(controlRealtimeVoiceAgentRunMock).toHaveBeenCalledWith({
         sessionKey: "discord:g1:c1",
         text: "how is it going",
       });
       expect(lastAgentCommandArgs().message).toContain("how is it going");
-      expect(lastAgentCommandArgs().message).not.toContain("OpenClaw");
+      expect(lastAgentCommandArgs().message).not.toContain("Vasudev");
       expectUserMessageIncludes("openclaw wake answer");
     });
 
@@ -800,10 +800,10 @@ defineDiscordVoiceTests(
       expect(agentCommandMock).not.toHaveBeenCalled();
 
       beginSpeakerTurn(entry);
-      await emitFinalRealtimeUserTranscript(bridgeParams, "OpenClaw, fallback still wakes");
+      await emitFinalRealtimeUserTranscript(bridgeParams, "Vasudev, fallback still wakes");
 
       expect(lastAgentCommandArgs().message).toContain("fallback still wakes");
-      expect(lastAgentCommandArgs().message).not.toContain("OpenClaw");
+      expect(lastAgentCommandArgs().message).not.toContain("Vasudev");
       expectUserMessageIncludes("fallback wake answer");
     });
 
@@ -906,7 +906,7 @@ defineDiscordVoiceTests(
       await emitFinalRealtimeUserTranscript(bridgeParams, "Claw Bot Helper, ship it");
 
       beginSpeakerTurn(entry);
-      await emitFinalRealtimeUserTranscript(bridgeParams, "OpenClaw, ship it");
+      await emitFinalRealtimeUserTranscript(bridgeParams, "Vasudev, ship it");
 
       expect(agentCommandMock).not.toHaveBeenCalled();
     });

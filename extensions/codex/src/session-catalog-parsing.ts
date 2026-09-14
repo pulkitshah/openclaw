@@ -383,7 +383,7 @@ function parseCatalogSession(
   );
   const gitBranch = parseOptionalCatalogString(value.gitBranch, "Git branch", MAX_METADATA_LENGTH);
   const sessionKey = options.allowSessionKey
-    ? parseOptionalCatalogString(value.sessionKey, "OpenClaw session key", MAX_SESSION_KEY_LENGTH)
+    ? parseOptionalCatalogString(value.sessionKey, "Vasudev session key", MAX_SESSION_KEY_LENGTH)
     : undefined;
   const createdAt = asFiniteNumber(value.createdAt);
   const updatedAt = asFiniteNumber(value.updatedAt);

@@ -497,7 +497,7 @@ describe("Codex app-server elicitation bridge", () => {
     expect(result).toEqual({ action: "decline", content: null, _meta: null });
     expect(gatewayToolArg(0, 2)).toMatchObject({
       description: expect.stringContaining(
-        "openclaw mcp configure codex_apps__github --approval approve",
+        "vasudev mcp configure codex_apps__github --approval approve",
       ),
     });
     expect(mockCallGatewayTool.mock.calls.map(([method]) => method)).toEqual([

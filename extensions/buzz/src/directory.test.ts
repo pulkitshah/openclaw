@@ -325,7 +325,7 @@ describe("Buzz live directory", () => {
 
   it("refreshes only room listings when an active bus already owns directory state", async () => {
     const refreshDirectory = vi.fn(async () => {});
-    const self = vi.fn(() => ({ kind: "user", id: BOT_PUBLIC_KEY, name: "OpenClaw" }));
+    const self = vi.fn(() => ({ kind: "user", id: BOT_PUBLIC_KEY, name: "Vasudev" }));
     const listPeers = vi.fn(() => [{ kind: "user", id: MEMBER_PUBLIC_KEY, name: "Alice" }]);
     const listGroups = vi.fn(() => [{ kind: "group", id: `buzz:${ROOM_ID}`, name: "Engineering" }]);
     const listGroupMembers = vi.fn(() => [{ kind: "user", id: MEMBER_PUBLIC_KEY, name: "Alice" }]);

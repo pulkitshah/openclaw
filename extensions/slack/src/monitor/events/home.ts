@@ -6,8 +6,8 @@ import type { SlackAppHomeOpenedEvent } from "../types.js";
 
 function buildSlackHomeView(slashCommandName?: string): HomeView {
   const startSessionText = slashCommandName
-    ? `Send a DM, mention OpenClaw in a channel, or use \`/${slashCommandName}\` to start a session.`
-    : "Send a DM or mention OpenClaw in a channel to start a session.";
+    ? `Send a DM, mention Vasudev in a channel, or use \`/${slashCommandName}\` to start a session.`
+    : "Send a DM or mention Vasudev in a channel to start a session.";
   return {
     type: "home",
     callback_id: "openclaw:home",
@@ -16,7 +16,7 @@ function buildSlackHomeView(slashCommandName?: string): HomeView {
         type: "header",
         text: {
           type: "plain_text",
-          text: "OpenClaw",
+          text: "Vasudev",
         },
       },
       {

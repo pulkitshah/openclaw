@@ -396,7 +396,7 @@ describe("discord doctor", () => {
     expect(result.changes).toEqual([
       "Shortened 1 unsupported channels.discord.accounts.work.voice.realtime.wakeNames entries to one or two words.",
       "Shortened 1 unsupported channels.discord.accounts.invalid.voice.realtime.wakeNames entries to one or two words.",
-      "Removed empty channels.discord.accounts.empty.voice.realtime.wakeNames; unset wake names use the default agent/OpenClaw fallback.",
+      "Removed empty channels.discord.accounts.empty.voice.realtime.wakeNames; unset wake names use the default agent/Vasudev fallback.",
       "Shortened 1 unsupported channels.discord.voice.realtime.wakeNames entries to one or two words.",
     ]);
     expect(result.config.channels?.discord?.voice?.realtime?.wakeNames).toEqual([

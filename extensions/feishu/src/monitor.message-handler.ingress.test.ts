@@ -183,7 +183,7 @@ describe("Feishu durable ingress debounce lifecycle", () => {
       {
         key: "@_bot_1",
         id: { open_id: "ou-bot" },
-        name: "OpenClaw",
+        name: "Vasudev",
       },
     ];
 

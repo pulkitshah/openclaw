@@ -1067,7 +1067,7 @@ describe("diagnostics-otel service", () => {
       expectedDurationName: "acme.openclaw.run.duration_ms",
     },
   ])(
-    "replaces the default OpenClaw metric prefix with $metricNamePrefix",
+    "replaces the default Vasudev metric prefix with $metricNamePrefix",
     async ({ metricNamePrefix, expectedTokenName, expectedDurationName }) => {
       await startServiceFixture(["metrics"], (ctx) => {
         if (metricNamePrefix !== undefined) {
@@ -1805,7 +1805,7 @@ describe("diagnostics-otel service", () => {
   });
 
   test.each([" TRUE ", "TrUe"])(
-    "disables every OpenClaw-owned telemetry route for OTEL_SDK_DISABLED=%j",
+    "disables every Vasudev-owned telemetry route for OTEL_SDK_DISABLED=%j",
     async (value) => {
       const events: TelemetryExporterEvent[] = [];
       const unsubscribe = onInternalDiagnosticEvent((event) => {
@@ -2339,7 +2339,7 @@ describe("diagnostics-otel service", () => {
     expect(ctx.logger.warn).not.toHaveBeenCalledWith("diagnostics-otel: unsupported protocol grpc");
 
     emitEvent("log.record", {
-      message: "OpenClaw-owned OTLP log",
+      message: "Vasudev-owned OTLP log",
     });
     await flushDiagnosticEvents();
 
@@ -3250,7 +3250,7 @@ describe("diagnostics-otel service", () => {
     expect(firstSpanProcessorOptions().selfObsMeterProvider).toBeUndefined();
   });
 
-  test("lets explicit OpenClaw sampling override the inherited sampler environment", async () => {
+  test("lets explicit Vasudev sampling override the inherited sampler environment", async () => {
     process.env.OTEL_TRACES_SAMPLER = "always_off";
     await startServiceFixture(["traces"], (ctx) => {
       ctx.config.diagnostics!.otel!.sampleRate = 1;
@@ -5945,7 +5945,7 @@ describe("diagnostics-otel service", () => {
 
   // Exec spans used to always be roots, which stranded every shell command in its
   // own single-span trace instead of nesting it under the run that spawned it.
-  test("nests exec spans under the run when the trace context is OpenClaw-owned", async () => {
+  test("nests exec spans under the run when the trace context is Vasudev-owned", async () => {
     await startServiceFixture(["traces", "metrics"]);
 
     emitRunStarted();
@@ -6401,7 +6401,7 @@ describe("diagnostics-otel service", () => {
             stopReason: "end_turn",
           },
         ],
-        systemPrompt: "OpenClaw appended instructions",
+        systemPrompt: "Vasudev appended instructions",
       },
       {
         runId: "run-claude-cli",

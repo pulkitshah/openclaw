@@ -66,7 +66,7 @@ const PROGRESS_CARD_SYSTEM_PROMPT =
   "During multi-step work, keep your progress card current with the progress_card tool; the user follows it instead of reading the transcript.";
 
 describe("Codex usage attribution", () => {
-  it("labels new OpenClaw threads without rewriting resumed thread attribution", () => {
+  it("labels new Vasudev threads without rewriting resumed thread attribution", () => {
     const params = createAttemptParams({ provider: "openai" });
     const appServer = createAppServerOptions() as never;
     const start = buildThreadStartParams(params, { appServer, cwd: "/repo", dynamicTools: [] });
@@ -1264,13 +1264,13 @@ function expectSingleLogMessage(
 }
 
 describe("Codex app-server native code mode config", () => {
-  it("keeps Codex-native subagents primary while limiting OpenClaw spawn to OpenClaw delegation", () => {
+  it("keeps Codex-native subagents primary while limiting Vasudev spawn to Vasudev delegation", () => {
     const instructions = buildDeveloperInstructions(createAttemptParams({ provider: "openai" }), {
       dynamicTools: [
         {
           type: "function",
           name: "sessions_spawn",
-          description: "Start an OpenClaw session",
+          description: "Start a Vasudev session",
           inputSchema: { type: "object" },
         },
       ],
@@ -1286,7 +1286,7 @@ describe("Codex app-server native code mode config", () => {
     );
     expect(instructions).toContain("call the matching entry through `tools`");
     expect(instructions).toContain(
-      "Use OpenClaw `sessions_spawn` only for OpenClaw or ACP delegation, never as a substitute for `spawn_agent` on internal legwork.",
+      "Use Vasudev `sessions_spawn` only for Vasudev or ACP delegation, never as a substitute for `spawn_agent` on internal legwork.",
     );
   });
 
@@ -1444,7 +1444,7 @@ describe("Codex app-server native code mode config", () => {
     });
 
     expect(instructions).toContain(
-      "Deferred searchable OpenClaw dynamic tools available: image_generate, music_generate.",
+      "Deferred searchable Vasudev dynamic tools available: image_generate, music_generate.",
     );
     expect(instructions).toContain("Use `tool_search` when directly callable");
     expect(instructions).toContain(
@@ -1504,7 +1504,7 @@ describe("Codex app-server native code mode config", () => {
 
     expect(namespaceReads).toBe(1);
     expect(instructions).toContain(
-      "Deferred searchable OpenClaw dynamic tools available: alpha_tool, skill_workshop, zeta_tool.",
+      "Deferred searchable Vasudev dynamic tools available: alpha_tool, skill_workshop, zeta_tool.",
     );
     expect(instructions).toContain("## Skill Workshop");
     expect(instructions).not.toContain("Visible source replies are not automatically delivered");
@@ -1555,7 +1555,7 @@ describe("Codex app-server native code mode config", () => {
       ],
     });
 
-    expect(instructions).not.toContain("Deferred searchable OpenClaw dynamic tools available");
+    expect(instructions).not.toContain("Deferred searchable Vasudev dynamic tools available");
   });
 
   it("keeps durable dynamic tool fingerprints scoped to loading mode", () => {
@@ -1625,7 +1625,7 @@ describe("Codex app-server native code mode config", () => {
     ).toBe(true);
   });
 
-  it("keeps OpenClaw skill catalogs out of developer instructions", () => {
+  it("keeps Vasudev skill catalogs out of developer instructions", () => {
     const params = createAttemptParams({ provider: "openai" });
     params.skillsSnapshot = {
       prompt: "<available_skills><skill><name>demo</name></skill></available_skills>",
@@ -1853,7 +1853,7 @@ describe("Codex app-server native code mode config", () => {
     expect(request.personality).toBe("none");
   });
 
-  it("omits OpenClaw model selection when adopting a native Codex thread", () => {
+  it("omits Vasudev model selection when adopting a native Codex thread", () => {
     const request = buildThreadResumeParams(createAttemptParams({ provider: "codex" }), {
       threadId: "thread-adopted",
       model: "openclaw-model",
@@ -2287,7 +2287,7 @@ describe("Codex app-server native code mode config", () => {
     ).toThrow("Codex config/read returned an invalid project_doc_max_bytes value");
   });
 
-  it("preserves the OpenClaw default for Codex's materialized unauthored default", () => {
+  it("preserves the Vasudev default for Codex's materialized unauthored default", () => {
     expect(buildCodexProjectDocThreadConfig()).toEqual({ project_doc_max_bytes: 131_072 });
     expect(
       buildCodexProjectDocThreadConfig(undefined, {
@@ -2546,7 +2546,7 @@ describe("Codex app-server turn input image sanitizing", () => {
 });
 
 describe("Codex app-server turn params", () => {
-  it("builds resume and turn params from the currently selected OpenClaw model", () => {
+  it("builds resume and turn params from the currently selected Vasudev model", () => {
     const params = createAttemptParams({ provider: "codex" });
     params.modelId = "gpt-5.4-codex";
     params.thinkLevel = "medium";
@@ -2637,7 +2637,7 @@ describe("Codex app-server turn params", () => {
     }).settings.developer_instructions;
     expect(workspaceInstructions).toContain("Turn-only workspace instructions.");
     expect(workspaceInstructions).toContain("# Collaboration Mode: Default");
-    expect(workspaceInstructions).not.toContain("This is an OpenClaw heartbeat turn");
+    expect(workspaceInstructions).not.toContain("This is a Vasudev heartbeat turn");
     expect(workspaceInstructions).not.toContain("### Heartbeats");
   });
 
@@ -2654,7 +2654,7 @@ describe("Codex app-server turn params", () => {
     expect(cronCollaborationMode.settings.model).toBe("gpt-5.4-codex");
     expect(cronCollaborationMode.settings.reasoning_effort).toBe("medium");
     expect(cronCollaborationMode.settings.developer_instructions).toContain(
-      "This is an OpenClaw cron automation turn",
+      "This is a Vasudev cron automation turn",
     );
     expect(cronCollaborationMode.settings.developer_instructions).toContain(
       "If it asks you to run an exact command, run that command before doing any investigation",
@@ -3855,7 +3855,7 @@ describe("Codex app-server adopted thread lifecycle", () => {
     },
   );
 
-  it("keeps OpenClaw from overriding App Server model selection across resumes", async () => {
+  it("keeps Vasudev from overriding App Server model selection across resumes", async () => {
     const sessionFile = path.join(tempDir, "session.jsonl");
     const workspaceDir = path.join(tempDir, "workspace");
     const params = createThreadLifecycleParams(sessionFile, workspaceDir);

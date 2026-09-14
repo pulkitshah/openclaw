@@ -228,7 +228,7 @@ function createWhatsAppCallToolWithDependencies(
           setupShell: process.platform === "win32" ? "PowerShell" : "POSIX shell",
           requiredCommand:
             "meowcaller notify --store <path> --answer-timeout 45s --max-duration 65s <target> <file>",
-          note: "MeowCaller uses a separate WhatsApp linked-device session; it cannot reuse OpenClaw's Baileys credentials.",
+          note: "MeowCaller uses a separate WhatsApp linked-device session; it cannot reuse Vasudev's Baileys credentials.",
         });
       }
 
@@ -259,7 +259,7 @@ function createWhatsAppCallToolWithDependencies(
       const linkedSelf = await resolveLinkedWhatsAppSelfE164({ accountId, cfg });
       if (linkedSelf === target) {
         throw new Error(
-          "WhatsApp cannot call the linked account itself; use a dedicated OpenClaw WhatsApp number",
+          "WhatsApp cannot call the linked account itself; use a dedicated Vasudev WhatsApp number",
         );
       }
 

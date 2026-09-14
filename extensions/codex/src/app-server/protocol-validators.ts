@@ -340,7 +340,7 @@ export class CodexThreadDirectInputError extends Error {
   constructor(threadId: string) {
     super(
       `Codex thread ${threadId} is controlled by its parent and cannot accept direct input. ` +
-        "Continue its parent thread, or use /new for a separate OpenClaw session.",
+        "Continue its parent thread, or use /new for a separate Vasudev session.",
     );
     this.name = "CodexThreadDirectInputError";
   }

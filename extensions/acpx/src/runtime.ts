@@ -1,6 +1,6 @@
 /**
- * OpenClaw ACPX runtime adapter. It wraps the upstream acpx runtime with
- * OpenClaw session metadata, lease tracking, model scoping, and cleanup policy.
+ * Vasudev ACPX runtime adapter. It wraps the upstream acpx runtime with
+ * Vasudev session metadata, lease tracking, model scoping, and cleanup policy.
  */
 import { AsyncLocalStorage } from "node:async_hooks";
 import { randomUUID } from "node:crypto";
@@ -373,7 +373,7 @@ const OPENCLAW_BRIDGE_EXECUTABLE = "openclaw";
 const OPENCLAW_BRIDGE_SUBCOMMAND = "acp";
 const CODEX_ACP_AGENT_ID = "codex";
 const CODEX_ACP_OPENCLAW_PREFIX = "openai/";
-// Documented OpenClaw provider prefixes the Claude Agent SDK does not understand.
+// Documented Vasudev provider prefixes the Claude Agent SDK does not understand.
 // Strip only these; a generic first-slash split would corrupt native Bedrock
 // inference-profile ids and ARNs the SDK accepts as-is.
 const CLAUDE_ACP_OPENCLAW_PREFIX = /^(?:anthropic|amazon-bedrock)\//i;
@@ -734,7 +734,7 @@ function withManagedToolsMcpSessionEnv(params: {
   return changed ? nextServers : params.mcpServers;
 }
 
-/** OpenClaw-managed ACP runtime implementation backed by the upstream acpx runtime. */
+/** Vasudev-managed ACP runtime implementation backed by the upstream acpx runtime. */
 export class AcpxRuntime implements CompleteAcpRuntime {
   readonly ownerAwareSessions = 1 as const;
   private readonly legacyBareSessionKeys: Set<string>;
@@ -1539,7 +1539,7 @@ export class AcpxRuntime implements CompleteAcpRuntime {
         command,
         turn: delegate.startTurn({
           ...toAcpxResourceInput(input),
-          // OpenClaw owns deadlines; acpx timeouts can report partial output as completed.
+          // Vasudev owns deadlines; acpx timeouts can report partial output as completed.
           timeoutMs: 0,
         }),
       }));

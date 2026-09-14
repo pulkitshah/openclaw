@@ -9,10 +9,10 @@ export function describeBrowserTool(opts: {
   const actions = new Set(opts.capabilities.actions);
   const evaluateEnabled = opts.capabilities.actKinds.includes("evaluate");
   const lines = [
-    `Control the browser via OpenClaw's browser control server. Available actions: ${opts.capabilities.actions.join(", ")}.`,
+    `Control the browser via Vasudev's browser control server. Available actions: ${opts.capabilities.actions.join(", ")}.`,
     ...(actions.has("profiles")
       ? [
-          "Browser choice: omit profile to use the configured default (normally the isolated OpenClaw-managed `openclaw` browser).",
+          "Browser choice: omit profile to use the configured default (normally the isolated Vasudev-managed `openclaw` browser).",
           "When existing logins/cookies matter, use action=profiles to inspect available profiles, then select the appropriate profile by name. Do not assume a profile name. Use only when the task requires an existing session and the user has authorized it.",
         ]
       : []),

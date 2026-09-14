@@ -1,6 +1,6 @@
 /**
  * Normalizes and sanitizes Codex dynamic-tool progress payloads before they are
- * emitted into OpenClaw events or logs.
+ * emitted into Vasudev events or logs.
  */
 import {
   inferToolMetaFromArgs,
@@ -15,7 +15,7 @@ import {
   type JsonValue,
 } from "./protocol.js";
 
-/** Maps OpenClaw tool-progress config to the mode used by Codex progress metadata. */
+/** Maps Vasudev tool-progress config to the mode used by Codex progress metadata. */
 export function resolveCodexToolProgressDetailMode(
   value: EmbeddedRunAttemptParams["toolProgressDetail"],
 ): ToolProgressDetailMode {

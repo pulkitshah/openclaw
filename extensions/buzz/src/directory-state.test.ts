@@ -42,7 +42,7 @@ function membership(members: Array<[string, string?]>): BuzzRoomMembership {
 function profileState(): BuzzDirectoryState {
   const state = new BuzzDirectoryState({
     publicKey: BOT_PUBLIC_KEY,
-    fallbackProfileName: "OpenClaw",
+    fallbackProfileName: "Vasudev",
     channelIds: [ROOM_ID],
   });
   state.replaceMemberships(
@@ -121,7 +121,7 @@ describe("Buzz directory state", () => {
   it("keeps stable public-key ids while applying current profiles and room metadata", () => {
     const state = new BuzzDirectoryState({
       publicKey: BOT_PUBLIC_KEY,
-      fallbackProfileName: "OpenClaw",
+      fallbackProfileName: "Vasudev",
       channelIds: [ROOM_ID],
     });
     state.replaceMemberships(
@@ -225,7 +225,7 @@ describe("Buzz directory state", () => {
   it("uses deterministic latest-event ordering and bounded profile selection", () => {
     const state = new BuzzDirectoryState({
       publicKey: BOT_PUBLIC_KEY,
-      fallbackProfileName: "OpenClaw",
+      fallbackProfileName: "Vasudev",
       channelIds: [ROOM_ID],
       profileLimit: 2,
     });
@@ -289,7 +289,7 @@ describe("Buzz directory state", () => {
   it("keeps stable fallback identities when the relay budget leaves no profile slots", () => {
     const state = new BuzzDirectoryState({
       publicKey: BOT_PUBLIC_KEY,
-      fallbackProfileName: "OpenClaw",
+      fallbackProfileName: "Vasudev",
       channelIds: [ROOM_ID],
       profileLimit: 0,
     });
@@ -306,7 +306,7 @@ describe("Buzz directory state", () => {
     );
 
     expect(state.profilePublicKeys()).toEqual([]);
-    expect(state.self()).toEqual(expect.objectContaining({ id: BOT_PUBLIC_KEY, name: "OpenClaw" }));
+    expect(state.self()).toEqual(expect.objectContaining({ id: BOT_PUBLIC_KEY, name: "Vasudev" }));
     expect(state.listPeers({})).toEqual([
       expect.objectContaining({
         id: ALICE_PUBLIC_KEY,

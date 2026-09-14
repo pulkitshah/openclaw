@@ -45,7 +45,7 @@ function buildStore(kind: StoredProfileKind): AuthProfileStore {
 }
 
 /**
- * Expected handoff per cell. `prepared` names the auth material OpenClaw hands to the
+ * Expected handoff per cell. `prepared` names the auth material Vasudev hands to the
  * app-server; `native` means the connection keeps whatever account its Codex home owns.
  */
 type ExpectedHandoff =
@@ -60,7 +60,7 @@ const HANDOFF_MATRIX: {
   storedProfile: StoredProfileKind;
   expected: ExpectedHandoff;
 }[] = [
-  // Agent scope owns an isolated CODEX_HOME, so OpenClaw may inject prepared auth.
+  // Agent scope owns an isolated CODEX_HOME, so Vasudev may inject prepared auth.
   {
     homeScope: "agent",
     authRequirement: "api-key",
@@ -243,7 +243,7 @@ describe("Codex app-server auth requirement matrix", () => {
 
 /**
  * A native-home connection reaches `applyCodexAppServerAuthProfile` with a null profile:
- * OpenClaw verifies the account it found instead of logging in over it.
+ * Vasudev verifies the account it found instead of logging in over it.
  */
 describe("native Codex account verification", () => {
   const NATIVE_ACCOUNT_MATRIX: {

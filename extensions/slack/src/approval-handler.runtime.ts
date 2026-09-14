@@ -186,7 +186,7 @@ function buildSlackApprovalPayload(input: SlackApprovalRenderInput): SlackPendin
   const { phase, view } = input;
   const isPlugin = view.approvalKind === "plugin";
   const isSystemAgent = view.approvalKind === "system-agent";
-  const approvalName = isPlugin ? "Plugin" : isSystemAgent ? "OpenClaw change" : "Exec";
+  const approvalName = isPlugin ? "Plugin" : isSystemAgent ? "Vasudev change" : "Exec";
   let heading: string;
   let description: string;
   if (phase === "pending") {
@@ -195,7 +195,7 @@ function buildSlackApprovalPayload(input: SlackApprovalRenderInput): SlackPendin
       view.approvalKind === "plugin"
         ? resolveSlackPluginDescription(view)
         : isSystemAgent
-          ? "An OpenClaw change needs your approval."
+          ? "A Vasudev change needs your approval."
           : "A command needs your approval.";
   } else if (phase === "resolved") {
     const decisionLabel = formatChannelApprovalResolvedLabel(view);

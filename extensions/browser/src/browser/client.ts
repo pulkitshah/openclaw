@@ -415,7 +415,7 @@ export async function browserCloseTab(
   return await sendTabTargetRequest({ baseUrl, path, method: "DELETE", opts });
 }
 
-/** Close a canonical raw target id selected by OpenClaw's internal tab bookkeeping. */
+/** Close a canonical raw target id selected by Vasudev's internal tab bookkeeping. */
 export async function browserCloseTabByRawTargetId(
   baseUrl: string | undefined,
   targetId: string,

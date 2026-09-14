@@ -84,7 +84,7 @@ describe("QA runtime-pair scenario catalog", () => {
     expect(longContextFlow).not.toContain("patchConfig");
   });
 
-  it("keeps the pinned gateway restart scenario owned by the OpenClaw runtime", () => {
+  it("keeps the pinned gateway restart scenario owned by the Vasudev runtime", () => {
     const scenarioId = "gateway-restart-multi-live";
     const scenario = readQaScenarioById(scenarioId);
     const scenarios = readQaScenarioPack().scenarios;

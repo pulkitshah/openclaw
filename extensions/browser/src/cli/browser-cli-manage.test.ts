@@ -501,7 +501,7 @@ describe("browser manage output", () => {
               label: "Chrome extension version",
               status: "warn",
               summary: "running 2.0.0; bundled 2.2.0 (mismatch)",
-              fixHint: "Reload the OpenClaw extension.",
+              fixHint: "Reload the Vasudev extension.",
             },
           ],
           status: {
@@ -529,7 +529,7 @@ describe("browser manage output", () => {
     });
 
     expect(lastRuntimeLog()).toContain(
-      "WARN extension-version: running 2.0.0; bundled 2.2.0 (mismatch); Reload the OpenClaw extension.",
+      "WARN extension-version: running 2.0.0; bundled 2.2.0 (mismatch); Reload the Vasudev extension.",
     );
     expect(process.exitCode).toBe(0);
     expect(getBrowserManageCallBrowserRequestMock().mock.calls[0]?.[1]).toMatchObject({
@@ -583,7 +583,7 @@ describe("browser manage output", () => {
               label: "Chrome extension version",
               status: "warn",
               summary: "running 2.0.0; bundled 2.2.0 (mismatch)",
-              fixHint: "Reload the OpenClaw extension.",
+              fixHint: "Reload the Vasudev extension.",
             },
           ],
           status: {

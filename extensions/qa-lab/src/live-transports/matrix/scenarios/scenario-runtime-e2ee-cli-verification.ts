@@ -27,7 +27,7 @@ export async function runMatrixQaE2eeCliSelfVerificationScenario(
   const accountId = "cli";
   const account = await registerMatrixQaCliE2eeAccount({
     context,
-    deviceName: "OpenClaw Matrix QA CLI Self Verification Owner",
+    deviceName: "Vasudev Matrix QA CLI Self Verification Owner",
     scenarioId: "matrix-e2ee-cli-self-verification",
   });
   const owner = await createMatrixQaE2eeCliOwnerClient({
@@ -48,7 +48,7 @@ export async function runMatrixQaE2eeCliSelfVerificationScenario(
       baseUrl: context.baseUrl,
     });
     const cliDevice = await loginClient.loginWithPassword({
-      deviceName: "OpenClaw Matrix QA CLI Self Verification Device",
+      deviceName: "Vasudev Matrix QA CLI Self Verification Device",
       password: account.password,
       userId: account.userId,
     });

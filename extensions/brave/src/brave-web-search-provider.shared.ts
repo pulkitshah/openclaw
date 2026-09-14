@@ -14,7 +14,7 @@ type BraveConfig = {
 };
 
 type BraveLlmContextResult = { url: string; title: string; snippets: string[] };
-/** Brave LLM Context API response subset used by OpenClaw. */
+/** Brave LLM Context API response subset used by Vasudev. */
 export type BraveLlmContextResponse = {
   grounding: { generic?: BraveLlmContextResult[] };
   sources?: Record<string, { age?: string[] }>;

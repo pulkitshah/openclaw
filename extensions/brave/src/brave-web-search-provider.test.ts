@@ -176,12 +176,12 @@ describe("brave web search provider", () => {
     vi.stubEnv("BRAVE_API_KEY", "");
     const tool = createBraveTool();
 
-    const result = await tool.execute({ query: "OpenClaw docs" });
+    const result = await tool.execute({ query: "Vasudev docs" });
 
     expect(result).toEqual({
       error: "missing_brave_api_key",
       message:
-        "web_search (brave) needs a Brave Search API key. Run `openclaw configure --section web` to store it, or set BRAVE_API_KEY in the Gateway environment. If you do not want to configure a search API key, use web_fetch for a specific URL or the browser tool for interactive pages.",
+        "web_search (brave) needs a Brave Search API key. Run `vasudev configure --section web` to store it, or set BRAVE_API_KEY in the Gateway environment. If you do not want to configure a search API key, use web_fetch for a specific URL or the browser tool for interactive pages.",
       docs: "https://docs.openclaw.ai/tools/web",
     });
   });

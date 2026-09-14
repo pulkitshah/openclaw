@@ -136,7 +136,7 @@ function parseNodeCandidates(raw: unknown): CanvasNodeCandidate[] {
     .filter((entry): entry is CanvasNodeCandidate => entry !== null);
 }
 
-/** Creates the default Canvas CLI dependency bundle backed by the OpenClaw gateway CLI. */
+/** Creates the default Canvas CLI dependency bundle backed by the Vasudev gateway CLI. */
 export function createDefaultCanvasCliDependencies(): CanvasCliDependencies {
   const callGatewayCli: CanvasCliDependencies["callGatewayCli"] = async (
     method,

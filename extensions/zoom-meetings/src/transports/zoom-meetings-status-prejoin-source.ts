@@ -329,11 +329,11 @@ export function zoomMeetingStatusPreludeSource(params: MeetingStatusPreludeParam
   if (committedOwnerConflict && !canMutateSession) {
     manualAction = manualActionFor("zoom-session-conflict", "This Zoom tab is owned by another active meeting session.");
   } else if (!inCall && loginRequired) {
-    manualAction = manualActionFor("zoom-login-required", tenantLoginRequired ? "This Zoom tenant requires sign-in or email verification. Complete it in the OpenClaw browser profile, then retry." : "Sign in to Zoom in the OpenClaw browser profile, then retry the meeting join.");
+    manualAction = manualActionFor("zoom-login-required", tenantLoginRequired ? "This Zoom tenant requires sign-in or email verification. Complete it in the Vasudev browser profile, then retry." : "Sign in to Zoom in the Vasudev browser profile, then retry the meeting join.");
   } else if (!inCall && lobbyWaiting) {
-    manualAction = manualActionFor("zoom-admission-required", "Admit the OpenClaw guest from the Zoom lobby, then retry speech.");
+    manualAction = manualActionFor("zoom-admission-required", "Admit the Vasudev guest from the Zoom lobby, then retry speech.");
   } else if (!inCall && permissionRequired) {
-    manualAction = manualActionFor("zoom-permission-required", allowMicrophone ? "Allow microphone permission for Zoom in the OpenClaw browser profile, then retry." : "Dismiss the Zoom device-permission prompt or continue without devices, then retry.");
+    manualAction = manualActionFor("zoom-permission-required", allowMicrophone ? "Allow microphone permission for Zoom in the Vasudev browser profile, then retry." : "Dismiss the Zoom device-permission prompt or continue without devices, then retry.");
   } else if (controlManualAction) {
     manualAction = controlManualAction;
   }

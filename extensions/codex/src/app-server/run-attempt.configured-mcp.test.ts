@@ -566,7 +566,7 @@ describe("runCodexAppServerAttempt configured MCP ownership", () => {
       (turnStart?.params as { input?: Array<{ text?: string }> } | undefined)?.input?.[0]?.text ??
       "";
     expect(inputText.length).toBeLessThanOrEqual(1 << 20);
-    expect(inputText).toContain("OpenClaw assembled context for this turn:");
+    expect(inputText).toContain("Vasudev assembled context for this turn:");
     expect(inputText).toContain("new scheduled ownership question");
     expect(inputText).toContain("recent scheduled ownership answer");
     expect(inputText).toContain("Current user request:");
@@ -691,7 +691,7 @@ describe("runCodexAppServerAttempt configured MCP ownership", () => {
       // Codex drops decline meta, so the remedy must reach the operator via the card.
       if (testCase.delegate) {
         expect(requestApproval.mock.calls[0]?.[0]?.description).toContain(
-          `openclaw mcp configure ${testCase.source === "bundle" ? "bundled" : "fake"} --approval approve`,
+          `vasudev mcp configure ${testCase.source === "bundle" ? "bundled" : "fake"} --approval approve`,
         );
       }
       const expectedApprovalPolicy = testCase.delegate

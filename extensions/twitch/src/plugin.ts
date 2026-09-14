@@ -1,5 +1,5 @@
 /**
- * Twitch channel plugin for OpenClaw.
+ * Twitch channel plugin for Vasudev.
  *
  * Main plugin export combining all adapters (outbound, actions, status, gateway).
  * This is the primary entry point for the Twitch channel integration.
@@ -68,7 +68,7 @@ function normalizeTwitchMessagingTarget(target: string): string {
  * Twitch channel plugin.
  *
  * Implements the ChannelPlugin interface to provide Twitch chat integration
- * for OpenClaw. Supports message sending, receiving, access control, and
+ * for Vasudev. Supports message sending, receiving, access control, and
  * status monitoring.
  */
 export const twitchPlugin: ChannelPlugin<ResolvedTwitchAccount> =

@@ -172,7 +172,7 @@ export function buildDutiesSetup(params: {
   // exact gog binary is already exec-approved for the dispatcher agent, and re-running it is a
   // no-op when it already is.
   commands.push(
-    `openclaw approvals allowlist add --agent ${MAIL_AGENT_ID} ${gogPath ?? "<path-to-gog>"}`,
+    `vasudev approvals allowlist add --agent ${MAIL_AGENT_ID} ${gogPath ?? "<path-to-gog>"}`,
   );
 
   return {

@@ -697,7 +697,7 @@ describe("qa cli runtime", () => {
         scenarioIds: ["channel-chat-baseline"],
       }),
     ).rejects.toThrow(
-      "OpenClaw CLI entry not found: expected scripts/run-node.mjs or dist/index.(m)js",
+      "Vasudev CLI entry not found: expected scripts/run-node.mjs or dist/index.(m)js",
     );
     expect(runQaSuite).not.toHaveBeenCalled();
     expect(runQaFlowSuiteFromRuntime).not.toHaveBeenCalled();
@@ -2810,7 +2810,7 @@ describe("qa cli runtime", () => {
   it("prints a markdown tool coverage report from runtime tool fixtures", async () => {
     await runQaCoverageReportCommand({ repoRoot: process.cwd(), tools: true });
 
-    expectWriteContains(stdoutWrite, "# OpenClaw Runtime Tool Coverage");
+    expectWriteContains(stdoutWrite, "# Vasudev Runtime Tool Coverage");
     expectWriteContains(stdoutWrite, "codex-native-workspace");
   });
 
@@ -2856,7 +2856,7 @@ describe("qa cli runtime", () => {
         ),
       ) as { transcripts?: Array<{ userTurnCount?: number }> };
 
-      expect(report).toContain("# OpenClaw JSONL Replay Report - openclaw vs codex");
+      expect(report).toContain("# Vasudev JSONL Replay Report - openclaw vs codex");
       expect(report).toContain("| plan-mode-boundaries.jsonl | 3 |  | none, none, none |");
       expect(summary.transcripts).toHaveLength(7);
     } finally {

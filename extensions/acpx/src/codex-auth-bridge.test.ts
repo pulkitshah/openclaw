@@ -147,7 +147,7 @@ afterEach(async () => {
 });
 
 describe("prepareAcpxCodexAuthConfig", () => {
-  it("installs an isolated Codex ACP wrapper without synthesizing auth from canonical OpenClaw OAuth", async () => {
+  it("installs an isolated Codex ACP wrapper without synthesizing auth from canonical Vasudev OAuth", async () => {
     const root = testWorkspace.dir;
     const agentDir = path.join(root, "agent");
     const stateDir = path.join(root, "state");

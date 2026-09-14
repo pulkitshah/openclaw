@@ -102,7 +102,7 @@ export function assertCrabboxWarmImageMigrationReady(): void {
   const leases = openLegacyLeases();
   if ((leases.count?.() ?? leases.entries().length) > 0) {
     throw new Error(
-      "Crabbox has legacy worker allocations whose original image choices are unknown; run openclaw doctor --fix and follow its provider-cleanup recovery instructions before provisioning workers.",
+      "Crabbox has legacy worker allocations whose original image choices are unknown; run vasudev doctor --fix and follow its provider-cleanup recovery instructions before provisioning workers.",
     );
   }
 }
@@ -110,7 +110,7 @@ export function assertCrabboxWarmImageMigrationReady(): void {
 function requireCanonicalProfile(record: WarmProfileRecord | undefined) {
   if (record && record.version !== 3) {
     throw new Error(
-      "Crabbox warm-image state requires migration; run openclaw doctor --fix before provisioning workers.",
+      "Crabbox warm-image state requires migration; run vasudev doctor --fix before provisioning workers.",
     );
   }
   const preparationKey = (value: unknown) =>
@@ -157,7 +157,7 @@ function requireCanonicalProfile(record: WarmProfileRecord | undefined) {
             !validGeneration(allocation.publicationBase)),
       ))
   ) {
-    throw new Error("Crabbox warm-image preparation state is invalid; run openclaw doctor --fix.");
+    throw new Error("Crabbox warm-image preparation state is invalid; run vasudev doctor --fix.");
   }
   return record;
 }
@@ -250,7 +250,7 @@ export function openCrabboxWarmImageStore(env?: NodeJS.ProcessEnv) {
     const entries = canonical.entries().filter(({ value }) => Object.hasOwn(value.allocations, id));
     if (entries.length > 1) {
       throw new Error(
-        `Crabbox lease ${id} has conflicting warm-image owners; run openclaw doctor --fix.`,
+        `Crabbox lease ${id} has conflicting warm-image owners; run vasudev doctor --fix.`,
       );
     }
     const entry = entries[0];

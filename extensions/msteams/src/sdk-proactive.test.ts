@@ -50,7 +50,7 @@ describe("sendMSTeamsActivityWithReference", () => {
       app,
       {
         serviceUrl: "https://smba.trafficmanager.net/amer/",
-        bot: { id: "28:legacy-bot", name: "OpenClaw" },
+        bot: { id: "28:legacy-bot", name: "Vasudev" },
         user: { id: "29:user" },
         conversation: {
           id: "19:conversation@thread.tacv2",
@@ -87,7 +87,7 @@ describe("sendMSTeamsActivityWithReference", () => {
       app,
       {
         serviceUrl: "https://smba.trafficmanager.net/amer/",
-        agent: { id: "28:bot", name: "OpenClaw", role: "bot" },
+        agent: { id: "28:bot", name: "Vasudev", role: "bot" },
         user: { id: "29:user", aadObjectId: "aad-user" },
         conversation: {
           id: "19:conversation@thread.tacv2",
@@ -112,7 +112,7 @@ describe("sendMSTeamsActivityWithReference", () => {
       activity: expect.objectContaining({
         type: "message",
         text: "hello",
-        from: { id: "28:bot", name: "OpenClaw", role: "bot" },
+        from: { id: "28:bot", name: "Vasudev", role: "bot" },
         conversation: {
           id: "19:conversation@thread.tacv2",
           conversationType: "personal",

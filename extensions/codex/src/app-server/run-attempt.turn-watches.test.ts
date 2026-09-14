@@ -312,7 +312,7 @@ describe("runCodexAppServerAttempt native lifecycle", () => {
     expectSuccessfulAttempt(await run);
   });
 
-  it("waits beyond the old post-tool limit after an OpenClaw dynamic tool response", async () => {
+  it("waits beyond the old post-tool limit after a Vasudev dynamic tool response", async () => {
     vi.useFakeTimers();
     const harness = createStartedThreadHarness();
     const run = runCodexAppServerAttempt(makeTestParams({ timeoutMs: 60 * 60_000 }));

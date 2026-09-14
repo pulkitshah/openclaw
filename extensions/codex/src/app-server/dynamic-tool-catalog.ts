@@ -24,12 +24,12 @@ export type ProjectedCodexDynamicTool<T extends CodexToolDescriptor> = {
 };
 export type CodexDynamicToolSchemaQuarantine = { tool: string; violations: readonly string[] };
 
-/** Namespace attached to OpenClaw-owned dynamic tools exposed to Codex. */
+/** Namespace attached to Vasudev-owned dynamic tools exposed to Codex. */
 const CODEX_OPENCLAW_DYNAMIC_TOOL_NAMESPACE = "openclaw";
 const CODEX_DYNAMIC_TOOL_NAME_MAX_CHARS = 128;
 const CODEX_DYNAMIC_TOOL_NAME_PATTERN = /^[a-zA-Z0-9_-]+$/u;
 
-// Keep OpenClaw control-path tools directly callable even when Codex tool_search
+// Keep Vasudev control-path tools directly callable even when Codex tool_search
 // is unavailable or resolves a connector-only universe. Developer instructions
 // still steer normal Codex subagents to native spawn_agent.
 // sessions_yield is normally routed by its catalogMode "direct-only" before
@@ -65,7 +65,7 @@ export function createCodexDynamicToolSpecs(params: {
   for (const entry of entries) {
     const functionSpec = createCodexDynamicToolFunctionSpec({ entry });
     if (entry.name === "openclaw" && directToolNames.has(entry.name)) {
-      // OpenClaw is ring-zero and its whole turn surface. Keep its canonical
+      // Vasudev is ring-zero and its whole turn surface. Keep its canonical
       // root name even though generic direct-only tools use a model namespace.
       specs.push(functionSpec);
       continue;

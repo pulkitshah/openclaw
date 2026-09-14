@@ -11,7 +11,7 @@ export const DISCORD_ACTIVITY_SHELL_CSP =
 
 export const DISCORD_ACTIVITY_SHELL_HTML = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OpenClaw widget</title><style>
+<title>Vasudev widget</title><style>
 :root{color-scheme:dark;font:14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#1e1f22;color:#dbdee1}
 *{box-sizing:border-box}html,body,#app{height:100%;margin:0}#app{display:grid;place-items:center}main{max-width:560px;padding:32px;text-align:center}
 h1{font-size:18px;margin:0 0 8px;color:#f2f3f5}p{margin:0;color:#b5bac1;line-height:1.5}.widget{display:grid;grid-template-rows:42px 1fr;width:100%;height:100%;background:#111214}
@@ -127,7 +127,7 @@ run().catch((error) => {
   if (error?.status === 404) {
     show("Widget unavailable", "No widget could be resolved for this channel.");
   } else {
-    show("Gateway offline", "The OpenClaw gateway could not load this widget. Try again shortly.");
+    show("Gateway offline", "The Vasudev gateway could not load this widget. Try again shortly.");
   }
 });
 `;

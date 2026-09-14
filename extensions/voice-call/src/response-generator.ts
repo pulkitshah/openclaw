@@ -1,5 +1,5 @@
 /**
- * Voice call response generator - uses the embedded OpenClaw agent for tool support.
+ * Voice call response generator - uses the embedded Vasudev agent for tool support.
  * Routes voice responses through the same agent infrastructure as messaging.
  */
 
@@ -28,7 +28,7 @@ import { resolveVoiceResponseModel } from "./response-model.js";
 type VoiceResponseParams = {
   /** Voice call config */
   voiceConfig: VoiceCallConfig;
-  /** Core OpenClaw config */
+  /** Core Vasudev config */
   coreConfig: OpenClawConfig;
   /** Injected host agent runtime */
   agentRuntime: OpenClawPluginApi["runtime"]["agent"];
@@ -300,7 +300,7 @@ function resolveVoiceSandboxSessionKey(agentId: string, sessionKey: string): str
 }
 
 /**
- * Generate a voice response using the embedded OpenClaw agent with full tool support.
+ * Generate a voice response using the embedded Vasudev agent with full tool support.
  * Uses the same agent infrastructure as messaging for consistent behavior.
  */
 export async function generateVoiceResponse(

@@ -160,7 +160,7 @@ async function processGoogleChatEvent(
  * Resolve bot display name with fallback chain:
  * 1. Account config name
  * 2. Agent name from config
- * 3. Agent identity name, then "OpenClaw"
+ * 3. Agent identity name, then "Vasudev"
  */
 function resolveBotDisplayName(params: {
   accountName?: string;
@@ -175,7 +175,7 @@ function resolveBotDisplayName(params: {
   if (agent?.name?.trim()) {
     return agent.name.trim();
   }
-  return agent?.identity?.name?.trim() || "OpenClaw";
+  return agent?.identity?.name?.trim() || "Vasudev";
 }
 
 async function processMessageWithPipeline(params: {

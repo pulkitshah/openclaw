@@ -7,7 +7,7 @@ import type {
   CodexPluginConfig,
 } from "./config-contracts.js";
 
-/** Tool names owned by Codex app-server and normally excluded from OpenClaw dynamic tools. */
+/** Tool names owned by Codex app-server and normally excluded from Vasudev dynamic tools. */
 const CODEX_APP_SERVER_OWNED_DYNAMIC_TOOL_EXCLUDES = [
   "read",
   "write",
@@ -41,13 +41,13 @@ type CodexDynamicToolProfileEnv = {
   OPENCLAW_QA_FORCE_RUNTIME?: string;
 };
 
-/** Normalizes OpenClaw/Codex tool names before filtering and allowlist checks. */
+/** Normalizes Vasudev/Codex tool names before filtering and allowlist checks. */
 export function normalizeCodexDynamicToolName(name: string): string {
   const normalized = name.trim().toLowerCase();
   return DYNAMIC_TOOL_NAME_ALIASES[normalized] ?? normalized;
 }
 
-/** True only for the host-scoped OpenClaw run's exact tool contract. */
+/** True only for the host-scoped Vasudev run's exact tool contract. */
 export function isSystemAgentOnlyCodexDynamicToolAllowlist(
   toolsAllow: readonly string[] | undefined,
 ): boolean {
@@ -129,7 +129,7 @@ export function resolveCodexDynamicToolsLoadingForRuntime(
   return loading === "searchable" && options.connectionClass === "remote" ? "direct" : loading;
 }
 
-/** Filters OpenClaw tools that Codex owns natively or config explicitly excludes. */
+/** Filters Vasudev tools that Codex owns natively or config explicitly excludes. */
 export function filterCodexDynamicTools<T extends { name: string }>(
   tools: T[],
   config: Pick<CodexPluginConfig, "codexDynamicToolsExclude">,
@@ -141,7 +141,7 @@ export function filterCodexDynamicTools<T extends { name: string }>(
   });
 }
 
-/** Keeps OpenClaw coding tools that replace a disabled Codex native surface. */
+/** Keeps Vasudev coding tools that replace a disabled Codex native surface. */
 export function filterCodexDynamicToolsForDisabledNativeSurface<T extends { name: string }>(
   tools: T[],
   config: Pick<CodexPluginConfig, "codexDynamicToolsExclude">,

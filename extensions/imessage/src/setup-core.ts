@@ -176,13 +176,13 @@ export function createIMessageCliPathTextInput(
 export const imessageCompletionNote = {
   title: "iMessage next steps",
   lines: [
-    "For the usual setup, run OpenClaw on the Mac signed into Messages.",
+    "For the usual setup, run Vasudev on the Mac signed into Messages.",
     "If the Gateway runs elsewhere, set cliPath to a transparent SSH wrapper that runs imsg on the Messages Mac.",
     `Install imsg on the Messages Mac: ${IMESSAGE_INSTALL_COMMAND}`,
     `Update imsg after imsg fixes or missing-capability errors: ${IMESSAGE_UPDATE_COMMAND}`,
     "Private API mode is strongly encouraged for replies, tapbacks, effects, polls, attachments, and group actions.",
-    "After Private API setup, run `imsg launch`, then `openclaw channels status --probe`.",
-    "Ensure OpenClaw has Full Disk Access to Messages DB.",
+    "After Private API setup, run `imsg launch`, then `vasudev channels status --probe`.",
+    "Ensure Vasudev has Full Disk Access to Messages DB.",
     "Grant Automation permission for Messages when prompted.",
     "List chats with: imsg chats --limit 20",
     `Docs: ${formatDocsLink("/imessage", "imessage")}`,

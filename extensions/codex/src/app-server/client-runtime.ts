@@ -205,7 +205,7 @@ export function ensureCodexAppServerClientRuntime(
       throw new Error("ChatGPT token refresh is unavailable for prepared Codex API-key auth.");
     }
     if (!runtime.context.agentDir) {
-      throw new Error("ChatGPT token refresh requires an OpenClaw-owned auth profile.");
+      throw new Error("ChatGPT token refresh requires a Vasudev-owned auth profile.");
     }
     const previousAccountId =
       isJsonObject(request.params) && typeof request.params.previousAccountId === "string"
@@ -225,7 +225,7 @@ export function ensureCodexAppServerClientRuntime(
           config: runtime.context.config,
         }),
         CODEX_EXTERNAL_AUTH_REFRESH_TIMEOUT_MS,
-        "Codex app-server ChatGPT token refresh timed out before its external-auth deadline. Retry the request; if it persists, sign in again with OpenClaw.",
+        "Codex app-server ChatGPT token refresh timed out before its external-auth deadline. Retry the request; if it persists, sign in again with Vasudev.",
       );
       if (previousAccountId && tokens.chatgptAccountId !== previousAccountId) {
         throw new Error(

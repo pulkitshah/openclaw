@@ -70,7 +70,7 @@ defineDiscordVoiceTests(
       const bridgeParams = lastRealtimeBridgeParams();
       expect(bridgeParams?.cfg).toBe(cfg);
       expect(bridgeParams?.autoRespondToAudio).toBe(false);
-      expect(bridgeParams?.instructions).toContain("same OpenClaw agent");
+      expect(bridgeParams?.instructions).toContain("same Vasudev agent");
       expect(bridgeParams?.instructions).toContain("short natural backchannel");
       expect(bridgeParams?.tools?.map((tool) => tool.name)).toContain("openclaw_agent_consult");
       expect(bridgeParams?.tools?.map((tool) => tool.name)).toContain("openclaw_agent_control");
@@ -252,7 +252,7 @@ defineDiscordVoiceTests(
           name: "openclaw_agent_consult",
           args: {
             question: [
-              "Speak this exact OpenClaw answer to the Discord voice channel, without adding, removing, or rephrasing words.",
+              "Speak this exact Vasudev answer to the Discord voice channel, without adding, removing, or rephrasing words.",
               'Answer: "direct internal answer"',
             ].join("\n"),
           },

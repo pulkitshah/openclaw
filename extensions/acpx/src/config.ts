@@ -93,7 +93,7 @@ export function resolveAcpxPluginRoot(moduleUrl: string = import.meta.url): stri
     resolveWorkspaceAcpxPluginRoot(resolvedRoot) ??
     resolveRepoAcpxPluginRoot(resolvedRoot) ??
     // Shared dist/dist-runtime chunks can load this module outside the plugin tree.
-    // Scan common OpenClaw layouts before falling back to the nearest path guess.
+    // Scan common Vasudev layouts before falling back to the nearest path guess.
     resolveAcpxPluginRootFromOpenClawLayout(moduleUrl) ??
     resolvedRoot
   );
@@ -176,7 +176,7 @@ function resolveConfiguredMcpServers(params: {
   return resolved;
 }
 
-/** Convert OpenClaw MCP server config into ACPX runtime MCP server entries. */
+/** Convert Vasudev MCP server config into ACPX runtime MCP server entries. */
 export function toAcpMcpServers(mcpServers: Record<string, McpServerConfig>): AcpxMcpServer[] {
   return Object.entries(mcpServers).map(([name, server]) => ({
     name,

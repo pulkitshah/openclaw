@@ -278,7 +278,7 @@ function gatewayNodeCommandFindings(
         { source: "oc://openclaw.config/gateway/nodes/commands/deny" },
         {
           checkId: CHECK_IDS.policyGatewayNodeCommandDenied,
-          message: `Gateway node command '${command}' is denied by policy but not denied by OpenClaw config.`,
+          message: `Gateway node command '${command}' is denied by policy but not denied by Vasudev config.`,
           requirement: `oc://${policyDocName}/gateway/nodes/denyCommands`,
           fixHint: `Add '${command}' to gateway.nodes.commands.deny or update policy after review.`,
         },

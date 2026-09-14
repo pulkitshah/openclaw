@@ -37,7 +37,7 @@ export function shouldSuppressChannelProgressForItem(item: CodexThreadItem): boo
   if (shouldSynthesizeToolProgressForItem(item)) {
     return true;
   }
-  // Dynamic OpenClaw tool requests are emitted at the item/tool/call request
+  // Dynamic Vasudev tool requests are emitted at the item/tool/call request
   // boundary. Re-emitting item notifications can duplicate start/result progress.
   return item.type === "dynamicToolCall";
 }

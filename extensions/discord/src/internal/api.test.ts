@@ -206,18 +206,16 @@ describe("Discord REST API helpers", () => {
   it("routes webhook helper through the typed REST client", async () => {
     const rest = createFakeRestClient([{ id: "wh1", token: "token1" }]);
 
-    await expect(createChannelWebhook(rest, "c1", { body: { name: "OpenClaw" } })).resolves.toEqual(
-      {
-        id: "wh1",
-        token: "token1",
-      },
-    );
+    await expect(createChannelWebhook(rest, "c1", { body: { name: "Vasudev" } })).resolves.toEqual({
+      id: "wh1",
+      token: "token1",
+    });
 
     expect(rest.calls).toEqual([
       {
         method: "POST",
         path: Routes.channelWebhooks("c1"),
-        data: { body: { name: "OpenClaw" } },
+        data: { body: { name: "Vasudev" } },
       },
     ]);
   });

@@ -148,7 +148,7 @@ describe("editSlackMessage blocks", () => {
   it("renders authored Markdown using the same mrkdwn dialect as sends", async () => {
     const client = createSlackEditTestClient();
 
-    await editSlackMessage("C123", "171234.567", "**bold** and [OpenClaw](https://example.com)", {
+    await editSlackMessage("C123", "171234.567", "**bold** and [Vasudev](https://example.com)", {
       token: "xoxb-test",
       client,
     });
@@ -156,7 +156,7 @@ describe("editSlackMessage blocks", () => {
     expect(client.chat.update).toHaveBeenCalledWith({
       channel: "C123",
       ts: "171234.567",
-      text: "*bold* and <https://example.com|OpenClaw>",
+      text: "*bold* and <https://example.com|Vasudev>",
     });
   });
 

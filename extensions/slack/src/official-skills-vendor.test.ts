@@ -67,7 +67,7 @@ describe("official Slack skill vendor", () => {
     }
   });
 
-  it("keeps the official guide adapted to OpenClaw's available capabilities", () => {
+  it("keeps the official guide adapted to Vasudev's available capabilities", () => {
     const guide = fs.readFileSync(
       path.join(skillsRoot, "block-kit", "references", "official-block-kit.md"),
       "utf8",

@@ -29,7 +29,7 @@ defineDiscordVoiceTests(
       const clock = vi.spyOn(Date, "now").mockReturnValue(now);
       try {
         beginSpeakerTurn(entry, { senderIsOwner: false }).close();
-        bridgeParams.onTranscript?.("user", "OpenClaw", true);
+        bridgeParams.onTranscript?.("user", "Vasudev", true);
         bridgeParams.onTranscript?.("user", "Summarize this note.", true);
         await vi.advanceTimersByTimeAsync(260);
 

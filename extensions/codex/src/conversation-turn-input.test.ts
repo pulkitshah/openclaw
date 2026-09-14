@@ -202,14 +202,14 @@ describe("codex conversation turn input", () => {
           channel: "webchat",
           isGroup: false,
           metadata: {
-            mediaUrl: "C:\\OpenClaw QA\\photo.png",
+            mediaUrl: "C:\\Vasudev QA\\photo.png",
             mediaType: "image/png",
           },
         },
       }),
     ).toEqual([
       { type: "text", text: "look", text_elements: [] },
-      { type: "localImage", path: "C:\\OpenClaw QA\\photo.png" },
+      { type: "localImage", path: "C:\\Vasudev QA\\photo.png" },
     ]);
   });
 });

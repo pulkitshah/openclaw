@@ -128,7 +128,7 @@ describe("recordOutboundMessageForPromptContext", () => {
       message: {
         chat: { id: -1001, type: "supergroup", title: "QA" },
         date: 1_736_380_700,
-        from: { id: 999, is_bot: true, first_name: "OpenClaw" },
+        from: { id: 999, is_bot: true, first_name: "Vasudev" },
         message_id: 700,
         text: "Bot just replied",
       },
@@ -142,7 +142,7 @@ describe("recordOutboundMessageForPromptContext", () => {
       message: {
         chat: { id: -1001, type: "supergroup", title: "QA" },
         date: 1_736_380_701,
-        from: { id: 999, is_bot: true, first_name: "OpenClaw" },
+        from: { id: 999, is_bot: true, first_name: "Vasudev" },
         message_id: 701,
         message_thread_id: 77,
         text: "Bot replied in the topic",
@@ -165,7 +165,7 @@ describe("recordOutboundMessageForPromptContext", () => {
           title: "Channel replies",
         },
         date: 1_736_380_704,
-        from: { id: 999, is_bot: true, first_name: "OpenClaw" },
+        from: { id: 999, is_bot: true, first_name: "Vasudev" },
         message_id: 704,
         message_thread_id: 999,
         direct_messages_topic: { topic_id: 77 },
@@ -237,7 +237,7 @@ describe("recordOutboundMessageForPromptContext", () => {
       message: {
         chat: { id: -1001, type: "supergroup", title: "QA" },
         date: 1_736_380_700,
-        from: { id: 999, is_bot: true, first_name: "OpenClaw" },
+        from: { id: 999, is_bot: true, first_name: "Vasudev" },
         message_id: 702,
         text: "Bot replied in General",
       },
@@ -256,7 +256,7 @@ describe("recordOutboundMessageForPromptContext", () => {
       message: {
         chat: { id: 42, type: "private" },
         date: 1_736_380_700,
-        from: { id: 999, is_bot: true, first_name: "OpenClaw" },
+        from: { id: 999, is_bot: true, first_name: "Vasudev" },
         message_id: 703,
         text: "Bot replied in a DM topic",
       },
@@ -365,7 +365,7 @@ describe("recordOutboundMessageForPromptContext", () => {
       messageId: 1498,
       text: "Channel announcement",
     });
-    expect(initial).toMatchObject({ sender: "OpenClaw (you)", senderId: "0" });
+    expect(initial).toMatchObject({ sender: "Vasudev (you)", senderId: "0" });
 
     const cache = createPromptContextCache();
     await cache.record({
@@ -387,10 +387,10 @@ describe("recordOutboundMessageForPromptContext", () => {
       messageId: "1498",
     });
     expect(merged).toMatchObject({
-      sender: "OpenClaw (you)",
+      sender: "Vasudev (you)",
       senderId: "0",
       sourceMessage: {
-        from: { id: 0, is_bot: true, first_name: "OpenClaw (you)" },
+        from: { id: 0, is_bot: true, first_name: "Vasudev (you)" },
         sender_chat: { id: -1001, type: "channel", title: "Announcements" },
       },
     });

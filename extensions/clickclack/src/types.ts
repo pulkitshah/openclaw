@@ -54,7 +54,7 @@ export type ClickClackAccountConfig = {
   nativeProgress?: boolean;
   /** Publish the native command catalog to ClickClack composer autocomplete. */
   commandMenu?: boolean;
-  /** Create and synchronize one managed ClickClack channel per OpenClaw session. */
+  /** Create and synchronize one managed ClickClack channel per Vasudev session. */
   discussions?: ClickClackDiscussionsConfig;
   /** Require a direct mention before dispatching group messages (default false). */
   requireMention?: boolean;
@@ -70,7 +70,7 @@ type ClickClackConfig = ClickClackAccountConfig & {
   defaultAccount?: string;
 };
 
-/** OpenClaw config narrowed to include ClickClack channel settings. */
+/** Vasudev config narrowed to include ClickClack channel settings. */
 export type CoreConfig = OpenClawConfig & {
   channels?: OpenClawConfig["channels"] & {
     clickclack?: ClickClackConfig;

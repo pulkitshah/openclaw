@@ -23,7 +23,7 @@ type Claim = Awaited<
 function sessionDirectory(input: MigrationInput): string {
   if (!input.serviceWorkspaceDir) {
     throw new Error(
-      "ACP ownership repair requires the Gateway service workspace; upgrade OpenClaw Doctor.",
+      "ACP ownership repair requires the Gateway service workspace; upgrade Vasudev Doctor.",
     );
   }
   return path.join(
@@ -335,7 +335,7 @@ export const acpxSessionOwnerMigration: PluginDoctorStateMigration = {
     return ids.length
       ? {
           preview: [
-            `ACP backend has ${ids.length} unqualified record(s). Stop the Gateway and run openclaw doctor --fix; ambiguous histories remain intact.`,
+            `ACP backend has ${ids.length} unqualified record(s). Stop the Gateway and run vasudev doctor --fix; ambiguous histories remain intact.`,
           ],
         }
       : null;

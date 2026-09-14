@@ -80,7 +80,7 @@ describe("memory reindex state", () => {
       reason: "index chunking implementation changed",
       code: "chunking_version",
     },
-  ])("invalidates indexes with $name as OpenClaw-owned", ({ meta, reason, code }) => {
+  ])("invalidates indexes with $name as Vasudev-owned", ({ meta, reason, code }) => {
     expect(
       resolveMemoryIndexIdentityState(createIdentityParams({ meta: createMeta(meta) })),
     ).toEqual({
@@ -106,7 +106,7 @@ describe("memory reindex state", () => {
     });
   });
 
-  it("classifies missing metadata as OpenClaw-owned", () => {
+  it("classifies missing metadata as Vasudev-owned", () => {
     expect(resolveMemoryIndexIdentityState(createIdentityParams({ meta: null }))).toEqual({
       status: "missing",
       reason: "index metadata is missing",

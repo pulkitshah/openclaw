@@ -22,7 +22,7 @@ function createTelegramMiniAppDashboardCommand(
 ): OpenClawPluginCommandDefinition {
   return {
     name: "dashboard",
-    description: "Open the OpenClaw dashboard",
+    description: "Open the Vasudev dashboard",
     channels: ["telegram"],
     requireAuth: true,
     exposeSenderIsOwner: true,
@@ -47,7 +47,7 @@ function createTelegramMiniAppDashboardCommand(
         launchTicket: launchTickets.issue({ accountId, userId }),
       }).toString();
       return {
-        text: "Open OpenClaw dashboard.",
+        text: "Open Vasudev dashboard.",
         presentation: {
           blocks: [
             {

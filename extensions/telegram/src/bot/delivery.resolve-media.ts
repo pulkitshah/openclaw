@@ -223,7 +223,7 @@ function resolveTrustedLocalTelegramRoot(
 }
 
 // The maintained aiogram/telegram-bot-api image stores --local files here.
-// getFile returns this container path, while OpenClaw reads the host volume mount.
+// getFile returns this container path, while Vasudev reads the host volume mount.
 const TELEGRAM_BOT_API_CONTAINER_DATA_ROOT = "/var/lib/telegram-bot-api";
 
 function normalizeTrustedTelegramRelativeFilePath(filePath: string): string | null {

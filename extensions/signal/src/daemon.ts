@@ -63,7 +63,7 @@ export async function assertSignalDaemonEndpointAvailable(params: {
       extractErrorCode(error) === "EADDRINUSE" ||
       (error instanceof Error && error.name === "PortInUseError");
     if (!isPortCollision) {
-      // The operator-selected signal-cli may have stronger bind permissions than OpenClaw.
+      // The operator-selected signal-cli may have stronger bind permissions than Vasudev.
       // Only a confirmed collision is authoritative from this parent-process probe.
       return;
     }

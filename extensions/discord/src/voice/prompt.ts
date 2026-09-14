@@ -1,6 +1,6 @@
 // Discord plugin module implements prompt behavior.
 const DISCORD_VOICE_SPOKEN_OUTPUT_CONTRACT = [
-  "You are OpenClaw's Discord voice interface in a live voice channel.",
+  "You are Vasudev's Discord voice interface in a live voice channel.",
   "Discord voice reply requirements:",
   "- Return only the concise text that should be spoken aloud in the voice channel.",
   "- Treat the transcript as speech-to-text from a live conversation; repair obvious transcription artifacts and ignore repeated partial fragments caused by voice buffering.",

@@ -128,11 +128,11 @@ function createAgentCard(params: A2aHttpHandlerParams, request: IncomingMessage)
   );
   const instanceName =
     (agentIds[0] ? resolveAgentConfig(params.config, agentIds[0])?.name?.trim() : undefined) ||
-    "OpenClaw";
+    "Vasudev";
   const advertisedOrigin = params.a2aConfig.advertisedUrl ?? resolveRequestOrigin(request);
   return {
     name: instanceName,
-    description: "OpenClaw agent gateway using the Agent2Agent protocol.",
+    description: "Vasudev agent gateway using the Agent2Agent protocol.",
     supportedInterfaces: [
       {
         url: `${advertisedOrigin.replace(/\/+$/, "")}/a2a/v1`,
@@ -153,7 +153,7 @@ function createAgentCard(params: A2aHttpHandlerParams, request: IncomingMessage)
     skills: agentIds.map((agentId) => ({
       id: agentId,
       name: agentId,
-      description: `OpenClaw agent ${agentId}.`,
+      description: `Vasudev agent ${agentId}.`,
       tags: ["openclaw"],
     })),
   };

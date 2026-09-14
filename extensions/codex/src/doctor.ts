@@ -153,7 +153,7 @@ function createCodexManagedAppServerHealthCheck(params: {
               path: params.pluginRoot,
               requirement: `an executable Codex ${CODEX_APP_SERVER_VERSION} managed artifact`,
               fixHint:
-                "Reinstall the staged OpenClaw package with its @openai/codex platform dependency, then rerun the candidate check.",
+                "Reinstall the staged Vasudev package with its @openai/codex platform dependency, then rerun the candidate check.",
             }),
           ];
         }
@@ -175,7 +175,7 @@ function createCodexManagedAppServerHealthCheck(params: {
             path: resolved.command,
             requirement: `the platform-native Codex ${CODEX_APP_SERVER_VERSION} executable`,
             fixHint:
-              "Reinstall the staged OpenClaw package with the matching @openai/codex platform package, then rerun the candidate check.",
+              "Reinstall the staged Vasudev package with the matching @openai/codex platform package, then rerun the candidate check.",
           }),
         ];
       }
@@ -194,7 +194,7 @@ function createCodexManagedAppServerHealthCheck(params: {
             requirement: `Codex ${CODEX_APP_SERVER_VERSION} must report its version within ${CODEX_VERSION_TIMEOUT_MS} ms`,
             fixHint:
               versionFailureHint ??
-              "Repair or reinstall the staged OpenClaw package, then rerun the candidate check before cutover.",
+              "Repair or reinstall the staged Vasudev package, then rerun the candidate check before cutover.",
           }),
         ];
       }
@@ -208,10 +208,10 @@ function createCodexManagedAppServerHealthCheck(params: {
               ? `Managed Codex app-server version mismatch: expected ${CODEX_APP_SERVER_VERSION}, detected ${detectedVersion}.`
               : `Managed Codex app-server did not report a parseable version; expected ${CODEX_APP_SERVER_VERSION}.`,
             path: nativeCommand,
-            requirement: `the exact OpenClaw-pinned Codex version ${CODEX_APP_SERVER_VERSION}`,
+            requirement: `the exact Vasudev-pinned Codex version ${CODEX_APP_SERVER_VERSION}`,
             fixHint:
               versionFailureHint ??
-              "Reinstall the staged OpenClaw package so its managed @openai/codex dependency matches the pinned version, then rerun the candidate check.",
+              "Reinstall the staged Vasudev package so its managed @openai/codex dependency matches the pinned version, then rerun the candidate check.",
           }),
         ];
       }

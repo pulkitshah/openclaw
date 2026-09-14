@@ -144,7 +144,7 @@ setPhase("preparation");
       if (process.platform === "linux") {
         const args = fs.readFileSync(path.join("/proc", pidText, "cmdline"), "utf8").split("\\0");
         const env = fs.readFileSync(path.join("/proc", pidText, "environ"), "utf8").split("\\0");
-        // OpenClaw changes process.title; the immutable install cwd survives that argv rewrite.
+        // Vasudev changes process.title; the immutable install cwd survives that argv rewrite.
         const title = args[0];
         const nodeInvocation = args[1] === cli || ["openclaw", "openclaw-connect", "openclaw-node"].includes(title);
         verified = nodeInvocation && fs.realpathSync(path.join("/proc", pidText, "cwd")) === runtimeDir && env.includes("OPENCLAW_STATE_DIR=" + stateDir);
@@ -188,7 +188,7 @@ setPhase("preparation");
     if (manifest.name !== "openclaw" || manifest.version !== bootstrap.openclawVersion) throw new Error("Cloud worker bootstrap package identity does not match the Gateway");
     const probe = spawnSync(process.execPath, [path.join(packageRoot, "openclaw.mjs"), "--version"], { env: nodeEnv, encoding: "utf8", timeout: 60000 });
     const version = probe.stdout?.trim();
-    const expected = "OpenClaw " + bootstrap.openclawVersion;
+    const expected = "Vasudev " + bootstrap.openclawVersion;
     if (probe.status !== 0 || (version !== expected && !version?.startsWith(expected + " "))) throw new Error("Cloud worker bootstrap CLI could not verify its Gateway version");
   };
   const verifyArchive = async (source, artifact, output) => {

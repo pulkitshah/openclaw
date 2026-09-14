@@ -118,7 +118,7 @@ describe("discord live qa runtime", () => {
           enabled: true,
           baseUrl: "http://127.0.0.1:43123",
           botUserId: "openclaw",
-          botDisplayName: "OpenClaw QA",
+          botDisplayName: "Vasudev QA",
           allowFrom: ["*"],
         },
       },

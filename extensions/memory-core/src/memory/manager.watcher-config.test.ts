@@ -548,7 +548,7 @@ describe("memory watcher config", () => {
 
   it("routes Linux directories through directory-only native watchers", async () => {
     // Node's Linux `fs.watch({ recursive: true })` watches every file via
-    // internal/fs/recursive_watch. OpenClaw watches directories only so
+    // internal/fs/recursive_watch. Vasudev watches directories only so
     // large file-heavy memory trees do not allocate per-file watchers.
     const originalPlatformValue = process.platform;
     try {
@@ -616,7 +616,7 @@ describe("memory watcher config", () => {
       await vi.advanceTimersByTimeAsync(10_000);
 
       expect(memoryLoggerWarn).toHaveBeenCalledExactlyOnceWith(
-        "Memory file watching is tracking 2002 directories. Large memory folders or extraPaths can make OpenClaw run out of file watchers or open files. Remove unnecessary memory.search.extraPaths entries or narrow their directory roots, including per-agent entries; otherwise review the host's file-watch/open-file limits. After changes, restart the Gateway. To refresh the affected index, run in the Gateway's environment: openclaw memory index --force --agent watch-linux.",
+        "Memory file watching is tracking 2002 directories. Large memory folders or extraPaths can make Vasudev run out of file watchers or open files. Remove unnecessary memory.search.extraPaths entries or narrow their directory roots, including per-agent entries; otherwise review the host's file-watch/open-file limits. After changes, restart the Gateway. To refresh the affected index, run in the Gateway's environment: vasudev memory index --force --agent watch-linux.",
       );
     } finally {
       Object.defineProperty(process, "platform", {
@@ -1155,7 +1155,7 @@ describe("memory watcher config", () => {
       await vi.advanceTimersByTimeAsync(10_000);
 
       expect(memoryLoggerWarn).toHaveBeenCalledExactlyOnceWith(
-        "Memory file watching is tracking 2002 paths. Large memory folders or extraPaths can make OpenClaw run out of file watchers or open files. Remove unnecessary memory.search.extraPaths entries or narrow their directory roots, including per-agent entries; otherwise review the host's file-watch/open-file limits. After changes, restart the Gateway. To refresh the affected index, run in the Gateway's environment: openclaw --profile memory-watch memory index --force --agent watch-paths.",
+        "Memory file watching is tracking 2002 paths. Large memory folders or extraPaths can make Vasudev run out of file watchers or open files. Remove unnecessary memory.search.extraPaths entries or narrow their directory roots, including per-agent entries; otherwise review the host's file-watch/open-file limits. After changes, restart the Gateway. To refresh the affected index, run in the Gateway's environment: vasudev --profile memory-watch memory index --force --agent watch-paths.",
       );
     } finally {
       vi.unstubAllEnvs();

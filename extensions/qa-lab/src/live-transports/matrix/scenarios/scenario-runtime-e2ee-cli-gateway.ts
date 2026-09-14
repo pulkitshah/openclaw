@@ -45,14 +45,14 @@ export async function runMatrixQaE2eeCliEncryptionSetupMultiAccountScenario(
   const decoyAccountId = "cli-multi-decoy";
   const account = await registerMatrixQaCliE2eeAccount({
     context,
-    deviceName: "OpenClaw Matrix QA CLI Multi Account Owner",
+    deviceName: "Vasudev Matrix QA CLI Multi Account Owner",
     scenarioId: "matrix-e2ee-cli-encryption-setup-multi-account",
   });
   const loginClient = createMatrixQaClient({
     baseUrl: context.baseUrl,
   });
   const cliDevice = await loginClient.loginWithPassword({
-    deviceName: "OpenClaw Matrix QA CLI Multi Account Target Device",
+    deviceName: "Vasudev Matrix QA CLI Multi Account Target Device",
     password: account.password,
     userId: account.userId,
   });
@@ -182,12 +182,12 @@ export async function runMatrixQaE2eeCliSetupThenGatewayReplyScenario(
   const roomKey = buildMatrixQaE2eeScenarioRoomKey(scenarioId);
   const account = await registerMatrixQaCliE2eeAccount({
     context,
-    deviceName: "OpenClaw Matrix QA CLI Setup Gateway",
+    deviceName: "Vasudev Matrix QA CLI Setup Gateway",
     scenarioId,
   });
   const driverAccount = await registerMatrixQaCliE2eeAccount({
     context,
-    deviceName: "OpenClaw Matrix QA CLI Setup Driver",
+    deviceName: "Vasudev Matrix QA CLI Setup Driver",
     scenarioId,
   });
   const driverApi = createMatrixQaClient({

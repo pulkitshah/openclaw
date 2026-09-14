@@ -1,7 +1,7 @@
 /**
  * Chrome MCP snapshot conversion helpers.
  *
- * Converts chrome-devtools-mcp structured snapshots into OpenClaw ARIA nodes
+ * Converts chrome-devtools-mcp structured snapshots into Vasudev ARIA nodes
  * and compact AI snapshots with stable refs and duplicate tracking.
  */
 import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/string-coerce-runtime";

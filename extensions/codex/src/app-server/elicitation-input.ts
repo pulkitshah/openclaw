@@ -20,7 +20,7 @@ export function compileCodexOrdinaryElicitation(params: {
       kind: "compiled",
       input: {
         kind: "unsupported",
-        message: "OpenClaw declined an MCP elicitation with invalid turn correlation.",
+        message: "Vasudev declined an MCP elicitation with invalid turn correlation.",
       },
     };
   }
@@ -42,7 +42,7 @@ export function compileCodexOrdinaryElicitation(params: {
       kind: "compiled",
       input: {
         kind: "unsupported",
-        message: `OpenClaw does not support MCP elicitation mode ${JSON.stringify(mode ?? "unknown")}.`,
+        message: `Vasudev does not support MCP elicitation mode ${JSON.stringify(mode ?? "unknown")}.`,
       },
     };
   }

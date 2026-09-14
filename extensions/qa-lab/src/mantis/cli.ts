@@ -205,7 +205,7 @@ export function registerMantisCli(qa: Command) {
     .option("--ttl <duration>", "Crabbox maximum lease lifetime")
     .option("--keep-lease", "Keep a lease created by this run after a passing smoke")
     .option("--no-keep-lease", "Stop a lease created by this run after a passing smoke")
-    .option("--gateway-setup", "Start a persistent OpenClaw Slack gateway inside the VNC VM")
+    .option("--gateway-setup", "Start a persistent Vasudev Slack gateway inside the VNC VM")
     .option(
       "--approval-checkpoints",
       "Run Slack approval scenarios with visual checkpoint screenshot acknowledgements",

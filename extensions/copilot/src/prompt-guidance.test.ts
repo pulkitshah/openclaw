@@ -40,14 +40,14 @@ describe("buildCopilotPromptGuidance", () => {
     ({ tools, disableTools, terminalSetup }) => {
       const guidance = buildGuidance({ disableTools }, tools);
 
-      expect(guidance?.includes("openclaw channels add <channel>")).toBe(terminalSetup);
+      expect(guidance?.includes("vasudev channels add <channel>")).toBe(terminalSetup);
       expect(guidance?.includes("openclaw configure")).toBe(terminalSetup);
       expect(guidance).toContain("only to the requesting user in private");
       expect(guidance).toContain("then acknowledge in the group without them");
     },
   );
 
-  it("composes ordered OpenClaw policy from the final callable capabilities", () => {
+  it("composes ordered Vasudev policy from the final callable capabilities", () => {
     const guidance = buildGuidance();
 
     expect(guidance).toContain("policy-filtered for this turn");
@@ -106,7 +106,7 @@ describe("buildCopilotPromptGuidance", () => {
     ]);
     expect(unavailable).toContain("remains private");
     expect(unavailable).not.toContain("Use `message`");
-    expect(unavailable).not.toContain("OpenClaw delivers your final response automatically");
+    expect(unavailable).not.toContain("Vasudev delivers your final response automatically");
   });
 
   it.each([false, true])(

@@ -32,7 +32,7 @@ export const signalChannelConfigUiHints = {
   },
   "transport.kind": {
     label: "Signal Transport Kind",
-    help: "Use managed-native to let OpenClaw start signal-cli, external-native for an existing native daemon, or container for signal-cli-rest-api.",
+    help: "Use managed-native to let Vasudev start signal-cli, external-native for an existing native daemon, or container for signal-cli-rest-api.",
   },
   "transport.configPath": {
     label: "Signal CLI Config Path",

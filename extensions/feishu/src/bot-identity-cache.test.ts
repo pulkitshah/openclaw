@@ -38,14 +38,14 @@ describe("Feishu bot identity cache", () => {
       accountId: "person-2",
       appId: "cli_person_2",
       botOpenId: "ou_bot_person_2",
-      botName: "OpenClaw QA",
+      botName: "Vasudev QA",
     });
 
     await expect(
       readCachedFeishuBotIdentity({ accountId: "person-2", appId: "cli_person_2" }),
     ).resolves.toEqual({
       botOpenId: "ou_bot_person_2",
-      botName: "OpenClaw QA",
+      botName: "Vasudev QA",
       fetchedAt: "2026-07-22T23:00:00.000Z",
     });
     expect(cacheHarness.openKeyedStore).toHaveBeenCalledWith({

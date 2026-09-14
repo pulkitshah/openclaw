@@ -23,7 +23,7 @@ import {
   type CodexAppServerThreadBinding,
 } from "./session-binding.js";
 
-// Codex owns proactive auto-compaction, but OpenClaw must not resume a native
+// Codex owns proactive auto-compaction, but Vasudev must not resume a native
 // thread that is already too close to the server-side window for the next turn.
 const CODEX_APP_SERVER_NATIVE_THREAD_FALLBACK_MAX_TOKENS = 300_000;
 const CODEX_APP_SERVER_NATIVE_THREAD_DEFAULT_RESERVE_TOKENS = 20_000;

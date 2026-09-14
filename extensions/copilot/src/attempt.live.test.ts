@@ -102,7 +102,7 @@ vi.mock("openclaw/plugin-sdk/agent-harness", async (importOriginal) => {
       {
         name: liveToolState.spawnToolName,
         label: liveToolState.spawnToolName,
-        description: "Spawn an OpenClaw session for delegated work.",
+        description: "Spawn a Vasudev session for delegated work.",
         parameters: {
           type: "object",
           additionalProperties: false,
@@ -513,7 +513,7 @@ describeLive("copilot agent runtime live smoke", () => {
     }
   }, 180_000);
 
-  it("delegates user-followed deliverable work through a visible OpenClaw session", async () => {
+  it("delegates user-followed deliverable work through a visible Vasudev session", async () => {
     liveToolState.spawnCalls.length = 0;
     const streamedTexts: string[] = [];
     const copilotHome = await createTempDir("openclaw-copilot-live-delegation-");

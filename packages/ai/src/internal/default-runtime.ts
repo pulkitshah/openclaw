@@ -1,4 +1,4 @@
-// Process-default registry/runtime retained for the OpenClaw compatibility
+// Process-default registry/runtime retained for the Vasudev compatibility
 // facade (src/llm). Deliberately not part of the public package API: external
 // consumers create isolated runtimes via createLlmRuntime(); exporting these
 // from the root barrel would reintroduce the mutable process-global registry.

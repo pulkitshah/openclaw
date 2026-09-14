@@ -453,7 +453,7 @@ describe("policy commands", () => {
     }
   });
 
-  it("fails closed when the OpenClaw config is invalid", async () => {
+  it("fails closed when the Vasudev config is invalid", async () => {
     const configPath = join(workspaceDir, "openclaw.jsonc");
     vi.stubEnv("OPENCLAW_CONFIG_PATH", configPath);
     await writeFixture(configPath, "{");

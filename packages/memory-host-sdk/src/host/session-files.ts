@@ -379,7 +379,7 @@ export function sessionPathForSessionIdentity(agentId: string, sessionId: string
 
 /**
  * Parses a deprecated path-shaped memory sync hint only when it points at an
- * OpenClaw-owned usage-counted transcript in the canonical agent sessions dir.
+ * Vasudev-owned usage-counted transcript in the canonical agent sessions dir.
  */
 export function parseCanonicalSessionSyncTargetFromPath(
   sessionFile: string,

@@ -23,7 +23,7 @@ describe("imessageDoctor.collectPreviewWarnings", () => {
     expect(warning).toContain(
       'channels.imessage: accounts "swang430-gmail-com" and "default" watch the same local Messages source (cliPath=imsg).',
     );
-    expect(warning).toContain('OpenClaw runs one watcher (owner: "swang430-gmail-com")');
+    expect(warning).toContain('Vasudev runs one watcher (owner: "swang430-gmail-com")');
     expect(warning).toContain("idles the duplicate");
     expect(warning).toContain('accountId="swang430-gmail-com"');
     expect(warning).toContain('"default"');

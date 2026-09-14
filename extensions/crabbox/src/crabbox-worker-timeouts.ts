@@ -9,7 +9,7 @@ const CRABBOX_BOOTSTRAP_TIMEOUT_MS = 20 * 60_000;
 const CRABBOX_DESKTOP_BOOTSTRAP_TIMEOUT_MS = 45 * 60_000;
 const CRABBOX_WARMUP_ATTEMPTS = 2;
 // Crabbox allows 20m Linux / 45m desktop bootstrap plus one fresh-lease retry;
-// include acquisition for both attempts so OpenClaw cannot preempt readiness.
+// include acquisition for both attempts so Vasudev cannot preempt readiness.
 export const CRABBOX_WARMUP_TIMEOUT_MS =
   CRABBOX_WARMUP_ATTEMPTS * (CRABBOX_ACQUISITION_ENVELOPE_MS + CRABBOX_BOOTSTRAP_TIMEOUT_MS);
 export const CRABBOX_DESKTOP_WARMUP_TIMEOUT_MS =

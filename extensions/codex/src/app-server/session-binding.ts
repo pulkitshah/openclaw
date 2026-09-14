@@ -152,7 +152,7 @@ function captureCodexSessionGenerationAuthority(
   return [authority, previousSessionId, assertHostCurrent, assertCurrent] as const;
 }
 
-/** Builds the terminal coordination error used when a newer OpenClaw session owns the binding. */
+/** Builds the terminal coordination error used when a newer Vasudev session owns the binding. */
 export function createCodexSessionGenerationSupersededError(
   sessionId: string,
 ): AgentHarnessSessionSupersededError {
@@ -449,7 +449,7 @@ async function reclaimPreparedCodexSessionGeneration(
   );
 }
 
-/** Lets the authoritative OpenClaw session generation claim a stale stable binding row. */
+/** Lets the authoritative Vasudev session generation claim a stale stable binding row. */
 export async function reclaimCurrentCodexSessionGeneration(
   params: CodexSessionGenerationReclaimParams,
 ): Promise<boolean> {
@@ -897,7 +897,7 @@ export function createCodexAppServerBindingStore(
                   current.retired === true &&
                   current.sessionId === mutation.expectedPreviousSessionId
                 ) {
-                  // Reset boundaries now retain the OpenClaw session id. The
+                  // Reset boundaries now retain the Vasudev session id. The
                   // authoritative session-store check above proves this fence
                   // belongs to the previous in-place lifecycle, not live work.
                   return {

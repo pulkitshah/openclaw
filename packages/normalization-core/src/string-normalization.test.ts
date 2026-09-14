@@ -170,7 +170,7 @@ describe("normalization-core/string-normalization", () => {
     ["友達グループ", "友達グループ"],
     ["개발자 모임", "개발자-모임"],
     ["Team 技术讨论", "team-技术讨论"],
-    ["#OpenClaw中文群", "#openclaw中文群"],
+    ["#Vasudev中文群", "#openclaw中文群"],
     ["Команда разработки", "команда-разработки"],
     ["فريق التطوير", "فريق-التطوير"],
   ])("preserves Unicode letters in normalizeHyphenSlug: %s", (input, expected) => {
@@ -192,7 +192,7 @@ describe("normalization-core/string-normalization", () => {
     ["#한국어채널", "한국어채널"],
     ["#Команда разработки", "команда-разработки"],
     ["@فريق التطوير", "فريق-التطوير"],
-    ["#OpenClaw中文群", "openclaw中文群"],
+    ["#Vasudev中文群", "openclaw中文群"],
   ])("preserves Unicode letters in normalizeAtHashSlug: %s", (input, expected) => {
     expect(normalizeAtHashSlug(input)).toBe(expected);
   });

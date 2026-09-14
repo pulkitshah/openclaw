@@ -19,7 +19,7 @@ export function createCodexCommand(options: CodexCommandOptions): OpenClawPlugin
     ownership: "reserved",
     agentPromptGuidance: [
       {
-        text: "Native Codex app-server plugin is available (`/codex ...`). For Codex bind/control/thread/resume/steer/stop requests, prefer `/codex bind`, `/codex threads`, `/codex resume`, `/codex steer`, and `/codex stop` over ACP. When OpenClaw sandboxing is active, native Codex execution modes are unavailable; use normal Codex harness turns.",
+        text: "Native Codex app-server plugin is available (`/codex ...`). For Codex bind/control/thread/resume/steer/stop requests, prefer `/codex bind`, `/codex threads`, `/codex resume`, `/codex steer`, and `/codex stop` over ACP. When Vasudev sandboxing is active, native Codex execution modes are unavailable; use normal Codex harness turns.",
         surfaces: ["openclaw_main"],
       },
       {

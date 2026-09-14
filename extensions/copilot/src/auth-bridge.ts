@@ -262,7 +262,7 @@ function resolveCopilotHome(args: {
   }
   // When the host hands us an agent directory we isolate the SDK CLI state
   // (config.json, logs/, session-store.db, session-state/) under a dedicated
-  // "copilot" subdir so it cannot collide with OpenClaw's own files
+  // "copilot" subdir so it cannot collide with Vasudev's own files
   // (models.json, auth-profiles.json, ...) in the same agent directory.
   // This matches the documented layout and mirrors how the codex harness
   // isolates `<agentDir>/codex-home/`.

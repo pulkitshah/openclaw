@@ -17,7 +17,7 @@ import {
   SystemAgentSetupVerifyResultSchema,
 } from "./openclaw.js";
 
-describe("OpenClaw chat params protocol", () => {
+describe("Vasudev chat params protocol", () => {
   const base = { sessionId: "session-1", message: "What about this page?" };
 
   it("accepts the additive page context and remains backward compatible", () => {
@@ -74,7 +74,7 @@ describe("OpenClaw chat params protocol", () => {
   });
 });
 
-describe("OpenClaw chat question protocol", () => {
+describe("Vasudev chat question protocol", () => {
   const question = {
     id: "onboarding-next-step",
     header: "Next step",
@@ -93,7 +93,7 @@ describe("OpenClaw chat question protocol", () => {
   });
 });
 
-describe("OpenClaw chat history protocol", () => {
+describe("Vasudev chat history protocol", () => {
   it("accepts the default request and bounds explicit limits", () => {
     expect(validateSystemAgentChatHistoryParams({})).toBe(true);
     expect(validateSystemAgentChatHistoryParams({ limit: 1 })).toBe(true);
@@ -119,7 +119,7 @@ describe("OpenClaw chat history protocol", () => {
   });
 });
 
-describe("OpenClaw interactive activation protocol", () => {
+describe("Vasudev interactive activation protocol", () => {
   it("preserves optional owner-recorded rejection on the direct activation result", () => {
     const failure = { ok: false, status: "auth", error: "The candidate login failed." };
     expect(Value.Check(SystemAgentSetupActivateResultSchema, failure)).toBe(true);
@@ -158,7 +158,7 @@ describe("OpenClaw interactive activation protocol", () => {
   });
 });
 
-describe("OpenClaw setup detection protocol", () => {
+describe("Vasudev setup detection protocol", () => {
   it.each([
     ["saved-auth:openai%3Adefault", true],
     ["saved-auth:", false],
@@ -209,7 +209,7 @@ describe("OpenClaw setup detection protocol", () => {
           brandId: "google-gemini-cli",
           label: "Gemini CLI",
           detail: "installed; login status unavailable",
-          reason: "Reconnect through OpenClaw or use a Gemini API key.",
+          reason: "Reconnect through Vasudev or use a Gemini API key.",
           authOptionId: "google-gemini-cli",
           manualProviderId: "gemini-api-key",
         },
@@ -306,7 +306,7 @@ describe("OpenClaw setup detection protocol", () => {
   });
 });
 
-describe("OpenClaw setup verification protocol", () => {
+describe("Vasudev setup verification protocol", () => {
   it("accepts only an empty request", () => {
     expect(validateSystemAgentSetupVerifyParams({})).toBe(true);
     expect(validateSystemAgentSetupVerifyParams({ modelRef: "openai/gpt-5.5" })).toBe(false);

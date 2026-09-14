@@ -210,8 +210,8 @@ describe("A2A HTTP agent discovery", () => {
       expect(Object.keys(card.capabilities).toSorted()).toEqual(["pushNotifications", "streaming"]);
       // The card is served unauthenticated, so operator-authored descriptions
       // must never reach it - not the unexposed agent's, not the exposed one's.
-      expect(card.skills[0]?.description).toBe("OpenClaw agent writer.");
-      expect(card.skills[1]?.description).toBe("OpenClaw agent reviewer.");
+      expect(card.skills[0]?.description).toBe("Vasudev agent writer.");
+      expect(card.skills[1]?.description).toBe("Vasudev agent reviewer.");
       expect(JSON.stringify(card)).not.toContain(hiddenDescription);
       expect(JSON.stringify(card)).not.toContain("x".repeat(50));
       expect(card).not.toHaveProperty("protocolVersion");
@@ -240,7 +240,7 @@ describe("A2A HTTP agent discovery", () => {
     // reading only the list shape published a skill-less card to every peer.
     expect(card.skills.map((skill) => skill.id).toSorted()).toEqual(["main", "research"]);
     expect(card.skills.find((skill) => skill.id === "research")?.description).toBe(
-      "OpenClaw agent research.",
+      "Vasudev agent research.",
     );
   });
 

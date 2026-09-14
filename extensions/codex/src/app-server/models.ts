@@ -137,7 +137,7 @@ async function requestModelListPage(
   return readModelListResult(response);
 }
 
-/** Parses a raw Codex app-server model/list response into OpenClaw's normalized shape. */
+/** Parses a raw Codex app-server model/list response into Vasudev's normalized shape. */
 export function readModelListResult(value: unknown): CodexAppServerModelListResult {
   const response = assertCodexModelListResponse(value);
   const models = response.data.map((entry) => readCodexModel(entry));

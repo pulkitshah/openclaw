@@ -21,8 +21,8 @@ export function createModelsProviderData(
       : (insertionProvider ?? "openai");
   const builtin = {
     id: "openclaw",
-    label: "OpenClaw Default",
-    description: "Use the built-in OpenClaw runtime.",
+    label: "Vasudev Default",
+    description: "Use the built-in Vasudev runtime.",
   };
   const runtimeChoicesByProvider = new Map(providers.map((provider) => [provider, [builtin]]));
   const runtimeChoicesByModel = new Map(

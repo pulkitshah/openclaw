@@ -216,7 +216,7 @@ function resolveIMessageApprovalCliOptions(params: {
 /**
  * Send the poll balloon after the approval details prompt. imsg normally echoes
  * every poll question as a separate caption after the balloon; suppress that
- * echo because OpenClaw already rendered the full context above the controls.
+ * echo because Vasudev already rendered the full context above the controls.
  *
  * Conversation-read authority: `chatGuid` is resolved from the approval's own
  * routing target (origin session or a configured approver), so this read is

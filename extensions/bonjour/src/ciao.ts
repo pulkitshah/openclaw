@@ -12,7 +12,7 @@ const CIAO_NETMASK_ASSERTION_MESSAGE_RE =
 // Node surfaces this as a SystemError mentioning the libuv syscall by name.
 const CIAO_INTERFACE_ENUMERATION_FAILURE_RE = /\bUV_INTERFACE_ADDRESSES\b/u;
 
-/** Known ciao process-level errors that OpenClaw handles specially. */
+/** Known ciao process-level errors that Vasudev handles specially. */
 type CiaoProcessErrorClassification =
   | { kind: "netmask-assertion"; formatted: string }
   | { kind: "interface-enumeration-failure"; formatted: string };

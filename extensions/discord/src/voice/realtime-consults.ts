@@ -38,7 +38,7 @@ const DISCORD_REALTIME_FORCED_CONSULT_REASON =
 
 const CANCELLED_CONSULT_RESULT = {
   status: "cancelled",
-  message: "OpenClaw cancelled this consult before completion. Do not restart it.",
+  message: "Vasudev cancelled this consult before completion. Do not restart it.",
 };
 
 type AgentProxyConsultResult =
@@ -614,7 +614,7 @@ export class DiscordRealtimeConsults {
     } else if (alreadyDelivered) {
       await this.submitTerminalRealtimeToolResult(callId, session, {
         status: "already_delivered",
-        message: "OpenClaw already delivered this answer to Discord voice. Do not repeat it.",
+        message: "Vasudev already delivered this answer to Discord voice. Do not repeat it.",
       });
     } else {
       await session.submitToolResult(callId, result);

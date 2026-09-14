@@ -13,7 +13,7 @@ export const MAX_TOOL_OUTPUT_DELTA_MESSAGES_PER_ITEM = 20;
 export const TOOL_TRANSCRIPT_OUTPUT_MAX_CHARS = 10_000;
 export const TOOL_PROGRESS_ECHO_PREFIX_MIN_CHARS = 1_024;
 export const TOOL_PROGRESS_ECHO_SIGNATURE_CAP = MAX_TOOL_OUTPUT_DELTA_MESSAGES_PER_ITEM + 4;
-const TOOL_OUTPUT_TRUNCATION_NOTICE_PREFIX = "...(OpenClaw truncated Codex native tool output";
+const TOOL_OUTPUT_TRUNCATION_NOTICE_PREFIX = "...(Vasudev truncated Codex native tool output";
 
 type ToolOutputTrimState = {
   totalLength: number;

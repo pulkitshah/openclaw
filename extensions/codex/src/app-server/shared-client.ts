@@ -381,7 +381,7 @@ async function resolveCodexAppServerClientStartContext(
   }
   if (preparedAuth?.kind === "profile" && !preparedAuth.store.profiles[preparedAuth.profileId]) {
     throw new Error(
-      `Prepared Codex auth profile "${preparedAuth.profileId}" was not found. Select an existing OpenAI profile or sign in again with OpenClaw, then retry.`,
+      `Prepared Codex auth profile "${preparedAuth.profileId}" was not found. Select an existing OpenAI profile or sign in again with Vasudev, then retry.`,
     );
   }
   if (preparedAuth?.kind === "api-key" && !preparedApiKey) {
@@ -1346,7 +1346,7 @@ export function captureCodexAppServerClientLifetime(
     (start?.transport !== "stdio" || isCodexAppServerProxyLaunch(start.args))
   ) {
     throw new AgentHarnessPreflightError(
-      "Codex ordinary configuration refresh requires an OpenClaw-managed local stdio process, not an external socket or app-server proxy. No turn was sent; reconnect through managed local stdio before continuing.",
+      "Codex ordinary configuration refresh requires a Vasudev-managed local stdio process, not an external socket or app-server proxy. No turn was sent; reconnect through managed local stdio before continuing.",
     );
   }
   const isolated = requiredOwnership === "native-process" && state.isolatedClients.has(client);

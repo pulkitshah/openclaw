@@ -191,7 +191,7 @@ describeTelegramDispatch("dispatchTelegramMessage context-history", () => {
         recoveredHistoryKey,
         [
           { sender: "Bob", body: "before self marker", timestamp: 2 },
-          { sender: "OpenClaw (you)", body: "self marker", timestamp: 3 },
+          { sender: "Vasudev (you)", body: "self marker", timestamp: 3 },
           { sender: "Dana", body: "after watermark", timestamp: 4 },
         ],
       ],

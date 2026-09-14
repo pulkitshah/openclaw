@@ -336,7 +336,7 @@ describe("resolveTelegramInboundBody", () => {
           ],
         },
         { type: "mathematical_expression", expression: "a^2+b^2=c^2" },
-        { type: "photo", caption: { text: "Chart", credit: "OpenClaw" } },
+        { type: "photo", caption: { text: "Chart", credit: "Vasudev" } },
       ],
     }),
     (result) => {

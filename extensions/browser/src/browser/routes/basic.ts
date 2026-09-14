@@ -283,7 +283,7 @@ async function runBrowserLiveProbe(profileCtx: ProfileContext, signal: AbortSign
       label: "Live snapshot",
       status: "fail" as const,
       summary: String(err),
-      fixHint: "Run openclaw browser start, then retry with openclaw browser doctor --deep.",
+      fixHint: "Run vasudev browser start, then retry with vasudev browser doctor --deep.",
     };
   }
 }

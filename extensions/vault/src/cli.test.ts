@@ -134,7 +134,7 @@ describe("vault CLI setup plan", () => {
     ]);
   });
 
-  it("generates arbitrary known OpenClaw and auth-profile targets", async () => {
+  it("generates arbitrary known Vasudev and auth-profile targets", async () => {
     const plan = await createSetupPlan([
       "--target",
       "channels.telegram.botToken=channels/telegram/botToken",
@@ -206,9 +206,9 @@ describe("vault CLI setup plan", () => {
     try {
       const output = await runSetup(planPath, setupArgs);
       expect(output).toContain(
-        `openclaw secrets apply --from '${canonicalPlanPath}' --dry-run --allow-exec`,
+        `vasudev secrets apply --from '${canonicalPlanPath}' --dry-run --allow-exec`,
       );
-      expect(output).toContain(`openclaw secrets apply --from '${canonicalPlanPath}' --allow-exec`);
+      expect(output).toContain(`vasudev secrets apply --from '${canonicalPlanPath}' --allow-exec`);
     } finally {
       await fs.rm(dir, { recursive: true, force: true });
     }

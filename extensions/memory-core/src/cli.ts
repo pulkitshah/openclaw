@@ -90,9 +90,9 @@ export function registerMemoryCli(program: Command, hostOptions?: MemoryCoreRunt
           ],
           ["openclaw memory status --deep", "Probe embedding provider readiness."],
           ["openclaw memory index --force", "Force a full reindex."],
-          ['openclaw memory search "meeting notes"', "Quick search using positional query."],
+          ['vasudev memory search "meeting notes"', "Quick search using positional query."],
           [
-            'openclaw memory search --query "deployment" --max-results 20',
+            'vasudev memory search --query "deployment" --max-results 20',
             "Limit results for focused troubleshooting.",
           ],
           [
@@ -100,7 +100,7 @@ export function registerMemoryCli(program: Command, hostOptions?: MemoryCoreRunt
             "Preview deletion of memories derived from matching sessions.",
           ],
           [
-            `openclaw memory promote --limit 10 --min-score ${DEFAULT_PROMOTION_MIN_SCORE}`,
+            `vasudev memory promote --limit 10 --min-score ${DEFAULT_PROMOTION_MIN_SCORE}`,
             "Review weighted short-term candidates for long-term memory.",
           ],
           [
@@ -108,7 +108,7 @@ export function registerMemoryCli(program: Command, hostOptions?: MemoryCoreRunt
             "Append top-ranked short-term candidates into MEMORY.md.",
           ],
           [
-            'openclaw memory promote-explain "router vlan"',
+            'vasudev memory promote-explain "router vlan"',
             "Explain why a specific candidate would or would not promote.",
           ],
           [
@@ -116,15 +116,15 @@ export function registerMemoryCli(program: Command, hostOptions?: MemoryCoreRunt
             "Preview REM reflections, candidate truths, and deep promotion output.",
           ],
           [
-            "openclaw memory rem-backfill --path ./memory",
+            "vasudev memory rem-backfill --path ./memory",
             "Write grounded historical REM entries into DREAMS.md for UI review.",
           ],
           [
-            "openclaw memory rem-backfill --path ./memory --stage-short-term",
+            "vasudev memory rem-backfill --path ./memory --stage-short-term",
             "Also seed durable grounded candidates into the live short-term promotion store.",
           ],
           [
-            "openclaw memory session-backfill --agent main --from 2026-01-01",
+            "vasudev memory session-backfill --agent main --from 2026-01-01",
             "Preview trusted candidates from retained session history.",
           ],
           ["openclaw memory status --json", "Output machine-readable JSON (good for scripts)."],

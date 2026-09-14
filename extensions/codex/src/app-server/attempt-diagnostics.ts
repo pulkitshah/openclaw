@@ -11,7 +11,7 @@ import type { CodexAppServerRuntimeOptions, resolveCodexPluginsPolicy } from "./
 
 type TrustedDiagnosticEventInput = Parameters<typeof emitTrustedDiagnosticEventWithPrivateData>[0];
 
-/** Reads a tool schema field in either app-server or OpenClaw naming. */
+/** Reads a tool schema field in either app-server or Vasudev naming. */
 function readCodexDiagnosticToolParameters(tool: {
   inputSchema?: unknown;
   parameters?: unknown;

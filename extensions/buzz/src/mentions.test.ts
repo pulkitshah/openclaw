@@ -12,7 +12,7 @@ const SECOND_ALICE_PUBLIC_KEY = "c".repeat(64);
 const BOB_PUBLIC_KEY = "d".repeat(64);
 
 function members(...values: BuzzMentionMember[]): BuzzMentionMember[] {
-  return [{ publicKey: BOT_PUBLIC_KEY, displayName: "OpenClaw" }, ...values];
+  return [{ publicKey: BOT_PUBLIC_KEY, displayName: "Vasudev" }, ...values];
 }
 
 describe("Buzz outbound mentions", () => {

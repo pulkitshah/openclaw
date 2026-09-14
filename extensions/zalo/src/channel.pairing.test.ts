@@ -68,7 +68,7 @@ describe("zaloPlugin pairing.notifyApproval", () => {
       "token-beta",
       {
         chat_id: "paired-user",
-        text: "✅ OpenClaw access approved. Send a message to start chatting.",
+        text: "✅ Vasudev access approved. Send a message to start chatting.",
       },
       fetcher,
     );

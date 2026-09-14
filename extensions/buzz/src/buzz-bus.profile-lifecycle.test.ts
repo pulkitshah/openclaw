@@ -139,7 +139,7 @@ describe("Buzz profile lifecycle", () => {
       const onProfilePublished = vi.fn();
       const onProfileError = vi.fn();
       const bus = await startTestBus({
-        profileName: "OpenClaw",
+        profileName: "Vasudev",
         onMessage,
         onProfilePublished,
         onProfileError,

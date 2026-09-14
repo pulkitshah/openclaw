@@ -174,7 +174,7 @@ async function validateBraveBaseUrl(
 function missingBraveKeyPayload() {
   return {
     error: "missing_brave_api_key",
-    message: `web_search (brave) needs a Brave Search API key. Run \`${formatCliCommand("openclaw configure --section web")}\` to store it, or set BRAVE_API_KEY in the Gateway environment. If you do not want to configure a search API key, use web_fetch for a specific URL or the browser tool for interactive pages.`,
+    message: `web_search (brave) needs a Brave Search API key. Run \`${formatCliCommand("vasudev configure --section web")}\` to store it, or set BRAVE_API_KEY in the Gateway environment. If you do not want to configure a search API key, use web_fetch for a specific URL or the browser tool for interactive pages.`,
     docs: "https://docs.openclaw.ai/tools/web",
   };
 }

@@ -1,4 +1,4 @@
-// Real OpenClaw stream helpers and Slack SDK with synthetic HTTP responses.
+// Real Vasudev stream helpers and Slack SDK with synthetic HTTP responses.
 import { WebClient, type WebClientOptions } from "@slack/web-api";
 import { createDeferred } from "openclaw/plugin-sdk/extension-shared";
 import { describe, expect, it } from "vitest";

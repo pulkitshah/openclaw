@@ -196,7 +196,7 @@ describe("shouldDropEmptyMattermostBody", () => {
     expect(
       shouldDropEmptyMattermostBody({
         bodyText: "",
-        rawText: "@OpenClaw",
+        rawText: "@Vasudev",
         botUsername: "openclaw",
       }),
     ).toBe(false);

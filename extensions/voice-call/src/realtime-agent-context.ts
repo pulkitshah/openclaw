@@ -77,9 +77,9 @@ export async function buildRealtimeVoiceInstructions(params: {
 
   const { agentId } = params;
   const capsule: string[] = [
-    "OpenClaw agent voice context:",
+    "Vasudev agent voice context:",
     `- Agent id: ${agentId}`,
-    "- Use this context to match the OpenClaw agent's personality and standing preferences on fast voice turns.",
+    "- Use this context to match the Vasudev agent's personality and standing preferences on fast voice turns.",
     "- Treat this as compact context only; call openclaw_agent_consult when the caller needs the full agent brain, tools, memory, or workspace state.",
   ];
 

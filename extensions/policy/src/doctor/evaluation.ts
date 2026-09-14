@@ -199,13 +199,13 @@ async function evaluatePolicyUncached(ctx: HealthCheckContext): Promise<PolicyEv
         checkId: CHECK_IDS.policyUnmigratedToolsFile,
         severity: "error",
         message:
-          "TOOLS.md contains unmigrated governed tool declarations; run `openclaw doctor --fix` to migrate them into the AGENTS.md `## Tools` section before policy evaluation can pass.",
+          "TOOLS.md contains unmigrated governed tool declarations; run `vasudev doctor --fix` to migrate them into the AGENTS.md `## Tools` section before policy evaluation can pass.",
         source: "policy",
         path: "TOOLS.md",
         target: "oc://TOOLS.md/tools",
         requirement: `oc://${policyFile.ocDocName}/tools/requireMetadata`,
         fixHint:
-          "Run `openclaw doctor --fix` to migrate TOOLS.md into the AGENTS.md `## Tools` section.",
+          "Run `vasudev doctor --fix` to migrate TOOLS.md into the AGENTS.md `## Tools` section.",
       };
     }
     evidence = await collectPolicyEvidence(ctx.cfg as Record<string, unknown>, {

@@ -1,7 +1,7 @@
 /**
  * Extension relay auth material.
  *
- * The relay authenticates the loopback link between OpenClaw and the paired
+ * The relay authenticates the loopback link between Vasudev and the paired
  * Chrome extension with a host-local secret. It is persisted per machine in the
  * credentials dir, so the gateway host and every browser node host each own an
  * independent token — the extension pairs with whichever machine runs its

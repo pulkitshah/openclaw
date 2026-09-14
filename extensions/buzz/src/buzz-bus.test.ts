@@ -20,7 +20,7 @@ describe("Buzz message events", () => {
       {
         kind: 9,
         created_at: 1_700_000_000,
-        content: "hello OpenClaw",
+        content: "hello Vasudev",
         tags: [
           ["h", "7c4a6d2a-2ed9-4b4e-a5e2-4d705ee9b34c"],
           ["e", "root-id", "", "root"],
@@ -34,7 +34,7 @@ describe("Buzz message events", () => {
     expect(parseBuzzMessageEvent(event)).toMatchObject({
       id: event.id,
       kind: BUZZ_NORMAL_MESSAGE_KIND,
-      text: "hello OpenClaw",
+      text: "hello Vasudev",
       channelId: "7c4a6d2a-2ed9-4b4e-a5e2-4d705ee9b34c",
       threadId: "root-id",
       replyToId: "reply-id",
@@ -47,7 +47,7 @@ describe("Buzz message events", () => {
       {
         kind: BUZZ_RICH_MESSAGE_KIND,
         created_at: 1_700_000_000,
-        content: "**hello** OpenClaw",
+        content: "**hello** Vasudev",
         tags: [["h", "7c4a6d2a-2ed9-4b4e-a5e2-4d705ee9b34c"]],
       },
       SECRET_KEY,
@@ -55,7 +55,7 @@ describe("Buzz message events", () => {
 
     expect(parseBuzzMessageEvent(event)).toMatchObject({
       kind: BUZZ_RICH_MESSAGE_KIND,
-      text: "**hello** OpenClaw",
+      text: "**hello** Vasudev",
     });
   });
 

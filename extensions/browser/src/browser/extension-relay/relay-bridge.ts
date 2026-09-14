@@ -2,7 +2,7 @@
  * Extension relay CDP bridge.
  *
  * Presents a CDP browser endpoint (compatible with Playwright connectOverCDP)
- * on one side and the OpenClaw Chrome extension's chrome.debugger transport on
+ * on one side and the Vasudev Chrome extension's chrome.debugger transport on
  * the other. The bridge owns all Target.* synthesis so the extension stays a
  * thin forwarder — the old assets/chrome-extension put this logic in an
  * untestable MV3 service worker, which is why it rotted and was removed.
@@ -383,7 +383,7 @@ export class ExtensionRelayBridge {
 
   private sendToExtension(msg: RelayToExtensionMessage): void {
     if (!this.extension) {
-      throw new Error("OpenClaw Chrome extension is not connected to the relay");
+      throw new Error("Vasudev Chrome extension is not connected to the relay");
     }
     this.extension.socket.send(JSON.stringify(msg));
   }
@@ -469,7 +469,7 @@ export class ExtensionRelayBridge {
     const tab = this.tabs.get(tabId);
     const extension = this.extension;
     if (!tab) {
-      throw new Error(`tab ${tabId} is not available to OpenClaw`);
+      throw new Error(`tab ${tabId} is not available to Vasudev`);
     }
     // A pending claimant keeps the physical acquisition alive through announcement.
     // Use a distinct token even for concurrent acquisitions by the same client.
@@ -498,7 +498,7 @@ export class ExtensionRelayBridge {
     const extension = this.extension;
     const tab = this.tabs.get(tabId);
     if (!tab) {
-      throw new Error(`tab ${tabId} is not available to OpenClaw`);
+      throw new Error(`tab ${tabId} is not available to Vasudev`);
     }
     if (tab.retiring) {
       await tab.retiring;
@@ -1054,7 +1054,7 @@ export class ExtensionRelayBridge {
             targetInfo: {
               targetId: BROWSER_TARGET_ID,
               type: "browser",
-              title: "OpenClaw Extension Relay",
+              title: "Vasudev Extension Relay",
               url: "",
               attached: true,
               canAccessOpener: false,
@@ -1226,7 +1226,7 @@ export class ExtensionRelayBridge {
         this.respondError(
           client,
           request,
-          "The OpenClaw extension relay drives the user's real browser profile; isolated browser contexts are not supported.",
+          "The Vasudev extension relay drives the user's real browser profile; isolated browser contexts are not supported.",
         );
         return;
       }

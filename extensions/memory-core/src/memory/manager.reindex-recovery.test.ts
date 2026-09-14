@@ -718,7 +718,7 @@ describe("memory manager reindex recovery", () => {
     });
 
     expect(result.manager).toBeNull();
-    expect(result.error).toContain("uses schema version 0; run openclaw doctor --fix");
+    expect(result.error).toContain("uses schema version 0; run vasudev doctor --fix");
     const reopened = new DatabaseSync(databasePath);
     expect(reopened.prepare("PRAGMA user_version").get()).toEqual({ user_version: 0 });
     reopened.close();

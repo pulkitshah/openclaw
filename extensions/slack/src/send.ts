@@ -634,7 +634,7 @@ function createSlackDeliveryMetadataId(queueId?: string): string | undefined {
     return undefined;
   }
   // Slack metadata is visible to workspace apps and members. Keep the durable
-  // store key inside OpenClaw while retaining a stable provider-side marker.
+  // store key inside Vasudev while retaining a stable provider-side marker.
   return createHash("sha256").update(normalized).digest("base64url");
 }
 

@@ -308,7 +308,7 @@ export function buildAssistantText(input: ResponsesInputItem[], body: Record<str
       : buildStrandedFinalRecoveryText();
   }
   if (/tool continuity check/i.test(prompt) && toolOutput) {
-    return `Protocol note: model switch handoff confirmed on ${model || "the requested model"}. QA mission from QA_KICKOFF_TASK.md still applies: understand this OpenClaw repo from source + docs before acting.`;
+    return `Protocol note: model switch handoff confirmed on ${model || "the requested model"}. QA mission from QA_KICKOFF_TASK.md still applies: understand this Vasudev repo from source + docs before acting.`;
   }
   if (toolOutput && promptExactReplyDirective) {
     return promptExactReplyDirective;

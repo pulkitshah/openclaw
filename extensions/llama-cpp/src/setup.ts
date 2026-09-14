@@ -316,7 +316,7 @@ async function resolveSetupPlan(
       !embeddingModelIsDefault
         ? "This estimate includes the default embedding model; your configured embedding model may need more memory and disk space."
         : undefined,
-      "OpenClaw will check a real tool call before making this your default model.",
+      "Vasudev will check a real tool call before making this your default model.",
     ]
       .filter(Boolean)
       .join("\n");
@@ -467,7 +467,7 @@ export async function runLlamaCppSetup(ctx: ProviderAuthContext): Promise<Provid
     progress.stop("llama.cpp setup failed");
     const detail = error instanceof Error ? error.message : String(error);
     throw new Error(
-      `Managed llama.cpp setup failed. Run openclaw doctor, fix the reported runtime or model issue, then retry. ${detail}`,
+      `Managed llama.cpp setup failed. Run vasudev doctor, fix the reported runtime or model issue, then retry. ${detail}`,
       { cause: error },
     );
   }

@@ -26,7 +26,7 @@ export function attachEmitterListener<Event extends keyof BaileysEventMap>(
 
 export function closeInboundMonitorSocket(sock: ClosableSocket): void {
   if (typeof sock.end === "function") {
-    sock.end(new Error("OpenClaw WhatsApp listener close"));
+    sock.end(new Error("Vasudev WhatsApp listener close"));
     return;
   }
   sock.ws?.close?.();

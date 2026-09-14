@@ -147,7 +147,7 @@ export function registerBrowserExtensionCommands(
 ) {
   const extension = browser
     .command("extension")
-    .description("Install and inspect the OpenClaw Chrome extension bootstrap");
+    .description("Install and inspect the Vasudev Chrome extension bootstrap");
 
   extension
     .command("path")
@@ -181,7 +181,7 @@ export function registerBrowserExtensionCommands(
           const waitMs = normalizeExtensionInstallWaitMs(opts.waitMs);
           const bundledDir = resolveChromeExtensionDir(pluginRoot);
           if (!json) {
-            defaultRuntime.log(info("Preparing the OpenClaw Chrome extension…"));
+            defaultRuntime.log(info("Preparing the Vasudev Chrome extension…"));
           }
           const status = await installChromeExtensionBootstrap({
             bundledDir,
@@ -202,8 +202,8 @@ export function registerBrowserExtensionCommands(
                     status.platformSupport === "manual_required"
                       ? "Automatic native bootstrap is not supported on this platform; use Settings for manual pairing."
                       : status.storeInstallRequests.some((entry) => entry.state === "requested")
-                        ? `Store installation requested. Enable OpenClaw in chrome://extensions and approve Chrome's prompt. If it has not appeared, restart Chrome when convenient or add it from ${FOUNDATION_CHROME_WEB_STORE_URL}. Run extension status to check setup again.`
-                        : `Setup needs attention. Add OpenClaw from ${FOUNDATION_CHROME_WEB_STORE_URL} after native registration succeeds. For development, load the printed unpacked path. If the extension attempted setup before the native host existed, restart Chrome once.`,
+                        ? `Store installation requested. Enable Vasudev in chrome://extensions and approve Chrome's prompt. If it has not appeared, restart Chrome when convenient or add it from ${FOUNDATION_CHROME_WEB_STORE_URL}. Run extension status to check setup again.`
+                        : `Setup needs attention. Add Vasudev from ${FOUNDATION_CHROME_WEB_STORE_URL} after native registration succeeds. For development, load the printed unpacked path. If the extension attempted setup before the native host existed, restart Chrome once.`,
                   )
                 : info(
                     `Native host and extension identity verified for ${status.discovered.length + status.storeDiscovered.length} profile registration(s). Check the extension popup for Connected before using browser automation.`,
@@ -252,7 +252,7 @@ export function registerBrowserExtensionCommands(
   extension
     .command("uninstall-store")
     .description(
-      "Remove OpenClaw-owned Store install requests; Chrome may remove the extension on restart",
+      "Remove Vasudev-owned Store install requests; Chrome may remove the extension on restart",
     )
     .option("--json", "Print a machine-readable removal report")
     .action(async (opts, command) => {
@@ -278,7 +278,7 @@ export function registerBrowserExtensionCommands(
 
   extension
     .command("uninstall-host")
-    .description("Remove only OpenClaw-owned Chrome native-host registrations")
+    .description("Remove only Vasudev-owned Chrome native-host registrations")
     .option("--json", "Print a machine-readable removal report")
     .action(async (opts, command) => {
       await runCommandWithRuntime(defaultRuntime, async () => {
@@ -333,7 +333,7 @@ export function registerBrowserExtensionCommands(
               setupLine,
               info("1. Load the extension: chrome://extensions → Developer mode → Load unpacked →"),
               `   ${resolveChromeExtensionDir(pluginRoot)}`,
-              info("2. Open the OpenClaw popup and paste this pairing string:"),
+              info("2. Open the Vasudev popup and paste this pairing string:"),
               "",
               theme.heading(result.pairing),
               "",

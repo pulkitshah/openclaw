@@ -150,7 +150,7 @@ describe("classifyGatewayConnectFailure", () => {
       },
       kind: "auth-rejected",
       message: "device token mismatch",
-      remediation: "openclaw devices rotate --device <deviceId> --role operator",
+      remediation: "vasudev devices rotate --device <deviceId> --role operator",
     },
     {
       name: "other structured auth rejection",
@@ -198,7 +198,7 @@ describe("classifyGatewayConnectFailure", () => {
       input: { message: "connect failed", reason: "device token mismatch" },
       kind: "auth-rejected",
       message: "connect failed",
-      remediation: "openclaw devices rotate --device <deviceId> --role operator",
+      remediation: "vasudev devices rotate --device <deviceId> --role operator",
     },
     {
       name: "legacy shared token reason behind a generic message",

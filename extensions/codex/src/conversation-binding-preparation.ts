@@ -88,7 +88,7 @@ import {
 } from "./conversation-binding-data.js";
 
 const NATIVE_CONVERSATION_INTERACTIVE_APPROVALS_UNAVAILABLE =
-  "OpenClaw native Codex conversation binding cannot route interactive approvals yet; use the Codex harness or explicit /acp spawn codex for that workflow.";
+  "Vasudev native Codex conversation binding cannot route interactive approvals yet; use the Codex harness or explicit /acp spawn codex for that workflow.";
 
 export type CodexConversationConfig = Parameters<
   typeof resolveCodexAppServerAuthProfileIdForAgent
@@ -203,7 +203,7 @@ export async function resolveConversationAppServerRuntime(params: {
 }
 
 export const CODEX_CONVERSATION_THREAD_DEVELOPER_INSTRUCTIONS =
-  "This Codex thread is bound to an OpenClaw conversation. Answer normally; OpenClaw will deliver your final response back to the conversation.";
+  "This Codex thread is bound to a Vasudev conversation. Answer normally; Vasudev will deliver your final response back to the conversation.";
 
 type CodexThreadBindingParams = {
   pluginConfig?: unknown;

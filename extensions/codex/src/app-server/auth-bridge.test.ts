@@ -386,7 +386,7 @@ describe("bridgeCodexAppServerStartOptions", () => {
         ).rejects.toMatchObject({
           name: "AgentHarnessPreflightError",
           message: expect.stringContaining(
-            "openclaw migrate apply codex --from <codex-home> --agent research --include-secrets --item auth:openai --yes",
+            "vasudev migrate apply codex --from <codex-home> --agent research --include-secrets --item auth:openai --yes",
           ),
         });
       });
@@ -3145,7 +3145,7 @@ describe("bridgeCodexAppServerStartOptions", () => {
     }
   });
 
-  it("does not inject native CLI OAuth without an OpenClaw profile", async () => {
+  it("does not inject native CLI OAuth without a Vasudev profile", async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-app-server-"));
     const agentDir = path.join(root, "agent");
     const codexHome = path.join(root, "codex-cli");
@@ -3170,7 +3170,7 @@ describe("bridgeCodexAppServerStartOptions", () => {
     }
   });
 
-  it("does not borrow OS-home native OAuth for an isolated OpenClaw home", async () => {
+  it("does not borrow OS-home native OAuth for an isolated Vasudev home", async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-app-server-"));
     const osHome = path.join(root, "os-home");
     const openClawHome = path.join(root, "openclaw-home");
@@ -3196,7 +3196,7 @@ describe("bridgeCodexAppServerStartOptions", () => {
     }
   });
 
-  it("requires an OpenClaw profile instead of refreshing the native CLI store", async () => {
+  it("requires a Vasudev profile instead of refreshing the native CLI store", async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-codex-app-server-"));
     const agentDir = path.join(root, "agent");
     const codexHome = path.join(root, "codex-cli");
@@ -3446,7 +3446,7 @@ describe("bridgeCodexAppServerStartOptions", () => {
         code: "selected_auth_profile_unavailable",
       });
       expect((rejection as Error).message).toBe(
-        'Codex app-server auth profile "anthropic:work" must use the canonical OpenAI auth provider; run "openclaw doctor --fix" to migrate legacy provider IDs.',
+        'Codex app-server auth profile "anthropic:work" must use the canonical OpenAI auth provider; run "vasudev doctor --fix" to migrate legacy provider IDs.',
       );
       expect(oauthMocks.refreshOpenAICodexToken).not.toHaveBeenCalled();
       expect(request).not.toHaveBeenCalled();
@@ -4015,7 +4015,7 @@ describe("bridgeCodexAppServerStartOptions", () => {
             authProfileId: "openai:work",
           }),
         ).rejects.toThrow(
-          'Codex app-server auth profile "openai:work" must use the canonical OpenAI auth provider; run "openclaw doctor --fix" to migrate legacy provider IDs.',
+          'Codex app-server auth profile "openai:work" must use the canonical OpenAI auth provider; run "vasudev doctor --fix" to migrate legacy provider IDs.',
         );
         await expect(
           resolveCodexAppServerAuthAccountCacheKey({
@@ -4323,7 +4323,7 @@ describe("bridgeCodexAppServerStartOptions", () => {
             authProfileId: "openai:work",
           }),
         ).rejects.toThrow(
-          'Codex app-server auth profile "openai:work" must use the canonical OpenAI auth provider; run "openclaw doctor --fix" to migrate legacy provider IDs.',
+          'Codex app-server auth profile "openai:work" must use the canonical OpenAI auth provider; run "vasudev doctor --fix" to migrate legacy provider IDs.',
         );
         expect(oauthMocks.refreshOpenAICodexToken).not.toHaveBeenCalled();
         expect(

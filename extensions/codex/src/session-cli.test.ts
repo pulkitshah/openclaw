@@ -304,7 +304,7 @@ describe("registerCodexSessionCli", () => {
         },
         { mode: "cli", scopes: ["operator.write"] },
       );
-      expect(output).toBe("OpenClaw session: harness:codex:supervision:branch\n");
+      expect(output).toBe("Vasudev session: harness:codex:supervision:branch\n");
       expect(output).not.toContain("\u001b");
     });
 

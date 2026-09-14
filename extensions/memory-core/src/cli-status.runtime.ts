@@ -534,7 +534,7 @@ export async function runMemoryStatus(
       }
       if (!opts.fix) {
         if (audit.issues.some((issue) => issue.fixable)) {
-          lines.push(`  ${muted(`Fix: openclaw memory status --fix --agent ${agentId}`)}`);
+          lines.push(`  ${muted(`Fix: vasudev memory status --fix --agent ${agentId}`)}`);
         }
       }
     }
@@ -546,7 +546,7 @@ export async function runMemoryStatus(
         lines.push(`  ${issue.severity === "error" ? warn(issue.message) : muted(issue.message)}`);
       }
       if (!opts.fix && dreamingAudit.issues.some((issue) => issue.fixable)) {
-        lines.push(`  ${muted(`Fix: openclaw memory status --fix --agent ${agentId}`)}`);
+        lines.push(`  ${muted(`Fix: vasudev memory status --fix --agent ${agentId}`)}`);
       }
     }
     defaultRuntime.log(lines.join("\n"));

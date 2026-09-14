@@ -1,5 +1,5 @@
 /**
- * Persistent lease store for ACPX wrapper processes. Leases let OpenClaw attach
+ * Persistent lease store for ACPX wrapper processes. Leases let Vasudev attach
  * gateway/session identity to spawned ACP processes and clean them up later.
  */
 import { createHash } from "node:crypto";
@@ -22,7 +22,7 @@ export type AcpxProcessLeaseIdentity = {
   gatewayInstanceId: string;
 };
 
-/** Read OpenClaw lease identity from a generated wrapper command. */
+/** Read Vasudev lease identity from a generated wrapper command. */
 export function readAcpxProcessLeaseIdentity(
   command: AcpxAgentCommand | undefined,
 ): AcpxProcessLeaseIdentity | undefined {

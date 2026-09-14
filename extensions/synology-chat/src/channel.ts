@@ -1,5 +1,5 @@
 /**
- * Synology Chat Channel Plugin for OpenClaw.
+ * Synology Chat Channel Plugin for Vasudev.
  *
  * Implements the ChannelPlugin interface following the LINE pattern.
  */
@@ -81,7 +81,7 @@ const resolveSynologyChatDmPolicy = createScopedDmSecurityResolver<ResolvedSynol
   resolveAllowFrom: (account) => account.allowedUserIds,
   policyPathSuffix: "dmPolicy",
   defaultPolicy: "allowlist",
-  approveHint: "openclaw pairing approve synology-chat <code>",
+  approveHint: "vasudev pairing approve synology-chat <code>",
   normalizeEntry: (raw) => normalizeLowercaseStringOrEmpty(raw),
 });
 
@@ -379,7 +379,7 @@ function createSynologyChatPlugin(): SynologyChatPlugin {
         selectionLabel: "Synology Chat (Webhook)",
         detailLabel: "Synology Chat (Webhook)",
         docsPath: "/channels/synology-chat",
-        blurb: "Connect your Synology NAS Chat to OpenClaw",
+        blurb: "Connect your Synology NAS Chat to Vasudev",
         order: 90,
       },
       capabilities: {
@@ -500,7 +500,7 @@ function createSynologyChatPlugin(): SynologyChatPlugin {
           "  Example: `<https://example.com|Click here>` renders as a clickable link.",
           "",
           "**File sharing**: Send files through the media attachment field.",
-          "  OpenClaw freezes the bytes and gives the NAS a short-lived download capability (max 32 MB).",
+          "  Vasudev freezes the bytes and gives the NAS a short-lived download capability (max 32 MB).",
           "",
           "**Limitations**:",
           "- No markdown, bold, italic, or code blocks",
@@ -520,7 +520,7 @@ function createSynologyChatPlugin(): SynologyChatPlugin {
     pairing: {
       text: {
         idLabel: "synologyChatUserId",
-        message: "OpenClaw: your access has been approved.",
+        message: "Vasudev: your access has been approved.",
         normalizeAllowEntry: (entry: string) => normalizeLowercaseStringOrEmpty(entry),
         notify: async (params) => {
           await sendSynologyChatText({ ...params, to: params.id, text: params.message });

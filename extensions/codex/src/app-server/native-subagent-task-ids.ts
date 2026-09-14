@@ -1,5 +1,5 @@
 /**
- * Shared identifiers for representing Codex native subagents as OpenClaw task
+ * Shared identifiers for representing Codex native subagents as Vasudev task
  * runtime rows.
  */
 /** Task runtime namespace for Codex native subagent task rows. */

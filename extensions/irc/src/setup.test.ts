@@ -75,7 +75,7 @@ function buildAccount(): ResolvedIrcAccount {
     tls: true,
     nick: "openclaw",
     username: "openclaw",
-    realname: "OpenClaw",
+    realname: "Vasudev",
     password: "",
     passwordSource: "none",
     config: {} as ResolvedIrcAccount["config"],
@@ -330,7 +330,7 @@ describe("irc setup", () => {
           tls: true,
           nick: " openclaw ",
           username: " claw ",
-          realname: " OpenClaw Bot ",
+          realname: " Vasudev Bot ",
           password: " secret ",
           channels: ["#openclaw"],
         },
@@ -345,7 +345,7 @@ describe("irc setup", () => {
           tls: true,
           nick: "openclaw",
           username: "claw",
-          realname: "OpenClaw Bot",
+          realname: "Vasudev Bot",
           password: "secret",
           channels: ["#openclaw"],
         },
@@ -369,7 +369,7 @@ describe("irc setup", () => {
           return "openclaw";
         }
         if (message === "IRC real name") {
-          return "OpenClaw Bot";
+          return "Vasudev Bot";
         }
         if (message.startsWith("Auto-join IRC channels")) {
           return "#openclaw, #ops";

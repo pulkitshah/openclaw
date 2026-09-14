@@ -37,7 +37,7 @@ export async function spawnSandboxChild(params: {
     });
   if (!command) {
     await finalize("failed", null).catch(params.onFinalizeError);
-    throw new Error("OpenClaw sandbox exec spec did not provide a command.");
+    throw new Error("Vasudev sandbox exec spec did not provide a command.");
   }
   let child: ChildProcessWithoutNullStreams;
   try {

@@ -137,7 +137,7 @@ function normalizeOllamaThinkValue(
     return "low";
   }
   if (value === "xhigh" || value === "adaptive") {
-    // These OpenClaw-only tiers are not advertised by Ollama; keep their established high mapping.
+    // These Vasudev-only tiers are not advertised by Ollama; keep their established high mapping.
     return "high";
   }
   return undefined;

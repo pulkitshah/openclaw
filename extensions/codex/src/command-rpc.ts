@@ -130,7 +130,7 @@ export async function prepareCodexControlSessionAuth(
   const route = plan.modelRoute;
   // A control subscription must use the same prepared auth partition as a turn.
   // Unsubscribe leaves Codex's native writer loaded for 30 minutes; another
-  // process cannot resume that thread, even after its OpenClaw binding is gone.
+  // process cannot resume that thread, even after its Vasudev binding is gone.
   const resolvedAuth = route
     ? await resolveApiKeyForProvider({
         provider: route.provider,

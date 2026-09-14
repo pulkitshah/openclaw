@@ -428,7 +428,7 @@ describe("CodexAppServerClient", () => {
       params: {
         clientInfo: {
           name: "openclaw",
-          title: "OpenClaw",
+          title: "Vasudev",
           version: OPENCLAW_VERSION,
         },
         capabilities: {
@@ -550,7 +550,7 @@ describe("CodexAppServerClient", () => {
     expect(warn).toHaveBeenCalledTimes(warnings);
     if (warnings > 0) {
       expect(warn).toHaveBeenCalledWith(
-        "codex app-server is newer than OpenClaw's managed runtime; continuing with normal startup validation",
+        "codex app-server is newer than Vasudev's managed runtime; continuing with normal startup validation",
         {
           detectedVersion: version,
           validatedVersion: CODEX_APP_SERVER_VERSION,
@@ -837,7 +837,7 @@ describe("CodexAppServerClient", () => {
         contentItems: [
           {
             type: "inputText",
-            text: `OpenClaw dynamic tool call timed out after ${CODEX_DYNAMIC_TOOL_SERVER_REQUEST_TIMEOUT_MS}ms before sending a response to Codex.`,
+            text: `Vasudev dynamic tool call timed out after ${CODEX_DYNAMIC_TOOL_SERVER_REQUEST_TIMEOUT_MS}ms before sending a response to Codex.`,
           },
         ],
       },
@@ -970,7 +970,7 @@ describe("CodexAppServerClient", () => {
       result: {
         action: "decline",
         content: null,
-        _meta: { message: "OpenClaw has no interactive handler for this elicitation." },
+        _meta: { message: "Vasudev has no interactive handler for this elicitation." },
       },
     });
   });

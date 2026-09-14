@@ -80,7 +80,7 @@ describe("runCodexAppServerAttempt native hook relay", () => {
       runCodexAppServerAttempt(createLoopRelayParams(sessionFile, workspaceDir), {
         nativeHookRelay: { enabled: true, events: ["pre_tool_use"] },
       }),
-    ).rejects.toThrow(/managed-only hooks.*OpenClaw native hook relay/i);
+    ).rejects.toThrow(/managed-only hooks.*Vasudev native hook relay/i);
     expect(harness.requests.some((request) => request.method === "thread/start")).toBe(false);
   });
 

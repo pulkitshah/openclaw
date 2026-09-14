@@ -39,7 +39,7 @@ const WHATSAPP_LOGIN_RESTART_MESSAGE =
 const WHATSAPP_LOGIN_TIMEOUT_RESTART_MESSAGE =
   "WhatsApp connection timed out before login; retrying with a fresh socket…";
 const WHATSAPP_LOGGED_OUT_RELINK_MESSAGE =
-  "WhatsApp reported the session is logged out. Cleared cached web session; please rerun openclaw channels login and scan the QR again.";
+  "WhatsApp reported the session is logged out. Cleared cached web session; please rerun vasudev channels login and scan the QR again.";
 const WHATSAPP_LOGIN_AUTH_UNSTABLE_MESSAGE =
   "WhatsApp connected, but saving the linked credentials has not settled on disk yet. Retry login in a moment.";
 const WHATSAPP_LOGIN_AUTH_NOT_PERSISTED_MESSAGE =
@@ -210,7 +210,7 @@ export function closeWaSocket(
 ): void {
   try {
     if (typeof sock?.end === "function") {
-      void Promise.resolve(sock.end(new Error("OpenClaw WhatsApp socket close"))).catch(
+      void Promise.resolve(sock.end(new Error("Vasudev WhatsApp socket close"))).catch(
         async () => await closeWebSocketBestEffort(sock),
       );
       return;
@@ -947,7 +947,7 @@ export class WhatsAppConnectionController {
 
   private async finishSocketCleanup(cleanup: WhatsAppSocketCleanup): Promise<void> {
     if (!cleanup.socketClosed) {
-      await closeWhatsAppSocketAndWait(cleanup.sock, "OpenClaw WhatsApp socket close");
+      await closeWhatsAppSocketAndWait(cleanup.sock, "Vasudev WhatsApp socket close");
       cleanup.socketClosed = true;
     }
     const queueResult = await waitForCredsSaveQueueWithTimeout(this.authDir);

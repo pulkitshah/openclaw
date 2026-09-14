@@ -269,7 +269,7 @@ export function buildGoogleSimpleThinking<T extends GoogleApiType>(
 function getDisabledGoogleThinkingConfig<T extends GoogleApiType>(model: Model<T>): ThinkingConfig {
   // Google docs: Gemini 3.1 Pro cannot disable thinking, and Gemini 3 Flash / Flash-Lite
   // do not support full thinking-off either. For Gemini 3 models, use the lowest supported
-  // thinkingLevel without includeThoughts so hidden thinking remains invisible to OpenClaw.
+  // thinkingLevel without includeThoughts so hidden thinking remains invisible to Vasudev.
   if (isGemini3ProModel(model)) {
     return { thinkingLevel: ThinkingLevel.LOW };
   }

@@ -41,7 +41,7 @@ async function writeRollout(payload: Record<string, unknown>): Promise<string> {
 }
 
 describe("Codex catalog provenance", () => {
-  it("recognizes an OpenClaw-originated rollout even when Codex reports vscode", async () => {
+  it("recognizes a Vasudev-originated rollout even when Codex reports vscode", async () => {
     const file = await writeRollout({
       id: "managed-thread",
       originator: "openclaw",

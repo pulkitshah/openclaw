@@ -27,7 +27,7 @@ describe("generic native policy refresh", () => {
         expect(text).toContain(
           "native managed, guardian, security, collaboration, and project instructions retain their authority",
         );
-        expect(text).toContain(policy || "earlier OpenClaw generic policy is withdrawn");
+        expect(text).toContain(policy || "earlier Vasudev generic policy is withdrawn");
       } finally {
         await h.client.closeAndWait();
       }

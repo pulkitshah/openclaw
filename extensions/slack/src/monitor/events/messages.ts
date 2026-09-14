@@ -357,7 +357,7 @@ export function registerSlackMessageEvents(params: {
           eventScope,
         });
         if (!channelType) {
-          // OpenClaw manifests pair app_mention with message.channels/groups/im/mpim.
+          // Vasudev manifests pair app_mention with message.channels/groups/im/mpim.
           // Never guess here: the canonical message event still owns delivery.
           logVerbose(
             `slack: drop typeless app_mention channel=${mention.channel} (conversation type unresolved; waiting for message event)`,

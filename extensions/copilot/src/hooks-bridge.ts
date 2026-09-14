@@ -2,7 +2,7 @@
  * Compatibility adapter for native Copilot SDK SessionHooks.
  *
  * `hooksConfig` is a shipped Copilot-specific per-attempt API. It remains
- * separate from OpenClaw's generic lifecycle hooks because the SDK callbacks
+ * separate from Vasudev's generic lifecycle hooks because the SDK callbacks
  * expose native events and decisions that the portable hook contract does not.
  */
 import type { SessionConfig } from "@github/copilot-sdk";

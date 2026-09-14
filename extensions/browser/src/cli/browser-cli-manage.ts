@@ -197,7 +197,7 @@ async function runBrowserDoctor(parent: BrowserParentOpts, profile?: string, dee
     ok: status.running,
     detail: status.running
       ? `running${status.cdpReady === false ? ", CDP not ready" : ""}`
-      : "not running; run `openclaw browser start`",
+      : "not running; run `vasudev browser start`",
   });
   const extensionVersionCheck = report.checks.find((check) => check.id === "extension-version");
   if (extensionVersionCheck) {

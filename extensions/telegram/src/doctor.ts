@@ -592,7 +592,7 @@ export const telegramDoctor: ChannelDoctorAdapter = {
       .filter(({ config }) => Boolean(config.webhookUrl) && config.webhookPath === "/healthz")
       .map(
         ({ accountId }) =>
-          `- Telegram account "${accountId}" resolves webhookPath to /healthz, which is reserved for webhook listener health checks. Change webhookPath and the public webhook URL or proxy route before restarting OpenClaw.`,
+          `- Telegram account "${accountId}" resolves webhookPath to /healthz, which is reserved for webhook listener health checks. Change webhookPath and the public webhook URL or proxy route before restarting Vasudev.`,
       ),
     ...collectTelegramSelectedQuoteToolProgressWarnings({
       hits: scanTelegramSelectedQuoteToolProgressWarnings(cfg),

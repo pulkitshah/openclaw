@@ -40,12 +40,12 @@ import type {
   ToolInvokeResult,
 } from "./types.js";
 
-// High-level OpenClaw SDK client. Namespaces below translate friendly SDK calls
+// High-level Vasudev SDK client. Namespaces below translate friendly SDK calls
 // into current Gateway RPC methods and normalize event streams for consumers.
 const MAX_REPLAY_RUNS = 100;
 const MAX_REPLAY_EVENTS_PER_RUN = 500;
 
-/** Connection and transport options for the OpenClaw SDK client. */
+/** Connection and transport options for the Vasudev SDK client. */
 export type OpenClawOptions = {
   gateway?: "auto" | (string & {});
   url?: string;
@@ -108,7 +108,7 @@ function assertNoUnsupportedRunOptions(params: AgentRunParams): void {
     return;
   }
   throw new Error(
-    `OpenClaw Gateway does not support per-run SDK option${
+    `Vasudev Gateway does not support per-run SDK option${
       unsupported.length === 1 ? "" : "s"
     } yet: ${unsupported.join(", ")}`,
   );
@@ -135,7 +135,7 @@ function buildAgentParams(params: AgentRunParams): Record<string, unknown> {
 }
 
 function unsupportedGatewayApi(api: string): never {
-  throw new Error(`${api} is not supported by the current OpenClaw Gateway yet`);
+  throw new Error(`${api} is not supported by the current Vasudev Gateway yet`);
 }
 
 type ChatProjectionState = "delta" | "final" | "error" | "aborted";
@@ -374,7 +374,7 @@ export class OpenClaw {
 
   private assertOpen(): void {
     if (this.closed) {
-      throw new Error("OpenClaw SDK client is closed");
+      throw new Error("Vasudev SDK client is closed");
     }
   }
 

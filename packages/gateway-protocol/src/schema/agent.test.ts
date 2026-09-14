@@ -53,7 +53,7 @@ const musicCompletionEvent: AgentInternalEvent = {
   childSessionKey: "music_generate:task-123",
   childSessionId: "task-123",
   announceType: "music generation task",
-  taskLabel: "OpenClaw release anthem",
+  taskLabel: "Vasudev release anthem",
   status: "ok",
   statusLabel: "completed successfully",
   result: "Generated 1 track.",

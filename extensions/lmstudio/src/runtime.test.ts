@@ -62,7 +62,7 @@ describe("lmstudio-runtime", () => {
       resolveLmstudioRuntimeApiKey({
         config: buildLmstudioConfig({ auth: "api-key" }),
       }),
-    ).rejects.toThrow('or run "openclaw models auth login --provider lmstudio".');
+    ).rejects.toThrow('or run "vasudev models auth login --provider lmstudio".');
   });
 
   it("falls back to configured env marker key when profile resolution fails", async () => {

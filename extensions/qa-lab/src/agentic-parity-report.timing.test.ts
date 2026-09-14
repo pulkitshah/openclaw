@@ -74,7 +74,7 @@ describe("qa runtime parity timing reporting", () => {
     expect(markdown).toContain("- gateway bootstrap (excluded): openclaw 4000 ms; codex 12000 ms");
   });
 
-  it("reports when OpenClaw is faster without changing the parity verdict", () => {
+  it("reports when Vasudev is faster without changing the parity verdict", () => {
     const summary = makeRuntimeParitySummary();
     for (const scenario of summary.scenarios) {
       if (scenario.runtimeParity) {

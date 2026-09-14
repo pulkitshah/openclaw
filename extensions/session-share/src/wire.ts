@@ -179,7 +179,7 @@ export function parseSessionSharePage(raw: unknown): SessionSharePage {
     !isSessionPage(value) ||
     (value.nextCursor !== undefined && !sessionCatalogPaging.isExactCursor(value.nextCursor))
   ) {
-    throw new Error("Invalid OpenClaw session page from paired node");
+    throw new Error("Invalid Vasudev session page from paired node");
   }
   return value;
 }
@@ -190,7 +190,7 @@ export function parseSessionShareTranscriptPage(
 ): SessionShareTranscriptPage {
   const value = unwrapPayload(raw);
   if (!isTranscriptPage(value) || value.threadId !== threadId) {
-    throw new Error("Invalid OpenClaw transcript page from paired node");
+    throw new Error("Invalid Vasudev transcript page from paired node");
   }
   return value;
 }

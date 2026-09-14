@@ -117,7 +117,7 @@ describe("CodexAppServerEventProjector command output projection", () => {
     const content = requireArray(message.content, "tool result content");
     const item = requireRecord(content[0], "tool result content item");
     expect(item.content).toBe(
-      `${prefix}\n...(OpenClaw truncated Codex native tool output: original 10288 chars, showing 10000; rerun with narrower args.)`,
+      `${prefix}\n...(Vasudev truncated Codex native tool output: original 10288 chars, showing 10000; rerun with narrower args.)`,
     );
     // A split surrogate would leave a lone code unit behind.
     expect(item.content).not.toMatch(/[\uD800-\uDFFF]/);
@@ -166,7 +166,7 @@ describe("CodexAppServerEventProjector command output projection", () => {
     // A split surrogate would leave a lone code unit behind; the streamed output
     // must stay well-formed while still carrying the truncation notice.
     expect(item.content).not.toMatch(/[\uD800-\uDFFF]/);
-    expect(item.content).toContain("OpenClaw truncated Codex native tool output");
+    expect(item.content).toContain("Vasudev truncated Codex native tool output");
     expect(item.content).toContain("showing 10000");
   });
 
@@ -288,7 +288,7 @@ describe("CodexAppServerEventProjector command output projection", () => {
       trajectoryRecorder,
     });
     const userOutputWithNotice =
-      "...(OpenClaw truncated Codex native tool output is a literal line from the process)\n";
+      "...(Vasudev truncated Codex native tool output is a literal line from the process)\n";
 
     await projector.handleNotification(
       forCurrentTurn("item/commandExecution/outputDelta", {
@@ -344,7 +344,7 @@ describe("CodexAppServerEventProjector command output projection", () => {
       trajectoryRecorder,
     });
     const userOutputWithNotice =
-      "before user marker\n...(OpenClaw truncated Codex native tool output: original literal process text)\nsecond line must survive\n";
+      "before user marker\n...(Vasudev truncated Codex native tool output: original literal process text)\nsecond line must survive\n";
 
     await projector.handleNotification(
       forCurrentTurn("item/commandExecution/outputDelta", {
@@ -382,7 +382,7 @@ describe("CodexAppServerEventProjector command output projection", () => {
         | undefined
     )?.output;
     expect(output).toHaveLength(10_000);
-    expect(output).toContain("OpenClaw truncated Codex native tool output");
+    expect(output).toContain("Vasudev truncated Codex native tool output");
     expect(output).toContain("original 12124 chars");
     expect(output).toContain("before user marker");
     expect(output).toContain("second line must survive");
@@ -434,10 +434,10 @@ describe("CodexAppServerEventProjector command output projection", () => {
         | undefined
     )?.output;
     expect(output).toHaveLength(10_000);
-    expect(output).toContain("OpenClaw truncated Codex native tool output");
+    expect(output).toContain("Vasudev truncated Codex native tool output");
     expect(output).toContain("original 13023 chars");
     expect(output).toContain("showing 10000");
-    expect(output?.match(/OpenClaw truncated Codex native tool output/g)).toHaveLength(1);
+    expect(output?.match(/Vasudev truncated Codex native tool output/g)).toHaveLength(1);
 
     const result = projector.buildResult(buildEmptyToolTelemetry());
     const toolResultMessage = result.messagesSnapshot.find(
@@ -449,7 +449,7 @@ describe("CodexAppServerEventProjector command output projection", () => {
     );
     const toolResultContentItem = requireRecord(toolResultContent[0], "tool result content item");
     expect(toolResultContentItem.content).toHaveLength(10_000);
-    expect(toolResultContentItem.content).toContain("OpenClaw truncated Codex native tool output");
+    expect(toolResultContentItem.content).toContain("Vasudev truncated Codex native tool output");
   });
 
   it("uses streamed command output for failed native tool errors", async () => {

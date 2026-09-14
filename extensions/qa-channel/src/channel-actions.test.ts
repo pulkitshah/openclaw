@@ -24,7 +24,7 @@ function createQaChannelConfig(baseUrl: string) {
       "qa-channel": {
         baseUrl,
         botUserId: "openclaw",
-        botDisplayName: "OpenClaw QA",
+        botDisplayName: "Vasudev QA",
       },
     },
   };

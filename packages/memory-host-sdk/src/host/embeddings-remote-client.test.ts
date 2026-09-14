@@ -163,7 +163,7 @@ describe("resolveRemoteEmbeddingBearerClient", () => {
     ).rejects.toThrow(/memory\.search\.remote\.apiKey|Authorization header/);
   });
 
-  it("adds OpenClaw attribution to native OpenAI embedding requests", async () => {
+  it("adds Vasudev attribution to native OpenAI embedding requests", async () => {
     vi.stubEnv("OPENCLAW_VERSION", "2026.3.22");
     const client = await resolveRemoteEmbeddingBearerClient({
       provider: "openai",

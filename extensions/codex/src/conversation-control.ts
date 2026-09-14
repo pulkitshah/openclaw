@@ -400,7 +400,7 @@ export function formatPermissionsMode(
 
 function requirePreparedThreadBinding(binding: CodexAppServerThreadBinding | undefined) {
   if (!binding?.threadId) {
-    throw new Error("No Codex thread is attached to this OpenClaw session yet.");
+    throw new Error("No Codex thread is attached to this Vasudev session yet.");
   }
   return binding;
 }

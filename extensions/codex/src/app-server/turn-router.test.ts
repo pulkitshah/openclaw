@@ -653,7 +653,7 @@ describe("CodexAppServerTurnRouter", () => {
         contentItems: [
           {
             type: "inputText",
-            text: "OpenClaw did not register a handler for this app-server tool call.",
+            text: "Vasudev did not register a handler for this app-server tool call.",
           },
         ],
         success: false,

@@ -620,7 +620,7 @@ export async function applyShortTermPromotions(
           const header = baseMemory.trim().length > 0 ? "" : "# Long-Term Memory\n\n";
           const content = `${header}${withTrailingNewline(baseMemory)}${section}`;
           // Append fallback keeps the historical read-modify-replace contract. Policy accepts
-          // its external-editor race because OpenClaw writers remain serialized by this sweep lock.
+          // its external-editor race because Vasudev writers remain serialized by this sweep lock.
           await commitMemoryContent({
             filePath: memoryWritePath,
             tempPrefix: `${path.basename(memoryPath)}.promotion`,

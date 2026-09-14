@@ -980,12 +980,12 @@ class OpenShellSandboxBackendImpl {
   }
 
   private buildLegacyRuntimeUnavailableError(detail: string): Error {
-    const recreateCommand = `openclaw sandbox recreate --session ${shellEscape(this.params.createParams.scopeKey)}`;
+    const recreateCommand = `vasudev sandbox recreate --session ${shellEscape(this.params.createParams.scopeKey)}`;
     return new Error(
       [
         `Registered legacy OpenShell sandbox "${this.params.execContext.sandboxName}" is not usable.`,
         detail,
-        `OpenClaw will not recreate this retired runtime name. Run \`${recreateCommand}\` to migrate this scope to the current naming format.`,
+        `Vasudev will not recreate this retired runtime name. Run \`${recreateCommand}\` to migrate this scope to the current naming format.`,
       ]
         .filter(Boolean)
         .join(" "),

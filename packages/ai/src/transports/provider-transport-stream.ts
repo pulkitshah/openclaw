@@ -1,7 +1,7 @@
 /**
  * Transport-aware stream factory selection.
  *
- * Routes models that need OpenClaw-managed proxy/TLS/local-service semantics onto built-in transport implementations.
+ * Routes models that need Vasudev-managed proxy/TLS/local-service semantics onto built-in transport implementations.
  */
 import type { Api, Model, StreamFn } from "@openclaw/llm-core";
 import { getAiTransportHost } from "../host.js";
@@ -104,7 +104,7 @@ function hasOpenClawTransportRequirement(model: Model): boolean {
   return getAiTransportHost().requiresManagedTransport(model);
 }
 
-/** Returns whether OpenClaw has a managed transport implementation for this API. */
+/** Returns whether Vasudev has a managed transport implementation for this API. */
 function isTransportAwareApiSupported(api: Api): boolean {
   return SUPPORTED_TRANSPORT_APIS.has(api);
 }
@@ -138,12 +138,12 @@ export function createTransportAwareStreamFnForModel(
   return streamFn;
 }
 
-/** Creates a managed OpenClaw transport stream for explicit fallback/runtime callers. */
+/** Creates a managed Vasudev transport stream for explicit fallback/runtime callers. */
 export function createOpenClawTransportStreamFnForModel(
   model: Model,
   ctx?: ProviderTransportStreamContext,
 ): StreamFn | undefined {
-  // Explicit fallback callers use this when they need OpenClaw's HTTP
+  // Explicit fallback callers use this when they need Vasudev's HTTP
   // transport semantics regardless of the default embedded-runner strategy.
   // Native OpenAI HTTP still depends on this path for strict tool shaping,
   // attribution, cache-boundary stripping, and runtime credential injection.
@@ -158,7 +158,7 @@ export function createBoundaryAwareStreamFnForModel(
   ctx?: ProviderTransportStreamContext,
 ): StreamFn | undefined {
   // Default embedded-runner fallback. Keep OpenAI-family APIs here while native
-  // HTTP streams preserve the same OpenClaw request contract.
+  // HTTP streams preserve the same Vasudev request contract.
   if (!isTransportAwareApiSupported(model.api)) {
     return undefined;
   }

@@ -341,7 +341,7 @@ describe("openshell backend manager", () => {
         script: "true",
       }),
     ).rejects.toThrow(
-      `Run \`openclaw sandbox recreate --session ${shellEscape(scopeKey)}\` to migrate this scope`,
+      `Run \`vasudev sandbox recreate --session ${shellEscape(scopeKey)}\` to migrate this scope`,
     );
     expect(cliMocks.runOpenShellCli).toHaveBeenCalledTimes(1);
     expect(cliMocks.runOpenShellCli).not.toHaveBeenCalledWith(
@@ -505,7 +505,7 @@ describe("openshell backend manager", () => {
     },
   );
 
-  it("checks runtime status with config override from OpenClaw config", async () => {
+  it("checks runtime status with config override from Vasudev config", async () => {
     cliMocks.runOpenShellCli.mockResolvedValue({
       code: 0,
       stdout: JSON.stringify({ phase: "Ready" }),

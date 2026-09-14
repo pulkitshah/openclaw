@@ -221,7 +221,7 @@ const COMPUTER_USE_MARKETPLACE_NAME_PRIORITY = [
   "local",
 ];
 const COMPUTER_USE_LIVE_TEST_RETRY_COUNT = 1;
-const COMPUTER_USE_LIVE_TEST_THREAD_NAME = "OpenClaw Computer Use readiness probe";
+const COMPUTER_USE_LIVE_TEST_THREAD_NAME = "Vasudev Computer Use readiness probe";
 
 /** Reads Computer Use readiness without installing or mutating app-server state. */
 export async function readCodexComputerUseStatus(
@@ -915,7 +915,7 @@ async function migrateLegacyBundledMarketplaceSource(params: {
   }
 
   // Codex hides a reserved marketplace whose old direct source violates its
-  // managed-root policy. Remove only sources OpenClaw previously provisioned.
+  // managed-root policy. Remove only sources Vasudev previously provisioned.
   const configuredSource = path.resolve(bundled.source);
   if (configuredSource === path.resolve(params.bundledMarketplacePath)) {
     return;

@@ -642,7 +642,7 @@ describe("qa suite", () => {
 
     try {
       const partial = await writeQaSuiteArtifacts({ ...baseParams, status: "running" });
-      expect(partial.report).toContain("# OpenClaw QA Scenario Suite (In Progress)");
+      expect(partial.report).toContain("# Vasudev QA Scenario Suite (In Progress)");
       expect(partial.report).toContain("- Status: running");
       expect(partial.report).toContain("- Updated: 2026-04-11T00:01:00.000Z");
       expect(partial.report).not.toContain("- Finished:");
@@ -652,7 +652,7 @@ describe("qa suite", () => {
       );
 
       const terminal = await writeQaSuiteArtifacts(baseParams);
-      expect(terminal.report).toContain("# OpenClaw QA Scenario Suite\n");
+      expect(terminal.report).toContain("# Vasudev QA Scenario Suite\n");
       expect(terminal.report).toContain("- Finished: 2026-04-11T00:01:00.000Z");
       expect(terminal.report).not.toContain("In Progress");
       expect(terminal.report).not.toContain("- Status: running");

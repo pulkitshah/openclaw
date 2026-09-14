@@ -146,7 +146,7 @@ afterEach(async () => {
   resetDiagnosticEventsForTest();
 });
 
-test("disables every OpenClaw route while preserving W3C propagation", async () => {
+test("disables every Vasudev route while preserving W3C propagation", async () => {
   const receiver = startLocalOtlpReceiver();
   const port = await receiver.listen();
   const stdoutWrites: string[] = [];

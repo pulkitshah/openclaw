@@ -781,7 +781,7 @@ describe("monitorSlackProvider tool results", () => {
 
     expect(sendMock).toHaveBeenCalledTimes(1);
     expect(firstMockArg(sendMock, "send", 1)).toBe(
-      "PFX ⚠️ OpenClaw couldn't produce or deliver a reply. Please try again. If this keeps happening, ask the operator to check the gateway logs.",
+      "PFX ⚠️ Vasudev couldn't produce or deliver a reply. Please try again. If this keeps happening, ask the operator to check the gateway logs.",
     );
     await vi.waitFor(
       () =>
@@ -802,7 +802,7 @@ describe("monitorSlackProvider tool results", () => {
 
     expect(sendMock).toHaveBeenCalledTimes(1);
     expect(firstMockArg(sendMock, "send", 1)).toBe(
-      "PFX ⚠️ OpenClaw couldn't produce or deliver a reply. Please try again. If this keeps happening, ask the operator to check the gateway logs.",
+      "PFX ⚠️ Vasudev couldn't produce or deliver a reply. Please try again. If this keeps happening, ask the operator to check the gateway logs.",
     );
     await vi.waitFor(
       () =>

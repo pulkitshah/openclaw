@@ -3,7 +3,7 @@
  */
 import { CodexAppServerRpcError } from "./rpc-error.js";
 
-/** Known app-server methods used by OpenClaw control surfaces. */
+/** Known app-server methods used by Vasudev control surfaces. */
 export const CODEX_CONTROL_METHODS = {
   account: "account/read",
   installedApps: "app/installed",

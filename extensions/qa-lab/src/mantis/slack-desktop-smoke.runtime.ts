@@ -821,14 +821,14 @@ console.log(match[1] + " " + match[2]);
   },
 }
 MANTIS_SLACK_PATCH
-    pnpm openclaw config patch --file "$out/slack.socket.patch.json5" --dry-run
-    pnpm openclaw config patch --file "$out/slack.socket.patch.json5"
-    nohup pnpm openclaw gateway run --dev --allow-unconfigured --port 38973 --cli-backend-logs </dev/null >"$out/openclaw-gateway.log" 2>&1 &
+    pnpm vasudev config patch --file "$out/slack.socket.patch.json5" --dry-run
+    pnpm vasudev config patch --file "$out/slack.socket.patch.json5"
+    nohup pnpm vasudev gateway run --dev --allow-unconfigured --port 38973 --cli-backend-logs </dev/null >"$out/openclaw-gateway.log" 2>&1 &
     gateway_pid="$!"
     echo "$gateway_pid" >"$out/openclaw-gateway.pid"
     sleep 12
     if ! kill -0 "$gateway_pid" >/dev/null 2>&1; then
-      echo "OpenClaw gateway exited during startup." >&2
+      echo "Vasudev gateway exited during startup." >&2
       wait "$gateway_pid" || true
       exit 1
     fi
@@ -1379,7 +1379,7 @@ export async function runMantisSlackDesktopSmoke(
       throw toQaError(remoteRunError);
     }
     if (gatewaySetup && !gatewaySetupCompleted) {
-      throw new Error("Slack desktop gateway setup did not report a live OpenClaw gateway.");
+      throw new Error("Slack desktop gateway setup did not report a live Vasudev gateway.");
     }
     if (!gatewaySetup && !slackQaCompleted) {
       const detail =

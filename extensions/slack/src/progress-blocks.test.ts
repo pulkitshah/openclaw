@@ -991,7 +991,7 @@ describe("native Slack progress stream chunks", () => {
           {
             type: "url_source",
             url: "https://team.openclaw.ai/openclaw/chat/main",
-            text: "Open in OpenClaw",
+            text: "Open in Vasudev",
           },
         ],
       }),

@@ -105,7 +105,7 @@ function buildPendingPayload(params: {
           )}/approve/${encodeURIComponent(params.request.id)}`
         : undefined;
     const lines = [
-      "🔒 OpenClaw change requires approval",
+      "🔒 Vasudev change requires approval",
       `Change: ${view.operationSummary}`,
       `Agent: ${view.agentId ?? "unknown"}`,
       `Expires in: ${formatExecApprovalExpiresIn(params.request.expiresAtMs, params.nowMs)}`,

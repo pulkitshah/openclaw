@@ -1,5 +1,5 @@
 /**
- * `oc://` path syntax — universal addressing for the OpenClaw workspace.
+ * `oc://` path syntax — universal addressing for the Vasudev workspace.
  *
  *     oc://{file}[/{section}[/{item}[/{field}]]][?session={id}]
  *

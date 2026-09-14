@@ -1,5 +1,5 @@
 /**
- * OpenClaw-managed Chrome lifecycle and CDP helpers.
+ * Vasudev-managed Chrome lifecycle and CDP helpers.
  *
  * Builds launch args, starts/stops managed Chrome, probes CDP readiness, and
  * resolves WebSocket endpoints for browser control.
@@ -623,7 +623,7 @@ async function ensureManagedChromePortAvailable(
     }
   };
 
-  // Chromium tries IPv4 loopback first, while OpenClaw polls the configured endpoint.
+  // Chromium tries IPv4 loopback first, while Vasudev polls the configured endpoint.
   // Probe both so neither Chrome's bind nor the later readiness check can be captured.
   try {
     await ensureProbeHostsAvailable();
@@ -712,7 +712,7 @@ function resolveBrowserExecutable(
   );
 }
 
-/** Resolve the user-data-dir path for a managed OpenClaw Chrome profile. */
+/** Resolve the user-data-dir path for a managed Vasudev Chrome profile. */
 export function resolveOpenClawUserDataDir(profileName = DEFAULT_OPENCLAW_BROWSER_PROFILE_NAME) {
   return path.join(CONFIG_DIR, "browser", profileName, "user-data");
 }
@@ -721,7 +721,7 @@ function cdpUrlForPort(cdpPort: number) {
   return `http://127.0.0.1:${cdpPort}`;
 }
 
-/** Build Chrome launch arguments for the managed OpenClaw browser. */
+/** Build Chrome launch arguments for the managed Vasudev browser. */
 function buildOpenClawChromeLaunchArgs(params: {
   resolved: ResolvedBrowserConfig;
   profile: ResolvedBrowserProfile;
@@ -749,7 +749,7 @@ function buildOpenClawChromeLaunchArgs(params: {
   ];
 
   if (platform === "darwin" && params.useMockKeychain) {
-    // This is an isolated OpenClaw-owned profile, not the user's Chrome profile.
+    // This is an isolated Vasudev-owned profile, not the user's Chrome profile.
     // Keep its basic password store non-interactive so headless Chrome can
     // encrypt and persist cookies without login-keychain prompts.
     args.push("--use-mock-keychain");
@@ -913,7 +913,7 @@ async function waitForManagedLaunchPoll(delayMs: number, signal?: AbortSignal): 
   }
 }
 
-/** Launch or attach to the managed OpenClaw Chrome profile. */
+/** Launch or attach to the managed Vasudev Chrome profile. */
 export async function launchOpenClawChrome(
   resolved: ResolvedBrowserConfig,
   profile: ResolvedBrowserProfile,
@@ -1118,22 +1118,22 @@ export async function launchOpenClawChrome(
         downloadDir: DEFAULT_DOWNLOAD_DIR,
         mockKeychain: useMockKeychain,
       });
-      log.info(`🦞 openclaw browser profile decorated (${profile.color})`);
+      log.info(`🦞 vasudev browser profile decorated (${profile.color})`);
     } catch (err) {
-      log.warn(`openclaw browser profile decoration failed: ${String(err)}`);
+      log.warn(`vasudev browser profile decoration failed: ${String(err)}`);
     }
   }
 
   try {
     ensureProfileNetworkPredictionDisabled(userDataDir);
   } catch (err) {
-    log.warn(`openclaw browser network-prediction prefs failed: ${String(err)}`);
+    log.warn(`vasudev browser network-prediction prefs failed: ${String(err)}`);
   }
 
   try {
     ensureProfileCleanExit(userDataDir);
   } catch (err) {
-    log.warn(`openclaw browser clean-exit prefs failed: ${String(err)}`);
+    log.warn(`vasudev browser clean-exit prefs failed: ${String(err)}`);
   }
   signal?.throwIfAborted();
 
@@ -1235,7 +1235,7 @@ export async function launchOpenClawChrome(
       signal?.throwIfAborted();
       const pid = spawned.pid;
       log.info(
-        `🦞 openclaw browser started (${exe.kind}) profile "${profile.name}" on 127.0.0.1:${profile.cdpPort} (pid ${pid})`,
+        `🦞 vasudev browser started (${exe.kind}) profile "${profile.name}" on 127.0.0.1:${profile.cdpPort} (pid ${pid})`,
       );
 
       return runningForProcess(proc, pid);

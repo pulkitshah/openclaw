@@ -22,7 +22,7 @@ describe("buildDutiesSetup", () => {
     );
     expect(result.commands).toContain("openclaw webhooks gmail setup --account ops@example.com");
     expect(result.commands).toContain(
-      `openclaw approvals allowlist add --agent ${MAIL_AGENT_ID} <path-to-gog>`,
+      `vasudev approvals allowlist add --agent ${MAIL_AGENT_ID} <path-to-gog>`,
     );
 
     const agentEntry = JSON.parse(result.snippets.agentEntry);
@@ -104,7 +104,7 @@ describe("buildDutiesSetup", () => {
       "gog CLI not found on PATH — install gogcli and run: gog auth add ops@example.com",
     );
     expect(result.commands).toContain(
-      `openclaw approvals allowlist add --agent ${MAIL_AGENT_ID} /opt/homebrew/bin/gog`,
+      `vasudev approvals allowlist add --agent ${MAIL_AGENT_ID} /opt/homebrew/bin/gog`,
     );
   });
 
