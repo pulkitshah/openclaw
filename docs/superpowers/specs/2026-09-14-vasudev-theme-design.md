@@ -26,9 +26,19 @@ Out of scope: layout or navigation changes (the product IA stays OpenClaw's), ne
 
 Only after 1–4 pass does the owner get the merge/PR menu for `feat/vasudev-brand`.
 
+## 2b. Owner rule (2026-09-15): no "OpenClaw" anywhere a user can see it
+
+"I don't want OpenClaw anywhere that a user will see. Not when interacting with it or in errors." Consequences for Task 4:
+
+- Every user-facing string in `src/**`, `extensions/**` and `ui/**` is in scope: error messages, doctor/update/setup reports, system-agent and inference messages, agent prompts and instructions, tool descriptions, Telegram/WhatsApp copy, CLI help and hints.
+- Commands shown to users use the `vasudev` alias (`vasudev gateway auth-token --show`), never `openclaw …`; the binary name itself is unchanged.
+- The About page shows only "Vasudev · by TripIn Studio". Upstream's MIT notice moves to a "Licences" panel (third-party notices), which is the only place the upstream name may appear, and only when opened on purpose.
+- Real file paths and config keys (`~/.openclaw`, `openclaw.json`, `OPENCLAW_*`) stay literal where a message must name the exact file or variable; the prose around them says Vasudev. Renaming storage paths is a separate, breaking phase with a migration.
+- The guard (`pnpm brand:check`) enforces the rule across the whole tree; exceptions are an explicit, reviewed allowlist (paths/keys/URLs/type names/the licences panel), each with a reason.
+
 ## 3. Acceptance
 
-- No "OpenClaw" visible in the Control UI (any page, light or dark), CLI output, doctor/update reports, Telegram, or docs, except the About attribution line and upstream URLs.
+- No "OpenClaw" visible in the Control UI (any page, light or dark, including error states), CLI output and help, doctor/update reports, agent replies and prompts, Telegram, or docs — except real file paths/config keys, upstream URLs, and the Licences panel.
 - The orb is the only mark; no lobster/crab asset or reference remains in `ui/`, `docs/assets`, or the CLI banner.
 - Tokens, type and radius match §1; the gradient appears once per screen.
 - All gates in §2 green; the desk proof recorded in `docs/superpowers/plans/2026-09-14-vasudev-theme-proof.md`.
