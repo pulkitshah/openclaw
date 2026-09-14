@@ -122,7 +122,9 @@ runcmd:
   # itself at startup via gateway.tailscale.mode: "serve" in openclaw.json - no separate
   # `tailscale serve` CLI step is needed (docs/gateway/tailscale.md).
   - "curl -fsSL https://tailscale.com/install.sh | sh"
-  - 'tailscale up --authkey "$(cat /root/ts-authkey)" --ssh --hostname {{DESK_NAME}} || echo "desk: tailscale up FAILED" >&2'
+  # --timeout: with a bad or consumed key `tailscale up` otherwise blocks forever printing an
+  # interactive login URL, and the rest of the boot never runs (observed 2026-09-14).
+  - 'tailscale up --authkey "$(cat /root/ts-authkey)" --ssh --hostname {{DESK_NAME}} --timeout 180s || echo "desk: tailscale up FAILED (bad or consumed auth key?)" >&2'
   - shred -u /root/ts-authkey
 
   # Desktop, browser and tooling packages (deferred from `packages:` so the tailnet join above
