@@ -121,7 +121,7 @@ runcmd:
   # (--ssh) replaces sshd for humans (spec section 4.3); Serve is configured by the Gateway
   # itself at startup via gateway.tailscale.mode: "serve" in openclaw.json - no separate
   # `tailscale serve` CLI step is needed (docs/gateway/tailscale.md).
-  - "curl -fsSL https://tailscale.com/install.sh | sh"
+  - "curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors https://tailscale.com/install.sh | sh"
   # --timeout: with a bad or consumed key `tailscale up` otherwise blocks forever printing an
   # interactive login URL, and the rest of the boot never runs (observed 2026-09-14).
   # No --ssh: Tailscale SSH shadows sshd on the tailnet and, under a "check"-mode SSH rule, turns
@@ -142,7 +142,7 @@ runcmd:
   # Node 26 (NodeSource) + pnpm via corepack. {{PNPM_PACKAGE_MANAGER}} is the renderer's own
   # repo's package.json "packageManager" field verbatim (e.g. "pnpm@12.3.4+sha512...") so
   # corepack verifies the exact pinned binary against its integrity hash, not just the version.
-  - "curl -fsSL https://deb.nodesource.com/setup_26.x | bash -"
+  - "curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors https://deb.nodesource.com/setup_26.x | bash -"
   - apt-get install -y nodejs
   # Node 25+ no longer bundles corepack, so NodeSource's nodejs package has none: install it
   # with npm first (observed 2026-09-14: `corepack: not found` -> no pnpm -> no build).
@@ -153,11 +153,19 @@ runcmd:
   # the sign-in itself is an owner step after first boot (see the runbook).
   - npm install -g @anthropic-ai/claude-code
   # gog (Google Workspace CLI) drives the Gmail push watcher; pinned to the operator's version
-  # with its release checksum (openclaw/homebrew-tap Formula/gogcli.rb) - never fetched unverified.
+  # with the release checksums from openclaw/homebrew-tap Formula/gogcli.rb - never fetched
+  # unverified. Architecture-aware so the local (arm64) pre-flight and amd64 droplets both work.
   - >-
     cd /tmp &&
-    curl -fsSL -o gogcli.tgz https://github.com/openclaw/gogcli/releases/download/v0.40.0/gogcli_0.40.0_linux_amd64.tar.gz &&
-    echo "5f73815950f30de4165b7b767103ca45c4950e84a1da601eda5294e9ff94f767  gogcli.tgz" | sha256sum -c - &&
+    arch="$(dpkg --print-architecture)" &&
+    case "$arch" in
+    amd64) sum=5f73815950f30de4165b7b767103ca45c4950e84a1da601eda5294e9ff94f767 ;;
+    arm64) sum=21ca9757f67a573115b517854184561cef6b3b73c21e0f60c72229522c7198ac ;;
+    *) echo "desk: no gog build for $arch" >&2; exit 1 ;;
+    esac &&
+    curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors -o gogcli.tgz
+    "https://github.com/openclaw/gogcli/releases/download/v0.40.0/gogcli_0.40.0_linux_$arch.tar.gz" &&
+    echo "$sum  gogcli.tgz" | sha256sum -c - &&
     tar -xzf gogcli.tgz gog && install -m 0755 gog /usr/local/bin/gog && rm -f gogcli.tgz gog &&
     gog --version
 
