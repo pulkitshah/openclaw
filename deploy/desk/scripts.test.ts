@@ -60,6 +60,14 @@ exit 0`,
     "ssh",
     `set -euo pipefail
 printf '%s\\n' "ssh $*" >> "\${SSH_LOG:?}"
+# roll.sh's mutate step pipes a heredoc script to \`bash -s --\` over ssh instead of putting the
+# whole script in argv; capture stdin too so tests can assert on that script's structure. Reading
+# stdin is safe even when the caller sent nothing (the busy check) — spawnSync gives every child
+# an already-closed stdin pipe by default, so \`cat\` returns immediately with no output.
+stdin_content="$(cat)"
+if [ -n "$stdin_content" ]; then
+  printf '%s\\n' "$stdin_content" >> "\${SSH_LOG:?}"
+fi
 remote="\${*: -1}"
 case "$remote" in
   *duties.runs.recent*)
@@ -69,8 +77,6 @@ case "$remote" in
       printf '{"runs":[]}'
     fi
     ;;
-  *--version*)
-    printf 'openclaw 2026.9.0-fixture\\n' ;;
   *)
     : ;;
 esac
@@ -98,6 +104,28 @@ exit 0`,
     `printf '%s\\n' "node $*" >> "\${NODE_LOG:?}"
 exec "\${REAL_NODE:?}" "$@"`,
   );
+
+  // Simulates new-desk.sh's post-tailnet-join Control UI /healthz poll: fails the first
+  // CURL_FAIL_COUNT invocations (default 0, i.e. succeeds immediately), then succeeds. Each
+  // script invocation is a fresh process, so the attempt count is persisted to a file.
+  writeStub(
+    binDir,
+    "curl",
+    `set -euo pipefail
+printf '%s\\n' "curl $*" >> "\${CURL_LOG:?}"
+count_file="\${CURL_COUNT_FILE:?}"
+count=0
+if [ -f "$count_file" ]; then
+  count="$(cat "$count_file")"
+fi
+count=$((count + 1))
+printf '%s' "$count" > "$count_file"
+fail_count="\${CURL_FAIL_COUNT:-0}"
+if [ "$count" -le "$fail_count" ]; then
+  exit 22
+fi
+exit 0`,
+  );
 }
 
 type RunResult = { status: number | null; stdout: string; stderr: string };
@@ -109,6 +137,8 @@ describe("deploy/desk operator scripts", () => {
   let sshLog: string;
   let tailscaleLog: string;
   let nodeLog: string;
+  let curlLog: string;
+  let curlCountFile: string;
 
   beforeEach(() => {
     dir = mkdtempSync(join(tmpdir(), "desk-scripts-test-"));
@@ -119,7 +149,9 @@ describe("deploy/desk operator scripts", () => {
     sshLog = join(dir, "ssh.log");
     tailscaleLog = join(dir, "tailscale.log");
     nodeLog = join(dir, "node.log");
-    for (const log of [doctlLog, sshLog, tailscaleLog, nodeLog]) {
+    curlLog = join(dir, "curl.log");
+    curlCountFile = join(dir, "curl-count");
+    for (const log of [doctlLog, sshLog, tailscaleLog, nodeLog, curlLog]) {
       writeFileSync(log, "");
     }
   });
@@ -136,6 +168,11 @@ describe("deploy/desk operator scripts", () => {
       SSH_LOG: sshLog,
       TAILSCALE_LOG: tailscaleLog,
       NODE_LOG: nodeLog,
+      CURL_LOG: curlLog,
+      CURL_COUNT_FILE: curlCountFile,
+      // Real new-desk.sh sleeps 10s between /healthz polls; tests shrink that so a
+      // several-attempts case doesn't take tens of real seconds.
+      DESK_READY_POLL_INTERVAL_SECONDS: "1",
       HOME: process.env.HOME ?? dir,
       ...extra,
     };
@@ -154,7 +191,13 @@ describe("deploy/desk operator scripts", () => {
   }
 
   function allLogsAndOutput(...runs: RunResult[]): string {
-    const logs = [readLog(doctlLog), readLog(sshLog), readLog(tailscaleLog), readLog(nodeLog)];
+    const logs = [
+      readLog(doctlLog),
+      readLog(sshLog),
+      readLog(tailscaleLog),
+      readLog(nodeLog),
+      readLog(curlLog),
+    ];
     const outputs = runs.flatMap((r) => [r.stdout, r.stderr]);
     return [...logs, ...outputs].join("\n");
   }
@@ -229,7 +272,7 @@ describe("deploy/desk operator scripts", () => {
 
       expect(result.stdout).toContain(`Control UI: https://${deskName}.tailnet-fixture.ts.net`);
       expect(result.stdout).toContain(
-        `Sign in:    ssh ${deskName} 'sudo -u openclaw node /opt/openclaw/openclaw.mjs gateway auth-token --show'`,
+        `Sign in:    ssh root@${deskName} 'sudo -u openclaw node /opt/openclaw/openclaw.mjs gateway auth-token --show'`,
       );
     });
 
@@ -300,6 +343,55 @@ describe("deploy/desk operator scripts", () => {
       expect(everything).not.toContain(TS_AUTHKEY_SECRET);
       expect(everything).not.toContain(TG_TOKEN_SECRET);
     });
+
+    it("prints the Control UI URL only once the Gateway starts answering /healthz over the tailnet", () => {
+      // Joining the tailnet only means cloud-init's early `tailscale up` step finished — the
+      // checkout/install/build/Chromium/reboot happen after that, so the URL must not be
+      // printed until the Gateway (behind Tailscale Serve) actually answers.
+      const result = run(
+        NEW_DESK,
+        [
+          deskName,
+          "--ts-authkey-file",
+          tsAuthkeyFile,
+          "--tg-token-file",
+          tgTokenFile,
+          "--owner-target",
+          "123456789",
+        ],
+        happyPathEnv({ CURL_FAIL_COUNT: "2" }),
+      );
+
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain(`Control UI: https://${deskName}.tailnet-fixture.ts.net`);
+      const curlCalls = readLog(curlLog);
+      expect(curlCalls).toContain(`https://${deskName}.tailnet-fixture.ts.net/healthz`);
+      expect(curlCalls.split("\n").filter((line) => line.trim().length > 0).length).toBe(3);
+    });
+
+    it("exits 4 with a diagnostic ssh command when the Gateway never answers /healthz", () => {
+      const result = run(
+        NEW_DESK,
+        [
+          deskName,
+          "--ts-authkey-file",
+          tsAuthkeyFile,
+          "--tg-token-file",
+          tgTokenFile,
+          "--owner-target",
+          "123456789",
+        ],
+        happyPathEnv({
+          CURL_FAIL_COUNT: "999999",
+          DESK_READY_POLL_SECONDS: "2",
+        }),
+      );
+
+      expect(result.status).toBe(4);
+      expect(result.stdout).not.toContain("Control UI:");
+      expect(result.stderr).toContain("never answered");
+      expect(result.stderr).toContain(`ssh root@${deskName} journalctl`);
+    });
   });
 
   describe("roll.sh", () => {
@@ -326,6 +418,46 @@ describe("deploy/desk operator scripts", () => {
       expect(result.stderr).toContain("run r-2 is needs_input");
     });
 
+    it("exits 3 on the first busy run without a SIGPIPE-triggered abort when two runs are busy at once", () => {
+      // The fix for the Important #2 review finding: the busy-check jq filter must take its
+      // first match itself (`.[0] // empty`) instead of piping through `head -n1`, which could
+      // deliver jq a SIGPIPE under `set -o pipefail` the moment more than one run is busy — the
+      // exact condition this check exists to catch. This asserts the busy path still completes
+      // (rather than aborting with an unrelated pipe error) when it does.
+      const result = run(ROLL, [deskName], {
+        SSH_RUNS_RECENT_JSON: JSON.stringify({
+          runs: [
+            { id: "r-5", status: "running" },
+            { id: "r-6", status: "queued" },
+          ],
+        }),
+      });
+
+      expect(result.status).toBe(3);
+      expect(result.stderr).toContain("desk is busy: run r-5 is running; retry later or --force");
+    });
+
+    it("rejects a git-ref containing shell-unsafe characters before touching ssh", () => {
+      const result = run(ROLL, [deskName, "main'; touch /tmp/pwned #"], {
+        SSH_RUNS_RECENT_JSON: JSON.stringify({ runs: [] }),
+      });
+
+      expect(result.status).toBe(2);
+      expect(result.stderr).toContain("is invalid");
+      expect(readLog(sshLog)).toBe("");
+    });
+
+    it("rejects a git-ref that starts with a dash before touching ssh", () => {
+      const result = run(ROLL, [deskName, "--upload-pack=evil"], {
+        SSH_RUNS_RECENT_JSON: JSON.stringify({ runs: [] }),
+      });
+
+      // `--upload-pack=evil` is itself parsed as an unknown roll.sh option (exit 2), which is
+      // also the correct outcome — either way ssh must never be touched.
+      expect(result.status).toBe(2);
+      expect(readLog(sshLog)).toBe("");
+    });
+
     it("rolls to the given ref, restarts, waits for /healthz, and prints the version when idle", () => {
       const result = run(ROLL, [deskName, "feat/hosted-desk"], {
         SSH_RUNS_RECENT_JSON: JSON.stringify({ runs: [{ id: "r-3", status: "success" }] }),
@@ -333,15 +465,30 @@ describe("deploy/desk operator scripts", () => {
 
       expect(result.status).toBe(0);
       const sshCalls = readLog(sshLog);
-      expect(sshCalls).toContain("git fetch origin 'feat/hosted-desk'");
+      // <git-ref> travels as its own `bash -s --` positional argument, not interpolated into
+      // the remote script text (Important #1 fix) — the script text itself is fully static.
+      expect(sshCalls).toContain(`ssh root@${deskName} bash -s -- feat/hosted-desk 18789 restart`);
+      expect(sshCalls).toContain('git fetch origin "$git_ref"');
       expect(sshCalls).toContain("git checkout --detach FETCH_HEAD");
       expect(sshCalls).toContain("pnpm install --frozen-lockfile --ignore-scripts");
       expect(sshCalls).toContain("pnpm build");
       expect(sshCalls).toContain("chown -R root:openclaw /opt/openclaw");
       expect(sshCalls).toContain("systemctl restart openclaw-gateway");
-      expect(sshCalls).toContain("http://127.0.0.1:18789/healthz");
+      expect(sshCalls).toContain("http://127.0.0.1:${gateway_port}/healthz");
       expect(sshCalls).toContain("openclaw.mjs --version");
       expect(result.stdout).toContain(`rolled to feat/hosted-desk and is healthy`);
+    });
+
+    it("connects as DESK_SSH_USER instead of root when overridden", () => {
+      const result = run(ROLL, [deskName], {
+        SSH_RUNS_RECENT_JSON: JSON.stringify({ runs: [] }),
+        DESK_SSH_USER: "ops",
+      });
+
+      expect(result.status).toBe(0);
+      const sshCalls = readLog(sshLog);
+      expect(sshCalls).toContain(`ssh ops@${deskName}`);
+      expect(sshCalls).not.toContain(`ssh root@${deskName}`);
     });
 
     it("--force skips the busy check entirely", () => {
@@ -362,8 +509,14 @@ describe("deploy/desk operator scripts", () => {
 
       expect(result.status).toBe(0);
       const sshCalls = readLog(sshLog);
+      // The remote script is one static heredoc that branches on its own $3 ("mode") argument
+      // at runtime — reboot-vs-restart is selected by the argv marker below, not by which
+      // branch's text is present (both are always present in the static script source; the
+      // fake ssh here logs but never executes it).
+      expect(sshCalls).toContain(`ssh root@${deskName} bash -s -- main 18789 reboot`);
+      expect(sshCalls).not.toContain(`ssh root@${deskName} bash -s -- main 18789 restart`);
+      expect(sshCalls).toContain('if [ "$mode" = "reboot" ]; then');
       expect(sshCalls).toContain("systemctl reboot");
-      expect(sshCalls).not.toContain("systemctl restart openclaw-gateway");
       expect(result.stdout).toContain("is rebooting");
     });
   });

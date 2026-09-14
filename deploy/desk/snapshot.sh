@@ -15,6 +15,13 @@ Environment overrides:
 EOF
 }
 
+for cmd in doctl jq; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "snapshot.sh: \"$cmd\" is required but not found on PATH — see deploy/desk/README.md (Prerequisites)" >&2
+    exit 1
+  fi
+done
+
 KEEP="${DESK_SNAPSHOT_KEEP:-4}"
 
 desk_name="${1:-}"
@@ -28,10 +35,12 @@ if [[ -z "$desk_name" ]]; then
 fi
 
 echo "==> Looking up droplet \"$desk_name\"" >&2
+# jq takes the first match itself instead of piping through `head -n1` — see new-desk.sh's
+# SSH-key lookup for why `cmd | jq ... | head -n1` risks a SIGPIPE-triggered abort under
+# `set -o pipefail` when more than one row matches.
 droplet_id="$(
   doctl compute droplet list -o json \
-    | jq -r --arg name "$desk_name" '.[] | select(.name == $name) | .id' \
-    | head -n1
+    | jq -r --arg name "$desk_name" '[.[] | select(.name == $name)] | (.[0].id // empty)'
 )"
 if [[ -z "$droplet_id" ]]; then
   echo "snapshot.sh: no droplet named \"$desk_name\"" >&2

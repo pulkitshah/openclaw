@@ -29,20 +29,41 @@ Optional:
   --image <slug-or-id>       Base image or a prior desk's snapshot id (default: ubuntu-24-04-x64).
   --gateway-token-file <f>   Pre-chosen Gateway auth token; a random one is generated if omitted.
 
+Waits in two phases before printing anything: up to DESK_POLL_SECONDS for the desk to join
+the tailnet (cloud-init runs `tailscale up` early), then up to DESK_READY_POLL_SECONDS for
+its Gateway to answer over the tailnet (the fork checkout, install, build, managed-Chromium
+install, and reboot all happen after the tailnet join, so this second phase is normally the
+longer one — typically 15-25 minutes).
+
 Environment overrides:
-  DESK_SSH_KEY_NAME    doctl SSH key name to embed (default: "Pulkit Macbook Pro 2025")
-  DESK_REGION          DigitalOcean region (default: blr1)
-  DESK_TAG             droplet tag (default: desk)
-  DESK_FIREWALL_NAME   cloud firewall name, created if missing (default: desk-no-inbound)
-  DESK_POLL_SECONDS    seconds to wait for the tailnet hostname (default: 900)
+  DESK_SSH_KEY_NAME          doctl SSH key name to embed (default: "Pulkit Macbook Pro 2025")
+  DESK_SSH_USER              account the printed sign-in command connects as (default: root —
+                             DigitalOcean embeds the chosen SSH key into root's authorized_keys)
+  DESK_REGION                DigitalOcean region (default: blr1)
+  DESK_TAG                   droplet tag (default: desk)
+  DESK_FIREWALL_NAME         cloud firewall name, created if missing (default: desk-no-inbound)
+  DESK_POLL_SECONDS          seconds to wait for the tailnet hostname (default: 900)
+  DESK_READY_POLL_SECONDS    seconds to wait for the Gateway to answer /healthz (default: 1800)
 EOF
 }
 
+for cmd in doctl jq tailscale curl; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "new-desk.sh: \"$cmd\" is required but not found on PATH — see deploy/desk/README.md (Prerequisites)" >&2
+    exit 1
+  fi
+done
+
 DESK_SSH_KEY_NAME="${DESK_SSH_KEY_NAME:-Pulkit Macbook Pro 2025}"
+DESK_SSH_USER="${DESK_SSH_USER:-root}"
 DESK_REGION="${DESK_REGION:-blr1}"
 DESK_TAG="${DESK_TAG:-desk}"
 DESK_FIREWALL_NAME="${DESK_FIREWALL_NAME:-desk-no-inbound}"
 DESK_POLL_SECONDS="${DESK_POLL_SECONDS:-900}"
+DESK_READY_POLL_SECONDS="${DESK_READY_POLL_SECONDS:-1800}"
+# Test-only knob: the real interval is a sensible fixed value; tests shrink it so a "succeeds
+# after N attempts" or "never succeeds" case does not take N*10 (or 1800) real seconds.
+DESK_READY_POLL_INTERVAL_SECONDS="${DESK_READY_POLL_INTERVAL_SECONDS:-10}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -115,10 +136,12 @@ if [[ -z "$desk_name" || -z "$ts_authkey_file" || -z "$tg_token_file" || -z "$ow
 fi
 
 echo "==> Looking up doctl SSH key \"$DESK_SSH_KEY_NAME\"" >&2
+# jq takes the first match itself (`.[0] // empty`) rather than piping through `head -n1` —
+# under `set -o pipefail`, `head` closing its read end early can deliver jq a SIGPIPE if more
+# than one key ever shares this name, aborting the script instead of just picking one.
 ssh_key_id="$(
   doctl compute ssh-key list -o json \
-    | jq -r --arg name "$DESK_SSH_KEY_NAME" '.[] | select(.name == $name) | .id' \
-    | head -n1
+    | jq -r --arg name "$DESK_SSH_KEY_NAME" '[.[] | select(.name == $name)] | (.[0].id // empty)'
 )"
 if [[ -z "$ssh_key_id" ]]; then
   echo "new-desk.sh: no doctl SSH key named \"$DESK_SSH_KEY_NAME\" — set DESK_SSH_KEY_NAME or add the key in the DigitalOcean control panel" >&2
@@ -128,8 +151,7 @@ fi
 echo "==> Ensuring firewall \"$DESK_FIREWALL_NAME\" exists (no inbound, all outbound)" >&2
 firewall_id="$(
   doctl compute firewall list -o json \
-    | jq -r --arg name "$DESK_FIREWALL_NAME" '.[] | select(.name == $name) | .id' \
-    | head -n1
+    | jq -r --arg name "$DESK_FIREWALL_NAME" '[.[] | select(.name == $name)] | (.[0].id // empty)'
 )"
 if [[ -z "$firewall_id" ]]; then
   echo "==> Creating firewall \"$DESK_FIREWALL_NAME\"" >&2
@@ -193,18 +215,22 @@ tailnet_host=""
 poll_deadline=$((SECONDS + DESK_POLL_SECONDS))
 tailnet_peer_filter='
   .MagicDNSSuffix as $suffix
-  | (((.Peer // {}) | to_entries | map(.value)))[]
-  | select((.HostName // "") | ascii_downcase == ($name | ascii_downcase))
-  | select(.Online == true)
-  | .HostName + "." + ($suffix // "" | rtrimstr("."))
+  | [ (((.Peer // {}) | to_entries | map(.value)))[]
+      | select((.HostName // "") | ascii_downcase == ($name | ascii_downcase))
+      | select(.Online == true)
+      | .HostName + "." + ($suffix // "" | rtrimstr("."))
+    ]
+  | (.[0] // empty)
 '
 while (( SECONDS < poll_deadline )); do
   status_json="$(tailscale status --json 2>/dev/null || true)"
   if [[ -n "$status_json" ]]; then
+    # jq collects every match into an array and takes the first itself, rather than piping
+    # through `head -n1` — see the SSH-key lookup above for why that pattern is unsafe under
+    # `set -o pipefail`.
     tailnet_host="$(
       printf '%s' "$status_json" \
-        | jq -r --arg name "$desk_name" "$tailnet_peer_filter" 2>/dev/null \
-        | head -n1
+        | jq -r --arg name "$desk_name" "$tailnet_peer_filter" 2>/dev/null
     )"
   fi
   if [[ -n "$tailnet_host" ]]; then
@@ -214,11 +240,37 @@ while (( SECONDS < poll_deadline )); do
 done
 
 if [[ -z "$tailnet_host" ]]; then
-  echo "new-desk.sh: \"$desk_name\" did not appear on the tailnet within ${DESK_POLL_SECONDS}s — check \`tailscale status\` and the droplet's cloud-init log (\`ssh $desk_name 'cloud-init status --long'\` once it is reachable)" >&2
+  echo "new-desk.sh: \"$desk_name\" did not appear on the tailnet within ${DESK_POLL_SECONDS}s — check \`tailscale status\` and the droplet's cloud-init log (\`ssh ${DESK_SSH_USER}@${desk_name} 'cloud-init status --long'\` once it is reachable)" >&2
   exit 1
+fi
+
+# The desk joining the tailnet only means `tailscale up` (an early cloud-init step) finished —
+# the fork checkout, install, build, managed-Chromium install, and reboot all happen after that,
+# so the Gateway (and the Control UI Tailscale Serve fronts) is not necessarily up yet. Poll it
+# directly before printing anything, so a printed URL always actually works.
+control_ui_url="https://${tailnet_host}"
+echo "==> Waiting up to ${DESK_READY_POLL_SECONDS}s for the Gateway at ${control_ui_url} to answer (checkout, install, build, Chromium, reboot — typically 15-25 minutes)" >&2
+gateway_ready=0
+ready_deadline=$((SECONDS + DESK_READY_POLL_SECONDS))
+next_progress_at=$((SECONDS + 60))
+while (( SECONDS < ready_deadline )); do
+  if curl -fsS --max-time 5 -o /dev/null "${control_ui_url}/healthz" 2>/dev/null; then
+    gateway_ready=1
+    break
+  fi
+  if (( SECONDS >= next_progress_at )); then
+    echo "==> Still building \"$desk_name\" ($(( SECONDS / 60 ))m elapsed)..." >&2
+    next_progress_at=$((SECONDS + 60))
+  fi
+  sleep "$DESK_READY_POLL_INTERVAL_SECONDS"
+done
+
+if [[ "$gateway_ready" -ne 1 ]]; then
+  echo "new-desk.sh: \"$desk_name\" joined the tailnet but its Gateway never answered ${control_ui_url}/healthz within ${DESK_READY_POLL_SECONDS}s — check \`ssh ${DESK_SSH_USER}@${desk_name} journalctl -u openclaw-gateway -u cloud-init-output --no-pager\`" >&2
+  exit 4
 fi
 
 echo
 echo "Desk \"$desk_name\" is up."
-echo "Control UI: https://${tailnet_host}"
-echo "Sign in:    ssh ${desk_name} 'sudo -u openclaw node /opt/openclaw/openclaw.mjs gateway auth-token --show'"
+echo "Control UI: ${control_ui_url}"
+echo "Sign in:    ssh ${DESK_SSH_USER}@${desk_name} 'sudo -u openclaw node /opt/openclaw/openclaw.mjs gateway auth-token --show'"

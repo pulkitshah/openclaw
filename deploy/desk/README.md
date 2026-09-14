@@ -5,10 +5,44 @@ headed Chromium on a virtual display, and Telegram, reachable only over the oper
 tailnet. See `docs/superpowers/specs/2026-09-14-hosted-desk-design.md` for the design this
 runbook implements.
 
-Everything below assumes: `doctl` authenticated on the operator's Mac, `tailscale` joined to
-the same tailnet a desk will join, and this repo checked out locally so the three scripts in
-`deploy/desk/` are on hand (`new-desk.sh`, `roll.sh`, `snapshot.sh`). No script here ever
-prints a secret; commands below use `<...>` placeholders instead of real names.
+Everything below assumes the [Prerequisites](#prerequisites) are installed, `doctl`
+authenticated, `tailscale` joined to the same tailnet a desk will join, and this repo checked
+out locally so the three scripts in `deploy/desk/` are on hand (`new-desk.sh`, `roll.sh`,
+`snapshot.sh`). No script here ever prints a secret; commands below use `<...>` placeholders
+instead of real names.
+
+## Prerequisites
+
+Install these once on the operator's Mac:
+
+```sh
+brew install doctl jq tailscale
+```
+
+`ssh` and `curl` ship with macOS — nothing to install for either. Each script checks for the
+tools it needs (`doctl`, `jq`, `ssh`, `tailscale`, `curl`) on `PATH` and fails immediately
+with a clear message instead of a raw "command not found" if one is missing. After
+installing:
+
+```sh
+doctl auth init          # one-time: paste a DigitalOcean API token
+tailscale up              # join the tailnet a desk will join, if not already
+```
+
+### SSH access
+
+The scripts SSH into a desk as `DESK_SSH_USER` (default `root`) — a fresh DigitalOcean
+droplet embeds the SSH key chosen at create time into `root`'s `authorized_keys`, and this
+fork's cloud-init does not create a separate admin account. Override with
+`DESK_SSH_USER=<name>` (for both `new-desk.sh` and `roll.sh`) if a desk's key lands on a
+different account.
+
+Every desk also runs `tailscale up --ssh`, so **Tailscale SSH** (`tailscale ssh
+<desk-name>`) is an alternative to a key-based `ssh <desk-name>` login — it authenticates
+with your tailnet identity instead of an SSH key. It only works out of the box if the
+tailnet's SSH access rules grant your identity a login as `root` (or whichever account you
+need); without such a grant, Tailscale SSH has no matching local user to log in as and the
+plain `ssh root@<desk-name>` route above still works regardless.
 
 ## Create
 
@@ -21,11 +55,16 @@ deploy/desk/new-desk.sh <desk-name> \
 
 This creates the `desk-no-inbound` cloud firewall the first time (no inbound, all outbound —
 Tailscale needs no inbound rule), boots a `s-2vcpu-4gb` droplet from `ubuntu-24-04-x64` in
-`blr1`, waits up to 15 minutes for the desk to join the tailnet, and prints:
+`blr1`, and waits in two phases: first up to 15 minutes for the desk to join the tailnet
+(cloud-init runs `tailscale up` early), then — since the fork checkout, install, build,
+managed-Chromium install, and reboot all happen _after_ that — polls the Control UI itself
+(`https://<desk-name>.<tailnet>.ts.net/healthz`) until it answers, printing a progress line
+once a minute. This second phase is typically 15–25 minutes; the command waits until the
+desk actually answers before printing anything, so a printed URL is always ready to use:
 
 ```
 Control UI: https://<desk-name>.<tailnet>.ts.net
-Sign in:    ssh <desk-name> 'sudo -u openclaw node /opt/openclaw/openclaw.mjs gateway auth-token --show'
+Sign in:    ssh root@<desk-name> 'sudo -u openclaw node /opt/openclaw/openclaw.mjs gateway auth-token --show'
 ```
 
 Useful flags: `--size s-4vcpu-8gb` for more parallel runs, `--git-ref <ref>` to pin a
@@ -33,11 +72,12 @@ non-`main` checkout, `--image <snapshot-id>` to create a new desk from a prior d
 snapshot instead of a bare image (minutes instead of a full first-boot install — see
 [Snapshot / restore](#snapshot--restore)). Run `deploy/desk/new-desk.sh --help` for the full
 flag and environment-override list, including `DESK_SSH_KEY_NAME` if the operator's `doctl`
-SSH key is not named `<key-name>` (the script's own default).
+SSH key is not named `<key-name>` (the script's own default), and
+`DESK_READY_POLL_SECONDS` if 30 minutes isn't enough for a particularly slow first boot.
 
 ## First sign-in
 
-1. Run the `ssh <desk-name> '... gateway auth-token --show'` command `new-desk.sh` printed to
+1. Run the `ssh root@<desk-name> '... gateway auth-token --show'` command `new-desk.sh` printed to
    reveal the Gateway token.
 2. Open `https://<desk-name>.<tailnet>.ts.net` in a browser on a device joined to the same
    tailnet, and sign in with that token.
@@ -54,7 +94,7 @@ first boot, so no extra setup is needed before storing logins.
 Each desk that watches a mailbox needs two one-time steps, run on the desk itself:
 
 ```sh
-ssh <desk-name>
+ssh root@<desk-name>
 sudo -u openclaw node /opt/openclaw/openclaw.mjs duties setup
 sudo -u openclaw node /opt/openclaw/openclaw.mjs webhooks gmail setup \
   --account <the-watched-gmail-address> --tailscale funnel
@@ -116,7 +156,7 @@ deploy/desk/new-desk.sh <new-desk-name> --image <snapshot-id> \
 ## Logs
 
 ```sh
-ssh <desk-name> journalctl -u openclaw-gateway -u xvfb -u desk-health
+ssh root@<desk-name> journalctl -u openclaw-gateway -u xvfb -u desk-health
 ```
 
 The Gateway's own log is the systemd journal — there is no separate log file to tail.
@@ -128,7 +168,7 @@ leaves the Gateway's MCP loopback catalog stale. Instead: edit the file, then re
 service:
 
 ```sh
-ssh <desk-name> systemctl restart openclaw-gateway
+ssh root@<desk-name> systemctl restart openclaw-gateway
 ```
 
 The unit gives the Gateway 45 seconds to drain any live session on `SIGTERM`, then
@@ -149,6 +189,13 @@ even mid-run. `roll.sh` uses this same recipe automatically.
 - **Datacenter-IP challenge from a target site**: cloud droplet IPs get blocked or
   challenged more than residential ones. Prefer the target's own agent/trade portal when one
   exists; fall back to a residential proxy only as a last, owner-approved resort.
+- **`new-desk.sh` exits 4**: the desk joined the tailnet but its Gateway never answered
+  `/healthz` within `DESK_READY_POLL_SECONDS` (default 30 minutes) — the box is still
+  building, or something failed partway through. `ssh` in as the exit message's printed
+  command shows and check `journalctl -u openclaw-gateway -u cloud-init-output --no-pager`
+  for where it stalled; a slow first boot (large apt mirror, slow Chromium download) can
+  simply need `DESK_READY_POLL_SECONDS` raised and a rerun of the poll rather than a new
+  droplet.
 
 ## Tear down
 
