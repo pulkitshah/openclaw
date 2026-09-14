@@ -2290,6 +2290,7 @@ describe("scripts/changed-lanes", () => {
       liveDockerTooling: true,
     });
     expect(plan.commands.map((command) => command.name)).toEqual([
+      "brand guard",
       "conflict markers",
       "max-lines suppression ratchet",
       "assertion SAFETY comment ratchet",
@@ -3401,6 +3402,7 @@ describe("scripts/changed-lanes", () => {
 
     expect(result.docsOnly).toBe(true);
     expect(plan.commands).toEqual([
+      { name: "brand guard", args: ["brand:check"] },
       { name: "conflict markers", args: ["check:no-conflict-markers"] },
       { name: "changelog attributions", args: ["check:changelog-attributions"] },
       { name: "doctor deprecation registry", args: ["check:doctor-deprecation-registry"] },
