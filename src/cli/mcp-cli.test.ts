@@ -375,7 +375,7 @@ describe("mcp cli", () => {
     });
   });
 
-  it("labels listed MCP servers as OpenClaw-managed", async () => {
+  it("labels listed MCP servers as Vasudev-managed", async () => {
     await withTempHome("openclaw-cli-mcp-home-", async () => {
       const workspaceDir = await createWorkspace();
       vi.spyOn(process, "cwd").mockReturnValue(workspaceDir);
@@ -386,9 +386,9 @@ describe("mcp cli", () => {
       await runMcpCommand(["mcp", "list"]);
 
       const output = mockLog.mock.calls.map((call) => String(call[0])).join("\n");
-      expect(output).toContain("OpenClaw-managed MCP servers (");
+      expect(output).toContain("Vasudev-managed MCP servers (");
       expect(output).toContain("- context7");
-      expect(output).toContain("OpenClaw-managed mcp.servers entries");
+      expect(output).toContain("Vasudev-managed mcp.servers entries");
       expect(output).toContain("does not include mcporter servers from config/mcporter.json");
     });
   });
@@ -895,7 +895,7 @@ describe("mcp cli", () => {
       mockLog.mockClear();
       await runMcpCommand(["mcp", "list"]);
       const output = mockLog.mock.calls.map((call) => String(call[0])).join("\n");
-      expect(output).toContain("No OpenClaw-managed MCP servers configured in ");
+      expect(output).toContain("No Vasudev-managed MCP servers configured in ");
       expect(output).toContain("does not include mcporter servers from config/mcporter.json");
     });
   });

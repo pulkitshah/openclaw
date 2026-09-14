@@ -63,12 +63,12 @@ export function ensureValidConfigSnapshotForCli(
   }
   if (options.json) {
     writeRuntimeJson(runtime, {
-      ...formatCliJsonFailure(`OpenClaw config is invalid: ${shortenHomePath(snapshot.path)}`),
+      ...formatCliJsonFailure(`Vasudev config is invalid: ${shortenHomePath(snapshot.path)}`),
       issues: normalizeConfigIssues(snapshot.issues),
     });
     exitCliAfterOutput(runtime, 1);
   }
-  runtime.error(`OpenClaw config is invalid: ${shortenHomePath(snapshot.path)}`);
+  runtime.error(`Vasudev config is invalid: ${shortenHomePath(snapshot.path)}`);
   for (const line of renderConfigValidationIssueLines(snapshot)) {
     runtime.error(line);
   }

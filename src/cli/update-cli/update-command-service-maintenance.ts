@@ -489,7 +489,7 @@ async function stopManagedServiceBeforeMutableUpdate(
       ...inspected,
       serviceMutationAllowed: false,
       serviceMutationSkipMessage:
-        "Gateway service management skipped: the service belongs to a different OpenClaw installation and was left untouched.",
+        "Gateway service management skipped: the service belongs to a different Vasudev installation and was left untouched.",
     };
   }
   if (serviceUpdateVerdict.kind === "absent") {

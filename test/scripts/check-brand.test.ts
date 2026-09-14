@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   collectTargetFiles,
+  DEFERRED_ALLOWLIST_GLOBS,
   rewriteJsonManifestContent,
   rewriteProseContent,
   rewriteTypeScriptContent,
@@ -230,7 +231,7 @@ describe("collectTargetFiles", () => {
     expect(files).not.toContain("docs/superpowers/specs/2026-09-14-vasudev-rebrand-design.md");
   });
 
-  it("resolves nested CLI/wizard/flows/Control-UI TypeScript sources and the ui single files", () => {
+  it("resolves nested CLI/wizard/flows TypeScript sources and leaves ui/** deferred", () => {
     const rootDir = createFixtureRepo({
       "README.md": "# OpenClaw\n",
       "src/channels/plugins/pairing-message.ts": 'export const X = "no brand text here";\n',
@@ -241,10 +242,12 @@ describe("collectTargetFiles", () => {
       "src/cli/program/help.ts": 'export const HELP = "OpenClaw --help";\n',
       "src/wizard/i18n/locales/en.ts": 'export const EN = "Welcome to OpenClaw";\n',
       "src/flows/doctor-health.ts": 'intro("OpenClaw doctor");\n',
+      // ui/** is listed in DEFERRED_ALLOWLIST_GLOBS, not enforced yet (see
+      // that constant's comment in rebrand-apply.mjs): none of these should
+      // be swept even though they carry the literal name.
       "ui/src/lit/openclaw-element.ts": "/** OpenClaw Lit base. */\nexport const X = 1;\n",
-      "ui/index.html": "<title>%PRODUCT_NAME% Control</title>\n",
-      "ui/public/manifest.webmanifest": '{"name": "Vasudev Control"}\n',
-      // Build tooling under ui/, not shipped prose: never enforced.
+      "ui/index.html": "<title>OpenClaw Control</title>\n",
+      "ui/public/manifest.webmanifest": '{"name": "OpenClaw Control"}\n',
       "ui/vite.config.ts": 'export const base = "OpenClaw build config";\n',
       "ui/config/control-ui-locales.ts": 'export const X = "OpenClaw locales";\n',
     });
@@ -254,11 +257,19 @@ describe("collectTargetFiles", () => {
     expect(files).toContain("src/cli/program/help.ts");
     expect(files).toContain("src/wizard/i18n/locales/en.ts");
     expect(files).toContain("src/flows/doctor-health.ts");
-    expect(files).toContain("ui/src/lit/openclaw-element.ts");
-    expect(files).toContain("ui/index.html");
-    expect(files).toContain("ui/public/manifest.webmanifest");
+    expect(files).not.toContain("ui/src/lit/openclaw-element.ts");
+    expect(files).not.toContain("ui/index.html");
+    expect(files).not.toContain("ui/public/manifest.webmanifest");
     expect(files).not.toContain("ui/vite.config.ts");
     expect(files).not.toContain("ui/config/control-ui-locales.ts");
+  });
+});
+
+describe("DEFERRED_ALLOWLIST_GLOBS", () => {
+  it("documents ui/** as an eventual guard input without enforcing it yet", () => {
+    expect(DEFERRED_ALLOWLIST_GLOBS).toEqual(
+      expect.arrayContaining(["ui/src/**/*.ts", "ui/index.html", "ui/public/manifest.webmanifest"]),
+    );
   });
 });
 

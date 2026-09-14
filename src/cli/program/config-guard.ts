@@ -392,7 +392,7 @@ export async function ensureConfigReady(
   const heading = (value: string) => colorize(rich, theme.heading, value);
   const commandText = (value: string) => colorize(rich, theme.command, value);
 
-  params.runtime.error(heading("OpenClaw config is invalid"));
+  params.runtime.error(heading("Vasudev config is invalid"));
   params.runtime.error(`${muted("File:")} ${muted(shortenHomePath(snapshot.path))}`);
   if (issues.length > 0) {
     params.runtime.error(muted("Problem:"));
@@ -432,7 +432,7 @@ export async function ensureConfigReady(
   ) {
     const { formatCliJsonFailure } = await import("../failure-output.js");
     writeRuntimeJson(params.runtime, {
-      ...formatCliJsonFailure(`OpenClaw config is invalid: ${shortenHomePath(snapshot.path)}`),
+      ...formatCliJsonFailure(`Vasudev config is invalid: ${shortenHomePath(snapshot.path)}`),
       issues: normalizeConfigIssues(snapshot.issues),
     });
   }

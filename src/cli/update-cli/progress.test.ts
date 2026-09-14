@@ -95,7 +95,7 @@ describe("update progress", () => {
       ];
       printResult(result, { run: context });
       const lines = log.mock.calls.flat();
-      expect(lines.join("\n")).toContain("OpenClaw update in progress: verifying.");
+      expect(lines.join("\n")).toContain("Vasudev update in progress: verifying.");
       expect(lines.filter((line) => typeof line === "string" && line.startsWith("Phase:"))).toEqual(
         [],
       );
@@ -166,7 +166,7 @@ describe("update progress", () => {
           lines.filter((line) => typeof line === "string" && line.startsWith("Phase:")),
         ).toEqual(present ? ["Phase: requested", "Phase: verifying"] : ["Phase: requested"]);
         expect(lines.join("\n")).toContain(
-          present ? "OpenClaw update in progress: verifying." : "OpenClaw updated.",
+          present ? "Vasudev update in progress: verifying." : "Vasudev updated.",
         );
         expect(log).not.toHaveBeenCalledWith("Phase: repairing");
       } finally {
@@ -213,7 +213,7 @@ describe("update progress", () => {
     const lines = log.mock.calls.flat();
     const finalPhase = lines.indexOf("Phase: finished");
     const report = lines.findIndex(
-      (line) => typeof line === "string" && line.includes("OpenClaw updated to 2026.9.3"),
+      (line) => typeof line === "string" && line.includes("Vasudev updated to 2026.9.3"),
     );
     expect(finalPhase).toBeGreaterThan(-1);
     expect(report).toBeGreaterThan(finalPhase);

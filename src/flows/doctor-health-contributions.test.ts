@@ -2351,7 +2351,7 @@ describe("doctor health contributions", () => {
     });
   });
 
-  it("silently skips the host-service contribution in a container without an OpenClaw service", async () => {
+  it("silently skips the host-service contribution in a container without an Vasudev service", async () => {
     mocks.isContainerEnvironment.mockReturnValue(true);
     mocks.findInstalledSystemdGatewayScope.mockResolvedValue(null);
     const contribution = requireDoctorContribution("doctor:gateway-services");
@@ -2992,7 +2992,7 @@ describe("doctor health contributions", () => {
     expect(JSON.stringify(lintResult)).not.toContain("loginctl enable-linger");
   });
 
-  it("never probes systemd linger inside a container without an OpenClaw service", async () => {
+  it("never probes systemd linger inside a container without an Vasudev service", async () => {
     mocks.isContainerEnvironment.mockReturnValue(true);
     mocks.findInstalledSystemdGatewayScope.mockResolvedValue(null);
     const checks = await resolveDoctorContributionHealthChecks();
@@ -4245,7 +4245,7 @@ describe("doctor health contributions", () => {
         findings: [
           expect.objectContaining({
             checkId: "core/doctor/write-config",
-            message: "Doctor config writes are disabled because OpenClaw is running in Nix mode.",
+            message: "Doctor config writes are disabled because Vasudev is running in Nix mode.",
             path: "/tmp/fake-openclaw.json",
             requirement: "mutable-config-write-path",
           }),

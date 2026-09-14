@@ -469,7 +469,7 @@ describe("runSearchSetupFlow", () => {
     expect(note).toHaveBeenNthCalledWith(
       3,
       [
-        "Secret references enabled — OpenClaw will store a reference instead of the API key.",
+        "Secret references enabled — Vasudev will store a reference instead of the API key.",
         "Env var: XAI_API_KEY.",
         "Set XAI_API_KEY in the Gateway environment.",
         "Docs: https://docs.openclaw.ai/tools/web",

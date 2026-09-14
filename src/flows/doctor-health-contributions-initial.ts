@@ -310,7 +310,7 @@ export function resolveInitialDoctorHealthContributions(params: {
       id: "doctor:disk-space",
       label: "Disk space",
       healthChecks: {
-        description: "Low disk space around the OpenClaw state directory is a finding.",
+        description: "Low disk space around the Vasudev state directory is a finding.",
         defaultEnabled: false,
         async detect() {
           const { collectDiskSpaceHealthFindings } =

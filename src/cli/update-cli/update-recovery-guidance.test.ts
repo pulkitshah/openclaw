@@ -78,7 +78,7 @@ describe("container update recovery reporting", () => {
       const action = stored?.origin.nextAction;
       if (container) {
         expect(action).toContain("inside a container");
-        expect(action).toContain("Pull or build an OpenClaw image");
+        expect(action).toContain("Pull or build an Vasudev image");
         expect(action).toContain(redeploy);
         expect(action).toContain("same state/config mounts");
         expect(action).not.toMatch(/sudo|npm config set prefix/);

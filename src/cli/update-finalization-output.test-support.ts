@@ -42,7 +42,7 @@ export async function doctorCommand() {
   if (process.env.OPENCLAW_UPDATE_PARENT_ALLOWS_GATEWAY_ACTIVATION !== '0') {
     throw new Error('Update Doctor unexpectedly allowed gateway activation');
   }
-  intro('OpenClaw doctor');
+  intro('Vasudev doctor');
   note('Doctor panel diagnostic', 'Repair');
   if (!process.argv.includes('--no-workspace-suggestions')) note('Doctor workspace diagnostic', 'Workspace');
   console.log('Doctor console diagnostic');

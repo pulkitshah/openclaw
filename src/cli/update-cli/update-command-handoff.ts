@@ -64,7 +64,7 @@ ${GATEWAY_ANCESTRY_SHELL_GUIDANCE}`;
 
 const ANCESTRY_BLOCK_MARKER = "inside the gateway process tree";
 const UPDATE_CHAT_HANDOFF_GUIDANCE =
-  "From chat, the OpenClaw owner can start the update with the gateway update action or /update, which hands it to a managed helper.";
+  "From chat, the Vasudev owner can start the update with the gateway update action or /update, which hands it to a managed helper.";
 
 function appendUpdateChatHandoffGuidance(blockMessage: string): string {
   return blockMessage.includes(UPDATE_CHAT_HANDOFF_GUIDANCE)

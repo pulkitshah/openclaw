@@ -125,7 +125,7 @@ export function registerMigrateCommand(program: Command) {
         collectMigrationItem,
       )
       .option("--backup-output <path>", "Pre-migration backup archive path or directory")
-      .option("--no-backup", "Skip the pre-migration OpenClaw backup")
+      .option("--no-backup", "Skip the pre-migration Vasudev backup")
       .option("--force", "Allow dangerous options such as --no-backup", false)
       .option("--json", "Output JSON", false),
   )
@@ -182,7 +182,7 @@ export function registerMigrateCommand(program: Command) {
   addMigrationOptions(
     migrate
       .command("plan <provider>")
-      .description("Preview a migration without changing OpenClaw state"),
+      .description("Preview a migration without changing Vasudev state"),
   ).action(async (provider, opts, command) => {
     await runCommandWithRuntime(defaultRuntime, async () => {
       await migratePlanCommand(defaultRuntime, {
@@ -206,7 +206,7 @@ export function registerMigrateCommand(program: Command) {
   )
     .option("--yes", "Apply without prompting", false)
     .option("--backup-output <path>", "Pre-migration backup archive path or directory")
-    .option("--no-backup", "Skip the pre-migration OpenClaw backup")
+    .option("--no-backup", "Skip the pre-migration Vasudev backup")
     .option("--force", "Allow dangerous options such as --no-backup", false)
     .action(async (provider, opts, command) => {
       await runCommandWithRuntime(defaultRuntime, async () => {

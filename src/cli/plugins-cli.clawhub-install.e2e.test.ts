@@ -309,7 +309,7 @@ describe("openclaw plugins install ClawHub E2E", () => {
     {
       label: "version gateway",
       options: { artifactCompatibility: { minGatewayVersion: "9999.0.0" } },
-      error: "requires OpenClaw >=9999.0.0",
+      error: "requires Vasudev >=9999.0.0",
     },
   ])(
     "rejects incompatible $label metadata before trust and download",

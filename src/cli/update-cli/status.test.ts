@@ -140,7 +140,7 @@ describe("update status Node runtime findings", () => {
         expect(result).not.toHaveProperty("abandonedRun");
       } else {
         const output = runtime.log.mock.calls.flat().join("\n");
-        expect(output).toContain("OpenClaw update status");
+        expect(output).toContain("Vasudev update status");
         expect(output.includes("Update run status unavailable:")).toBe(unavailable);
         if (sqliteVersion === "3.51.2") {
           expect(output).toContain("SQLite 3.51.2");
@@ -397,7 +397,7 @@ describe("update status abandoned-run reporting", () => {
         }
       } else {
         const output = runtime.log.mock.calls.flat().join("\n");
-        expect(output).toContain("OpenClaw update status");
+        expect(output).toContain("Vasudev update status");
         expect(output).toContain("Update run status unavailable:");
         expect(output).not.toContain(active.runId);
       }

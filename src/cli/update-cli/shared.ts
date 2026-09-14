@@ -233,7 +233,7 @@ export function tryResolveInvocationCwd(): string | undefined {
   }
 }
 
-/** Locate the installed OpenClaw package root that should receive update operations. */
+/** Locate the installed Vasudev package root that should receive update operations. */
 export async function resolveUpdateRoot(): Promise<string> {
   // Preserve the lexical package path from the invoking shim. pnpm 11 package
   // modules realpath into a shared store, which is not the install owner.
@@ -380,7 +380,7 @@ async function cloneGitCheckoutTransactionally(params: {
   }
 }
 
-/** Ensure the configured source-update directory exists and points at an OpenClaw checkout. */
+/** Ensure the configured source-update directory exists and points at an Vasudev checkout. */
 export async function ensureGitCheckout(params: {
   dir: string;
   timeoutMs: number;
@@ -428,7 +428,7 @@ export async function ensureGitCheckout(params: {
   return { checkoutDir: await fs.realpath(params.dir), step: null };
 }
 
-/** Detect the package manager that owns a global/package OpenClaw install. */
+/** Detect the package manager that owns a global/package Vasudev install. */
 export async function resolveGlobalManager(params: {
   root: string;
   installKind: "git" | "package" | "unknown";

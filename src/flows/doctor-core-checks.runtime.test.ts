@@ -1041,7 +1041,7 @@ describe("doctor gateway runtime checks", () => {
     },
   );
 
-  it("skips host-service findings for a container without an OpenClaw service", async () => {
+  it("skips host-service findings for a container without an Vasudev service", async () => {
     mocks.isContainerEnvironment.mockReturnValue(true);
 
     await expect(

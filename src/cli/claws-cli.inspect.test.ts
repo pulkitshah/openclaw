@@ -94,7 +94,7 @@ describe("claws inspect extensions", () => {
     expect(runtime.exit).not.toHaveBeenCalled();
   });
 
-  it("rejects a plugin declared by both the portable manifest and OpenClaw profile", async () => {
+  it("rejects a plugin declared by both the portable manifest and Vasudev profile", async () => {
     const root = tempDirs.make("openclaw-claws-inspect-extension-collision-");
     await mkdir(join(root, "profiles"));
     await writeFile(

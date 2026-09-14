@@ -43,7 +43,7 @@ function exitDoctorError(message: string, json: boolean): never {
   exitCliAfterOutput(defaultRuntime, 2);
 }
 
-/** Register maintenance commands that inspect or mutate local OpenClaw state. */
+/** Register maintenance commands that inspect or mutate local Vasudev state. */
 export function registerMaintenanceCommands(program: Command) {
   const doctor = program
     .command("doctor")

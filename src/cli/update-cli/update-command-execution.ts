@@ -308,7 +308,7 @@ export async function executeMutableUpdate(
         "managed-service-preflight",
         [
           `${params.updateInstallKind === "git" ? "Git updates" : "Package updates"} cannot run from inside the gateway service process.`,
-          "That path replaces the active OpenClaw dist tree while the live gateway may still lazy-load old chunks.",
+          "That path replaces the active Vasudev dist tree while the live gateway may still lazy-load old chunks.",
           `Run \`${formatCliCommand("openclaw update")}\` from a terminal outside the gateway service.`,
         ].join("\n"),
         inspectionFailure,

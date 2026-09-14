@@ -327,8 +327,8 @@ describe("applyCliProfileEnv", () => {
         ? `openclaw-gateway-${inheritedProfile}.service`
         : "openclaw-gateway.service",
       OPENCLAW_WINDOWS_TASK_NAME: inheritedProfile
-        ? `OpenClaw Gateway (${inheritedProfile})`
-        : "OpenClaw Gateway",
+        ? `Vasudev Gateway (${inheritedProfile})`
+        : "Vasudev Gateway",
       OPENCLAW_SERVICE_MARKER: "openclaw",
       OPENCLAW_SERVICE_KIND: "gateway",
     };
@@ -386,7 +386,7 @@ describe("applyCliProfileEnv", () => {
       OPENCLAW_GATEWAY_PORT: "19999",
       OPENCLAW_LAUNCHD_LABEL: "ai.openclaw.node",
       OPENCLAW_SYSTEMD_UNIT: "openclaw-node.service",
-      OPENCLAW_WINDOWS_TASK_NAME: "OpenClaw Node",
+      OPENCLAW_WINDOWS_TASK_NAME: "Vasudev Node",
       OPENCLAW_SERVICE_MARKER: "openclaw",
       OPENCLAW_SERVICE_KIND: "node",
     };
@@ -396,7 +396,7 @@ describe("applyCliProfileEnv", () => {
     expect(env.OPENCLAW_GATEWAY_PORT).toBe("19999");
     expect(env.OPENCLAW_LAUNCHD_LABEL).toBe("ai.openclaw.node");
     expect(env.OPENCLAW_SYSTEMD_UNIT).toBe("openclaw-node.service");
-    expect(env.OPENCLAW_WINDOWS_TASK_NAME).toBe("OpenClaw Node");
+    expect(env.OPENCLAW_WINDOWS_TASK_NAME).toBe("Vasudev Node");
   });
 
   it.each([

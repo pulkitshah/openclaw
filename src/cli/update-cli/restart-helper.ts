@@ -234,7 +234,7 @@ if [ "$status" -eq 0 ]; then
 else
   printf '[%s] openclaw restart failed source=update status=%s\\n' "$(date -u +%FT%TZ)" "$status" >&2
 fi
-# Self-cleanup (log is retained under the OpenClaw state logs directory).
+# Self-cleanup (log is retained under the Vasudev state logs directory).
 script_dir=$(dirname "$0")
 rm -f "$0"
 rmdir "$script_dir" 2>/dev/null || true

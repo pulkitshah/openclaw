@@ -156,7 +156,7 @@ export function formatCompletionReloadCommand(shell: CompletionShell, scriptPath
 }
 
 function isCompletionProfileHeader(line: string): boolean {
-  return line.trim() === "# OpenClaw Completion";
+  return line.trim() === "# Vasudev Completion";
 }
 
 function isCompletionProfileLine(line: string, binName: string, cachePath: string): boolean {
@@ -412,7 +412,7 @@ function updateCompletionProfile(
     return { next, changed: next !== content, hadExisting };
   }
   const trimmed = filtered.join("\n").trimEnd();
-  const block = `# OpenClaw Completion\n${formatCompletionSourceLine(shell, cachePath)}`;
+  const block = `# Vasudev Completion\n${formatCompletionSourceLine(shell, cachePath)}`;
   const next = trimmed ? `${trimmed}\n\n${block}\n` : `${block}\n`;
   return { next, changed: next !== content, hadExisting };
 }
@@ -449,7 +449,7 @@ async function resolveCompletionProfileWritePath(profilePath: string): Promise<s
   return path.join(await fs.realpath(targetDir), path.basename(targetPath));
 }
 
-/** Resolves the shell startup profile path that should contain the OpenClaw completion block. */
+/** Resolves the shell startup profile path that should contain the Vasudev completion block. */
 export function resolveCompletionProfilePath(
   shell: CompletionShell,
   options: {
@@ -521,7 +521,7 @@ export function resolveCompletionProfileHint(shell: CompletionShell): string {
     : profilePath;
 }
 
-/** Returns whether a shell profile already contains an OpenClaw completion block or source line. */
+/** Returns whether a shell profile already contains an Vasudev completion block or source line. */
 export async function isCompletionInstalled(
   shell: CompletionShell,
   binName = "openclaw",

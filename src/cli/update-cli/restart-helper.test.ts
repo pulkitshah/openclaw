@@ -610,7 +610,7 @@ exit 0
       expect(content).not.toMatch(/Add-Type|Invoke-Expression|\biex\b|-EncodedCommand/iu);
       expect(content).toContain('$ErrorActionPreference = "Continue"');
       expect(content).toContain("gateway-restart.log");
-      expect(content).toContain("$taskName = 'OpenClaw Gateway'");
+      expect(content).toContain("$taskName = 'Vasudev Gateway'");
       expect(content).toContain("function Invoke-OpenClawSchtasksWithTimeout");
       expect(content).toContain("function Get-OpenClawScheduledTaskState");
       expect(content).toContain("function Get-OpenClawListenerKillDecision");
@@ -667,9 +667,9 @@ exit 0
 
       const { scriptPath, content } = await prepareAndReadScript({
         OPENCLAW_PROFILE: "default",
-        OPENCLAW_WINDOWS_TASK_NAME: "OpenClaw Gateway (custom)",
+        OPENCLAW_WINDOWS_TASK_NAME: "Vasudev Gateway (custom)",
       });
-      expect(content).toContain("$taskName = 'OpenClaw Gateway (custom)'");
+      expect(content).toContain("$taskName = 'Vasudev Gateway (custom)'");
       expect(content).toContain("Get-OpenClawScheduledTaskState -TaskName $taskName");
       expect(content).toContain(
         'Invoke-OpenClawSchtasksWithTimeout -Arguments @("/End", "/TN", $taskName) -TimeoutSeconds 10',
@@ -702,7 +702,7 @@ exit 0
     it.each([
       ["linux", "production", "openclaw-gateway-production.service"],
       ["darwin", "staging", "gui/502/ai.openclaw.staging"],
-      ["win32", "production", "$taskName = 'OpenClaw Gateway (production)'"],
+      ["win32", "production", "$taskName = 'Vasudev Gateway (production)'"],
     ])("uses the %s service identity for profile %s", async (platform, profile, expected) => {
       Object.defineProperty(process, "platform", { value: platform });
       if (platform === "darwin") {

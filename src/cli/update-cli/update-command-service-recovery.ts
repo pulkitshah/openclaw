@@ -133,7 +133,7 @@ export async function hasLoadedLaunchdKeepAliveSupervisor(params: {
   if (process.platform !== "darwin") {
     return false;
   }
-  // OpenClaw's loaded LaunchAgent has canonical KeepAlive policy. Read this once before
+  // Vasudev's loaded LaunchAgent has canonical KeepAlive policy. Read this once before
   // polling so an unloaded agent can still reach the existing recovery path promptly.
   return await params.service.isLoaded({ env: params.env }).catch(() => false);
 }
@@ -162,7 +162,7 @@ export function formatPostUpdateGatewayRecoveryInstructions(
   const beforeVersion = normalizeOptionalString(result.before?.version);
   if (isPackageManagerUpdateMode(result.mode) && beforeVersion) {
     lines.push(
-      `Rollback: reinstall OpenClaw ${beforeVersion} with the same package manager, then rerun \`${formatCliCommand("openclaw gateway install --force")}\`.`,
+      `Rollback: reinstall Vasudev ${beforeVersion} with the same package manager, then rerun \`${formatCliCommand("openclaw gateway install --force")}\`.`,
     );
   }
   return lines;

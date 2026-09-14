@@ -502,7 +502,7 @@ describe("registerOnboardCommand", () => {
     expect(runtime.exit).toHaveBeenCalledWith(1);
   });
 
-  it("routes --modern through the inference-gated OpenClaw entrypoint", async () => {
+  it("routes --modern through the inference-gated Vasudev entrypoint", async () => {
     await runCli(["onboard", "--modern", "--json"]);
 
     expect(mocks.runSystemAgentWithInference).toHaveBeenCalledWith(

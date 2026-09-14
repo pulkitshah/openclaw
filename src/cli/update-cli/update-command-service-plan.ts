@@ -153,7 +153,7 @@ export async function resolvePackageRuntimePreflight(params: {
     const version = normalizeOptionalString(manifest?.version);
     if (!version) {
       return resultError(
-        "Cannot inspect the installed OpenClaw runtime requirement; repair its package.json before retrying openclaw update.",
+        "Cannot inspect the installed Vasudev runtime requirement; repair its package.json before retrying openclaw update.",
       );
     }
     target = {
@@ -419,7 +419,7 @@ export function formatManagedServicePackageUpdatePlan(params: {
       },
       {
         level: "warn",
-        message: `Shell OpenClaw root differs from the managed gateway service root: ${rootRedirect.previousRoot}`,
+        message: `Shell Vasudev root differs from the managed gateway service root: ${rootRedirect.previousRoot}`,
       },
       {
         level: "muted",

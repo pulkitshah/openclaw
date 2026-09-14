@@ -710,7 +710,7 @@ describe("plugins cli inspect", () => {
         workspaceDir: undefined,
       });
     }
-    expect(output).toContain("Skill Workshop is built into OpenClaw, not a plugin");
+    expect(output).toContain("Skill Workshop is built into Vasudev, not a plugin");
     expect(output).toContain('tools.profile: "messaging" does not include "skill_workshop".');
     expect(output).toContain('Add tools.alsoAllow: ["skill_workshop"].');
     for (const agentId of agentIds) {

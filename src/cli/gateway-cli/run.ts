@@ -552,7 +552,7 @@ async function runGatewayLoopWithSupervisedLockRecovery(params: {
 
       const waitMs = Math.min(retryMs, Math.max(0, timeoutMs - elapsedMs));
       params.log.warn(
-        `${lifecycleContention ? "gateway-lifecycle ownership held by another OpenClaw process" : "gateway already running"} under ${supervisor}; waiting ${waitMs}ms before retrying startup`,
+        `${lifecycleContention ? "gateway-lifecycle ownership held by another Vasudev process" : "gateway already running"} under ${supervisor}; waiting ${waitMs}ms before retrying startup`,
       );
       await sleep(waitMs);
     }

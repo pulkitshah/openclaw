@@ -287,10 +287,10 @@ vi.mock("../config/config.js", () => {
       if (process.env.OPENCLAW_NIX_MODE === "1") {
         throw new Error(
           [
-            "Config is managed by Nix (`OPENCLAW_NIX_MODE=1`), so OpenClaw treats openclaw.json as immutable.",
+            "Config is managed by Nix (`OPENCLAW_NIX_MODE=1`), so Vasudev treats openclaw.json as immutable.",
             "Do not run setup, onboarding, openclaw update, plugin install/update/uninstall/enable, doctor repair/token-generation, or config set against this file.",
             "Agent-first Nix setup: https://github.com/openclaw/nix-openclaw#quick-start",
-            "OpenClaw Nix overview: https://docs.openclaw.ai/install/nix",
+            "Vasudev Nix overview: https://docs.openclaw.ai/install/nix",
           ].join("\n"),
         );
       }
@@ -5495,7 +5495,7 @@ describe("update-cli", () => {
           pluginId: "demo",
           status: "skipped",
           message:
-            'Disabled "demo" after plugin update failure; OpenClaw will continue without it. Failed to update demo: registry timeout',
+            'Disabled "demo" after plugin update failure; Vasudev will continue without it. Failed to update demo: registry timeout',
         },
       ],
       true,
@@ -6579,12 +6579,12 @@ describe("update-cli", () => {
     mockPackageInstallStatus(createCaseDir("openclaw-unknown-owner"));
     resolveGlobalManager.mockRejectedValueOnce(
       new Error(
-        "Update refused: package manager owner is unknown; no changes were made. Run this OpenClaw install through its active npm, pnpm, or Bun global shim, or reinstall it with that package manager, then retry.",
+        "Update refused: package manager owner is unknown; no changes were made. Run this Vasudev install through its active npm, pnpm, or Bun global shim, or reinstall it with that package manager, then retry.",
       ),
     );
 
     await expect(updateCommand({ yes: true, restart: false })).rejects.toThrow(
-      "Update refused: package manager owner is unknown; no changes were made. Run this OpenClaw install through its active npm, pnpm, or Bun global shim, or reinstall it with that package manager, then retry.",
+      "Update refused: package manager owner is unknown; no changes were made. Run this Vasudev install through its active npm, pnpm, or Bun global shim, or reinstall it with that package manager, then retry.",
     );
 
     expect(cleanupStaleManagedServiceUpdateHandoffs).not.toHaveBeenCalled();
@@ -6822,7 +6822,7 @@ describe("update-cli", () => {
         await updateStatusCommand({ json: false });
       },
       assert: () => {
-        expect(getLogOutput()).toContain("OpenClaw update status");
+        expect(getLogOutput()).toContain("Vasudev update status");
         expect(checkUpdateStatus).toHaveBeenCalledWith(
           expect.objectContaining({ useDetachedDevUpstream: false }),
         );
@@ -7672,7 +7672,7 @@ describe("update-cli", () => {
 
   const packageUpdateInGatewayMessage = [
     "Package updates cannot run from inside the gateway service process.",
-    "That path replaces the active OpenClaw dist tree while the live gateway may still lazy-load old chunks.",
+    "That path replaces the active Vasudev dist tree while the live gateway may still lazy-load old chunks.",
     "Run `openclaw update` from a terminal outside the gateway service.",
   ].join("\n");
 
@@ -8067,9 +8067,9 @@ describe("update-cli", () => {
     },
     {
       name: "aliased git package spec",
-      options: { yes: true, tag: "OpenClaw@github:openclaw/openclaw#main" },
+      options: { yes: true, tag: "Vasudev@github:openclaw/openclaw#main" },
       packageSpec: undefined,
-      expectedSpec: "OpenClaw@github:openclaw/openclaw#main",
+      expectedSpec: "Vasudev@github:openclaw/openclaw#main",
     },
     {
       name: "aliased hosted GitHub URL package spec without git suffix",
@@ -9636,7 +9636,7 @@ describe("update-cli", () => {
     {
       platform: "win32" as const,
       envKey: "OPENCLAW_WINDOWS_TASK_NAME",
-      value: "OpenClaw Gateway",
+      value: "Vasudev Gateway",
     },
   ])(
     "does not reuse a conflicting $envKey selector from the managed service on $platform",
@@ -11315,7 +11315,7 @@ describe("update-cli", () => {
       [serviceEntrypoint, "config", "validate", "--json"],
       expect.objectContaining({ env: { OPENCLAW_UPDATE_IN_PROGRESS: "0" } }),
     );
-    expect(getLogOutput()).toContain("OpenClaw update failed: post-update-plugins.");
+    expect(getLogOutput()).toContain("Vasudev update failed: post-update-plugins.");
     expect(getErrorOutput()).not.toContain("Update failed during plugin post-update sync.");
   });
 
@@ -11362,8 +11362,8 @@ describe("update-cli", () => {
     expect(freshRestartCalls()).toHaveLength(0);
 
     expect(defaultRuntime.exit).not.toHaveBeenCalled();
-    expect(getLogOutput()).toContain("OpenClaw update failed: post-update-plugins.");
-    expect(getLogOutput()).not.toContain("OpenClaw updated");
+    expect(getLogOutput()).toContain("Vasudev update failed: post-update-plugins.");
+    expect(getLogOutput()).not.toContain("Vasudev updated");
   });
 
   it("keeps managed service stop output off stdout during json package updates", async () => {
@@ -11563,20 +11563,13 @@ describe("update-cli", () => {
     const localAppData = createCaseDir("openclaw-localappdata");
     const portableGitMingw = path.join(
       localAppData,
-      "OpenClaw",
+      "Vasudev",
       "deps",
       "portable-git",
       "mingw64",
       "bin",
     );
-    const portableGitUsr = path.join(
-      localAppData,
-      "OpenClaw",
-      "deps",
-      "portable-git",
-      "usr",
-      "bin",
-    );
+    const portableGitUsr = path.join(localAppData, "Vasudev", "deps", "portable-git", "usr", "bin");
     await fs.mkdir(portableGitMingw, { recursive: true });
     await fs.mkdir(portableGitUsr, { recursive: true });
     mockFileBackedPathExists();
@@ -11683,7 +11676,7 @@ describe("update-cli", () => {
     const logs = getLogOutput();
     expect(logs).toContain(`Targeting managed gateway service package root: ${serviceRoot}`);
     expect(logs).toContain(
-      `Shell OpenClaw root differs from the managed gateway service root: ${shellRoot}`,
+      `Shell Vasudev root differs from the managed gateway service root: ${shellRoot}`,
     );
     expect(logs).toContain("make sure `openclaw` on PATH resolves to the managed service root");
     expect(logs).toContain(`Managed gateway service Node: ${serviceNode}`);
@@ -13030,7 +13023,7 @@ describe("update-cli", () => {
     await expect(updateCommand({ channel: "dev" })).rejects.toEqual(new ExitError(1));
 
     const logs = getLogOutput();
-    expect(logs).toContain("OpenClaw update skipped: dirty.");
+    expect(logs).toContain("Vasudev update skipped: dirty.");
     expect(logs).toContain(
       "Git-based updates need a clean working tree before they can switch commits, fetch, or rebase.",
     );
@@ -13241,7 +13234,7 @@ describe("update-cli", () => {
       prepareRestartScript,
       runRestartScript,
     );
-    expect(getErrorOutput()).toContain("service belongs to a different OpenClaw installation");
+    expect(getErrorOutput()).toContain("service belongs to a different Vasudev installation");
     expect(defaultRuntime.exit).not.toHaveBeenCalledWith(1);
   });
 
@@ -13780,7 +13773,7 @@ describe("update-cli", () => {
 
         const successIndex = vi
           .mocked(defaultRuntime.log)
-          .mock.calls.findIndex((call) => String(call[0]).includes("OpenClaw updated"));
+          .mock.calls.findIndex((call) => String(call[0]).includes("Vasudev updated"));
         expect(successIndex).toBeGreaterThanOrEqual(0);
         expect(
           vi.mocked(defaultRuntime.log).mock.invocationCallOrder[successIndex],

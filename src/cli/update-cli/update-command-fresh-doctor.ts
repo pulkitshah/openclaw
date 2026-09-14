@@ -117,7 +117,7 @@ export async function runUpdateFinalizationDoctorInFreshProcess(params: {
 }): Promise<void> {
   const entryPath = params.entryPath ?? (await resolveGatewayInstallEntrypoint(params.root));
   if (!entryPath) {
-    throw new Error("Updated OpenClaw entrypoint not found for post-plugin doctor");
+    throw new Error("Updated Vasudev entrypoint not found for post-plugin doctor");
   }
   const args = [
     entryPath,
@@ -273,7 +273,7 @@ export async function completePostCorePluginUpdate(params: {
     try {
       entryPath = await resolveGatewayInstallEntrypoint(params.root);
       if (!entryPath) {
-        throw new Error("Updated OpenClaw entrypoint not found for post-plugin doctor");
+        throw new Error("Updated Vasudev entrypoint not found for post-plugin doctor");
       }
       if (params.freshDoctorRequired || hasDeferredUpdateModelRetirement()) {
         await params.beforeDoctor?.();
