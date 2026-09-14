@@ -8,7 +8,9 @@ import { RENDER_ROUTE_PATH } from "./src/adapters/render.js";
 
 vi.mock("./src/store.js", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./src/store.js")>()),
-  DutyStore: { open: () => ({}) },
+  DutyStore: {
+    open: () => ({ getSettings: async () => ({ owner: { channel: "telegram", target: "999" } }) }),
+  },
 }));
 
 const runManagerParams = vi.fn();
@@ -97,10 +99,14 @@ describe("duties plugin registration", () => {
     expect(resolveRenderBaseUrl({})).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/u);
   });
 
-  // Regression: both adapters were built with a hardcoded sessionKey "main". Under
-  // `agents.ownership: "explicit"` with more than one agent, "main" has no owner, so every ai and
-  // ask step failed with "session key \"main\" has no explicit owner" before the step ran.
-  it("runs ai and ask steps under the session that started the run", async () => {
+  // Two regressions in one place. Both adapters were built with a hardcoded sessionKey "main":
+  // under `agents.ownership: "explicit"` with more than one agent, "main" has no owner, so every
+  // ai and ask step failed with "session key \"main\" has no explicit owner" before it ran. And an
+  // `ask` keyed to the run's own origin parked a mail run's approval gate inside the dispatcher's
+  // `hook:gmail:*` session, where the owner could neither see nor answer it — so an ask follows
+  // the route rule `deliver` uses (the run's chat, else the owner) while `ai`, which no person
+  // reads, stays on the run's own session.
+  it("runs ai on the run's own session and asks where the owner can answer", async () => {
     const captured = createCapturedPluginRegistration({ id: "duties", name: "Duties" });
     // Evidence blobs and the rendered-file directory are only reachable through the real plugin
     // runtime proxy; this case is about which session the adapters are built with.
@@ -121,6 +127,7 @@ describe("duties plugin registration", () => {
       };
     };
 
+    // A chat run: both act in the conversation the owner started the run from.
     expect(
       await sessionKeysFor({
         kind: "chat",
@@ -128,10 +135,14 @@ describe("duties plugin registration", () => {
         agentId: "krishna",
       }),
     ).toEqual({ ai: "agent:krishna:duties", ask: "agent:krishna:duties" });
-    expect(await sessionKeysFor({ kind: "mail", agentId: "duties-mail" })).toEqual({
-      ai: "agent:duties-mail:main",
-      ask: "agent:duties-mail:main",
-    });
-    expect(await sessionKeysFor(undefined)).toEqual({ ai: "main", ask: "main" });
+    // A mail run: the model call stays with the dispatcher that made it; the question goes to the
+    // owner's own session, resolved from the owner target through the host's routing.
+    const mail = await sessionKeysFor({ kind: "mail", agentId: "duties-mail" });
+    expect(mail.ai).toBe("agent:duties-mail:main");
+    expect(mail.ask).not.toBe("agent:duties-mail:main");
+    expect(mail.ask).toMatch(/^agent:/u);
+    const manual = await sessionKeysFor(undefined);
+    expect(manual.ai).toBe("main");
+    expect(manual.ask).toBe(mail.ask);
   });
 });

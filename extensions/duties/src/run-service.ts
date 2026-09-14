@@ -56,19 +56,22 @@ export class RunManager {
        *  directory is asynchronous, so this may return a promise. */
       deps: (duty: Duty, run: DutyRun) => Promise<RunnerDeps> | RunnerDeps;
       emit: (event: RunEvent) => void;
-      /** Posts one status line back to a chat-started run's own conversation. Best-effort: the
-       *  run's outcome never depends on it, and it is never awaited on the critical path. */
-      notify?: (origin: RunOrigin, text: string) => Promise<void>;
+      /** Posts one status line back to wherever the run reports: the conversation a chat-started
+       *  run came from, otherwise the configured owner. Best-effort: the run's outcome never
+       *  depends on it, and it is never awaited on the critical path. */
+      notify?: (origin: RunOrigin | undefined, text: string) => Promise<void>;
       maxParallel?: number;
     },
   ) {
     this.maxParallel = params.maxParallel ?? 4;
   }
 
-  /** Chat status lines only: a mail- or manually-triggered run has no conversation to post into.
+  /** A run that nobody is watching is the one whose status matters most, so status lines follow
+   *  the same rule as `deliver`: back to the chat a run came from, otherwise to the owner. An
+   *  unattended mail run used to report nowhere at all.
    *  Swallows both a synchronous throw and a rejection so `notify` can never break a run. */
   private announce(origin: RunOrigin | undefined, text: string): void {
-    if (origin?.kind !== "chat" || !this.params.notify || !text) return;
+    if (!this.params.notify || !text) return;
     try {
       this.params.notify(origin, text).catch(() => {});
     } catch {

@@ -25,6 +25,16 @@ export function createAskAdapter(params: {
   request: Request;
   sessionKey: string;
   pollMs?: number;
+  /** Sends a visible note about the question to wherever the run reports back to.
+   *
+   *  `question.request` records a question and returns its id; it never sends it to a channel.
+   *  Channel delivery is done by the agent turn that raises a question
+   *  (`runWithQuestionChannelDeliveries`/`registerDelivery`,
+   *  src/infra/question-channel-runtime-internal.ts), and a Duty run has no such turn — verified
+   *  by probing `question.request` against a live Gateway with the owner's own session key and
+   *  seeing no channel send at all. So without this the owner is never told the run is waiting.
+   *  Best-effort: a run must park on its question even if the note cannot be delivered. */
+  announce?: (text: string) => Promise<void>;
 }): AskAdapter {
   return {
     async ask({ stepId, question, header, options, timeoutMs, onAsked }) {
@@ -46,6 +56,10 @@ export function createAskAdapter(params: {
       );
       // The run parks on `needs_input` from here until this call returns.
       onAsked?.(requested.id);
+      if (params.announce) {
+        const choices = options.length > 0 ? `\n\n${options.join(" / ")}` : "";
+        await params.announce(`${header || "Duty"}: ${question}${choices}`).catch(() => {});
+      }
       const deadline = Date.now() + budget;
       while (Date.now() < deadline) {
         const state = await params.request<{

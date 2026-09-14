@@ -9,7 +9,7 @@ import { DutyStore } from "./store.js";
 import type { DutyRun, RunOrigin } from "./store.js";
 import type { Template } from "./template.js";
 
-type Notify = (origin: RunOrigin, text: string) => Promise<void>;
+type Notify = (origin: RunOrigin | undefined, text: string) => Promise<void>;
 
 function memoryKeyed<T>() {
   const m = new Map<string, T>();
@@ -424,7 +424,10 @@ describe("RunManager", () => {
     ]);
   });
 
-  it("posts a chat status line when the run starts and finishes, and none for a manual run", async () => {
+  // A mail- or manually-triggered run used to report nowhere at all, which is exactly the run
+  // nobody is watching. Status lines now follow the same rule `deliver` does — the chat the run
+  // came from, otherwise the owner — and the notifier is handed the origin so it can resolve that.
+  it("posts a status line when the run starts and finishes, for an unattended run too", async () => {
     const store = newStore();
     const chat = vi.fn<Notify>(async () => {});
     const chatMgr = new RunManager({
@@ -458,7 +461,9 @@ describe("RunManager", () => {
     });
     await manualMgr.wait(manual.runId);
     await flushMacrotasks(3);
-    expect(quiet).not.toHaveBeenCalled();
+    expect(quiet.mock.calls.map((c) => c[1])).toEqual(["Running quiet…", "Done — ok"]);
+    // The origin reaches the notifier, which is what lets it route to the owner rather than guess.
+    expect(quiet.mock.calls[0]?.[0]).toEqual({ kind: "manual" });
   });
 
   it("reports a failed chat run's failing step in its status line and never lets notify break the run", async () => {

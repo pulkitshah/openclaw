@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  createAskSessionResolver,
   createDeliverAdapter,
   createRouteResolver,
   maskTarget,
@@ -35,6 +36,44 @@ describe("createRouteResolver", () => {
       sessionRoute: () => undefined,
     });
     await expect(resolve("owner", undefined, undefined)).rejects.toThrow(
+      /no owner target configured — set it on the Duties page/u,
+    );
+  });
+});
+
+// A duty's questions have to be asked in a session the owner can actually answer from. Keyed to
+// the dispatcher's own `hook:gmail:*` session, a mail-triggered run's approval gate parked where
+// nobody could see or answer it. The rule is the one `deliver` already uses: the chat the run came
+// from, otherwise the configured owner.
+describe("createAskSessionResolver", () => {
+  const cfg = {} as never;
+  const ownerRoute = { sessionKey: "agent:krishna:main", agentId: "krishna" };
+  const resolver = (ownerTarget: { channel: string; target: string } | undefined) =>
+    createAskSessionResolver({
+      cfg,
+      ownerTarget: async () => ownerTarget,
+      resolveRoute: () => ownerRoute as never,
+    });
+
+  it("asks in the session the run came from when that was a chat", async () => {
+    const resolve = resolver({ channel: "telegram", target: "111" });
+    expect(
+      await resolve({ kind: "chat", sessionKey: "agent:krishna:duties-p2", agentId: "krishna" }),
+    ).toBe("agent:krishna:duties-p2");
+  });
+
+  it("asks in the owner's own session for a mail run, not the dispatcher's", async () => {
+    const resolve = resolver({ channel: "telegram", target: "5995225650" });
+    expect(
+      await resolve({ kind: "mail", sessionKey: "hook:gmail:1", agentId: "duties-mail" }),
+    ).toBe("agent:krishna:main");
+    expect(await resolve({ kind: "manual" })).toBe("agent:krishna:main");
+    expect(await resolve(undefined)).toBe("agent:krishna:main");
+  });
+
+  it("fails loudly when there is no owner target to ask", async () => {
+    const resolve = resolver(undefined);
+    await expect(resolve({ kind: "mail", sessionKey: "hook:gmail:1" })).rejects.toThrow(
       /no owner target configured — set it on the Duties page/u,
     );
   });

@@ -25,6 +25,7 @@
  */
 import { sendDurableMessageBatch } from "openclaw/plugin-sdk/channel-outbound";
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
+import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
 import {
   deliveryContextFromSession,
   getSessionEntry,
@@ -39,6 +40,45 @@ export type RouteResolver = (
 ) => Promise<DeliverRoute>;
 
 export const NO_OWNER_TARGET = "no owner target configured — set it on the Duties page";
+
+/**
+ * The Gateway session a run's questions are asked in.
+ *
+ * An `ask` is the one step that needs a person, so it has to be raised where that person can see
+ * and answer it — the same place `deliver` would send to: the chat the run came from, otherwise
+ * the configured owner. Keyed to the run's own origin session, a mail-triggered run asked inside
+ * the `duties-mail` dispatcher's `hook:gmail:*` session, which belongs to an agent the owner never
+ * talks to, so the approval gate parked where nobody could answer it.
+ *
+ * The owner's session key is built by the host's own resolver rather than assembled here:
+ * `resolveAgentRoute` applies the configured `bindings[]` (which agent owns that channel) and the
+ * session scope rules (`session.dmScope`, identity links) that decide whether an owner DM collapses
+ * onto the agent's main session or gets a per-peer one. Duplicating either here would drift from
+ * the channel the owner actually uses.
+ *
+ * Note this only decides *where the question lives*, and therefore who can answer it. Delivering a
+ * visible message about it is separate: `question.request` never sends to a channel by itself —
+ * channel delivery is performed by the agent turn that raises a question, and a Duty run has no
+ * such turn — so the run also announces the question through the `deliver` adapter.
+ */
+export function createAskSessionResolver(params: {
+  cfg: OpenClawConfig;
+  ownerTarget: () => Promise<{ channel: string; target: string } | undefined>;
+  /** Injectable so tests never load the host's routing tables. */
+  resolveRoute?: typeof resolveAgentRoute;
+}): (origin: RunOrigin | undefined) => Promise<string> {
+  return async (origin) => {
+    if (origin?.kind === "chat" && origin.sessionKey) return origin.sessionKey;
+    const target = await params.ownerTarget();
+    if (!target) throw new Error(NO_OWNER_TARGET);
+    const resolve = params.resolveRoute ?? resolveAgentRoute;
+    return resolve({
+      cfg: params.cfg,
+      channel: target.channel,
+      peer: { kind: "direct", id: target.target },
+    }).sessionKey;
+  };
+}
 
 /** "trigger" -> the chat the run came from, else the owner; "owner" -> the owner target; anything
  *  else is an explicit channel target (validateDuty already required `channel` for it). */

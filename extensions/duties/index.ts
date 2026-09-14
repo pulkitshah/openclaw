@@ -7,6 +7,7 @@ import { createAiAdapter } from "./src/adapters/ai.js";
 import { createAskAdapter } from "./src/adapters/ask.js";
 import { createBrowserAdapter } from "./src/adapters/browser.js";
 import {
+  createAskSessionResolver,
   createDeliverAdapter,
   createRouteResolver,
   sessionRouteFromStore,
@@ -115,10 +116,12 @@ export default definePluginEntry({
       }),
     });
     const deliver = createDeliverAdapter({ cfg: api.config });
+    const ownerTarget = async () => (await store.getSettings()).owner;
     const resolveRoute = createRouteResolver({
-      ownerTarget: async () => (await store.getSettings()).owner,
+      ownerTarget,
       sessionRoute: sessionRouteFromStore,
     });
+    const askSession = createAskSessionResolver({ cfg: api.config, ownerTarget });
     // Read through the store on every run so an edit on the Duties page is picked up by the next
     // run without rebuilding the deps.
     const templates = {
@@ -144,7 +147,17 @@ export default definePluginEntry({
             },
           }),
           ai: createAiAdapter({ request, sessionKey: runSessionKey(run.origin) }),
-          ask: createAskAdapter({ request, sessionKey: runSessionKey(run.origin) }),
+          // An `ask` is the one step that waits for a person, so it is raised in the session that
+          // person uses — the run's own chat, or the owner's — and announced through the same
+          // route `deliver` would use, because `question.request` sends to no channel by itself.
+          ask: createAskAdapter({
+            request,
+            sessionKey: await askSession(run.origin),
+            announce: async (text) => {
+              const route = await resolveRoute("trigger", undefined, run.origin);
+              await deliver.send({ route, text });
+            },
+          }),
           cred: (key: string) => credGet(key),
           templates,
           render,
@@ -154,11 +167,11 @@ export default definePluginEntry({
         };
       },
       emit: (event) => events.emit("run", event),
-      // Status lines go back to the conversation the run was started from. No route (the session
-      // is gone, or it was never an external chat) means no status line, not a failure.
+      // Status lines go where the run reports: the conversation it was started from, else the
+      // owner. Best-effort — `announce` swallows the failure, so a run with no owner target
+      // configured still runs, it just reports nowhere.
       notify: async (origin, text) => {
-        const route = sessionRouteFromStore(origin);
-        if (!route) return;
+        const route = await resolveRoute("trigger", undefined, origin);
         await deliver.send({ route, text });
       },
     });
