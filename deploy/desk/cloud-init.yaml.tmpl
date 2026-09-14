@@ -197,7 +197,11 @@ runcmd:
   # entry carries owner/mode, and extracting straight into `/tmp` as root applies that entry to
   # `/tmp` itself - it went from `1777 root:root` to `0755 501:staff` and silently broke every
   # later use of a writable /tmp (the browser plugin's `mkdtemp`, claude's own tmpdir, plugin
-  # cleanup) until it was found and repaired by hand (observed 2026-09-14).
+  # cleanup) until it was found and repaired by hand (observed 2026-09-14). The trailing
+  # `|| { rm -rf "$workdir" ...; false; }` cleans up the workdir on any failure too (a bad
+  # checksum, a dropped download) instead of only on the success path - `false` at the end
+  # re-raises the failure so cloud-init still sees this runcmd item as failed, since `rm -rf`
+  # itself would otherwise report success and mask it.
   - >-
     workdir="$(mktemp -d)" &&
     cd "$workdir" &&
@@ -212,7 +216,7 @@ runcmd:
     echo "$sum  gogcli.tgz" | sha256sum -c - &&
     tar -xzf gogcli.tgz && install -m 0755 ./gog /usr/local/bin/gog &&
     cd / && rm -rf "$workdir" &&
-    gog --version
+    gog --version || { rm -rf "$workdir" 2>/dev/null; false; }
 
   # Fork checkout - pinned to the roll ref the operator asked for. {{FORK_REPO_URL}} is the
   # operator's own fork (render-cloud-init.mjs: --repo-url / DESK_FORK_REPO_URL, defaulting to

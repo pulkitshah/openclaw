@@ -365,6 +365,9 @@ describe("render-cloud-init.mjs", () => {
     expect(output).not.toMatch(/cd\s+\/tmp\b/);
     expect(output).toContain('workdir="$(mktemp -d)"');
     expect(output).toContain('cd "$workdir"');
+    // The workdir is cleaned up on a failure partway through too, not only once every step of
+    // the install has already succeeded.
+    expect(output).toContain('|| { rm -rf "$workdir"');
   });
 
   it("never writes deploy/desk/desk-health.sh via write_files — it ships in the git-cloned tree", () => {

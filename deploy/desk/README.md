@@ -235,18 +235,30 @@ deploy/desk/roll.sh <desk-name> --reboot
 
 `roll.sh` first checks the desk is idle (no Duty run `running`, `needs_input`, or `queued`)
 and exits with status 3 and a `desk is busy: run <id> is <status>; retry later or --force`
-message if it is not. Otherwise — or with `--force` — it **stops `openclaw-gateway` first**,
-then fetches and checks out `<git-ref>`, reinstalls (frozen lockfile, `--ignore-scripts`) and
-rebuilds against the now-idle checkout, restores `root:openclaw` ownership, starts
-`openclaw-gateway` again, waits for `/healthz` to answer, and prints the desk's reported
-version. **The desk is briefly down for the whole build — the Control UI is unreachable and
-Duties are refused — from the moment it stops the Gateway until `/healthz` answers again**
-(this replaces rebuilding `dist` while the old Gateway kept running, which used to surface a
-transient "assets could not be prepared" and skills `EACCES` on the Control UI mid-roll). Pass
-`--reboot` instead of a plain roll when a kernel or package update needs the whole box
+message if it is not. Otherwise — or with `--force` — it snapshots the current build (`dist`
+and the git ref that produced it) and **stops `openclaw-gateway` first**, then fetches and
+checks out `<git-ref>`, reinstalls (frozen lockfile, `--ignore-scripts`) and rebuilds against
+the now-idle checkout. **The desk is briefly down for the whole build — the Control UI is
+unreachable and Duties are refused — from the moment it stops the Gateway until it answers
+`/healthz` again** (this replaces rebuilding `dist` while the old Gateway kept running, which
+used to surface a transient "assets could not be prepared" and skills `EACCES` on the Control
+UI mid-roll).
+
+- **On success**: restores `root:openclaw` ownership, discards the snapshot, starts
+  `openclaw-gateway` again, waits for `/healthz` to answer, and prints the desk's reported
+  version.
+- **On failure** (the fetch, install, or build step itself fails — a network hiccup or an
+  out-of-memory build, both of which have happened during this project): restores the
+  snapshotted `dist` and git ref — the desk goes back to exactly what it was serving before
+  this roll — restarts the Gateway on it, and exits **5** once `/healthz` answers again, or
+  **6** if the Gateway does not come back up even on the restored build (the failure message
+  prints the `journalctl` command to investigate with). Either way the desk is left in a
+  working state rather than down indefinitely; nothing needs manual recovery unless it exits 6.
+
+Pass `--reboot` instead of a plain roll when a kernel or package update needs the whole box
 restarted, in a window the operator picks — `unattended-upgrades` on the desk never reboots on
-its own; the Gateway stops the same way first, then the enabled unit starts it back up once the
-box comes back.
+its own; the Gateway stops the same way first (with the same failure recovery above), then the
+enabled unit starts it back up once the box comes back.
 
 ## Snapshot / restore
 

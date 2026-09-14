@@ -80,6 +80,18 @@ case "$remote" in
   *)
     : ;;
 esac
+# This stub never actually executes the piped roll.sh remote script (it only captures it above)
+# — so a "the remote build failed" scenario is simulated by exiting with the code the real
+# remote script's own recovery path would exit with, on exactly the mutate call ("bash -s --",
+# never the busy check, which must keep behaving normally so roll.sh reaches the mutate call at
+# all). SSH_ROLL_REMOTE_EXIT_CODE drives which code; unset means the ordinary success path (0).
+case "$*" in
+  *"bash -s --"*)
+    if [ -n "\${SSH_ROLL_REMOTE_EXIT_CODE:-}" ]; then
+      exit "\${SSH_ROLL_REMOTE_EXIT_CODE}"
+    fi
+    ;;
+esac
 exit 0`,
   );
 
@@ -563,12 +575,54 @@ describe("deploy/desk operator scripts", () => {
       // fetch/install/build, and back up only once the rebuilt tree is ready.
       const stopIndex = sshCalls.indexOf("systemctl stop openclaw-gateway");
       const fetchIndex = sshCalls.indexOf('git fetch origin "$git_ref"');
-      const buildIndex = sshCalls.indexOf("pnpm build");
-      const startIndex = sshCalls.indexOf("systemctl start openclaw-gateway");
+      // The bare substring "pnpm build" also appears earlier in explanatory comments (e.g. "this
+      // project's own live proof once OOM'd mid-`pnpm build`") — match the actual command line.
+      const buildIndex = sshCalls.indexOf("pnpm build || return 1");
+      // The success-path start, not the recovery path's own (earlier, `|| true`-suffixed) start.
+      const startIndex = sshCalls.lastIndexOf("systemctl start openclaw-gateway");
       expect(stopIndex).toBeGreaterThan(-1);
       expect(stopIndex).toBeLessThan(fetchIndex);
       expect(fetchIndex).toBeLessThan(buildIndex);
       expect(buildIndex).toBeLessThan(startIndex);
+
+      // The build snapshot (taken before the stop, in case fetch/install/build fails) is
+      // discarded once the new build is actually in place — nothing left over on success.
+      expect(sshCalls).toContain("cp -a /opt/openclaw/dist /opt/openclaw/dist.prev");
+      expect(sshCalls).toContain("rm -rf /opt/openclaw/dist.prev /opt/openclaw/dist.prev.ref");
+    });
+
+    it("restores the previous build and restarts the Gateway when the remote build fails, exiting 5", () => {
+      const result = run(ROLL, [deskName, "feat/hosted-desk"], {
+        SSH_RUNS_RECENT_JSON: JSON.stringify({ runs: [] }),
+        SSH_ROLL_REMOTE_EXIT_CODE: "5",
+      });
+
+      // This stub never really executes the piped script (see the ssh stub's own comment), so
+      // "the build failed" is simulated by the mutate ssh call itself returning 5 — exactly the
+      // exit code the real remote recovery path uses once it has restored the previous build and
+      // restarted the Gateway. What this test can and does verify for real: the static remote
+      // script actually captured over stdin contains the restore-and-restart sequence the
+      // recovery path depends on, and that roll.sh propagates the remote's exit code untouched.
+      expect(result.status).toBe(5);
+      const sshCalls = readLog(sshLog);
+      expect(sshCalls).toContain("restore_previous_build()");
+      expect(sshCalls).toContain("mv /opt/openclaw/dist.prev /opt/openclaw/dist");
+      expect(sshCalls).toContain('git checkout --detach "$(cat /opt/openclaw/dist.prev.ref)"');
+      expect(sshCalls).toContain("restore_previous_build || true");
+      expect(sshCalls).toContain("systemctl start openclaw-gateway || true");
+      expect(sshCalls).toContain(
+        "roll FAILED at ${build_step}; previous build restored and Gateway restarted",
+      );
+      expect(sshCalls).toContain(
+        "roll FAILED at ${build_step}; previous build restored but Gateway did not answer /healthz",
+      );
+      expect(sshCalls).toContain("exit 5");
+      expect(sshCalls).toContain("exit 6");
+      // The recovery block is reached before the success-path cleanup/reboot/start below it —
+      // an early `exit 5`/`exit 6` inside the failure branch, not merely present later.
+      expect(sshCalls.indexOf("if ! build_new_ref; then")).toBeLessThan(
+        sshCalls.indexOf("rm -rf /opt/openclaw/dist.prev /opt/openclaw/dist.prev.ref"),
+      );
     });
 
     it("connects as DESK_SSH_USER instead of root when overridden", () => {
