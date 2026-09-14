@@ -83,6 +83,13 @@ const ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
  *  outside the run's own directory — where the age sweep cannot see it and where
  *  `duties.run.file` would still read it back. Slug-only, like the duty id (`ID_RE`), the
  *  template id (`template.ts`) and the run id (`files.ts`). */
+/** Defaults a header draft falls back to. They live with the Duty shape rather than with any one
+ *  caller so the Gateway method and anything else drafting a Duty agree on what a new one looks
+ *  like. */
+export const DEFAULT_MACHINE = "gateway";
+export const DEFAULT_REPORTS_TO = "owner";
+export const DEFAULT_TRIGGERS: DutyTrigger[] = [{ kind: "manual" }];
+
 const STEP_ID_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/u;
 const SELECTOR_LABEL_RE = /^[#.[]|^role=|^css=/u;
 

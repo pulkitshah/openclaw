@@ -3,12 +3,30 @@ import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { OpenClawPluginApi } from "../api.js";
 import type { RenderAdapter } from "./adapters/render.js";
-import { DUTY_STATUSES, validateDuty, type DutyStatus } from "./duty.js";
+import {
+  DEFAULT_MACHINE,
+  DEFAULT_REPORTS_TO,
+  DEFAULT_TRIGGERS,
+  DUTY_STATUSES,
+  validateDuty,
+  validateRunInputs,
+  type Duty,
+  type DutyInput,
+  type DutyNode,
+  type DutyStatus,
+  type DutyTrigger,
+} from "./duty.js";
 import { mailStatusFromConfig } from "./mail.js";
 import { renderTemplatePreview } from "./preview.js";
 import type { RunManager } from "./run-service.js";
-import type { DutyStore } from "./store.js";
-import { validateBrand } from "./template.js";
+import type { DutyStore, RunOrigin } from "./store.js";
+import { validateBrand, validateTemplate } from "./template.js";
+
+/** How long `duties.run.wait` blocks before answering with the run as it stands. Short enough that
+ *  one request never holds a connection for a whole `ask`, long enough that a polling caller is
+ *  not spinning. */
+const DEFAULT_RUN_WAIT_MS = 30_000;
+const MAX_RUN_WAIT_MS = 120_000;
 
 type Ctx = Parameters<Parameters<OpenClawPluginApi["registerGatewayMethod"]>[1]>[0];
 type Scope = "operator.read" | "operator.write" | "operator.admin";
@@ -34,11 +52,16 @@ type EvidenceBlobs = {
 export function registerDutiesGatewayMethods(params: {
   api: OpenClawPluginApi;
   store: DutyStore;
-  runs: Pick<RunManager, "start" | "cancel">;
+  runs: Pick<RunManager, "start" | "cancel" | "waitFor">;
   emit: (name: "changed" | "run", payload: Record<string, unknown>) => void;
   /** Credential writes. Values pass straight to the OS keychain and are never stored, logged,
    *  echoed in a result, or emitted in an event. */
-  creds: { set(key: string, value: string): Promise<void>; delete(key: string): Promise<boolean> };
+  creds: {
+    set(key: string, value: string): Promise<void>;
+    delete(key: string): Promise<boolean>;
+    /** Whether a key is stored. Never reads the value. */
+    has(key: string): Promise<boolean>;
+  };
   evidence: () => EvidenceBlobs;
   render: RenderAdapter;
   previewDir: () => Promise<string>;
@@ -89,6 +112,28 @@ export function registerDutiesGatewayMethods(params: {
     if (typeof params.key !== "string" || !params.key) throw new Error("key is required");
     return params.key;
   };
+  /** Validates a caller-supplied run origin. The tools capture this from their trusted tool
+   *  context, but it arrives here as ordinary params, so only the known fields in the known shapes
+   *  are kept — an unknown `kind` is rejected rather than quietly recorded, and anything else is
+   *  dropped. Absent origin means a manual run (the Control UI and the CLI). */
+  const readOrigin = (value: unknown): RunOrigin | undefined => {
+    if (value === undefined || value === null) return undefined;
+    if (!isRecord(value)) throw new Error("origin must be an object");
+    const kind = value.kind;
+    if (kind !== "chat" && kind !== "mail" && kind !== "manual") {
+      throw new Error('origin.kind must be "chat", "mail" or "manual"');
+    }
+    const str = (field: unknown): string | undefined =>
+      typeof field === "string" && field ? field : undefined;
+    return {
+      kind,
+      ...(str(value.sessionKey) ? { sessionKey: str(value.sessionKey)! } : {}),
+      ...(str(value.agentId) ? { agentId: str(value.agentId)! } : {}),
+      ...(str(value.channel) ? { channel: str(value.channel)! } : {}),
+      ...(str(value.accountId) ? { accountId: str(value.accountId)! } : {}),
+    };
+  };
+
   const requireDuty = async (dutyId: string) => {
     const duty = await store.getDuty(dutyId);
     if (!duty) throw new Error(`no Duty "${dutyId}"`);
@@ -122,6 +167,56 @@ export function registerDutiesGatewayMethods(params: {
     return { duty: result.duty };
   });
 
+  /** Creates a Duty (status `building`) or updates an existing one's header fields, keeping its
+   *  steps. Deliberately NOT validated as a whole: a header draft may still be missing what an
+   *  active Duty needs, and only `duties.steps`/`duties.save` enforce the full shape. */
+  register("duties.draft", "operator.write", async (params) => {
+    const id = readId(params);
+    const existing = await store.getDuty(id);
+    const str = (value: unknown, fallback: string) =>
+      typeof value === "string" ? value : fallback;
+    const draft: Duty = {
+      id,
+      name: str(params.name, existing?.name ?? ""),
+      summary: str(params.summary, existing?.summary ?? ""),
+      status: existing?.status ?? "building",
+      machine: str(params.machine, existing?.machine ?? DEFAULT_MACHINE),
+      reportsTo: str(params.reportsTo, existing?.reportsTo ?? DEFAULT_REPORTS_TO),
+      ...(params.exclusive !== undefined
+        ? { exclusive: params.exclusive === true }
+        : existing?.exclusive !== undefined
+          ? { exclusive: existing.exclusive }
+          : {}),
+      // A header draft is saved as-is and only duties.steps/duties.save enforce the full shape.
+      // SAFETY: authored duty config passed straight through; an invalid shape only ever surfaces from validateDuty in duties.steps/duties.save, never from this draft save.
+      inputs: (params.inputs as DutyInput[] | undefined) ?? existing?.inputs ?? [],
+      steps: existing?.steps ?? [],
+      // SAFETY: see inputs above.
+      triggers: (params.triggers as DutyTrigger[] | undefined) ??
+        existing?.triggers ?? [...DEFAULT_TRIGGERS],
+      updatedAt: Date.now(),
+      ...(existing?.lastRunAt !== undefined ? { lastRunAt: existing.lastRunAt } : {}),
+    };
+    await store.saveDuty(draft);
+    safeEmit("changed", { dutyId: id });
+    return { ok: true, duty: draft };
+  });
+
+  /** Replaces a Duty's steps, validating the whole Duty first and returning the validator's own
+   *  errors verbatim rather than throwing, so an author can act on them. */
+  register("duties.steps", "operator.write", async (params) => {
+    const id = readId(params);
+    const existing = await store.getDuty(id);
+    if (!existing) throw new Error(`no Duty "${id}"`);
+    // SAFETY: authored duty config passed straight to validateDuty, which structurally checks every node; an invalid shape is reported in `errors`.
+    const steps = (params.steps as DutyNode[] | undefined) ?? [];
+    const result = validateDuty({ ...existing, steps, updatedAt: Date.now() });
+    if (!result.ok) return { ok: false, errors: result.errors };
+    await store.saveDuty(result.duty);
+    safeEmit("changed", { dutyId: id });
+    return { ok: true, duty: result.duty };
+  });
+
   register("duties.delete", "operator.admin", async (params) => {
     const dutyId = readId(params);
     const deleted = await store.deleteDuty(dutyId);
@@ -146,14 +241,44 @@ export function registerDutiesGatewayMethods(params: {
 
   register("duties.run", "operator.write", async (params) => {
     const duty = await requireDuty(readId(params));
+    const inputs = isRecord(params.inputs) ? params.inputs : {};
+    // A `mail`/`file` input the caller never supplied would otherwise surface deep inside the run
+    // as an unresolved placeholder, so the run is refused before it is even created. The tool used
+    // to do this before starting a run; now that every caller comes through here, the check does.
+    const errors = validateRunInputs(duty, inputs);
+    if (errors.length) return { ok: false, errors };
+    const origin = readOrigin(params.origin);
+    if (origin?.kind === "mail") {
+      await store.updateSettings({
+        lastMailDispatchAt: Date.now(),
+        lastMailDispatchDutyId: duty.id,
+      });
+    }
     return runs.start({
       duty,
-      inputs: isRecord(params.inputs) ? params.inputs : {},
-      trigger: "manual",
+      inputs,
+      trigger: origin?.kind ?? "manual",
+      ...(origin ? { origin } : {}),
       toStepId: typeof params.toStepId === "string" ? params.toStepId : undefined,
       keepOpen: params.keepOpen === true,
       targetId: typeof params.targetId === "string" ? params.targetId : undefined,
     });
+  });
+
+  /** Waits for a run to reach a terminal status, or for `timeoutMs` to elapse — whichever comes
+   *  first — and returns the run either way. A caller that must block until a run finishes (the
+   *  `duty_run` tool) polls this instead of holding a reference to the RunManager, which only the
+   *  full registration owns. */
+  register("duties.run.wait", "operator.read", async (params) => {
+    const runId = readRunId(params);
+    const requested = params.timeoutMs;
+    if (requested !== undefined && typeof requested !== "number") {
+      throw new Error("timeoutMs must be a number");
+    }
+    const budget = Math.max(0, Math.min(MAX_RUN_WAIT_MS, requested ?? DEFAULT_RUN_WAIT_MS));
+    const run = await runs.waitFor(runId, budget);
+    if (!run) throw new Error("no such run");
+    return { run };
   });
 
   register("duties.run.get", "operator.read", async (params) => {
@@ -247,6 +372,35 @@ export function registerDutiesGatewayMethods(params: {
     if (deleted) safeEmit("changed", { templateId: id });
     return { ok: deleted };
   });
+
+  register("duties.template.set", "operator.write", async (params) => {
+    if (!isRecord(params.template)) throw new Error("template is required");
+    const result = validateTemplate({ ...params.template, updatedAt: Date.now() });
+    if (!result.ok) return { ok: false, errors: result.errors };
+    await store.saveTemplate(result.template);
+    safeEmit("changed", { templateId: result.template.id });
+    return { ok: true, template: result.template };
+  });
+
+  /** Renders a preview to a file and returns where it landed. `duties.template.preview` below
+   *  answers the same render as base64 for the Control UI; both go through `renderTemplatePreview`
+   *  so the owner can never be shown two different documents for one template. */
+  register("duties.template.render", "operator.read", async (params) => {
+    const id = readId(params);
+    const data = isRecord(params.data) ? params.data : undefined;
+    return await renderTemplatePreview({
+      store,
+      render,
+      previewDir,
+      id,
+      ...(data ? { data } : {}),
+    });
+  });
+
+  /** Whether a credential key is stored. Never returns, echoes, or logs a value. */
+  register("duties.cred.has", "operator.read", async (params) => ({
+    stored: await creds.has(readCredKey(params)),
+  }));
 
   register("duties.template.preview", "operator.read", async (params) => {
     const id = readId(params);

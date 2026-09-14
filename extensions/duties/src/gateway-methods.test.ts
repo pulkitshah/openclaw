@@ -29,7 +29,11 @@ type EmitFn = (name: "changed" | "run", payload: Record<string, unknown>) => voi
 
 function harness(params?: {
   emit?: Mock<EmitFn>;
-  runs?: { start: ReturnType<typeof vi.fn>; cancel: ReturnType<typeof vi.fn> };
+  runs?: {
+    start: ReturnType<typeof vi.fn>;
+    cancel: ReturnType<typeof vi.fn>;
+    waitFor: ReturnType<typeof vi.fn>;
+  };
   blob?: { bytes: Uint8Array; metadata: { contentType: string } };
   config?: OpenClawConfig;
   render?: RenderAdapter;
@@ -51,10 +55,11 @@ function harness(params?: {
     settings: memoryKeyed() as never,
   });
   const emit = params?.emit ?? vi.fn<EmitFn>();
-  const runs = params?.runs ?? { start: vi.fn(), cancel: vi.fn() };
+  const runs = params?.runs ?? { start: vi.fn(), cancel: vi.fn(), waitFor: vi.fn() };
   const creds = {
     set: vi.fn<(key: string, value: string) => Promise<void>>(async () => {}),
     delete: vi.fn<(key: string) => Promise<boolean>>(async () => true),
+    has: vi.fn<(key: string) => Promise<boolean>>(async (key) => key === "amigos.password"),
   };
   registerDutiesGatewayMethods({
     api,
@@ -430,5 +435,147 @@ describe("duties gateway methods", () => {
       lastDispatchDutyId: "d1",
     });
     expect(JSON.stringify(status)).not.toContain("owner@example.com");
+  });
+
+  // These four methods exist because the tools became clients of them: the tools must own no
+  // runtime state, since the host loads a second copy of this plugin in tool-discovery mode.
+  it("duties.run.wait answers with the run as it stands when the budget elapses", async () => {
+    const waitFor = vi.fn(async (_runId: string, timeoutMs: number) => {
+      expect(timeoutMs).toBe(50);
+      return { id: "r1", status: "needs_input" };
+    });
+    const { methods, call } = harness({
+      runs: { start: vi.fn(), cancel: vi.fn(), waitFor: waitFor as never },
+    });
+    expect(methods.get("duties.run.wait")?.scope).toBe("operator.read");
+    const waited = await call("duties.run.wait", { runId: "r1", timeoutMs: 50 });
+    // A run that is still going comes back as-is; the caller decides whether to poll again.
+    expect(waited).toMatchObject({ ok: true, result: { run: { status: "needs_input" } } });
+
+    const missing = await harness({
+      runs: { start: vi.fn(), cancel: vi.fn(), waitFor: vi.fn(async () => undefined) as never },
+    }).call("duties.run.wait", { runId: "gone" });
+    expect(missing.ok).toBe(false);
+  });
+
+  it("duties.template.set reports validation errors verbatim and saves a valid template", async () => {
+    const { methods, store, call } = harness();
+    expect(methods.get("duties.template.set")?.scope).toBe("operator.write");
+    const bad = await call("duties.template.set", {
+      template: { id: "t1", name: "T", kind: "pdf", html: "<p>{{slot:missing}}</p>", slots: [] },
+    });
+    expect(bad.ok).toBe(true);
+    expect((bad.result as { ok: boolean; errors: string[] }).ok).toBe(false);
+    expect((bad.result as { errors: string[] }).errors.join(" ")).toContain("missing");
+
+    const good = await call("duties.template.set", {
+      template: {
+        id: "t1",
+        name: "T",
+        kind: "pdf",
+        html: "<p>{{slot:who}}</p>",
+        slots: [{ name: "who", kind: "text", description: "who it is for" }],
+      },
+    });
+    expect(good.result).toMatchObject({ ok: true });
+    expect(await store.getTemplate("t1")).toMatchObject({ id: "t1", kind: "pdf" });
+  });
+
+  it("duties.cred.has answers whether a key is stored and never a value", async () => {
+    const { methods, creds, call } = harness();
+    expect(methods.get("duties.cred.has")?.scope).toBe("operator.read");
+    expect(await call("duties.cred.has", { key: "amigos.password" })).toMatchObject({
+      ok: true,
+      result: { stored: true },
+    });
+    expect(await call("duties.cred.has", { key: "nope" })).toMatchObject({
+      ok: true,
+      result: { stored: false },
+    });
+    // The read path must never be able to return the secret itself.
+    expect(creds.has).toHaveBeenCalledWith("amigos.password");
+    expect(JSON.stringify(await call("duties.cred.has", { key: "amigos.password" }))).not.toContain(
+      "value",
+    );
+  });
+
+  it("duties.draft keeps existing steps and duties.steps validates the whole duty", async () => {
+    const { store, call } = harness();
+    const drafted = await call("duties.draft", { id: "d9", name: "Nine", summary: "s" });
+    expect(drafted).toMatchObject({ ok: true, result: { duty: { status: "building" } } });
+    // Defaults come from the Duty shape's owner, not from whichever caller drafted it.
+    expect((drafted.result as { duty: Duty }).duty.machine).toBe("gateway");
+
+    const bad = await call("duties.steps", {
+      id: "d9",
+      steps: [{ id: "s1", kind: "browser", label: "#btnlogin", params: {} }],
+    });
+    expect((bad.result as { ok: boolean; errors: string[] }).ok).toBe(false);
+    const good = await call("duties.steps", {
+      id: "d9",
+      steps: [
+        {
+          id: "s1",
+          kind: "browser",
+          label: "Open it",
+          params: { action: "open", url: "https://x" },
+        },
+      ],
+    });
+    expect((good.result as { ok: boolean }).ok).toBe(true);
+    expect((await store.getDuty("d9"))?.steps).toHaveLength(1);
+    // A header draft after steps exist must not wipe them.
+    await call("duties.draft", { id: "d9", name: "Nine", summary: "changed" });
+    expect((await store.getDuty("d9"))?.steps).toHaveLength(1);
+  });
+
+  it("duties.run validates the origin it is given and refuses a missing mail input", async () => {
+    const start = vi.fn(async () => ({ runId: "r1", queued: false }));
+    const { store, call } = harness({
+      runs: { start: start as never, cancel: vi.fn(), waitFor: vi.fn() },
+    });
+    await store.saveDuty({
+      ...baseDuty,
+      id: "d8",
+      inputs: [{ name: "mail", source: "mail" }],
+      steps: [
+        {
+          id: "s1",
+          kind: "browser",
+          label: "Open it",
+          params: { action: "open", url: "https://x" },
+        },
+      ],
+    } as Duty);
+
+    // The origin arrives as ordinary params, so an unknown kind is rejected rather than recorded.
+    const badOrigin = await call("duties.run", {
+      id: "d8",
+      inputs: { mail: { from: "a@b.c", subject: "s", body: "b" } },
+      origin: { kind: "spoofed" },
+    });
+    expect(badOrigin.ok).toBe(false);
+
+    const missingInput = await call("duties.run", { id: "d8", inputs: {} });
+    expect((missingInput.result as { ok: boolean }).ok).toBe(false);
+    expect(start).not.toHaveBeenCalled();
+
+    await call("duties.run", {
+      id: "d8",
+      inputs: { mail: { from: "a@b.c", subject: "s", body: "b" } },
+      origin: {
+        kind: "mail",
+        sessionKey: "hook:gmail:1",
+        agentId: "duties-mail",
+        extra: "dropped",
+      },
+    });
+    expect(start.mock.calls[0]?.[0]).toMatchObject({
+      trigger: "mail",
+      origin: { kind: "mail", sessionKey: "hook:gmail:1", agentId: "duties-mail" },
+    });
+    expect(start.mock.calls[0]?.[0]?.origin).not.toHaveProperty("extra");
+    // A mail dispatch is recorded for the mail health readout.
+    expect((await store.getSettings()).lastMailDispatchDutyId).toBe("d8");
   });
 });

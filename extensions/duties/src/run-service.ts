@@ -144,6 +144,28 @@ export class RunManager {
     };
   }
 
+  /** `wait`, bounded. Resolves with the run as soon as it is terminal, or with whatever the store
+   *  holds once `timeoutMs` elapses — so a caller polling over the Gateway gets an answer and can
+   *  decide to keep waiting, rather than holding one request open for a fifteen-minute `ask`.
+   *  Undefined only when no such run exists. */
+  async waitFor(runId: string, timeoutMs: number): Promise<DutyRun | undefined> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const outcome = await Promise.race([
+        // A `wait` that rejects (no such run) falls through to the store read below, which is the
+        // one place that decides between "still going" and "never existed".
+        this.wait(runId).catch(() => undefined),
+        new Promise<undefined>((resolve) => {
+          timer = setTimeout(() => resolve(undefined), timeoutMs);
+          timer.unref?.();
+        }),
+      ]);
+      return outcome ?? (await this.params.store.getRun(runId));
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   wait(runId: string): Promise<DutyRun> {
     const active = this.active.get(runId);
     if (active) return active;
