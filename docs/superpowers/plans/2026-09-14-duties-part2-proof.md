@@ -257,7 +257,7 @@ roughly nine-minute timer, and expires on its own.
 
 ## What failed, and what was fixed
 
-Ten defects were found by running the thing. Eight are fixed on this branch,
+Twelve defects were found by running the thing. Ten are fixed on this branch,
 each with a test that fails without the fix; two are written up below. Five were
 first spotted by the authoring agent from its own run evidence; the last, and
 the worst for this flow, only surfaced when the approval gate was finally probed
@@ -569,6 +569,114 @@ held in memory gets its terminal row written directly. Both cases are covered by
 tests, the first with a bounded wait so a regression fails fast instead of
 hanging the suite the way it hung the live run.
 
+### 11. The plugin was loaded twice, so runs and renders had two owners
+
+`fix(duties): tools are clients of the gateway methods — one owner for runs, events and rendering`
+and `feat(duties): duties.run.wait, template.set/render, cred.has`
+
+**Diagnosed by the owner's agent**, from a table of live renders on a single
+Gateway pid: every render started through a **Gateway method** produced a real
+document (05:22, 13:07, 13:54), and every render started through a **tool**
+produced a 404 page (05:24, 13:40, 13:46, 13:48). One process, two outcomes,
+split exactly along that line.
+
+The cause is in the SDK contract, not in the process table. The host loads a
+plugin a **second time** in `registrationMode: "tool-discovery"` to list and run
+its tools (docs/plugins/sdk-entrypoints/registration-mode.md: "Scoped load to
+list or run specific plugins' tools; capability/tool registration only"), and
+`register()` runs again in that copy. This plugin registered everything in both
+modes, so the tool copy built its own store handles, RunManager, events service,
+blob store and render server. Those are single-owner resources, so the second
+copy was not a duplicate — it was a competing owner:
+
+- a `template_preview` or a `template` step published its one-time render token
+  in the tool copy's map, while the HTTP route was served by the full copy, so
+  the managed browser printed the route's **404 page** as the document;
+- a tool-started run lived in the tool copy's RunManager, invisible to
+  `duties.run.cancel`, to `plugin.duties.run` events, and to orphan recovery.
+
+This also supersedes the earlier "parked when the Gateway last stopped"
+explanation for `duties.run.cancel` returning `{ ok: false }` on run
+`977056af`: that run was started by the dispatcher's **tool**, so the cancel
+looked for it in the wrong copy's RunManager.
+
+**The ruling: one owner.** `register()` now registers only the tools in
+`tool-discovery`, only the CLI descriptors in `cli-metadata` and the other
+non-full modes, and everything in `full`. The tools became thin clients of this
+plugin's own Gateway methods and own no state at all — `registerDutyTools` takes
+the api and nothing else. Six methods were added for them to call:
+`duties.run.wait` (bounded, so a caller polls rather than holding one request
+open for a fifteen-minute `ask`), `duties.draft`, `duties.steps`,
+`duties.template.set`, `duties.template.render` and `duties.cred.has`.
+`duties.run` now takes a run origin, validated server-side because it arrives as
+ordinary params.
+
+**Verified live**, on one Gateway process, after the fix:
+
+- `template_preview` **through the agent's tool** returned
+  `…/previews/flight-options-1789376747749.pdf`, and that file opens as the real
+  branded quote — Amigos Alliance header, IXU → COK, 02/10/2026, 2 adults, the
+  LIC Nagpur client and the flights table — not a 404 page. Read and inspected
+  directly, not taken on the agent's word.
+- A `duty_run` of `ask-probe` **started through the agent's tool** appeared in
+  `duties.runs.recent` as `ask-probe needs_input chat` with its origin recorded
+  as `{ kind: "chat", sessionKey: "agent:krishna:duties-tool-check", agentId:
+  "krishna", channel: "webchat" }`, and `duties.run.cancel` on it returned
+  `{"ok":true}` while it was parked; the run then read `cancelled` and the tool
+  returned `status: "cancelled"`. Before the fix that run would not have been in
+  the list at all.
+
+Not directly observed: the `plugin.duties.run` broadcast itself, because Gateway
+event broadcasts are not written to the log and there is no CLI that subscribes
+to them. It follows structurally — the run now lives in the full copy's
+RunManager, whose `emit` is the events service that only the full registration
+starts — and the run's visibility and cancellability above are the same
+property.
+
+### 12. Every document was named after the step that made it
+
+`feat(duties): named files — template filename with placeholders or an AI-written default`
+
+A `template` step wrote `t1.pdf`, and that is what arrived in the owner's inbox.
+A `template` step now takes an optional `params.filename` — an ordinary param
+string, so `{{in:}}`/`{{out:}}` resolve in it and `validateDuty` already rejects
+`{{cred:}}` there along with every other param. With no filename, the model
+writes one in the **same** `llm-task` call that fills the `{ ai }` slots, under a
+reserved `$filename` key (`$` cannot appear in a slot name, so it can never
+collide with a declared one), and that call is now made even for a template with
+no `ai` slots. A template-name-plus-date fallback covers a model that returns
+nothing usable.
+
+Every candidate — authored, model-written, or the fallback — goes through one
+sanitiser that reduces it to a single path segment, so none of the three can
+place a document outside the run's own directory. A second document wanting the
+same name gets a numbered suffix instead of overwriting the first, which would
+have attached the wrong document rather than failing. Nothing extra was needed
+on the delivery side: a local attachment takes its name from the path's basename
+(`basenameFromAnyPath(params.filePathHint)`, src/media/fetch.ts:468), so naming
+the file on disk names it in the chat.
+
+## Operating the proof Gateway
+
+Two process-level traps cost real time here, both worth writing down:
+
+- **The Gateway renames itself `openclaw-gateway`**, so `pkill -f "gateway run"`
+  does not match it. A "restart" that misses therefore leaves the old process
+  holding the port while the new one half-boots, which breaks the MCP loopback
+  for every agent session — the failure that looked like defect 7.
+- **SIGTERM can hang.** The Gateway drains active work before stopping, and a
+  live agent session keeps it busy; one drain here ran past twenty minutes with
+  the UI and Telegram down throughout.
+
+Restart recipe: enumerate every process from
+`ps -axo pid,command | grep -E "openclaw-gateway|gateway run --port <port>"`
+**and** every `lsof -nP -iTCP:<port> -sTCP:LISTEN` owner; SIGTERM them; wait at
+most 30 seconds; then SIGKILL. Confirm **zero** processes and **zero** listeners
+before starting exactly **one**. Also check port 8788: an orphaned
+`gog gmail watch serve` from the previous Gateway keeps the port, and the new
+Gateway's mail watcher then gives up restarting — the mail trigger is silently
+dead until that process is cleared.
+
 ## Blocker B, still open
 
 ### B. A self-sent mail can never trigger the Gmail hook
@@ -671,10 +779,10 @@ Honest list, because the useful part of this document is the boundary:
 
 ## Gates
 
-Run after each of the eight code commits:
+Run after each of the eleven code commits:
 
 ```sh
-node scripts/run-vitest.mjs extensions/duties   # 228 passed
+node scripts/run-vitest.mjs extensions/duties   # 237 passed
 pnpm tsgo:extensions
 pnpm check:assertion-safety                     # ratchet OK
 ./node_modules/.bin/oxfmt <changed files>
