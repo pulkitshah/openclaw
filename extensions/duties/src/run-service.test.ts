@@ -310,6 +310,48 @@ describe("RunManager", () => {
     expect([rf.status, rs.status, rt.status]).toEqual(["ok", "ok", "ok"]);
   });
 
+  it("admit() drains the queue immediately after the limit rises, with no other start/finish event", async () => {
+    const store = newStore();
+    let limit = 1;
+    const mgr = new RunManager({
+      store,
+      deps: () => deps(30),
+      emit: () => {},
+      maxParallel: async () => limit,
+    });
+    const first = await mgr.start({ duty: duty("admit-1"), inputs: {}, trigger: "manual" });
+    const second = await mgr.start({ duty: duty("admit-2"), inputs: {}, trigger: "manual" });
+    expect(second.queued).toBe(true);
+    expect((await store.getRun(second.runId))?.status).toBe("queued");
+
+    limit = 2;
+    // No other start()/finish() event — admit() alone must drain the queue.
+    mgr.admit();
+    await flushMacrotasks(3);
+    expect((await store.getRun(second.runId))?.status).toBe("running");
+
+    await Promise.all([mgr.wait(first.runId), mgr.wait(second.runId)]);
+  });
+
+  it("reports queued truthfully for two concurrent start() calls under a limit of 1", async () => {
+    const store = newStore();
+    const mgr = new RunManager({
+      store,
+      deps: () => deps(20),
+      emit: () => {},
+      maxParallel: async () => 1,
+    });
+    const [a, b] = await Promise.all([
+      mgr.start({ duty: duty("race-1"), inputs: {}, trigger: "manual" }),
+      mgr.start({ duty: duty("race-2"), inputs: {}, trigger: "manual" }),
+    ]);
+    // Exactly one of the two concurrent starts got the single slot; the other must say so
+    // truthfully instead of both racing to read a stale "still under the limit" snapshot.
+    expect(a.queued).not.toBe(b.queued);
+    expect(mgr.status()).toEqual({ active: 1, queued: 1 });
+    await Promise.all([mgr.wait(a.runId), mgr.wait(b.runId)]);
+  });
+
   it("resolves every concurrent waiter for the same still-queued run", async () => {
     const store = newStore();
     const mgr = new RunManager({ store, deps: () => deps(20), emit: () => {} });

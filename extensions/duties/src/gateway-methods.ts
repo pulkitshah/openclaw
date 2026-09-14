@@ -78,7 +78,7 @@ type EvidenceBlobs = {
 export function registerDutiesGatewayMethods(params: {
   api: OpenClawPluginApi;
   store: DutyStore;
-  runs: Pick<RunManager, "start" | "cancel" | "waitFor" | "status">;
+  runs: Pick<RunManager, "start" | "cancel" | "waitFor" | "status" | "admit">;
   emit: (name: "changed" | "run", payload: Record<string, unknown>) => void;
   /** Credential writes. Values pass straight to the OS keychain and are never stored, logged,
    *  echoed in a result, or emitted in an event. */
@@ -622,6 +622,11 @@ export function registerDutiesGatewayMethods(params: {
     if (maxParallelRuns !== undefined) patch.maxParallelRuns = maxParallelRuns;
     const settings = await store.updateSettings(patch);
     safeEmit("changed", { settings: true });
+    // One owner of admission: rather than a second queue-draining path here, tell the RunManager
+    // to re-evaluate right now. A lowered limit is a no-op (admitQueue never evicts an active
+    // run); a raised limit starts an already-queued run immediately instead of leaving it to wait
+    // for the next unrelated start()/finish().
+    if (maxParallelRuns !== undefined) runs.admit();
     return { settings };
   });
 

@@ -36,6 +36,7 @@ function harness(params?: {
     cancel: ReturnType<typeof vi.fn>;
     waitFor: ReturnType<typeof vi.fn>;
     status?: ReturnType<typeof vi.fn>;
+    admit?: ReturnType<typeof vi.fn>;
   };
   blob?: { bytes: Uint8Array; metadata: { contentType: string } };
   config?: OpenClawConfig;
@@ -65,6 +66,7 @@ function harness(params?: {
     cancel: vi.fn(),
     waitFor: vi.fn(),
     status: vi.fn(() => ({ active: 0, queued: 0 })),
+    admit: vi.fn(),
   };
   const creds = {
     set: vi.fn<(key: string, value: string) => Promise<void>>(async () => {}),
@@ -452,6 +454,27 @@ describe("duties gateway methods", () => {
     const saved = await call("duties.settings.set", { maxParallelRuns: 3 });
     expect(saved.ok).toBe(true);
     expect((await store.getSettings()).maxParallelRuns).toBe(3);
+  });
+
+  it("duties.settings.set tells the run manager to admit a queued run when maxParallelRuns changes, not for unrelated fields", async () => {
+    const runs = {
+      start: vi.fn(),
+      cancel: vi.fn(),
+      waitFor: vi.fn(),
+      status: vi.fn(() => ({ active: 0, queued: 0 })),
+      admit: vi.fn(),
+    };
+    const { call } = harness({ runs });
+
+    await call("duties.settings.set", { requireApprovalForEdits: true });
+    expect(runs.admit).not.toHaveBeenCalled();
+
+    await call("duties.settings.set", { maxParallelRuns: 5 });
+    expect(runs.admit).toHaveBeenCalledTimes(1);
+
+    // A rejected value never reaches the store, so it must not trigger an admit either.
+    await call("duties.settings.set", { maxParallelRuns: 99 });
+    expect(runs.admit).toHaveBeenCalledTimes(1);
   });
 
   it("duties.settings.set is admin-only and needs a non-empty channel and target", async () => {

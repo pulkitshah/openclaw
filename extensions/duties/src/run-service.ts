@@ -136,7 +136,18 @@ export class RunManager {
       // Only when present: the state store rejects an explicit `undefined` value.
       ...(p.origin ? { origin: p.origin } : {}),
     };
-    await this.params.store.createRun(run);
+    // Both awaits happen before the queue is touched, so that once either resolves the rest of
+    // this method — push, admit, read back whether this run's own item was launched — runs in one
+    // synchronous stretch with no `await` in between. Two concurrent `start()` calls under the
+    // same limit therefore can never both observe "a slot is free": whichever call's continuation
+    // the microtask queue runs first fully admits the queue (including any earlier-queued items)
+    // before the other call's continuation gets a turn, so `queued` below reflects the real
+    // outcome instead of a stale `active.size` snapshot taken before this run's own place in the
+    // queue was decided.
+    const [, limit] = await Promise.all([
+      this.params.store.createRun(run),
+      this.resolveMaxParallel(),
+    ]);
     this.params.emit({ type: "run", runId: run.id, dutyId: p.duty.id, status: "queued" });
     this.queue.push({
       run,
@@ -145,8 +156,8 @@ export class RunManager {
       keepOpen: p.keepOpen,
       targetId: p.targetId,
     });
-    const queued = !this.canStart(p.duty, await this.resolveMaxParallel());
-    this.pump();
+    this.admitQueue(limit);
+    const queued = !this.active.has(run.id);
     return {
       runId: run.id,
       queued,
@@ -243,16 +254,13 @@ export class RunManager {
     return !(duty.exclusive && (this.activeByDuty.get(duty.id) ?? 0) > 0);
   }
 
-  /** Fire-and-forget: resolves the current limit once, then drains synchronously against it. A
-   *  caller never awaits `pump()` itself — every caller before this change was already
-   *  fire-and-forget (`start()`, and `launch()`'s `.finally()`) — so turning it into a thin
-   *  wrapper around an async drain keeps every call site unchanged. */
-  private pump(): void {
-    void this.drain();
-  }
-
-  private async drain(): Promise<void> {
-    const limit = await this.resolveMaxParallel();
+  /** The actual admission step, entirely synchronous: FIFO over the current queue, launching
+   *  everything `canStart` allows against the given (already-resolved) limit. Every caller that
+   *  mutates `queue`/`active` and then wants the queue re-evaluated goes through this one
+   *  synchronous routine — `start()`, `drain()` (via `pump()`/`admit()`), never a second admission
+   *  path — so at most `limit` runs are ever concurrently active regardless of who triggered the
+   *  re-evaluation or how many callers raced to get here. */
+  private admitQueue(limit: number): void {
     for (let i = 0; i < this.queue.length; i += 1) {
       const item = this.queue[i]!;
       if (!this.canStart(item.duty, limit)) continue;
@@ -260,6 +268,27 @@ export class RunManager {
       i -= 1;
       this.launch(item);
     }
+  }
+
+  /** Fire-and-forget: resolves the current limit once, then admits synchronously against it. A
+   *  caller never awaits `pump()` itself — every caller before this change was already
+   *  fire-and-forget (`launch()`'s `.finally()`) — so turning it into a thin wrapper around an
+   *  async drain keeps that call site unchanged. */
+  private pump(): void {
+    void this.drain();
+  }
+
+  private async drain(): Promise<void> {
+    this.admitQueue(await this.resolveMaxParallel());
+  }
+
+  /** Re-evaluates the queue against the current limit right now, with no other event required to
+   *  trigger it. Exists so a `maxParallelRuns` increase (the Desk card, `duties.settings.set`)
+   *  starts an already-queued run immediately instead of leaving it to wait for the next
+   *  unrelated `start()`/finish() — the run service is the one owner of admission, so the
+   *  settings-set Gateway method calls this rather than reimplementing any part of it. */
+  admit(): void {
+    this.pump();
   }
 
   private launch(item: Pending): void {
