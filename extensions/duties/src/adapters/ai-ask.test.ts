@@ -109,6 +109,46 @@ describe("ask adapter", () => {
     );
   });
 
+  // Regression: the step id was sent straight through as the question id. Duty step ids are
+  // slugs (`^[a-z0-9][a-z0-9_-]{0,63}$` — hyphens and a leading digit allowed) but
+  // `question.request` requires `^[a-z][a-z0-9_]*$`, so every ask step with a hyphen in its id —
+  // which is how they are naturally named, `ask-hold` — failed with a raw schema error instead of
+  // ever reaching the owner.
+  it("sends a question id the Gateway accepts, and still reads back that answer", async () => {
+    const request = vi.fn(async (method: string) =>
+      method === "question.request"
+        ? { id: "q1", expiresAtMs: 1 }
+        : { status: "answered", answers: { answers: { ask_hold: ["Approve"] } } },
+    );
+    const ask = createAskAdapter({ request: asRequest(request), sessionKey: "main", pollMs: 1 });
+
+    await expect(
+      ask.ask({ stepId: "ask-hold", question: "Hold?", header: "Hold?", options: ["Approve"] }),
+    ).resolves.toEqual({ status: "answered", answer: "Approve" });
+
+    const sent = request.mock.calls.find((c) => c[0] === "question.request")?.[1] as {
+      questions: [{ questionId: string }];
+    };
+    expect(sent.questions[0].questionId).toMatch(/^[a-z][a-z0-9_]*$/u);
+    expect(sent.questions[0].questionId).toBe("ask_hold");
+  });
+
+  it("keeps a leading digit out of the question id", async () => {
+    const request = vi.fn(async (method: string) =>
+      method === "question.request"
+        ? { id: "q1", expiresAtMs: 1 }
+        : { status: "answered", answers: { answers: { q_2nd_leg: ["Yes"] } } },
+    );
+    const ask = createAskAdapter({ request: asRequest(request), sessionKey: "main", pollMs: 1 });
+    await expect(
+      ask.ask({ stepId: "2nd-leg", question: "Second leg?", header: "Leg", options: ["Yes"] }),
+    ).resolves.toEqual({ status: "answered", answer: "Yes" });
+    const sent = request.mock.calls.find((c) => c[0] === "question.request")?.[1] as {
+      questions: [{ questionId: string }];
+    };
+    expect(sent.questions[0].questionId).toMatch(/^[a-z][a-z0-9_]*$/u);
+  });
+
   it("reports the created question id so the run can park on it", async () => {
     const request = vi.fn(async (method: string) =>
       method === "question.request"

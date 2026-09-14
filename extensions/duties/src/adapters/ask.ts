@@ -21,6 +21,21 @@ async function sleep(ms: number): Promise<void> {
   await new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Translates a duty step id into a question id the Gateway accepts.
+ *
+ * The two vocabularies do not agree: a step id is a slug
+ * (`^[a-z0-9][a-z0-9_-]{0,63}$`, duty.ts) so hyphens and a leading digit are legal and natural —
+ * `ask-hold`, `ask-which-flight` — while `question.request` requires `^[a-z][a-z0-9_]*$`
+ * (QuestionRequestParamsSchema). Sending the step id straight through failed every hyphenated ask
+ * step with a raw schema error, so the owner was never asked at all. The answer map is keyed by the
+ * id that was sent, so the same translation has to be used to read the answer back.
+ */
+export function questionIdForStep(stepId: string): string {
+  const slug = stepId.toLowerCase().replaceAll(/[^a-z0-9_]/gu, "_");
+  return /^[a-z]/u.test(slug) ? slug : `q_${slug}`;
+}
+
 export function createAskAdapter(params: {
   request: Request;
   sessionKey: string;
@@ -39,6 +54,7 @@ export function createAskAdapter(params: {
   return {
     async ask({ stepId, question, header, options, timeoutMs, onAsked }) {
       const budget = timeoutMs ?? DEFAULT_TIMEOUT_MS;
+      const questionId = questionIdForStep(stepId);
       const requested = await params.request<{ id: string; expiresAtMs: number }>(
         "question.request",
         {
@@ -46,7 +62,7 @@ export function createAskAdapter(params: {
           timeoutMs: budget,
           questions: [
             {
-              questionId: stepId,
+              questionId,
               header: header.slice(0, 12) || "Duty",
               question,
               options: options.map((label) => ({ label })),
@@ -70,7 +86,7 @@ export function createAskAdapter(params: {
           timeoutMs: Math.min(WAIT_POLL_TIMEOUT_MS, Math.max(1, deadline - Date.now())),
         });
         if (state.status === "answered") {
-          return { status: "answered", answer: state.answers?.answers[stepId]?.[0] ?? "" };
+          return { status: "answered", answer: state.answers?.answers[questionId]?.[0] ?? "" };
         }
         if (state.status === "cancelled") return { status: "cancelled" };
         if (state.status === "expired") return { status: "timeout" };
