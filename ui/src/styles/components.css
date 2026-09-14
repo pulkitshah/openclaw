@@ -867,7 +867,7 @@ openclaw-session-owner-chip {
   width: 40px;
   height: 40px;
   border-radius: var(--radius-full);
-  color: var(--warn);
+  color: var(--warn-text);
   background: color-mix(in srgb, var(--warn) 12%, transparent);
 }
 
@@ -1010,7 +1010,7 @@ openclaw-session-owner-chip {
   flex: 0 0 16px;
   align-items: center;
   justify-content: center;
-  color: var(--info);
+  color: var(--info-text);
 }
 
 .plugin-official-badge svg {
@@ -1074,7 +1074,7 @@ openclaw-session-owner-chip {
 .pill.danger {
   border-color: var(--danger-subtle);
   background: var(--danger-subtle);
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 /* ===========================================
@@ -1209,7 +1209,7 @@ openclaw-session-owner-chip {
 .btn.danger {
   border-color: transparent;
   background: var(--danger-subtle);
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .btn.danger:hover {
@@ -1312,7 +1312,7 @@ openclaw-session-owner-chip {
   width: 16px;
   height: 16px;
   place-items: center;
-  color: var(--info);
+  color: var(--info-text);
 }
 
 .app-toast__icon svg {
@@ -2049,7 +2049,7 @@ select.input {
 .field input[aria-invalid="true"],
 .field textarea[aria-invalid="true"],
 .field select[aria-invalid="true"] {
-  border-color: var(--danger);
+  border-color: var(--danger-text);
 }
 
 :root[data-theme-mode="light"] .field input,
@@ -2200,7 +2200,7 @@ select.input {
     color-mix(in srgb, var(--info) 8%, transparent) 0%,
     color-mix(in srgb, var(--info) 4%, transparent) 100%
   );
-  color: var(--info);
+  color: var(--info-text);
 }
 
 .callout.success {
@@ -2210,7 +2210,7 @@ select.input {
     color-mix(in srgb, var(--ok) 8%, transparent) 0%,
     color-mix(in srgb, var(--ok) 4%, transparent) 100%
   );
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 /* Pending routes reserve the content layout without exposing transient panel text. */
@@ -2247,7 +2247,7 @@ select.input {
   place-items: center;
   border-radius: 50%;
   background: var(--danger-subtle);
-  color: var(--danger);
+  color: var(--danger-text);
   margin-bottom: 4px;
 }
 
@@ -2439,7 +2439,7 @@ openclaw-chat-session-rail {
 .chat-session-rail__status[data-health="on-track"],
 .chat-session-rail__status[data-health="done"],
 .chat-session-rail__status[data-health="wrapping-up"] {
-  --rail-health-color: var(--ok);
+  --rail-health-color: var(--ok-text);
 }
 
 .chat-session-rail__status[data-health="grinding"] {
@@ -2448,11 +2448,11 @@ openclaw-chat-session-rail {
 
 .chat-session-rail__status[data-health="stuck"],
 .chat-session-rail__status[data-health="waiting-on-user"] {
-  --rail-health-color: var(--warn);
+  --rail-health-color: var(--warn-text);
 }
 
 .chat-session-rail__status[data-health="failed"] {
-  --rail-health-color: var(--danger);
+  --rail-health-color: var(--danger-text);
 }
 
 .chat-session-rail__timing {
@@ -2637,7 +2637,7 @@ openclaw-chat-session-rail {
 }
 
 .chat-session-rail__exchange--error .chat-session-rail__hint {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .chat-session-rail__retry {
@@ -2945,7 +2945,7 @@ openclaw-chat-session-rail {
 }
 
 .code-block-copy.copy-failed .code-block-copy__failed {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 /* ===========================================
@@ -2996,13 +2996,13 @@ openclaw-chat-session-rail {
 }
 
 .chip-ok {
-  color: var(--ok);
+  color: var(--ok-text);
   border-color: color-mix(in srgb, var(--ok) 30%, transparent);
   background: var(--ok-subtle);
 }
 
 .chip-warn {
-  color: var(--warn);
+  color: var(--warn-text);
   border-color: color-mix(in srgb, var(--warn) 30%, transparent);
   background: var(--warn-subtle);
 }
@@ -3517,7 +3517,7 @@ td.data-table-key-col {
 .exec-approval-error {
   margin-top: 10px;
   font-size: 13px;
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .input-dialog__field {
@@ -3527,7 +3527,7 @@ td.data-table-key-col {
 .exec-approval-warning {
   margin-top: 10px;
   font-size: 13px;
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 /* The confirm opt-out is a control, not a continuation of the message copy, so it
@@ -3571,9 +3571,10 @@ td.data-table-key-col {
 .exec-approval-list__heading {
   padding: 2px 4px 6px;
   color: var(--muted);
-  font-size: 11px;
+  font-family: var(--font-display);
+  font-size: var(--control-ui-text-sm);
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.7px;
   text-transform: uppercase;
 }
 
@@ -3620,7 +3621,7 @@ td.data-table-key-col {
 }
 
 .exec-approval-list__expiry {
-  color: var(--warn);
+  color: var(--warn-text);
   font: 11px/1.2 var(--mono);
   font-variant-numeric: tabular-nums;
 }
@@ -3654,7 +3655,7 @@ td.data-table-key-col {
 
 .secret-reveal__hint {
   margin: 10px 0 0;
-  color: var(--warn);
+  color: var(--warn-text);
   font-size: 12px;
 }
 
@@ -3674,7 +3675,7 @@ td.data-table-key-col {
   justify-content: center;
   padding: 6px;
   border-radius: var(--radius-md);
-  color: var(--ok);
+  color: var(--ok-text);
   background: color-mix(in srgb, var(--ok) 12%, transparent);
 }
 
@@ -5247,10 +5248,11 @@ td.data-table-key-col {
 .cmd-palette__group-label {
   padding: 8px 18px 4px;
   color: var(--muted);
-  font-size: 12px; /* was 11px */
+  font-family: var(--font-display);
+  font-size: var(--control-ui-text-sm);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.7px;
 }
 
 .cmd-palette__item {
@@ -5674,7 +5676,7 @@ td.data-table-key-col {
 .device-pair-setup__state-icon--success {
   border-color: color-mix(in srgb, var(--ok) 32%, var(--border));
   background: color-mix(in srgb, var(--ok) 10%, var(--bg-elevated));
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .device-pair-setup__state-icon svg {
@@ -5888,14 +5890,14 @@ td.data-table-key-col {
 .session-row-badge--attention,
 .session-row-badge--approval {
   gap: 2px;
-  color: var(--warn);
+  color: var(--warn-text);
   font-size: 10px;
   font-variant-numeric: tabular-nums;
 }
 
 .session-row-badge--pull-request[data-pull-request-state="open"],
 .session-row-badge--cloud[data-placement-state="active"] {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .session-row-badge--pull-request[data-pull-request-state="merged"] {
@@ -5904,7 +5906,7 @@ td.data-table-key-col {
 
 .session-row-badge--cloud[data-placement-state="failed"],
 .session-row-badge--cloud[data-disk-space-status="critical"] {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .session-row-badge--cloud:is(
@@ -5920,7 +5922,7 @@ td.data-table-key-col {
 
 .session-row-badge--cloud[data-workspace-conflicts],
 .session-row-badge--cloud[data-disk-space-status="warning"] {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .session-row-badge svg {

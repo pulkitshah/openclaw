@@ -321,7 +321,7 @@
 
 .approval-page__action--deny {
   border-color: color-mix(in srgb, var(--danger) 52%, var(--border));
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .approval-page__actions .approval-page__action:only-child,
@@ -398,7 +398,7 @@
   margin-bottom: 20px;
   border: 1px solid color-mix(in srgb, var(--danger) 50%, var(--border));
   border-radius: 50%;
-  color: var(--danger);
+  color: var(--danger-text);
   font-family: var(--mono);
   font-weight: 800;
 }

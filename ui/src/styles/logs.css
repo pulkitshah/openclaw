@@ -83,13 +83,13 @@ openclaw-logs-page {
 
 .log-level.info,
 .log-chip.info {
-  color: var(--info);
+  color: var(--info-text);
   border-color: color-mix(in srgb, var(--info) 30%, transparent);
 }
 
 .log-level.warn,
 .log-chip.warn {
-  color: var(--warn);
+  color: var(--warn-text);
   border-color: var(--warn-subtle);
 }
 
@@ -97,7 +97,7 @@ openclaw-logs-page {
 .log-level.fatal,
 .log-chip.error,
 .log-chip.fatal {
-  color: var(--danger);
+  color: var(--danger-text);
   border-color: var(--danger-subtle);
 }
 

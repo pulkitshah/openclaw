@@ -75,12 +75,12 @@
 
 .update-run-view__step--completed .update-run-view__mark,
 .update-run-view__oracle--pass > span:first-child {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .update-run-view__step--failed,
 .update-run-view__oracle--fail > span:first-child {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .update-run-view__step--skipped,
@@ -90,7 +90,7 @@
 }
 
 .update-run-view__oracle--warn > span:first-child {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .update-run-view__step-list {

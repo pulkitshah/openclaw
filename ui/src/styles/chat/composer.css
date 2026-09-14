@@ -1027,7 +1027,7 @@
   width: 16px;
   height: 16px;
   flex: 0 0 16px;
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .agent-chat__composer-error-icon svg {
@@ -1191,7 +1191,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .agent-chat__capability-menu-clear-overrides svg {
@@ -1319,12 +1319,12 @@
    turning the control into a high-contrast white disc. */
 .agent-chat__input .chat-send-btn--stop {
   background: color-mix(in srgb, var(--danger) 14%, transparent);
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .agent-chat__input .chat-send-btn--stop:hover:not(:disabled) {
   background: color-mix(in srgb, var(--danger) 20%, transparent);
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 /* Voice keeps the quiet chrome treatment: it is a mode toggle beside send, not
@@ -1653,7 +1653,7 @@
 }
 
 .chat-talk-input-picker__warning {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 /* Sole content of the popover when no input can be selected, so it carries the
@@ -1667,7 +1667,7 @@
 }
 
 .chat-talk-input-picker__empty--fault {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .chat-talk-input-picker__hint {
@@ -1955,7 +1955,7 @@
    next to the accent-filled send button. */
 .chat-send-btn--stop {
   background: color-mix(in srgb, var(--danger) 12%, transparent);
-  color: var(--danger);
+  color: var(--danger-text);
   box-shadow: none;
 }
 
@@ -3180,7 +3180,7 @@
 }
 
 .chat-controls__auth-meta[data-auth-kind="missing"] {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .chat-controls__model-option-copy > .chat-controls__auth-meta {
@@ -3433,7 +3433,7 @@
   gap: 3px;
   min-width: 0;
   flex: 0 1 auto;
-  color: var(--warn);
+  color: var(--warn-text);
   font-size: 10px;
   font-weight: 550;
 }
@@ -3515,7 +3515,7 @@
 
 .chat-controls__account-error {
   padding: 4px 10px;
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: 12px;
 }
 

@@ -360,7 +360,7 @@ openclaw-chat-sidebar-region,
 }
 
 .chat-workspace-rail__state--error {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .chat-workspace-rail__scroll {
@@ -521,7 +521,7 @@ openclaw-chat-sidebar-region,
   padding: 2px 6px;
   border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--danger) 12%, transparent);
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: var(--control-ui-text-sm); /* was 10px */
   line-height: 1.2;
 }
@@ -647,7 +647,7 @@ openclaw-chat-sidebar-region,
 }
 
 .chat-tasks-rail__state--error {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .chat-tasks-rail__scroll {
@@ -830,7 +830,7 @@ openclaw-chat-sidebar-region,
 .chat-tasks-rail__task-stop:focus-visible {
   border-color: color-mix(in srgb, var(--border-strong) 72%, transparent);
   background: color-mix(in srgb, var(--bg-elevated) 82%, transparent);
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .chat-tasks-rail__task-stop svg {
@@ -858,15 +858,15 @@ openclaw-chat-sidebar-region,
 }
 
 .chat-tasks-rail__task-status--ok {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .chat-tasks-rail__task-status--warn {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .chat-tasks-rail__task-status--danger {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .chat-tasks-rail__task-status--muted {
@@ -946,7 +946,7 @@ openclaw-chat-sidebar-region,
   justify-content: space-between;
   gap: 8px;
   border-color: color-mix(in srgb, var(--danger) 30%, var(--border));
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .chat-tasks-rail__task-inspector-retry {
@@ -1173,7 +1173,7 @@ openclaw-chat-sidebar-region,
 }
 
 .chat-task-feed__error {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .chat-task-detail__state {
@@ -1182,7 +1182,7 @@ openclaw-chat-sidebar-region,
 }
 
 .chat-task-detail__state--error {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .chat-task-detail__fallback .chat-tasks-rail__detail-blocks {
@@ -2019,7 +2019,7 @@ openclaw-session-discussion {
 }
 
 .session-diff__status--added {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .session-diff__status--deleted {
@@ -2031,7 +2031,7 @@ openclaw-session-discussion {
 }
 
 .session-diff__status--modified {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .session-diff__path {
@@ -2085,7 +2085,7 @@ openclaw-session-discussion {
 }
 
 .session-diff .chat-diffstat__mod {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .session-diff__file-menu {
@@ -2288,7 +2288,7 @@ openclaw-session-discussion {
 }
 
 .session-diff-split__side--right .session-diff-split__sign {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .session-diff-split__text {

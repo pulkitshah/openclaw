@@ -82,7 +82,7 @@
 
 .onboarding-memory-import__provider-copy small span,
 .onboarding-memory-import__provider-status span {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .onboarding-memory-import__provider-copy small span {

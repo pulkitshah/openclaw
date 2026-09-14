@@ -115,5 +115,5 @@
 }
 
 .model-accounts-error .settings-row__desc {
-  color: var(--danger);
+  color: var(--danger-text);
 }

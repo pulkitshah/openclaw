@@ -312,7 +312,7 @@
 }
 
 .cron-table__state--error {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .cron-table__state--paused {
@@ -379,7 +379,7 @@
 }
 
 .cron-table__auto-disabled {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .cron-table__cell {
@@ -429,11 +429,11 @@
 }
 
 .cron-last-glyph--ok {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .cron-last-glyph--error {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .cron-table__last-time {
@@ -671,11 +671,11 @@
 }
 
 .cron-error {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .cron-required-marker {
-  color: var(--danger);
+  color: var(--danger-text);
   font-weight: 700;
   margin-left: 3px;
 }
@@ -694,7 +694,7 @@
 
 .cron-editor input[aria-invalid="true"],
 .cron-editor textarea[aria-invalid="true"] {
-  border-color: var(--danger);
+  border-color: var(--danger-text);
 }
 
 /* Human-readable schedule line under the schedule rows. */
@@ -875,7 +875,7 @@
 }
 
 .cron-job-menu__item.danger {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 /* ── Run history ── */

@@ -291,7 +291,7 @@
   order: 2;
   align-items: center;
   gap: 4px;
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: 12px;
   line-height: 1.2;
   white-space: nowrap;
@@ -427,7 +427,7 @@
 }
 
 .chat-send-status[data-send-state="unconfirmed"] {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .chat-group-footer .chat-send-status__action {
@@ -719,7 +719,7 @@ img.chat-avatar {
 
 .chat-group.workspace-conflict .chat-avatar {
   background: color-mix(in srgb, var(--warn) 14%, var(--secondary));
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .chat-bubble--workspace-conflict {
@@ -950,7 +950,7 @@ img.chat-avatar {
 .chat-copy-btn[data-copy-state="error"] {
   border-color: var(--danger-subtle);
   background: var(--danger-subtle);
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .chat-copy-btn[data-copy-state="copied"],
@@ -960,7 +960,7 @@ img.chat-avatar {
   opacity: 1;
   border-color: var(--ok-subtle);
   background: var(--ok-subtle);
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 /* The check is the visible confirmation; retain the live status for assistive
@@ -1180,15 +1180,15 @@ img.chat-avatar {
 }
 
 .msg-meta__cost {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .msg-meta__ctx--warn {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .msg-meta__ctx--danger {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 /* ── Confirmed action popover ── */

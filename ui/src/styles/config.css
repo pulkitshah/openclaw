@@ -137,7 +137,7 @@
 }
 
 .config-diff__from {
-  color: var(--danger);
+  color: var(--danger-text);
   opacity: 0.85;
 }
 
@@ -146,7 +146,7 @@
 }
 
 .config-diff__to {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 /* Content Area */
@@ -802,7 +802,7 @@
 /* Inline validation/unsupported-node message inside a settings-row. */
 .cfg-field__error {
   font-size: 12px;
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .cfg-structured-draft {
@@ -849,7 +849,7 @@
 }
 
 .config-content :is(input, textarea, select)[aria-invalid="true"] {
-  border-color: var(--danger);
+  border-color: var(--danger-text);
 }
 
 /* Redacted click-to-reveal inputs/textareas. */
@@ -1018,7 +1018,7 @@
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   background: var(--ok-subtle);
-  color: var(--ok);
+  color: var(--ok-text);
   font-size: var(--control-ui-text-xs);
   line-height: 1.45;
   white-space: pre-wrap;
@@ -1026,7 +1026,7 @@
 
 .mcp-server-message--error {
   background: var(--danger-subtle);
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 /* Advanced Settings accordion navigation, rendered by view.ts. */

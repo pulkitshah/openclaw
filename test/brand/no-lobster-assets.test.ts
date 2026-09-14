@@ -114,11 +114,17 @@ describe("brand marks", () => {
     expect(callSites.filter((site) => !site.includes("beside-orb"))).toEqual([]);
   });
 
-  it("prints no crustacean glyph in the CLI banner", () => {
-    const banner = readFileSync(path.join(repoRoot, "src/cli/banner.ts"), "utf8");
+  // Both banner sources: banner.ts owns the one-line mark, claw-banner.ts draws
+  // the animated wordmark frame. Either one can reintroduce the retired mark on
+  // its own, so both carry the orb glyph and neither may carry crustacean art.
+  it.each(["src/cli/banner.ts", "src/cli/claw-banner.ts"])(
+    "prints no crustacean glyph in %s",
+    (source) => {
+      const banner = readFileSync(path.join(repoRoot, source), "utf8");
 
-    expect(banner).not.toMatch(/[🦞🦀]/u);
-    expect(banner).not.toMatch(/lobster/iu);
-    expect(banner).toContain("◉");
-  });
+      expect(banner).not.toMatch(/[🦞🦀]/u);
+      expect(banner).not.toMatch(/lobster/iu);
+      expect(banner).toContain("◉");
+    },
+  );
 });

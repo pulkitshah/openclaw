@@ -376,7 +376,7 @@
 
 .dreams__controls-error {
   font-size: 12px;
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 /* ---- Status line ---- */
@@ -1079,7 +1079,7 @@
 
 .dreams-diary__error {
   font-size: 12px;
-  color: var(--danger);
+  color: var(--danger-text);
   text-align: center;
   padding: 20px 0;
   z-index: 1;

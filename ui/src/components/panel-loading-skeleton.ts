@@ -41,7 +41,7 @@ class PanelLoadingSkeleton extends OpenClawLitElement {
       inset: 0;
       z-index: 2;
       min-height: 0;
-      background: color-mix(in srgb, var(--bg, #0e1015) 92%, transparent);
+      background: color-mix(in srgb, var(--bg, #0d0e12) 92%, transparent);
       pointer-events: none;
     }
 

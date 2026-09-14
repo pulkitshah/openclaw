@@ -147,7 +147,7 @@
 }
 
 .provider-usage-error {
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: 12px;
 }
 
@@ -755,15 +755,15 @@
 }
 
 .usage-summary-value.good {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .usage-summary-value.warn {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .usage-summary-value.bad {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .usage-summary-sub,
@@ -956,7 +956,7 @@
 .usage-error-rate {
   font-size: 15px;
   font-weight: 700;
-  color: var(--danger);
+  color: var(--danger-text);
   font-variant-numeric: tabular-nums;
 }
 

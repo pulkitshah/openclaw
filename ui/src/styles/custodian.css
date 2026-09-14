@@ -393,7 +393,7 @@ openclaw-custodian-page {
   border: 1px solid var(--danger);
   border-radius: var(--radius-lg);
   background: var(--danger-subtle);
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .custodian__history {
@@ -502,7 +502,7 @@ openclaw-custodian-page {
 }
 
 .custodian__change-warning {
-  color: var(--warn);
+  color: var(--warn-text);
   font-weight: 600;
 }
 
@@ -532,7 +532,7 @@ openclaw-custodian-page {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: 12px;
 }
 

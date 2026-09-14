@@ -187,7 +187,7 @@
 
 .model-setup__verified {
   margin-top: 8px;
-  color: var(--ok);
+  color: var(--ok-text);
   font-weight: 600;
 }
 
@@ -196,7 +196,7 @@
   align-items: flex-start;
   gap: 7px;
   margin-top: 8px;
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: 12px;
   line-height: 1.45;
 }
@@ -204,7 +204,7 @@
 .model-setup__failure-icon {
   display: inline-flex;
   flex: 0 0 auto;
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .model-setup__failure-icon svg {
@@ -371,7 +371,7 @@
 
 .model-setup__manual-help svg {
   flex: 0 0 auto;
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .model-setup__manual .btn {
@@ -400,7 +400,7 @@
   height: 52px;
   border-radius: 50%;
   background: color-mix(in srgb, var(--ok) 14%, var(--panel));
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .model-setup-success__icon--provider {
@@ -450,7 +450,7 @@
 }
 
 .model-setup-success__warning {
-  color: var(--warn);
+  color: var(--warn-text);
   font-size: 13px;
   line-height: 1.5;
   text-align: center;

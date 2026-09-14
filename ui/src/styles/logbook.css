@@ -75,7 +75,7 @@
 }
 
 .logbook__chip--error {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .logbook__actions {
@@ -264,7 +264,7 @@
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .logbook-card__distraction {

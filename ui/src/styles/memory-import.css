@@ -136,11 +136,11 @@
 
 .memory-import__file-status--planned,
 .memory-import__file-status--migrated {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .memory-import__file-status--conflict {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .memory-import__result.settings-row {
@@ -148,12 +148,12 @@
   align-items: flex-start;
   gap: 8px;
   background: color-mix(in srgb, var(--ok) 9%, transparent);
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .memory-import__result.memory-import__result--incomplete {
   background: color-mix(in srgb, var(--danger) 9%, transparent);
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .memory-import__result div {

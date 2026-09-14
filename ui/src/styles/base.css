@@ -187,42 +187,54 @@
   --control-ui-environment-gray-ink: #cbd5e1;
 
   /*
-   * Semantic status
+   * Semantic status — three roles per status, not one.
    *
-   * Each `--x` doubles as label text on its own `--x-subtle` tone, so the pair
-   * is one contrast decision. The brand guide supplies both halves as opaque
-   * colors (Visual → Status), so `-subtle` is no longer an 8% tint of its base:
-   * it is the guide's soft tone, and the pair's contrast is fixed rather than
-   * composited onto the host surface. `-muted` stays a 75% rgba of the base and
-   * must be re-derived whenever a base moves. Bases stay literal hex:
-   * `widget-theme.ts` publishes them to MCP app guest documents, where a
-   * `color-mix(... var(--x) ...)` string would not resolve.
+   *   --x        the status hue itself: dots, bars, icons, chart marks, borders.
+   *              The brand guide's published value (Visual → Status).
+   *   --x-subtle the guide's soft fill behind a pill or row.
+   *   --x-text   the ink for label text on any of this mode's surfaces or on
+   *              --x-subtle. Every `color:` in ui/src reads this one.
+   *
+   * The text role exists because the guide's own hues are chosen as marks, not
+   * as type: in light mode `--ok #12a150` is 3.15:1 on paper and 3.05:1 on its
+   * own soft fill, well under WCAG AA 4.5:1 for text. `--x-text` darkens the
+   * same hue until it clears 4.5:1 on paper, card, panel, surface-2, the hover
+   * step and its own soft fill; theme-tokens.test.ts computes those ratios
+   * rather than restating them here, so a palette edit cannot quietly drop one.
+   *
+   * `-subtle` is the guide's opaque soft tone, not an 8% tint of its base, so
+   * the pair's contrast is fixed rather than composited onto the host surface.
+   * `-muted` stays a 75% rgba of the base and must be re-derived whenever a base
+   * moves. Bases stay literal hex: `widget-theme.ts` publishes them to MCP app
+   * guest documents, where a `color-mix(... var(--x) ...)` string would not
+   * resolve, and the text inks are literal for the same reason.
    *
    * The dark soft tones come from the guide; the dark bases are the existing
    * lifted hues of the same four statuses, which is what keeps this mode's
-   * margin (the guide only publishes dark softs).
+   * margin (the guide only publishes dark softs). Those bases already clear AA
+   * as text on every dark surface, so the dark text inks repeat them instead of
+   * aliasing — a future base edit then has to move the ink deliberately.
    *
-   * WCAG 2.1 AA audit (label on its own soft tone):
-   *   --ok     #22c55e on #122619  7.00:1 ✓   --warn #f59e0b on #2a2210  7.33:1 ✓
-   *   --danger #f87171 on #2d1514  6.18:1 ✓   --info #60a5fa on #111e37  6.53:1 ✓
-   *
-   * Every theme inherits these four soft tones (public/themes only overrides
+   * Every theme inherits these tones (public/themes only overrides
    * --accent-subtle), so they are deliberately neutral enough to sit on any
-   * dark surface. A status label can also land on --bg-hover, --bg-muted,
-   * --panel-hover or --input, which this audit does not cover.
+   * dark surface.
    */
   --ok: #22c55e;
+  --ok-text: #22c55e;
   --ok-muted: rgba(34, 197, 94, 0.75);
   --ok-subtle: #122619;
   --destructive: #ef4444;
   --destructive-foreground: #fafafa;
   --warn: #f59e0b;
+  --warn-text: #f59e0b;
   --warn-muted: rgba(245, 158, 11, 0.75);
   --warn-subtle: #2a2210;
   --danger: #f87171;
+  --danger-text: #f87171;
   --danger-muted: rgba(248, 113, 113, 0.75);
   --danger-subtle: #2d1514;
   --info: #60a5fa;
+  --info-text: #60a5fa;
   --info-subtle: #111e37;
   --warn-bright: #f59e0b;
   --warn-strong: #d97706;
@@ -643,34 +655,33 @@
   --control-ui-environment-gray-ink: #334155;
 
   /*
-   * Semantic status — see the `:root` block for the pairing rule. Both halves
-   * of each pair are the brand guide's published light values, so the tone is
-   * opaque and the label's contrast no longer depends on the host surface.
+   * Semantic status — see the `:root` block for the three roles. The mark and
+   * the soft fill are the brand guide's published light values, unchanged.
    *
-   * Contrast of the label on its own soft tone (measured, not a floor):
-   *   --ok     #12a150 on #e9f7ee  3.04:1     --warn  #b9820f on #faf1dc  2.98:1
-   *   --danger #c9302c on #fbe9e8  4.55:1 ✓   --info  #3a6ff0 on #ecf1fe  3.94:1
-   *
-   * The green, amber and blue labels are below WCAG AA 4.5:1 as text: that is
-   * inherent to the guide's own status hues, which the product shows as pills
-   * with a dot and a left status bar ("status is form, never colour alone"), not
-   * as bare coloured text. Raising them means changing the brand values, which
-   * is an owner decision, recorded in the theme task report rather than fixed
-   * here. The AA guardrail in base-theme-contrast.node.test.ts covers the body
-   * and muted text tokens, which are unaffected.
+   * The text inks are the same four hues held down until they clear AA on every
+   * light surface. The guide's marks do not: `--ok` is 3.15:1 on paper and
+   * 3.05:1 on its own fill, `--warn` 3.13/2.98, `--info` 4.17/3.94; only
+   * `--danger` was already over the line. Each `-text` is its mark scaled toward
+   * black (0.75/0.74/0.88/0.98), so the hue and the pill's identity survive
+   * while the label becomes readable. Worst surface per ink (the --bg-hover
+   * step, #eaeaef): ok 4.59, warn 4.68, info 4.57, danger 4.59.
    */
   --ok: #12a150;
+  --ok-text: #0e793c;
   --ok-muted: rgba(18, 161, 80, 0.75);
   --ok-subtle: #e9f7ee;
   --destructive: #c9302c;
   --destructive-foreground: #fafafa;
   --warn: #b9820f;
+  --warn-text: #89600b;
   --warn-muted: rgba(185, 130, 15, 0.75);
   --warn-subtle: #faf1dc;
   --danger: #c9302c;
+  --danger-text: #c52f2b;
   --danger-muted: rgba(201, 48, 44, 0.75);
   --danger-subtle: #fbe9e8;
   --info: #3a6ff0;
+  --info-text: #3362d3;
   --info-subtle: #ecf1fe;
   --pr-merged: #7c3aed;
 

@@ -75,18 +75,22 @@
 
   /* Neutral status tints — see the block comment above. */
   --ok: #5ee88a;
+  --ok-text: #5ee88a;
   --ok-muted: rgba(94, 232, 138, 0.85);
   --ok-subtle: rgba(255, 255, 255, 0.1);
   --destructive: #ffabab;
   --destructive-hover: #ffc4c4;
   --destructive-foreground: #000000;
   --warn: #ffc233;
+  --warn-text: #ffc233;
   --warn-muted: rgba(255, 194, 51, 0.85);
   --warn-subtle: rgba(255, 255, 255, 0.1);
   --danger: #ffabab;
+  --danger-text: #ffabab;
   --danger-muted: rgba(255, 171, 171, 0.85);
   --danger-subtle: rgba(255, 255, 255, 0.1);
   --info: #8ecdff;
+  --info-text: #8ecdff;
   --info-subtle: rgba(255, 255, 255, 0.1);
 
   /* Diff ink is a status pair too: it sits on the same neutral tints. */
@@ -171,17 +175,21 @@
 
   /* Neutral status tints — see the block comment above. */
   --ok: #0c5024;
+  --ok-text: #0c5024;
   --ok-muted: rgba(12, 80, 36, 0.85);
   --ok-subtle: rgba(0, 0, 0, 0.07);
   --destructive: #8c0f0f;
   --destructive-foreground: #ffffff;
   --warn: #613d00;
+  --warn-text: #613d00;
   --warn-muted: rgba(97, 61, 0, 0.85);
   --warn-subtle: rgba(0, 0, 0, 0.07);
   --danger: #8c0f0f;
+  --danger-text: #8c0f0f;
   --danger-muted: rgba(140, 15, 15, 0.85);
   --danger-subtle: rgba(0, 0, 0, 0.07);
   --info: #09428d;
+  --info-text: #09428d;
   --info-subtle: rgba(0, 0, 0, 0.07);
 
   /* Diff ink is a status pair too: it sits on the same neutral tints. */

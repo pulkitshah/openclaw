@@ -87,7 +87,7 @@
 }
 
 .agents-home__working {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .agents-home__activity {

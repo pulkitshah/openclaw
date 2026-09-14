@@ -610,7 +610,7 @@
     .agent-chat__goal--budget_limited,
     .agent-chat__goal--usage_limited
   ) {
-  color: var(--warn);
+  color: var(--warn-text);
   background: color-mix(in srgb, var(--warn) 10%, var(--card));
   border-color: color-mix(in srgb, var(--warn) 30%, var(--border));
 }
@@ -744,7 +744,7 @@
 }
 
 .session-progress-card__summary-indicator--complete {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .session-progress-card__summary-indicator > .session-run-spinner {
@@ -779,7 +779,7 @@
 .session-progress-card__summary-count:is([data-outcome="failed"], [data-outcome="timeout"]),
 .session-progress-card__summary-indicator:is([data-outcome="failed"], [data-outcome="timeout"]),
 .session-progress-card__step-marker:is([data-outcome="failed"], [data-outcome="timeout"]) {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .session-progress-card--composer .session-progress-card__body {
@@ -846,7 +846,7 @@
 
   .session-progress-card__summary:hover
     .session-progress-card__summary-count:is([data-outcome="failed"], [data-outcome="timeout"]) {
-    color: var(--danger);
+    color: var(--danger-text);
   }
 }
 

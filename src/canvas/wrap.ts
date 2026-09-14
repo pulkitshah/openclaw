@@ -6,28 +6,28 @@ import { WIDGET_THEME_MESSAGE_TYPE, WIDGET_THEME_TOKENS } from "../shared/widget
 // same host values. Contrast tradeoffs in these pairings are owned by the host
 // theme; do not diverge here.
 const WIDGET_BASE_STYLES = `:root{color-scheme:light dark;
---surface:#faf9f7;--card:#ffffff;--elevated:#ffffff;
---text:#403c35;--text-strong:#211e1a;--muted:#6e6960;
---border:#e8e4dc;--border-strong:#d6d0c5;
---accent:#bd4531;--accent-fill:#bd4531;--accent-fg:#ffffff;
---ok:#15803d;--warn:#b45309;--danger:#dc2626;--info:#2563eb;
+--surface:#f7f7f9;--card:#ffffff;--elevated:#ffffff;
+--text:#14151a;--text-strong:#14151a;--muted:#585c66;
+--border:#eaeaef;--border-strong:#d9d9e2;
+--accent:#8a2be2;--accent-fill:#8a2be2;--accent-fg:#ffffff;
+--ok:#0e793c;--warn:#89600b;--danger:#c52f2b;--info:#3362d3;
 --radius:10px;
 --radius-full:9999px;--scrollbar-size:12px;--scrollbar-thumb-inset:3px;
 --scrollbar-thumb:color-mix(in srgb,var(--muted) 32%,transparent);
 --scrollbar-thumb-hover:color-mix(in srgb,var(--muted) 64%,transparent);
 --font-body:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
---font-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+--font-mono:"Space Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 --accent-subtle:color-mix(in srgb,var(--accent) 10%,transparent);
 --ok-subtle:color-mix(in srgb,var(--ok) 10%,transparent);
 --warn-subtle:color-mix(in srgb,var(--warn) 12%,transparent);
 --danger-subtle:color-mix(in srgb,var(--danger) 10%,transparent);
 --info-subtle:color-mix(in srgb,var(--info) 10%,transparent)}
 @media (prefers-color-scheme:dark){:root{
---surface:#0e1015;--card:#161920;--elevated:#191c24;
---text:#d4d4d8;--text-strong:#f4f4f5;--muted:#8b8b94;
---border:#1e2028;--border-strong:#2e3040;
---accent:#ff5c5c;--accent-fill:#d13c3c;--accent-fg:#ffffff;
---ok:#22c55e;--warn:#f59e0b;--danger:#ef4444;--info:#3b82f6}}
+--surface:#0d0e12;--card:#16171c;--elevated:#1d1f26;
+--text:#f2f3f6;--text-strong:#f2f3f6;--muted:#a6aab4;
+--border:#242730;--border-strong:#31353f;
+--accent:#a58bf0;--accent-fill:#8a2be2;--accent-fg:#ffffff;
+--ok:#22c55e;--warn:#f59e0b;--danger:#f87171;--info:#60a5fa}}
 *{box-sizing:border-box}@supports not selector(::-webkit-scrollbar-thumb){*{scrollbar-color:var(--scrollbar-thumb) transparent;scrollbar-width:thin}}html,body{margin:0}::-webkit-scrollbar{width:var(--scrollbar-size);height:var(--scrollbar-size);background:var(--surface)}::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:transparent}::-webkit-scrollbar-button{display:none}::-webkit-scrollbar-thumb{background:var(--scrollbar-thumb);background-clip:content-box;border:var(--scrollbar-thumb-inset) solid transparent;border-radius:var(--radius-full)}::-webkit-scrollbar-thumb:hover{background:var(--scrollbar-thumb-hover);background-clip:content-box}.openclaw-chat-host,.openclaw-chat-host body{scrollbar-width:none}.openclaw-chat-host::-webkit-scrollbar,.openclaw-chat-host body::-webkit-scrollbar{display:none}
 body{font:14px/1.5 var(--font-body);color:var(--text)}
 h1,h2,h3{margin:0 0 8px;color:var(--text-strong);font-weight:600}

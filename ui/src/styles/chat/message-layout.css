@@ -828,11 +828,11 @@
 }
 
 .chat-assistant-attachment-card--recoverable {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .chat-assistant-attachment-card--definitive {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 :is(.chat-assistant-attachment-card--recoverable, .chat-assistant-attachment-card--definitive)

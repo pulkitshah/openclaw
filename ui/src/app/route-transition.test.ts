@@ -51,7 +51,7 @@ describe("navigateWithRouteTransition", () => {
     expect(navigate).toHaveBeenCalledOnce();
     expect(animate).toHaveBeenCalledWith(
       [{ transform: "translateY(5px) scale(0.997)" }, { transform: "none" }],
-      { duration: 180, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
+      { duration: 180, easing: "cubic-bezier(0.22, 0.68, 0.28, 1)" },
     );
   });
 

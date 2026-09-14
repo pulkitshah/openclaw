@@ -109,7 +109,7 @@ const BUILTIN_THEME_OPTIONS: ThemeOption[] = [
 
 const ACCENT_PRESETS = [
   { id: "default", hex: undefined, labelKey: "configView.appearance.accents.default" },
-  { id: "claw", hex: "#ff5c5c", labelKey: "configView.appearance.accents.claw" },
+  { id: "claw", hex: "#a58bf0", labelKey: "configView.appearance.accents.claw" },
   { id: "coral", hex: "#ff8066", labelKey: "configView.appearance.accents.coral" },
   { id: "amber", hex: "#f5b942", labelKey: "configView.appearance.accents.amber" },
   { id: "mint", hex: "#52c99a", labelKey: "configView.appearance.accents.mint" },

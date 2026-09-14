@@ -53,7 +53,7 @@
 }
 
 .board-session-surface__state--error {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .board-widget__notice {

@@ -17,7 +17,7 @@ openclaw-board-view {
   background: color-mix(in srgb, var(--danger) 8%, var(--panel));
   border: 1px solid color-mix(in srgb, var(--danger) 42%, transparent);
   border-radius: 9px;
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: 12px;
   padding: 9px 12px;
 }
@@ -281,7 +281,7 @@ openclaw-board-widget-cell {
 }
 
 .board-widget__menu-danger {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .board-widget__menu-icon,
@@ -679,7 +679,7 @@ openclaw-board-widget-cell {
   background: color-mix(in srgb, var(--ok) 13%, transparent);
   border: 1px solid color-mix(in srgb, var(--ok) 45%, transparent);
   border-radius: 999px;
-  color: var(--ok);
+  color: var(--ok-text);
   display: inline-flex;
   font-size: 9px;
   font-weight: 650;
@@ -693,7 +693,7 @@ openclaw-board-widget-cell {
   background: color-mix(in srgb, var(--warn) 15%, transparent);
   border: 1px solid color-mix(in srgb, var(--warn) 55%, transparent);
   border-radius: 50%;
-  color: var(--warn);
+  color: var(--warn-text);
   display: flex;
   font-size: 13px;
   font-weight: 700;

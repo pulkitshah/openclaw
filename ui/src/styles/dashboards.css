@@ -181,7 +181,7 @@
   display: grid;
   place-items: center;
   padding: var(--space-4);
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: var(--control-ui-text-xs);
   text-align: center;
 }
@@ -216,7 +216,7 @@
   flex: none;
   align-items: center;
   gap: 5px;
-  color: var(--ok);
+  color: var(--ok-text);
   font-size: var(--control-ui-text-xs);
   font-weight: 650;
 }

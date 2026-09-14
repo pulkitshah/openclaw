@@ -363,7 +363,7 @@ openclaw-chat-async-question {
 
 .chat-question-panel__error {
   margin-right: auto;
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: var(--control-ui-text-sm);
 }
 

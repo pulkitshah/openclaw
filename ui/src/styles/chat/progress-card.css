@@ -212,7 +212,7 @@
 }
 
 .session-progress-card__step--completed .session-progress-card__step-marker {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .session-progress-card__step--completed .session-progress-card__step-text {

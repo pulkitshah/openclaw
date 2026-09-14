@@ -14,8 +14,9 @@ import { describe, expect, it } from "vitest";
  * declares. A drifted value or a renamed/dropped token fails here instead of
  * silently changing what several hundred call sites paint.
  *
- * The WCAG floors for these values stay in base-theme-contrast.node.test.ts;
- * this file only asserts identity.
+ * The body and muted text floors stay in base-theme-contrast.node.test.ts. The
+ * status *label* floor lives here, because it is what forced the `--x-text`
+ * role: the guide's status hues are marks and do not clear AA as type.
  */
 
 const stylesDir = path.dirname(fileURLToPath(import.meta.url));
@@ -52,6 +53,19 @@ function readBlockTokens(selector: string): Map<string, string> {
     }
   }
   return tokens;
+}
+
+/** Every stylesheet and Lit `css` template under ui/src. */
+function collectStyleSources(directory: string): string[] {
+  return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const entryPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      return entry.name === "node_modules" ? [] : collectStyleSources(entryPath);
+    }
+    return entry.isFile() && (entry.name.endsWith(".css") || entry.name.endsWith(".ts"))
+      ? [entryPath]
+      : [];
+  });
 }
 
 function expectTokens(selector: string, expected: readonly (readonly [string, string])[]): void {
@@ -96,12 +110,16 @@ const LIGHT_TOKENS = [
   ["--focus", "rgba(93, 51, 229, 0.4)"],
   ["--ok", "#12a150"],
   ["--ok-subtle", "#e9f7ee"],
+  ["--ok-text", "#0e793c"],
   ["--warn", "#b9820f"],
   ["--warn-subtle", "#faf1dc"],
+  ["--warn-text", "#89600b"],
   ["--info", "#3a6ff0"],
   ["--info-subtle", "#ecf1fe"],
+  ["--info-text", "#3362d3"],
   ["--danger", "#c9302c"],
   ["--danger-subtle", "#fbe9e8"],
+  ["--danger-text", "#c52f2b"],
   ["--shadow-sm", "0 1px 2px rgba(20, 21, 26, 0.05)"],
   ["--shadow-lg", "0 1px 2px rgba(20, 21, 26, 0.05), 0 18px 50px -14px rgba(20, 21, 26, 0.12)"],
 ] as const;
@@ -136,10 +154,52 @@ const DARK_TOKENS = [
   ["--accent", "#a58bf0"],
   ["--ring", "#a58bf0"],
   ["--ok-subtle", "#122619"],
+  ["--ok-text", "#22c55e"],
   ["--warn-subtle", "#2a2210"],
+  ["--warn-text", "#f59e0b"],
   ["--info-subtle", "#111e37"],
+  ["--info-text", "#60a5fa"],
   ["--danger-subtle", "#2d1514"],
+  ["--danger-text", "#f87171"],
 ] as const;
+
+/*
+ * Surfaces a status label can land on, per mode, plus its own soft fill. The
+ * hover step is the binding one in light mode, so it is not optional.
+ */
+const LIGHT_STATUS_SURFACES = ["--bg", "--card", "--panel", "--bg-accent", "--bg-hover"] as const;
+const DARK_STATUS_SURFACES = [
+  "--bg",
+  "--card",
+  "--bg-accent",
+  "--bg-elevated",
+  "--panel-hover",
+] as const;
+const AA_NORMAL_TEXT_MIN = 4.5;
+
+function channelLuminance(value: number): number {
+  const channel = value / 255;
+  return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+}
+
+function relativeLuminance(hex: string): number {
+  const match = hex.match(/^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/iu);
+  if (!match) {
+    throw new Error(`could not parse hex color "${hex}"`);
+  }
+  const [red, green, blue] = match
+    .slice(1)
+    .map((part) => channelLuminance(Number.parseInt(part, 16)));
+  return 0.2126 * (red ?? 0) + 0.7152 * (green ?? 0) + 0.0722 * (blue ?? 0);
+}
+
+function contrastRatio(foreground: string, background: string): number {
+  const [lighter = 0, darker = 0] = [
+    relativeLuminance(foreground),
+    relativeLuminance(background),
+  ].toSorted((a, b) => b - a);
+  return (lighter + 0.05) / (darker + 0.05);
+}
 
 /*
  * Shape, motion, type and the signature gradient. The guide's 18px card radius
@@ -384,7 +444,13 @@ const TOKEN_NAMES_BEFORE_REBRAND = [
   "--z-toast",
 ] as const;
 
-const TOKEN_NAMES_ADDED_BY_REBRAND = ["--brand-gradient"] as const;
+const TOKEN_NAMES_ADDED_BY_REBRAND = [
+  "--brand-gradient",
+  "--ok-text",
+  "--warn-text",
+  "--info-text",
+  "--danger-text",
+] as const;
 
 describe("Vasudev theme tokens", () => {
   it("paints the light palette from the brand guide", () => {
@@ -404,6 +470,59 @@ describe("Vasudev theme tokens", () => {
     // card radius appears there as a literal and has to track --radius-lg.
     expect(baseCss).toContain("border-radius: calc(18px * var(--openclaw-corner-radius-scale));");
     expect(baseCss).not.toContain("calc(14px * var(--openclaw-corner-radius-scale))");
+  });
+
+  it.each([
+    ["light", LIGHT_SELECTOR, LIGHT_STATUS_SURFACES],
+    ["dark", DARK_SELECTOR, DARK_STATUS_SURFACES],
+  ] as const)(
+    "keeps every %s status label at WCAG AA on its surfaces and its fill",
+    (_mode, selector, surfaces) => {
+      // The guide's status hues are marks, not type: read the shipped values back
+      // and measure, so darkening a fill or lifting an ink cannot quietly put a
+      // label under the floor again.
+      const tokens = readBlockTokens(selector);
+      const resolve = (name: string): string => {
+        const value = tokens.get(name);
+        if (!value) {
+          throw new Error(`${selector} does not declare ${name}`);
+        }
+        return value;
+      };
+      const failures: string[] = [];
+      for (const status of ["ok", "warn", "info", "danger"] as const) {
+        const ink = resolve(`--${status}-text`);
+        for (const surface of [...surfaces, `--${status}-subtle`]) {
+          const ratio = contrastRatio(ink, resolve(surface));
+          if (ratio < AA_NORMAL_TEXT_MIN) {
+            failures.push(
+              `--${status}-text ${ink} on ${surface} ${resolve(surface)} = ${ratio.toFixed(2)}:1`,
+            );
+          }
+        }
+      }
+      expect(failures).toEqual([]);
+    },
+  );
+
+  it("keeps every `color:` in ui/src on a status text ink, never on the mark", () => {
+    // The mark stays for dots, bars, icons and chart geometry; label text reads
+    // the -text ink. A new `color: var(--ok)` would reintroduce the 3:1 label.
+    const violations = collectStyleSources(path.dirname(stylesDir))
+      // Tests carry probes and prose about the old role (same exclusion as
+      // base-theme-tokens.node.test.ts's undefined-token scan).
+      .filter((filePath) => !filePath.endsWith(".test.ts"))
+      .flatMap((filePath) =>
+        fs
+          .readFileSync(filePath, "utf8")
+          .split("\n")
+          .flatMap((line, index) =>
+            /color:\s*var\(--(?:ok|warn|info|danger)\)/u.test(line)
+              ? [`${path.relative(stylesDir, filePath)}:${index + 1}: ${line.trim()}`]
+              : [],
+          ),
+      );
+    expect(violations).toEqual([]);
   });
 
   it("changes token values without changing token names", () => {

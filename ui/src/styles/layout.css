@@ -575,12 +575,15 @@ html:is(.openclaw-native-macos, .openclaw-native-nav, .openclaw-native-web-chrom
   gap: 2px;
 }
 
+/* Section label, the brand's own role: display face, 12px uppercase, .7px
+   tracking (vasudev-brand.md → Type). The other section labels below share it. */
 .settings-sidebar__group-label {
   padding: 0 9px;
   margin: 0 0 4px;
-  font-size: calc(10.5px * var(--control-ui-text-scale));
+  font-family: var(--font-display);
+  font-size: var(--control-ui-text-sm);
   font-weight: 650;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.7px;
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -592,6 +595,7 @@ html:is(.openclaw-native-macos, .openclaw-native-nav, .openclaw-native-web-chrom
   gap: 8px;
   min-height: 32px;
   padding: 0 9px;
+  font-family: var(--font-display);
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   background: transparent;
@@ -718,7 +722,7 @@ openclaw-settings-save-indicator:empty {
 }
 
 .settings-save-indicator--danger {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .settings-save-indicator--saved {
@@ -749,7 +753,7 @@ openclaw-settings-save-indicator:empty {
 }
 
 .settings-save-indicator__check {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .settings-save-indicator__spinner svg {
@@ -1576,7 +1580,7 @@ openclaw-settings-save-indicator:empty {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .sidebar-session-group-count--error svg {
@@ -1815,9 +1819,10 @@ openclaw-settings-save-indicator:empty {
 
 .sidebar-recent-sessions__label-text,
 .sidebar-session-catalog-host__label {
-  font-size: var(--control-ui-text-xs);
+  font-family: var(--font-display);
+  font-size: var(--control-ui-text-sm);
   font-weight: 650;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.7px;
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -1920,7 +1925,7 @@ openclaw-settings-save-indicator:empty {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .sidebar-session-catalog-host__count--error svg {
@@ -2168,7 +2173,7 @@ openclaw-settings-save-indicator:empty {
 }
 
 .sidebar-child-session-toggle--failed {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .sidebar-child-session-toggle__icon {
@@ -2317,12 +2322,12 @@ openclaw-settings-save-indicator:empty {
 }
 
 .sidebar-child-session__status--done {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .sidebar-child-session__status--failed,
 .sidebar-child-session__status--timeout {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .sidebar-child-session__status svg {
@@ -2841,7 +2846,7 @@ wa-dropdown-item.session-menu__item::part(submenu-icon) {
 
 .session-menu__item--destructive,
 .session-menu__item--destructive .session-menu__icon {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 /* Web Awesome renders checkbox marks before the label. Selection state in this
@@ -3013,9 +3018,10 @@ wa-dropdown-item.session-menu__item::part(submenu-icon) {
 .session-menu__icon-section-label {
   padding: 4px 4px 2px;
   color: var(--muted);
-  font-size: var(--control-ui-text-xs);
+  font-family: var(--font-display);
+  font-size: var(--control-ui-text-sm);
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.7px;
   line-height: 1;
   text-transform: uppercase;
 }
@@ -3206,6 +3212,8 @@ a:is(
   cursor: var(--cursor-action);
 }
 
+/* Nav and the settings rail are the brand's nav role: display face, the sizes
+   they already carry (vasudev-brand.md → Type). */
 .nav-item {
   position: relative;
   display: flex;
@@ -3214,6 +3222,7 @@ a:is(
   gap: 8px;
   min-height: 32px;
   padding: 0 8px;
+  font-family: var(--font-display);
   border-radius: var(--radius-md);
   border: 1px solid transparent;
   background: transparent;
@@ -3913,7 +3922,7 @@ openclaw-tooltip.sidebar-hover-tooltip {
   border: none;
   border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--danger) 12%, transparent);
-  color: var(--danger);
+  color: var(--danger-text);
   cursor: var(--cursor-action);
   font-family: inherit;
   font-size: var(--control-ui-text-xs);
@@ -3932,7 +3941,7 @@ openclaw-tooltip.sidebar-hover-tooltip {
 .sidebar-footer-bar__status--suspended,
 .sidebar-footer-bar__status--suspended:hover {
   background: color-mix(in srgb, var(--warn) 12%, transparent);
-  color: var(--warn);
+  color: var(--warn-text);
   cursor: default;
 }
 
@@ -4299,7 +4308,7 @@ wa-dropdown.sidebar-identity-menu::part(menu) {
   background: color-mix(in srgb, var(--danger) 12%, transparent);
   font-size: var(--control-ui-text-xs);
   font-family: var(--mono);
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .sidebar-footer-branch__icon {
@@ -4813,11 +4822,11 @@ html:not(.openclaw-native-macos):not(.openclaw-native-nav):not(.openclaw-native-
 .sidebar-session-attention__icon--question,
 .sidebar-session-attention__icon--approval,
 .sidebar-session-attention__icon--agent {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .sidebar-session-attention__icon--error {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .sidebar-session-attention__icon svg {

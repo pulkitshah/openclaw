@@ -16,8 +16,9 @@ const MAX_TWEAKCN_THEME_BYTES = 200_000;
 const TWEAKCN_FETCH_TIMEOUT_MS = 10_000;
 const DEFAULT_FONT_BODY =
   '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+// Mirrors base.css --mono: the face the Control UI always has declared.
 const DEFAULT_MONO =
-  '"JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace';
+  '"Space Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace';
 const SAFE_COLOR_KEYWORDS = new Set(["black", "white", "transparent", "currentcolor"]);
 const SAFE_COLOR_FUNCTION_PATTERN =
   /^(?:rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch)\([a-z0-9+\-.,/%\s]+\)$/i;

@@ -618,7 +618,7 @@ openclaw-chat-pane {
   border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--border));
   border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--warn) 12%, var(--panel));
-  color: var(--warn);
+  color: var(--warn-text);
   font-size: 11px;
   font-weight: 650;
   line-height: 1;
@@ -749,7 +749,7 @@ openclaw-chat-pane {
 
 .chat-pane__sharing-status--error {
   max-width: 260px;
-  color: var(--danger);
+  color: var(--danger-text);
   white-space: normal;
 }
 
