@@ -265,7 +265,13 @@ describe("duties gateway methods", () => {
     const run = await call("duties.run", { id: "d1" });
     expect(run.ok).toBe(true);
     expect(start).toHaveBeenCalledWith(
-      expect.objectContaining({ duty: expect.objectContaining({ id: "d1" }), trigger: "manual" }),
+      expect.objectContaining({
+        duty: expect.objectContaining({ id: "d1" }),
+        trigger: "manual",
+        // A UI or CLI run records an origin of its own rather than none, so `run.origin` is always
+        // present and means what the spec says it means.
+        origin: { kind: "manual" },
+      }),
     );
 
     const cancelled = await call("duties.run.cancel", { runId: "r1" });

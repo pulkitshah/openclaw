@@ -412,13 +412,30 @@ export async function runDuty(
         let aiName: string | undefined;
         const data: Record<string, unknown> = {};
         const aiSlots: Array<{ name: string; instruction: string }> = [];
+        // A fill key that names no declared slot used to be ignored, so a typo surfaced as a
+        // DIFFERENT slot's missing-value error. The template is the authority on its own slots.
+        const declared = new Set(template.slots.map((slot) => slot.name));
+        const undeclared = Object.keys(fill).filter((name) => !declared.has(name));
+        if (undeclared.length)
+          throw new Error(
+            `template "${template.id}" has no slot(s) ${undeclared.join(", ")} (declared: ${[...declared].join(", ") || "none"})`,
+          );
         for (const slot of template.slots) {
           const spec = fill[slot.name];
           if (!spec) continue;
           if ("from" in spec) {
             const raw = String(await resolveWithFiles(spec.from));
             data[slot.name] = slot.kind === "rows" ? parseRows(raw) : raw;
-          } else aiSlots.push({ name: slot.name, instruction: spec.ai });
+          } else {
+            // A rows slot needs an array of row objects; the ai call answers one string per slot,
+            // so `{ ai }` on a rows slot can never succeed — and surfaced as the generic
+            // `slot "x" could not be filled`, which names neither the cause nor the fix.
+            if (slot.kind === "rows")
+              throw new Error(
+                `slot "${slot.name}" is a rows slot: fill it with { from } from a step that produced the rows, not { ai }`,
+              );
+            aiSlots.push({ name: slot.name, instruction: spec.ai });
+          }
         }
         // A document that reaches someone's inbox needs a name they can read. An authored
         // `filename` wins; otherwise the model writes one in the SAME call that fills the prose
@@ -498,11 +515,21 @@ export async function runDuty(
           typeof step.params.text === "string"
             ? String(await resolveWithFiles(step.params.text))
             : undefined;
-        // SAFETY: validateDuty validated params.files as an array of strings when present.
+        // SAFETY: validateDuty validated params.files as an array of {{file:<stepId>}} strings when present.
         const filePlaceholders = (step.params.files as string[] | undefined) ?? [];
         const paths = await Promise.all(
           filePlaceholders.map(async (f) => String(await resolveWithFiles(f))),
         );
+        // Defence in depth behind validateDuty's placeholder rule: only a path THIS run produced
+        // may be attached, so a Duty saved before that rule (or one whose validation was somehow
+        // bypassed) still cannot mail out an arbitrary readable file.
+        const produced = new Set(files.map((f) => f.path));
+        for (const candidate of paths) {
+          if (!produced.has(candidate))
+            throw new Error(
+              `deliver can only attach a file this run produced; use {{file:<stepId>}} naming an earlier template step`,
+            );
+        }
         await deps.deliver.send({ route, ...(text !== undefined ? { text } : {}), files: paths });
         summary = `→ ${route.channel}:${maskTarget(route.to)}`;
       } else {

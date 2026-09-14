@@ -143,8 +143,10 @@ export function registerDutiesGatewayMethods(params: {
    *  context, but it arrives here as ordinary params, so only the known fields in the known shapes
    *  are kept — an unknown `kind` is rejected rather than quietly recorded, and anything else is
    *  dropped. Absent origin means a manual run (the Control UI and the CLI). */
-  const readOrigin = (value: unknown): RunOrigin | undefined => {
-    if (value === undefined || value === null) return undefined;
+  const readOrigin = (value: unknown): RunOrigin => {
+    // A UI or CLI run records `kind: "manual"` rather than nothing, so `run.origin` is always
+    // present and means what spec §3.5 says it means.
+    if (value === undefined || value === null) return { kind: "manual" };
     if (!isRecord(value)) throw new Error("origin must be an object");
     const kind = value.kind;
     if (kind !== "chat" && kind !== "mail" && kind !== "manual") {
@@ -275,7 +277,7 @@ export function registerDutiesGatewayMethods(params: {
     const errors = validateRunInputs(duty, inputs);
     if (errors.length) return { ok: false, errors };
     const origin = readOrigin(params.origin);
-    if (origin?.kind === "mail") {
+    if (origin.kind === "mail") {
       await store.updateSettings({
         lastMailDispatchAt: Date.now(),
         lastMailDispatchDutyId: duty.id,
@@ -284,8 +286,8 @@ export function registerDutiesGatewayMethods(params: {
     return runs.start({
       duty,
       inputs,
-      trigger: origin?.kind ?? "manual",
-      ...(origin ? { origin } : {}),
+      trigger: origin.kind,
+      origin,
       toStepId: typeof params.toStepId === "string" ? params.toStepId : undefined,
       keepOpen: params.keepOpen === true,
       targetId: typeof params.targetId === "string" ? params.targetId : undefined,

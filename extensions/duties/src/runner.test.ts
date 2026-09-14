@@ -36,6 +36,7 @@ function fakeDeps(over: Partial<RunnerDeps> = {}): RunnerDeps & { calls: string[
       return 42;
     },
     screenshot: async () => "blob-1",
+    screenshotPath: async () => "/tmp/fake.png",
     close: async (id) => {
       calls.push(`close ${id}`);
     },
@@ -734,6 +735,67 @@ describe("template and deliver steps", () => {
     // is written in that same call rather than costing a second round trip.
     expect(seen).toEqual([["route"], ["flights"], ["notes", "$filename"]]);
     expect(outcome.steps.at(-1)?.screenshotBlobId).toBeUndefined();
+  });
+
+  // Regression: a `fill` key naming no declared slot was silently ignored, so a typo surfaced as a
+  // DIFFERENT slot's `slot "x" could not be filled`.
+  it("names the undeclared fill keys instead of reporting a different slot as unfillable", async () => {
+    const deps = fakeDeps({
+      templates: { get: async () => flightTpl, brand: async () => undefined },
+      ai: seedAi(),
+    });
+    const steps = dutySteps();
+    const params = (steps[2] as { params: Record<string, unknown> }).params;
+    params.fill = { rout: { from: "IXU" }, flights: { from: "[]" }, notes: { ai: "x" } };
+
+    const outcome = await runDuty(duty(steps), deps, { inputs: {} });
+
+    expect(outcome.status).toBe("failed");
+    expect(outcome.report).toMatch(/has no slot\(s\) rout/u);
+    expect(outcome.files).toEqual([]);
+  });
+
+  // Regression: `{ ai }` on a rows slot can never succeed (the ai call answers one string per slot,
+  // the renderer needs an array of row objects) and surfaced as the generic missing-slot error.
+  it("rejects an ai fill on a rows slot with a message that names the real cause", async () => {
+    const deps = fakeDeps({
+      templates: { get: async () => flightTpl, brand: async () => undefined },
+      ai: seedAi(),
+    });
+    const steps = dutySteps();
+    const params = (steps[2] as { params: Record<string, unknown> }).params;
+    params.fill = {
+      route: { from: "IXU" },
+      flights: { ai: "invent the flights" },
+      notes: { ai: "x" },
+    };
+
+    const outcome = await runDuty(duty(steps), deps, { inputs: {} });
+
+    expect(outcome.status).toBe("failed");
+    expect(outcome.report).toMatch(/slot "flights" is a rows slot.*not \{ ai \}/su);
+  });
+
+  // Defence in depth behind validateDuty's `{{file:<stepId>}}` rule: a Duty saved before that rule
+  // must still not be able to mail out an arbitrary readable file.
+  it("refuses to deliver a path this run did not produce", async () => {
+    const deps = fakeDeps({
+      templates: { get: async () => flightTpl, brand: async () => undefined },
+      ai: seedAi(),
+    });
+    const steps = dutySteps();
+    (steps[3] as { params: Record<string, unknown> }).params.files = [
+      "/Users/someone/.openclaw/openclaw.json",
+    ];
+
+    const outcome = await runDuty(duty(steps), deps, {
+      inputs: {},
+      origin: { kind: "chat", sessionKey: "agent:main:telegram:222" },
+    });
+
+    expect(outcome.status).toBe("failed");
+    expect(outcome.report).toMatch(/deliver can only attach a file this run produced/u);
+    expect(deps.calls.some((c) => c.startsWith("deliver "))).toBe(false);
   });
 
   it("names the document from an authored filename, resolving placeholders and sanitising it", async () => {

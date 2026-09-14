@@ -57,8 +57,16 @@ and `saveAs`.
 - **`ai`** — `params.instruction`, `params.input`, `params.schema` (JSON Schema for the
   extracted result). `saveAs` may be a single key or an array of keys pulled off the
   result object.
-- **`ask`** — `params.question`, optional `params.header`, optional `params.options`
-  (multiple-choice). Answer is saved via `saveAs`.
+- **`ask`** — `params.question` (required), `params.options` (**required**: 2–4 distinct,
+  non-blank choices), optional `params.header` (≤ 12 characters). Answer is saved via `saveAs`.
+  The 2–4 rule is not style: the owner answers by tapping a button, and a channel only renders
+  buttons for 2–4 distinct option values. One option, five options, or `["Yes","yes"]` goes out as
+  plain prose — and a typed reply does **not** answer a Duty's question, it reaches the agent as
+  ordinary chat while the run waits out its timeout. Saving such a step is refused. If a step
+  genuinely needs free text (a one-time code), ask the owner in the conversation yourself with
+  `ask_user` instead of putting it in the Duty.
+  An `ask` is always raised with the owner — if the run was triggered from a group, the question
+  still goes to the owner's own chat, so nobody else can approve it.
 - **`template`** — renders a saved template. `params.template` is the template id;
   `params.fill` maps each of its slots to either `{ from: "{{out:...}}" }` (or any other
   placeholder) or `{ ai: "instruction" }` (the model writes that slot from the run's data).

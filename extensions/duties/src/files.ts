@@ -84,19 +84,28 @@ export function createRunFiles(rootDir: string) {
      *  absent is normal (nothing has rendered yet) and is not an error. */
     async cleanup(olderThanMs: number, now = Date.now()): Promise<number> {
       let removed = 0;
+      // Each removal is guarded on its own: one entry the OS refuses (EPERM, EBUSY, an open
+      // handle) used to abort the whole pass and its count, so a single stuck run directory
+      // stopped every later one from ever being swept.
+      const drop = async (target: string, recursive: boolean): Promise<void> => {
+        try {
+          await rm(target, { recursive, force: true });
+          removed += 1;
+        } catch {
+          // Disk space is a note, never a reason to stop sweeping the rest.
+        }
+      };
       for (const name of await readdir(runsDir).catch(() => [])) {
         const dir = path.join(runsDir, name);
         const info = await stat(dir).catch(() => undefined);
         if (!info?.isDirectory() || now - info.mtimeMs < olderThanMs) continue;
-        await rm(dir, { recursive: true, force: true });
-        removed += 1;
+        await drop(dir, true);
       }
       for (const name of await readdir(previewsDir).catch(() => [])) {
         const file = path.join(previewsDir, name);
         const info = await stat(file).catch(() => undefined);
         if (!info?.isFile() || now - info.mtimeMs < PREVIEW_TTL_MS) continue;
-        await rm(file, { force: true });
-        removed += 1;
+        await drop(file, false);
       }
       return removed;
     },

@@ -30,6 +30,9 @@ const EVIDENCE_BLOB_TTL_MS = 90 * 24 * 3600 * 1000;
 /** Rendered run documents are kept a month: long enough to re-send a delivery the owner missed,
  *  short enough that a year of runs does not accumulate on disk. */
 const RUN_FILES_TTL_MS = 30 * 24 * 3600 * 1000;
+/** How often the rendered-file sweep runs after the first pass at service start. Previews expire
+ *  in a day (`PREVIEW_TTL_MS`), so hourly is well inside their clock and costs one readdir. */
+const FILE_SWEEP_INTERVAL_MS = 3600 * 1000;
 
 export const DEFAULT_BROWSER_PROFILE = "openclaw";
 
@@ -231,17 +234,29 @@ export default definePluginEntry({
         await request("question.resolve", { id: questionId, cancel: true });
       },
     });
+    // Best-effort: a sweep that cannot remove an old run's directory is a disk-space note, never a
+    // reason for the Duties service to fail to start.
+    const sweep = async () => {
+      await runFiles.cleanup(RUN_FILES_TTL_MS).catch((error: unknown) => {
+        api.logger.warn(`duties: rendered-file cleanup failed: ${coerceErrorMessage(error)}`);
+      });
+    };
+    let sweepTimer: ReturnType<typeof setInterval> | undefined;
     api.registerService({
       id: "duties:runs",
       async start() {
         await runs.recoverOrphans();
-        // Best-effort: a sweep that cannot remove an old run's directory is a disk-space note,
-        // never a reason for the Duties service to fail to start.
-        await runFiles.cleanup(RUN_FILES_TTL_MS).catch((error: unknown) => {
-          api.logger.warn(`duties: rendered-file cleanup failed: ${coerceErrorMessage(error)}`);
-        });
+        await sweep();
+        // Sweeping only at start meant a Gateway that stays up for months never swept again,
+        // while every Templates-page card render writes another preview PDF. Previews expire in a
+        // day, so an hourly pass keeps that honest without watching the directory.
+        sweepTimer = setInterval(() => void sweep(), FILE_SWEEP_INTERVAL_MS);
+        sweepTimer.unref?.();
       },
-      stop() {},
+      stop() {
+        clearInterval(sweepTimer);
+        sweepTimer = undefined;
+      },
     });
 
     registerDutiesGatewayMethods({

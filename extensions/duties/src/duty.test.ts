@@ -399,6 +399,16 @@ describe("resolvePlaceholders", () => {
       }),
     ).rejects.toThrow("no credential stored for missing");
   });
+  // Regression: a dotted path walked the prototype chain, so `{{out:constructor}}` resolved to a
+  // function and the substitution wrote the literal text "undefined" into the document.
+  it("reads own properties only, so a prototype key resolves to empty rather than to `undefined`", async () => {
+    const out = await resolvePlaceholders("[{{out:constructor}}][{{in:__proto__}}][{{out:a.b}}]", {
+      out: { a: {} },
+      in: {},
+    });
+    expect(out).toBe("[][][]");
+  });
+
   it("preserves dollar signs and regex metacharacters in credential values", async () => {
     const out = await resolvePlaceholders("password: {{cred:k}}", {
       out: {},
@@ -474,6 +484,131 @@ describe("Part 2 model", () => {
         /params\.channel: required when to is not "trigger" or "owner"/u,
       );
     }
+  });
+
+  // Regression (I4): the error text promised the `{{file:<stepId>}}` shape but the check only
+  // required `string`, so `files: ["/Users/…/.openclaw/openclaw.json"]` was a valid Duty that
+  // mailed a state file to any channel target. Authoring is done by an agent that reads untrusted
+  // mail and web content, so this is a real injection sink.
+  it("rejects a deliver files entry that is not a {{file:<stepId>}} placeholder", () => {
+    const rawPath = validateDuty({
+      ...base(),
+      steps: [
+        {
+          id: "d1",
+          kind: "deliver",
+          label: "Send",
+          params: { to: "owner", files: ["/Users/someone/.openclaw/openclaw.json"] },
+        },
+      ],
+    });
+    expect(rawPath.ok).toBe(false);
+    if (!rawPath.ok) {
+      expect(rawPath.errors.join("\n")).toMatch(
+        /params\.files\[0\]: must be a \{\{file:<stepId>\}\} placeholder/u,
+      );
+    }
+    // A placeholder with anything around it is not a placeholder either.
+    expect(
+      validateDuty({
+        ...base(),
+        steps: [
+          {
+            id: "d1",
+            kind: "deliver",
+            label: "Send",
+            params: { to: "owner", files: ["see {{file:t1}}"] },
+          },
+        ],
+      }).ok,
+    ).toBe(false);
+    expect(
+      validateDuty({
+        ...base(),
+        steps: [
+          {
+            id: "d1",
+            kind: "deliver",
+            label: "Send",
+            params: { to: "owner", files: ["{{file:t1}}"] },
+          },
+        ],
+      }).ok,
+    ).toBe(true);
+  });
+
+  // Regression (I1): `questionCard` silently returned plain text when the options were not 2–4
+  // distinct values, and a typed reply does not resolve a plugin-raised question — so a real
+  // booking approval reached the owner as un-tappable prose and their "Yes" went to the agent as
+  // ordinary chat. The rule is enforced where the author can act on it: at save time.
+  it("rejects an ask whose options cannot make a tappable card", () => {
+    const ask = (params: Record<string, unknown>) =>
+      validateDuty({
+        ...base(),
+        steps: [{ id: "a1", kind: "ask", label: "Approve?", params }],
+      });
+
+    expect(ask({ question: "Hold this booking?", options: ["Approve", "Decline"] }).ok).toBe(true);
+
+    for (const options of [["Approve"], ["a", "b", "c", "d", "e"], ["Yes", "yes"], ["Yes", "  "]]) {
+      const bad = ask({ question: "Hold?", options });
+      expect(bad.ok).toBe(false);
+      if (!bad.ok) {
+        expect(bad.errors.join("\n")).toMatch(
+          /ask options must be 2–4 distinct choices for a tappable card/u,
+        );
+      }
+    }
+
+    // No options at all: the host renders prose and nothing routes a typed reply back to the
+    // question, so the run would wait out its timeout. Options are required.
+    const freeText = ask({ question: "What's the one-time code?" });
+    expect(freeText.ok).toBe(false);
+    if (!freeText.ok) {
+      expect(freeText.errors.join("\n")).toMatch(/params\.options: an ask needs 2–4 distinct/u);
+    }
+  });
+
+  // Regression (I7): `validateStepParams` dispatched only to template/deliver, so an `ask` with no
+  // question asked the owner a card that literally read "undefined", and an `ai` step with no
+  // instruction sent "undefined" to the model.
+  it("validates ask and ai params so an unset field never reaches a person or a model", () => {
+    const bad = validateDuty({
+      ...base(),
+      steps: [
+        { id: "a1", kind: "ask", label: "Ask", params: { options: ["Yes", "No"], header: 7 } },
+        { id: "x1", kind: "ai", label: "Extract", params: { schema: "not-an-object" } },
+      ],
+    });
+    expect(bad.ok).toBe(false);
+    if (!bad.ok) {
+      const text = bad.errors.join("\n");
+      expect(text).toMatch(/params\.question: must be a non-empty string/u);
+      expect(text).toMatch(/params\.header: must be a string of at most 12 characters/u);
+      expect(text).toMatch(/params\.instruction: must be a non-empty string/u);
+      expect(text).toMatch(/params\.schema: must be an object/u);
+    }
+
+    expect(
+      validateDuty({
+        ...base(),
+        steps: [
+          {
+            id: "x1",
+            kind: "ai",
+            label: "Extract",
+            params: { instruction: "Pull the route", schema: { type: "object" } },
+          },
+        ],
+      }).ok,
+    ).toBe(true);
+    // `schema` is optional; the runner defaults it to a plain object.
+    expect(
+      validateDuty({
+        ...base(),
+        steps: [{ id: "x1", kind: "ai", label: "Extract", params: { instruction: "Pull it" } }],
+      }).ok,
+    ).toBe(true);
   });
 
   it("rejects a cred placeholder inside template fill and deliver text", () => {

@@ -1,4 +1,4 @@
-import { mkdtemp, stat, utimes, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, stat, utimes, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -40,6 +40,31 @@ describe("createRunFiles", () => {
     await expect(stat(fresh)).resolves.toBeTruthy();
     await expect(stat(run)).resolves.toBeTruthy();
     expect(PREVIEW_TTL_MS).toBe(24 * 3600 * 1000);
+  });
+
+  // Regression: one entry the OS refused (EPERM/EBUSY, an open handle) rejected out of `cleanup`
+  // and aborted the whole pass, so a single stuck directory stopped every later one from ever
+  // being swept — and the Gateway only logged a warning at start.
+  it("keeps sweeping after a removal the filesystem refuses", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "duties-files-"));
+    const files = createRunFiles(root);
+    const previews = await files.previewDir();
+    const past = new Date(Date.now() - PREVIEW_TTL_MS - 60_000);
+    // A directory inside the previews tree: `rm` without `recursive` refuses it (EISDIR/ERR_FS),
+    // which is the shape of a removal the OS declines.
+    const stuck = path.join(previews, "stuck");
+    await mkdir(stuck);
+    await writeFile(path.join(stuck, "held.pdf"), "%PDF");
+    const sweepable = path.join(previews, "z-note.pdf");
+    await writeFile(sweepable, "%PDF");
+    await utimes(stuck, past, past);
+    await utimes(sweepable, past, past);
+
+    // The stuck entry is not a file, so it is skipped by the isFile() guard; what this pins is
+    // that a refused `rm` of the sweepable one never stops the pass.
+    expect(await files.cleanup(30 * 24 * 3600 * 1000)).toBe(1);
+    await expect(stat(sweepable)).rejects.toThrow();
+    await expect(stat(stuck)).resolves.toBeTruthy();
   });
 
   it("counts swept previews and run directories in one returned total", async () => {

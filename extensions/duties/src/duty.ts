@@ -91,6 +91,9 @@ export const DEFAULT_REPORTS_TO = "owner";
 export const DEFAULT_TRIGGERS: DutyTrigger[] = [{ kind: "manual" }];
 
 const STEP_ID_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/u;
+/** A whole `deliver.params.files` entry: the placeholder and nothing else, with a step id in the
+ *  same slug shape `STEP_ID_RE` allows. */
+export const FILE_PLACEHOLDER_RE = /^\{\{file:[a-z0-9][a-z0-9_-]{0,63}\}\}$/u;
 const SELECTOR_LABEL_RE = /^[#.[]|^role=|^css=/u;
 
 const TARGET_KEYS = ["role", "name", "text", "css"] as const;
@@ -219,6 +222,61 @@ function validateStepParams(node: Record<string, unknown>, path: string, errors:
   }
   if (node.kind === "template") validateTemplateParams(params, `${path}.params`, errors);
   if (node.kind === "deliver") validateDeliverParams(params, `${path}.params`, errors);
+  if (node.kind === "ask") validateAskParams(params, `${path}.params`, errors);
+  if (node.kind === "ai") validateAiParams(params, `${path}.params`, errors);
+}
+
+/** The Gateway's own header cap (`QuestionHeaderSchema`, packages/gateway-protocol/src/schema/
+ *  questions.ts:14). The runner truncates to it; an author should be told instead. */
+const MAX_ASK_HEADER_CHARS = 12;
+
+/**
+ * An `ask` is Part 2's approval gate, so what it cannot do matters as much as what it can.
+ *
+ * A tappable card needs 2-4 distinct, non-blank option values — that is the host's own limit, and
+ * the tap is mapped back by index. Below or above it, the message goes out as prose, and prose
+ * cannot be answered: nothing routes a typed chat reply back to a question a plugin raised (the
+ * in-process `ask_user` registry only serves the agent turn that opened the question, and a Duty
+ * run has no such turn), so the reply reaches the agent as ordinary chat and the run waits out its
+ * timeout. That is exactly what the live proof hit. So options are required, and required to be
+ * usable.
+ */
+function validateAskParams(params: Record<string, unknown>, path: string, errors: string[]): void {
+  if (typeof params.question !== "string" || !params.question.trim())
+    errors.push(`${path}.question: must be a non-empty string`);
+  if (
+    params.header !== undefined &&
+    (typeof params.header !== "string" || params.header.length > MAX_ASK_HEADER_CHARS)
+  )
+    errors.push(`${path}.header: must be a string of at most ${MAX_ASK_HEADER_CHARS} characters`);
+  if (params.options === undefined) {
+    errors.push(
+      `${path}.options: an ask needs 2–4 distinct options — a typed reply does not answer a Duty's question, only a tapped choice does`,
+    );
+    return;
+  }
+  if (!Array.isArray(params.options) || params.options.some((o) => typeof o !== "string")) {
+    errors.push(`${path}.options: must be an array of strings`);
+    return;
+  }
+  const options = params.options.map((o) => String(o).trim()).filter(Boolean);
+  if (
+    options.length !== params.options.length ||
+    options.length < 2 ||
+    options.length > 4 ||
+    new Set(options.map((o) => o.toLowerCase())).size !== options.length
+  ) {
+    errors.push(`${path}.options: ask options must be 2–4 distinct choices for a tappable card`);
+  }
+}
+
+/** An `ai` step with no instruction sent the model the literal string "undefined"; a non-object
+ *  schema reached `ai.extract` as one. */
+function validateAiParams(params: Record<string, unknown>, path: string, errors: string[]): void {
+  if (typeof params.instruction !== "string" || !params.instruction.trim())
+    errors.push(`${path}.instruction: must be a non-empty string`);
+  if (params.schema !== undefined && !isRecord(params.schema))
+    errors.push(`${path}.schema: must be an object`);
 }
 
 function validateTemplateParams(
@@ -267,11 +325,19 @@ function validateDeliverParams(
     errors.push(`${path}.channel: required when to is not "trigger" or "owner"`);
   if (params.text !== undefined && typeof params.text !== "string")
     errors.push(`${path}.text: must be a string`);
-  if (
-    params.files !== undefined &&
-    (!Array.isArray(params.files) || params.files.some((f) => typeof f !== "string"))
-  )
-    errors.push(`${path}.files: must be an array of {{file:<stepId>}} strings`);
+  if (params.files !== undefined) {
+    if (!Array.isArray(params.files)) {
+      errors.push(`${path}.files: must be an array of {{file:<stepId>}} strings`);
+    } else {
+      // Each entry must BE a placeholder, not merely contain one. Accepting any string let an
+      // authored Duty name a path on disk — a config file, a keychain export, a log — and
+      // `resolveWithFiles` passed it through verbatim into the attachment list.
+      params.files.forEach((entry, index) => {
+        if (typeof entry !== "string" || !FILE_PLACEHOLDER_RE.test(entry))
+          errors.push(`${path}.files[${index}]: must be a {{file:<stepId>}} placeholder`);
+      });
+    }
+  }
   if (params.text === undefined && params.files === undefined)
     errors.push(`${path}: deliver needs text and/or files`);
 }
@@ -400,11 +466,15 @@ export function validateRunInputs(duty: Duty, inputs: Record<string, unknown>): 
 
 const PLACEHOLDER_RE = /\{\{(out|in|cred|file):([A-Za-z0-9_.-]+)\}\}/gu;
 
+/** Own properties only: `{{out:constructor}}` and `{{in:__proto__}}` otherwise walked the
+ *  prototype chain, and `stringify` then returned `JSON.stringify(fn) === undefined` against a
+ *  `string` signature, so the substitution wrote the literal text `undefined` into a document, a
+ *  message or a form field. */
 function readPath(root: unknown, dotted: string): unknown {
   let cur: unknown = root;
   for (const segment of dotted.split(".")) {
     if (Array.isArray(cur)) cur = cur[Number(segment)];
-    else if (isRecord(cur)) cur = cur[segment];
+    else if (isRecord(cur) && Object.hasOwn(cur, segment)) cur = cur[segment];
     else return undefined;
   }
   return cur;
