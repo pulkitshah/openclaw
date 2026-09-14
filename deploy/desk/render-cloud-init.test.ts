@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -212,5 +212,62 @@ describe("render-cloud-init.mjs", () => {
         { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
       ),
     ).toThrowError(/Command failed/);
+  });
+
+  it("refuses a --name containing shell/YAML-unsafe characters", () => {
+    expect(() => render(["--name", "desk$(whoami)"])).toThrowError(/Command failed/);
+    try {
+      render(["--name", "desk;rm -rf /"]);
+      expect.unreachable("render should have thrown for an unsafe --name");
+    } catch (error) {
+      expect(String((error as { stderr?: string }).stderr ?? "")).toMatch(/--name/);
+    }
+  });
+
+  it("refuses a --git-ref containing shell-unsafe characters", () => {
+    expect(() => render(["--git-ref", "main; rm -rf /"])).toThrowError(/Command failed/);
+    try {
+      render(["--git-ref", "$(whoami)"]);
+      expect.unreachable("render should have thrown for an unsafe --git-ref");
+    } catch (error) {
+      expect(String((error as { stderr?: string }).stderr ?? "")).toMatch(/--git-ref/);
+    }
+  });
+
+  it("refuses a --git-ref that starts with a dash, so it can never be parsed as a git option", () => {
+    // `--git-ref=<value>` (rather than two argv entries) reaches the renderer's own validation
+    // even for a value node:util's parseArgs would otherwise treat as an ambiguous option.
+    try {
+      execFileSync(
+        process.execPath,
+        [
+          RENDER_SCRIPT,
+          "--name",
+          deskName,
+          "--ts-authkey-file",
+          tsAuthKeyFile,
+          "--tg-token-file",
+          tgTokenFile,
+          "--owner-target",
+          ownerTarget,
+          "--git-ref=--upload-pack=evil",
+        ],
+        { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+      );
+      expect.unreachable("render should have thrown for a --git-ref starting with '-'");
+    } catch (error) {
+      expect(String((error as { stderr?: string }).stderr ?? "")).toMatch(
+        /--git-ref.*must not start with/,
+      );
+    }
+  });
+
+  it("keeps the full pnpm packageManager string, including the sha512 integrity suffix, in corepack prepare", () => {
+    const pkg = JSON.parse(readFileSync(join(HERE, "..", "..", "package.json"), "utf8")) as {
+      packageManager: string;
+    };
+    const output = render();
+    expect(pkg.packageManager).toMatch(/^pnpm@\d.*\+sha512\./);
+    expect(output).toContain(`corepack prepare ${pkg.packageManager} --activate`);
   });
 });

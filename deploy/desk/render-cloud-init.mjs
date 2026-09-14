@@ -42,6 +42,16 @@ const ALL_CAPS_PLACEHOLDER_RE = /\{\{[A-Z][A-Z0-9_]*\}\}/;
 const INCLUDE_LINE_RE = /^([ \t]*)\{\{INCLUDE:([^}]+)\}\}[ \t]*$/;
 const OPENCLAW_CONFIG_JSON_LINE_RE = /^([ \t]*)\{\{OPENCLAW_CONFIG_JSON\}\}[ \t]*$/;
 
+// `--name` becomes both a YAML scalar (`hostname: {{DESK_NAME}}`) and a raw shell argument
+// (`--hostname {{DESK_NAME}}` inside a runcmd string), so it is restricted to characters that
+// are safe unquoted in both contexts — the same shape doctl/cloud-init expect for a hostname.
+const DESK_NAME_RE = /^[a-z0-9][a-z0-9-]{0,62}$/;
+// `--git-ref` is interpolated raw into a shell-executed `git checkout {{GIT_REF}}` runcmd line.
+// Git ref syntax allows more than this, but this covers every ref/branch/tag an operator would
+// legitimately pass and excludes shell metacharacters; a leading `-` is rejected separately so
+// the value can never be parsed as a `git checkout` option.
+const GIT_REF_RE = /^[A-Za-z0-9._/-]{1,128}$/;
+
 function fail(message) {
   process.stderr.write(`render-cloud-init: ${message}\n`);
   process.exit(1);
@@ -76,6 +86,51 @@ function resolveInclude(relativePath) {
     fail(`template references an unknown include: ${relativePath}`);
   }
   return readFileSync(join(SCRIPT_DIR, relativePath), "utf8");
+}
+
+/** `--name` lands unquoted in both a YAML scalar and a shell-executed runcmd argument; refuse
+ *  anything that isn't a plain lowercase hostname-shaped token before it ever reaches the
+ *  template. */
+function validateDeskName(name) {
+  if (!DESK_NAME_RE.test(name)) {
+    fail(
+      `--name ${JSON.stringify(name)} is invalid: must match ${DESK_NAME_RE} ` +
+        "(lowercase letters, digits, and hyphens; must start with a letter or digit; max 63 chars)",
+    );
+  }
+}
+
+/** `--git-ref` is interpolated raw into a shell-executed `git checkout {{GIT_REF}}` runcmd
+ *  line; refuse anything containing shell metacharacters or that could be parsed as a `git
+ *  checkout` option. */
+function validateGitRef(ref) {
+  if (ref.startsWith("-")) {
+    fail(`--git-ref ${JSON.stringify(ref)} is invalid: must not start with '-'`);
+  }
+  if (!GIT_REF_RE.test(ref)) {
+    fail(
+      `--git-ref ${JSON.stringify(ref)} is invalid: must match ${GIT_REF_RE} ` +
+        "(letters, digits, '.', '_', '/', '-'; max 128 chars)",
+    );
+  }
+}
+
+/** Reads this repo's own `package.json` "packageManager" field verbatim (version + `+sha512...`
+ *  integrity suffix) so `corepack prepare` on the box verifies the exact pinned pnpm binary,
+ *  not just its version number. */
+function readPnpmPackageManager() {
+  const packageJsonPath = join(SCRIPT_DIR, "..", "..", "package.json");
+  let packageManager;
+  try {
+    const pkg = JSON.parse(readFileSync(packageJsonPath, "utf8"));
+    packageManager = pkg.packageManager;
+  } catch (error) {
+    fail(`could not read packageManager from ${packageJsonPath}: ${error.message}`);
+  }
+  if (typeof packageManager !== "string" || !/^pnpm@\d/.test(packageManager)) {
+    fail(`${packageJsonPath} "packageManager" is not a pinned pnpm version: ${packageManager}`);
+  }
+  return packageManager;
 }
 
 /** Renders `openclaw.json.tmpl` for one owner target and returns canonical (parsed + re-
@@ -156,6 +211,9 @@ function main() {
     }
   }
 
+  validateDeskName(values.name);
+  validateGitRef(values["git-ref"]);
+
   const tsAuthKey = readTrimmedFile(values["ts-authkey-file"], "Tailscale auth key");
   const tgBotToken = readTrimmedFile(values["tg-token-file"], "Telegram bot token");
   const gatewayToken = values["gateway-token-file"]
@@ -169,6 +227,7 @@ function main() {
     OWNER_TG_TARGET: values["owner-target"],
     TG_BOT_TOKEN: tgBotToken,
     GATEWAY_TOKEN: gatewayToken,
+    PNPM_PACKAGE_MANAGER: readPnpmPackageManager(),
   });
 
   assertFullyRendered(rendered);

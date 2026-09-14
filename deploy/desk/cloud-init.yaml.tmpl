@@ -109,11 +109,13 @@ runcmd:
   - [install, -d, -o, openclaw, -g, openclaw, -m, '0700', /home/openclaw/.openclaw]
   - [install, -d, -o, root, -g, root, -m, '0755', /var/lib/openclaw]
 
-  # Node 26 (NodeSource) + pnpm via corepack.
+  # Node 26 (NodeSource) + pnpm via corepack. {{PNPM_PACKAGE_MANAGER}} is the renderer's own
+  # repo's package.json "packageManager" field verbatim (e.g. "pnpm@12.3.4+sha512...") so
+  # corepack verifies the exact pinned binary against its integrity hash, not just the version.
   - "curl -fsSL https://deb.nodesource.com/setup_26.x | bash -"
   - apt-get install -y nodejs
   - corepack enable
-  - corepack prepare pnpm@12.3.4 --activate
+  - corepack prepare {{PNPM_PACKAGE_MANAGER}} --activate
 
   # Tailscale: install, join the tailnet, then shred the one-time auth key. Tailnet SSH (--ssh)
   # replaces sshd for humans (spec §4.3); Serve is configured by the Gateway itself at startup via
@@ -140,9 +142,20 @@ runcmd:
   - chmod +x /opt/openclaw/deploy/desk/desk-health.sh
 
   # Managed Chromium: OS deps as root, the browser itself as the unprivileged service user (its
-  # cache lives under ~openclaw/.cache, not inside the now read-only /opt/openclaw tree).
+  # cache lives under ~openclaw/.cache, not inside the now read-only /opt/openclaw tree). `-H`
+  # is required: stock Ubuntu sudoers is `env_reset` without `always_set_home`, so plain
+  # `sudo -u openclaw` leaves $HOME=/root — a login shell (`bash -l`) reads dotfiles *from*
+  # whatever $HOME already is, it doesn't recompute it — and Playwright would then try to
+  # install under /root/.cache/ms-playwright, which openclaw cannot even traverse into. `-H`
+  # sets $HOME to openclaw's own home (/home/openclaw) so the cache lands where the Gateway's
+  # systemd service (User=openclaw, which does default $HOME correctly) will actually look for
+  # it. `runcmd` has no `set -e`, so a failure here would otherwise pass silently and the
+  # Gateway would start with no Chromium installed for the openclaw user; the explicit
+  # `|| { ...; exit 1; }` guard makes that failure loud and stops provisioning.
   - cd /opt/openclaw && npx playwright install-deps chromium
-  - sudo -u openclaw bash -lc "cd /opt/openclaw && npx playwright install chromium"
+  - >-
+    sudo -H -u openclaw bash -lc "cd /opt/openclaw && npx playwright install chromium"
+    || { echo "desk: chromium install FAILED" >&2; exit 1; }
 
   # Per-desk credential keyfile for extensions/duties' Linux cred backend (spec §5).
   - "head -c 32 /dev/urandom > /etc/openclaw/keyfile"
