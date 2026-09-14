@@ -41,7 +41,7 @@ describe("entry root version fast path", () => {
       }),
     ).toBe(true);
     await taggedExit.promise;
-    expect(output).toHaveBeenCalledWith("OpenClaw 9.9.9-test (abc1234)");
+    expect(output).toHaveBeenCalledWith("Vasudev 9.9.9-test (abc1234)");
     expect(exit).toHaveBeenCalledWith(0);
 
     output.mockClear();
@@ -59,7 +59,7 @@ describe("entry root version fast path", () => {
       }),
     ).toBe(true);
     await plainExit.promise;
-    expect(output).toHaveBeenCalledWith("OpenClaw 9.9.9-test");
+    expect(output).toHaveBeenCalledWith("Vasudev 9.9.9-test");
     expect(exit).toHaveBeenCalledWith(0);
 
     output.mockClear();
