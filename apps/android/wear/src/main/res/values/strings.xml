@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name">OpenClaw</string>
+    <string name="app_name">Vasudev</string>
     <string name="chat">Chat</string>
     <string name="session">Session</string>
     <string name="model">Model</string>

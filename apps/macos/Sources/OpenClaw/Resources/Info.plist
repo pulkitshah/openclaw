@@ -10,8 +10,10 @@
     <string>ai.openclaw.mac</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
+    <key>CFBundleDisplayName</key>
+    <string>Vasudev</string>
     <key>CFBundleName</key>
-    <string>OpenClaw</string>
+    <string>Vasudev</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>

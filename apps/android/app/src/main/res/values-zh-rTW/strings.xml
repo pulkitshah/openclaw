@@ -1,5 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name">OpenClaw Node</string>
+    <string name="app_name">Vasudev Node</string>
     <string name="trust_this_gateway">信任此閘道？</string>
     <string name="trust_and_continue">信任並繼續</string>
     <string name="cancel">取消</string>
