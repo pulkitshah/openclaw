@@ -326,7 +326,7 @@ describe("cron view list pane", () => {
     expect(loadedEmpty.querySelector('[data-test-id="cron-jobs-loading"]')).toBeNull();
     const empty = getElement(loadedEmpty, ".cron-empty-state", HTMLDivElement);
     expect(empty.textContent).toContain("No automations yet");
-    expect(empty.textContent).toContain("Describe what OpenClaw should do");
+    expect(empty.textContent).toContain("Describe what Vasudev should do");
     expect(
       getElement(loadedEmpty, ".cron-table", HTMLDivElement).getAttribute("aria-busy"),
     ).toBeNull();

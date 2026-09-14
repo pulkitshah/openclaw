@@ -383,15 +383,16 @@ openclaw-session-owner-chip {
 .login-gate__brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   margin-bottom: 24px;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1;
 }
 
+/* The orb sizes itself from its `size` attribute; this only keeps it from
+   collapsing in the flex row. */
 .login-gate__logo {
-  width: 22px;
-  height: 22px;
+  flex: none;
 }
 
 .login-gate__brand-name {

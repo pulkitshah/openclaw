@@ -99,7 +99,7 @@ describe("renderMemory", () => {
 
       expect(header?.querySelector(".page-title")?.textContent).toBe("Memory");
       expect(header?.querySelector(".page-subtitle")?.textContent).toContain(
-        "Choose how OpenClaw stores, searches, and maintains agent memory.",
+        "Choose how Vasudev stores, searches, and maintains agent memory.",
       );
       expect(header?.querySelector(".memory-hub-tabs")).not.toBeNull();
       expect(container.textContent).not.toContain("Agent view");

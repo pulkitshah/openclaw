@@ -349,7 +349,7 @@ describe("renderModelSetup", () => {
     const dialog = container.querySelector('openclaw-modal-dialog[label="Connection verified"]');
     expect(dialog).not.toBeNull();
     expect(text(dialog!)).toContain(
-      "OpenClaw received a real reply from openai/gpt-5.6-sol. You can start chatting now.",
+      "Vasudev received a real reply from openai/gpt-5.6-sol. You can start chatting now.",
     );
     expect(text(dialog!)).toContain("Verified in 73 ms");
     dialog?.querySelector<HTMLButtonElement>(".primary")?.click();
@@ -631,7 +631,7 @@ describe("renderModelSetup", () => {
     expect(admin.querySelector(".settings-section")).toBeNull();
 
     const old = mount(props({ gatewayTooOld: true }));
-    expect(text(old)).toContain("The Gateway is running an older OpenClaw version");
+    expect(text(old)).toContain("The Gateway is running an older Vasudev version");
     expect(old.querySelector(".settings-section")).toBeNull();
   });
 

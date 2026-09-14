@@ -1,7 +1,7 @@
 {
-  "name": "OpenClaw Control",
-  "short_name": "OpenClaw",
-  "description": "Multi-channel AI gateway control panel",
+  "name": "Vasudev Control",
+  "short_name": "Vasudev",
+  "description": "All your chats, one Vasudev.",
   "start_url": "./",
   "display": "standalone",
   "theme_color": "#0a0a0a",

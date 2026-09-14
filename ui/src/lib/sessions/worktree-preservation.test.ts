@@ -10,7 +10,7 @@ describe("preserved session worktree presentation", () => {
     ["owner-mismatch", "owned elsewhere"],
     ["busy", "live run or cleanup active"],
     ["foreign-lock", "foreign Git lock"],
-    ["snapshot-failed", "OpenClaw could not create a safety snapshot"],
+    ["snapshot-failed", "Vasudev could not create a safety snapshot"],
     ["cleanup-failed", "cleanup failed"],
   ] satisfies Array<[WorktreePreservationReason, string]>)(
     "describes %s accurately",
@@ -41,10 +41,10 @@ describe("preserved session worktree presentation", () => {
     };
 
     expect(formatPreservedWorktreeConfirmation(snapshot)).toBe(
-      "Session needs attention: openclaw/snapshot-task — OpenClaw could not create a safety snapshot. Remove?",
+      "Session needs attention: openclaw/snapshot-task — Vasudev could not create a safety snapshot. Remove?",
     );
     expect(formatPreservedWorktreesNotice([busy, snapshot])).toBe(
-      "Managed Worktrees:\nopenclaw/busy-task — live run or cleanup active\nopenclaw/snapshot-task — OpenClaw could not create a safety snapshot",
+      "Managed Worktrees:\nopenclaw/busy-task — live run or cleanup active\nopenclaw/snapshot-task — Vasudev could not create a safety snapshot",
     );
   });
 });

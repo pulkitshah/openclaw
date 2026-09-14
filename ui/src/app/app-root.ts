@@ -599,7 +599,6 @@ export class OpenClawApp extends OpenClawLightDomElement {
       return html`
         <openclaw-login-gate
           .props=${{
-            resourceBasePath: context.resourceBasePath,
             connected: gatewayConnected,
             lastError: gatewaySnapshot.lastError,
             reconnectPending:

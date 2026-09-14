@@ -9,6 +9,7 @@ import {
   type SidebarZoneEntry,
 } from "../app-navigation.ts";
 import { isRouteId, isSessionRouteId } from "../app-route-paths.ts";
+import { PRODUCT_NAME } from "../app/brand.ts";
 import type { NativeGateway, NativeGatewaysSnapshot } from "../app/native-gateways.runtime.ts";
 import { isHomePanelAvailable } from "../app/panel-availability.ts";
 import { controlUiPublicAssetPath } from "../app/public-assets.ts";
@@ -131,7 +132,7 @@ function renderSidebarAgentCard(host: AppSidebarRenderHost) {
 }
 
 function renderSidebarWorkspaceHeader(host: AppSidebarRenderHost) {
-  const name = readSidebarNativeGateway()?.name.trim() || "OpenClaw";
+  const name = readSidebarNativeGateway()?.name.trim() || PRODUCT_NAME;
   const menuOpen = host.sidebarMenus.agentMenuPosition !== null;
   return html`
     <div class="sidebar-workspace-header">

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { AgentsListResult } from "../../api/types.ts";
+import { PRODUCT_NAME } from "../../app/brand.ts";
 import { loadSettings, patchSettings } from "../../app/settings.ts";
 import { SIDEBAR_SESSION_PAGE_SIZE } from "../../components/app-sidebar-session-types.ts";
 import { rosterActivityStore } from "../../lib/agents/roster-activity-store.ts";
@@ -31,7 +32,7 @@ describe("AppSidebar agent roster", () => {
           expect(sidebar.querySelector(".sidebar-workspace-header__main")).not.toBeNull(),
         );
         const header = sidebar.querySelector(".sidebar-workspace-header");
-        expect(header?.textContent).toContain(name?.trim() || "OpenClaw");
+        expect(header?.textContent).toContain(name?.trim() || PRODUCT_NAME);
         expect(header?.querySelector(".sidebar-agent-card__avatar")).toBeNull();
         expect(header?.querySelector("img")?.getAttribute("src")).toBe("/favicon.svg");
         expect(sidebar.querySelector("openclaw-sidebar-agent-card")).toBeNull();
@@ -143,7 +144,7 @@ describe("AppSidebar agent roster", () => {
       expect.objectContaining({ pathname: "/chat/working/recent" }),
     );
     expect(sidebar.querySelector(".sidebar-workspace-header__main")?.textContent).toContain(
-      "OpenClaw",
+      PRODUCT_NAME,
     );
     expect(sidebar.querySelector("openclaw-sidebar-agent-card")).toBeNull();
     sidebar

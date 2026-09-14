@@ -1969,7 +1969,7 @@ describe("config view", () => {
       "Using default: Enabled",
       "Using default: 48rem",
       "Using default: Enter",
-      "Using default: OpenClaw viewer",
+      "Using default: Vasudev viewer",
       "Using default: Disabled",
     ]) {
       expect(text).toContain(expected);
