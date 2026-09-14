@@ -149,6 +149,53 @@ describe("ask adapter", () => {
     expect(sent.questions[0].questionId).toMatch(/^[a-z][a-z0-9_]*$/u);
   });
 
+  // Regression: the ask was announced as a paragraph of text, so the owner's tap had nowhere to
+  // land and their reply went to the agent as ordinary chat instead of answering the question.
+  // The channel can only build tappable choices from a record id of its own shape, so the adapter
+  // has to mint one and hand it, with the options, to the announcement.
+  it("asks under a record id the channel can build buttons from, and announces it as a card", async () => {
+    const announced: Array<{
+      text: string;
+      question?: { id: string; options: readonly string[] };
+    }> = [];
+    // The Gateway echoes the id the caller supplied (question.ts), so the mock does too — and the
+    // card is built from the id the Gateway actually recorded, never from the one we hoped for.
+    const request = vi.fn(async (method: string, p: Record<string, unknown>) =>
+      method === "question.request"
+        ? { id: p.id, expiresAtMs: 1 }
+        : { status: "answered", answers: { answers: { ask_hold: ["Approve"] } } },
+    );
+    const ask = createAskAdapter({
+      request: asRequest(request),
+      sessionKey: "main",
+      pollMs: 1,
+      announce: async (text, question) => {
+        announced.push({ text, ...(question ? { question } : {}) });
+      },
+    });
+
+    await expect(
+      ask.ask({
+        stepId: "ask-hold",
+        question: "Hold this booking?",
+        header: "Hold?",
+        options: ["Approve", "Decline"],
+      }),
+    ).resolves.toEqual({ status: "answered", answer: "Approve" });
+
+    const sent = request.mock.calls.find((c) => c[0] === "question.request")?.[1] as {
+      id?: string;
+    };
+    // The record id must match the channel's callback pattern or no button can be built.
+    expect(sent.id).toMatch(/^ask_[a-f0-9]{32}$/u);
+    expect(announced).toHaveLength(1);
+    expect(announced[0]?.text).toContain("Hold this booking?");
+    expect(announced[0]?.question).toEqual({
+      id: sent.id,
+      options: ["Approve", "Decline"],
+    });
+  });
+
   it("reports the created question id so the run can park on it", async () => {
     const request = vi.fn(async (method: string) =>
       method === "question.request"

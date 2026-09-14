@@ -133,13 +133,64 @@ export function sessionRouteFromStore(
   };
 }
 
+/** A pending Gateway question this message should present as tappable choices.
+ *
+ *  `id` is the question RECORD id (`question.request`'s own id), not the per-question id inside
+ *  it — that is what the channel's callback data carries and what `question.get`/`question.resolve`
+ *  take. */
+export type DeliverQuestion = { id: string; options: readonly string[] };
+
 export type DeliverAdapter = {
   send(params: {
     route: DeliverRoute;
     text?: string;
     files?: string[];
+    question?: DeliverQuestion;
   }): Promise<{ messageIds: string[] }>;
 };
+
+/**
+ * Builds the tappable half of a question message, mirroring the host's own question card
+ * (`buildAgentHarnessQuestionPromptPayload`, src/agents/harness/user-input-bridge.ts:160-195),
+ * which is not exported to plugins — only the payload shape it produces is public.
+ *
+ * A channel renders native choices only when both halves are present: `channelData.askUser` gives
+ * the Gateway-owned option order that a tap's compact index is mapped through
+ * (`resolveAskUserQuestionOptionIndices`, src/plugin-sdk/reply-payload.ts:26-60), and the
+ * `question` button actions name the same record id
+ * (`buildTelegramQuestionCallbackData`, extensions/telegram/src/question-callback-data.ts:15-32).
+ * Presentation order is not authoritative — the index always comes from `optionValues`.
+ *
+ * Returns nothing when the options cannot carry a tap: the host accepts only 2-4 distinct
+ * option values, so anything else stays plain text rather than shipping a card whose buttons
+ * would be silently dropped.
+ */
+function questionCard(question: DeliverQuestion): Record<string, unknown> | undefined {
+  const options = question.options.map((option) => option.trim()).filter(Boolean);
+  const normalized = options.map((option) => option.toLowerCase());
+  if (
+    options.length !== question.options.length ||
+    options.length < 2 ||
+    options.length > 4 ||
+    new Set(normalized).size !== options.length
+  ) {
+    return undefined;
+  }
+  return {
+    presentation: {
+      blocks: [
+        {
+          type: "buttons",
+          buttons: options.map((option) => ({
+            label: option,
+            action: { type: "question", questionId: question.id, optionValue: option },
+          })),
+        },
+      ],
+    },
+    channelData: { askUser: { questionId: question.id, optionValues: options } },
+  };
+}
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -167,13 +218,20 @@ export function createDeliverAdapter(params: {
 }): DeliverAdapter {
   const sendBatch = params.sendBatch ?? sendDurableMessageBatch;
   return {
-    async send({ route, text, files }) {
+    async send({ route, text, files, question }) {
+      const card = question ? questionCard(question) : undefined;
       const result = await sendBatch({
         cfg: params.cfg,
         channel: route.channel,
         to: route.to,
         ...(route.accountId ? { accountId: route.accountId } : {}),
-        payloads: [{ ...(text ? { text } : {}), ...(files?.length ? { mediaUrls: files } : {}) }],
+        payloads: [
+          {
+            ...(text ? { text } : {}),
+            ...(files?.length ? { mediaUrls: files } : {}),
+            ...(card ?? {}),
+          },
+        ],
       });
       if (result.status === "failed") {
         const stage = result.stage ?? "unknown";

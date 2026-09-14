@@ -423,7 +423,100 @@ describe("RunManager", () => {
       path.join(root, runId, "p1.pdf"),
     ]);
   });
+});
 
+// Cancelling a parked run reported `{ ok: false }` and left the run — and the browser session it
+// was holding — alive. Two separate holes: a run waiting on an owner question is blocked inside
+// the ask, so the cancel flag alone is never reached, and a run whose Gateway restarted while it
+// waited is not in memory at all.
+describe("RunManager cancel of a parked run", () => {
+  /** A duty whose only step is an ask, plus deps whose ask never answers on its own. */
+  const askDuty = (id: string): Duty => ({
+    ...duty(id),
+    steps: [
+      {
+        id: "ask-owner",
+        kind: "ask",
+        label: "Approve?",
+        params: { question: "Approve?", options: ["Approve", "Decline"] },
+        saveAs: "decision",
+      },
+    ],
+  });
+
+  function parkedDeps(): { deps: RunnerDeps; release: (status: "cancelled") => void } {
+    let release!: (status: "cancelled") => void;
+    const parked = new Promise<{ status: "cancelled" }>((resolve) => {
+      release = (status) => resolve({ status });
+    });
+    const base = deps(0);
+    return {
+      release,
+      deps: {
+        ...base,
+        ask: {
+          ask: async ({ stepId, onAsked }) => {
+            onAsked?.(`ask_question_for_${stepId}`);
+            return await parked;
+          },
+        },
+      },
+    };
+  }
+
+  it("cancels the pending question so the parked run actually ends", async () => {
+    const store = newStore();
+    const { deps: parked, release } = parkedDeps();
+    const cancelQuestion = vi.fn(async (questionId: string) => {
+      // Cancelling the question is what unblocks `question.waitAnswer` in the real adapter.
+      expect(questionId).toBe("ask_question_for_ask-owner");
+      release("cancelled");
+    });
+    const mgr = new RunManager({
+      store,
+      deps: () => parked,
+      emit: () => {},
+      cancelQuestion,
+    });
+
+    const started = await mgr.start({ duty: askDuty("parks"), inputs: {}, trigger: "manual" });
+    await flushMacrotasks(5);
+    expect((await store.getRun(started.runId))?.status).toBe("needs_input");
+
+    expect(await mgr.cancel(started.runId)).toBe(true);
+    // Bounded: a cancel that does not actually unblock the ask must fail fast here rather than
+    // hang the suite the way it hung the live run.
+    const final = await Promise.race([
+      mgr.wait(started.runId),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("cancel did not end the parked run")), 2_000),
+      ),
+    ]);
+    expect(cancelQuestion).toHaveBeenCalledTimes(1);
+    expect(final.status).toBe("cancelled");
+  });
+
+  it("cancels a parked run the Gateway no longer holds in memory", async () => {
+    const store = newStore();
+    // A fresh manager, as after a restart: the run row says needs_input, nothing is in flight.
+    const mgr = new RunManager({ store, deps: () => deps(0), emit: () => {} });
+    const runId = "run-parked-across-restart";
+    await store.createRun({
+      id: runId,
+      dutyId: "parks",
+      status: "needs_input",
+      trigger: "manual",
+      inputs: {},
+      startedAt: 1,
+      waitingOn: { questionId: "ask_stale", stepId: "ask-owner" },
+    } as never);
+
+    expect(await mgr.cancel(runId)).toBe(true);
+    expect((await store.getRun(runId))?.status).toBe("cancelled");
+  });
+});
+
+describe("RunManager", () => {
   // A mail- or manually-triggered run used to report nowhere at all, which is exactly the run
   // nobody is watching. Status lines now follow the same rule `deliver` does — the chat the run
   // came from, otherwise the owner — and the notifier is handed the origin so it can resolve that.

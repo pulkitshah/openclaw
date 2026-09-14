@@ -21,6 +21,19 @@ type Pending = {
 
 /** The one-line chat status a terminal run reports back to the chat it was started from.
  *  `undefined` for any non-terminal status, so a status line is never posted mid-run. */
+/** A run that has already finished, one way or another. Anything else is still this Gateway's to
+ *  end — including `needs_input`, which is exactly the state a run parked on an owner question is
+ *  left in when the Gateway that owned it stops. */
+function isTerminalRunStatus(status: RunStatus): boolean {
+  return (
+    status === "ok" ||
+    status === "failed" ||
+    status === "blocked" ||
+    status === "cancelled" ||
+    status === "lost"
+  );
+}
+
 function terminalStatusLine(run: Pick<DutyRun, "status" | "report" | "failedStep">): string {
   switch (run.status) {
     case "ok":
@@ -60,6 +73,11 @@ export class RunManager {
        *  run came from, otherwise the configured owner. Best-effort: the run's outcome never
        *  depends on it, and it is never awaited on the critical path. */
       notify?: (origin: RunOrigin | undefined, text: string) => Promise<void>;
+      /** Cancels the Gateway question a parked run is waiting on, so `question.waitAnswer`
+       *  returns and the run can unwind. Without it, cancelling a run parked on an owner question
+       *  set a flag nothing would read until the question answered or timed out — up to fifteen
+       *  minutes during which the run kept holding its browser session. */
+      cancelQuestion?: (questionId: string) => Promise<void>;
       maxParallel?: number;
     },
   ) {
@@ -147,6 +165,16 @@ export class RunManager {
     });
   }
 
+  /**
+   * Cancels a run wherever it is: queued, running, parked on an owner question, or parked and no
+   * longer held in memory at all because the Gateway restarted while it waited.
+   *
+   * A parked run needs more than the cancel flag. It is blocked inside the ask adapter, which
+   * polls `question.waitAnswer`, so nothing reads the flag until that call returns on its own.
+   * Cancelling the question it is waiting on is what lets the ask return `cancelled`, which the
+   * runner already turns into a cancelled halt — and that path is what closes the browser tab the
+   * run was holding.
+   */
   async cancel(runId: string): Promise<boolean> {
     const index = this.queue.findIndex((q) => q.run.id === runId);
     if (index >= 0) {
@@ -154,8 +182,21 @@ export class RunManager {
       await this.finish(item!.run, { status: "cancelled" });
       return true;
     }
+    const stored = await this.params.store.getRun(runId);
     if (this.active.has(runId)) {
       this.cancelled.add(runId);
+      const waitingOn = stored?.waitingOn?.questionId;
+      // Best-effort: a question that is already terminal, or a Gateway that refuses the cancel,
+      // still leaves the run flagged, which is the behaviour cancel had before.
+      if (waitingOn) await this.params.cancelQuestion?.(waitingOn).catch(() => {});
+      return true;
+    }
+    // Not in memory. A run still recorded as waiting or working was parked when this Gateway
+    // last stopped; the runner that owned it is gone, so the terminal row is written here.
+    if (stored && !isTerminalRunStatus(stored.status)) {
+      const waitingOn = stored.waitingOn?.questionId;
+      if (waitingOn) await this.params.cancelQuestion?.(waitingOn).catch(() => {});
+      await this.finish(stored, { status: "cancelled" });
       return true;
     }
     return false;

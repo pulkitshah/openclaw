@@ -10,6 +10,7 @@
  *   `{ status: "answered", answers: { answers: Record<questionId, string[]> } }`,
  *   `{ status: "cancelled" }`, `{ status: "expired" }` (QuestionWaitAnswerResultSchema, lines 111-120).
  */
+import { randomBytes } from "node:crypto";
 import type { AskAdapter } from "../runner.js";
 
 type Request = <T = unknown>(method: string, params: Record<string, unknown>) => Promise<T>;
@@ -19,6 +20,21 @@ const WAIT_POLL_TIMEOUT_MS = 60_000;
 
 async function sleep(ms: number): Promise<void> {
   await new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Mints the question RECORD id, in the one shape a channel can build tappable choices from.
+ *
+ * `question.request` will happily accept any non-empty id and mint a UUID when given none, but a
+ * channel's callback envelope is narrower: Telegram's is
+ * `tgq1:<ask_[a-f0-9]{32}>:<optionIndex>` and it refuses to build a button for anything else
+ * (`buildTelegramQuestionCallbackData`, extensions/telegram/src/question-callback-data.ts:15-32).
+ * A server-minted UUID therefore renders as plain text with no way to answer it. This mirrors the
+ * host's own generator (`ask_${randomBytes(16).toString("hex")}`,
+ * src/agents/harness/gateway-question.ts:558).
+ */
+function newQuestionRecordId(): string {
+  return `ask_${randomBytes(16).toString("hex")}`;
 }
 
 /**
@@ -49,15 +65,17 @@ export function createAskAdapter(params: {
    *  by probing `question.request` against a live Gateway with the owner's own session key and
    *  seeing no channel send at all. So without this the owner is never told the run is waiting.
    *  Best-effort: a run must park on its question even if the note cannot be delivered. */
-  announce?: (text: string) => Promise<void>;
+  announce?: (text: string, question?: { id: string; options: readonly string[] }) => Promise<void>;
 }): AskAdapter {
   return {
     async ask({ stepId, question, header, options, timeoutMs, onAsked }) {
       const budget = timeoutMs ?? DEFAULT_TIMEOUT_MS;
       const questionId = questionIdForStep(stepId);
+      const recordId = newQuestionRecordId();
       const requested = await params.request<{ id: string; expiresAtMs: number }>(
         "question.request",
         {
+          id: recordId,
           sessionKey: params.sessionKey,
           timeoutMs: budget,
           questions: [
@@ -73,8 +91,15 @@ export function createAskAdapter(params: {
       // The run parks on `needs_input` from here until this call returns.
       onAsked?.(requested.id);
       if (params.announce) {
+        // The options stay in the text too: a channel that cannot render choices still has to say
+        // what they are, and the card's own buttons are built from `options`, not from this text.
         const choices = options.length > 0 ? `\n\n${options.join(" / ")}` : "";
-        await params.announce(`${header || "Duty"}: ${question}${choices}`).catch(() => {});
+        await params
+          .announce(
+            `${header || "Duty"}: ${question}${choices}`,
+            options.length > 0 ? { id: requested.id, options } : undefined,
+          )
+          .catch(() => {});
       }
       const deadline = Date.now() + budget;
       while (Date.now() < deadline) {

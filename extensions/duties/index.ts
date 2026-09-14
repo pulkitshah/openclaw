@@ -153,9 +153,9 @@ export default definePluginEntry({
           ask: createAskAdapter({
             request,
             sessionKey: await askSession(run.origin),
-            announce: async (text) => {
+            announce: async (text, question) => {
               const route = await resolveRoute("trigger", undefined, run.origin);
-              await deliver.send({ route, text });
+              await deliver.send({ route, text, ...(question ? { question } : {}) });
             },
           }),
           cred: (key: string) => credGet(key),
@@ -173,6 +173,11 @@ export default definePluginEntry({
       notify: async (origin, text) => {
         const route = await resolveRoute("trigger", undefined, origin);
         await deliver.send({ route, text });
+      },
+      // Cancelling the question a parked run waits on is what lets its ask return and the run
+      // unwind; without it the run keeps its browser session until the question times out.
+      cancelQuestion: async (questionId) => {
+        await request("question.resolve", { id: questionId, cancel: true });
       },
     });
     api.registerService({

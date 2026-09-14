@@ -257,7 +257,7 @@ roughly nine-minute timer, and expires on its own.
 
 ## What failed, and what was fixed
 
-Eight defects were found by running the thing. Six are fixed on this branch,
+Ten defects were found by running the thing. Eight are fixed on this branch,
 each with a test that fails without the fix; two are written up below. Five were
 first spotted by the authoring agent from its own run evidence; the last, and
 the worst for this flow, only surfaced when the approval gate was finally probed
@@ -497,6 +497,78 @@ Verified live, on a run given a **mail** origin:
 uncovered defect 8: the first attempt failed outright on the question-id
 pattern.
 
+### 9. The ask arrived as prose, so there was nothing to tap
+
+`fix(duties): asks reach Telegram as answerable question cards; cancel parks`
+
+Defect 8 got the question raised; this one is why it still did not work. The
+mail-origin run `977056af` reached the hold confirmation and parked at
+`ask-hold`, and the owner received the question **as plain text**. Their reply
+went to the agent as an ordinary chat message and the question stayed pending —
+the run kept holding the Amigos session until the question was cancelled by hand.
+
+**How the host makes a question answerable** (all read before changing anything):
+
+| | |
+| --- | --- |
+| Callback envelope | `tgq1:<ask_[a-f0-9]{32}>:<optionIndex>`, built only for a record id of that exact shape — `extensions/telegram/src/question-callback-data.ts:15-32` |
+| Button action | `{ type: "question", questionId, optionValue }` on a `presentation` buttons block — `src/interactive/payload.ts:25-31`, rendered at `extensions/telegram/src/button-types.ts:131-155` |
+| Gateway-owned option order | `channelData.askUser = { questionId, optionValues }`, 2-4 distinct values — `src/plugin-sdk/reply-payload.ts:26-60`. Presentation order is explicitly *not* authoritative |
+| Canonical producer | `buildAgentHarnessQuestionPromptPayload` — `src/agents/harness/user-input-bridge.ts:160-195`. Not exported to plugins; only the payload shape is public |
+| Tap handler | `extensions/telegram/src/bot-handlers.callback-router.ts:296-311` → `handleTelegramQuestionCallback` (`bot-handlers.callback-actions.ts:183-222`) → `resolveQuestionOverGateway` |
+| What the tap enforces | `question.get` must return `status: "pending"` with exactly one non-multiSelect, non-secret question; then `question.resolve` with `{ [question.questionId]: [optionValue] }` — `src/infra/question-gateway-resolver.ts:108-160` |
+| Session/ownership condition | **None at that layer.** No `sessionKey` or owner check gates the tap; the only channel-side gate is the inline-buttons scope, which defaults to `"allowlist"` (`extensions/telegram/src/inline-buttons.ts:13`) — the paired owner chat qualifies |
+
+So the question record id itself was the blocker: `question.request` mints a UUID
+when the caller supplies none, and no button can be built for a UUID. The ask
+adapter now mints `ask_<16 random bytes as hex>` — the host's own shape
+(`src/agents/harness/gateway-question.ts:558`) — passes it as the request `id`,
+and hands it plus the option labels to the announcement, which sends the two
+halves the channel needs. Channels that cannot render choices, and any question
+without 2-4 distinct options, still get the plain text listing.
+
+**Verified live.** A throwaway one-step `ask-probe` Duty, run with a **mail**
+origin so it routed to the owner:
+
+```
+[telegram] outbound send ok chatId=5995225650 messageId=302   (status line)
+[telegram] outbound send ok chatId=5995225650 messageId=303   (the question card)
+[telegram] isolated polling worker update received updateId=964832585
+[telegram] outbound send ok chatId=5995225650 messageId=304   (terminal status line)
+```
+
+The owner tapped **Approve**; the run finished `ok` with
+`outputs: { "decision": "Approve" }` after 7.1s on the ask step. That inbound
+update spawned **no** agent turn — the next `cli exec` is 46 seconds later and
+is `trigger=cron` — which is the signature of a callback query rather than a
+typed reply, since a typed message always wakes the bound agent. That is the
+whole point: before this fix, a typed reply is exactly what happened and it
+answered nothing.
+
+### 10. Cancelling a parked run did nothing
+
+Same commit.
+
+`duties.run.cancel` returned `{ ok: false }` for run `977056af` while it sat at
+`needs_input`, and the run kept its Amigos session. Two separate holes in
+`RunManager.cancel`:
+
+- A parked run **is** in `active`, so the old code set the cancel flag and
+  returned true — but the run is blocked inside the ask adapter polling
+  `question.waitAnswer`, and nothing reads that flag until the poll returns on
+  its own, up to fifteen minutes later.
+- A run parked when the Gateway last stopped is in neither `queue` nor `active`,
+  so cancel fell through to `return false` and the run stayed `needs_input`
+  forever. That is the `{ ok: false }` that was actually seen.
+
+Cancel now cancels the question the run is waiting on
+(`question.resolve { id, cancel: true }`), which makes the ask return
+`cancelled` — a path the runner already turns into a cancelled halt, and which
+is what closes the browser tab. A run recorded as non-terminal but no longer
+held in memory gets its terminal row written directly. Both cases are covered by
+tests, the first with a bounded wait so a regression fails fast instead of
+hanging the suite the way it hung the live run.
+
 ## Blocker B, still open
 
 ### B. A self-sent mail can never trigger the Gmail hook
@@ -599,10 +671,10 @@ Honest list, because the useful part of this document is the boundary:
 
 ## Gates
 
-Run after each of the seven code commits:
+Run after each of the eight code commits:
 
 ```sh
-node scripts/run-vitest.mjs extensions/duties   # 223 passed
+node scripts/run-vitest.mjs extensions/duties   # 228 passed
 pnpm tsgo:extensions
 pnpm check:assertion-safety                     # ratchet OK
 ./node_modules/.bin/oxfmt <changed files>

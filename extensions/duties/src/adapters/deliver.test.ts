@@ -221,6 +221,75 @@ describe("createDeliverAdapter", () => {
   });
 });
 
+// A duty's question has to arrive as something the owner can tap, not a paragraph of text they
+// then answer into a different conversation. The channel builds those buttons only from a payload
+// that carries both the Gateway-owned option order (`channelData.askUser`) and question-action
+// buttons naming the same record id.
+describe("createDeliverAdapter question cards", () => {
+  const capture = () => {
+    const sent: Array<Record<string, unknown>> = [];
+    const deliver = createDeliverAdapter({
+      cfg: {} as never,
+      sendBatch: (async (p: { payloads: Array<Record<string, unknown>> }) => {
+        sent.push(...p.payloads);
+        return { status: "sent", results: [{ messageId: "m1" }] };
+      }) as never,
+    });
+    return { deliver, sent };
+  };
+
+  it("carries the question presentation and option order through to the channel", async () => {
+    const { deliver, sent } = capture();
+    await deliver.send({
+      route: { channel: "telegram", to: "5995225650" },
+      text: "Hold?",
+      question: { id: "ask_0123456789abcdef0123456789abcdef", options: ["Approve", "Decline"] },
+    });
+    const payload = sent[0] as {
+      text?: string;
+      presentation?: { blocks: Array<{ type: string; buttons?: Array<Record<string, unknown>> }> };
+      channelData?: { askUser?: { questionId?: string; optionValues?: string[] } };
+    };
+    expect(payload.text).toBe("Hold?");
+    expect(payload.channelData?.askUser).toEqual({
+      questionId: "ask_0123456789abcdef0123456789abcdef",
+      optionValues: ["Approve", "Decline"],
+    });
+    const buttons = payload.presentation?.blocks.find((b) => b.type === "buttons")?.buttons;
+    expect(buttons).toEqual([
+      {
+        label: "Approve",
+        action: {
+          type: "question",
+          questionId: "ask_0123456789abcdef0123456789abcdef",
+          optionValue: "Approve",
+        },
+      },
+      {
+        label: "Decline",
+        action: {
+          type: "question",
+          questionId: "ask_0123456789abcdef0123456789abcdef",
+          optionValue: "Decline",
+        },
+      },
+    ]);
+  });
+
+  it("sends plain text when the question cannot be rendered as a card", async () => {
+    const { deliver, sent } = capture();
+    // One option, so there is no Gateway-owned order to map a tap onto.
+    await deliver.send({
+      route: { channel: "telegram", to: "1" },
+      text: "Only one",
+      question: { id: "ask_0123456789abcdef0123456789abcdef", options: ["Ok"] },
+    });
+    expect(sent[0]?.presentation).toBeUndefined();
+    expect(sent[0]?.channelData).toBeUndefined();
+    expect(sent[0]?.text).toBe("Only one");
+  });
+});
+
 describe("sessionRouteFromStore", () => {
   it("omits agentId when the origin has none, letting the session key decide", () => {
     const getEntry = vi.fn(() => undefined);
