@@ -513,6 +513,11 @@ export async function runDuty(
           throw new HaltSignal("failed", gateId, errorMessage(error));
         }
         await walk(taken ? node.then : (node.else ?? []));
+        // A gate is a node the author can stage a run up to, exactly like a regular step: the gate
+        // and its taken branch have now run, so `toStepId` stops here. Checking this only after a
+        // regular step meant naming a gate ran the whole Duty instead, which on a booking flow is
+        // the difference between reviewing a page and clicking past the point of no return.
+        if (options.toStepId && options.toStepId === node.id) throw new StopSignal("");
         continue;
       }
       if (node.kind === "stop") {

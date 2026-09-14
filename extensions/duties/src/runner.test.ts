@@ -145,6 +145,52 @@ describe("runDuty", () => {
     });
   });
 
+  // Regression: `toStepId` was only checked after a regular step, so naming a `when` gate ran the
+  // whole Duty instead of stopping at it. Authoring stages a flow by running up to a point and
+  // inspecting the page; a stage that silently runs on reaches steps the author has not reviewed,
+  // which on a booking flow means clicking past the point of no return.
+  it("stops at toStepId when it names a when gate, not only a regular step", async () => {
+    const deps = fakeDeps();
+    const outcome = await runDuty(
+      duty([
+        {
+          id: "s0",
+          kind: "browser",
+          label: "Open the search page",
+          params: { action: "open", url: "https://amigosalliance.co.in" },
+        },
+        {
+          id: "gate",
+          kind: "when",
+          label: "Untick the box if it is ticked",
+          cond: { equals: ["a", "a"] },
+          then: [
+            {
+              id: "inside",
+              kind: "browser",
+              label: "Untick it",
+              params: { action: "press", key: "Space" },
+            },
+          ],
+        },
+        {
+          id: "after",
+          kind: "browser",
+          label: "Search",
+          params: { action: "press", key: "Enter" },
+        },
+      ]),
+      deps,
+      { inputs: {}, toStepId: "gate" },
+    );
+
+    expect(outcome.status).toBe("ok");
+    // The gate's own branch runs; the step after it does not.
+    expect(deps.calls).toContain("press Space");
+    expect(deps.calls).not.toContain("press Enter");
+    expect(outcome.steps.map((s) => s.stepId)).not.toContain("after");
+  });
+
   it("runs browser, ai and ask steps, resolves placeholders and records evidence", async () => {
     const deps = fakeDeps();
     const outcome = await runDuty(

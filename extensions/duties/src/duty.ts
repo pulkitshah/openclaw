@@ -36,6 +36,10 @@ export type Cond =
   | { url_matches: string };
 type WhenNode = {
   kind: "when";
+  /** Optional, unlike a step's: a gate is identified in evidence by its label, and `validateDuty`
+   *  does not require one. Authors give gates ids anyway, and a gate that has one can be named as
+   *  a `duty_run` `toStepId` to stage a run up to it. */
+  id?: string;
   label: string;
   cond: Cond;
   then: DutyNode[];
