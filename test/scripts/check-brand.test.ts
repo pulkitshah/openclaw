@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   collectTargetFiles,
   DEFERRED_ALLOWLIST_GLOBS,
+  rewriteFileContent,
   rewriteJsonManifestContent,
   rewriteProseContent,
   rewriteTypeScriptContent,
@@ -324,7 +325,7 @@ describe("collectTargetFiles", () => {
     expect(files).not.toContain("docs/superpowers/specs/2026-09-14-vasudev-rebrand-design.md");
   });
 
-  it("resolves nested CLI/wizard/flows TypeScript sources and leaves ui/** deferred", () => {
+  it("resolves nested CLI/wizard/flows source files, excludes their test/fixture files, and leaves ui/** deferred", () => {
     const rootDir = createFixtureRepo({
       "README.md": "# OpenClaw\n",
       "src/channels/plugins/pairing-message.ts": 'export const X = "no brand text here";\n',
@@ -335,6 +336,16 @@ describe("collectTargetFiles", () => {
       "src/cli/program/help.ts": 'export const HELP = "OpenClaw --help";\n',
       "src/wizard/i18n/locales/en.ts": 'export const EN = "Welcome to OpenClaw";\n',
       "src/flows/doctor-health.ts": 'intro("OpenClaw doctor");\n',
+      // Test/fixture files are never enforced -- see TEST_OR_FIXTURE_RE in
+      // rebrand-apply.mjs -- because they assert against real runtime
+      // output; rewriting the fixture without also migrating a possibly
+      // out-of-scope call site would desync the test from actual behavior.
+      "src/cli/program/help.test.ts": 'export const HELP = "OpenClaw --help";\n',
+      "src/cli/program/help.process.test.ts": 'export const HELP = "OpenClaw --help";\n',
+      "src/cli/update-command.test-support.ts": 'export const X = "OpenClaw";\n',
+      "src/wizard/setup.test-helpers.ts": 'export const X = "OpenClaw";\n',
+      "src/flows/__snapshots__/doctor-health.ts": "export const X = `OpenClaw`;\n",
+      "src/cli/requirements-test-fixtures.ts": 'export const X = "OpenClaw";\n',
       // ui/** is listed in DEFERRED_ALLOWLIST_GLOBS, not enforced yet (see
       // that constant's comment in rebrand-apply.mjs): none of these should
       // be swept even though they carry the literal name.
@@ -350,6 +361,12 @@ describe("collectTargetFiles", () => {
     expect(files).toContain("src/cli/program/help.ts");
     expect(files).toContain("src/wizard/i18n/locales/en.ts");
     expect(files).toContain("src/flows/doctor-health.ts");
+    expect(files).not.toContain("src/cli/program/help.test.ts");
+    expect(files).not.toContain("src/cli/program/help.process.test.ts");
+    expect(files).not.toContain("src/cli/update-command.test-support.ts");
+    expect(files).not.toContain("src/wizard/setup.test-helpers.ts");
+    expect(files).not.toContain("src/flows/__snapshots__/doctor-health.ts");
+    expect(files).not.toContain("src/cli/requirements-test-fixtures.ts");
     expect(files).not.toContain("ui/src/lit/openclaw-element.ts");
     expect(files).not.toContain("ui/index.html");
     expect(files).not.toContain("ui/public/manifest.webmanifest");
@@ -452,6 +469,60 @@ describe("rewriteTypeScriptContent", () => {
     expect(rewritten).toContain("import type { OpenClawConfig }");
     expect(rewritten).toContain("} satisfies OpenClawConfig;");
     expect(count).toBe(1); // only the brandName string value
+  });
+
+  it("rewrites JSX text but leaves an identifier used as a JSX attribute value untouched", () => {
+    // `.tsx` parsing: JsxText between tags is prose (rewritten); an
+    // `{Identifier}` expression container attribute value is still just an
+    // Identifier node, not a literal, so it is untouched the same way a
+    // bare identifier is anywhere else in the file.
+    const content = [
+      "const OpenClawIcon = 1;",
+      "function Example() {",
+      "  return <div title={OpenClawIcon}>Welcome to OpenClaw</div>;",
+      "}",
+    ].join("\n");
+    const { content: rewritten, count } = rewriteTypeScriptContent(content, "ui/src/example.tsx");
+
+    expect(rewritten).toContain("const OpenClawIcon = 1;");
+    expect(rewritten).toContain("title={OpenClawIcon}");
+    expect(rewritten).toContain(">Welcome to Vasudev</div>");
+    expect(count).toBe(1); // only the JSX text
+  });
+});
+
+describe("rewriteFileContent (test/fixture and value-comparison exclusions)", () => {
+  it("never rewrites a test, test-support, test-helpers, __snapshots__, or fixture file under the enforced trees", () => {
+    const cases = [
+      "src/cli/program/help.test.ts",
+      "src/cli/program/help.process.test.ts",
+      "src/cli/update-command.test-support.ts",
+      "src/wizard/setup.test-helpers.ts",
+      "src/flows/__snapshots__/doctor-health.ts",
+      "src/cli/requirements-test-fixtures.ts",
+    ];
+    for (const relativePath of cases) {
+      const content = 'export const X = "OpenClaw";\n';
+      const { content: rewritten, count } = rewriteFileContent(relativePath, content);
+      expect(rewritten, relativePath).toBe(content);
+      expect(count, relativePath).toBe(0);
+    }
+  });
+
+  it("never rewrites src/cli/gateway-cli/startup-maintenance.ts's value comparison against the unmigrated startup-maintenance-required.ts reason constant", () => {
+    // Regression: src/infra/startup-maintenance-required.ts (out of scope)
+    // still emits the literal reason string "a newer OpenClaw build". A
+    // blind rewrite of only this file's `reason === "a newer OpenClaw
+    // build"` comparison silently makes the guarded branch unreachable --
+    // this looks like ordinary prose but is a discriminant, not display
+    // text.
+    const content = 'const guidance = reason === "a newer OpenClaw build" ? "a" : "b";\n';
+    const { content: rewritten, count } = rewriteFileContent(
+      "src/cli/gateway-cli/startup-maintenance.ts",
+      content,
+    );
+    expect(rewritten).toBe(content);
+    expect(count).toBe(0);
   });
 });
 

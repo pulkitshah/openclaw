@@ -327,8 +327,8 @@ describe("applyCliProfileEnv", () => {
         ? `openclaw-gateway-${inheritedProfile}.service`
         : "openclaw-gateway.service",
       OPENCLAW_WINDOWS_TASK_NAME: inheritedProfile
-        ? `Vasudev Gateway (${inheritedProfile})`
-        : "Vasudev Gateway",
+        ? `OpenClaw Gateway (${inheritedProfile})`
+        : "OpenClaw Gateway",
       OPENCLAW_SERVICE_MARKER: "openclaw",
       OPENCLAW_SERVICE_KIND: "gateway",
     };

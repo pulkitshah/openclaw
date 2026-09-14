@@ -32,40 +32,6 @@ export const NEW_NAME = "Vasudev";
 // prior `lastIndex` state, so one shared pattern is safe to reuse below.
 const NAME_PATTERN = /\bOpenClaw\b/g;
 
-// Exact phrases that quote a still-literal "OpenClaw" string owned by a
-// module outside this task's enforced allowlist (src/cli/**, src/wizard/**,
-// src/flows/**) — mostly test fixtures in those trees asserting against real
-// runtime output from an unmigrated call site elsewhere. Rewriting the
-// fixture without also migrating the call site desyncs the test from actual
-// behavior (the test would then expect "Vasudev" while the app still prints
-// "OpenClaw"), so both sides are left as-is until a follow-up migrates the
-// owning module and this entry is removed. Checked as an exact substring
-// match, longest first, so a shorter phrase never partially shields a
-// longer one it is a prefix of.
-const PROTECTED_PROSE_PHRASES = [
-  // src/infra/gateway-supervision.ts (not in scope). Kept short enough to
-  // stay within a single string-literal AST node: the wizard test's longer
-  // occurrence splits this sentence across a `"a" + "b"` concatenation, and
-  // a phrase spanning both literal nodes would never match either alone.
-  "OpenClaw gateway lifecycle",
-  // src/commands/doctor/shared/codex-route-warnings.ts (not in scope)
-  "Custom Codex app-server command bypasses OpenClaw's managed exact-version binary.",
-  // src/agents/workspace-state-store.ts (not in scope)
-  "compatible OpenClaw build",
-  // src/daemon/constants.ts's resolveGatewayWindowsTaskName (not in scope)
-  "OpenClaw Gateway (",
-  // src/state/openclaw-update-schema-refusal.ts (not in scope)
-  "Doctor refused update-time schema repair driven by OpenClaw",
-  // src/infra/update-run-report.ts (not in scope)
-  "OpenClaw update rolled back",
-  // scripts/lib/official-external-plugin-catalog.json, a generated catalog
-  // (not in scope; regenerated from real plugin metadata, not hand-edited)
-  "OpenClaw ACP runtime backend",
-  "OpenClaw diagnostics OpenTelemetry exporter",
-  "OpenClaw diagnostics Prometheus exporter",
-  "OpenClaw tokenjuice exec output compaction plugin",
-].sort((left, right) => right.length - left.length);
-
 // Shipped bundle/installer/archive names. Native-app renaming is spec Phase
 // 3 (not this task): the actual files on disk, GitHub release assets, and
 // package manager listings are still literally named "OpenClaw.app" /
@@ -84,16 +50,8 @@ const BUNDLE_ARTIFACT_RE =
 function countAndReplace(text) {
   let shielded = text;
   const placeholders = [];
-  for (const phrase of PROTECTED_PROSE_PHRASES) {
-    if (!shielded.includes(phrase)) {
-      continue;
-    }
-    const token = ` PROTECTED_PROSE_${placeholders.length} `;
-    placeholders.push(phrase);
-    shielded = shielded.split(phrase).join(token);
-  }
   shielded = shielded.replace(BUNDLE_ARTIFACT_RE, (match) => {
-    const token = ` PROTECTED_PROSE_${placeholders.length} `;
+    const token = ` PROTECTED_ARTIFACT_${placeholders.length} `;
     placeholders.push(match);
     return token;
   });
@@ -103,7 +61,7 @@ function countAndReplace(text) {
   }
   let rewritten = shielded.replace(NAME_PATTERN, NEW_NAME);
   placeholders.forEach((phrase, index) => {
-    rewritten = rewritten.split(` PROTECTED_PROSE_${index} `).join(phrase);
+    rewritten = rewritten.split(` PROTECTED_ARTIFACT_${index} `).join(phrase);
   });
   return { text: rewritten, count: matches.length };
 }
@@ -366,11 +324,55 @@ export function rewriteTypeScriptContent(content, relativePath) {
 // yet — see DEFERRED_ALLOWLIST_GLOBS below.
 const TYPESCRIPT_AWARE_PREFIXES = ["src/cli/", "src/wizard/", "src/flows/"];
 
+// Test and fixture files are never touched by the automated apply, in
+// either direction (never scanned by `brand:check`, never rewritten by
+// `brand:apply`) — not even a fallback to the plain-text pass. A test
+// asserts against real runtime output; a mechanical rewrite of its
+// expectation cannot verify the call site it exercises was migrated too; it
+// can only make the fixture say what the tool *wants* to be true, not what
+// the app prints. Test-file prose is instead read off real test-failure
+// output and adjusted by hand (see the report's per-test decision table),
+// which is the only way to know whether the underlying call site is
+// actually in scope (rename the expectation) or still owned by an
+// unmigrated module (revert it, since the test pins real output). Matches
+// `*.test.ts`/`*.test.tsx` (including compound suffixes like
+// `*.process.test.ts`, since they still end in ".test.ts"),
+// `*.test-support.ts`, `*.test-helpers.ts`, any `__snapshots__` directory,
+// and any path segment/filename containing "fixture"
+// (`requirements-test-fixtures.ts`, `update-cli/fixtures/*`, ...).
+const TEST_OR_FIXTURE_RE =
+  /(?:\.test(?:-support|-helpers)?\.tsx?$|(?:^|\/)__snapshots__(?:\/|$)|fixture)/i;
+
+// Production (non-test) files under the enforced trees excluded outright —
+// not because they carry unmigrated user-facing prose, but because their
+// only "OpenClaw" occurrence is a *value comparison* against a string
+// literal owned by an out-of-scope module: an internal discriminant, not
+// display text. Rewriting only this side of the comparison silently changes
+// behavior (the branch the equality check guards becomes unreachable) while
+// looking like an ordinary, correct prose rename. An exact, reviewable file
+// list — not a phrase shield — because each entry can be checked against
+// its cited real occurrence and source; remove the entry once the owning
+// module is migrated and the comparison can rename too.
+const VALUE_COMPARISON_EXCLUDED_FILES = new Set([
+  // Line ~20: `reason === "a newer OpenClaw build"` compares against
+  // src/infra/startup-maintenance-required.ts's still-"OpenClaw" reason
+  // constant to choose rollback-vs-doctor guidance.
+  "src/cli/gateway-cli/startup-maintenance.ts",
+]);
+
+function isUnderTypeScriptAwarePrefix(relativePath) {
+  return TYPESCRIPT_AWARE_PREFIXES.some((prefix) => relativePath.startsWith(prefix));
+}
+
 function isTypeScriptAwareTarget(relativePath) {
   if (!/\.tsx?$/.test(relativePath)) {
     return false;
   }
-  return TYPESCRIPT_AWARE_PREFIXES.some((prefix) => relativePath.startsWith(prefix));
+  return (
+    isUnderTypeScriptAwarePrefix(relativePath) &&
+    !TEST_OR_FIXTURE_RE.test(relativePath) &&
+    !VALUE_COMPARISON_EXCLUDED_FILES.has(relativePath)
+  );
 }
 
 // JSON manifests carry both marketing copy and unrelated machine-readable
@@ -418,7 +420,17 @@ export function rewriteFileContent(relativePath, content) {
   if (JSON_KEYS_BY_BASENAME.has(basename)) {
     return rewriteJsonManifestContent(content, basename);
   }
-  if (isTypeScriptAwareTarget(relativePath)) {
+  if (/\.tsx?$/.test(relativePath) && isUnderTypeScriptAwarePrefix(relativePath)) {
+    // A test/fixture file, or a file on the value-comparison exclusion
+    // list, under these three trees must never be touched by any pass,
+    // including a fallback to the plain-text one below — see
+    // TEST_OR_FIXTURE_RE and VALUE_COMPARISON_EXCLUDED_FILES.
+    if (
+      TEST_OR_FIXTURE_RE.test(relativePath) ||
+      VALUE_COMPARISON_EXCLUDED_FILES.has(relativePath)
+    ) {
+      return { content, count: 0 };
+    }
     return rewriteTypeScriptContent(content, relativePath);
   }
   return rewriteProseContent(content, { isMarkdown: relativePath.endsWith(".md") });

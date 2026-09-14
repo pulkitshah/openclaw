@@ -1939,7 +1939,7 @@ describe("gateway run option collisions", () => {
         expect(refusal).toBeInstanceOf(Error);
         const message = (refusal as Error).message;
         expect(message).toBe(
-          `Legacy session store requires migration: ${storePath}. Run "openclaw doctor --fix" against the same state/config before starting Vasudev.`,
+          `Legacy session store requires migration: ${storePath}. Run "openclaw doctor --fix" against the same state/config before starting OpenClaw.`,
         );
         const failure =
           kind === "cause"

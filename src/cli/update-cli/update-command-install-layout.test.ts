@@ -140,7 +140,7 @@ it.each([true, false])(
 it("renders the container non-outcome in terminal output", async () => {
   vi.spyOn(container, "isContainerEnvironment").mockReturnValue(true);
   await expect(updateCommand({ yes: true })).rejects.toMatchObject({ code: 0 });
-  expect(lines.join("\n")).toContain("Vasudev update skipped: container-image-install");
+  expect(lines.join("\n")).toContain("OpenClaw update skipped: container-image-install");
   expect(lines.join("\n")).toContain("Pull or build");
   expect(lines.join("\n")).not.toContain("rollback");
   expect(triage).not.toHaveBeenCalled();
