@@ -27,7 +27,7 @@ These are DigitalOcean's list prices in the region this setup uses, billed by Di
 You'll need, gathered ahead of time:
 
 - A DigitalOcean account, with `doctl` signed in on the machine you'll run the create command from.
-- A Tailscale account and an auth key for the tailnet the desk should join.
+- A Tailscale account and an auth key for the tailnet the desk should join. Generate it as **single-use (ephemeral) and tagged**: DigitalOcean keeps the droplet's user-data — which carries that key — readable from the machine itself for the droplet's whole life, so a single-use key is already spent by the time anyone could read it. If you use a reusable key, rotate it once the desk is up.
 - A Telegram bot token for the desk's own agent (each desk uses its own bot).
 - A Telegram user or chat id you want that bot to answer to.
 
@@ -48,12 +48,19 @@ This boots a `s-2vcpu-4gb` droplet by default (pass `--size s-4vcpu-8gb` for mor
 
 Three one-time steps make a fresh desk fully usable, in order:
 
-1. **Sign in to the Control UI** at the printed URL with the token `new-desk.sh` printed.
+1. **Sign in to the Control UI** at the printed URL with the token the create command printed. The
+   command it printed needs both a terminal and the service user's own home, so run it exactly as
+   printed:
+   ```sh
+   ssh -t root@<desk-name> 'sudo -H -u openclaw node /opt/openclaw/openclaw.mjs gateway auth-token --show'
+   ```
 2. **Approve the device pairing request** — a first-time browser tab or CLI client registers a
    pending pairing request that the Gateway refuses to serve until you explicitly approve it
    (`openclaw devices approve <request-id>`); the sign-in token alone is not enough.
 3. **Sign Claude in** — the desk's agents run on your own Claude subscription, not an API key,
-   so nothing replies until `claude auth login` is run as the desk's service user.
+   so nothing replies until `claude auth login` is run as the desk's service user. Model routing is
+   already set up on a desk (every `anthropic/*` model points at the Claude CLI runtime), so this
+   one login is all it takes.
 
 See `deploy/desk/README.md`'s "First sign-in" and "Sign Claude in" sections for the exact
 commands.
@@ -91,6 +98,15 @@ A desk that should react to inbound mail needs the same [mail-trigger setup](/pl
 - **Network**: no public ports except the one Gmail webhook path noted above; everything else
   (Control UI, SSH) is reachable only over your tailnet, gated by both tailnet identity and the
   Gateway's own token.
+- **The cloud metadata service is blocked for non-root processes**: DigitalOcean keeps a droplet's
+  user-data — the setup document that carried this desk's Tailscale auth key, Telegram bot token,
+  Gateway token and webhook token — readable for the droplet's whole life from an unauthenticated
+  link-local address, to any process on the machine. That matters here because a desk deliberately
+  hands untrusted inbound mail to an agent. Every desk therefore boots a small service that rejects
+  traffic to that address from every non-root account, so the service user the Gateway, Duties and
+  the browser run as cannot read it; only root can. It is switched on as the very last step of first
+  boot, because setup itself needs the metadata service. This is defence in depth, not a substitute
+  for the single-use Tailscale key above.
 - **Chromium's sandbox, restored, not removed**: Ubuntu 24.04 ships with unprivileged user
   namespaces restricted under AppArmor by default, which blocks Chromium's own sandbox setup
   (it fails to start at all, with "No usable sandbox!"). A desk relaxes exactly that one kernel
@@ -103,6 +119,8 @@ A desk that should react to inbound mail needs the same [mail-trigger setup](/pl
 ## Parallel runs
 
 The Duties settings page's **Desk** card carries a parallel-runs setting alongside the desk's health chips. Raise it and more Duty runs execute at once, each in its own browser tab; lower it and extra runs wait their turn in the queue instead of failing. A `s-2vcpu-4gb` desk comfortably handles a couple of runs at once; a `s-4vcpu-8gb` desk handles several more.
+
+The card also says how old its health reading is, and greys the chips out when that reading stops being refreshed — so a desk whose health check has stopped looks stopped, rather than permanently healthy.
 
 ## Updating, snapshots, and tearing down
 
