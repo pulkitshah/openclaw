@@ -35,17 +35,18 @@ export function hasProtocolEventCoverageInput(changedPaths: string[]): boolean {
 
 // The Vasudev rebrand guard's enforced allowlist: docs/README prose, the two
 // bundled-plugin manifest fields it targets, the single files already
-// migrated to the brand module, and the guard's own scripts (so editing the
-// guard re-runs it). ui/**, src/cli/**, src/wizard/**, and src/flows/** are
-// listed in the design spec as eventual guard inputs but are not enforced
-// yet (see scripts/rebrand-apply.mjs's DEFERRED_ALLOWLIST_GLOBS) and so are
-// deliberately absent here — adding them before those surfaces are migrated
-// would make this lane fail on every unrelated change that touches them.
+// migrated to the brand module, the CLI/wizard/doctor/Control-UI TypeScript
+// sources (rewritten via rebrand-apply.mjs's TypeScript-aware pass, which
+// only touches string/template literals and comments), the two ui/** single
+// files, and the guard's own scripts (so editing the guard re-runs it).
 // docs/superpowers/** is excluded like in rebrand-apply.mjs's own allowlist:
 // it holds this repo's planning/spec docs (including this rebrand's own),
 // not the published docs site, and is never in scope for the rewrite.
+// ui/config/**, ui/vite.config.ts, and friends are build tooling, not
+// shipped prose, and are deliberately not enforced (mirrors
+// rebrand-apply.mjs's collectTargetFiles).
 const BRAND_GUARD_INPUT_RE =
-  /^(?:docs\/(?!superpowers\/).+\.md|README\.md|extensions\/[^/]+\/(?:openclaw\.plugin\.json|package\.json)|src\/channels\/plugins\/pairing-message\.ts|extensions\/telegram\/src\/bot-message-context\.session\.ts|extensions\/bonjour\/src\/advertiser\.ts|scripts\/(?:rebrand-apply|check-brand)\.mjs)$/u;
+  /^(?:docs\/(?!superpowers\/).+\.md|README\.md|extensions\/[^/]+\/(?:openclaw\.plugin\.json|package\.json)|src\/channels\/plugins\/pairing-message\.ts|extensions\/telegram\/src\/bot-message-context\.session\.ts|extensions\/bonjour\/src\/advertiser\.ts|src\/(?:cli|wizard|flows)\/.+\.tsx?|ui\/src\/.+\.tsx?|ui\/index\.html|ui\/public\/manifest\.webmanifest|scripts\/(?:rebrand-apply|check-brand)\.mjs)$/u;
 
 export function hasBrandGuardInput(changedPaths: string[]): boolean {
   return changedPaths.some((path) => BRAND_GUARD_INPUT_RE.test(path));

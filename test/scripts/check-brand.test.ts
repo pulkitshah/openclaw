@@ -5,9 +5,9 @@ import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   collectTargetFiles,
-  DEFERRED_ALLOWLIST_GLOBS,
   rewriteJsonManifestContent,
   rewriteProseContent,
+  rewriteTypeScriptContent,
   runRebrand,
 } from "../../scripts/rebrand-apply.mjs";
 import { createTempDirTracker } from "../helpers/temp-dir.ts";
@@ -229,20 +229,99 @@ describe("collectTargetFiles", () => {
     // from docs.json's navigation (not part of the published docs site).
     expect(files).not.toContain("docs/superpowers/specs/2026-09-14-vasudev-rebrand-design.md");
   });
+
+  it("resolves nested CLI/wizard/flows/Control-UI TypeScript sources and the ui single files", () => {
+    const rootDir = createFixtureRepo({
+      "README.md": "# OpenClaw\n",
+      "src/channels/plugins/pairing-message.ts": 'export const X = "no brand text here";\n',
+      "extensions/telegram/src/bot-message-context.session.ts": "export const Y = 1;\n",
+      "extensions/bonjour/src/advertiser.ts": "export const Z = 1;\n",
+      // Nested a directory level below each root to prove the recursive
+      // glob (git's default `*` pathspec already crosses `/`) reaches them.
+      "src/cli/program/help.ts": 'export const HELP = "OpenClaw --help";\n',
+      "src/wizard/i18n/locales/en.ts": 'export const EN = "Welcome to OpenClaw";\n',
+      "src/flows/doctor-health.ts": 'intro("OpenClaw doctor");\n',
+      "ui/src/lit/openclaw-element.ts": "/** OpenClaw Lit base. */\nexport const X = 1;\n",
+      "ui/index.html": "<title>%PRODUCT_NAME% Control</title>\n",
+      "ui/public/manifest.webmanifest": '{"name": "Vasudev Control"}\n',
+      // Build tooling under ui/, not shipped prose: never enforced.
+      "ui/vite.config.ts": 'export const base = "OpenClaw build config";\n',
+      "ui/config/control-ui-locales.ts": 'export const X = "OpenClaw locales";\n',
+    });
+
+    const files = collectTargetFiles(rootDir);
+
+    expect(files).toContain("src/cli/program/help.ts");
+    expect(files).toContain("src/wizard/i18n/locales/en.ts");
+    expect(files).toContain("src/flows/doctor-health.ts");
+    expect(files).toContain("ui/src/lit/openclaw-element.ts");
+    expect(files).toContain("ui/index.html");
+    expect(files).toContain("ui/public/manifest.webmanifest");
+    expect(files).not.toContain("ui/vite.config.ts");
+    expect(files).not.toContain("ui/config/control-ui-locales.ts");
+  });
 });
 
-describe("DEFERRED_ALLOWLIST_GLOBS", () => {
-  it("documents the spec's ui/cli/wizard/flows surfaces without enforcing them yet", () => {
-    expect(DEFERRED_ALLOWLIST_GLOBS).toEqual(
-      expect.arrayContaining([
-        "ui/src/**/*.ts",
-        "ui/index.html",
-        "ui/public/manifest.webmanifest",
-        "src/cli/**/*.ts",
-        "src/wizard/**/*.ts",
-        "src/flows/**/*.ts",
-      ]),
-    );
+describe("rewriteTypeScriptContent", () => {
+  it("rewrites a string literal", () => {
+    const content = 'const msg = "OpenClaw doctor found an issue";\n';
+    const { content: rewritten, count } = rewriteTypeScriptContent(content, "src/flows/doctor.ts");
+    expect(rewritten).toBe('const msg = "Vasudev doctor found an issue";\n');
+    expect(count).toBe(1);
+  });
+
+  it("does not rewrite an identifier/type name", () => {
+    const content = "interface OpenClawConfig {\n  home: string;\n}\n";
+    const { content: rewritten, count } = rewriteTypeScriptContent(content, "src/cli/config.ts");
+    expect(rewritten).toBe(content);
+    expect(count).toBe(0);
+  });
+
+  it("does not rewrite an import path, even one spelling out the word", () => {
+    const content =
+      'import kit from "../../apps/shared/OpenClaw/Sources/OpenClaw/tool-display.json" with { type: "json" };\n';
+    const { content: rewritten, count } = rewriteTypeScriptContent(content, "ui/src/lib/tool.ts");
+    expect(rewritten).toBe(content);
+    expect(count).toBe(0);
+  });
+
+  it("rewrites a template literal", () => {
+    const content = "const greeting = `Welcome to OpenClaw, ${name}!`;\n";
+    const { content: rewritten, count } = rewriteTypeScriptContent(content, "src/wizard/setup.ts");
+    expect(rewritten).toBe("const greeting = `Welcome to Vasudev, ${name}!`;\n");
+    expect(count).toBe(1);
+  });
+
+  it("rewrites a comment, including a JSDoc block comment after a template literal", () => {
+    const content = [
+      "const greeting = `Welcome to OpenClaw, ${name}!`;",
+      "/** OpenClaw Lit base for shared components. */",
+      "export const X = 1;",
+    ].join("\n");
+    const { content: rewritten, count } = rewriteTypeScriptContent(content, "ui/src/base.ts");
+    expect(rewritten).toContain("Welcome to Vasudev,");
+    expect(rewritten).toContain("/** Vasudev Lit base for shared components. */");
+    expect(count).toBe(2);
+  });
+
+  it("does not rewrite an OPENCLAW_HOME-style env var name", () => {
+    const content =
+      'const home = process.env.OPENCLAW_HOME;\nconst msg = "OPENCLAW_HOME is not set";\n';
+    const { content: rewritten, count } = rewriteTypeScriptContent(content, "src/cli/env.ts");
+    expect(rewritten).toBe(content);
+    expect(count).toBe(0);
+  });
+
+  it("does not rewrite a quoted object property key or an enum member's name/value", () => {
+    const content = [
+      'const obj = { "OpenClaw": 1 };',
+      "enum Provider {",
+      '  A = "OpenClaw",',
+      "}",
+    ].join("\n");
+    const { content: rewritten, count } = rewriteTypeScriptContent(content, "src/cli/enum.ts");
+    expect(rewritten).toBe(content);
+    expect(count).toBe(0);
   });
 });
 
