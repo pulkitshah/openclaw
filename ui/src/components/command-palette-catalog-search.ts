@@ -167,6 +167,9 @@ function getCommandPaletteBaseItems(
             icon: "lobster" as const,
             category: "navigation" as const,
             action: "panel:custodian",
+            // The upstream name still reaches people through docs, URLs, and the
+            // CLI, so it keeps finding this action after the rename.
+            searchText: "openclaw",
           },
         ]
       : []),

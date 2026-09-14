@@ -1034,7 +1034,7 @@ describe("CommandPalette lifecycle", () => {
         ),
       );
       palette.custodianAvailable = available;
-      await enterQuery(palette, "vasudev");
+      await enterQuery(palette, "openclaw");
 
       expect(findPaletteOption(palette, "Ask Vasudev", true) ? 1 : 0).toBe(expectedCount);
     },
@@ -1049,7 +1049,7 @@ describe("CommandPalette lifecycle", () => {
       ),
     );
     palette.custodianAvailable = true;
-    await enterQuery(palette, "vasudev");
+    await enterQuery(palette, "openclaw");
     const events: CustomEvent<CustodianPanelToggleDetail>[] = [];
     const listener = (event: Event) =>
       events.push(event as CustomEvent<CustodianPanelToggleDetail>);
