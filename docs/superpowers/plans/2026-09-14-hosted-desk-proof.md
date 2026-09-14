@@ -372,6 +372,16 @@ remains active only for plugin-authenticated webhook routes; Gateway-authenticat
 its unattributable ingress… First configure a durable gateway password… then set
 gateway.tailscale.mode funnel"*. Options, for the owner to pick:
 
+0. **Put the Funnel on a different port.** The node's capability string is
+   `funnel-ports?ports=443,8443,10000`, so a Funnel on **8443** avoids the 443 foreground
+   listener entirely and leaves the Control UI tailnet-only on 443 — no Serve/Funnel conflict and
+   no exposure change to the Gateway. The one thing to confirm before relying on it is whether
+   Pub/Sub accepts a push endpoint on a non-default port: `PushConfig.push_endpoint` is
+   documented only as "a URL locating the endpoint", with no port guidance either way, so this is
+   unverified here. It is a cheap empirical check — `gcloud pubsub subscriptions update …`
+   with `--push-endpoint="https://vasudev-desk-1.tail325f09.ts.net:8443/gmail-pubsub?token=<pushToken>"`
+   either takes it or rejects it immediately. (A worker was setting this route up as this run
+   finished; the desk state recorded above predates it.)
 1. Move the Control UI to a **background** Serve route and add the Funnel path beside it:
    set `gateway.port` explicitly (it is currently the default 18789, and an unpinned port would
    break a persisted route), `gateway.tailscale.mode: "off"`, then as root
