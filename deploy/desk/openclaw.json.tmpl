@@ -1,0 +1,90 @@
+{
+  "gateway": {
+    "bind": "loopback",
+    "tailscale": { "mode": "serve" },
+    "auth": {
+      "mode": "token",
+      "token": { "source": "file", "provider": "gateway-token-file", "id": "value" }
+    }
+  },
+  "secrets": {
+    "providers": {
+      "gateway-token-file": {
+        "source": "file",
+        "path": "/etc/openclaw/secrets/gateway-token",
+        "mode": "singleValue"
+      },
+      "telegram-bot-token-file": {
+        "source": "file",
+        "path": "/etc/openclaw/secrets/telegram-bot-token",
+        "mode": "singleValue"
+      }
+    }
+  },
+  "browser": {
+    "ssrfPolicy": { "allowedHostnames": ["127.0.0.1"] }
+  },
+  "plugins": {
+    "entries": {
+      "duties": { "enabled": true },
+      "telegram": { "enabled": true },
+      "llm-task": { "enabled": true }
+    }
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "botToken": { "source": "file", "provider": "telegram-bot-token-file", "id": "value" },
+      "dmPolicy": "allowlist",
+      "allowFrom": ["{{OWNER_TG_TARGET}}"]
+    }
+  },
+  "agents": {
+    "ownership": "explicit",
+    "defaults": {
+      "systemAgent": { "agentId": "krishna" }
+    },
+    "entries": {
+      "duties-mail": {
+        "name": "Duties mail dispatcher",
+        "skills": ["duties"],
+        "tools": {
+          "profile": "minimal",
+          "allow": ["duty_list", "duty_get", "duty_run", "message", "exec", "llm-task"],
+          "deny": ["browser", "group:fs", "group:web", "cron", "gateway", "nodes"]
+        }
+      }
+    }
+  },
+  "bindings": [
+    {
+      "agentId": "krishna",
+      "comment": "Required: one binding per enabled channel once a second agent exists. Without it that channel has no explicit owner and stops answering.",
+      "match": { "channel": "telegram", "accountId": "*" }
+    }
+  ],
+  "tools": {
+    "alsoAllow": ["llm-task"]
+  },
+  "hooks": {
+    "enabled": true,
+    "defaultSessionKey": "hook:gmail:ingress",
+    "allowRequestSessionKey": true,
+    "allowedSessionKeyPrefixes": ["hook:gmail:"],
+    "allowedAgentIds": ["duties-mail"],
+    "mappings": [
+      {
+        "id": "duties-mail",
+        "match": { "path": "gmail" },
+        "action": "agent",
+        "agentId": "duties-mail",
+        "wakeMode": "now",
+        "name": "Duties mail",
+        "forEach": "messages",
+        "deliver": false,
+        "sessionKey": "hook:gmail:{{messages[0].id}}",
+        "messageTemplate": "From: {{messages[0].from}}\nSubject: {{messages[0].subject}}\nMessage-Id: {{messages[0].id}}\n\n{{messages[0].snippet}}\n{{messages[0].body}}\n\nDispatch this mail to the matching Duty; see the duties skill."
+      }
+    ]
+  }
+}

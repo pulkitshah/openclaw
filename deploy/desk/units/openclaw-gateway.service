@@ -1,0 +1,21 @@
+[Unit]
+Description=OpenClaw Gateway (desk)
+After=network-online.target xvfb.service tailscaled.service
+Wants=network-online.target xvfb.service
+[Service]
+User=openclaw
+Group=openclaw
+WorkingDirectory=/opt/openclaw
+Environment=DISPLAY=:99
+Environment=OPENCLAW_BROWSER_HEADLESS=0
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node /opt/openclaw/openclaw.mjs gateway run
+Restart=always
+RestartSec=3
+# The Gateway drains active work on SIGTERM and can wait on a live agent session forever; give it
+# 45 s, then SIGKILL the whole group (KillMode=mixed) — the lesson from the Part 2 proof.
+TimeoutStopSec=45
+KillMode=mixed
+OOMScoreAdjust=-500
+[Install]
+WantedBy=multi-user.target

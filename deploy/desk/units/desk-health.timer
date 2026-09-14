@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the OpenClaw desk health probe every 2 minutes
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=2min
+AccuracySec=10s
+Unit=desk-health.service
+
+[Install]
+WantedBy=timers.target

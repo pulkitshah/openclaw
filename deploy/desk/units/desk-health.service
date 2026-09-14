@@ -1,0 +1,9 @@
+[Unit]
+Description=OpenClaw desk health probe
+After=network.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/opt/openclaw/deploy/desk/desk-health.sh

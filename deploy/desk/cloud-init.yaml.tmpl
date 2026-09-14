@@ -1,0 +1,161 @@
+#cloud-config
+# Rendered by deploy/desk/render-cloud-init.mjs — every ALL_CAPS placeholder below must be
+# substituted before this file is handed to `doctl compute droplet create --user-data-file`. The
+# renderer refuses to emit output while one remains (see §10 of the design: secrets never ship
+# un-substituted or logged in the clear).
+hostname: {{DESK_NAME}}
+timezone: Asia/Kolkata
+locale: en_IN.UTF-8
+
+users:
+  - name: openclaw
+    system: true
+    lock_passwd: true
+    shell: /usr/sbin/nologin
+    homedir: /home/openclaw
+
+package_update: true
+packages:
+  - git
+  - curl
+  - ca-certificates
+  - gnupg
+  - xvfb
+  - x11-utils
+  - fonts-liberation
+  - fonts-noto-core
+  - fonts-noto-color-emoji
+  - fonts-dejavu
+  - unattended-upgrades
+
+write_files:
+  # Security-only unattended-upgrades, never an unattended reboot — kernel/package reboots happen
+  # only via roll.sh --reboot in a window the owner picks (spec §9).
+  - path: /etc/apt/apt.conf.d/51openclaw-desk
+    permissions: '0644'
+    owner: root:root
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+      Unattended-Upgrade::Automatic-Reboot "false";
+
+  - path: /etc/systemd/system/xvfb.service
+    permissions: '0644'
+    owner: root:root
+    content: |
+      {{INCLUDE:units/xvfb.service}}
+
+  - path: /etc/systemd/system/openclaw-gateway.service
+    permissions: '0644'
+    owner: root:root
+    content: |
+      {{INCLUDE:units/openclaw-gateway.service}}
+
+  - path: /etc/systemd/system/desk-health.service
+    permissions: '0644'
+    owner: root:root
+    content: |
+      {{INCLUDE:units/desk-health.service}}
+
+  - path: /etc/systemd/system/desk-health.timer
+    permissions: '0644'
+    owner: root:root
+    content: |
+      {{INCLUDE:units/desk-health.timer}}
+
+  # The Playwright-managed Chromium reads the chromium/ path; chrome/ is installed alongside for
+  # any distro Chrome build that lands on the box later (spec §4.7).
+  - path: /etc/chromium/policies/managed/desk.json
+    permissions: '0644'
+    owner: root:root
+    content: |
+      {{INCLUDE:chromium-policy.json}}
+
+  - path: /etc/opt/chrome/policies/managed/desk.json
+    permissions: '0644'
+    owner: root:root
+    content: |
+      {{INCLUDE:chromium-policy.json}}
+
+  # Secrets: file-mode 0640, root:openclaw — readable only by root and the service user, never
+  # inline in openclaw.json (SecretRef contract, docs/gateway/secrets/secretref-contract.md).
+  - path: /etc/openclaw/secrets/telegram-bot-token
+    permissions: '0640'
+    owner: root:openclaw
+    content: |
+      {{TG_BOT_TOKEN}}
+
+  - path: /etc/openclaw/secrets/gateway-token
+    permissions: '0640'
+    owner: root:openclaw
+    content: |
+      {{GATEWAY_TOKEN}}
+
+  # Tailscale auth key: 0600, deleted by runcmd immediately after `tailscale up` consumes it.
+  - path: /root/ts-authkey
+    permissions: '0600'
+    owner: root:root
+    content: |
+      {{TS_AUTHKEY}}
+
+  - path: /home/openclaw/.openclaw/openclaw.json
+    permissions: '0600'
+    owner: openclaw:openclaw
+    content: |
+      {{OPENCLAW_CONFIG_JSON}}
+
+runcmd:
+  # Ownership of the state dir write_files created ahead of the openclaw user's home existing.
+  - [install, -d, -o, openclaw, -g, openclaw, -m, '0700', /home/openclaw/.openclaw]
+  - [install, -d, -o, root, -g, root, -m, '0755', /var/lib/openclaw]
+
+  # Node 26 (NodeSource) + pnpm via corepack.
+  - "curl -fsSL https://deb.nodesource.com/setup_26.x | bash -"
+  - apt-get install -y nodejs
+  - corepack enable
+  - corepack prepare pnpm@12.3.4 --activate
+
+  # Tailscale: install, join the tailnet, then shred the one-time auth key. Tailnet SSH (--ssh)
+  # replaces sshd for humans (spec §4.3); Serve is configured by the Gateway itself at startup via
+  # gateway.tailscale.mode: "serve" in openclaw.json — no separate `tailscale serve` CLI step is
+  # needed here (docs/gateway/tailscale.md: OpenClaw claims the Serve route on Gateway startup).
+  - "curl -fsSL https://tailscale.com/install.sh | sh"
+  - 'tailscale up --authkey "$(cat /root/ts-authkey)" --ssh --hostname {{DESK_NAME}}'
+  - shred -u /root/ts-authkey
+
+  # Fork checkout — pinned to the roll ref the operator asked for.
+  - git clone https://github.com/pulkitshah/openclaw /opt/openclaw
+  - git -C /opt/openclaw checkout {{GIT_REF}}
+  - >-
+    cd /opt/openclaw &&
+    npm_config_minimum_release_age=0 npm_config_minimum_release_age_strict=false
+    pnpm install --frozen-lockfile --ignore-scripts
+  - cd /opt/openclaw && pnpm build
+  - chown -R root:openclaw /opt/openclaw
+  - chmod -R g+rX,o-rwx /opt/openclaw
+  # desk-health.sh ships inside the fork checkout above (deploy/desk/desk-health.sh) rather than
+  # being duplicated into write_files: /opt/openclaw does not exist yet when write_files runs, and
+  # `git clone` refuses to clone into a non-empty directory, so writing it earlier would break the
+  # clone step. The exec bit is already set in the tree; this is a robustness no-op.
+  - chmod +x /opt/openclaw/deploy/desk/desk-health.sh
+
+  # Managed Chromium: OS deps as root, the browser itself as the unprivileged service user (its
+  # cache lives under ~openclaw/.cache, not inside the now read-only /opt/openclaw tree).
+  - cd /opt/openclaw && npx playwright install-deps chromium
+  - sudo -u openclaw bash -lc "cd /opt/openclaw && npx playwright install chromium"
+
+  # Per-desk credential keyfile for extensions/duties' Linux cred backend (spec §5).
+  - "head -c 32 /dev/urandom > /etc/openclaw/keyfile"
+  - chown root:openclaw /etc/openclaw/keyfile
+  - chmod 640 /etc/openclaw/keyfile
+
+  - systemctl daemon-reload
+  - systemctl enable --now xvfb.service
+  - systemctl enable --now desk-health.timer
+  - systemctl enable --now openclaw-gateway.service
+
+power_state:
+  mode: reboot
+  message: OpenClaw desk provisioned — rebooting to apply the keyfile-owned services cleanly.
+  timeout: 30
+  condition: true

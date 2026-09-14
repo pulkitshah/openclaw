@@ -6,6 +6,9 @@ export const unitTestIncludePatterns = [
   "src/**/*.test.ts",
   "packages/**/*.test.ts",
   "test/**/*.test.ts",
+  // The desk image's cloud-init renderer (deploy/desk) isn't part of src/packages/test — added
+  // for the hosted-desk render-cloud-init.test.ts (Task 3 of the hosted-desk plan).
+  "deploy/**/*.test.ts",
 ];
 
 export const boundaryTestFiles = [

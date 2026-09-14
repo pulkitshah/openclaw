@@ -1,0 +1,6 @@
+{
+  "URLBlocklist": ["chrome://*", "file://*"],
+  "PasswordManagerEnabled": false,
+  "SyncDisabled": true,
+  "BrowserSignin": 0
+}
