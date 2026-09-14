@@ -2,6 +2,7 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { expect, it } from "vitest";
 import { pathForRoute, type RouteId } from "../app-route-paths.ts";
+import { FEATURES } from "../app/brand.ts";
 import {
   defaultControlUiFeatureMethods,
   installMockGateway,
@@ -96,6 +97,12 @@ const settingsRowRoutes = [
 ] as const satisfies readonly RouteId[];
 
 const mobileSettingsRoutes = [...settingsRowRoutes, "logs"] as const satisfies readonly RouteId[];
+
+// A build without LobsterDex redirects its route home, so it has no settings
+// layout to audit; the list keeps the entry for a build that ships it.
+function shippedRoutes(routes: readonly RouteId[]): readonly RouteId[] {
+  return routes.filter((route) => FEATURES.lobsterDex || route !== "lobsterdex");
+}
 
 const mobileStandaloneSettingsPageRoutes = [
   "sessions",
@@ -368,7 +375,7 @@ suite.define(() => {
           };
         }, route);
 
-      for (const route of mobileSettingsRoutes) {
+      for (const route of shippedRoutes(mobileSettingsRoutes)) {
         const pathname = pathForRoute(route);
         await page.goto(new URL(pathname, suite.server.baseUrl).toString());
         await waitForControlUiRoute(page, { pathname, routeId: route });
@@ -807,7 +814,7 @@ suite.define(() => {
       }
 
       let auditedPairCount = 0;
-      for (const route of settingsRowRoutes) {
+      for (const route of shippedRoutes(settingsRowRoutes)) {
         const pathname = pathForRoute(route);
         // Reload each route so earlier lazy styles cannot hide missing or misordered CSS.
         await page.goto(new URL(pathname, suite.server.baseUrl).toString());

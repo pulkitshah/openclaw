@@ -7,6 +7,7 @@ import type {
 } from "../../../packages/gateway-protocol/src/index.js";
 import type { SessionObserverDigest } from "../../../packages/gateway-protocol/src/schema/sessions.js";
 import { isSessionRouteId, pathForRoute } from "../app-route-paths.ts";
+import { FEATURES } from "../app/brand.ts";
 import { beginNativeWindowDragFromTopInset } from "../app/native-window-drag.ts";
 import { t } from "../i18n/index.ts";
 import "./session-menu.ts";
@@ -358,7 +359,9 @@ class AppSidebar extends AppSidebarSessionNavigationElement implements SessionLi
     this.syncCommunityInviteState();
     // The decorative pet's large module stays out of startup and upgrades in place.
     // Its first visit is at least 15 seconds after load, so idle loading cannot miss one.
-    lobsterPetImport.schedule();
+    if (FEATURES.lobsterDex) {
+      lobsterPetImport.schedule();
+    }
     this.catalogRendererImport.schedule();
   }
 
@@ -710,18 +713,24 @@ class AppSidebar extends AppSidebarSessionNavigationElement implements SessionLi
           </div>
           <div class="sidebar-shell__invite">
             ${this.communityInvitePresentation === "shown" ? renderCommunityInviteCard(this.dismissCommunityInvite) : nothing}
-            <openclaw-lobster-pet
-              .seed=${lobsterPetSeed(this.sessionKey)}
-              .mode=${resolveLobsterPetMode(
-                !this.offline,
-                this.sessionData.sessionsResult?.sessions,
-              )}
-              .runOutcome=${resolveLobsterRunOutcome(this.sessionData.sessionsResult?.sessions)}
-              .visitsEnabled=${this.lobsterPetVisits}
-              .soundsEnabled=${this.lobsterPetSounds}
-              .gatewayVersion=${this.gatewayVersion}
-              .onVisitsDisabled=${this.refreshAppearanceSettings}
-            ></openclaw-lobster-pet>
+            ${
+              FEATURES.lobsterDex
+                ? html`<openclaw-lobster-pet
+                    .seed=${lobsterPetSeed(this.sessionKey)}
+                    .mode=${resolveLobsterPetMode(
+                      !this.offline,
+                      this.sessionData.sessionsResult?.sessions,
+                    )}
+                    .runOutcome=${resolveLobsterRunOutcome(
+                      this.sessionData.sessionsResult?.sessions,
+                    )}
+                    .visitsEnabled=${this.lobsterPetVisits}
+                    .soundsEnabled=${this.lobsterPetSounds}
+                    .gatewayVersion=${this.gatewayVersion}
+                    .onVisitsDisabled=${this.refreshAppearanceSettings}
+                  ></openclaw-lobster-pet>`
+                : nothing
+            }
           </div>
           <div class="sidebar-shell__footer">
             ${

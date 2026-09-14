@@ -5,6 +5,7 @@ import {
   SIDEBAR_SESSION_NAV_COLLAPSE_QUERY,
   sessionRefFromPath,
 } from "../../app-session-route-paths.ts";
+import { FEATURES } from "../../app/brand.ts";
 import {
   SESSION_FACE_PREFERENCE_PARAM,
   SESSION_NAVIGATION_KEY_PARAM,
@@ -28,6 +29,32 @@ describe("AppSidebar update card wiring", () => {
 
     expect(sidebar.querySelector('.nav-item[href="/custodian"]')).toBeNull();
     expect(sidebar.querySelector('.nav-item[href="/settings/secrets"]')).toBeNull();
+  });
+});
+
+describe("AppSidebar decorative pet", () => {
+  it("leaves the invite ledge empty in a build without LobsterDex", async () => {
+    const { sidebar } = await mountSidebar(
+      createGateway({} as GatewayBrowserClient),
+      createSessions("main", ["agent:main:main"]),
+    );
+
+    expect(sidebar.querySelector(".sidebar-shell__invite")).not.toBeNull();
+    expect(sidebar.querySelector("openclaw-lobster-pet")).toBeNull();
+  });
+
+  it("perches the pet again when the build ships LobsterDex", async () => {
+    FEATURES.lobsterDex = true;
+    try {
+      const { sidebar } = await mountSidebar(
+        createGateway({} as GatewayBrowserClient),
+        createSessions("main", ["agent:main:main"]),
+      );
+
+      expect(sidebar.querySelector("openclaw-lobster-pet")).not.toBeNull();
+    } finally {
+      FEATURES.lobsterDex = false;
+    }
   });
 });
 

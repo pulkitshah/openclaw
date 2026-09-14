@@ -4,6 +4,7 @@ import { render } from "lit";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createDeferred as deferred } from "../../../../test/helpers/promise.js";
 import type { GatewayBrowserClient } from "../../api/gateway.ts";
+import { FEATURES } from "../../app/brand.ts";
 import type { ApplicationContext } from "../../app/context.ts";
 import {
   changedServerUiPrefs,
@@ -806,5 +807,73 @@ describe("ConfigPage runtime config lifecycle", () => {
     expect(state.configViewState.rawRevealed).toBe(false);
     expect(state.configViewState.envRevealed).toBe(false);
     expect(state.configViewState.revealedSensitivePaths.size).toBe(0);
+  });
+});
+
+describe("ConfigPage LobsterDex feature flag", () => {
+  function renderAppearance(): HTMLElement {
+    const page = new ConfigPage();
+    const runtimeConfig = {
+      state: {
+        client: null,
+        connected: true,
+        configLoading: false,
+        configSnapshot: null,
+        configSchema: null,
+        configSchemaLoading: false,
+        configIssues: [],
+        configUiHints: {},
+      },
+      patchForm: vi.fn(),
+      save: vi.fn(),
+    } as unknown as ApplicationContext["runtimeConfig"];
+    const state = page as unknown as {
+      context: ApplicationContext;
+      pageId: "appearance";
+    };
+    state.context = {
+      basePath: "",
+      config: {
+        current: { assistantIdentity: { name: "Vasudev" }, serverVersion: "2026.7.1" },
+      },
+      gateway: {
+        connection: { gatewayUrl: "ws://flag.test" },
+        snapshot: {
+          hello: { auth: { role: "operator", scopes: ["operator.admin"] } },
+          phase: "connected",
+        },
+      },
+      navigate: vi.fn(),
+      overlays: { snapshot: {} },
+      runtimeConfig,
+      theme: { refresh: vi.fn() },
+      webPush: { snapshot: {} },
+    } as unknown as ApplicationContext;
+    state.pageId = "appearance";
+    const container = document.createElement("div");
+    render(page.render(), container);
+    return container;
+  }
+
+  it("leaves the LobsterDex section out of Appearance", () => {
+    const container = renderAppearance();
+
+    expect(container.querySelector(".lobsterdex__gallery")).toBeNull();
+    expect(container.querySelector(".lobsterdex__open")).toBeNull();
+    expect(container.textContent).not.toContain("LobsterDex");
+  });
+
+  it("restores the section when the build ships LobsterDex", () => {
+    FEATURES.lobsterDex = true;
+    try {
+      const container = renderAppearance();
+
+      expect(container.querySelector(".lobsterdex__gallery")).not.toBeNull();
+      expect(container.querySelector(".lobsterdex__open")?.getAttribute("href")).toBe(
+        "/settings/lobsterdex",
+      );
+    } finally {
+      FEATURES.lobsterDex = false;
+    }
   });
 });
