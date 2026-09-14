@@ -400,6 +400,9 @@ even mid-run. `roll.sh` uses this same recipe automatically.
 - **Headless fallback**: the managed Chromium falls back to headless when `DISPLAY` is
   unset. Check `echo $DISPLAY` is `:99` in the Gateway's environment
   (`systemctl show openclaw-gateway -p Environment`) and that `xvfb.service` is active.
+- **Pages render mobile/tablet layouts**: check `OPENCLAW_BROWSER_WINDOW_SIZE` matches the
+  Xvfb geometry (a desk has no window manager, so headed Chromium otherwise opens at its
+  default ~920x1030 window).
 - **Render 404 in the Browser panel**: check `browser.ssrfPolicy.allowedHostnames` in the
   desk's config includes the host the page is asking to load — the desk's default only
   allows `127.0.0.1`.

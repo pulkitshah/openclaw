@@ -101,6 +101,7 @@ Installed third-party plugins may declare additional credential variables in the
 | `OPENCLAW_EXEC_SHELL_SNAPSHOT`       | Disable exec shell snapshots with `0`.                                                       |
 | `OPENCLAW_OFFLINE`                   | Prevent downloads of pinned agent helper binaries.                                           |
 | `OPENCLAW_BROWSER_HEADLESS`          | Force managed browser launches headed (`0`) or headless (`1`).                               |
+| `OPENCLAW_BROWSER_WINDOW_SIZE`       | Set the headed managed browser's window size, e.g. `1920x1080`.                              |
 | `OPENCLAW_DISABLE_BONJOUR`           | Force Bonjour advertising on (`0`) or off (`1`).                                             |
 | `OPENCLAW_NO_AUTO_UPDATE`            | Disable automatic update applies.                                                            |
 | `OPENCLAW_ALLOW_INSECURE_PRIVATE_WS` | Allow trusted private-DNS `ws://` connections as a break-glass override.                     |

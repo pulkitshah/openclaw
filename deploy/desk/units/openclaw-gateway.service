@@ -6,8 +6,12 @@ Wants=network-online.target xvfb.service
 User=openclaw
 Group=openclaw
 WorkingDirectory=/opt/openclaw
+# DISPLAY and OPENCLAW_BROWSER_WINDOW_SIZE both match the Xvfb geometry in xvfb.service
+# (1920x1080) - a desk has no window manager, so headed Chromium would otherwise open
+# at its default ~920x1030 window and sites would render tablet layouts.
 Environment=DISPLAY=:99
 Environment=OPENCLAW_BROWSER_HEADLESS=0
+Environment=OPENCLAW_BROWSER_WINDOW_SIZE=1920x1080
 Environment=NODE_ENV=production
 # Optional secrets for the Gateway's environment - GOG_HOME and GOG_KEYRING_PASSWORD (gog's file
 # keyring on Linux); see deploy/desk/README.md's secrets table. NOT used for Claude sign-in -

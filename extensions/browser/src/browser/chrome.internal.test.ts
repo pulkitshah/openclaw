@@ -1632,6 +1632,90 @@ describe("chrome.ts internal", () => {
       }
     });
 
+    describe("OPENCLAW_BROWSER_WINDOW_SIZE", () => {
+      const launchAndCaptureArgs = async (params: {
+        headless: boolean;
+        env: NodeJS.ProcessEnv;
+        port: number;
+      }): Promise<string[]> => {
+        stubBrowserExecutableAndPrefs("present");
+        const fakeProc = makeFakeProc();
+        spawnMock.mockReturnValue(fakeProc);
+        mockExpiredLaunchPollingClock();
+        vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("ECONNREFUSED")));
+
+        const resolved = makeResolved({ localLaunchTimeoutMs: 1 });
+        const profile = {
+          ...makeProfile(params.port),
+          headless: params.headless,
+        } as ResolvedBrowserProfile;
+
+        await launchOpenClawChrome(resolved, profile, { env: params.env }).catch(() => {});
+
+        return requireSpawnCall()[1] as string[];
+      };
+
+      it("adds --window-size and --window-position for a headed launch with a valid env value", async () => {
+        const args = await launchAndCaptureArgs({
+          headless: false,
+          env: { OPENCLAW_BROWSER_WINDOW_SIZE: "1920x1080" },
+          port: 55600,
+        });
+        expect(args).toContain("--window-size=1920,1080");
+        expect(args).toContain("--window-position=0,0");
+      });
+
+      it("accepts a comma-separated value", async () => {
+        const args = await launchAndCaptureArgs({
+          headless: false,
+          env: { OPENCLAW_BROWSER_WINDOW_SIZE: "1280,800" },
+          port: 55601,
+        });
+        expect(args).toContain("--window-size=1280,800");
+        expect(args).toContain("--window-position=0,0");
+      });
+
+      it("ignores the env value for a headless launch", async () => {
+        const args = await launchAndCaptureArgs({
+          headless: true,
+          env: { OPENCLAW_BROWSER_WINDOW_SIZE: "1920x1080" },
+          port: 55602,
+        });
+        expect(args.some((arg) => arg.startsWith("--window-size="))).toBe(false);
+        expect(args).not.toContain("--window-position=0,0");
+      });
+
+      it("ignores a malformed env value for a headed launch", async () => {
+        const args = await launchAndCaptureArgs({
+          headless: false,
+          env: { OPENCLAW_BROWSER_WINDOW_SIZE: "not-a-size" },
+          port: 55603,
+        });
+        expect(args.some((arg) => arg.startsWith("--window-size="))).toBe(false);
+        expect(args).not.toContain("--window-position=0,0");
+      });
+
+      it("ignores an out-of-range env value for a headed launch", async () => {
+        const args = await launchAndCaptureArgs({
+          headless: false,
+          env: { OPENCLAW_BROWSER_WINDOW_SIZE: "100x100" },
+          port: 55604,
+        });
+        expect(args.some((arg) => arg.startsWith("--window-size="))).toBe(false);
+        expect(args).not.toContain("--window-position=0,0");
+      });
+
+      it("does not add window args for a headed launch with no env value set", async () => {
+        const args = await launchAndCaptureArgs({
+          headless: false,
+          env: {},
+          port: 55605,
+        });
+        expect(args.some((arg) => arg.startsWith("--window-size="))).toBe(false);
+        expect(args).not.toContain("--window-position=0,0");
+      });
+    });
+
     it("keeps only a bounded UTF-8-safe newest stderr tail when launch fails after large stderr", async () => {
       const oldMarker = "older-stderr-marker";
       const newestMarker = "newest-stderr-marker";

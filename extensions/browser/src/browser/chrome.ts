@@ -93,6 +93,10 @@ const CHROME_SINGLETON_LOCK_PATHS = [
 ] as const;
 const CHROME_SINGLETON_IN_USE_PATTERN = /profile appears to be in use by another chromium process/i;
 const CHROME_MISSING_DISPLAY_PATTERN = /missing x server|\$DISPLAY/i;
+const BROWSER_WINDOW_SIZE_ENV_KEY = "OPENCLAW_BROWSER_WINDOW_SIZE";
+const BROWSER_WINDOW_SIZE_PATTERN = /^(\d+)[x,](\d+)$/;
+const BROWSER_WINDOW_SIZE_MIN = 320;
+const BROWSER_WINDOW_SIZE_MAX = 16384;
 const CHROME_GRACEFUL_CLOSE_COMMAND_TIMEOUT_MS = 500;
 const CHROME_LAUNCH_STDERR_TAIL_MAX_BYTES = 64 * 1024;
 const CHROME_STDERR_MARKER_SCAN_TAIL_CHARS = 256;
@@ -721,6 +725,40 @@ function cdpUrlForPort(cdpPort: number) {
   return `http://127.0.0.1:${cdpPort}`;
 }
 
+/**
+ * Parse `OPENCLAW_BROWSER_WINDOW_SIZE` as `<width>x<height>` or
+ * `<width>,<height>` with both values integers in [320, 16384]. Malformed or
+ * out-of-range values are ignored (returns undefined) rather than logged —
+ * a headed desk without a window manager should still launch, just at
+ * Chromium's default size.
+ */
+function parseOpenClawBrowserWindowSize(
+  value: string | undefined,
+): { width: number; height: number } | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const match = BROWSER_WINDOW_SIZE_PATTERN.exec(value.trim());
+  if (!match) {
+    return undefined;
+  }
+  const [, widthText, heightText] = match;
+  if (!widthText || !heightText) {
+    return undefined;
+  }
+  const width = Number.parseInt(widthText, 10);
+  const height = Number.parseInt(heightText, 10);
+  if (
+    width < BROWSER_WINDOW_SIZE_MIN ||
+    width > BROWSER_WINDOW_SIZE_MAX ||
+    height < BROWSER_WINDOW_SIZE_MIN ||
+    height > BROWSER_WINDOW_SIZE_MAX
+  ) {
+    return undefined;
+  }
+  return { width, height };
+}
+
 /** Build Chrome launch arguments for the managed OpenClaw browser. */
 function buildOpenClawChromeLaunchArgs(params: {
   resolved: ResolvedBrowserConfig;
@@ -757,6 +795,16 @@ function buildOpenClawChromeLaunchArgs(params: {
   if (headlessMode.headless) {
     args.push("--headless=new");
     args.push("--disable-gpu");
+  } else {
+    // A headed desk (Xvfb, no window manager) launches Chromium at its
+    // default ~920x1030 window, which renders tablet layouts. Let the
+    // deploy set an explicit window matching the virtual display geometry.
+    const env = params.env ?? process.env;
+    const windowSize = parseOpenClawBrowserWindowSize(env[BROWSER_WINDOW_SIZE_ENV_KEY]);
+    if (windowSize) {
+      args.push(`--window-size=${windowSize.width},${windowSize.height}`);
+      args.push("--window-position=0,0");
+    }
   }
   if (resolved.noSandbox) {
     args.push("--no-sandbox");
