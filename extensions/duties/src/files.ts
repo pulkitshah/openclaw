@@ -11,6 +11,58 @@ const RUN_ID_RE = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/u;
  *  long enough that a preview the owner is still looking at is never pulled out from under them. */
 export const PREVIEW_TTL_MS = 24 * 3600 * 1000;
 
+/** Longer than any sensible document name and short of every filesystem's limit, leaving room for
+ *  the extension and a collision suffix. */
+const MAX_FILE_NAME_CHARS = 120;
+
+/**
+ * Turns a proposed document name — authored with placeholders, or written by the model — into a
+ * safe basename with the right extension.
+ *
+ * The name reaches a filesystem and then a chat client as an attachment, so it is reduced to one
+ * path segment: separators and control characters cannot survive, `..` cannot survive, and runs of
+ * whitespace collapse. An empty result is the caller's problem to fall back from, so this returns
+ * undefined rather than inventing a name.
+ */
+export function safeFileName(raw: string, extension: string): string | undefined {
+  const ext = extension.startsWith(".") ? extension : `.${extension}`;
+  const collapsed = raw
+    // Control characters and path separators never belong in a basename.
+    .replaceAll(/[\u0000-\u001f\u007f/\\]/gu, " ")
+    // With the separators gone, a traversal reads as bare dot runs; drop them rather than keep
+    // "`.. .. ..`" in a name the owner is meant to read.
+    .replaceAll(/(?<=^|\s)\.+(?=\s|$)/gu, " ")
+    .replaceAll(/\s+/gu, " ")
+    .trim()
+    // A leading dot would hide the file, and a trailing dot is invalid on Windows.
+    .replace(/^\.+/u, "")
+    .replace(/\.+$/u, "");
+  if (!collapsed) return undefined;
+  const withoutExt = collapsed.toLowerCase().endsWith(ext.toLowerCase())
+    ? collapsed.slice(0, -ext.length)
+    : collapsed;
+  const trimmed = withoutExt.slice(0, MAX_FILE_NAME_CHARS).trim().replace(/\.+$/u, "");
+  return trimmed ? `${trimmed}${ext}` : undefined;
+}
+
+/** Picks a name that is not taken in `dir`, appending ` (2)`, ` (3)`… before the extension. Two
+ *  `template` steps in one run can legitimately want the same document name, and the second must
+ *  not overwrite the first — `deliver` sends the path, so an overwrite would attach the wrong
+ *  document rather than fail. */
+export async function uniqueFileName(dir: string, name: string): Promise<string> {
+  const ext = path.extname(name);
+  const base = ext ? name.slice(0, -ext.length) : name;
+  for (let attempt = 1; attempt < 100; attempt += 1) {
+    const candidate = attempt === 1 ? name : `${base} (${attempt})${ext}`;
+    const taken = await stat(path.join(dir, candidate)).then(
+      () => true,
+      () => false,
+    );
+    if (!taken) return candidate;
+  }
+  return `${base} (${Date.now()})${ext}`;
+}
+
 /** Rendered files live on disk (delivery needs a path); each run gets its own directory so a
  *  cleanup pass can drop whole runs by age without touching anything else. */
 export function createRunFiles(rootDir: string) {

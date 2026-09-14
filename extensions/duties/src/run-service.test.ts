@@ -416,11 +416,16 @@ describe("RunManager", () => {
     const final = await mgr.wait(runId);
 
     expect(midRun?.status).toBe("running");
-    expect(midRun?.files?.map((f) => f.name)).toEqual(["p1.pdf"]);
+    // The document is named from the template, not the step id; the exact name is the runner's
+    // contract (see runner.test.ts), so this case pins only that the SAME file is recorded while
+    // the run is still going and after it finishes, in this run's own directory.
+    const name = midRun?.files?.[0]?.name;
+    expect(name).toMatch(/\.pdf$/u);
+    expect(name).not.toBe("p1.pdf");
     expect(final.status).toBe("ok");
-    expect(final.files?.map((f) => f.path)).toEqual([path.join(root, runId, "p1.pdf")]);
+    expect(final.files?.map((f) => f.path)).toEqual([path.join(root, runId, name!)]);
     expect((await store.getRun(runId))?.files?.map((f) => f.path)).toEqual([
-      path.join(root, runId, "p1.pdf"),
+      path.join(root, runId, name!),
     ]);
   });
 });

@@ -636,13 +636,16 @@ describe("template and deliver steps", () => {
    *  step's own `{ ai }` fills all dispatch on the slot names their schema asks for, so a test can
    *  also assert how many extract calls the template step itself made. */
   const seedAi = (
-    opts: { notes?: Record<string, unknown>; seen?: string[][] } = {},
+    opts: { notes?: Record<string, unknown>; seen?: string[][]; aiName?: string } = {},
   ): RunnerDeps["ai"] => ({
     extract: async ({ schema }) => {
       const props = schema.properties;
       const keys = props && typeof props === "object" ? Object.keys(props) : [];
       opts.seen?.push(keys);
-      if (keys.includes("notes")) return opts.notes ?? { notes: "Book early" };
+      if (keys.includes("notes"))
+        return (
+          opts.notes ?? { notes: "Book early", $filename: opts.aiName ?? "Flight options IXU COK" }
+        );
       if (keys.includes("flights")) return { flights: [{ airline: "IndiGo" }] };
       if (keys.includes("route")) return { route: "IXU → COK" };
       return {};
@@ -712,19 +715,130 @@ describe("template and deliver steps", () => {
     expect(outcome.files).toEqual([
       expect.objectContaining({ stepId: "t1", contentType: "application/pdf" }),
     ]);
-    expect(outcome.files[0]!.path).toBe(path.join(deps.filesDir, "t1.pdf"));
+    // The document is named, not called after the step id, and `deliver` attaches it under that
+    // same name because the attachment name comes from the path's basename.
+    expect(outcome.files[0]!.name).toBe("Flight options IXU COK.pdf");
+    expect(outcome.files[0]!.path).toBe(path.join(deps.filesDir, "Flight options IXU COK.pdf"));
     expect(existsSync(outcome.files[0]!.path)).toBe(true);
     expect(deps.calls).toContain("render <p>IXU → COK</p><i>IndiGo</i><p>Book early</p>");
-    expect(deps.calls).toContain("deliver telegram:222 Options for IXU → COK [t1.pdf]");
+    expect(deps.calls).toContain(
+      "deliver telegram:222 Options for IXU → COK [Flight options IXU COK.pdf]",
+    );
     expect(outcome.steps.map((s) => s.summary)).toEqual([
       "route",
       "flights",
-      expect.stringContaining("t1.pdf"),
+      expect.stringContaining("Flight options IXU COK.pdf"),
       "→ telegram:222",
     ]);
-    // One extract for each seeding step, then exactly one for the template step's `{ ai }` fills.
-    expect(seen).toEqual([["route"], ["flights"], ["notes"]]);
+    // One extract per seeding step, then exactly one for the template step — the document's name
+    // is written in that same call rather than costing a second round trip.
+    expect(seen).toEqual([["route"], ["flights"], ["notes", "$filename"]]);
     expect(outcome.steps.at(-1)?.screenshotBlobId).toBeUndefined();
+  });
+
+  it("names the document from an authored filename, resolving placeholders and sanitising it", async () => {
+    const deps = fakeDeps({
+      templates: { get: async () => flightTpl, brand: async () => undefined },
+      ai: seedAi(),
+    });
+    const steps = dutySteps();
+    // A name that is legal to author and hostile on a filesystem: a placeholder, a path
+    // separator, a control character, and a stray extension the step should not double up.
+    (steps[2] as { params: Record<string, unknown> }).params.filename =
+      "Flights/{{out:route}}\u0007  quote.pdf";
+
+    const outcome = await runDuty(duty(steps), deps, {
+      inputs: {},
+      origin: { kind: "chat", sessionKey: "agent:main:telegram:222" },
+    });
+
+    expect(outcome.status).toBe("ok");
+    expect(outcome.files[0]!.name).toBe("Flights IXU → COK quote.pdf");
+    expect(outcome.files[0]!.path).toBe(
+      path.dirname(outcome.files[0]!.path) + "/Flights IXU → COK quote.pdf",
+    );
+    expect(deps.calls).toContain(
+      "deliver telegram:222 Options for IXU → COK [Flights IXU → COK quote.pdf]",
+    );
+  });
+
+  it("asks for a name even when the template has no ai slots, and falls back when none is usable", async () => {
+    const plainTpl: Template = {
+      id: "plain",
+      name: "Plain quote",
+      kind: "pdf",
+      updatedAt: 1,
+      html: "<p>{{slot:route}}</p>",
+      slots: [{ name: "route", kind: "text", description: "" }],
+    };
+    const askedFor: string[][] = [];
+    const deps = fakeDeps({
+      templates: { get: async () => plainTpl, brand: async () => undefined },
+      ai: {
+        extract: async ({ schema }) => {
+          const props = schema.properties;
+          askedFor.push(props && typeof props === "object" ? Object.keys(props) : []);
+          // Nothing usable: the run must still produce a named file rather than fail.
+          return { $filename: "   " };
+        },
+      },
+    });
+
+    const outcome = await runDuty(
+      duty([
+        {
+          id: "t1",
+          kind: "template",
+          label: "Render the quote",
+          params: { template: "plain", fill: { route: { from: "IXU → COK" } } },
+        },
+      ]),
+      deps,
+      { inputs: {}, now: undefined } as never,
+    );
+
+    expect(outcome.status).toBe("ok");
+    // The only thing the model was asked for was the name.
+    expect(askedFor).toEqual([["$filename"]]);
+    // Falls back to the template's own name plus the date.
+    expect(outcome.files[0]!.name).toMatch(/^Plain quote \d{4}-\d{2}-\d{2}\.pdf$/u);
+  });
+
+  it("does not let a second document overwrite the first when both want one name", async () => {
+    const plainTpl: Template = {
+      id: "plain",
+      name: "Quote",
+      kind: "pdf",
+      updatedAt: 1,
+      html: "<p>{{slot:route}}</p>",
+      slots: [{ name: "route", kind: "text", description: "" }],
+    };
+    const deps = fakeDeps({
+      templates: { get: async () => plainTpl, brand: async () => undefined },
+      ai: { extract: async () => ({}) },
+    });
+    const templateStep = (id: string) => ({
+      id,
+      kind: "template" as const,
+      label: "Render the quote",
+      params: {
+        template: "plain",
+        filename: "Quote for LIC",
+        fill: { route: { from: "IXU → COK" } },
+      },
+    });
+
+    const outcome = await runDuty(duty([templateStep("t1"), templateStep("t2")]), deps, {
+      inputs: {},
+    });
+
+    expect(outcome.status).toBe("ok");
+    expect(outcome.files.map((f) => f.name)).toEqual([
+      "Quote for LIC.pdf",
+      "Quote for LIC (2).pdf",
+    ]);
+    // Both documents survive: an overwrite would have attached the wrong one.
+    for (const file of outcome.files) expect(existsSync(file.path)).toBe(true);
   });
 
   it("fails the template step naming the unfilled slot", async () => {
@@ -767,31 +881,43 @@ describe("template and deliver steps", () => {
     expect(deps.calls).toContain("deliver telegram:222 Route: IXU → COK []");
   });
 
-  it("keeps a rendered document inside the run directory even for a step id that escapes it", async () => {
-    // `validateDuty` now rejects such a step id outright; this pins the runner's own belt-and-braces
-    // `basename`, which is what protects a Duty stored before that check (or written straight into
-    // the store) from writing its document anywhere on disk — and from `duties.run.file` then
-    // serving that path back over an operator.read method.
-    const deps = fakeDeps({
-      templates: { get: async () => slipTpl, brand: async () => undefined },
-    });
-    const outcome = await runDuty(
-      duty([
-        {
-          id: "../../../../tmp/evil",
-          kind: "template",
-          label: "Print the slip",
-          params: { template: "slip", fill: { route: { from: "{{in:route}}" } } },
-        },
-      ]),
-      deps,
-      { inputs: { route: "IXU → COK" } },
-    );
-    expect(outcome.status).toBe("ok");
-    expect(outcome.files[0]!.name).toBe("evil.pdf");
-    expect(outcome.files[0]!.path).toBe(path.join(deps.filesDir, "evil.pdf"));
-    expect(path.dirname(outcome.files[0]!.path)).toBe(deps.filesDir);
-    expect(existsSync(outcome.files[0]!.path)).toBe(true);
+  it("keeps a rendered document inside the run directory whatever names it", async () => {
+    // Three ways a name reaches this step, all of them reduced to one path segment: an authored
+    // `filename` (placeholders are resolved, so a run value lands in it), the model's answer, and
+    // the step id. `validateDuty` rejects an escaping step id outright now; this pins the runner's
+    // own belt-and-braces, which is what protects a Duty stored before that check — and stops
+    // `duties.run.file` from being handed a path outside the run to serve over operator.read.
+    const escaping = async (params: Record<string, unknown>, aiName?: string) => {
+      const deps = fakeDeps({
+        templates: { get: async () => slipTpl, brand: async () => undefined },
+        ...(aiName ? { ai: { extract: async () => ({ $filename: aiName }) } } : {}),
+      });
+      const outcome = await runDuty(
+        duty([
+          {
+            id: "../../../../tmp/evil",
+            kind: "template",
+            label: "Print the slip",
+            params: { template: "slip", fill: { route: { from: "{{in:route}}" } }, ...params },
+          },
+        ]),
+        deps,
+        { inputs: { route: "IXU → COK" } },
+      );
+      expect(outcome.status).toBe("ok");
+      const file = outcome.files[0]!;
+      expect(path.dirname(file.path)).toBe(deps.filesDir);
+      expect(path.join(deps.filesDir, file.name)).toBe(file.path);
+      expect(existsSync(file.path)).toBe(true);
+      return file.name;
+    };
+
+    // An authored filename that tries to climb out.
+    expect(await escaping({ filename: "../../../../tmp/evil" })).toBe("tmp evil.pdf");
+    // A model-written one that tries the same.
+    expect(await escaping({}, "/etc/passwd")).toBe("etc passwd.pdf");
+    // And with neither, the fallback still cannot inherit the step id's path.
+    expect(await escaping({}, " ")).toMatch(/^Slip \d{4}-\d{2}-\d{2}\.pdf$/u);
   });
 
   it("refuses a format that is not the template's own kind, in either direction", async () => {

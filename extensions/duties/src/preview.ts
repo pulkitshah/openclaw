@@ -1,5 +1,6 @@
 import path from "node:path";
 import type { RenderAdapter } from "./adapters/render.js";
+import { safeFileName } from "./files.js";
 import type { DutyStore } from "./store.js";
 import { placeholderData, renderTemplate } from "./template.js";
 
@@ -31,7 +32,12 @@ export async function renderTemplatePreview(params: {
     await params.store.getBrand(),
   );
   if (!rendered.ok) throw new Error(`slot "${rendered.missing[0]}" could not be filled`);
-  const dest = path.join(await params.previewDir(), `${template.id}-${Date.now()}.pdf`);
+  // Named like anything else the owner is shown, and marked a preview so a file that reaches them
+  // out of context cannot be mistaken for a document a run actually produced and sent.
+  const name =
+    safeFileName(`${template.name} preview ${Date.now()}`, ".pdf") ??
+    `${template.id}-preview-${Date.now()}.pdf`;
+  const dest = path.join(await params.previewDir(), name);
   const { bytes } = await params.render.toPdf(rendered.output, dest);
   return { path: dest, bytes };
 }

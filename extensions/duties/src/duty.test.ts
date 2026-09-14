@@ -264,6 +264,21 @@ describe("validateDuty", () => {
         ],
       },
       {
+        what: "a template filename",
+        steps: [
+          {
+            id: "s1",
+            kind: "template",
+            label: "Render the quote",
+            params: {
+              template: "quote",
+              filename: "quote-{{cred:amigos.username}}",
+              fill: {},
+            },
+          },
+        ],
+      },
+      {
         what: "an ask question",
         steps: [
           {

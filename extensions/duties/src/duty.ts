@@ -230,6 +230,12 @@ function validateTemplateParams(
     errors.push(`${path}.template: must be a non-empty string`);
   if (params.format !== undefined && params.format !== "pdf" && params.format !== "message")
     errors.push(`${path}.format: must be pdf or message`);
+  // `{{cred:}}` inside it is already rejected by validateStepParams, which walks every param.
+  if (
+    params.filename !== undefined &&
+    (typeof params.filename !== "string" || !params.filename.trim())
+  )
+    errors.push(`${path}.filename: must be a non-empty string`);
   if (!isRecord(params.fill)) {
     errors.push(`${path}.fill: must be an object of slot → { from } | { ai }`);
     return;

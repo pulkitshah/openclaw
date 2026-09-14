@@ -12,6 +12,7 @@ import {
   type Target,
   resolvePlaceholders,
 } from "./duty.js";
+import { safeFileName, uniqueFileName } from "./files.js";
 import type { RunFile, RunOrigin, StepEvidence } from "./store.js";
 import { renderTemplate } from "./template.js";
 import type { Brand, Template } from "./template.js";
@@ -156,6 +157,15 @@ class HaltSignal {
 }
 
 const MASK = "••••••";
+
+/** Reserved key the model answers the document's file name under, alongside the template's own
+ *  slots. A slot name matches `[A-Za-z0-9_-]+` (template.ts), which cannot contain `$`, so this
+ *  key can never collide with a declared slot — an underscore prefix would not have been enough. */
+const AI_FILENAME_KEY = "$filename";
+
+function isoDate(ms: number): string {
+  return new Date(ms).toISOString().slice(0, 10);
+}
 
 export async function runDuty(
   duty: Duty,
@@ -384,6 +394,7 @@ export async function runDuty(
           );
         // SAFETY: validateDuty validated params.fill as an object of { from } | { ai }.
         const fill = step.params.fill as Record<string, { from: string } | { ai: string }>;
+        let aiName: string | undefined;
         const data: Record<string, unknown> = {};
         const aiSlots: Array<{ name: string; instruction: string }> = [];
         for (const slot of template.slots) {
@@ -394,19 +405,43 @@ export async function runDuty(
             data[slot.name] = slot.kind === "rows" ? parseRows(raw) : raw;
           } else aiSlots.push({ name: slot.name, instruction: spec.ai });
         }
-        if (aiSlots.length) {
+        // A document that reaches someone's inbox needs a name they can read. An authored
+        // `filename` wins; otherwise the model writes one in the SAME call that fills the prose
+        // slots, so naming never costs a second round trip.
+        const authoredName =
+          typeof step.params.filename === "string" && step.params.filename.trim()
+            ? String(await resolve(step.params.filename))
+            : undefined;
+        const wantsAiName = format === "pdf" && !authoredName;
+        if (aiSlots.length || wantsAiName) {
           // One extract for the whole step: the model sees every slot it must write at once, so the
           // prose slots of one document cannot contradict each other.
-          const properties = Object.fromEntries(
+          const properties: Record<string, unknown> = Object.fromEntries(
             aiSlots.map((s) => [s.name, { type: "string", description: s.instruction }]),
           );
+          if (wantsAiName) {
+            properties[AI_FILENAME_KEY] = {
+              type: "string",
+              description:
+                "a short, specific file name for this document, no extension, from the data",
+            };
+          }
+          const required = [
+            ...aiSlots.map((s) => s.name),
+            ...(wantsAiName ? [AI_FILENAME_KEY] : []),
+          ];
           const filled = await deps.ai.extract({
             instruction:
               "Write the following template slots from the run's data. Return every slot; never invent facts that are not in the data.",
             input: { data: { outputs, inputs: options.inputs }, slots: aiSlots },
-            schema: { type: "object", properties, required: aiSlots.map((s) => s.name) },
+            schema: { type: "object", properties, required },
           });
+          // Only declared slots are copied into the data, so the reserved name key can never be
+          // mistaken for one.
           for (const s of aiSlots) if (filled[s.name] !== undefined) data[s.name] = filled[s.name];
+          if (wantsAiName && typeof filled[AI_FILENAME_KEY] === "string") {
+            aiName = filled[AI_FILENAME_KEY];
+          }
         }
         const rendered = renderTemplate(template, data, await deps.templates.brand());
         if (!rendered.ok) throw new Error(`slot "${rendered.missing[0]}" could not be filled`);
@@ -414,10 +449,16 @@ export async function runDuty(
           save(step, rendered.output);
           summary = rendered.output.slice(0, 120);
         } else {
-          // `basename` is belt-and-braces on top of `validateDuty`'s slug check on step ids: a
-          // stored Duty predating that check, or one written straight into the store, must still
-          // not be able to place its document outside this run's own directory.
-          const name = `${path.basename(step.id)}.pdf`;
+          // Every candidate goes through `safeFileName`, which reduces it to one path segment, so
+          // neither an authored placeholder nor a model-written name can place this run's document
+          // outside its own directory. The step id is the last resort and is slug-checked already.
+          const name = await uniqueFileName(
+            deps.filesDir,
+            safeFileName(authoredName ?? "", ".pdf") ??
+              safeFileName(aiName ?? "", ".pdf") ??
+              safeFileName(`${template.name} ${isoDate(now())}`, ".pdf") ??
+              `${path.basename(step.id)}.pdf`,
+          );
           const dest = path.join(deps.filesDir, name);
           const { bytes } = await deps.render.toPdf(rendered.output, dest);
           const file: RunFile = {

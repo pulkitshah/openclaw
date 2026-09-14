@@ -62,6 +62,12 @@ and `saveAs`.
 - **`template`** — renders a saved template. `params.template` is the template id;
   `params.fill` maps each of its slots to either `{ from: "{{out:...}}" }` (or any other
   placeholder) or `{ ai: "instruction" }` (the model writes that slot from the run's data).
+  **Always set `params.filename`** for a `pdf` template: the document lands in someone's inbox, so
+  it needs a name they can read at a glance. It is an ordinary string, so `{{in:...}}`/`{{out:...}}`
+  work in it (`{{cred:...}}` is rejected like anywhere else), the extension is added for you, and it
+  is reduced to a safe single file name. `"Flight options {{out:origin}}-{{out:destination}}
+  {{out:date}}"` beats `"quote"`. Leave it out only when you genuinely cannot name the document
+  from the data: the model is then asked for a name in the same call that fills the `{ ai }` slots.
   Optional `params.format` must match the template's own kind (`pdf` or `message`) when
   given — it exists to make the step's output format explicit, not to convert one kind
   into the other. A `pdf` template produces a file (usable downstream as
