@@ -165,7 +165,7 @@ runcmd:
     case "$arch" in
     amd64) sum=5f73815950f30de4165b7b767103ca45c4950e84a1da601eda5294e9ff94f767 ;;
     arm64) sum=21ca9757f67a573115b517854184561cef6b3b73c21e0f60c72229522c7198ac ;;
-    *) echo "desk: no gog build for $arch" >&2; exit 1 ;;
+    *) echo "desk: no gog build for $arch" >&2; false ;;
     esac &&
     curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors -o gogcli.tgz
     "https://github.com/openclaw/gogcli/releases/download/v0.40.0/gogcli_0.40.0_linux_$arch.tar.gz" &&
@@ -177,9 +177,17 @@ runcmd:
   # Shallow: the full fork history is >1 GB and took the clone past 10 minutes on a 2 vCPU box
   # (observed 2026-09-14). fetch+checkout of FETCH_HEAD accepts a branch, tag or commit, and
   # roll.sh updates the same way, so the checkout stays detached at the requested ref.
-  - git clone --depth 1 --no-checkout https://github.com/pulkitshah/openclaw /opt/openclaw
-  - git -C /opt/openclaw fetch --depth 1 origin {{GIT_REF}}
-  - git -C /opt/openclaw checkout --detach FETCH_HEAD
+  # Retried: a throttled or interrupted transfer ("fetch-pack: invalid index-pack output") must not
+  # leave the box without a checkout (observed 2026-09-14 in the local pre-flight).
+  - >-
+    for attempt in 1 2 3 4; do
+    rm -rf /opt/openclaw &&
+    git clone --depth 1 --no-checkout https://github.com/pulkitshah/openclaw /opt/openclaw &&
+    git -C /opt/openclaw fetch --depth 1 origin {{GIT_REF}} &&
+    git -C /opt/openclaw checkout --detach FETCH_HEAD && break;
+    echo "desk: checkout attempt $attempt failed, retrying in 30s" >&2; sleep 30;
+    done;
+    test -f /opt/openclaw/package.json || { echo "desk: checkout FAILED after 4 attempts" >&2; touch /var/lib/openclaw/provision-failed; }
   - >-
     cd /opt/openclaw &&
     npm_config_minimum_release_age=0 npm_config_minimum_release_age_strict=false
@@ -214,11 +222,13 @@ runcmd:
   # systemd service (User=openclaw, which does default $HOME correctly) will actually look for
   # it. `runcmd` has no `set -e`, so a failure here would otherwise pass silently and the
   # Gateway would start with no Chromium installed for the openclaw user; the explicit
-  # `|| { ...; exit 1; }` guard makes that failure loud and stops provisioning.
+  # The guard makes that failure loud and leaves a marker for desk-health; it must NOT exit: an
+  # exit inside cloud-init's runcmd skips every later step (keyfile, unit enablement, reboot) and
+  # leaves a dead, unreachable box (observed 2026-09-14 in the local pre-flight).
   - cd /opt/openclaw && npx playwright install-deps chromium
   - >-
     sudo -H -u openclaw bash -lc "cd /opt/openclaw && npx playwright install chromium"
-    || { echo "desk: chromium install FAILED" >&2; exit 1; }
+    || { echo "desk: chromium install FAILED" >&2; touch /var/lib/openclaw/provision-failed; }
 
   # Per-desk credential keyfile for extensions/duties' Linux cred backend (spec section 5).
   - "head -c 32 /dev/urandom > /etc/openclaw/keyfile"
