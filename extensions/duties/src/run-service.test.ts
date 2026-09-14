@@ -127,6 +127,7 @@ function deps(delayMs: number, openTracker?: { current: number; max: number }): 
       url: async () => "",
       evaluate: async () => null,
       screenshot: async () => undefined,
+      screenshotPath: async () => undefined,
       close: async () => {},
       pdf: async () => "/tmp/duties-run-service-fake.pdf",
     },

@@ -6,6 +6,7 @@ import { describe, expect, it, vi, type Mock } from "vitest";
 import type { RenderAdapter } from "./adapters/render.js";
 import type { Duty } from "./duty.js";
 import { registerDutiesGatewayMethods } from "./gateway-methods.js";
+import type { RunManager } from "./run-service.js";
 import { DutyStore } from "./store.js";
 
 function memoryKeyed<T>() {
@@ -250,9 +251,10 @@ describe("duties gateway methods", () => {
   });
 
   it("rejects duties.status transitions to building and runs/cancels via the RunManager", async () => {
-    const start = vi.fn().mockResolvedValue({ runId: "r1", queued: false });
-    const cancel = vi.fn().mockResolvedValue(true);
-    const { emit, call } = harness({ runs: { start, cancel } });
+    const start = vi.fn<RunManager["start"]>().mockResolvedValue({ runId: "r1", queued: false });
+    const cancel = vi.fn<RunManager["cancel"]>().mockResolvedValue(true);
+    const waitFor = vi.fn<RunManager["waitFor"]>();
+    const { emit, call } = harness({ runs: { start, cancel, waitFor } });
 
     const duty = { ...baseDuty, status: "active" };
     await call("duties.save", { duty });
@@ -309,7 +311,7 @@ describe("duties gateway methods", () => {
     });
 
     it("parks the change, leaves the live Duty running, and tells the owner", async () => {
-      const notifyOwner = vi.fn(async () => {});
+      const notifyOwner = vi.fn<(text: string) => Promise<void>>(async () => {});
       const { call, store } = harness({ notifyOwner });
       await store.saveDuty(activeDuty);
       await store.updateSettings({ requireApprovalForEdits: true });
@@ -762,9 +764,9 @@ describe("duties gateway methods", () => {
   });
 
   it("duties.run validates the origin it is given and refuses a missing mail input", async () => {
-    const start = vi.fn(async () => ({ runId: "r1", queued: false }));
+    const start = vi.fn<RunManager["start"]>(async () => ({ runId: "r1", queued: false }));
     const { store, call } = harness({
-      runs: { start: start as never, cancel: vi.fn(), waitFor: vi.fn() },
+      runs: { start, cancel: vi.fn(), waitFor: vi.fn() },
     });
     await store.saveDuty({
       ...baseDuty,
