@@ -254,12 +254,20 @@ export async function runDuty(
     return undefined;
   };
 
+  /** A `saveAs` key the step's result did not carry is left unset rather than written as an
+   *  explicit `undefined`: the host's plugin state store rejects those (`isPluginJsonValue`,
+   *  src/plugins/host-hook-json.ts), so one absent key failed the whole run at persistence — after
+   *  every step had already run — with a message naming neither the step nor the key. An unset key
+   *  resolves the same way an explicit `undefined` did wherever `{{out:key}}` reads it. */
   const save = (step: Step, value: unknown) => {
     if (!step.saveAs) return;
     if (Array.isArray(step.saveAs)) {
       const resultRecord = isRecord(value) ? value : undefined;
-      for (const key of step.saveAs) outputs[key] = resultRecord?.[key];
-    } else outputs[step.saveAs] = value;
+      for (const key of step.saveAs) {
+        const saved = resultRecord?.[key];
+        if (saved !== undefined) outputs[key] = saved;
+      }
+    } else if (value !== undefined) outputs[step.saveAs] = value;
   };
 
   const runStep = async (step: Step): Promise<void> => {

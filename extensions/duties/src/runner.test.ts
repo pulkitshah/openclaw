@@ -145,6 +145,37 @@ describe("runDuty", () => {
     });
   });
 
+  // Regression: a `saveAs` key the step's result did not carry was written as an explicit
+  // `undefined`. The host's plugin state store rejects those (`isPluginJsonValue`), so persisting
+  // the run failed — killing a 59-step live booking run at the very end with
+  // "plugin state value at value.outputs.holdSummary must be JSON-serializable", a message that
+  // names neither the step that produced it nor the key.
+  it("omits a saveAs key the step did not return instead of storing an explicit undefined", async () => {
+    const deps = fakeDeps({
+      ai: { extract: async () => ({ present: "yes" }) },
+    });
+
+    const outcome = await runDuty(
+      duty([
+        {
+          id: "s1",
+          kind: "ai",
+          label: "Read the hold summary",
+          params: { instruction: "extract", input: "x", schema: { type: "object" } },
+          saveAs: ["present", "holdSummary"],
+        },
+      ]),
+      deps,
+      { inputs: {} },
+    );
+
+    expect(outcome.status).toBe("ok");
+    expect(outcome.outputs).toEqual({ present: "yes" });
+    expect(Object.hasOwn(outcome.outputs, "holdSummary")).toBe(false);
+    // The whole outputs object has to survive a JSON round-trip, which is what the store requires.
+    expect(JSON.parse(JSON.stringify(outcome.outputs))).toEqual(outcome.outputs);
+  });
+
   // Regression: `toStepId` was only checked after a regular step, so naming a `when` gate ran the
   // whole Duty instead of stopping at it. Authoring stages a flow by running up to a point and
   // inspecting the page; a stage that silently runs on reaches steps the author has not reviewed,
