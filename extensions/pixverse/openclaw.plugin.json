@@ -2,7 +2,7 @@
   "id": "pixverse",
   "categories": ["media"],
   "name": "PixVerse",
-  "description": "OpenClaw PixVerse video generation provider plugin.",
+  "description": "Vasudev PixVerse video generation provider plugin.",
   "activation": {
     "onStartup": false
   },

@@ -1601,6 +1601,10 @@
     "./plugin-sdk/llm": {
       "default": "./dist/plugin-sdk/llm.js"
     },
+    "./plugin-sdk/brand": {
+      "types": "./dist/plugin-sdk/brand.d.ts",
+      "default": "./dist/plugin-sdk/brand.js"
+    },
     "./cli-entry": "./openclaw.mjs"
   },
   "scripts": {

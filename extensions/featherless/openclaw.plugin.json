@@ -2,7 +2,7 @@
   "id": "featherless",
   "categories": ["models"],
   "name": "Featherless AI",
-  "description": "OpenClaw Featherless AI provider plugin.",
+  "description": "Vasudev Featherless AI provider plugin.",
   "activation": {
     "onStartup": false
   },

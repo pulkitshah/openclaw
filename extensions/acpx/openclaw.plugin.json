@@ -29,7 +29,7 @@
   },
   "enabledByDefault": true,
   "name": "ACPX Runtime",
-  "description": "OpenClaw ACP runtime backend with plugin-owned session and transport management.",
+  "description": "Vasudev ACP runtime backend with plugin-owned session and transport management.",
   "skills": ["./skills"],
   "configSchema": {
     "type": "object",

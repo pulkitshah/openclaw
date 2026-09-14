@@ -13,7 +13,7 @@
     "onStartup": true
   },
   "name": "Memory Wiki",
-  "description": "Persistent wiki compiler and Obsidian-friendly knowledge vault for OpenClaw.",
+  "description": "Persistent wiki compiler and Obsidian-friendly knowledge vault for Vasudev.",
   "cliCommands": [
     {
       "name": "wiki",

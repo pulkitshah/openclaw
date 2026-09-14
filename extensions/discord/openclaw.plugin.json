@@ -6,7 +6,7 @@
     "stateMigrations": [{ "id": "discord-legacy-state" }]
   },
   "name": "Discord",
-  "description": "OpenClaw Discord channel plugin for channels, DMs, commands, and app events.",
+  "description": "Vasudev Discord channel plugin for channels, DMs, commands, and app events.",
   "skills": [
     "./skills"
   ],

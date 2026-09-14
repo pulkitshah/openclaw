@@ -2,7 +2,7 @@
   "id": "irc",
   "categories": ["channels"],
   "name": "IRC",
-  "description": "OpenClaw IRC channel plugin.",
+  "description": "Vasudev IRC channel plugin.",
   "doctorContract": {
     "configRepair": true
   },

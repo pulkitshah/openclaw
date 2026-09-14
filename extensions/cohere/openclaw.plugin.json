@@ -2,7 +2,7 @@
   "id": "cohere",
   "categories": ["models"],
   "name": "Cohere",
-  "description": "OpenClaw Cohere provider plugin.",
+  "description": "Vasudev Cohere provider plugin.",
   "activation": {
     "onStartup": false
   },

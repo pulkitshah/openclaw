@@ -5,7 +5,7 @@
     "onStartup": true
   },
   "name": "Webhooks",
-  "description": "Authenticated inbound webhooks that bind external automation to OpenClaw TaskFlows.",
+  "description": "Authenticated inbound webhooks that bind external automation to Vasudev TaskFlows.",
   "configContracts": {
     "secretInputs": {
       "paths": [

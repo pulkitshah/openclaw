@@ -2,7 +2,7 @@
   "id": "signal",
   "categories": ["channels"],
   "name": "Signal",
-  "description": "OpenClaw Signal channel plugin.",
+  "description": "Vasudev Signal channel plugin.",
   "doctorContract": {
     "configRepair": true
   },

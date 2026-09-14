@@ -2,7 +2,7 @@
   "id": "amazon-bedrock",
   "categories": ["models"],
   "name": "Amazon Bedrock",
-  "description": "OpenClaw Amazon Bedrock provider plugin with model discovery, embeddings, and guardrail support.",
+  "description": "Vasudev Amazon Bedrock provider plugin with model discovery, embeddings, and guardrail support.",
   "activation": {
     "onStartup": false
   },

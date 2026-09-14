@@ -1,7 +1,7 @@
 {
   "id": "qa-lab",
   "categories": ["developer-tools"],
-  "description": "OpenClaw QA lab plugin with private debugger UI and scenario runner.",
+  "description": "Vasudev QA lab plugin with private debugger UI and scenario runner.",
   "cliCommands": [
     {
       "name": "qa",
