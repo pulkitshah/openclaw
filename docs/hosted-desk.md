@@ -42,7 +42,7 @@ deploy/desk/new-desk.sh <desk-name> \
   --owner-target <telegram-user-or-chat-id>
 ```
 
-This boots a `s-2vcpu-4gb` droplet by default (pass `--size s-4vcpu-8gb` for more parallel runs), waits for the desk to join the tailnet, and prints the desk's Control UI address plus the command to reveal the first sign-in token. This usually takes 10–15 minutes; the create command waits up to 15 minutes for the desk to appear on your tailnet and tells you if it does not. Full flag and environment-override reference: `deploy/desk/README.md`.
+This boots a `s-2vcpu-4gb` droplet by default (pass `--size s-4vcpu-8gb` for more parallel runs) and prints the desk's Control UI address plus the command to reveal the first sign-in token. Creating a desk usually takes 15–25 minutes. The command first waits for the desk to appear on your tailnet, then keeps waiting until the Gateway answers at its tailnet URL, and prints that URL only when it does. If the desk does not answer within 30 minutes, the command stops with the log command to run. Full flag and environment-override reference: `deploy/desk/README.md`.
 
 ## What runs on it
 
