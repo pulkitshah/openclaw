@@ -1853,6 +1853,7 @@
                     "pages": [
                       "plugins/admin-http-rpc",
                       "plugins/beam",
+                      "plugins/duties",
                       "plugins/geolocation",
                       "plugins/logbook",
                       "plugins/oc-path",
