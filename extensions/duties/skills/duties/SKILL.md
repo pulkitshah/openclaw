@@ -35,6 +35,14 @@ Not every Duty needs a browser at all — a Duty can end right after a single `a
 whose answer is saved via `saveAs`, or after a `template` step renders a document and a
 `deliver` step sends it, with no browser involved at all.
 
+**Editing a Duty that is already active.** Normally your edit applies immediately — repairing
+a live Duty the moment it breaks is the point. But the owner can ask for edits to active
+Duties to be approved first. When they have, `duty_set_steps` / `duty_draft` / `duty_save`
+return `{ ok: true, pending: true, changeId, summary }` and **nothing has changed yet**: the
+live Duty keeps running as it was. Say exactly that to the owner — name the Duty and the
+summary, and say the change is waiting for them — then stop. Never report the edit as done,
+never say or imply the owner approved it, and never try to apply it yourself.
+
 ## Step vocabulary
 
 Every step (and `when`/`stop` node) has a `label` in **the owner's words** — never a

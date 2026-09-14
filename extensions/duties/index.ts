@@ -273,6 +273,10 @@ export default definePluginEntry({
       render,
       previewDir: () => runFiles.previewDir(),
       config: currentConfig,
+      // Same owner route asks and status lines use, so everything owner-facing lands in one place.
+      notifyOwner: async (text) => {
+        await deliver.send({ route: await ownerRoute(undefined), text });
+      },
     });
     registerDutyTools({ api });
 

@@ -75,7 +75,69 @@ export type Duty = {
   triggers: DutyTrigger[];
   updatedAt: number;
   lastRunAt?: number;
+  /** A change to this ACTIVE Duty that is waiting for the owner, present only while
+   *  `settings.requireApprovalForEdits` is on. The live Duty keeps running unchanged until the
+   *  owner applies it. */
+  pendingChange?: PendingDutyChange;
 };
+
+/** One edit to an active Duty, held until the owner applies or discards it. The candidate is
+ *  stored already validated, so applying it is a write and never a re-validation that could fail
+ *  after the owner said yes. */
+export type PendingDutyChange = {
+  id: string;
+  duty: Duty;
+  requestedAt: number;
+  /** One line naming what applying it would change, for the message the owner reads. */
+  summary: string;
+};
+
+/** Ids of the nodes an author can name: steps and the gates that carry an id. `stop` has none. */
+function nodeIds(nodes: DutyNode[]): Map<string, string> {
+  const byId = new Map<string, string>();
+  const walk = (list: DutyNode[]): void => {
+    for (const node of list) {
+      if (node.kind === "when") {
+        if (node.id) byId.set(node.id, JSON.stringify(node.cond));
+        walk(node.then);
+        walk(node.else ?? []);
+        continue;
+      }
+      if (node.kind === "stop") continue;
+      byId.set(
+        node.id,
+        JSON.stringify({ kind: node.kind, params: node.params, target: node.target }),
+      );
+    }
+  };
+  walk(nodes);
+  return byId;
+}
+
+/**
+ * One line describing what applying a pending change would do, in the terms the owner thinks in:
+ * how many steps appear, disappear or behave differently, and whether the triggers or inputs move.
+ * Never the step contents — a Duty's params can hold a customer's details.
+ */
+export function summarizeDutyChange(current: Duty, next: Duty): string {
+  const before = nodeIds(current.steps);
+  const after = nodeIds(next.steps);
+  const added = [...after.keys()].filter((id) => !before.has(id)).length;
+  const removed = [...before.keys()].filter((id) => !after.has(id)).length;
+  const changed = [...after.entries()].filter(
+    ([id, shape]) => before.has(id) && before.get(id) !== shape,
+  ).length;
+  const parts: string[] = [];
+  if (added) parts.push(`${added} step${added === 1 ? "" : "s"} added`);
+  if (removed) parts.push(`${removed} step${removed === 1 ? "" : "s"} removed`);
+  if (changed) parts.push(`${changed} step${changed === 1 ? "" : "s"} changed`);
+  if (JSON.stringify(current.triggers) !== JSON.stringify(next.triggers))
+    parts.push("triggers changed");
+  if (JSON.stringify(current.inputs) !== JSON.stringify(next.inputs)) parts.push("inputs changed");
+  if (current.name !== next.name || current.summary !== next.summary)
+    parts.push("name/summary changed");
+  return parts.length ? parts.join(", ") : "no visible change";
+}
 
 const ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 /** A step id is not just a label: the runner joins `${step.id}.pdf` onto the run's files

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
 import { basename } from "node:path";
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
@@ -10,6 +11,7 @@ import {
   DEFAULT_REPORTS_TO,
   DEFAULT_TRIGGERS,
   DUTY_STATUSES,
+  summarizeDutyChange,
   validateDuty,
   validateRunInputs,
   type Duty,
@@ -17,6 +19,7 @@ import {
   type DutyNode,
   type DutyStatus,
   type DutyTrigger,
+  type PendingDutyChange,
 } from "./duty.js";
 import { mailStatusFromConfig } from "./mail.js";
 import { renderTemplatePreview } from "./preview.js";
@@ -91,8 +94,11 @@ export function registerDutiesGatewayMethods(params: {
    *  trigger health readout is exactly what an operator watches while fixing config, so answering
    *  it from a registration-time snapshot told them setup had not worked when it had. */
   config?: () => OpenClawConfig;
+  /** Sends one line to the owner target. Used only to say that a change to an active Duty is
+   *  waiting; best-effort, and never on the critical path of the write itself. */
+  notifyOwner?: (text: string) => Promise<void>;
 }): void {
-  const { api, store, runs, emit, creds, evidence, render, previewDir } = params;
+  const { api, store, runs, emit, creds, evidence, render, previewDir, notifyOwner } = params;
   const currentConfig = (): OpenClawConfig => params.config?.() ?? api.config;
 
   // A committed write (save/delete/status) must still be reported as `ok: true` even if
@@ -185,12 +191,62 @@ export function registerDutiesGatewayMethods(params: {
     return { runs: await store.listRecentRuns(limit) };
   });
 
+  /**
+   * Whether an edit to this Duty has to wait for the owner.
+   *
+   * Off by default, deliberately: the agent editing a Duty on its own is how a Duty gets repaired
+   * the moment it breaks, and that is wanted. An owner who would rather see every change to a Duty
+   * that is already live turns `requireApprovalForEdits` on, and only ACTIVE Duties are gated —
+   * a `building` Duty is still being written, and pausing/resuming one is not an edit to what it
+   * does.
+   */
+  const needsApproval = async (existing: Duty | undefined): Promise<boolean> =>
+    existing?.status === "active" && (await store.getSettings()).requireApprovalForEdits === true;
+
+  /**
+   * Parks a validated candidate on the live Duty and tells the owner it is waiting.
+   *
+   * The owner applies it with `duties.change.apply`; there is no Apply/Discard card here on
+   * purpose. A card would have to park on `question.waitAnswer` for as long as the owner takes,
+   * and the only thing in this plugin that waits on a question is the RunManager, inside a run —
+   * a second waiter living in an RPC handler would be a competing owner of the same contract for
+   * a flow that has no run to park. The message names the two methods instead; the Control UI
+   * wave can put buttons on them.
+   */
+  const parkChange = async (current: Duty, next: Duty) => {
+    const { pendingChange: _superseded, ...candidate } = next;
+    const change: PendingDutyChange = {
+      id: `chg_${randomUUID()}`,
+      duty: candidate,
+      requestedAt: Date.now(),
+      summary: summarizeDutyChange(current, candidate),
+    };
+    // A second edit while one is pending replaces it: the owner is shown the newest intent, never
+    // asked to approve a change the agent has already moved past.
+    await store.saveDuty({ ...current, pendingChange: change });
+    safeEmit("changed", { dutyId: current.id, pendingChangeId: change.id });
+    void notifyOwner?.(
+      `${current.name}: a change to this active Duty is waiting for you — ${change.summary}. Apply it with duties.change.apply { dutyId: "${current.id}" }, or drop it with duties.change.discard.`,
+    ).catch(() => {});
+    return {
+      ok: true,
+      pending: true,
+      changeId: change.id,
+      summary: change.summary,
+      duty: current,
+      message:
+        "This Duty is active and edits need the owner's approval. The change is waiting for them — tell the owner it is waiting and stop; do not act as if it were applied.",
+    };
+  };
+
   register("duties.save", "operator.write", async (params) => {
     const candidate = isRecord(params.duty)
       ? { ...params.duty, updatedAt: Date.now() }
       : params.duty;
     const result = validateDuty(candidate);
     if (!result.ok) throw new Error(`invalid duty: ${result.errors.join("; ")}`);
+    const existing = await store.getDuty(result.duty.id);
+    if (await needsApproval(existing)) return parkChange(existing!, result.duty);
     await store.saveDuty(result.duty);
     safeEmit("changed", { dutyId: result.duty.id });
     return { duty: result.duty };
@@ -226,6 +282,7 @@ export function registerDutiesGatewayMethods(params: {
       updatedAt: Date.now(),
       ...(existing?.lastRunAt !== undefined ? { lastRunAt: existing.lastRunAt } : {}),
     };
+    if (await needsApproval(existing)) return parkChange(existing!, draft);
     await store.saveDuty(draft);
     safeEmit("changed", { dutyId: id });
     return { ok: true, duty: draft };
@@ -241,9 +298,54 @@ export function registerDutiesGatewayMethods(params: {
     const steps = (params.steps as DutyNode[] | undefined) ?? [];
     const result = validateDuty({ ...existing, steps, updatedAt: Date.now() });
     if (!result.ok) return { ok: false, errors: result.errors };
+    if (await needsApproval(existing)) return parkChange(existing, result.duty);
     await store.saveDuty(result.duty);
     safeEmit("changed", { dutyId: id });
     return { ok: true, duty: result.duty };
+  });
+
+  /** What is waiting for the owner on this Duty, if anything. */
+  register("duties.change.get", "operator.read", async (params) => {
+    const duty = await requireDuty(readId(params));
+    return {
+      pending: duty.pendingChange !== undefined,
+      ...(duty.pendingChange ? { change: duty.pendingChange } : {}),
+    };
+  });
+
+  /** Applies the waiting change. Admin-only: this is the owner's decision, made on their behalf
+   *  only by something holding their authority. The candidate was validated when it was parked,
+   *  so applying it cannot fail on shape after the owner has said yes. */
+  register("duties.change.apply", "operator.admin", async (params) => {
+    const duty = await requireDuty(readId(params));
+    const change = duty.pendingChange;
+    if (!change) throw new Error("no change is waiting on that Duty");
+    if (typeof params.changeId === "string" && params.changeId !== change.id) {
+      throw new Error("that change has been superseded by a newer one");
+    }
+    // The candidate replaces the record outright — including dropping `pendingChange` itself —
+    // but keeps the live Duty's run history.
+    const applied: Duty = {
+      ...change.duty,
+      updatedAt: Date.now(),
+      ...(duty.lastRunAt !== undefined ? { lastRunAt: duty.lastRunAt } : {}),
+    };
+    await store.saveDuty(applied);
+    safeEmit("changed", { dutyId: duty.id });
+    return { ok: true, duty: applied };
+  });
+
+  /** Drops the waiting change; the live Duty is untouched. */
+  register("duties.change.discard", "operator.admin", async (params) => {
+    const duty = await requireDuty(readId(params));
+    if (!duty.pendingChange) return { ok: false };
+    if (typeof params.changeId === "string" && params.changeId !== duty.pendingChange.id) {
+      throw new Error("that change has been superseded by a newer one");
+    }
+    const { pendingChange: _discarded, ...live } = duty;
+    await store.saveDuty(live);
+    safeEmit("changed", { dutyId: duty.id });
+    return { ok: true, duty: live };
   });
 
   register("duties.delete", "operator.admin", async (params) => {
@@ -481,15 +583,25 @@ export function registerDutiesGatewayMethods(params: {
 
   register("duties.settings.set", "operator.admin", async (params) => {
     const owner = params.owner;
-    if (!isRecord(owner)) throw new Error("owner is required");
-    const channel = owner.channel;
-    const target = owner.target;
-    if (typeof channel !== "string" || !channel.trim())
-      throw new Error("owner.channel is required");
-    if (typeof target !== "string" || !target.trim()) throw new Error("owner.target is required");
-    const settings = await store.updateSettings({
-      owner: { channel: channel.trim(), target: target.trim() },
-    });
+    const approval = params.requireApprovalForEdits;
+    if (approval !== undefined && typeof approval !== "boolean") {
+      throw new Error("requireApprovalForEdits must be a boolean");
+    }
+    if (owner === undefined && approval === undefined) {
+      throw new Error("owner or requireApprovalForEdits is required");
+    }
+    const patch: Parameters<typeof store.updateSettings>[0] = {};
+    if (owner !== undefined) {
+      if (!isRecord(owner)) throw new Error("owner is required");
+      const channel = owner.channel;
+      const target = owner.target;
+      if (typeof channel !== "string" || !channel.trim())
+        throw new Error("owner.channel is required");
+      if (typeof target !== "string" || !target.trim()) throw new Error("owner.target is required");
+      patch.owner = { channel: channel.trim(), target: target.trim() };
+    }
+    if (approval !== undefined) patch.requireApprovalForEdits = approval;
+    const settings = await store.updateSettings(patch);
     safeEmit("changed", { settings: true });
     return { settings };
   });

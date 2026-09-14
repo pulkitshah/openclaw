@@ -98,6 +98,10 @@ export type DutiesSettings = {
   owner?: { channel: string; target: string };
   lastMailDispatchAt?: number;
   lastMailDispatchDutyId?: string;
+  /** Off by default: the agent edits Duties on its own, which is how a Duty gets repaired the
+   *  moment it breaks. Turned on, an edit to an ACTIVE Duty is parked as a pending change and the
+   *  live Duty keeps running unchanged until the owner applies it. */
+  requireApprovalForEdits?: boolean;
 };
 
 export type DutyStores = {

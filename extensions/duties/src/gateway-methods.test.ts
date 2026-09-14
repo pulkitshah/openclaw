@@ -38,6 +38,7 @@ function harness(params?: {
   config?: OpenClawConfig;
   render?: RenderAdapter;
   previewDir?: string;
+  notifyOwner?: (text: string) => Promise<void>;
 }) {
   const methods = new Map<string, { handler: Handler; scope: string }>();
   const api = {
@@ -74,6 +75,7 @@ function harness(params?: {
       },
     },
     previewDir: async () => params?.previewDir ?? tmpdir(),
+    ...(params?.notifyOwner ? { notifyOwner: params.notifyOwner } : {}),
   });
 
   const call = async (name: string, callParams: Record<string, unknown>) =>
@@ -280,6 +282,147 @@ describe("duties gateway methods", () => {
 
     const missingRun = await call("duties.run.get", { runId: "does-not-exist" });
     expect(missingRun.ok).toBe(false);
+  });
+
+  // Off by default: the agent repairing a Duty the moment it breaks is wanted behaviour, so the
+  // gate is something an owner turns on, not something they have to turn off.
+  describe("edits to an active Duty", () => {
+    const activeDuty = { ...baseDuty, status: "active" as const, name: "Book flight" };
+    const newSteps = [
+      {
+        id: "s1",
+        kind: "ask",
+        label: "Approve?",
+        params: { question: "Go?", options: ["Yes", "No"] },
+      },
+    ];
+
+    it("applies directly when approval is not required", async () => {
+      const { call, store } = harness();
+      await store.saveDuty(activeDuty);
+
+      const saved = await call("duties.steps", { id: "d1", steps: newSteps });
+
+      expect(saved.result).toMatchObject({ ok: true });
+      expect((await store.getDuty("d1"))?.steps).toHaveLength(1);
+      expect((await store.getDuty("d1"))?.pendingChange).toBeUndefined();
+    });
+
+    it("parks the change, leaves the live Duty running, and tells the owner", async () => {
+      const notifyOwner = vi.fn(async () => {});
+      const { call, store } = harness({ notifyOwner });
+      await store.saveDuty(activeDuty);
+      await store.updateSettings({ requireApprovalForEdits: true });
+
+      const parked = await call("duties.steps", { id: "d1", steps: newSteps });
+
+      expect(parked.result).toMatchObject({ ok: true, pending: true });
+      const changeId = (parked.result as { changeId: string }).changeId;
+      expect(changeId).toMatch(/^chg_/u);
+      // The live Duty is untouched — this is the whole point: it keeps running as it was.
+      const live = await store.getDuty("d1");
+      expect(live?.steps).toEqual([]);
+      expect(live?.pendingChange?.id).toBe(changeId);
+      expect(live?.pendingChange?.summary).toContain("1 step added");
+      expect(notifyOwner).toHaveBeenCalledOnce();
+      expect(notifyOwner.mock.calls[0]?.[0]).toContain("Book flight");
+      expect(notifyOwner.mock.calls[0]?.[0]).toContain("duties.change.apply");
+
+      const waiting = await call("duties.change.get", { id: "d1" });
+      expect(waiting.result).toMatchObject({ pending: true });
+    });
+
+    it("applies a parked change on the owner's word, and discards it on the owner's word", async () => {
+      const { call, store, methods } = harness();
+      expect(methods.get("duties.change.apply")?.scope).toBe("operator.admin");
+      expect(methods.get("duties.change.discard")?.scope).toBe("operator.admin");
+      expect(methods.get("duties.change.get")?.scope).toBe("operator.read");
+      await store.saveDuty(activeDuty);
+      await store.updateSettings({ requireApprovalForEdits: true });
+      await call("duties.steps", { id: "d1", steps: newSteps });
+
+      const applied = await call("duties.change.apply", { id: "d1" });
+      expect(applied.ok).toBe(true);
+      const after = await store.getDuty("d1");
+      expect(after?.steps).toHaveLength(1);
+      expect(after?.pendingChange).toBeUndefined();
+      // Nothing is waiting any more.
+      expect((await call("duties.change.apply", { id: "d1" })).ok).toBe(false);
+
+      // Discard leaves the live Duty exactly as it was.
+      await call("duties.steps", { id: "d1", steps: [] });
+      expect((await store.getDuty("d1"))?.pendingChange).toBeTruthy();
+      const discarded = await call("duties.change.discard", { id: "d1" });
+      expect(discarded.ok).toBe(true);
+      const unchanged = await store.getDuty("d1");
+      expect(unchanged?.steps).toHaveLength(1);
+      expect(unchanged?.pendingChange).toBeUndefined();
+    });
+
+    it("replaces a pending change with the newest one, and refuses to apply a superseded id", async () => {
+      const { call, store } = harness();
+      await store.saveDuty(activeDuty);
+      await store.updateSettings({ requireApprovalForEdits: true });
+
+      const first = await call("duties.steps", { id: "d1", steps: newSteps });
+      const second = await call("duties.steps", { id: "d1", steps: [] });
+      const firstId = (first.result as { changeId: string }).changeId;
+      const secondId = (second.result as { changeId: string }).changeId;
+      expect(secondId).not.toBe(firstId);
+      expect((await store.getDuty("d1"))?.pendingChange?.id).toBe(secondId);
+
+      const stale = await call("duties.change.apply", { id: "d1", changeId: firstId });
+      expect(stale.ok).toBe(false);
+      expect(stale.error).toMatchObject({
+        message: "that change has been superseded by a newer one",
+      });
+    });
+
+    it("never gates a building Duty, or pausing an active one", async () => {
+      const { call, store } = harness();
+      await store.saveDuty({ ...baseDuty, status: "building" });
+      await store.updateSettings({ requireApprovalForEdits: true });
+
+      const built = await call("duties.steps", { id: "d1", steps: newSteps });
+      expect(built.result).toMatchObject({ ok: true });
+      expect(built.result).not.toMatchObject({ pending: true });
+      expect((await store.getDuty("d1"))?.steps).toHaveLength(1);
+
+      // Making it active, then pausing it, are status moves rather than edits to what it does.
+      await call("duties.status", { id: "d1", status: "active" });
+      const paused = await call("duties.status", { id: "d1", status: "paused" });
+      expect(paused.ok).toBe(true);
+      expect((await store.getDuty("d1"))?.status).toBe("paused");
+      expect((await store.getDuty("d1"))?.pendingChange).toBeUndefined();
+    });
+
+    it("gates duties.draft and duties.save on an active Duty too", async () => {
+      const { call, store } = harness();
+      await store.saveDuty(activeDuty);
+      await store.updateSettings({ requireApprovalForEdits: true });
+
+      const drafted = await call("duties.draft", { id: "d1", name: "Renamed", summary: "s" });
+      expect(drafted.result).toMatchObject({ pending: true });
+      expect((await store.getDuty("d1"))?.name).toBe("Book flight");
+
+      const saved = await call("duties.save", { duty: { ...activeDuty, summary: "different" } });
+      expect(saved.result).toMatchObject({ pending: true });
+      expect((await store.getDuty("d1"))?.summary).toBe("");
+    });
+  });
+
+  it("duties.settings.set toggles requireApprovalForEdits without touching the owner", async () => {
+    const { call, store } = harness();
+    await call("duties.settings.set", { owner: { channel: "telegram", target: "111" } });
+
+    const on = await call("duties.settings.set", { requireApprovalForEdits: true });
+    expect(on.ok).toBe(true);
+    expect((await store.getSettings()).requireApprovalForEdits).toBe(true);
+    expect((await store.getSettings()).owner).toEqual({ channel: "telegram", target: "111" });
+
+    await call("duties.settings.set", { requireApprovalForEdits: false });
+    expect((await store.getSettings()).requireApprovalForEdits).toBe(false);
+    expect((await call("duties.settings.set", { requireApprovalForEdits: "yes" })).ok).toBe(false);
   });
 
   it("duties.settings.set is admin-only and needs a non-empty channel and target", async () => {
