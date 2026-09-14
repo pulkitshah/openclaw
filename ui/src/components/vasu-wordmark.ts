@@ -1,5 +1,6 @@
-import { css, html, LitElement } from "lit";
+import { css, html, LitElement, unsafeCSS } from "lit";
 import { property } from "lit/decorators.js";
+import { SIGNATURE_GRADIENT } from "../app/brand-gradient.ts";
 
 /** Lockup sizes from the brand guide: sidebar row, card header, hero. */
 const WORDMARK_SIZES = ["sm", "md", "lg"] as const;
@@ -8,11 +9,17 @@ export type VasuWordmarkSize = (typeof WORDMARK_SIZES)[number];
 
 const DEFAULT_SIZE: VasuWordmarkSize = "md";
 
-/** The Vasudev wordmark: "Vasu" in ink, "dev" filled with the signature
+/** The Vasudev wordmark: "Vasu" in ink and "dev" filled with the signature
  * gradient, set in the display face at 600. It sits next to `<vasu-orb>` on the
- * login gate, the sidebar header and About. Text, not artwork: the host carries
- * `role="img"` with the full name so a heading or button around it still reads
- * "Vasudev" to assistive technology. */
+ * login gate, the sidebar header and About.
+ *
+ * The gradient is spent once per screen. Set `beside-orb` wherever the orb is
+ * already carrying it — every placement in the product today — and "dev" falls
+ * back to ink; the gradient span is for an orb-less lockup, where the wordmark
+ * is the screen's only mark.
+ *
+ * Text, not artwork: the host carries `role="img"` with the full name so a
+ * heading or button around it still reads "Vasudev" to assistive technology. */
 class VasuWordmark extends LitElement {
   static override styles = css`
     :host {
@@ -43,17 +50,10 @@ class VasuWordmark extends LitElement {
       color: var(--text-strong, #14151a);
     }
 
-    /* The gradient is spent here: "dev" is the only painted glyph run. */
+    /* Orb-less lockups only: next to the orb this span is not rendered, so the
+       screen keeps exactly one gradient. */
     .vasu-wordmark__gradient {
-      background-image: linear-gradient(
-        95deg,
-        #ffc24b 0%,
-        #f97316 16%,
-        #e0218a 38%,
-        #8a2be2 58%,
-        #3a6ff0 78%,
-        #16c79a 100%
-      );
+      background-image: var(--brand-gradient, ${unsafeCSS(SIGNATURE_GRADIENT)});
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
@@ -61,6 +61,9 @@ class VasuWordmark extends LitElement {
   `;
 
   @property({ reflect: true }) size: VasuWordmarkSize = DEFAULT_SIZE;
+
+  /** The adjacent `<vasu-orb>` carries the gradient, so "dev" renders in ink. */
+  @property({ type: Boolean, reflect: true, attribute: "beside-orb" }) besideOrb = false;
 
   override connectedCallback(): void {
     super.connectedCallback();
@@ -74,8 +77,8 @@ class VasuWordmark extends LitElement {
   }
 
   override render() {
-    return html`<span class="vasu-wordmark__ink">Vasu</span
-      ><span class="vasu-wordmark__gradient">dev</span>`;
+    const devClass = this.besideOrb ? "vasu-wordmark__ink" : "vasu-wordmark__gradient";
+    return html`<span class="vasu-wordmark__ink">Vasu</span><span class=${devClass}>dev</span>`;
   }
 
   /** An unknown `size` attribute still has to render a usable lockup. */

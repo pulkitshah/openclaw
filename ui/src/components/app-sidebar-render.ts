@@ -168,7 +168,9 @@ function renderSidebarWorkspaceHeader(host: AppSidebarRenderHost) {
           <span class="sidebar-agent-card__name">
             <span class="sidebar-agent-card__name-text"
               >${
-                name === PRODUCT_NAME ? html`<vasu-wordmark size="sm"></vasu-wordmark>` : name
+                name === PRODUCT_NAME
+                  ? html`<vasu-wordmark size="sm" beside-orb></vasu-wordmark>`
+                  : name
               }</span
             >
             <span class="sidebar-agent-card__chevron" aria-hidden="true"

@@ -343,7 +343,7 @@ function renderLoginGate(props: LoginGateProps) {
       <div class="login-gate__card" data-mode=${feedback?.placement ?? "form"}>
         <header class="login-gate__brand">
           <vasu-orb class="login-gate__logo" size="27"></vasu-orb>
-          <vasu-wordmark class="login-gate__brand-name" size="lg"></vasu-wordmark>
+          <vasu-wordmark class="login-gate__brand-name" size="lg" beside-orb></vasu-wordmark>
         </header>
         ${body}
       </div>

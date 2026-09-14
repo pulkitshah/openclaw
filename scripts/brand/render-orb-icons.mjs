@@ -23,9 +23,6 @@ const PAPER_LIGHT = "#f7f7f9";
 const INK_LIGHT = "#14151a";
 const PAPER_DARK = "#0d0e12";
 const INK_DARK = "#f2f3f6";
-const SIGNATURE_GRADIENT =
-  "linear-gradient(95deg,#ffc24b 0%,#f97316 16%,#e0218a 38%,#8a2be2 58%,#3a6ff0 78%,#16c79a 100%)";
-
 /** The display face for the wordmark, in the guide's preference order. Khand is
  * the standard; Space Grotesk is its documented fallback and the face this
  * checkout self-hosts today. Both are embedded as data URIs so the render never
@@ -54,6 +51,8 @@ const targets = [
 ];
 
 /** Docs hero and README banner: the orb with the wordmark on Vasudev paper.
+ * The orb master is the frame's only gradient — the wordmark is set in ink — so
+ * this script holds no copy of the gradient value at all.
  * Pixel sizes match the lobster artwork these replaced, so every existing
  * reference keeps its layout. */
 const compositions = [
@@ -177,14 +176,8 @@ function compositionDocument(svg, faceRule, { width, height, layout, theme }) {
       white-space: nowrap;
     }
     .wordmark__ink { color: ${dark ? INK_DARK : INK_LIGHT}; }
-    .wordmark__gradient {
-      background-image: ${SIGNATURE_GRADIENT};
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
   </style><div class="frame">${svg}<div class="wordmark"><span
-    class="wordmark__ink">Vasu</span><span class="wordmark__gradient">dev</span></div></div>`;
+    class="wordmark__ink">Vasu</span><span class="wordmark__ink">dev</span></div></div>`;
 }
 
 async function main() {

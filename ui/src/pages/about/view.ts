@@ -160,7 +160,7 @@ function renderHero(props: AboutProps) {
       >
         <vasu-orb size="96"></vasu-orb>
       </button>
-      <h2 class="about-hero__name"><vasu-wordmark size="lg"></vasu-wordmark></h2>
+      <h2 class="about-hero__name"><vasu-wordmark size="lg" beside-orb></vasu-wordmark></h2>
       <p class="about-hero__tagline">${t("aboutPage.tagline")}</p>
       ${
         props.buildInfo.version

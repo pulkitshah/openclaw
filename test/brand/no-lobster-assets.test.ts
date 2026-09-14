@@ -83,6 +83,11 @@ function assetReferencesNamingTheRetiredMark(...roots: string[]): string[] {
   return hits.sort();
 }
 
+/** Element names are discussed in prose too; only real markup is a call site. */
+function withoutComments(source: string): string {
+  return source.replaceAll(/\/\*[\s\S]*?\*\//gu, "").replaceAll(/^\s*\/\/.*$/gmu, "");
+}
+
 describe("brand marks", () => {
   it("ships no lobster, crab or mascot artwork in the Control UI or docs assets", () => {
     expect(assetFilesNamingTheRetiredMark("ui", "docs/assets")).toEqual([]);
@@ -90,6 +95,23 @@ describe("brand marks", () => {
 
   it("references no lobster, crab or mascot artwork from the Control UI, CLI or docs manifest", () => {
     expect(assetReferencesNamingTheRetiredMark("ui/src", "src/cli", "docs/docs.json")).toEqual([]);
+  });
+
+  it("spends the signature gradient once per screen at every wordmark call site", () => {
+    // The orb and the wordmark's "dev" both paint the gradient, so a lockup
+    // that shows them together must ask the wordmark for ink. Every placement
+    // in the product sits beside the orb; an orb-less one would be the screen's
+    // only mark and belongs in this list with its own reason.
+    const callSites = walkFiles(path.join(repoRoot, "ui/src"))
+      .filter((file) => file.endsWith(".ts") && !file.endsWith(".test.ts"))
+      .flatMap((file) =>
+        (withoutComments(readFileSync(file, "utf8")).match(/<vasu-wordmark[^>]*>/gu) ?? []).map(
+          (tag) => `${repoRelative(file)}: ${tag.replace(/\s+/gu, " ")}`,
+        ),
+      );
+
+    expect(callSites.length).toBeGreaterThan(0);
+    expect(callSites.filter((site) => !site.includes("beside-orb"))).toEqual([]);
   });
 
   it("prints no crustacean glyph in the CLI banner", () => {
