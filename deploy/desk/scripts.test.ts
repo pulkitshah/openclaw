@@ -217,7 +217,8 @@ describe("deploy/desk operator scripts", () => {
     function happyPathEnv(extra: Record<string, string> = {}): Record<string, string> {
       return {
         DESK_POLL_SECONDS: "5",
-        DOCTL_SSH_KEY_LIST_JSON: JSON.stringify([{ id: "98765", name: "Pulkit Macbook Pro 2025" }]),
+        DESK_SSH_KEY_NAME: "ci-operator-key",
+        DOCTL_SSH_KEY_LIST_JSON: JSON.stringify([{ id: "98765", name: "ci-operator-key" }]),
         DOCTL_FIREWALL_LIST_JSON: "[]",
         DOCTL_FIREWALL_CREATE_JSON: JSON.stringify([{ id: "fw-1", name: "desk-no-inbound" }]),
         DOCTL_DROPLET_CREATE_JSON: JSON.stringify([{ id: 555, name: deskName }]),
@@ -228,6 +229,80 @@ describe("deploy/desk operator scripts", () => {
         ...extra,
       };
     }
+
+    it("auto-detects the doctl key whose fingerprint matches a local public key when DESK_SSH_KEY_NAME is unset", () => {
+      const home = join(dir, "home");
+      mkdirSync(join(home, ".ssh"), { recursive: true });
+      writeFileSync(join(home, ".ssh", "id_fixture.pub"), "ssh-ed25519 AAAAfixture fixture@test\n");
+      // ssh-keygen stub: prints the fingerprint line the script parses (`-E md5 -lf <pub>`).
+      writeStub(
+        binDir,
+        "ssh-keygen",
+        `printf '%s\\n' "256 MD5:aa:bb:cc:dd:ee:ff fixture@test (ED25519)"`,
+      );
+      const env = happyPathEnv({
+        HOME: home,
+        DOCTL_SSH_KEY_LIST_JSON: JSON.stringify([
+          { id: "111", name: "someone-elses-key", fingerprint: "11:22:33:44:55:66" },
+          { id: "222", name: "this-machine", fingerprint: "aa:bb:cc:dd:ee:ff" },
+        ]),
+      });
+      delete env.DESK_SSH_KEY_NAME;
+      const result = run(
+        NEW_DESK,
+        [
+          deskName,
+          "--ts-authkey-file",
+          tsAuthkeyFile,
+          "--tg-token-file",
+          tgTokenFile,
+          "--owner-target",
+          "123456789",
+        ],
+        env,
+      );
+      expect(result.status).toBe(0);
+      expect(result.stderr).toContain('Using doctl SSH key "this-machine"');
+      const createLine = readLog(doctlLog)
+        .split("\n")
+        .find((line) => line.includes("compute droplet create"));
+      expect(createLine).toContain("--ssh-keys 222");
+    });
+
+    it("refuses when no doctl key matches a local public key and no name is given", () => {
+      const home = join(dir, "home-nomatch");
+      mkdirSync(join(home, ".ssh"), { recursive: true });
+      writeFileSync(join(home, ".ssh", "id_fixture.pub"), "ssh-ed25519 AAAAfixture fixture@test\n");
+      writeStub(
+        binDir,
+        "ssh-keygen",
+        `printf '%s\\n' "256 MD5:aa:bb:cc:dd:ee:ff fixture@test (ED25519)"`,
+      );
+      const env = happyPathEnv({
+        HOME: home,
+        DOCTL_SSH_KEY_LIST_JSON: JSON.stringify([
+          { id: "111", name: "someone-elses-key", fingerprint: "11:22:33" },
+        ]),
+      });
+      delete env.DESK_SSH_KEY_NAME;
+      const result = run(
+        NEW_DESK,
+        [
+          deskName,
+          "--ts-authkey-file",
+          tsAuthkeyFile,
+          "--tg-token-file",
+          tgTokenFile,
+          "--owner-target",
+          "123456789",
+        ],
+        env,
+      );
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain("none of the doctl SSH keys match");
+      expect(result.stderr).toContain("someone-elses-key");
+      expect(readLog(doctlLog)).not.toContain("compute droplet create");
+    });
 
     it("creates the firewall when missing, creates the droplet with the right doctl args, attaches it, and prints the Control UI URL", () => {
       const result = run(

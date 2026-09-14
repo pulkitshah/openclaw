@@ -36,7 +36,9 @@ install, and reboot all happen after the tailnet join, so this second phase is n
 longer one — typically 15-25 minutes).
 
 Environment overrides:
-  DESK_SSH_KEY_NAME          doctl SSH key name to embed (default: "Pulkit Macbook Pro 2025")
+  DESK_SSH_KEY_NAME          doctl SSH key name to embed. Default: auto-detect — the first
+                             doctl key whose fingerprint matches a public key in ~/.ssh, so
+                             the printed sign-in command works from this machine.
   DESK_SSH_USER              account the printed sign-in command connects as (default: root —
                              DigitalOcean embeds the chosen SSH key into root's authorized_keys)
   DESK_REGION                DigitalOcean region (default: blr1)
@@ -54,7 +56,7 @@ for cmd in doctl jq tailscale curl; do
   fi
 done
 
-DESK_SSH_KEY_NAME="${DESK_SSH_KEY_NAME:-Pulkit Macbook Pro 2025}"
+DESK_SSH_KEY_NAME="${DESK_SSH_KEY_NAME:-}"
 DESK_SSH_USER="${DESK_SSH_USER:-root}"
 DESK_REGION="${DESK_REGION:-blr1}"
 DESK_TAG="${DESK_TAG:-desk}"
@@ -135,17 +137,43 @@ if [[ -z "$desk_name" || -z "$ts_authkey_file" || -z "$tg_token_file" || -z "$ow
   exit 2
 fi
 
-echo "==> Looking up doctl SSH key \"$DESK_SSH_KEY_NAME\"" >&2
 # jq takes the first match itself (`.[0] // empty`) rather than piping through `head -n1` —
 # under `set -o pipefail`, `head` closing its read end early can deliver jq a SIGPIPE if more
 # than one key ever shares this name, aborting the script instead of just picking one.
-ssh_key_id="$(
-  doctl compute ssh-key list -o json \
-    | jq -r --arg name "$DESK_SSH_KEY_NAME" '[.[] | select(.name == $name)] | (.[0].id // empty)'
-)"
-if [[ -z "$ssh_key_id" ]]; then
-  echo "new-desk.sh: no doctl SSH key named \"$DESK_SSH_KEY_NAME\" — set DESK_SSH_KEY_NAME or add the key in the DigitalOcean control panel" >&2
-  exit 1
+doctl_keys_json="$(doctl compute ssh-key list -o json)"
+if [[ -n "$DESK_SSH_KEY_NAME" ]]; then
+  echo "==> Looking up doctl SSH key \"$DESK_SSH_KEY_NAME\"" >&2
+  ssh_key_id="$(
+    jq -r --arg name "$DESK_SSH_KEY_NAME" '[.[] | select(.name == $name)] | (.[0].id // empty)' <<<"$doctl_keys_json"
+  )"
+  if [[ -z "$ssh_key_id" ]]; then
+    echo "new-desk.sh: no doctl SSH key named \"$DESK_SSH_KEY_NAME\" — fix DESK_SSH_KEY_NAME or add the key in the DigitalOcean control panel" >&2
+    exit 1
+  fi
+else
+  # Auto-detect: the droplet embeds one doctl key into root's authorized_keys, and the sign-in
+  # command this script prints only works if the matching private key lives on this machine.
+  # doctl reports MD5 fingerprints, so compare against `ssh-keygen -E md5` of every ~/.ssh/*.pub.
+  echo "==> Matching doctl SSH keys against ~/.ssh/*.pub" >&2
+  ssh_key_id=""
+  ssh_key_match=""
+  for pub in "$HOME"/.ssh/*.pub; do
+    [[ -f "$pub" ]] || continue
+    fp="$(ssh-keygen -E md5 -lf "$pub" 2>/dev/null | awk '{print $2}' | sed 's/^MD5://')"
+    [[ -n "$fp" ]] || continue
+    ssh_key_id="$(
+      jq -r --arg fp "$fp" '[.[] | select(.fingerprint == $fp)] | (.[0].id // empty)' <<<"$doctl_keys_json"
+    )"
+    if [[ -n "$ssh_key_id" ]]; then
+      ssh_key_match="$(jq -r --arg fp "$fp" '[.[] | select(.fingerprint == $fp)] | (.[0].name // "")' <<<"$doctl_keys_json")"
+      echo "==> Using doctl SSH key \"$ssh_key_match\" (matches $(basename "$pub"))" >&2
+      break
+    fi
+  done
+  if [[ -z "$ssh_key_id" ]]; then
+    echo "new-desk.sh: none of the doctl SSH keys match a public key in ~/.ssh — add this machine's key in the DigitalOcean control panel, or set DESK_SSH_KEY_NAME to a key whose private half you have. doctl keys: $(jq -r '[.[] | .name] | join(", ")' <<<"$doctl_keys_json")" >&2
+    exit 1
+  fi
 fi
 
 echo "==> Ensuring firewall \"$DESK_FIREWALL_NAME\" exists (no inbound, all outbound)" >&2

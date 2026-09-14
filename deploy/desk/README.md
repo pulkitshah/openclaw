@@ -71,8 +71,9 @@ Useful flags: `--size s-4vcpu-8gb` for more parallel runs, `--git-ref <ref>` to 
 non-`main` checkout, `--image <snapshot-id>` to create a new desk from a prior desk's
 snapshot instead of a bare image (minutes instead of a full first-boot install — see
 [Snapshot / restore](#snapshot--restore)). Run `deploy/desk/new-desk.sh --help` for the full
-flag and environment-override list, including `DESK_SSH_KEY_NAME` if the operator's `doctl`
-SSH key is not named `<key-name>` (the script's own default), and
+flag and environment-override list, including `DESK_SSH_KEY_NAME` to pick a specific `doctl`
+SSH key (by default the script uses the first `doctl` key whose fingerprint matches a public
+key in your `~/.ssh`, so the printed sign-in command works from this machine), and
 `DESK_READY_POLL_SECONDS` if 30 minutes isn't enough for a particularly slow first boot.
 
 ## First sign-in
