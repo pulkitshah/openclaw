@@ -8,6 +8,10 @@ timezone: Asia/Kolkata
 locale: en_IN.UTF-8
 
 users:
+  # `default` keeps the image's default account (root on DigitalOcean) and applies the SSH key
+  # chosen at create time to it. Without this entry cloud-init drops that key and the desk is
+  # unreachable over plain SSH (observed 2026-09-14, attempt 3).
+  - default
   - name: openclaw
     system: true
     lock_passwd: true
@@ -15,18 +19,12 @@ users:
     homedir: /home/openclaw
 
 package_update: true
+# Only what the tailnet join needs; the desktop/browser packages install in runcmd AFTER the
+# desk is on the tailnet (see the ordering note under runcmd).
 packages:
-  - git
   - curl
   - ca-certificates
   - gnupg
-  - xvfb
-  - x11-utils
-  - fonts-liberation
-  - fonts-noto-core
-  - fonts-noto-color-emoji
-  - fonts-dejavu
-  - unattended-upgrades
 
 write_files:
   # Security-only unattended-upgrades, never an unattended reboot - kernel/package reboots happen
@@ -109,6 +107,20 @@ runcmd:
   - [install, -d, -o, openclaw, -g, openclaw, -m, '0700', /home/openclaw/.openclaw]
   - [install, -d, -o, root, -g, root, -m, '0755', /var/lib/openclaw]
 
+  # Tailscale FIRST: new-desk.sh watches the tailnet for this hostname and the operator can
+  # only reach the box over it, so the join must not wait behind the multi-minute package,
+  # Node and pnpm installs below. Install, join, then shred the one-time auth key. Tailnet SSH
+  # (--ssh) replaces sshd for humans (spec section 4.3); Serve is configured by the Gateway
+  # itself at startup via gateway.tailscale.mode: "serve" in openclaw.json - no separate
+  # `tailscale serve` CLI step is needed (docs/gateway/tailscale.md).
+  - "curl -fsSL https://tailscale.com/install.sh | sh"
+  - 'tailscale up --authkey "$(cat /root/ts-authkey)" --ssh --hostname {{DESK_NAME}} || echo "desk: tailscale up FAILED" >&2'
+  - shred -u /root/ts-authkey
+
+  # Desktop, browser and tooling packages (deferred from `packages:` so the tailnet join above
+  # is not stuck behind them).
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y git xvfb x11-utils fonts-liberation fonts-noto-core fonts-noto-color-emoji fonts-dejavu unattended-upgrades
+
   # Node 26 (NodeSource) + pnpm via corepack. {{PNPM_PACKAGE_MANAGER}} is the renderer's own
   # repo's package.json "packageManager" field verbatim (e.g. "pnpm@12.3.4+sha512...") so
   # corepack verifies the exact pinned binary against its integrity hash, not just the version.
@@ -116,14 +128,6 @@ runcmd:
   - apt-get install -y nodejs
   - corepack enable
   - corepack prepare {{PNPM_PACKAGE_MANAGER}} --activate
-
-  # Tailscale: install, join the tailnet, then shred the one-time auth key. Tailnet SSH (--ssh)
-  # replaces sshd for humans (spec section 4.3); Serve is configured by the Gateway itself at startup via
-  # gateway.tailscale.mode: "serve" in openclaw.json - no separate `tailscale serve` CLI step is
-  # needed here (docs/gateway/tailscale.md: OpenClaw claims the Serve route on Gateway startup).
-  - "curl -fsSL https://tailscale.com/install.sh | sh"
-  - 'tailscale up --authkey "$(cat /root/ts-authkey)" --ssh --hostname {{DESK_NAME}}'
-  - shred -u /root/ts-authkey
 
   # Fork checkout - pinned to the roll ref the operator asked for.
   - git clone https://github.com/pulkitshah/openclaw /opt/openclaw
