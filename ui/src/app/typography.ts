@@ -93,10 +93,11 @@ export function syncTypefaceStylesheets(faces: TypefacePair): void {
   }
   loadTypefaceStylesheet(faces.ui);
   loadTypefaceStylesheet(faces.chat);
-  // base.css --mono names JetBrains Mono for every theme's code spans, but only
-  // the @font-face declaration here makes that true; the woff2 itself downloads
-  // lazily on the first rendered code glyph, so this costs one small stylesheet.
-  loadTypefaceStylesheet("jetbrains-mono");
+  // base.css --mono names Space Mono for every theme's code spans, and its
+  // @font-face comes from fonts/space-mono.css, which index.html links before
+  // first paint (alongside the Khand display face). Nothing has to be declared
+  // from here: a theme that selects JetBrains Mono as its UI or chat face
+  // already loads it through the two calls above.
 }
 
 export function loadTypefaceSpecimens(): void {

@@ -4575,7 +4575,10 @@ html:not(.openclaw-native-macos):not(.openclaw-native-nav):not(.openclaw-native-
   min-width: 0;
 }
 
+/* The shared page-title role is the display face's home in the app shell; the
+   token resolves to the brand display stack (base.css --font-display). */
 .page-title {
+  font-family: var(--font-display);
   font-size: 22px;
   font-weight: 650;
   letter-spacing: -0.03em;
