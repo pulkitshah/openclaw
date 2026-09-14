@@ -121,7 +121,10 @@ describe("render-cloud-init.mjs", () => {
     const output = render();
     expect(output).toContain(`hostname: ${deskName}`);
     expect(output).toContain(`--hostname ${deskName}`);
-    expect(output).toContain(`git -C /opt/openclaw checkout ${gitRef}`);
+    expect(output).toContain(`git -C /opt/openclaw fetch --depth 1 origin ${gitRef}`);
+    expect(output).toContain("git -C /opt/openclaw checkout --detach FETCH_HEAD");
+    expect(output).toContain("tailscale set --operator=openclaw");
+    expect(output).not.toContain('tailscale up --authkey "$(cat /root/ts-authkey)" --ssh');
   });
 
   it("keeps every secret value confined to write_files entries with restrictive permissions", () => {

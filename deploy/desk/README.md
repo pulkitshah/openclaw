@@ -31,18 +31,17 @@ tailscale up              # join the tailnet a desk will join, if not already
 
 ### SSH access
 
-The scripts SSH into a desk as `DESK_SSH_USER` (default `root`) — a fresh DigitalOcean
-droplet embeds the SSH key chosen at create time into `root`'s `authorized_keys`, and this
-fork's cloud-init does not create a separate admin account. Override with
-`DESK_SSH_USER=<name>` (for both `new-desk.sh` and `roll.sh`) if a desk's key lands on a
-different account.
+The scripts SSH into a desk as `DESK_SSH_USER` (default `root`) over the tailnet with the
+SSH key chosen at create time (`new-desk.sh` picks the DigitalOcean key whose fingerprint
+matches a public key in your `~/.ssh`, so `ssh root@<desk-name>` works from the machine that
+created the desk). The cloud firewall keeps public port 22 closed; sshd is reachable only on
+the tailnet interface. Override with `DESK_SSH_USER=<name>` (for both `new-desk.sh` and
+`roll.sh`) if a desk's key lands on a different account.
 
-Every desk also runs `tailscale up --ssh`, so **Tailscale SSH** (`tailscale ssh
-<desk-name>`) is an alternative to a key-based `ssh <desk-name>` login — it authenticates
-with your tailnet identity instead of an SSH key. It only works out of the box if the
-tailnet's SSH access rules grant your identity a login as `root` (or whichever account you
-need); without such a grant, Tailscale SSH has no matching local user to log in as and the
-plain `ssh root@<desk-name>` route above still works regardless.
+Desks deliberately do not enable Tailscale SSH: under a tailnet SSH rule with
+`"action": "check"` every login becomes an interactive browser step, which breaks
+`roll.sh` and the migration scripts. If you want Tailscale SSH for humans, enable it on the
+desk with `tailscale set --ssh` and keep the rule for your identity on `accept`.
 
 ## Create
 

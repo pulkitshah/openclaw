@@ -124,8 +124,16 @@ runcmd:
   - "curl -fsSL https://tailscale.com/install.sh | sh"
   # --timeout: with a bad or consumed key `tailscale up` otherwise blocks forever printing an
   # interactive login URL, and the rest of the boot never runs (observed 2026-09-14).
-  - 'tailscale up --authkey "$(cat /root/ts-authkey)" --ssh --hostname {{DESK_NAME}} --timeout 180s || echo "desk: tailscale up FAILED (bad or consumed auth key?)" >&2'
+  # No --ssh: Tailscale SSH shadows sshd on the tailnet and, under a "check"-mode SSH rule, turns
+  # every login into an interactive browser step - the operator scripts (roll.sh, migrations) need
+  # plain key SSH. sshd listens on the tailnet interface too, so ssh root@<desk> works with the
+  # DigitalOcean key while the cloud firewall keeps public port 22 closed (observed 2026-09-14).
+  - 'tailscale up --authkey "$(cat /root/ts-authkey)" --hostname {{DESK_NAME}} --timeout 180s || echo "desk: tailscale up FAILED (bad or consumed auth key?)" >&2'
   - shred -u /root/ts-authkey
+  # The Gateway runs as openclaw and claims the Serve route itself (gateway.tailscale.mode
+  # "serve"); without operator rights it cannot talk to tailscaled and the Control UI never
+  # answers on the tailnet (src/infra/tailscale.ts falls back to sudo, which openclaw lacks).
+  - tailscale set --operator=openclaw
 
   # Desktop, browser and tooling packages (deferred from `packages:` so the tailnet join above
   # is not stuck behind them).
@@ -136,12 +144,30 @@ runcmd:
   # corepack verifies the exact pinned binary against its integrity hash, not just the version.
   - "curl -fsSL https://deb.nodesource.com/setup_26.x | bash -"
   - apt-get install -y nodejs
+  # Node 25+ no longer bundles corepack, so NodeSource's nodejs package has none: install it
+  # with npm first (observed 2026-09-14: `corepack: not found` -> no pnpm -> no build).
+  - npm install -g corepack
   - corepack enable
   - corepack prepare {{PNPM_PACKAGE_MANAGER}} --activate
+  # Claude Code CLI: the desk's agents use the claude-cli provider (the owner's subscription);
+  # the sign-in itself is an owner step after first boot (see the runbook).
+  - npm install -g @anthropic-ai/claude-code
+  # gog (Google Workspace CLI) drives the Gmail push watcher; pinned to the operator's version
+  # with its release checksum (openclaw/homebrew-tap Formula/gogcli.rb) - never fetched unverified.
+  - >-
+    cd /tmp &&
+    curl -fsSL -o gogcli.tgz https://github.com/openclaw/gogcli/releases/download/v0.40.0/gogcli_0.40.0_linux_amd64.tar.gz &&
+    echo "5f73815950f30de4165b7b767103ca45c4950e84a1da601eda5294e9ff94f767  gogcli.tgz" | sha256sum -c - &&
+    tar -xzf gogcli.tgz gog && install -m 0755 gog /usr/local/bin/gog && rm -f gogcli.tgz gog &&
+    gog --version
 
   # Fork checkout - pinned to the roll ref the operator asked for.
-  - git clone https://github.com/pulkitshah/openclaw /opt/openclaw
-  - git -C /opt/openclaw checkout {{GIT_REF}}
+  # Shallow: the full fork history is >1 GB and took the clone past 10 minutes on a 2 vCPU box
+  # (observed 2026-09-14). fetch+checkout of FETCH_HEAD accepts a branch, tag or commit, and
+  # roll.sh updates the same way, so the checkout stays detached at the requested ref.
+  - git clone --depth 1 --no-checkout https://github.com/pulkitshah/openclaw /opt/openclaw
+  - git -C /opt/openclaw fetch --depth 1 origin {{GIT_REF}}
+  - git -C /opt/openclaw checkout --detach FETCH_HEAD
   - >-
     cd /opt/openclaw &&
     npm_config_minimum_release_age=0 npm_config_minimum_release_age_strict=false
