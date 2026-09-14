@@ -9,6 +9,7 @@ import { createBrowserAdapter } from "./src/adapters/browser.js";
 import {
   createAskSessionResolver,
   createDeliverAdapter,
+  createOwnerRouteResolver,
   createRouteResolver,
   sessionRouteFromStore,
 } from "./src/adapters/deliver.js";
@@ -90,6 +91,17 @@ export default definePluginEntry({
     });
 
     const browserProfile = resolveBrowserProfile(api.pluginConfig);
+    // `api.config` is the snapshot this plugin was registered with, not a live view
+    // (src/plugins/api-builder.ts). A Gateway runs for weeks and its config is reloaded in place,
+    // so everything below that reads config — mail/render readiness, the render base url, delivery,
+    // owner routing — reads it through here instead. Same shape other bundled plugins use
+    // (extensions/discord/src/activities/register.ts:22, extensions/memory-lancedb/index.ts:165).
+    const currentConfig = (): OpenClawConfig =>
+      api.runtime.config?.current
+        ? // SAFETY: `config.current()` returns a DeepReadonly view of the very same OpenClawConfig
+          // shape `api.config` has; every consumer here only reads from it.
+          (api.runtime.config.current() as unknown as OpenClawConfig)
+        : api.config;
     const store = DutyStore.open(api);
     const events = createDutiesEventService();
     api.registerService(events);
@@ -122,7 +134,9 @@ export default definePluginEntry({
     );
     // The managed browser only navigates to http(s), so rendered HTML is served to it through this
     // plugin-authenticated route, one single-use token at a time.
-    const renderServer = createRenderServer({ baseUrl: resolveRenderBaseUrl(api.config) });
+    const renderServer = createRenderServer({
+      baseUrl: () => resolveRenderBaseUrl(currentConfig()),
+    });
     api.registerHttpRoute({
       path: RENDER_ROUTE_PATH,
       match: "prefix",
@@ -139,13 +153,23 @@ export default definePluginEntry({
         tabLabel: "duty:render",
       }),
     });
-    const deliver = createDeliverAdapter({ cfg: api.config });
+    const deliver = createDeliverAdapter({ cfg: currentConfig });
     const ownerTarget = async () => (await store.getSettings()).owner;
     const resolveRoute = createRouteResolver({
       ownerTarget,
       sessionRoute: sessionRouteFromStore,
     });
-    const askSession = createAskSessionResolver({ cfg: api.config, ownerTarget });
+    // Asks and run status lines are owner-facing: they go to the origin chat only when that chat
+    // is the owner's own, never to a group the Duty happened to be triggered from.
+    const ownerRoute = createOwnerRouteResolver({
+      ownerTarget,
+      sessionRoute: sessionRouteFromStore,
+    });
+    const askSession = createAskSessionResolver({
+      cfg: currentConfig,
+      ownerTarget,
+      sessionRoute: sessionRouteFromStore,
+    });
     // Read through the store on every run so an edit on the Duties page is picked up by the next
     // run without rebuilding the deps.
     const templates = {
@@ -176,9 +200,12 @@ export default definePluginEntry({
           // route `deliver` would use, because `question.request` sends to no channel by itself.
           ask: createAskAdapter({
             request,
-            sessionKey: await askSession(run.origin),
+            // Resolved inside `ask()`, not here: `deps()` is built for EVERY run, so resolving
+            // the owner eagerly failed a Duty with no `ask` at all — on a fresh install, where
+            // the owner target is set by hand, that was every run.
+            sessionKey: () => askSession(run.origin),
             announce: async (text, question) => {
-              const route = await resolveRoute("trigger", undefined, run.origin);
+              const route = await ownerRoute(run.origin);
               await deliver.send({ route, text, ...(question ? { question } : {}) });
             },
           }),
@@ -191,11 +218,11 @@ export default definePluginEntry({
         };
       },
       emit: (event) => events.emit("run", event),
-      // Status lines go where the run reports: the conversation it was started from, else the
-      // owner. Best-effort — `announce` swallows the failure, so a run with no owner target
-      // configured still runs, it just reports nowhere.
+      // Status lines are owner-facing, like asks: the origin chat only when it is the owner's own
+      // direct chat, otherwise the owner. Best-effort — `announce` swallows the failure, so a run
+      // with no owner target configured still runs, it just reports nowhere.
       notify: async (origin, text) => {
-        const route = await resolveRoute("trigger", undefined, origin);
+        const route = await ownerRoute(origin);
         await deliver.send({ route, text });
       },
       // Cancelling the question a parked run waits on is what lets its ask return and the run
@@ -230,6 +257,7 @@ export default definePluginEntry({
       evidence,
       render,
       previewDir: () => runFiles.previewDir(),
+      config: currentConfig,
     });
     registerDutyTools({ api });
 

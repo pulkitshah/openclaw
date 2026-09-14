@@ -42,13 +42,37 @@ export type RouteResolver = (
 export const NO_OWNER_TARGET = "no owner target configured — set it on the Duties page";
 
 /**
+ * Whether a run's origin is the OWNER'S OWN direct chat — the one origin whose conversation may
+ * hold a Duty's approval gate.
+ *
+ * A tap on a question card carries no session or ownership condition: a pending, single,
+ * non-secret question resolves for whoever presses the button, gated only by the channel's
+ * inline-button scope. So a card announced into a group chat is answerable by any member of that
+ * group, and a chat trigger explicitly supports groups. "Same channel and same target as the
+ * configured owner" is the only thing that makes an origin chat the owner's chat; everything else
+ * — a group, another person's DM, a chat session with no delivery route to compare — is not.
+ */
+function ownerChatRoute(
+  origin: RunOrigin | undefined,
+  owner: { channel: string; target: string },
+  sessionRoute: (origin: RunOrigin) => DeliverRoute | undefined,
+): DeliverRoute | undefined {
+  if (origin?.kind !== "chat") return undefined;
+  const route = sessionRoute(origin);
+  if (!route) return undefined;
+  return route.channel === owner.channel && route.to === owner.target ? route : undefined;
+}
+
+/**
  * The Gateway session a run's questions are asked in.
  *
- * An `ask` is the one step that needs a person, so it has to be raised where that person can see
- * and answer it — the same place `deliver` would send to: the chat the run came from, otherwise
- * the configured owner. Keyed to the run's own origin session, a mail-triggered run asked inside
- * the `duties-mail` dispatcher's `hook:gmail:*` session, which belongs to an agent the owner never
- * talks to, so the approval gate parked where nobody could answer it.
+ * An `ask` is the one step that needs a person, and that person is the owner: the question decides
+ * a booking, a payment, a hold. It is raised in the origin session only when that session is the
+ * owner's own direct chat (see `ownerChatRoute`); every other origin — a group, another user, a
+ * mail dispatch, a manual run — asks in the owner's own session. Keyed to the run's origin
+ * unconditionally, a mail-triggered run asked inside the `duties-mail` dispatcher's `hook:gmail:*`
+ * session, which belongs to an agent the owner never talks to, and a group-triggered run put a
+ * real approval in front of everyone in the group.
  *
  * The owner's session key is built by the host's own resolver rather than assembled here:
  * `resolveAgentRoute` applies the configured `bindings[]` (which agent owns that channel) and the
@@ -56,27 +80,59 @@ export const NO_OWNER_TARGET = "no owner target configured — set it on the Dut
  * onto the agent's main session or gets a per-peer one. Duplicating either here would drift from
  * the channel the owner actually uses.
  *
- * Note this only decides *where the question lives*, and therefore who can answer it. Delivering a
- * visible message about it is separate: `question.request` never sends to a channel by itself —
- * channel delivery is performed by the agent turn that raises a question, and a Duty run has no
- * such turn — so the run also announces the question through the `deliver` adapter.
+ * Note this only decides *where the question lives*. Delivering a visible message about it is
+ * separate: `question.request` never sends to a channel by itself — channel delivery is performed
+ * by the agent turn that raises a question, and a Duty run has no such turn — so the run also
+ * announces the question through `createOwnerRouteResolver`, which applies the same rule.
+ *
+ * `cfg` is a getter, not a snapshot: the plugin registers once and then runs for as long as the
+ * Gateway does, and a config reload must change which agent owns the owner's channel.
  */
 export function createAskSessionResolver(params: {
-  cfg: OpenClawConfig;
+  cfg: OpenClawConfig | (() => OpenClawConfig);
   ownerTarget: () => Promise<{ channel: string; target: string } | undefined>;
+  sessionRoute: (origin: RunOrigin) => DeliverRoute | undefined;
   /** Injectable so tests never load the host's routing tables. */
   resolveRoute?: typeof resolveAgentRoute;
 }): (origin: RunOrigin | undefined) => Promise<string> {
   return async (origin) => {
-    if (origin?.kind === "chat" && origin.sessionKey) return origin.sessionKey;
     const target = await params.ownerTarget();
     if (!target) throw new Error(NO_OWNER_TARGET);
+    if (ownerChatRoute(origin, target, params.sessionRoute) && origin?.sessionKey) {
+      return origin.sessionKey;
+    }
     const resolve = params.resolveRoute ?? resolveAgentRoute;
     return resolve({
-      cfg: params.cfg,
+      cfg: typeof params.cfg === "function" ? params.cfg() : params.cfg,
       channel: target.channel,
       peer: { kind: "direct", id: target.target },
     }).sessionKey;
+  };
+}
+
+/**
+ * Where a run's owner-facing traffic goes: the question card an `ask` announces, and the run's own
+ * status lines. Same rule as `createAskSessionResolver` — the origin chat only when it is the
+ * owner's own direct chat, otherwise the owner target — so the question and the card that presents
+ * it can never end up in two different conversations.
+ *
+ * Deliberately NOT the same as `deliver`'s `"trigger"` route: a `deliver` step answers whoever
+ * started the run (that is the point of a reply), while an approval gate belongs to the owner
+ * alone.
+ */
+export function createOwnerRouteResolver(params: {
+  ownerTarget: () => Promise<{ channel: string; target: string } | undefined>;
+  sessionRoute: (origin: RunOrigin) => DeliverRoute | undefined;
+}): (origin: RunOrigin | undefined) => Promise<DeliverRoute> {
+  return async (origin) => {
+    const target = await params.ownerTarget();
+    if (!target) throw new Error(NO_OWNER_TARGET);
+    return (
+      ownerChatRoute(origin, target, params.sessionRoute) ?? {
+        channel: target.channel,
+        to: target.target,
+      }
+    );
   };
 }
 
@@ -165,17 +221,28 @@ export type DeliverAdapter = {
  * option values, so anything else stays plain text rather than shipping a card whose buttons
  * would be silently dropped.
  */
+/**
+ * Whether these options can carry a tap: the host accepts 2-4 option values and maps a tap back by
+ * index, so a list that is shorter, longer, blank-padded or case-insensitively duplicated would
+ * ship a card whose buttons are silently dropped.
+ *
+ * Exported because three owners have to agree on it: `questionCard` builds from it, `validateDuty`
+ * refuses an `ask` that could not produce a card, and the ask adapter notes the delivery form in
+ * the step's evidence when an older saved Duty still has a bad list.
+ */
+export function canRenderQuestionCard(options: readonly string[]): boolean {
+  const trimmed = options.map((option) => option.trim()).filter(Boolean);
+  return (
+    trimmed.length === options.length &&
+    trimmed.length >= 2 &&
+    trimmed.length <= 4 &&
+    new Set(trimmed.map((option) => option.toLowerCase())).size === trimmed.length
+  );
+}
+
 function questionCard(question: DeliverQuestion): Record<string, unknown> | undefined {
-  const options = question.options.map((option) => option.trim()).filter(Boolean);
-  const normalized = options.map((option) => option.toLowerCase());
-  if (
-    options.length !== question.options.length ||
-    options.length < 2 ||
-    options.length > 4 ||
-    new Set(normalized).size !== options.length
-  ) {
-    return undefined;
-  }
+  if (!canRenderQuestionCard(question.options)) return undefined;
+  const options = question.options.map((option) => option.trim());
   return {
     presentation: {
       blocks: [
@@ -212,16 +279,19 @@ function summarizePayloadOutcomes(outcomes: readonly PayloadOutcomeLike[] | unde
   return (outcomes ?? []).map(describePayloadOutcome).join(", ");
 }
 
+/** `cfg` is a getter, not a snapshot: delivery has to use the channel config as it stands when the
+ *  message is sent, not as it stood when the plugin registered. */
 export function createDeliverAdapter(params: {
-  cfg: OpenClawConfig;
+  cfg: OpenClawConfig | (() => OpenClawConfig);
   sendBatch?: typeof sendDurableMessageBatch;
 }): DeliverAdapter {
   const sendBatch = params.sendBatch ?? sendDurableMessageBatch;
+  const cfg = () => (typeof params.cfg === "function" ? params.cfg() : params.cfg);
   return {
     async send({ route, text, files, question }) {
       const card = question ? questionCard(question) : undefined;
       const result = await sendBatch({
-        cfg: params.cfg,
+        cfg: cfg(),
         channel: route.channel,
         to: route.to,
         ...(route.accountId ? { accountId: route.accountId } : {}),

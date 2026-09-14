@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   createAskSessionResolver,
   createDeliverAdapter,
+  createOwnerRouteResolver,
   createRouteResolver,
   maskTarget,
   sessionRouteFromStore,
@@ -41,25 +42,50 @@ describe("createRouteResolver", () => {
   });
 });
 
-// A duty's questions have to be asked in a session the owner can actually answer from. Keyed to
-// the dispatcher's own `hook:gmail:*` session, a mail-triggered run's approval gate parked where
-// nobody could see or answer it. The rule is the one `deliver` already uses: the chat the run came
-// from, otherwise the configured owner.
+// A duty's questions have to be asked where the OWNER can answer them, and nowhere else: a tap on
+// a question card is gated only by the channel's inline-button scope, so a card announced into a
+// group is answerable by any member of that group. The rule: the origin chat only when it IS the
+// owner's own direct chat; any other origin asks the owner.
 describe("createAskSessionResolver", () => {
   const cfg = {} as never;
   const ownerRoute = { sessionKey: "agent:krishna:main", agentId: "krishna" };
+  const owner = { channel: "telegram", target: "111" };
+  /** Maps the owner's own chat session onto the owner target; every other session is someone
+   *  else's chat (a group, another person's DM). */
+  const sessionRoute = (origin: { sessionKey?: string }) =>
+    origin.sessionKey === "agent:krishna:telegram:111"
+      ? { channel: "telegram", to: "111" }
+      : origin.sessionKey === "agent:krishna:telegram:-100group"
+        ? { channel: "telegram", to: "-100group" }
+        : undefined;
   const resolver = (ownerTarget: { channel: string; target: string } | undefined) =>
     createAskSessionResolver({
       cfg,
       ownerTarget: async () => ownerTarget,
+      sessionRoute,
       resolveRoute: () => ownerRoute as never,
     });
 
-  it("asks in the session the run came from when that was a chat", async () => {
-    const resolve = resolver({ channel: "telegram", target: "111" });
+  it("asks in the origin session when the run came from the owner's own direct chat", async () => {
+    const resolve = resolver(owner);
     expect(
-      await resolve({ kind: "chat", sessionKey: "agent:krishna:duties-p2", agentId: "krishna" }),
-    ).toBe("agent:krishna:duties-p2");
+      await resolve({ kind: "chat", sessionKey: "agent:krishna:telegram:111", agentId: "krishna" }),
+    ).toBe("agent:krishna:telegram:111");
+  });
+
+  it("asks the owner instead when the run came from a group or someone else's chat", async () => {
+    const resolve = resolver(owner);
+    expect(
+      await resolve({
+        kind: "chat",
+        sessionKey: "agent:krishna:telegram:-100group",
+        agentId: "krishna",
+      }),
+    ).toBe("agent:krishna:main");
+    // A chat session with no delivery route at all cannot be proven to be the owner's either.
+    expect(await resolve({ kind: "chat", sessionKey: "agent:krishna:unknown" })).toBe(
+      "agent:krishna:main",
+    );
   });
 
   it("asks in the owner's own session for a mail run, not the dispatcher's", async () => {
@@ -76,6 +102,47 @@ describe("createAskSessionResolver", () => {
     await expect(resolve({ kind: "mail", sessionKey: "hook:gmail:1" })).rejects.toThrow(
       /no owner target configured — set it on the Duties page/u,
     );
+  });
+});
+
+describe("createOwnerRouteResolver", () => {
+  const owner = { channel: "telegram", target: "111" };
+  const sessionRoute = (origin: { sessionKey?: string }) =>
+    origin.sessionKey === "owner-chat"
+      ? { channel: "telegram", to: "111", accountId: "acct" }
+      : origin.sessionKey === "group-chat"
+        ? { channel: "telegram", to: "-100group" }
+        : undefined;
+
+  it("announces into the origin chat only when that chat is the owner's own", async () => {
+    const resolve = createOwnerRouteResolver({
+      ownerTarget: async () => owner,
+      sessionRoute,
+    });
+    // Same channel and same target: the owner's direct chat, so the accountId it carries is kept.
+    expect(await resolve({ kind: "chat", sessionKey: "owner-chat" })).toEqual({
+      channel: "telegram",
+      to: "111",
+      accountId: "acct",
+    });
+    // A group the owner happens to be in is NOT the owner's chat: anyone there could tap Approve.
+    expect(await resolve({ kind: "chat", sessionKey: "group-chat" })).toEqual({
+      channel: "telegram",
+      to: "111",
+    });
+    expect(await resolve({ kind: "mail", sessionKey: "hook:gmail:1" })).toEqual({
+      channel: "telegram",
+      to: "111",
+    });
+    expect(await resolve(undefined)).toEqual({ channel: "telegram", to: "111" });
+  });
+
+  it("fails loudly when no owner target is configured", async () => {
+    const resolve = createOwnerRouteResolver({
+      ownerTarget: async () => undefined,
+      sessionRoute: () => undefined,
+    });
+    await expect(resolve(undefined)).rejects.toThrow(/no owner target configured/u);
   });
 });
 

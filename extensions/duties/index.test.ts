@@ -6,10 +6,16 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import { RENDER_ROUTE_PATH } from "./src/adapters/render.js";
 
+/** The owner target as the store would hold it. Mutable so one case can prove a fresh install —
+ *  where no owner has been set on the Duties page yet — still runs a Duty that has no `ask`. */
+let storedOwner: { channel: string; target: string } | undefined = {
+  channel: "telegram",
+  target: "999",
+};
 vi.mock("./src/store.js", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./src/store.js")>()),
   DutyStore: {
-    open: () => ({ getSettings: async () => ({ owner: { channel: "telegram", target: "999" } }) }),
+    open: () => ({ getSettings: async () => ({ owner: storedOwner }) }),
   },
 }));
 
@@ -169,38 +175,21 @@ describe("duties plugin registration", () => {
   // under `agents.ownership: "explicit"` with more than one agent, "main" has no owner, so every
   // ai and ask step failed with "session key \"main\" has no explicit owner" before it ran. And an
   // `ask` keyed to the run's own origin parked a mail run's approval gate inside the dispatcher's
-  // `hook:gmail:*` session, where the owner could neither see nor answer it — so an ask follows
-  // the route rule `deliver` uses (the run's chat, else the owner) while `ai`, which no person
-  // reads, stays on the run's own session.
+  // `hook:gmail:*` session, where the owner could neither see nor answer it — so an ask is raised
+  // where the OWNER can answer it while `ai`, which no person reads, stays on the run's own
+  // session.
   it("runs ai on the run's own session and asks where the owner can answer", async () => {
-    const captured = createCapturedPluginRegistration({ id: "duties", name: "Duties" });
-    // Evidence blobs and the rendered-file directory are only reachable through the real plugin
-    // runtime proxy; this case is about which session the adapters are built with.
-    captured.api.runtime.state.openBlobStore = () => ({ register: async () => {} });
-    captured.api.runtime.state.resolveStateDir = () => os.tmpdir();
-    plugin.register(captured.api);
-    const params = runManagerParams.mock.calls.at(-1)?.[0] as {
-      deps: (duty: { id: string }, run: { id: string; origin?: RunOrigin }) => Promise<unknown>;
-    };
+    const { sessionKeysFor } = registerForDeps();
 
-    const sessionKeysFor = async (origin: RunOrigin | undefined) => {
-      aiAdapters.mockClear();
-      askAdapters.mockClear();
-      await params.deps({ id: "d1" }, { id: "r1", ...(origin ? { origin } : {}) });
-      return {
-        ai: (aiAdapters.mock.calls.at(-1)?.[0] as { sessionKey: string }).sessionKey,
-        ask: (askAdapters.mock.calls.at(-1)?.[0] as { sessionKey: string }).sessionKey,
-      };
-    };
-
-    // A chat run: both act in the conversation the owner started the run from.
-    expect(
-      await sessionKeysFor({
-        kind: "chat",
-        sessionKey: "agent:krishna:duties",
-        agentId: "krishna",
-      }),
-    ).toEqual({ ai: "agent:krishna:duties", ask: "agent:krishna:duties" });
+    // A chat run that is not provably the owner's own direct chat asks the owner, not the chat:
+    // a tap on a question card is gated only by who can see the message.
+    const chat = await sessionKeysFor({
+      kind: "chat",
+      sessionKey: "agent:krishna:duties",
+      agentId: "krishna",
+    });
+    expect(chat.ai).toBe("agent:krishna:duties");
+    expect(chat.ask).not.toBe("agent:krishna:duties");
     // A mail run: the model call stays with the dispatcher that made it; the question goes to the
     // owner's own session, resolved from the owner target through the host's routing.
     const mail = await sessionKeysFor({ kind: "mail", agentId: "duties-mail" });
@@ -210,5 +199,57 @@ describe("duties plugin registration", () => {
     const manual = await sessionKeysFor(undefined);
     expect(manual.ai).toBe("main");
     expect(manual.ask).toBe(mail.ask);
+    expect(chat.ask).toBe(mail.ask);
+  });
+
+  // Regression: `deps()` is built for EVERY run and resolved the ask session eagerly, so on a
+  // fresh install — where the owner target is set by hand on the Duties page — pressing Run failed
+  // every Duty with "no owner target configured" before step 1, including Duties with no `ask`
+  // and no `deliver` at all.
+  it("builds a run's deps with no owner target configured, and only fails when an ask is reached", async () => {
+    storedOwner = undefined;
+    try {
+      const { deps, askSessionKey } = registerForDeps();
+      const built = await deps({ id: "d1" }, { id: "r1" });
+      expect(built).toBeTruthy();
+      // The owner is needed only when the run actually raises a question.
+      await expect(askSessionKey()).rejects.toThrow(/no owner target configured/u);
+    } finally {
+      storedOwner = { channel: "telegram", target: "999" };
+    }
   });
 });
+
+/** Registers the plugin and exposes the RunManager `deps` factory plus the session keys the ai and
+ *  ask adapters are built with. The ask session arrives as a resolver, not a string, so it is
+ *  called here the way the ask adapter calls it — inside the ask, not while building deps. */
+function registerForDeps() {
+  const captured = createCapturedPluginRegistration({ id: "duties", name: "Duties" });
+  // Evidence blobs and the rendered-file directory are only reachable through the real plugin
+  // runtime proxy; these cases are about how the adapters are built.
+  captured.api.runtime.state.openBlobStore = () => ({ register: async () => {} });
+  captured.api.runtime.state.resolveStateDir = () => os.tmpdir();
+  plugin.register(captured.api);
+  const params = runManagerParams.mock.calls.at(-1)?.[0] as {
+    deps: (duty: { id: string }, run: { id: string; origin?: RunOrigin }) => Promise<unknown>;
+  };
+  const askSessionKey = async () => {
+    const built = askAdapters.mock.calls.at(-1)?.[0] as {
+      sessionKey: string | (() => Promise<string>);
+    };
+    return typeof built.sessionKey === "string" ? built.sessionKey : await built.sessionKey();
+  };
+  return {
+    deps: params.deps,
+    askSessionKey,
+    sessionKeysFor: async (origin: RunOrigin | undefined) => {
+      aiAdapters.mockClear();
+      askAdapters.mockClear();
+      await params.deps({ id: "d1" }, { id: "r1", ...(origin ? { origin } : {}) });
+      return {
+        ai: (aiAdapters.mock.calls.at(-1)?.[0] as { sessionKey: string }).sessionKey,
+        ask: await askSessionKey(),
+      };
+    },
+  };
+}

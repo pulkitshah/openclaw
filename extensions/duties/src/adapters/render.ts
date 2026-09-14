@@ -25,12 +25,15 @@ export type RenderServer = {
  *  registered with `auth: "plugin"` — the token is the whole authorization, and the HTML never
  *  contains a credential (validateDuty confines those to fill/select values). */
 export function createRenderServer(params: {
-  baseUrl: string;
+  /** A getter is what the plugin passes: the Gateway's port and TLS scheme come from config,
+   *  which is reloaded in place, so a base url captured at registration goes stale. */
+  baseUrl: string | (() => string);
   ttlMs?: number;
   now?: () => number;
 }): RenderServer {
   const ttl = params.ttlMs ?? DEFAULT_TTL_MS;
   const now = params.now ?? Date.now;
+  const baseUrl = () => (typeof params.baseUrl === "function" ? params.baseUrl() : params.baseUrl);
   const pending = new Map<string, { html: string; expiresAt: number }>();
   const sweep = () => {
     const t = now();
@@ -42,7 +45,7 @@ export function createRenderServer(params: {
       sweep();
       const token = randomUUID();
       pending.set(token, { html, expiresAt: now() + ttl });
-      return { token, url: `${params.baseUrl}${RENDER_ROUTE_PATH}${token}` };
+      return { token, url: `${baseUrl()}${RENDER_ROUTE_PATH}${token}` };
     },
     handler(req, res) {
       const url = req.url ?? "";

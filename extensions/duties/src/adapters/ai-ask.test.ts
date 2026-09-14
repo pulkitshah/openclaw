@@ -124,7 +124,13 @@ describe("ask adapter", () => {
 
     await expect(
       ask.ask({ stepId: "ask-hold", question: "Hold?", header: "Hold?", options: ["Approve"] }),
-    ).resolves.toEqual({ status: "answered", answer: "Approve" });
+    ).resolves.toEqual({
+      status: "answered",
+      answer: "Approve",
+      // One option cannot carry a tap, so this ask went out as prose — recorded rather than
+      // degraded silently.
+      note: "sent without buttons: an ask needs 2–4 distinct options",
+    });
 
     const sent = request.mock.calls.find((c) => c[0] === "question.request")?.[1] as {
       questions: [{ questionId: string }];
@@ -142,7 +148,11 @@ describe("ask adapter", () => {
     const ask = createAskAdapter({ request: asRequest(request), sessionKey: "main", pollMs: 1 });
     await expect(
       ask.ask({ stepId: "2nd-leg", question: "Second leg?", header: "Leg", options: ["Yes"] }),
-    ).resolves.toEqual({ status: "answered", answer: "Yes" });
+    ).resolves.toEqual({
+      status: "answered",
+      answer: "Yes",
+      note: "sent without buttons: an ask needs 2–4 distinct options",
+    });
     const sent = request.mock.calls.find((c) => c[0] === "question.request")?.[1] as {
       questions: [{ questionId: string }];
     };
@@ -212,6 +222,56 @@ describe("ask adapter", () => {
       onAsked: (questionId) => asked.push(questionId),
     });
     expect(asked).toEqual(["q-42"]);
+  });
+
+  // Regression: the ask session was resolved while building EVERY run's deps, so a fresh install
+  // with no owner target failed every Duty — including ones with no `ask` — before step 1.
+  it("resolves its session only when a question is actually raised", async () => {
+    const resolved: string[] = [];
+    const request = vi.fn(async (method: string) =>
+      method === "question.request"
+        ? { id: "q1", expiresAtMs: 1 }
+        : { status: "answered", answers: { answers: { hold: ["Approve"] } } },
+    );
+    const ask = createAskAdapter({
+      request: asRequest(request),
+      sessionKey: async () => {
+        resolved.push("resolved");
+        return "agent:krishna:main";
+      },
+      pollMs: 1,
+    });
+    expect(resolved).toEqual([]);
+
+    await ask.ask({
+      stepId: "hold",
+      question: "Hold?",
+      header: "Hold?",
+      options: ["Approve", "Decline"],
+    });
+
+    expect(resolved).toEqual(["resolved"]);
+    const sent = request.mock.calls.find((c) => c[0] === "question.request")?.[1] as {
+      sessionKey?: string;
+    };
+    expect(sent.sessionKey).toBe("agent:krishna:main");
+  });
+
+  it("adds no note when the options do make a tappable card", async () => {
+    const request = vi.fn(async (method: string) =>
+      method === "question.request"
+        ? { id: "q1", expiresAtMs: 1 }
+        : { status: "answered", answers: { answers: { hold: ["Approve"] } } },
+    );
+    const ask = createAskAdapter({ request: asRequest(request), sessionKey: "main", pollMs: 1 });
+    await expect(
+      ask.ask({
+        stepId: "hold",
+        question: "Hold?",
+        header: "Hold?",
+        options: ["Approve", "Decline"],
+      }),
+    ).resolves.toEqual({ status: "answered", answer: "Approve" });
   });
 
   it("returns timeout when the question expires", async () => {

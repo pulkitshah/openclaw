@@ -12,6 +12,7 @@
  */
 import { randomBytes } from "node:crypto";
 import type { AskAdapter } from "../runner.js";
+import { canRenderQuestionCard } from "./deliver.js";
 
 type Request = <T = unknown>(method: string, params: Record<string, unknown>) => Promise<T>;
 
@@ -54,7 +55,16 @@ export function questionIdForStep(stepId: string): string {
 
 export function createAskAdapter(params: {
   request: Request;
-  sessionKey: string;
+  /**
+   * The session the question is raised in, or a resolver for it.
+   *
+   * A resolver is what the plugin passes: resolving the owner's session eagerly meant building
+   * every run's deps threw `NO_OWNER_TARGET` before step 1 — so on a fresh install, where the
+   * owner target is set by hand on the Duties page, pressing Run failed every Duty with an
+   * unrelated error, including Duties with no `ask` at all. Only a run that actually reaches an
+   * `ask` needs an owner.
+   */
+  sessionKey: string | (() => Promise<string>);
   pollMs?: number;
   /** Sends a visible note about the question to wherever the run reports back to.
    *
@@ -72,11 +82,13 @@ export function createAskAdapter(params: {
       const budget = timeoutMs ?? DEFAULT_TIMEOUT_MS;
       const questionId = questionIdForStep(stepId);
       const recordId = newQuestionRecordId();
+      const sessionKey =
+        typeof params.sessionKey === "string" ? params.sessionKey : await params.sessionKey();
       const requested = await params.request<{ id: string; expiresAtMs: number }>(
         "question.request",
         {
           id: recordId,
-          sessionKey: params.sessionKey,
+          sessionKey,
           timeoutMs: budget,
           questions: [
             {
@@ -90,6 +102,13 @@ export function createAskAdapter(params: {
       );
       // The run parks on `needs_input` from here until this call returns.
       onAsked?.(requested.id);
+      // An ask that could not be rendered as a tappable card reached the owner as plain prose,
+      // and a typed reply does not resolve a plugin-raised question — the answer goes to the
+      // agent as ordinary chat and the run waits out its timeout. `validateDuty` refuses such an
+      // ask at authoring time; a Duty saved before that rule says so in its own evidence.
+      const note = canRenderQuestionCard(options)
+        ? undefined
+        : "sent without buttons: an ask needs 2–4 distinct options";
       if (params.announce) {
         // The options stay in the text too: a channel that cannot render choices still has to say
         // what they are, and the card's own buttons are built from `options`, not from this text.
@@ -111,7 +130,11 @@ export function createAskAdapter(params: {
           timeoutMs: Math.min(WAIT_POLL_TIMEOUT_MS, Math.max(1, deadline - Date.now())),
         });
         if (state.status === "answered") {
-          return { status: "answered", answer: state.answers?.answers[questionId]?.[0] ?? "" };
+          return {
+            status: "answered",
+            answer: state.answers?.answers[questionId]?.[0] ?? "",
+            ...(note ? { note } : {}),
+          };
         }
         if (state.status === "cancelled") return { status: "cancelled" };
         if (state.status === "expired") return { status: "timeout" };

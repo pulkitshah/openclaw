@@ -94,7 +94,15 @@ export type AiAdapter = {
     schema: Record<string, unknown>;
   }): Promise<Record<string, unknown>>;
 };
-type AskResult = { status: "answered"; answer: string } | { status: "timeout" | "cancelled" };
+type AskResult =
+  | {
+      status: "answered";
+      answer: string;
+      /** How the question reached the owner, when that is not the tappable card an `ask` is
+       *  supposed to produce. Recorded in the step's evidence so a silent degradation is visible. */
+      note?: string;
+    }
+  | { status: "timeout" | "cancelled" };
 export type AskAdapter = {
   ask(params: {
     stepId: string;
@@ -386,7 +394,7 @@ export async function runDuty(
             `no answer to "${step.label}"`,
           );
         save(step, result.answer);
-        summary = result.answer;
+        summary = result.note ? `${result.answer} (${result.note})` : result.answer;
       } else if (step.kind === "template") {
         const templateId = String(step.params.template);
         const template = await deps.templates.get(templateId);

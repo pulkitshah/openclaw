@@ -1,5 +1,6 @@
 import { readFile, stat } from "node:fs/promises";
 import { basename } from "node:path";
+import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { OpenClawPluginApi } from "../api.js";
@@ -86,8 +87,13 @@ export function registerDutiesGatewayMethods(params: {
   evidence: () => EvidenceBlobs;
   render: RenderAdapter;
   previewDir: () => Promise<string>;
+  /** Reads the config as it stands now, not the snapshot `register()` was handed: the Mail
+   *  trigger health readout is exactly what an operator watches while fixing config, so answering
+   *  it from a registration-time snapshot told them setup had not worked when it had. */
+  config?: () => OpenClawConfig;
 }): void {
   const { api, store, runs, emit, creds, evidence, render, previewDir } = params;
+  const currentConfig = (): OpenClawConfig => params.config?.() ?? api.config;
 
   // A committed write (save/delete/status) must still be reported as `ok: true` even if
   // best-effort event delivery fails after it; `createDutiesEventService`'s own `emit` never
@@ -489,7 +495,7 @@ export function registerDutiesGatewayMethods(params: {
   /** Setup readiness for both of Part 2's outward-facing paths: the Gmail dispatch chain and
    *  document rendering. One readout, because one Settings strip shows it. */
   register("duties.mail.status", "operator.read", async () => ({
-    ...mailStatusFromConfig(api.config, await store.getSettings()),
-    ...renderStatusFromConfig(api.config),
+    ...mailStatusFromConfig(currentConfig(), await store.getSettings()),
+    ...renderStatusFromConfig(currentConfig()),
   }));
 }
