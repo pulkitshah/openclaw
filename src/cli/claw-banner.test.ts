@@ -1,6 +1,7 @@
 // Claw banner tests: static/animated gating and the final-frame invariant.
 import { describe, expect, it, vi } from "vitest";
 import { stripAnsi } from "../../packages/terminal-core/src/ansi.js";
+import { PRODUCT_NAME } from "../brand.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { printClawBanner } from "./claw-banner.js";
 
@@ -32,18 +33,25 @@ async function runStatic() {
     .filter((row) => row.length > 0);
 }
 
-const EXPECTED_MASCOT = [
-  " •●●:.        .:●●•",
-  ":●●●●:        :●●●●:",
-  ".●●●●:.:•●●•:.:●●●●.",
-  " .●●●: •●●●●• :●●●.",
-  " ..:••●●●●●●●●••:..",
-  ".::••••●●●●●●••••::.",
-  " . .:  •●●●●•  :. .",
-  "    .  :●●●●:  .",
-  "      .●●●●●●.",
-  "       :••••:",
+const EXPECTED_ORB = [
+  "      ••••••••",
+  "   •••●●●●●●●●•••",
+  "  ••::..::●●●●●●••",
+  " ••●:....:●●●●●●●••",
+  "••●●●::::●●●●●●●●●••",
+  "••●●●●●●●●●●●●●●●●••",
+  " ••●●●●●●●●●●●●●●••",
+  "  ••●●●●●●●●●●●●••",
+  "   •••●●●●●●●●•••",
+  "      ••••••••",
 ] as const;
+
+const EXPECTED_PULSE_ROWS = ["   ••••••••••••••", "  •••::::●●●●●●•••"] as const;
+
+// The dot-matrix lobster and its "OPENCLAW" wordmark were 71 columns wide; the
+// orb lockup must not grow past that, or terminals that fit the old banner
+// would drop to the plain title.
+const PREVIOUS_MAX_WIDTH = 71;
 
 describe("printClawBanner", () => {
   it("prints the static banner when not animatable", async () => {
@@ -51,8 +59,20 @@ describe("printClawBanner", () => {
     await printClawBanner(runtime, { columns: 120, isTty: false, env: {} });
     const output = stripAnsi(String(log.mock.calls[0]?.[0]));
     const rows = output.split("\n").filter((row) => row.length > 0);
-    expect(rows.map((row) => row.slice(0, 20).trimEnd())).toEqual(EXPECTED_MASCOT);
-    expect(output).toContain("█▀▀▀█ █▀▀▀█ █▀▀▀▀ █▄  █");
+    expect(rows.map((row) => row.slice(0, 20).trimEnd())).toEqual(EXPECTED_ORB);
+    expect(rows.map((row) => row.slice(23))).toEqual([
+      "",
+      "",
+      "",
+      "█   █ █▀▀▀█ █▀▀▀▀ █   █ █▀▀▀▄ █▀▀▀▀ █   █",
+      "▀▄ ▄▀ █▀▀▀█ ▀▀▀▀█ █   █ █   █ █▀▀▀  ▀▄ ▄▀",
+      "  ▀   ▀   ▀ ▀▀▀▀▀ ▀▀▀▀▀ ▀▀▀▀▀ ▀▀▀▀▀   ▀",
+      "",
+      "",
+      "",
+      "",
+    ]);
+    expect(Math.max(...rows.map((row) => row.length))).toBeLessThanOrEqual(PREVIOUS_MAX_WIDTH);
   });
 
   it("stays static under CI even on a rich TTY", async () => {
@@ -65,7 +85,8 @@ describe("printClawBanner", () => {
     const { runtime, log } = runtimeStub();
     await printClawBanner(runtime, { columns: 50, isTty: true, rich: true, env: {} });
     const output = String(log.mock.calls[0]?.[0]);
-    expect(output).toContain("OPENCLAW");
+    expect(output).toContain(PRODUCT_NAME.toUpperCase());
+    expect(output).not.toContain("OPENCLAW");
     expect(output).not.toContain("█");
   });
 
@@ -78,10 +99,10 @@ describe("printClawBanner", () => {
     expect(frames.length).toBeGreaterThan(10);
     expect(
       frames.some((frame) => {
-        const [first = "", second = ""] = stripAnsi(frame).split("\n");
+        const [, second = "", third = ""] = stripAnsi(frame).split("\n");
         return (
-          first.slice(0, 20).trimEnd() === "•●•.:.        .:.•●•" &&
-          second.slice(0, 20).trimEnd() === ":●●●•:        :•●●●:"
+          second.slice(0, 20).trimEnd() === EXPECTED_PULSE_ROWS[0] &&
+          third.slice(0, 20).trimEnd() === EXPECTED_PULSE_ROWS[1]
         );
       }),
     ).toBe(true);
@@ -145,8 +166,8 @@ describe("printClawBanner", () => {
     expect(process.listenerCount("SIGINT")).toBe(beforeSigint);
   });
 
-  it("varies snips and shimmer passes with the rng", async () => {
-    // rng below the thresholds adds a second shimmer pass and a second snip.
+  it("varies breaths and shimmer passes with the rng", async () => {
+    // rng below the thresholds adds a second shimmer pass and a second breath.
     const maximal = (await runAnimated(() => 0)).filter((c) => c.includes("\x1b[K"));
     const minimal = (await runAnimated(() => 0.99)).filter((c) => c.includes("\x1b[K"));
     expect(maximal.length).toBeGreaterThan(minimal.length);

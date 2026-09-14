@@ -1,43 +1,59 @@
-// Shared Vasudev banner: the dot-matrix lobster mascot beside the OPENCLAW
-// wordmark, with a short startup animation on rich interactive terminals.
-// Used by the wizard flows (doctor/onboard/configure) and the foreground
-// gateway run; non-TTY and CI paths always get the plain static banner.
+// Shared Vasudev banner: the dot-matrix orb beside the VASUDEV wordmark, with a
+// short startup animation on rich interactive terminals. Used by the wizard
+// flows (doctor/onboard/configure) and the foreground gateway run; non-TTY and
+// CI paths always get the plain static banner.
 import {
   decorativeEmoji,
   supportsDecorativeEmoji,
 } from "../../packages/terminal-core/src/decorative-emoji.js";
 import { restoreTerminalState } from "../../packages/terminal-core/src/restore.js";
 import { isRich, theme } from "../../packages/terminal-core/src/theme.js";
+import { PRODUCT_NAME } from "../brand.js";
 import type { RuntimeEnv } from "../runtime.js";
 
-// Mascot and wordmark are separate so they can be tinted independently; the
-// wordmark starts on mascot row 3, keeping the claws above the text line.
-const MASCOT_ART = [
-  " •●●:.        .:●●•",
-  ":●●●●:        :●●●●:",
-  ".●●●●:.:•●●•:.:●●●●.",
-  " .●●●: •●●●●• :●●●.",
-  " ..:••●●●●●●●●••:..",
-  ".::••••●●●●●●••••::.",
-  " . .:  •●●●●•  :. .",
-  "    .  :●●●●:  .",
-  "      .●●●●●●.",
-  "       :••••:",
+// Orb and wordmark are separate so they can be tinted independently; the
+// wordmark sits on orb rows 3-5, across the middle of the circle. Cells are
+// about twice as tall as they are wide, so 20x10 dots read as a round orb: a
+// dense body, a lighter rim, and the highlight the CSS orb puts at 34%/30%.
+const ORB_ART = [
+  "      ••••••••",
+  "   •••●●●●●●●●•••",
+  "  ••::..::●●●●●●••",
+  " ••●:....:●●●●●●●••",
+  "••●●●::::●●●●●●●●●••",
+  "••●●●●●●●●●●●●●●●●••",
+  " ••●●●●●●●●●●●●●●••",
+  "  ••●●●●●●●●●●●●••",
+  "   •••●●●●●●●●•••",
+  "      ••••••••",
 ] as const;
-// Claw tips with the pincer notch widened; swapping the top two rows in and
-// out produces the "snip".
-const MASCOT_OPEN_ROWS = ["•●•.:.        .:.•●•", ":●●●•:        :•●●●:"] as const;
-const MASCOT_WIDTH = 20;
+// The same orb with its highlight contracted and its rim a dot thicker: drawn
+// in place of the static art, it reads as one breath of the CSS orb's pulse.
+const ORB_PULSE_ART = [
+  "      ••••••••",
+  "   ••••••••••••••",
+  "  •••::::●●●●●●•••",
+  " •••●:..:●●●●●●●•••",
+  "•••●●●●●●●●●●●●●•••",
+  "•••●●●●●●●●●●●●●•••",
+  " •••●●●●●●●●●●●•••",
+  "  •••●●●●●●●●●●•••",
+  "   ••••••••••••••",
+  "      ••••••••",
+] as const;
+const ORB_WIDTH = 20;
 const WORDMARK_ROW_OFFSET = 3;
 
+// "VASUDEV" in the same block face the previous wordmark used.
 const WORDMARK_ART = [
-  "█▀▀▀█ █▀▀▀█ █▀▀▀▀ █▄  █ █▀▀▀▀ █     █▀▀▀█ █   █",
-  "█   █ █▀▀▀▀ █▀▀▀  █ ▀▄█ █     █     █▀▀▀█ █▄▀▄█",
-  "▀▀▀▀▀ ▀     ▀▀▀▀▀ ▀   ▀ ▀▀▀▀▀ ▀▀▀▀▀ ▀   ▀ ▀   ▀",
+  "█   █ █▀▀▀█ █▀▀▀▀ █   █ █▀▀▀▄ █▀▀▀▀ █   █",
+  "▀▄ ▄▀ █▀▀▀█ ▀▀▀▀█ █   █ █   █ █▀▀▀  ▀▄ ▄▀",
+  "  ▀   ▀   ▀ ▀▀▀▀▀ ▀▀▀▀▀ ▀▀▀▀▀ ▀▀▀▀▀   ▀  ",
 ] as const;
 const GAP = 3;
-const BANNER_WIDTH = MASCOT_WIDTH + GAP + 48;
-const ROWS = MASCOT_ART.length;
+const WORDMARK_WIDTH = Math.max(...WORDMARK_ART.map((row) => row.length));
+const BANNER_WIDTH = ORB_WIDTH + GAP + WORDMARK_WIDTH;
+const ROWS = ORB_ART.length;
 
 type ClawBannerOptions = {
   columns?: number;
@@ -61,18 +77,18 @@ const identityTint: (text: string) => string = (text) => text;
 // Composes one banner frame. Tints run per glyph column so the wipe edge and
 // shimmer band can cut through individual letters.
 function composeFrame(params: {
-  mascotRows?: readonly string[];
-  mascotTint?: CellTint;
+  orbRows?: readonly string[];
+  orbTint?: CellTint;
   wordmarkTint?: CellTint;
 }): string[] {
-  const mascotRows = params.mascotRows ?? MASCOT_ART;
+  const orbRows = params.orbRows ?? ORB_ART;
   const lines: string[] = [];
   for (let row = 0; row < ROWS; row++) {
-    const mascotRow = (mascotRows[row] ?? "").padEnd(MASCOT_WIDTH).slice(0, MASCOT_WIDTH);
+    const orbRow = (orbRows[row] ?? "").padEnd(ORB_WIDTH).slice(0, ORB_WIDTH);
     let out = "";
-    for (let col = 0; col < mascotRow.length; col++) {
-      const ch = mascotRow[col] ?? " ";
-      out += ch === " " ? " " : (params.mascotTint?.(col) ?? theme.accent)(ch);
+    for (let col = 0; col < orbRow.length; col++) {
+      const ch = orbRow[col] ?? " ";
+      out += ch === " " ? " " : (params.orbTint?.(col) ?? theme.accent)(ch);
     }
     const wordmarkRow = WORDMARK_ART[row - WORDMARK_ROW_OFFSET];
     if (wordmarkRow) {
@@ -80,7 +96,7 @@ function composeFrame(params: {
       for (let col = 0; col < wordmarkRow.length; col++) {
         const ch = wordmarkRow[col] ?? " ";
         out +=
-          ch === " " ? " " : (params.wordmarkTint?.(MASCOT_WIDTH + GAP + col) ?? identityTint)(ch);
+          ch === " " ? " " : (params.wordmarkTint?.(ORB_WIDTH + GAP + col) ?? identityTint)(ch);
       }
     }
     lines.push(out.replace(/\s+$/, ""));
@@ -93,8 +109,10 @@ function staticBannerLines(): string[] {
 }
 
 function plainTitleLine(): string {
-  const icon = decorativeEmoji("🦞");
-  return supportsDecorativeEmoji() && icon ? `${icon} OPENCLAW ${icon}` : "OPENCLAW";
+  // The orb as a text glyph, matching the one-line banner's mark.
+  const icon = decorativeEmoji("◉");
+  const name = PRODUCT_NAME.toUpperCase();
+  return supportsDecorativeEmoji() && icon ? `${icon} ${name} ${icon}` : name;
 }
 
 const defaultSleep = (ms: number) =>
@@ -102,10 +120,10 @@ const defaultSleep = (ms: number) =>
     setTimeout(resolve, ms);
   });
 
-// One combined entrance: a left-to-right molt wipe reveals the color, a
-// shimmer band sweeps the wordmark, and the claws snip. The rng varies the
-// shimmer passes and snip count a little so back-to-back runs don't feel
-// canned; every sequence ends on the exact static banner.
+// One combined entrance: a left-to-right wipe reveals the color, a shimmer band
+// sweeps the wordmark, and the orb breathes. The rng varies the shimmer passes
+// and breath count a little so back-to-back runs don't feel canned; every
+// sequence ends on the exact static banner.
 async function animateBanner(opts: {
   rng: () => number;
   settleWhen?: PromiseLike<unknown>;
@@ -152,7 +170,7 @@ async function animateBanner(opts: {
   process.once("SIGTERM", onSigterm);
   write("\x1b[?25l");
   try {
-    // Molt wipe: dim shell ahead of a bright 2-column edge, color behind it.
+    // Wipe: dim dots ahead of a bright 2-column edge, color behind it.
     const wipeSteps = 9;
     for (let step = 0; step <= wipeSteps; step++) {
       const edge = Math.round((BANNER_WIDTH * step) / wipeSteps);
@@ -162,7 +180,7 @@ async function animateBanner(opts: {
           col < edge ? colored : col < edge + 2 ? theme.accentBright : theme.muted;
       draw(
         composeFrame({
-          mascotTint: tintAt(theme.accent),
+          orbTint: tintAt(theme.accent),
           wordmarkTint: tintAt(identityTint),
         }),
       );
@@ -173,7 +191,7 @@ async function animateBanner(opts: {
     // Shimmer: a bright band sweeps the wordmark; rarely it runs twice.
     const shimmerPasses = rng() < 0.2 ? 2 : 1;
     for (let pass = 0; pass < shimmerPasses; pass++) {
-      for (let x = MASCOT_WIDTH; x < BANNER_WIDTH + 6; x += 4) {
+      for (let x = ORB_WIDTH; x < BANNER_WIDTH + 6; x += 4) {
         const band: CellTint = (col) =>
           col >= x && col < x + 6 ? theme.accentBright : identityTint;
         draw(composeFrame({ wordmarkTint: band }));
@@ -182,10 +200,10 @@ async function animateBanner(opts: {
         }
       }
     }
-    // Snip: claws open and close once, sometimes twice.
-    const snips = rng() < 0.4 ? 2 : 1;
-    for (let snip = 0; snip < snips; snip++) {
-      draw(composeFrame({ mascotRows: [...MASCOT_OPEN_ROWS, ...MASCOT_ART.slice(2)] }));
+    // Breath: the orb pulses once, sometimes twice.
+    const breaths = rng() < 0.4 ? 2 : 1;
+    for (let breath = 0; breath < breaths; breath++) {
+      draw(composeFrame({ orbRows: ORB_PULSE_ART }));
       if (!(await pause(95))) {
         return "settled";
       }
