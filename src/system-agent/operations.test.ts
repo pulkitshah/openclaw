@@ -450,13 +450,13 @@ describe("system agent operations", () => {
     await expect(fs.access(path.join(tempDir, "audit", "system-agent.jsonl"))).rejects.toThrow();
   });
 
-  it("reserves the normalized Vasudev agent identity before any write or audit", async () => {
+  it("reserves the normalized system-agent identity before any write or audit", async () => {
     const tempDir = useOperationStateDir("openclaw-agent-id-reserved-");
     const { runtime, lines } = createSystemAgentTestRuntime();
     const createAgent = vi.fn();
     const operation = {
       kind: "create-agent" as const,
-      agentId: "Vasudev",
+      agentId: "OpenClaw",
       workspace: "/tmp/work",
     };
 

@@ -753,6 +753,19 @@ const EXCLUDED_LITERALS_BY_FILE = new Map([
     "extensions/codex/src/app-server/thread-requests.ts",
     new Set(['"OpenClaw"']),
   ],
+  [
+    // Test input, not copy: `"OpenClaw"` normalizes to `openclaw`, which is the
+    // reserved system-agent id these cases prove is refused. The reserved id is
+    // the lowercase internal namespace and does not move, so the input cannot
+    // either or the case stops exercising the refusal.
+    "src/system-agent/setup-apply.test.ts",
+    new Set(['"OpenClaw"']),
+  ],
+  [
+    // Same reserved-id input as setup-apply.test.ts.
+    "src/system-agent/operations.test.ts",
+    new Set(['"OpenClaw"']),
+  ],
 ]);
 
 function isUnderTypeScriptAwarePrefix(relativePath) {

@@ -675,6 +675,10 @@ describe("rewriteFileContent (test/fixture and cross-boundary exclusions)", () =
         "extensions/codex/src/app-server/thread-requests.ts",
         'const s = { serviceName: "OpenClaw" };\n',
       ],
+      // Test input, not copy: it normalizes to the reserved system-agent id
+      // `openclaw`, which is the lowercase internal namespace and does not move.
+      ["src/system-agent/setup-apply.test.ts", 'const c = { id: "OpenClaw" };\n'],
+      ["src/system-agent/operations.test.ts", 'const o = { agentId: "OpenClaw" };\n'],
     ];
     for (const [relativePath, content] of cases) {
       const { content: rewritten, count } = rewriteFileContent(relativePath, content);

@@ -411,7 +411,7 @@ describe("applySystemAgentSetup transaction boundaries", () => {
   });
 
   it.each([
-    { id: "Vasudev", reserved: "openclaw" },
+    { id: "OpenClaw", reserved: "openclaw" },
     { id: "crestodian", reserved: "crestodian" },
   ])("rejects the reserved user agent id $id", async ({ id, reserved }) => {
     const config = {
