@@ -6,7 +6,12 @@ ok() { [ "$1" = 0 ] && echo true || echo false; }
 gw=$(systemctl is-active --quiet openclaw-gateway; echo $?)
 disp=$(DISPLAY=:99 xdpyinfo >/dev/null 2>&1; echo $?)
 [ "$disp" != 0 ] && systemctl restart xvfb
-chrome=$(pgrep -u openclaw -f "chrom(e|ium)" >/dev/null 2>&1; echo $?)
+# "chromium" means Chromium is INSTALLED for the service user, not that a run currently has one
+# open — a run-only "chromium" chip is only ever true while a Duty run holds a browser tab, so
+# "all chips green" was unreachable at idle by construction. The Playwright-managed browser
+# cloud-init installs (`npx playwright install chromium` as openclaw) lands under
+# ~openclaw/.cache/ms-playwright/chromium-<rev>/; its presence is a fixed installation fact.
+chrome=$(ls -d /home/openclaw/.cache/ms-playwright/chromium-* >/dev/null 2>&1; echo $?)
 ts=$(tailscale status --json 2>/dev/null | grep -q '"BackendState": *"Running"'; echo $?)
 mail=$(pgrep -f "gog gmail watch serve" >/dev/null 2>&1; echo $?)
 load1=$(cut -d' ' -f1 /proc/loadavg)

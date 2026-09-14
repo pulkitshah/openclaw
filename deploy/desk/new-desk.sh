@@ -46,6 +46,9 @@ Environment overrides:
   DESK_FIREWALL_NAME         cloud firewall name, created if missing (default: desk-no-inbound)
   DESK_POLL_SECONDS          seconds to wait for the tailnet hostname (default: 900)
   DESK_READY_POLL_SECONDS    seconds to wait for the Gateway to answer /healthz (default: 1800)
+  DESK_FORK_REPO_URL         fork to clone on first boot (default: this checkout's own `origin`
+                             remote, resolved by render-cloud-init.mjs — set this instead of
+                             relying on the default if this checkout is not the fork itself)
 EOF
 }
 

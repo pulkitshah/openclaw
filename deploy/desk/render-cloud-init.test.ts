@@ -117,6 +117,59 @@ describe("render-cloud-init.mjs", () => {
     expect(stderr).toContain("non-ASCII character U+2014");
   });
 
+  it("clones the operator's own fork, not a name hardcoded in the template, and lets --repo-url or DESK_FORK_REPO_URL override the default", () => {
+    const defaultOutput = render();
+    // No literal person/account name baked into the template: the default is read from this
+    // checkout's own `origin` remote at render time.
+    expect(defaultOutput).toMatch(
+      /git clone --depth 1 --no-checkout https:\/\/\S+ \/opt\/openclaw/,
+    );
+
+    const flagOutput = render(["--repo-url", "https://github.com/example-org/example-fork"]);
+    expect(flagOutput).toContain(
+      "git clone --depth 1 --no-checkout https://github.com/example-org/example-fork /opt/openclaw",
+    );
+
+    const envOutput = execFileSync(
+      process.execPath,
+      [
+        RENDER_SCRIPT,
+        "--name",
+        deskName,
+        "--ts-authkey-file",
+        tsAuthKeyFile,
+        "--tg-token-file",
+        tgTokenFile,
+        "--owner-target",
+        ownerTarget,
+        "--git-ref",
+        gitRef,
+      ],
+      {
+        encoding: "utf8",
+        env: { ...process.env, DESK_FORK_REPO_URL: "https://example.com/an-org/a-repo" },
+      },
+    );
+    expect(envOutput).toContain(
+      "git clone --depth 1 --no-checkout https://example.com/an-org/a-repo /opt/openclaw",
+    );
+  });
+
+  it("refuses a --repo-url that is not a plain https:// host/owner/repo URL", () => {
+    try {
+      render(["--repo-url", "https://github.com/owner/repo; rm -rf /"]);
+      expect.unreachable("render should have thrown for an unsafe --repo-url");
+    } catch (error) {
+      expect(String((error as { stderr?: string }).stderr ?? "")).toMatch(/fork repo URL/);
+    }
+    try {
+      render(["--repo-url", "git@github.com:owner/repo.git"]);
+      expect.unreachable("render should have thrown for a non-https --repo-url");
+    } catch (error) {
+      expect(String((error as { stderr?: string }).stderr ?? "")).toMatch(/fork repo URL/);
+    }
+  });
+
   it("substitutes the desk name and git ref into runcmd", () => {
     const output = render();
     expect(output).toContain(`hostname: ${deskName}`);
@@ -125,6 +178,79 @@ describe("render-cloud-init.mjs", () => {
     expect(output).toContain("git -C /opt/openclaw checkout --detach FETCH_HEAD");
     expect(output).toContain("tailscale set --operator=openclaw");
     expect(output).not.toContain('tailscale up --authkey "$(cat /root/ts-authkey)" --ssh');
+  });
+
+  it("configures a persistent background Funnel on 8443 for the Gmail webhook after joining the tailnet, and keeps the watcher's own tailscale mode off", () => {
+    const output = render();
+    const tailscaleUpIndex = output.indexOf('tailscale up --authkey "$(cat /root/ts-authkey)"');
+    const operatorIndex = output.indexOf("tailscale set --operator=openclaw");
+    const funnelCommand =
+      "tailscale funnel --bg --https=8443 --set-path=/gmail-pubsub http://127.0.0.1:8788";
+    const funnelIndex = output.indexOf(funnelCommand);
+    expect(tailscaleUpIndex).toBeGreaterThan(-1);
+    expect(operatorIndex).toBeGreaterThan(tailscaleUpIndex);
+    expect(funnelIndex).toBeGreaterThan(operatorIndex);
+
+    // The Gateway's own foreground Serve claim on 443 (gateway.tailscale.mode "serve") is
+    // untouched — only a second, different port carries the public webhook.
+    expect(output).toContain('"mode": "serve"');
+
+    const doc = parseYaml(output) as CloudInitDoc;
+    const configEntry = doc.write_files.find(
+      (entry) => entry.path === "/home/openclaw/.openclaw/openclaw.json",
+    );
+    const config = JSON.parse(configEntry?.content ?? "");
+    expect(config.hooks.gmail).toEqual({
+      serve: { bind: "127.0.0.1", port: 8788, path: "/" },
+      tailscale: { mode: "off" },
+    });
+  });
+
+  it("--preflight renders gateway.tailscale.mode off and skips the tailscale runcmd lines, leaving the default render untouched", () => {
+    const preflightOutput = render(["--preflight"]);
+    const preflightDoc = parseYaml(preflightOutput) as CloudInitDoc;
+    const preflightConfigEntry = preflightDoc.write_files.find(
+      (entry) => entry.path === "/home/openclaw/.openclaw/openclaw.json",
+    );
+    const preflightConfig = JSON.parse(preflightConfigEntry?.content ?? "");
+    expect(preflightConfig.gateway.tailscale.mode).toBe("off");
+    // hooks.gmail.tailscale.mode is already "off" regardless (a desk's own runtime Tailscale
+    // claiming never runs for Gmail — the persistent background Funnel handles it instead).
+    expect(preflightConfig.hooks.gmail.tailscale.mode).toBe("off");
+    expect(preflightOutput).not.toContain("tailscale up --authkey");
+    expect(preflightOutput).not.toContain("tailscale set --operator=openclaw");
+    expect(preflightOutput).not.toContain("tailscale funnel --bg");
+    const skippedCount = preflightOutput.split("# preflight: tailscale skipped").length - 1;
+    expect(skippedCount).toBe(3);
+
+    // The default (non-preflight) render is unaffected by --preflight existing as an option.
+    const defaultOutput = render();
+    const defaultDoc = parseYaml(defaultOutput) as CloudInitDoc;
+    const defaultConfigEntry = defaultDoc.write_files.find(
+      (entry) => entry.path === "/home/openclaw/.openclaw/openclaw.json",
+    );
+    const defaultConfig = JSON.parse(defaultConfigEntry?.content ?? "");
+    expect(defaultConfig.gateway.tailscale.mode).toBe("serve");
+    expect(defaultOutput).toContain("tailscale set --operator=openclaw");
+    expect(defaultOutput).toContain("tailscale funnel --bg --https=8443");
+    expect(defaultOutput).not.toContain("# preflight: tailscale skipped");
+  });
+
+  it("restores Chromium's own sandbox via a sysctl file and applies it before Chromium is ever installed", () => {
+    const output = render();
+    const doc = parseYaml(output) as CloudInitDoc;
+    const sysctlEntry = doc.write_files.find(
+      (entry) => entry.path === "/etc/sysctl.d/60-openclaw-desk-chromium.conf",
+    );
+    expect(sysctlEntry).toBeDefined();
+    expect(sysctlEntry?.content).toContain("kernel.apparmor_restrict_unprivileged_userns = 0");
+    expect(sysctlEntry?.permissions).toBe("0644");
+
+    const applyIndex = output.indexOf("sysctl --system");
+    const chromiumInstallIndex = output.indexOf("playwright install-deps chromium");
+    expect(applyIndex).toBeGreaterThan(-1);
+    expect(chromiumInstallIndex).toBeGreaterThan(-1);
+    expect(applyIndex).toBeLessThan(chromiumInstallIndex);
   });
 
   it("keeps every secret value confined to write_files entries with restrictive permissions", () => {
@@ -226,6 +352,19 @@ describe("render-cloud-init.mjs", () => {
       expect(policy.URLBlocklist).toEqual(["chrome://*", "file://*"]);
       expect(policy.PasswordManagerEnabled).toBe(false);
     }
+  });
+
+  it("never extracts a root-owned tarball straight into /tmp", () => {
+    // A release tarball's own `./` entry carries owner/mode; extracting one into /tmp as root
+    // applies that entry to /tmp itself and resets it from 1777 root:root to whatever the
+    // archive's top-level entry says (observed 2026-09-14: gogcli's tarball reset /tmp to
+    // 0755 501:staff and silently broke the browser plugin's mkdtemp, claude's own tmpdir, and
+    // plugin cleanup). Every extraction must instead cd into a private `mktemp -d`.
+    const output = render();
+    expect(output).not.toMatch(/tar\s+[^\n]*-C\s*\/tmp\b/);
+    expect(output).not.toMatch(/cd\s+\/tmp\b/);
+    expect(output).toContain('workdir="$(mktemp -d)"');
+    expect(output).toContain('cd "$workdir"');
   });
 
   it("never writes deploy/desk/desk-health.sh via write_files — it ships in the git-cloned tree", () => {

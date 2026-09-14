@@ -481,7 +481,8 @@ describe("deploy/desk operator scripts", () => {
       expect(result.stderr).toContain("desk is busy: run r-1 is running; retry later or --force");
       const sshCalls = readLog(sshLog);
       expect(sshCalls).not.toContain("git checkout");
-      expect(sshCalls).not.toContain("systemctl restart");
+      expect(sshCalls).not.toContain("systemctl stop");
+      expect(sshCalls).not.toContain("systemctl start");
     });
 
     it("treats a needs_input run as busy too", () => {
@@ -542,16 +543,32 @@ describe("deploy/desk operator scripts", () => {
       const sshCalls = readLog(sshLog);
       // <git-ref> travels as its own `bash -s --` positional argument, not interpolated into
       // the remote script text (Important #1 fix) — the script text itself is fully static.
-      expect(sshCalls).toContain(`ssh root@${deskName} bash -s -- feat/hosted-desk 18789 restart`);
+      expect(sshCalls).toContain(
+        `ssh root@${deskName} bash -s -- ${deskName} feat/hosted-desk 18789 restart`,
+      );
       expect(sshCalls).toContain('git fetch origin "$git_ref"');
       expect(sshCalls).toContain("git checkout --detach FETCH_HEAD");
       expect(sshCalls).toContain("pnpm install --frozen-lockfile --ignore-scripts");
       expect(sshCalls).toContain("pnpm build");
       expect(sshCalls).toContain("chown -R root:openclaw /opt/openclaw");
-      expect(sshCalls).toContain("systemctl restart openclaw-gateway");
+      expect(sshCalls).toContain("systemctl stop openclaw-gateway");
+      expect(sshCalls).toContain("systemctl start openclaw-gateway");
+      expect(sshCalls).not.toContain("systemctl restart openclaw-gateway");
+      expect(sshCalls).toContain("Gateway stopped, building");
       expect(sshCalls).toContain("http://127.0.0.1:${gateway_port}/healthz");
       expect(sshCalls).toContain("openclaw.mjs --version");
       expect(result.stdout).toContain(`rolled to feat/hosted-desk and is healthy`);
+
+      // The whole point of stopping first: the Gateway must be down for the entire
+      // fetch/install/build, and back up only once the rebuilt tree is ready.
+      const stopIndex = sshCalls.indexOf("systemctl stop openclaw-gateway");
+      const fetchIndex = sshCalls.indexOf('git fetch origin "$git_ref"');
+      const buildIndex = sshCalls.indexOf("pnpm build");
+      const startIndex = sshCalls.indexOf("systemctl start openclaw-gateway");
+      expect(stopIndex).toBeGreaterThan(-1);
+      expect(stopIndex).toBeLessThan(fetchIndex);
+      expect(fetchIndex).toBeLessThan(buildIndex);
+      expect(buildIndex).toBeLessThan(startIndex);
     });
 
     it("connects as DESK_SSH_USER instead of root when overridden", () => {
@@ -574,24 +591,31 @@ describe("deploy/desk operator scripts", () => {
       expect(result.status).toBe(0);
       const sshCalls = readLog(sshLog);
       expect(sshCalls).not.toContain("duties.runs.recent");
-      expect(sshCalls).toContain("systemctl restart openclaw-gateway");
+      expect(sshCalls).toContain("systemctl stop openclaw-gateway");
+      expect(sshCalls).toContain("systemctl start openclaw-gateway");
     });
 
-    it("--reboot reboots instead of restarting the Gateway service", () => {
+    it("--reboot reboots instead of restarting the Gateway service, but still stops it first", () => {
       const result = run(ROLL, [deskName, "--reboot"], {
         SSH_RUNS_RECENT_JSON: JSON.stringify({ runs: [] }),
       });
 
       expect(result.status).toBe(0);
       const sshCalls = readLog(sshLog);
-      // The remote script is one static heredoc that branches on its own $3 ("mode") argument
+      // The remote script is one static heredoc that branches on its own $4 ("mode") argument
       // at runtime — reboot-vs-restart is selected by the argv marker below, not by which
       // branch's text is present (both are always present in the static script source; the
       // fake ssh here logs but never executes it).
-      expect(sshCalls).toContain(`ssh root@${deskName} bash -s -- main 18789 reboot`);
-      expect(sshCalls).not.toContain(`ssh root@${deskName} bash -s -- main 18789 restart`);
+      expect(sshCalls).toContain(`ssh root@${deskName} bash -s -- ${deskName} main 18789 reboot`);
+      expect(sshCalls).not.toContain(
+        `ssh root@${deskName} bash -s -- ${deskName} main 18789 restart`,
+      );
+      expect(sshCalls).toContain("systemctl stop openclaw-gateway");
       expect(sshCalls).toContain('if [ "$mode" = "reboot" ]; then');
       expect(sshCalls).toContain("systemctl reboot");
+      expect(sshCalls.indexOf("systemctl stop openclaw-gateway")).toBeLessThan(
+        sshCalls.indexOf("systemctl reboot"),
+      );
       expect(result.stdout).toContain("is rebooting");
     });
   });

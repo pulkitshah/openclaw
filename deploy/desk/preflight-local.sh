@@ -45,10 +45,14 @@ trap cleanup EXIT
 umask 077
 printf 'tskey-auth-PREFLIGHT-FIXTURE-not-a-real-key\n' > "$work/ts"
 printf '100000000:PREFLIGHT-FIXTURE-not-a-real-token\n' > "$work/tg"
-echo "==> Rendering cloud-init (git-ref $git_ref, fixture secrets)" >&2
+echo "==> Rendering cloud-init (git-ref $git_ref, fixture secrets, --preflight)" >&2
+# --preflight: this VM never joins a real tailnet (the auth key above is a fixture), so it skips
+# the tailscale up/operator/funnel runcmd lines and renders gateway.tailscale.mode "off" —
+# without it the Gateway claims Tailscale Serve against a tailnet that was never joined and
+# exits ("Logged out.") instead of starting (observed 2026-09-15).
 node "$SCRIPT_DIR/render-cloud-init.mjs" \
   --name "$vm" --ts-authkey-file "$work/ts" --tg-token-file "$work/tg" \
-  --owner-target 100000000 --git-ref "$git_ref" > "$work/cloud-init.yaml"
+  --owner-target 100000000 --git-ref "$git_ref" --preflight > "$work/cloud-init.yaml"
 
 multipass delete --purge "$vm" >/dev/null 2>&1 || true
 echo "==> Launching Multipass VM \"$vm\" (Ubuntu 24.04, 2 CPU, 4G, 20G)" >&2

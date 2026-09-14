@@ -81,6 +81,71 @@ key in your `~/.ssh`, so the printed sign-in command works from this machine), a
    reveal the Gateway token.
 2. Open `https://<desk-name>.<tailnet>.ts.net` in a browser on a device joined to the same
    tailnet, and sign in with that token.
+3. **Approve the device pairing request.** A first-time browser session (and a first-time CLI
+   client, such as `openclaw` run from another machine against this desk) each register a
+   pending pairing request that the desk's Gateway refuses to serve until the owner approves it
+   — the sign-in token alone is not enough. From the desk itself:
+   ```sh
+   ssh root@<desk-name> 'sudo -H -u openclaw node /opt/openclaw/openclaw.mjs devices list'
+   ssh root@<desk-name> 'sudo -H -u openclaw node /opt/openclaw/openclaw.mjs devices approve <request-id>'
+   ```
+   `devices list` prints the pending request's id; run `approve` with that id once per new
+   device (the browser tab from step 2 included) before it can do anything beyond sign-in.
+
+## Sign Claude in
+
+The desk's agents run on the `claude-cli` provider — the owner's own Claude subscription, not
+an API key — so nothing answers until Claude Code is signed in as the `openclaw` service user.
+Sign in through the CLI's own stored login, **not** `claude setup-token` +
+`CLAUDE_CODE_OAUTH_TOKEN`: the embedded `claude-cli` backend deliberately clears
+`CLAUDE_CODE_OAUTH_TOKEN` (and every other `CLAUDE_CODE_*` credential env var) from the CLI
+process it spawns — only a plain node-host route honors that variable — so setting it in
+`gateway.env` has no effect on agent replies:
+
+```sh
+ssh -t root@<desk-name> 'sudo -H -u openclaw claude auth login'
+```
+
+This prints a URL; open it on your own machine, sign in, and paste the resulting code back into
+the `ssh -t` session. The login is stored under `openclaw`'s own `~/.claude`, which the
+`claude-cli` provider inherits directly — no Gateway config or restart needed. Verify it stuck:
+
+```sh
+ssh root@<desk-name> 'sudo -H -u openclaw claude auth status'
+```
+
+should report `loggedIn: true`. If Telegram replies still say `Not logged in · Please run
+/login`, re-run `claude auth login` as `openclaw` (not as `root` — the login is per-user).
+
+`/etc/openclaw/secrets/gateway.env` is the Gateway systemd unit's `EnvironmentFile`
+(`deploy/desk/units/openclaw-gateway.service`) — root:root, mode 0600, read by systemd itself
+before it drops privileges to `openclaw`, absent on a fresh desk. Claude sign-in does not use
+it; it carries the Gmail watcher's environment instead (see
+[Gmail push per desk](#gmail-push-per-desk)):
+
+| Line                   | Needed for                                  | Set by                                            |
+| ---------------------- | ------------------------------------------- | ------------------------------------------------- |
+| `GOG_HOME`             | `gog`'s per-desk state dir                  | picked by the operator when setting up Gmail push |
+| `GOG_KEYRING_PASSWORD` | Unlocking `gog`'s file-backed OAuth keyring | picked by the operator when setting up Gmail push |
+
+Create it with a `read -rs` prompt, never on the command line where a value would land in shell
+history and `ps`:
+
+```sh
+ssh root@<desk-name>
+install -d -m 700 /etc/openclaw/secrets
+read -rs -p 'GOG_KEYRING_PASSWORD: ' pw && echo &&
+  printf 'GOG_HOME=%s\nGOG_KEYRING_PASSWORD=%s\n' '<gog-home-dir>' "$pw" \
+    > /etc/openclaw/secrets/gateway.env
+unset pw
+chown root:root /etc/openclaw/secrets/gateway.env
+chmod 0600 /etc/openclaw/secrets/gateway.env
+systemctl restart openclaw-gateway
+```
+
+Restart `openclaw-gateway` after adding or changing any line in this file — `EnvironmentFile`
+is read once at process start, same as every other config change (see
+[Restart recipe](#restart-recipe)).
 
 ## Store logins
 
@@ -91,18 +156,50 @@ first boot, so no extra setup is needed before storing logins.
 
 ## Gmail push per desk
 
-Each desk that watches a mailbox needs two one-time steps, run on the desk itself:
+The Gateway claims Tailscale Serve on port 443 as a FOREGROUND listener for the Control UI
+(`gateway.tailscale.mode: "serve"`, set at provisioning time) — a foreground Funnel for the
+Gmail webhook can never share that port (`foreground listener already exists for port 443`),
+and `openclaw webhooks gmail setup --tailscale funnel` both defaults to exactly that and
+requires `gcloud`, which a desk does not have. **`webhooks gmail setup` cannot be used on a
+desk at all.**
+
+Instead, cloud-init sets up a **persistent background Funnel on a different port (8443)** right
+after `tailscale up`, forwarding only the webhook path to `gog`'s own local serve process:
+
+```sh
+tailscale funnel --bg --https=8443 --set-path=/gmail-pubsub http://127.0.0.1:8788
+```
+
+`tailscaled` persists this independently of the Gateway process, so it survives restarts and
+reboots and needs setting only once — it is already in place on every desk. The desk's config
+template keeps `hooks.gmail.tailscale.mode: "off"` and pins `hooks.gmail.serve` to
+`{ bind: "127.0.0.1", port: 8788, path: "/" }`, so `gog watch serve` only ever binds loopback;
+the Funnel rule above is what makes it public. The tailnet's Funnel policy must allow port 8443
+for the desk's node (`funnel-ports`) — the Tailscale admin console's default Funnel policy
+already grants this.
+
+To wire up a mailbox, run the Duty mapping setup on the desk, then set the Gmail account fields
+in its config by hand (a desk cannot run `webhooks gmail setup` itself — no `gcloud`), reusing
+the topic/subscription/tokens from a Gmail Pub/Sub setup created on a machine that has `gcloud`:
 
 ```sh
 ssh root@<desk-name>
 sudo -u openclaw node /opt/openclaw/openclaw.mjs duties setup
-sudo -u openclaw node /opt/openclaw/openclaw.mjs webhooks gmail setup \
-  --account <the-watched-gmail-address> --tailscale funnel
 ```
 
-Gmail Pub/Sub push needs a publicly reachable endpoint, so this step uses Tailscale **Funnel**
-(not Serve) for that one webhook path — Funnel is scoped to the hook route; the Control UI
-stays tailnet-only via Serve as configured at provisioning time.
+Then edit `/home/openclaw/.openclaw/openclaw.json` to set `hooks.token`, `hooks.gmail.account`,
+`hooks.gmail.topic`, `hooks.gmail.subscription`, and `hooks.gmail.pushToken` to match that
+existing setup, then restart the Gateway (see [Restart recipe](#restart-recipe) — never
+hot-edit a running desk's config and expect it to take effect on its own). Finally repoint the
+existing Pub/Sub subscription's push endpoint at the desk, from the machine that has `gcloud`:
+
+```sh
+gcloud pubsub subscriptions update <subscription> --project <project> \
+  --push-endpoint="https://<desk-name>.<tailnet>.ts.net:8443/gmail-pubsub?token=<pushToken>"
+```
+
+`<pushToken>` is `hooks.gmail.pushToken` from the config above — unchanged by the move, so the
+desk accepts the same pushes the previous endpoint did.
 
 ## Watch a run
 
@@ -110,6 +207,15 @@ Open the Duty's run page for evidence, screenshots, files, and the live "Now" pa
 the Control UI's **Browser** panel for a live screencast of the desk's headed Chromium tab
 with input forwarding. Both are reachable at `https://<desk-name>.<tailnet>.ts.net` — nothing
 extra to configure.
+
+Watching from the CLI instead, `openclaw gateway call duties.run.wait --params
+'{"runId":"<id>"}'` blocks until the run finishes — but `gateway call`'s own transport timeout
+defaults to 10 s, well under how long a real browser Duty can take, so it returns `gateway
+timeout after 10000ms` while the run itself is still fine. Pass a longer budget explicitly:
+
+```sh
+openclaw gateway call duties.run.wait --params '{"runId":"<id>"}' --timeout 60000
+```
 
 ## Parallel limit
 
@@ -129,12 +235,18 @@ deploy/desk/roll.sh <desk-name> --reboot
 
 `roll.sh` first checks the desk is idle (no Duty run `running`, `needs_input`, or `queued`)
 and exits with status 3 and a `desk is busy: run <id> is <status>; retry later or --force`
-message if it is not. Otherwise — or with `--force` — it fetches and checks out `<git-ref>`,
-reinstalls (frozen lockfile, `--ignore-scripts`) and rebuilds, restores `root:openclaw`
-ownership, restarts `openclaw-gateway`, waits for `/healthz` to answer, and prints the
-desk's reported version. Pass `--reboot` instead of a plain roll when a kernel or package
-update needs the whole box restarted, in a window the operator picks — `unattended-upgrades`
-on the desk never reboots on its own.
+message if it is not. Otherwise — or with `--force` — it **stops `openclaw-gateway` first**,
+then fetches and checks out `<git-ref>`, reinstalls (frozen lockfile, `--ignore-scripts`) and
+rebuilds against the now-idle checkout, restores `root:openclaw` ownership, starts
+`openclaw-gateway` again, waits for `/healthz` to answer, and prints the desk's reported
+version. **The desk is briefly down for the whole build — the Control UI is unreachable and
+Duties are refused — from the moment it stops the Gateway until `/healthz` answers again**
+(this replaces rebuilding `dist` while the old Gateway kept running, which used to surface a
+transient "assets could not be prepared" and skills `EACCES` on the Control UI mid-roll). Pass
+`--reboot` instead of a plain roll when a kernel or package update needs the whole box
+restarted, in a window the operator picks — `unattended-upgrades` on the desk never reboots on
+its own; the Gateway stops the same way first, then the enabled unit starts it back up once the
+box comes back.
 
 ## Snapshot / restore
 

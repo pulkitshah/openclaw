@@ -2,7 +2,7 @@
   "gateway": {
     "mode": "local",
     "bind": "loopback",
-    "tailscale": { "mode": "serve" },
+    "tailscale": { "mode": "{{GATEWAY_TAILSCALE_MODE}}" },
     "auth": {
       "mode": "token",
       "token": { "source": "file", "provider": "gateway-token-file", "id": "value" }
@@ -78,6 +78,10 @@
     "allowRequestSessionKey": true,
     "allowedSessionKeyPrefixes": ["hook:gmail:"],
     "allowedAgentIds": ["duties-mail"],
+    "gmail": {
+      "serve": { "bind": "127.0.0.1", "port": 8788, "path": "/" },
+      "tailscale": { "mode": "off" }
+    },
     "mappings": [
       {
         "id": "duties-mail",

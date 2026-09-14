@@ -10,12 +10,13 @@ Usage: roll.sh <desk-name> [<git-ref>] [--force] [--reboot]
 Rolls a hosted desk to <git-ref> (default: main) over tailnet SSH:
   1. Unless --force, checks the desk is idle (no running/needs_input/queued Duty run) and
      exits 3 if it is busy.
-  2. Fetches and checks out <git-ref>, reinstalls (frozen lockfile, ignore-scripts) and
-     rebuilds, restores root:openclaw ownership.
-  3. Restarts the Gateway and waits for /healthz to answer 200, then prints its reported
+  2. Stops the Gateway (the desk is briefly down and Duties are refused for the rest of this
+     step), then fetches and checks out <git-ref>, reinstalls (frozen lockfile, ignore-scripts)
+     and rebuilds against the now-idle checkout, restores root:openclaw ownership.
+  3. Starts the Gateway and waits for /healthz to answer 200, then prints its reported
      version — or, with --reboot, reboots the whole box instead (for kernel/package updates
      that need a window the owner picks; the Gateway's 45s-drain-then-SIGKILL unit handles the
-     stop cleanly either way).
+     stop cleanly either way, and the enabled unit starts back up on its own after the reboot).
 
 Exit code 3 means the desk is busy — retry later, or pass --force to roll anyway.
 
@@ -135,13 +136,20 @@ echo "==> Rolling \"$desk_name\" to ${git_ref}" >&2
 # passed as its own argument to a `bash -s --` positional parameter rather than interpolated
 # into the remote script text, so a validation gap here could never reopen the injection this
 # guards against. The heredoc delimiter is quoted ('REMOTE') so nothing in it is locally
-# expanded — every value it needs ($1/$2/$3) is resolved on the remote side instead.
-ssh "$ssh_target" bash -s -- "$git_ref" "$GATEWAY_PORT" "$mode" <<'REMOTE'
+# expanded — every value it needs ($1/$2/$3/$4) is resolved on the remote side instead.
+ssh "$ssh_target" bash -s -- "$desk_name" "$git_ref" "$GATEWAY_PORT" "$mode" <<'REMOTE'
 set -euo pipefail
-git_ref="$1"
-gateway_port="$2"
-mode="$3"
+desk_name="$1"
+git_ref="$2"
+gateway_port="$3"
+mode="$4"
 cd /opt/openclaw
+# Stop the Gateway BEFORE the checkout/install/build so a live process is never rebuilt out
+# from under itself (was: rebuilding dist while the old Gateway kept serving, surfacing a
+# transient "assets could not be prepared" and skills EACCES on the Control UI mid-roll). The
+# desk is down and Duties are refused for the whole build below, until the Gateway starts again.
+systemctl stop openclaw-gateway
+echo "updating ${desk_name}: Gateway stopped, building…"
 git fetch origin "$git_ref"
 git checkout --detach FETCH_HEAD
 npm_config_minimum_release_age=0 npm_config_minimum_release_age_strict=false pnpm install --frozen-lockfile --ignore-scripts
@@ -152,7 +160,7 @@ if [ "$mode" = "reboot" ]; then
   systemctl reboot
   exit 0
 fi
-systemctl restart openclaw-gateway
+systemctl start openclaw-gateway
 healthy=0
 for _ in $(seq 1 60); do
   if curl -fsS -o /dev/null "http://127.0.0.1:${gateway_port}/healthz"; then

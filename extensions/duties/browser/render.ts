@@ -220,14 +220,16 @@ function mailHealthLine(status: MailStatus | undefined): string {
 
 /** The health file's own boolean facts, in display order — spec §8's "Gateway, display, Chromium,
  *  Tailscale, mail watcher" chip row. `load1`/`memFreeMb` are numeric and shown as a text line
- *  underneath instead, alongside `at`. */
+ *  underneath instead, alongside `at`. "Chromium ready" means the browser is INSTALLED for the
+ *  service user (`desk-health.sh` checks the Playwright cache dir), not that a run currently has
+ *  one open — a run-only reading would make "all chips green" unreachable at idle. */
 const DESK_CHECKS: ReadonlyArray<{
   key: "gateway" | "display" | "chromium" | "tailscale" | "mailWatcher";
   label: string;
 }> = [
   { key: "gateway", label: "Gateway" },
   { key: "display", label: "Display" },
-  { key: "chromium", label: "Chromium" },
+  { key: "chromium", label: "Chromium ready" },
   { key: "tailscale", label: "Tailscale" },
   { key: "mailWatcher", label: "Mail watcher" },
 ];

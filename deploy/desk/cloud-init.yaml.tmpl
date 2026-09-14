@@ -80,6 +80,22 @@ write_files:
     content: |
       {{INCLUDE:chromium-policy.json}}
 
+  # Ubuntu 24.04 restricts unprivileged user namespaces under AppArmor by default
+  # (kernel.apparmor_restrict_unprivileged_userns=1), which blocks Chromium's OWN sandbox setup
+  # (unrelated to AppArmor profiles for named binaries) - every browser step died at
+  # "open-dashboard" with "FATAL ... No usable sandbox!" (observed 2026-09-14). Restoring
+  # Chromium's own sandbox by relaxing this one restriction is strictly safer than the
+  # `browser.noSandbox: true` / `--no-sandbox` OpenClaw's own error hint suggests, which disables
+  # Chromium's sandbox entirely for every renderer process on the box, not just this restriction.
+  - path: /etc/sysctl.d/60-openclaw-desk-chromium.conf
+    permissions: '0644'
+    owner: root:root
+    content: |
+      # Restores Chromium's own sandbox on Ubuntu 24.04+ (see the comment above this file's
+      # write_files entry in cloud-init.yaml.tmpl for why). Never run Chromium with --no-sandbox
+      # instead - that disables the sandbox for every renderer, not just this one restriction.
+      kernel.apparmor_restrict_unprivileged_userns = 0
+
   # Secrets: file-mode 0600, owned by the service user - the Gateway's file secret provider refuses
   # anything more open ("permissions are too open"); root can still read them. Never
   # inline in openclaw.json (SecretRef contract, docs/gateway/secrets/secretref-contract.md).
@@ -116,6 +132,10 @@ runcmd:
   - [install, -d, -o, openclaw, -g, openclaw, -m, '0700', /home/openclaw/.openclaw]
   - [install, -d, -o, root, -g, root, -m, '0755', /var/lib/openclaw]
 
+  # Apply the Chromium-sandbox sysctl write_files wrote above, before Chromium is ever installed
+  # or launched (spec section 4.7; see the comment on that write_files entry for why).
+  - sysctl --system
+
   # Tailscale FIRST: new-desk.sh watches the tailnet for this hostname and the operator can
   # only reach the box over it, so the join must not wait behind the multi-minute package,
   # Node and pnpm installs below. Install, join, then shred the one-time auth key. Tailnet SSH
@@ -129,12 +149,26 @@ runcmd:
   # every login into an interactive browser step - the operator scripts (roll.sh, migrations) need
   # plain key SSH. sshd listens on the tailnet interface too, so ssh root@<desk> works with the
   # DigitalOcean key while the cloud firewall keeps public port 22 closed (observed 2026-09-14).
-  - 'tailscale up --authkey "$(cat /root/ts-authkey)" --hostname {{DESK_NAME}} --timeout 180s || echo "desk: tailscale up FAILED (bad or consumed auth key?)" >&2'
+  {{TAILSCALE_UP_RUNCMD}}
   - shred -u /root/ts-authkey
   # The Gateway runs as openclaw and claims the Serve route itself (gateway.tailscale.mode
   # "serve"); without operator rights it cannot talk to tailscaled and the Control UI never
   # answers on the tailnet (src/infra/tailscale.ts falls back to sudo, which openclaw lacks).
-  - tailscale set --operator=openclaw
+  {{TAILSCALE_OPERATOR_RUNCMD}}
+
+  # Gmail push per desk: the Gateway claims Tailscale Serve on 443 as a FOREGROUND listener
+  # (gateway.tailscale.mode "serve"), which owns the whole port - a foreground Funnel for the
+  # Gmail webhook can never share it (observed 2026-09-14: "foreground listener already exists
+  # for port 443"). Instead, a persistent BACKGROUND Funnel on a different port (8443) forwards
+  # only the webhook path to gog's own local serve process; tailscaled persists this
+  # independently of the Gateway, so it survives restarts/reboots and needs setting only once.
+  # Safe to configure before Gmail push is set up for this desk - it is a static forwarding
+  # rule to a backend that may not be listening yet, not a request. The matching
+  # hooks.gmail.tailscale.mode "off" + hooks.gmail.serve (127.0.0.1:8788, path "/") in
+  # openclaw.json.tmpl keep gog's own serve process loopback-only; this Funnel rule alone is
+  # what makes it public. The tailnet's Funnel policy must allow port 8443 for this node
+  # (`funnel-ports`) - the Tailscale admin console's default Funnel policy already does.
+  {{TAILSCALE_FUNNEL_RUNCMD}}
 
   # Desktop, browser and tooling packages (deferred from `packages:` so the tailnet join above
   # is not stuck behind them).
@@ -159,8 +193,14 @@ runcmd:
   # gog (Google Workspace CLI) drives the Gmail push watcher; pinned to the operator's version
   # with the release checksums from openclaw/homebrew-tap Formula/gogcli.rb - never fetched
   # unverified. Architecture-aware so the local (arm64) pre-flight and amd64 droplets both work.
+  # Extracted into a private `mktemp -d`, never `/tmp` itself: the release tarball's own `./`
+  # entry carries owner/mode, and extracting straight into `/tmp` as root applies that entry to
+  # `/tmp` itself - it went from `1777 root:root` to `0755 501:staff` and silently broke every
+  # later use of a writable /tmp (the browser plugin's `mkdtemp`, claude's own tmpdir, plugin
+  # cleanup) until it was found and repaired by hand (observed 2026-09-14).
   - >-
-    cd /tmp &&
+    workdir="$(mktemp -d)" &&
+    cd "$workdir" &&
     arch="$(dpkg --print-architecture)" &&
     case "$arch" in
     amd64) sum=5f73815950f30de4165b7b767103ca45c4950e84a1da601eda5294e9ff94f767 ;;
@@ -170,10 +210,13 @@ runcmd:
     curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors -o gogcli.tgz
     "https://github.com/openclaw/gogcli/releases/download/v0.40.0/gogcli_0.40.0_linux_$arch.tar.gz" &&
     echo "$sum  gogcli.tgz" | sha256sum -c - &&
-    tar -xzf gogcli.tgz && install -m 0755 ./gog /usr/local/bin/gog && rm -f gogcli.tgz ./gog &&
+    tar -xzf gogcli.tgz && install -m 0755 ./gog /usr/local/bin/gog &&
+    cd / && rm -rf "$workdir" &&
     gog --version
 
-  # Fork checkout - pinned to the roll ref the operator asked for.
+  # Fork checkout - pinned to the roll ref the operator asked for. {{FORK_REPO_URL}} is the
+  # operator's own fork (render-cloud-init.mjs: --repo-url / DESK_FORK_REPO_URL, defaulting to
+  # the renderer's own checkout's `origin` remote) - never a name hardcoded in this template.
   # Shallow: the full fork history is >1 GB and took the clone past 10 minutes on a 2 vCPU box
   # (observed 2026-09-14). fetch+checkout of FETCH_HEAD accepts a branch, tag or commit, and
   # roll.sh updates the same way, so the checkout stays detached at the requested ref.
@@ -182,7 +225,7 @@ runcmd:
   - >-
     for attempt in 1 2 3 4; do
     rm -rf /opt/openclaw &&
-    git clone --depth 1 --no-checkout https://github.com/pulkitshah/openclaw /opt/openclaw &&
+    git clone --depth 1 --no-checkout {{FORK_REPO_URL}} /opt/openclaw &&
     git -C /opt/openclaw fetch --depth 1 origin {{GIT_REF}} &&
     git -C /opt/openclaw checkout --detach FETCH_HEAD && break;
     echo "desk: checkout attempt $attempt failed, retrying in 30s" >&2; sleep 30;

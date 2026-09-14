@@ -44,6 +44,20 @@ deploy/desk/new-desk.sh <desk-name> \
 
 This boots a `s-2vcpu-4gb` droplet by default (pass `--size s-4vcpu-8gb` for more parallel runs) and prints the desk's Control UI address plus the command to reveal the first sign-in token. Creating a desk usually takes 15–25 minutes. The command first waits for the desk to appear on your tailnet, then keeps waiting until the Gateway answers at its tailnet URL, and prints that URL only when it does. If the desk does not answer within 30 minutes, the command stops with the log command to run. Full flag and environment-override reference: `deploy/desk/README.md`.
 
+## First sign-in
+
+Three one-time steps make a fresh desk fully usable, in order:
+
+1. **Sign in to the Control UI** at the printed URL with the token `new-desk.sh` printed.
+2. **Approve the device pairing request** — a first-time browser tab or CLI client registers a
+   pending pairing request that the Gateway refuses to serve until you explicitly approve it
+   (`openclaw devices approve <request-id>`); the sign-in token alone is not enough.
+3. **Sign Claude in** — the desk's agents run on your own Claude subscription, not an API key,
+   so nothing replies until `claude auth login` is run as the desk's service user.
+
+See `deploy/desk/README.md`'s "First sign-in" and "Sign Claude in" sections for the exact
+commands.
+
 ## What runs on it
 
 Once first boot finishes, a desk runs:
@@ -59,13 +73,32 @@ Once first boot finishes, a desk runs:
 - **SSH** — over the tailnet, using the desk name as the host.
 - **The Telegram bot** — the one you supplied a token for, answering only the owner target you set.
 
+The only thing a desk ever exposes to the public internet is a single webhook path on a second
+port, `<desk-name>.<tailnet>.ts.net:8443/gmail-pubsub`, present from first boot so Gmail push
+setup ([below](#gmail-push-per-desk)) needs no extra exposure step. The Control UI, SSH, and
+everything else stay tailnet-only.
+
 ## Store logins
 
 Open the desk's Control UI [Logins page](/plugins/duties#logins) and add whatever a Duty needs to sign in somewhere. On a desk, those values are kept encrypted on the desk itself and are never sent through the agent's context.
 
 ## Gmail push per desk
 
-A desk that should react to inbound mail needs the same [mail-trigger setup](/plugins/duties#setup) as any other Gateway, run once on the desk itself. Gmail push needs one public URL for Google's Pub/Sub delivery; the setup command exposes only the webhook path through Tailscale Funnel. Everything else stays tailnet-only.
+A desk that should react to inbound mail needs the same [mail-trigger setup](/plugins/duties#setup) as any other Gateway. Gmail push needs one public URL for Google's Pub/Sub delivery; a desk exposes only that one webhook path (`:8443/gmail-pubsub`), through a persistent background Tailscale Funnel set up by cloud-init at first boot — never on the Control UI's own port 443, which the Gateway keeps tailnet-only via Serve. Because that setup needs `gcloud`, which a desk does not have, the mail-trigger CLI setup command runs on a machine that has it instead of on the desk; see `deploy/desk/README.md`'s "Gmail push per desk" section for the exact steps and the config fields to carry over.
+
+## Security notes
+
+- **Network**: no public ports except the one Gmail webhook path noted above; everything else
+  (Control UI, SSH) is reachable only over your tailnet, gated by both tailnet identity and the
+  Gateway's own token.
+- **Chromium's sandbox, restored, not removed**: Ubuntu 24.04 ships with unprivileged user
+  namespaces restricted under AppArmor by default, which blocks Chromium's own sandbox setup
+  (it fails to start at all, with "No usable sandbox!"). A desk relaxes exactly that one kernel
+  restriction (`kernel.apparmor_restrict_unprivileged_userns`) via a `sysctl.d` file, so Chromium
+  can build its sandbox the way it does on any desktop Linux without that restriction — this is
+  narrower than running Chromium with `--no-sandbox`, which disables its sandbox for every
+  renderer process rather than restoring it, and is not a general AppArmor policy change for
+  other confined binaries on the box.
 
 ## Parallel runs
 

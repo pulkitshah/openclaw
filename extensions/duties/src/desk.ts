@@ -1,8 +1,10 @@
 /**
  * Reads the health file a hosted desk's `desk-health.timer` writes every two minutes
- * (`deploy/desk/desk-health.sh`, spec §4.8/§8): the Gateway, virtual display, Chromium and
- * Tailscale reachability checks, whether the mail watcher hook is wired, and basic load/memory —
- * everything the "Desk" card on the Duties page and `openclaw duties setup` need to show.
+ * (`deploy/desk/desk-health.sh`, spec §4.8/§8): the Gateway and virtual display reachability
+ * checks, whether Chromium is INSTALLED for the service user (not whether one is currently
+ * running — a run-only reading would make "all chips green" unreachable at idle), Tailscale
+ * reachability, whether the mail watcher hook is wired, and basic load/memory — everything the
+ * "Desk" card on the Duties page and `openclaw duties setup` need to show.
  *
  * A non-hosted install (the common case: a laptop, or any Gateway that isn't a desk) simply has
  * no file at this path, which is exactly what `{ hosted: false }` means — this is never an error
