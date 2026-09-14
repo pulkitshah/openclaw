@@ -26,6 +26,11 @@ packages:
   - ca-certificates
   - gnupg
 
+# Entries owned by the `openclaw` user or group carry `defer: true`: the write_files module runs
+# in the init stage BEFORE users-groups, so a non-deferred openclaw-owned entry fails with
+# "Unknown user or group" and aborts the whole module - every later entry, including the
+# Tailscale auth key, is then never written (observed 2026-09-14, attempt 4). Deferred entries
+# are written in the final stage, after the user exists and before runcmd.
 write_files:
   # Security-only unattended-upgrades, never an unattended reboot - kernel/package reboots happen
   # only via roll.sh --reboot in a window the owner picks (spec section 9).
@@ -80,12 +85,14 @@ write_files:
   - path: /etc/openclaw/secrets/telegram-bot-token
     permissions: '0640'
     owner: root:openclaw
+    defer: true
     content: |
       {{TG_BOT_TOKEN}}
 
   - path: /etc/openclaw/secrets/gateway-token
     permissions: '0640'
     owner: root:openclaw
+    defer: true
     content: |
       {{GATEWAY_TOKEN}}
 
@@ -99,6 +106,7 @@ write_files:
   - path: /home/openclaw/.openclaw/openclaw.json
     permissions: '0600'
     owner: openclaw:openclaw
+    defer: true
     content: |
       {{OPENCLAW_CONFIG_JSON}}
 
