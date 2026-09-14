@@ -46,12 +46,16 @@
       "systemAgent": { "agentId": "krishna" }
     },
     "entries": {
+      "krishna": {
+        "name": "Krishna",
+        "workspace": "/home/openclaw/.openclaw/workspace"
+      },
       "duties-mail": {
         "name": "Duties mail dispatcher",
         "skills": ["duties"],
         "tools": {
           "profile": "minimal",
-          "allow": ["duty_list", "duty_get", "duty_run", "message", "exec", "llm-task"],
+          "alsoAllow": ["duty_list", "duty_get", "duty_run", "message", "exec", "llm-task"],
           "deny": ["browser", "group:fs", "group:web", "cron", "gateway", "nodes"]
         }
       }
