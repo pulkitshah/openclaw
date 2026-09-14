@@ -115,7 +115,7 @@ describe("ask adapter", () => {
   // which is how they are naturally named, `ask-hold` — failed with a raw schema error instead of
   // ever reaching the owner.
   it("sends a question id the Gateway accepts, and still reads back that answer", async () => {
-    const request = vi.fn(async (method: string) =>
+    const request = vi.fn(async (method: string, params: Record<string, unknown>) =>
       method === "question.request"
         ? { id: "q1", expiresAtMs: 1 }
         : { status: "answered", answers: { answers: { ask_hold: ["Approve"] } } },
@@ -132,15 +132,18 @@ describe("ask adapter", () => {
       note: "sent without buttons: an ask needs 2–4 distinct options",
     });
 
-    const sent = request.mock.calls.find((c) => c[0] === "question.request")?.[1] as {
-      questions: [{ questionId: string }];
-    };
-    expect(sent.questions[0].questionId).toMatch(/^[a-z][a-z0-9_]*$/u);
-    expect(sent.questions[0].questionId).toBe("ask_hold");
+    const sent = request.mock.calls.find((c) => c[0] === "question.request")?.[1];
+    if (!sent) throw new Error("Expected question.request call");
+    expect((sent as { questions: [{ questionId: string }] }).questions[0].questionId).toMatch(
+      /^[a-z][a-z0-9_]*$/u,
+    );
+    expect((sent as { questions: [{ questionId: string }] }).questions[0].questionId).toBe(
+      "ask_hold",
+    );
   });
 
   it("keeps a leading digit out of the question id", async () => {
-    const request = vi.fn(async (method: string) =>
+    const request = vi.fn(async (method: string, params: Record<string, unknown>) =>
       method === "question.request"
         ? { id: "q1", expiresAtMs: 1 }
         : { status: "answered", answers: { answers: { q_2nd_leg: ["Yes"] } } },
@@ -153,10 +156,11 @@ describe("ask adapter", () => {
       answer: "Yes",
       note: "sent without buttons: an ask needs 2–4 distinct options",
     });
-    const sent = request.mock.calls.find((c) => c[0] === "question.request")?.[1] as {
-      questions: [{ questionId: string }];
-    };
-    expect(sent.questions[0].questionId).toMatch(/^[a-z][a-z0-9_]*$/u);
+    const sent = request.mock.calls.find((c) => c[0] === "question.request")?.[1];
+    if (!sent) throw new Error("Expected question.request call");
+    expect((sent as { questions: [{ questionId: string }] }).questions[0].questionId).toMatch(
+      /^[a-z][a-z0-9_]*$/u,
+    );
   });
 
   // Regression: the ask was announced as a paragraph of text, so the owner's tap had nowhere to
@@ -228,7 +232,7 @@ describe("ask adapter", () => {
   // with no owner target failed every Duty — including ones with no `ask` — before step 1.
   it("resolves its session only when a question is actually raised", async () => {
     const resolved: string[] = [];
-    const request = vi.fn(async (method: string) =>
+    const request = vi.fn(async (method: string, params: Record<string, unknown>) =>
       method === "question.request"
         ? { id: "q1", expiresAtMs: 1 }
         : { status: "answered", answers: { answers: { hold: ["Approve"] } } },
@@ -251,14 +255,13 @@ describe("ask adapter", () => {
     });
 
     expect(resolved).toEqual(["resolved"]);
-    const sent = request.mock.calls.find((c) => c[0] === "question.request")?.[1] as {
-      sessionKey?: string;
-    };
-    expect(sent.sessionKey).toBe("agent:krishna:main");
+    const sent = request.mock.calls.find((c) => c[0] === "question.request")?.[1];
+    if (!sent) throw new Error("Expected question.request call");
+    expect((sent as { sessionKey?: string }).sessionKey).toBe("agent:krishna:main");
   });
 
   it("adds no note when the options do make a tappable card", async () => {
-    const request = vi.fn(async (method: string) =>
+    const request = vi.fn(async (method: string, params: Record<string, unknown>) =>
       method === "question.request"
         ? { id: "q1", expiresAtMs: 1 }
         : { status: "answered", answers: { answers: { hold: ["Approve"] } } },

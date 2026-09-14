@@ -227,7 +227,16 @@ function registerForDeps() {
   const captured = createCapturedPluginRegistration({ id: "duties", name: "Duties" });
   // Evidence blobs and the rendered-file directory are only reachable through the real plugin
   // runtime proxy; these cases are about how the adapters are built.
-  captured.api.runtime.state.openBlobStore = () => ({ register: async () => {} });
+  captured.api.runtime.state.openBlobStore = () => ({
+    register: async () => {},
+    registerIfAbsent: async () => false,
+    lookup: async () => undefined,
+    entries: async () => [],
+    delete: async () => false,
+    deleteExpiredKey: async () => undefined,
+    deleteExpired: async () => [],
+    clear: async () => {},
+  });
   captured.api.runtime.state.resolveStateDir = () => os.tmpdir();
   plugin.register(captured.api);
   const params = runManagerParams.mock.calls.at(-1)?.[0] as {
