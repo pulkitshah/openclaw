@@ -239,6 +239,20 @@ describe("RunManager", () => {
     expect(stored?.steps.map((s) => s.stepId)).toEqual(["s1", "s2", "s3"]);
   });
 
+  it("reports active/queued counts via status()", async () => {
+    const store = newStore();
+    const mgr = new RunManager({ store, deps: () => deps(20), emit: () => {}, maxParallel: 1 });
+    expect(mgr.status()).toEqual({ active: 0, queued: 0 });
+    const first = await mgr.start({ duty: duty("st-1"), inputs: {}, trigger: "manual" });
+    const second = await mgr.start({ duty: duty("st-2"), inputs: {}, trigger: "manual" });
+    expect(mgr.status()).toEqual({ active: 1, queued: 1 });
+    await Promise.all([mgr.wait(first.runId), mgr.wait(second.runId)]);
+    // `wait()` resolves inside `finish()`, before `launch()`'s `.finally()` clears `active` —
+    // give that cleanup a chance to land before reading status() again.
+    await flushMacrotasks(3);
+    expect(mgr.status()).toEqual({ active: 0, queued: 0 });
+  });
+
   it("catches a synchronous deps() throw, ends the run failed, and produces no unhandled rejection", async () => {
     let unhandled: unknown;
     const onUnhandledRejection = (reason: unknown) => {
@@ -263,6 +277,37 @@ describe("RunManager", () => {
     } finally {
       process.off("unhandledRejection", onUnhandledRejection);
     }
+  });
+
+  it("resolves maxParallel from an async function at pump time, so raising the limit drains the queue without waiting for a finish", async () => {
+    const store = newStore();
+    let limit = 1;
+    const mgr = new RunManager({
+      store,
+      deps: () => deps(30),
+      emit: () => {},
+      maxParallel: async () => limit,
+    });
+    const first = await mgr.start({ duty: duty("mp-1"), inputs: {}, trigger: "manual" });
+    expect(first.queued).toBe(false);
+    const second = await mgr.start({ duty: duty("mp-2"), inputs: {}, trigger: "manual" });
+    expect(second.queued).toBe(true);
+    expect(second.reason).toBe("waiting for a free slot");
+    expect((await store.getRun(second.runId))?.status).toBe("queued");
+
+    limit = 2;
+    const third = await mgr.start({ duty: duty("mp-3"), inputs: {}, trigger: "manual" });
+    // Starting a third run triggers another pump; with the limit now 2, the previously queued
+    // second run starts alongside the first without anything finishing first.
+    await flushMacrotasks(3);
+    expect((await store.getRun(second.runId))?.status).toBe("running");
+
+    const [rf, rs, rt] = await Promise.all([
+      mgr.wait(first.runId),
+      mgr.wait(second.runId),
+      mgr.wait(third.runId),
+    ]);
+    expect([rf.status, rs.status, rt.status]).toEqual(["ok", "ok", "ok"]);
   });
 
   it("resolves every concurrent waiter for the same still-queued run", async () => {

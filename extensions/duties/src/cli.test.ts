@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { buildDutiesSetup, registerDutiesSetupCli } from "./cli.js";
 import { MAIL_AGENT_ID } from "./mail.js";
 import { RENDER_ALLOWLIST_KEY } from "./setup.js";
@@ -173,6 +173,53 @@ describe("buildDutiesSetup", () => {
     });
     expect(allowed.missing).toEqual([]);
   });
+
+  // A hosted desk (docs/superpowers/specs/2026-09-14-hosted-desk-design.md §8) has two more
+  // prerequisites nothing else in the printed setup checks: the credential keyfile the Linux
+  // cred backend needs, and the virtual display Xvfb should have brought up.
+  it("reports the desk keyfile and display as missing prerequisites only when hosted", () => {
+    const notHosted = buildDutiesSetup({
+      account: "ops@example.com",
+      gogPath: "/usr/local/bin/gog",
+      config: {
+        hooksEnabled: true,
+        gmailAccount: "ops@example.com",
+        mappingPresent: true,
+        agentPresent: true,
+        renderAllowed: true,
+      },
+    });
+    expect(notHosted.missing.some((m) => m.includes("keyfile"))).toBe(false);
+
+    const hostedMissing = buildDutiesSetup({
+      account: "ops@example.com",
+      gogPath: "/usr/local/bin/gog",
+      config: {
+        hooksEnabled: true,
+        gmailAccount: "ops@example.com",
+        mappingPresent: true,
+        agentPresent: true,
+        renderAllowed: true,
+        desk: { keyfilePresent: false, displayOk: false },
+      },
+    });
+    expect(hostedMissing.missing.some((m) => m.includes("keyfile"))).toBe(true);
+    expect(hostedMissing.missing.some((m) => m.toLowerCase().includes("display"))).toBe(true);
+
+    const hostedReady = buildDutiesSetup({
+      account: "ops@example.com",
+      gogPath: "/usr/local/bin/gog",
+      config: {
+        hooksEnabled: true,
+        gmailAccount: "ops@example.com",
+        mappingPresent: true,
+        agentPresent: true,
+        renderAllowed: true,
+        desk: { keyfilePresent: true, displayOk: true },
+      },
+    });
+    expect(hostedReady.missing).toEqual([]);
+  });
 });
 
 describe("registerDutiesSetupCli", () => {
@@ -203,5 +250,75 @@ describe("registerDutiesSetupCli", () => {
     registerDutiesSetupCli({ program, config: {} });
 
     expect(registered).toEqual([{ name: "setup", aliases: ["setup-mail"] }]);
+  });
+
+  /** Builds the same commander stub as above, but captures the registered `action` callback so
+   *  it can be invoked directly — the only way to exercise the real desk-facts wiring (reading
+   *  the health file, checking the keyfile) without touching the filesystem. */
+  function captureAction(): {
+    program: Command;
+    run: (opts: { account: string }) => Promise<void>;
+  } {
+    let action: ((opts: { account: string }) => Promise<void>) | undefined;
+    const subcommand = {
+      description: () => subcommand,
+      alias: () => subcommand,
+      requiredOption: () => subcommand,
+      action: (fn: (opts: { account: string }) => Promise<void>) => {
+        action = fn;
+        return subcommand;
+      },
+    };
+    const duties = { description: () => duties, command: () => subcommand };
+    const program = { command: () => duties } as unknown as Command;
+    return {
+      program,
+      run: async (opts) => {
+        await action!(opts);
+      },
+    };
+  }
+
+  it("prints a Desk block with keyfile/display/render checks when the health file says hosted", async () => {
+    const { program, run } = captureAction();
+    const logs: string[] = [];
+    const logSpy = vi.spyOn(console, "log").mockImplementation((line: string) => {
+      logs.push(line);
+    });
+    try {
+      registerDutiesSetupCli({
+        program,
+        config: { browser: { ssrfPolicy: { allowedHostnames: ["127.0.0.1"] } } },
+        readDeskHealth: async () => ({ hosted: true, display: true }),
+        keyfilePresent: async () => true,
+      });
+      await run({ account: "ops@example.com" });
+    } finally {
+      logSpy.mockRestore();
+    }
+    const output = logs.join("\n");
+    expect(output).toContain("Desk");
+    expect(output).toContain("keyfile");
+    expect(output).toMatch(/display.*yes/iu);
+  });
+
+  it("prints no Desk block when the health file says not hosted", async () => {
+    const { program, run } = captureAction();
+    const logs: string[] = [];
+    const logSpy = vi.spyOn(console, "log").mockImplementation((line: string) => {
+      logs.push(line);
+    });
+    try {
+      registerDutiesSetupCli({
+        program,
+        config: {},
+        readDeskHealth: async () => ({ hosted: false }),
+        keyfilePresent: async () => false,
+      });
+      await run({ account: "ops@example.com" });
+    } finally {
+      logSpy.mockRestore();
+    }
+    expect(logs.join("\n")).not.toContain("Desk:");
   });
 });

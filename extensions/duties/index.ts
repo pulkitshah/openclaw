@@ -232,6 +232,9 @@ export default definePluginEntry({
       cancelQuestion: async (questionId) => {
         await request("question.resolve", { id: questionId, cancel: true });
       },
+      // Read fresh on every start()/pump pass so a hosted desk's owner can raise or lower the
+      // ceiling from the Duties page's Desk card without a Gateway restart.
+      maxParallel: async () => (await store.getSettings()).maxParallelRuns ?? 4,
     });
     // Best-effort: a sweep that cannot remove an old run's directory is a disk-space note, never a
     // reason for the Duties service to fail to start.

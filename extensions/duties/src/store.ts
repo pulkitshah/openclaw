@@ -102,6 +102,11 @@ export type DutiesSettings = {
    *  moment it breaks. Turned on, an edit to an ACTIVE Duty is parked as a pending change and the
    *  live Duty keeps running unchanged until the owner applies it. */
   requireApprovalForEdits?: boolean;
+  /** The RunManager's active-run ceiling (1-8; default 4 when unset — see `gateway-methods.ts`'s
+   *  `duties.settings.set` validation and `index.ts`'s `RunManager` wiring). Read fresh on every
+   *  `start()`/pump pass, so a hosted desk's owner can raise or lower it from the Duties page
+   *  without a Gateway restart — sizing guidance (spec §6): `s-2vcpu-4gb` ≈ 2-3, `s-4vcpu-8gb` ≈ 6. */
+  maxParallelRuns?: number;
 };
 
 export type DutyStores = {

@@ -494,6 +494,45 @@ describe("render", () => {
     expect(html).not.toContain("openclaw duties setup-mail");
   });
 
+  it("board's Desk card shows health chips and the parallel-runs input when hosted", () => {
+    const html = renderBoard([duty as unknown as Duty], [], {
+      settings: { maxParallelRuns: 3 },
+      deskStatus: {
+        hosted: true,
+        gateway: true,
+        display: true,
+        chromium: false,
+        tailscale: true,
+        mailWatcher: true,
+        load1: 0.42,
+        memFreeMb: 512,
+        maxParallelRuns: 3,
+        active: 1,
+        queued: 0,
+      },
+    });
+    expect(html).toContain("data-parallel-save");
+    expect(html).toContain('value="3"');
+    expect(html).toContain("Gateway");
+    expect(html).toContain("mcheck ok");
+    expect(html).toContain("mcheck bad");
+  });
+
+  it("board's Desk card hides the health chips (never the parallel input) when not hosted", () => {
+    const html = renderBoard([duty as unknown as Duty], [], {
+      deskStatus: { hosted: false, maxParallelRuns: 4, active: 0, queued: 0 },
+    });
+    expect(html).toContain("data-parallel-save");
+    expect(html).toContain('value="4"');
+    expect(html).not.toContain("mcheck");
+  });
+
+  it("board's Desk card falls back to a loading state before the first duties.desk.status reply", () => {
+    const html = renderBoard([duty as unknown as Duty], []);
+    expect(html).toContain("data-parallel-save");
+    expect(html).not.toContain("mcheck");
+  });
+
   it("renderPlaceholder shows an error banner with retry when a load failed, not a bare Loading forever", () => {
     const errored = renderPlaceholder({ error: "network down" });
     expect(errored).toContain("network down");

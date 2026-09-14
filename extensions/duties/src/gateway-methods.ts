@@ -6,6 +6,7 @@ import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { OpenClawPluginApi } from "../api.js";
 import { previewContentType, type RenderAdapter } from "./adapters/render.js";
+import { readDeskHealth, type DeskHealth } from "./desk.js";
 import {
   DEFAULT_MACHINE,
   DEFAULT_REPORTS_TO,
@@ -77,7 +78,7 @@ type EvidenceBlobs = {
 export function registerDutiesGatewayMethods(params: {
   api: OpenClawPluginApi;
   store: DutyStore;
-  runs: Pick<RunManager, "start" | "cancel" | "waitFor">;
+  runs: Pick<RunManager, "start" | "cancel" | "waitFor" | "status">;
   emit: (name: "changed" | "run", payload: Record<string, unknown>) => void;
   /** Credential writes. Values pass straight to the OS keychain and are never stored, logged,
    *  echoed in a result, or emitted in an event. */
@@ -97,9 +98,12 @@ export function registerDutiesGatewayMethods(params: {
   /** Sends one line to the owner target. Used only to say that a change to an active Duty is
    *  waiting; best-effort, and never on the critical path of the write itself. */
   notifyOwner?: (text: string) => Promise<void>;
+  /** Test injection point for `duties.desk.status`; defaults to `desk.ts`'s file-backed reader. */
+  deskHealth?: () => Promise<DeskHealth>;
 }): void {
   const { api, store, runs, emit, creds, evidence, render, previewDir, notifyOwner } = params;
   const currentConfig = (): OpenClawConfig => params.config?.() ?? api.config;
+  const readDesk = params.deskHealth ?? readDeskHealth;
 
   // A committed write (save/delete/status) must still be reported as `ok: true` even if
   // best-effort event delivery fails after it; `createDutiesEventService`'s own `emit` never
@@ -588,11 +592,21 @@ export function registerDutiesGatewayMethods(params: {
   register("duties.settings.set", "operator.admin", async (params) => {
     const owner = params.owner;
     const approval = params.requireApprovalForEdits;
+    const maxParallelRuns = params.maxParallelRuns;
     if (approval !== undefined && typeof approval !== "boolean") {
       throw new Error("requireApprovalForEdits must be a boolean");
     }
-    if (owner === undefined && approval === undefined) {
-      throw new Error("owner or requireApprovalForEdits is required");
+    if (
+      maxParallelRuns !== undefined &&
+      (typeof maxParallelRuns !== "number" ||
+        !Number.isInteger(maxParallelRuns) ||
+        maxParallelRuns < 1 ||
+        maxParallelRuns > 8)
+    ) {
+      throw new Error("maxParallelRuns must be a whole number from 1 to 8");
+    }
+    if (owner === undefined && approval === undefined && maxParallelRuns === undefined) {
+      throw new Error("owner, requireApprovalForEdits, or maxParallelRuns is required");
     }
     const patch: Parameters<typeof store.updateSettings>[0] = {};
     if (owner !== undefined) {
@@ -605,6 +619,7 @@ export function registerDutiesGatewayMethods(params: {
       patch.owner = { channel: channel.trim(), target: target.trim() };
     }
     if (approval !== undefined) patch.requireApprovalForEdits = approval;
+    if (maxParallelRuns !== undefined) patch.maxParallelRuns = maxParallelRuns;
     const settings = await store.updateSettings(patch);
     safeEmit("changed", { settings: true });
     return { settings };
@@ -616,4 +631,16 @@ export function registerDutiesGatewayMethods(params: {
     ...mailStatusFromConfig(currentConfig(), await store.getSettings()),
     ...renderStatusFromConfig(currentConfig()),
   }));
+
+  /** The hosted-desk "Desk" card's one readout (spec §8): the health file's own facts (or
+   *  `{ hosted: false }` on a laptop install) plus the run manager's live ceiling and current
+   *  activity, so the owner sees exactly what `maxParallelRuns` is doing right now. */
+  register("duties.desk.status", "operator.read", async () => {
+    const [health, settings] = await Promise.all([readDesk(), store.getSettings()]);
+    return {
+      ...health,
+      maxParallelRuns: settings.maxParallelRuns ?? 4,
+      ...runs.status(),
+    };
+  });
 }

@@ -4,6 +4,7 @@ import path from "node:path";
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { describe, expect, it, vi, type Mock } from "vitest";
 import type { RenderAdapter } from "./adapters/render.js";
+import type { DeskHealth } from "./desk.js";
 import type { Duty } from "./duty.js";
 import { registerDutiesGatewayMethods } from "./gateway-methods.js";
 import type { RunManager } from "./run-service.js";
@@ -34,12 +35,14 @@ function harness(params?: {
     start: ReturnType<typeof vi.fn>;
     cancel: ReturnType<typeof vi.fn>;
     waitFor: ReturnType<typeof vi.fn>;
+    status?: ReturnType<typeof vi.fn>;
   };
   blob?: { bytes: Uint8Array; metadata: { contentType: string } };
   config?: OpenClawConfig;
   render?: RenderAdapter;
   previewDir?: string;
   notifyOwner?: (text: string) => Promise<void>;
+  deskHealth?: () => Promise<DeskHealth>;
 }) {
   const methods = new Map<string, { handler: Handler; scope: string }>();
   const api = {
@@ -57,7 +60,12 @@ function harness(params?: {
     settings: memoryKeyed() as never,
   });
   const emit = params?.emit ?? vi.fn<EmitFn>();
-  const runs = params?.runs ?? { start: vi.fn(), cancel: vi.fn(), waitFor: vi.fn() };
+  const runs = params?.runs ?? {
+    start: vi.fn(),
+    cancel: vi.fn(),
+    waitFor: vi.fn(),
+    status: vi.fn(() => ({ active: 0, queued: 0 })),
+  };
   const creds = {
     set: vi.fn<(key: string, value: string) => Promise<void>>(async () => {}),
     delete: vi.fn<(key: string) => Promise<boolean>>(async () => true),
@@ -77,6 +85,7 @@ function harness(params?: {
     },
     previewDir: async () => params?.previewDir ?? tmpdir(),
     ...(params?.notifyOwner ? { notifyOwner: params.notifyOwner } : {}),
+    ...(params?.deskHealth ? { deskHealth: params.deskHealth } : {}),
   });
 
   const call = async (name: string, callParams: Record<string, unknown>) =>
@@ -427,6 +436,24 @@ describe("duties gateway methods", () => {
     expect((await call("duties.settings.set", { requireApprovalForEdits: "yes" })).ok).toBe(false);
   });
 
+  it("duties.settings.set validates maxParallelRuns as a whole number from 1 to 8", async () => {
+    const { call, store } = harness();
+
+    const tooHigh = await call("duties.settings.set", { maxParallelRuns: 9 });
+    expect(tooHigh.ok).toBe(false);
+    expect(tooHigh.error).toMatchObject({
+      message: "maxParallelRuns must be a whole number from 1 to 8",
+    });
+
+    expect((await call("duties.settings.set", { maxParallelRuns: 0 })).ok).toBe(false);
+    expect((await call("duties.settings.set", { maxParallelRuns: 2.5 })).ok).toBe(false);
+    expect((await call("duties.settings.set", { maxParallelRuns: "3" })).ok).toBe(false);
+
+    const saved = await call("duties.settings.set", { maxParallelRuns: 3 });
+    expect(saved.ok).toBe(true);
+    expect((await store.getSettings()).maxParallelRuns).toBe(3);
+  });
+
   it("duties.settings.set is admin-only and needs a non-empty channel and target", async () => {
     const { call, methods } = harness();
 
@@ -669,6 +696,41 @@ describe("duties gateway methods", () => {
       lastDispatchDutyId: "d1",
     });
     expect(JSON.stringify(status)).not.toContain("owner@example.com");
+  });
+
+  it("duties.desk.status merges the health file, maxParallelRuns and current active/queued counts", async () => {
+    const runs = {
+      start: vi.fn(),
+      cancel: vi.fn(),
+      waitFor: vi.fn(),
+      status: vi.fn(() => ({ active: 2, queued: 1 })),
+    };
+    const { call, store, methods } = harness({
+      runs,
+      deskHealth: async () => ({ hosted: true, gateway: true, display: true, load1: 0.5 }),
+    });
+    expect(methods.get("duties.desk.status")?.scope).toBe("operator.read");
+    await store.updateSettings({ maxParallelRuns: 3 });
+    const result = await call("duties.desk.status", {});
+    expect(result.result).toEqual({
+      hosted: true,
+      gateway: true,
+      display: true,
+      load1: 0.5,
+      maxParallelRuns: 3,
+      active: 2,
+      queued: 1,
+    });
+  });
+
+  it("duties.desk.status defaults maxParallelRuns to 4 and reports not-hosted when there is no health file", async () => {
+    const { call } = harness();
+    expect((await call("duties.desk.status", {})).result).toEqual({
+      hosted: false,
+      maxParallelRuns: 4,
+      active: 0,
+      queued: 0,
+    });
   });
 
   // These four methods exist because the tools became clients of them: the tools must own no

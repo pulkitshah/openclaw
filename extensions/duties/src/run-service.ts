@@ -61,7 +61,10 @@ export class RunManager {
    *  run are serialized instead of racing on a read-modify-write of `steps`, and `finish`
    *  can wait for every append to land before writing the terminal status. */
   private readonly appendChains = new Map<string, Promise<void>>();
-  private readonly maxParallel: number;
+  /** The active-run ceiling: a plain number, or a function resolved fresh on every `start()` and
+   *  every `pump()` pass, so a live `maxParallelRuns` setting change (the hosted-desk Settings
+   *  strip) takes effect on the very next run without restarting the Gateway. */
+  private readonly maxParallel: number | (() => number | Promise<number>);
   constructor(
     private readonly params: {
       store: DutyStore;
@@ -78,10 +81,21 @@ export class RunManager {
        *  set a flag nothing would read until the question answered or timed out — up to fifteen
        *  minutes during which the run kept holding its browser session. */
       cancelQuestion?: (questionId: string) => Promise<void>;
-      maxParallel?: number;
+      maxParallel?: number | (() => number | Promise<number>);
     },
   ) {
     this.maxParallel = params.maxParallel ?? 4;
+  }
+
+  /** Reports what the manager is doing right now, for `duties.desk.status`: how many runs are
+   *  actively executing and how many are queued behind the current `maxParallel` ceiling. */
+  status(): { active: number; queued: number } {
+    return { active: this.active.size, queued: this.queue.length };
+  }
+
+  private async resolveMaxParallel(): Promise<number> {
+    const m = this.maxParallel;
+    return typeof m === "function" ? await m() : m;
   }
 
   /** A run that nobody is watching is the one whose status matters most, so status lines follow
@@ -131,7 +145,7 @@ export class RunManager {
       keepOpen: p.keepOpen,
       targetId: p.targetId,
     });
-    const queued = !this.canStart(p.duty);
+    const queued = !this.canStart(p.duty, await this.resolveMaxParallel());
     this.pump();
     return {
       runId: run.id,
@@ -224,15 +238,24 @@ export class RunManager {
     return false;
   }
 
-  private canStart(duty: Duty): boolean {
-    if (this.active.size >= this.maxParallel) return false;
+  private canStart(duty: Duty, limit: number): boolean {
+    if (this.active.size >= limit) return false;
     return !(duty.exclusive && (this.activeByDuty.get(duty.id) ?? 0) > 0);
   }
 
+  /** Fire-and-forget: resolves the current limit once, then drains synchronously against it. A
+   *  caller never awaits `pump()` itself — every caller before this change was already
+   *  fire-and-forget (`start()`, and `launch()`'s `.finally()`) — so turning it into a thin
+   *  wrapper around an async drain keeps every call site unchanged. */
   private pump(): void {
+    void this.drain();
+  }
+
+  private async drain(): Promise<void> {
+    const limit = await this.resolveMaxParallel();
     for (let i = 0; i < this.queue.length; i += 1) {
       const item = this.queue[i]!;
-      if (!this.canStart(item.duty)) continue;
+      if (!this.canStart(item.duty, limit)) continue;
       this.queue.splice(i, 1);
       i -= 1;
       this.launch(item);

@@ -9,13 +9,20 @@
  * that touches the filesystem (a `which gog` lookup) or prints anything.
  */
 import { execFile } from "node:child_process";
+import { access } from "node:fs/promises";
 import { promisify } from "node:util";
 import type { Command } from "commander";
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
+import { readDeskHealth, type DeskHealth } from "./desk.js";
 import { MAIL_AGENT_ID, mailStatusFromConfig } from "./mail.js";
 import { RENDER_ALLOWLIST_KEY, RENDER_LOOPBACK_HOST, renderStatusFromConfig } from "./setup.js";
 
 const execFileAsync = promisify(execFile);
+
+/** Same fallback the Linux cred backend uses (`creds-linux.ts`), duplicated here rather than
+ *  imported: this is a read-only "does it exist" check for the printed setup checklist, not a
+ *  credential operation, and the cred backend's own file is out of scope for this change. */
+const DESK_KEYFILE_PATH = process.env.DUTIES_CRED_KEYFILE ?? "/etc/openclaw/keyfile";
 
 /** Config facts `buildDutiesSetup` needs — the CLI reads these off `mailStatusFromConfig` and
  *  `renderStatusFromConfig`, plus the raw `hooks.gmail.account` value (which the status readout
@@ -27,6 +34,10 @@ export type SetupConfigFacts = {
   agentPresent: boolean;
   /** Whether the managed browser may open the loopback render page (`setup.ts`). */
   renderAllowed?: boolean;
+  /** Present only on a hosted desk (`desk.ts`'s health file says `hosted: true`) — the two
+   *  prerequisites nothing else here checks: the Linux cred backend's keyfile, and the virtual
+   *  display the health file's own `display` check already answered. */
+  desk?: { keyfilePresent: boolean; displayOk: boolean };
 };
 
 export type SetupResult = {
@@ -164,6 +175,16 @@ export function buildDutiesSetup(params: {
       `the managed browser may not open the render page — add "${RENDER_LOOPBACK_HOST}" to ${RENDER_ALLOWLIST_KEY}`,
     );
   }
+  if (config.desk && !config.desk.keyfilePresent) {
+    missing.push(
+      `no credential keyfile at ${DESK_KEYFILE_PATH} — create it as root with 32 random bytes, readable by the service user`,
+    );
+  }
+  if (config.desk && !config.desk.displayOk) {
+    missing.push(
+      "the virtual display is not up (DISPLAY unset or xdpyinfo failed) — check the xvfb service",
+    );
+  }
 
   if (!config.gmailAccount || config.gmailAccount !== account || !config.mappingPresent) {
     commands.push(`openclaw webhooks gmail setup --account ${account}`);
@@ -215,6 +236,14 @@ function printDutiesSetup(params: {
     `  rendering allowed (${RENDER_ALLOWLIST_KEY}): ${config.renderAllowed ? "yes" : "no"}`,
   );
   console.log("");
+  if (config.desk) {
+    console.log("Desk:");
+    console.log(
+      `  credential keyfile present (${DESK_KEYFILE_PATH}): ${config.desk.keyfilePresent ? "yes" : "no"}`,
+    );
+    console.log(`  display up (DISPLAY + xdpyinfo): ${config.desk.displayOk ? "yes" : "no"}`);
+    console.log("");
+  }
   if (result.missing.length > 0) {
     console.log("Missing:");
     for (const item of result.missing) console.log(`  - ${item}`);
@@ -239,8 +268,27 @@ function printDutiesSetup(params: {
   console.log("Then restart the Gateway.");
 }
 
-export function registerDutiesSetupCli(params: { program: Command; config: OpenClawConfig }): void {
+/** Best-effort "does the file exist" check for the desk credential keyfile — never throws, since
+ *  its absence is exactly the finding the setup checklist reports, not an error running setup. */
+async function keyfileExists(path = DESK_KEYFILE_PATH): Promise<boolean> {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function registerDutiesSetupCli(params: {
+  program: Command;
+  config: OpenClawConfig;
+  /** Test injection points; default to the real file-backed readers. */
+  readDeskHealth?: () => Promise<DeskHealth>;
+  keyfilePresent?: () => Promise<boolean>;
+}): void {
   const { program, config } = params;
+  const readHealth = params.readDeskHealth ?? readDeskHealth;
+  const checkKeyfile = params.keyfilePresent ?? keyfileExists;
   const duties = program.command("duties").description("Duties setup");
   duties
     .command("setup")
@@ -252,12 +300,17 @@ export function registerDutiesSetupCli(params: { program: Command; config: OpenC
     .action(async (options: { account: string }) => {
       const gogPath = await findGogPath();
       const status = mailStatusFromConfig(config, {});
+      const health = await readHealth();
+      const desk = health.hosted
+        ? { keyfilePresent: await checkKeyfile(), displayOk: health.display === true }
+        : undefined;
       const configFacts: SetupConfigFacts = {
         hooksEnabled: status.hooksEnabled,
         ...(config.hooks?.gmail?.account ? { gmailAccount: config.hooks.gmail.account } : {}),
         mappingPresent: status.mappingPresent,
         agentPresent: status.agentPresent,
         renderAllowed: renderStatusFromConfig(config).renderAllowed,
+        ...(desk ? { desk } : {}),
       };
       const result = buildDutiesSetup({ account: options.account, gogPath, config: configFacts });
       printDutiesSetup({ account: options.account, config: configFacts, result });

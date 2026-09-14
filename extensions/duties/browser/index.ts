@@ -5,7 +5,7 @@ import type { Duty } from "../src/duty.js";
 import type { MailStatus } from "../src/mail.js";
 import type { DutiesSettings, DutyRun } from "../src/store.js";
 import type { Brand, Template } from "../src/template.js";
-import type { NowShot } from "./render.js";
+import type { DeskStatusView, NowShot } from "./render.js";
 import {
   renderBoard,
   renderBuildPreview,
@@ -40,6 +40,7 @@ type TemplatePreviewResult = {
 };
 type SettingsGetResult = { settings: DutiesSettings };
 type SettingsSetResult = { settings: DutiesSettings };
+type DeskStatusResult = DeskStatusView;
 /** `duties.run.file`'s result — the same shape whether `params.kind` is omitted (the full
  *  document) or `"preview"` (a PNG thumbnail of it). */
 type RunFileResult = { name: string; contentType: string; base64: string };
@@ -141,6 +142,7 @@ export default defineControlUiPlugin({
         let brand: Brand | undefined;
         let settings: DutiesSettings = {};
         let mailStatus: MailStatus | undefined;
+        let deskStatus: DeskStatusView | undefined;
         // The run page's "Now" panel (I6): the newest step's screenshot while a run is still
         // running/queued. `nowShotFetchedFor` guards against re-fetching for a step id we already
         // requested (or are mid-request for); `nowShot` is what is actually shown. Keyed by
@@ -295,7 +297,12 @@ export default defineControlUiPlugin({
           } else {
             root.innerHTML =
               notice +
-              renderBoard(duties, allKnownRuns(), { ...(errorOpts ?? {}), settings, mailStatus });
+              renderBoard(duties, allKnownRuns(), {
+                ...(errorOpts ?? {}),
+                settings,
+                mailStatus,
+                deskStatus,
+              });
           }
           restoreOpenState(openState);
         };
@@ -430,6 +437,17 @@ export default defineControlUiPlugin({
           }
         };
 
+        const loadDeskStatus = async (): Promise<void> => {
+          try {
+            const result = await host.request<DeskStatusResult>("duties.desk.status", {});
+            if (context.signal.aborted) return;
+            deskStatus = result;
+            draw();
+          } catch (error) {
+            fail(error, () => void loadDeskStatus());
+          }
+        };
+
         /** Reads the key/value fields, saves the login, and clears the value field immediately.
          *  The value is never stored on this page, put in the DOM, or logged. */
         const saveLogin = async (): Promise<void> => {
@@ -490,6 +508,28 @@ export default defineControlUiPlugin({
             draw();
           } catch (error) {
             fail(error, () => void saveSettings());
+          }
+        };
+
+        /** Fires on the Desk card's number input `change` (not a separate save button — a
+         *  number input's own value change is already the owner's intent). Validated the same
+         *  way `duties.settings.set` validates it, so a bad value never round-trips to the
+         *  Gateway only to bounce back as an error. */
+        const saveParallel = async (value: number): Promise<void> => {
+          if (!Number.isInteger(value) || value < 1 || value > 8) {
+            fail(new Error("maxParallelRuns must be a whole number from 1 to 8"), () => undefined);
+            return;
+          }
+          try {
+            const result = await host.request<SettingsSetResult>("duties.settings.set", {
+              maxParallelRuns: value,
+            });
+            if (context.signal.aborted) return;
+            settings = result.settings;
+            clearError();
+            draw();
+          } catch (error) {
+            fail(error, () => void saveParallel(value));
           }
         };
 
@@ -864,6 +904,17 @@ export default defineControlUiPlugin({
           }
         });
 
+        // The Desk card's parallel-runs field is a plain number input, not a button: its own
+        // `change` is the save trigger, mirroring how a native settings control behaves.
+        root.addEventListener("change", (event) => {
+          // SAFETY: this listener is on `root`, an HTMLElement, so its change events always target an Element.
+          const target = (event.target as HTMLElement).closest<HTMLInputElement>(
+            "[data-parallel-save]",
+          );
+          if (!target) return;
+          void saveParallel(Number(target.value));
+        });
+
         const offChanged = host.onEvent("plugin.duties.changed", (payload) => {
           const dutyId = readDutyId(payload);
           if (dutyId) {
@@ -880,11 +931,18 @@ export default defineControlUiPlugin({
             void loadTemplates();
             return;
           }
-          if (isRecord(payload) && payload.settings === true) void loadSettings();
+          if (isRecord(payload) && payload.settings === true) {
+            void loadSettings();
+            // `maxParallelRuns` is a setting but also half of what the Desk card shows, so a
+            // settings change (from this page or elsewhere) keeps that card's number honest too.
+            void loadDeskStatus();
+          }
         });
         const offRun = host.onEvent("plugin.duties.run", (payload) => {
           const runId = readRunId(payload);
           if (runId) void loadRun(runId);
+          // A run starting/finishing changes the Desk card's active/queued counts.
+          void loadDeskStatus();
         });
 
         draw();
@@ -893,6 +951,7 @@ export default defineControlUiPlugin({
         void loadRecentRuns();
         void loadSettings();
         void loadMailStatus();
+        void loadDeskStatus();
 
         return {
           update(next) {

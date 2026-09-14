@@ -1,6 +1,7 @@
 // Pure render functions for the Duties Control UI page. No DOM access here — every function
 // takes plain data and returns an HTML string so it can be unit tested without jsdom. `index.ts`
 // owns the DOM/host wiring and simply assigns these strings to `element.innerHTML`.
+import type { DeskHealth } from "../src/desk.js";
 import type {
   Duty,
   DutyInput,
@@ -12,6 +13,14 @@ import type {
 import type { MailStatus } from "../src/mail.js";
 import type { DutiesSettings, DutyRun, RunFile, RunStatus, StepEvidence } from "../src/store.js";
 import type { Brand, Template } from "../src/template.js";
+
+/** `duties.desk.status`'s reply shape: the health file's own facts (or just `hosted: false` on a
+ *  laptop install) plus the RunManager's live ceiling and current activity. */
+export type DeskStatusView = DeskHealth & {
+  maxParallelRuns: number;
+  active: number;
+  queued: number;
+};
 
 function esc(value: unknown): string {
   return String(value ?? "")
@@ -209,17 +218,67 @@ function mailHealthLine(status: MailStatus | undefined): string {
   return `<div class="mchecks">${marks}</div><p class="muted small">${last}</p>${setup}`;
 }
 
+/** The health file's own boolean facts, in display order — spec §8's "Gateway, display, Chromium,
+ *  Tailscale, mail watcher" chip row. `load1`/`memFreeMb` are numeric and shown as a text line
+ *  underneath instead, alongside `at`. */
+const DESK_CHECKS: ReadonlyArray<{
+  key: "gateway" | "display" | "chromium" | "tailscale" | "mailWatcher";
+  label: string;
+}> = [
+  { key: "gateway", label: "Gateway" },
+  { key: "display", label: "Display" },
+  { key: "chromium", label: "Chromium" },
+  { key: "tailscale", label: "Tailscale" },
+  { key: "mailWatcher", label: "Mail watcher" },
+];
+
+function deskLoadLine(desk: DeskHealth): string {
+  const parts: string[] = [];
+  if (typeof desk.load1 === "number") parts.push(`load ${desk.load1.toFixed(2)}`);
+  if (typeof desk.memFreeMb === "number") parts.push(`${desk.memFreeMb} MB free`);
+  return parts.join(" · ");
+}
+
+/** Spec §8: health chips (Gateway · Display · Chromium · Tailscale · Mail · load) plus the
+ *  `maxParallelRuns` number input. The chips (and the load/activity lines) only mean anything on
+ *  an actual hosted desk, so they are hidden — never the input itself — on a laptop install or
+ *  before the first `duties.desk.status` reply, so the owner can still change the limit on a
+ *  install that has never been "hosted" at all. */
+function deskCard(settings: DutiesSettings | undefined, desk: DeskStatusView | undefined): string {
+  const parallelValue = settings?.maxParallelRuns ?? desk?.maxParallelRuns ?? 4;
+  const input = `<label class="fld"><span>Max parallel runs</span><input type="number" min="1" max="8" step="1" data-parallel-save value="${esc(parallelValue)}"></label>`;
+  if (!desk) {
+    return `<div><h3>Desk</h3><p class="muted small">Loading…</p>${input}</div>`;
+  }
+  if (!desk.hosted) {
+    return `<div><h3>Desk</h3><p class="muted small">Not a hosted desk.</p>${input}</div>`;
+  }
+  const marks = DESK_CHECKS.map(({ key, label }) => {
+    const ok = desk[key] === true;
+    return `<span class="mcheck ${ok ? "ok" : "bad"}">${ok ? "✓" : "✗"} ${esc(label)}</span>`;
+  }).join("");
+  const load = deskLoadLine(desk);
+  const activity = `${desk.active}/${desk.maxParallelRuns} running${desk.queued ? `, ${desk.queued} queued` : ""}`;
+  return `<div><h3>Desk</h3><div class="mchecks">${marks}</div><p class="muted small">${esc([load, activity].filter(Boolean).join(" · "))}</p>${input}</div>`;
+}
+
 function settingsStrip(
   settings: DutiesSettings | undefined,
   mailStatus: MailStatus | undefined,
+  deskStatus: DeskStatusView | undefined,
 ): string {
   return `<div class="panel settings"><div class="ph"><h2>Settings</h2></div><div class="pb"><div class="two-col">
   <div><h3>Owner</h3><p class="muted small">Where approvals and questions reach you.</p>${ownerSettingsForm(settings)}</div>
   <div><h3>Mail trigger</h3>${mailHealthLine(mailStatus)}</div>
+  ${deskCard(settings, deskStatus)}
 </div></div></div>`;
 }
 
-export type BoardOpts = RenderOpts & { settings?: DutiesSettings; mailStatus?: MailStatus };
+export type BoardOpts = RenderOpts & {
+  settings?: DutiesSettings;
+  mailStatus?: MailStatus;
+  deskStatus?: DeskStatusView;
+};
 
 export function renderBoard(
   duties: readonly Duty[],
@@ -250,7 +309,7 @@ export function renderBoard(
   <div class="roll"><div class="n">${building}</div><div class="l">Being built with the agent</div></div>
 </div>
 ${banner}
-${settingsStrip(opts?.settings, opts?.mailStatus)}
+${settingsStrip(opts?.settings, opts?.mailStatus, opts?.deskStatus)}
 <div class="grid">${cards}<article class="card new" data-edit="new"><b>New Duty</b><span>Describe the job to the agent in any chat. It explores what it needs to, asks what it needs, builds and tests step by step.</span></article></div>`;
 }
 
