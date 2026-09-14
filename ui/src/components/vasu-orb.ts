@@ -1,5 +1,6 @@
-import { css, html, LitElement, type PropertyValues } from "lit";
+import { css, html, LitElement, unsafeCSS, type PropertyValues } from "lit";
 import { property } from "lit/decorators.js";
+import { SIGNATURE_GRADIENT } from "../app/brand-gradient.ts";
 
 /** Topbar lockup size from the brand guide; the hero mark passes a larger size. */
 const DEFAULT_SIZE = 27;
@@ -37,7 +38,9 @@ function resolveMood(mood: string): VasuOrbMood {
 /** The Vasudev brand mark. The orb is CSS, not artwork: the signature gradient
  * drifts across an oversized background box, a radial highlight sits off-center,
  * and the tinted glow bleeds past the circle. `assets/brand/orb.svg` is the
- * static master used for favicons and app icons; keep the two in step. */
+ * static master used for favicons and app icons; keep the two in step. The
+ * gradient itself comes from the `--brand-gradient` token, with
+ * `ui/src/app/brand-gradient.ts` as the literal it falls back to. */
 class VasuOrb extends LitElement {
   static override styles = css`
     :host {
@@ -54,15 +57,7 @@ class VasuOrb extends LitElement {
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      background: linear-gradient(
-        95deg,
-        #ffc24b 0%,
-        #f97316 16%,
-        #e0218a 38%,
-        #8a2be2 58%,
-        #3a6ff0 78%,
-        #16c79a 100%
-      );
+      background: var(--brand-gradient, ${unsafeCSS(SIGNATURE_GRADIENT)});
       background-size: 180% 180%;
       box-shadow: 0 0 14px -3px rgba(138, 43, 226, 0.75);
       filter: saturate(1.05);
