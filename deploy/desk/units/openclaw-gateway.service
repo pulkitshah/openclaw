@@ -13,7 +13,7 @@ ExecStart=/usr/bin/node /opt/openclaw/openclaw.mjs gateway run
 Restart=always
 RestartSec=3
 # The Gateway drains active work on SIGTERM and can wait on a live agent session forever; give it
-# 45 s, then SIGKILL the whole group (KillMode=mixed) — the lesson from the Part 2 proof.
+# 45 s, then SIGKILL the whole group (KillMode=mixed) - the lesson from the Part 2 proof.
 TimeoutStopSec=45
 KillMode=mixed
 OOMScoreAdjust=-500

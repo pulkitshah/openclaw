@@ -1,7 +1,7 @@
 #cloud-config
-# Rendered by deploy/desk/render-cloud-init.mjs — every ALL_CAPS placeholder below must be
+# Rendered by deploy/desk/render-cloud-init.mjs - every ALL_CAPS placeholder below must be
 # substituted before this file is handed to `doctl compute droplet create --user-data-file`. The
-# renderer refuses to emit output while one remains (see §10 of the design: secrets never ship
+# renderer refuses to emit output while one remains (see section 10 of the design: secrets never ship
 # un-substituted or logged in the clear).
 hostname: {{DESK_NAME}}
 timezone: Asia/Kolkata
@@ -29,8 +29,8 @@ packages:
   - unattended-upgrades
 
 write_files:
-  # Security-only unattended-upgrades, never an unattended reboot — kernel/package reboots happen
-  # only via roll.sh --reboot in a window the owner picks (spec §9).
+  # Security-only unattended-upgrades, never an unattended reboot - kernel/package reboots happen
+  # only via roll.sh --reboot in a window the owner picks (spec section 9).
   - path: /etc/apt/apt.conf.d/51openclaw-desk
     permissions: '0644'
     owner: root:root
@@ -64,7 +64,7 @@ write_files:
       {{INCLUDE:units/desk-health.timer}}
 
   # The Playwright-managed Chromium reads the chromium/ path; chrome/ is installed alongside for
-  # any distro Chrome build that lands on the box later (spec §4.7).
+  # any distro Chrome build that lands on the box later (spec section 4.7).
   - path: /etc/chromium/policies/managed/desk.json
     permissions: '0644'
     owner: root:root
@@ -77,7 +77,7 @@ write_files:
     content: |
       {{INCLUDE:chromium-policy.json}}
 
-  # Secrets: file-mode 0640, root:openclaw — readable only by root and the service user, never
+  # Secrets: file-mode 0640, root:openclaw - readable only by root and the service user, never
   # inline in openclaw.json (SecretRef contract, docs/gateway/secrets/secretref-contract.md).
   - path: /etc/openclaw/secrets/telegram-bot-token
     permissions: '0640'
@@ -118,14 +118,14 @@ runcmd:
   - corepack prepare {{PNPM_PACKAGE_MANAGER}} --activate
 
   # Tailscale: install, join the tailnet, then shred the one-time auth key. Tailnet SSH (--ssh)
-  # replaces sshd for humans (spec §4.3); Serve is configured by the Gateway itself at startup via
-  # gateway.tailscale.mode: "serve" in openclaw.json — no separate `tailscale serve` CLI step is
+  # replaces sshd for humans (spec section 4.3); Serve is configured by the Gateway itself at startup via
+  # gateway.tailscale.mode: "serve" in openclaw.json - no separate `tailscale serve` CLI step is
   # needed here (docs/gateway/tailscale.md: OpenClaw claims the Serve route on Gateway startup).
   - "curl -fsSL https://tailscale.com/install.sh | sh"
   - 'tailscale up --authkey "$(cat /root/ts-authkey)" --ssh --hostname {{DESK_NAME}}'
   - shred -u /root/ts-authkey
 
-  # Fork checkout — pinned to the roll ref the operator asked for.
+  # Fork checkout - pinned to the roll ref the operator asked for.
   - git clone https://github.com/pulkitshah/openclaw /opt/openclaw
   - git -C /opt/openclaw checkout {{GIT_REF}}
   - >-
@@ -144,8 +144,8 @@ runcmd:
   # Managed Chromium: OS deps as root, the browser itself as the unprivileged service user (its
   # cache lives under ~openclaw/.cache, not inside the now read-only /opt/openclaw tree). `-H`
   # is required: stock Ubuntu sudoers is `env_reset` without `always_set_home`, so plain
-  # `sudo -u openclaw` leaves $HOME=/root — a login shell (`bash -l`) reads dotfiles *from*
-  # whatever $HOME already is, it doesn't recompute it — and Playwright would then try to
+  # `sudo -u openclaw` leaves $HOME=/root - a login shell (`bash -l`) reads dotfiles *from*
+  # whatever $HOME already is, it doesn't recompute it - and Playwright would then try to
   # install under /root/.cache/ms-playwright, which openclaw cannot even traverse into. `-H`
   # sets $HOME to openclaw's own home (/home/openclaw) so the cache lands where the Gateway's
   # systemd service (User=openclaw, which does default $HOME correctly) will actually look for
@@ -157,7 +157,7 @@ runcmd:
     sudo -H -u openclaw bash -lc "cd /opt/openclaw && npx playwright install chromium"
     || { echo "desk: chromium install FAILED" >&2; exit 1; }
 
-  # Per-desk credential keyfile for extensions/duties' Linux cred backend (spec §5).
+  # Per-desk credential keyfile for extensions/duties' Linux cred backend (spec section 5).
   - "head -c 32 /dev/urandom > /etc/openclaw/keyfile"
   - chown root:openclaw /etc/openclaw/keyfile
   - chmod 640 /etc/openclaw/keyfile
@@ -169,6 +169,6 @@ runcmd:
 
 power_state:
   mode: reboot
-  message: OpenClaw desk provisioned — rebooting to apply the keyfile-owned services cleanly.
+  message: OpenClaw desk provisioned - rebooting to apply the keyfile-owned services cleanly.
   timeout: 30
   condition: true

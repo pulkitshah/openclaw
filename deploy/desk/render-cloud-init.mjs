@@ -191,6 +191,19 @@ function assertFullyRendered(rendered) {
   if (rendered.includes("{{INCLUDE:")) {
     fail("refusing to emit output: an unresolved {{INCLUDE:...}} remains");
   }
+  // DigitalOcean's user-data path re-encoded UTF-8 comment characters (an em dash, a section
+  // sign) so that cloud-init saw byte 0x80, refused the YAML blob, and applied an EMPTY config
+  // (observed 2026-09-14: "Failed loading yaml blob. unacceptable character #x0080"). Keep the
+  // document 7-bit clean; the secret files are validated as single lines but can carry anything,
+  // so check the final render, not just the template.
+  const nonAscii = rendered.match(/[^\x00-\x7F]/);
+  if (nonAscii) {
+    const index = rendered.indexOf(nonAscii[0]);
+    const line = rendered.slice(0, index).split("\n").length;
+    fail(
+      `refusing to emit output: non-ASCII character U+${nonAscii[0].codePointAt(0).toString(16).padStart(4, "0")} at line ${line} - cloud-init user-data must be plain ASCII`,
+    );
+  }
 }
 
 function main() {

@@ -79,6 +79,44 @@ describe("render-cloud-init.mjs", () => {
     expect(doc.power_state.mode).toBe("reboot");
   });
 
+  it("emits a 7-bit ASCII document, and refuses when a non-ASCII byte would reach cloud-init", () => {
+    const output = render();
+    expect(output).toMatch(/^[\x00-\x7F]*$/);
+
+    // A secret file is single-line by contract but its bytes are opaque; a stray UTF-8 character
+    // there must be refused rather than shipped (DigitalOcean mangles it and cloud-init then
+    // applies an empty config).
+    writeFileSync(tgTokenFile, "123456789:AAFixture\u2014Token\n");
+    let stderr = "";
+    let status = 0;
+    try {
+      execFileSync(
+        process.execPath,
+        [
+          RENDER_SCRIPT,
+          "--name",
+          deskName,
+          "--ts-authkey-file",
+          tsAuthKeyFile,
+          "--tg-token-file",
+          tgTokenFile,
+          "--owner-target",
+          ownerTarget,
+          "--git-ref",
+          gitRef,
+        ],
+        { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+      );
+    } catch (error) {
+      const e = error as { status: number; stderr: string; stdout: string };
+      status = e.status;
+      stderr = e.stderr;
+      expect(e.stdout).toBe("");
+    }
+    expect(status).not.toBe(0);
+    expect(stderr).toContain("non-ASCII character U+2014");
+  });
+
   it("substitutes the desk name and git ref into runcmd", () => {
     const output = render();
     expect(output).toContain(`hostname: ${deskName}`);
