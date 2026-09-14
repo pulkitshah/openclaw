@@ -50,6 +50,15 @@ export const NEW_MASCOT_NAME = "Vasu";
 // moves with the rest of the prose. `.match()` and `.replace()` with a global
 // regex always scan from the start regardless of prior `lastIndex` state, so
 // these shared patterns are safe to reuse below.
+// "an OpenClaw" reads wrong once the name starts with a consonant, and a
+// mechanical rename would leave "an Vasudev" all over the product. The article
+// is fixed before the name itself is replaced, so the rule can still see which
+// name follows it.
+const ARTICLE_RULES = [
+  { pattern: /\ban (?=OpenClaw\b)/g, replacement: "a " },
+  { pattern: /\bAn (?=OpenClaw\b)/g, replacement: "A " },
+];
+
 export const NAME_RULES = [
   { name: "product-name", pattern: /\bOpenClaw\b/g, replacement: NEW_NAME },
   { name: "mascot-name", pattern: /\bClawd\b/g, replacement: NEW_MASCOT_NAME },
@@ -135,10 +144,20 @@ const CLI_SUBCOMMANDS = [
 // This rewrite is applied to string/template-literal text only, never to
 // comments (a comment documenting the installed binary should keep naming
 // it) and never inside a process-spawn argument (see SPAWN_CALLEES).
+// Root options may sit between the binary and its subcommand
+// (`openclaw --profile staging gateway status`, and `formatCliCommand` itself
+// inserts `--container <hint>`), so the lookahead skips a run of them before
+// requiring a real subcommand. `openclaw --version` still has no subcommand
+// after it and is therefore never rewritten.
 const COMMAND_ALIAS_RE = new RegExp(
-  String.raw`(?<![A-Za-z0-9_.@/\\-])openclaw(?= (?:${CLI_SUBCOMMANDS.join("|")})\b)`,
+  String.raw`(?<![A-Za-z0-9_.@/\\-])openclaw(?=(?: --[a-z][a-z0-9-]*(?:[= ][^\s'"\`]+)?)* (?:${CLI_SUBCOMMANDS.join("|")})\b)`,
   "g",
 );
+
+// The bare binary token as one element of a displayed argv
+// (`formatCliArgs(["openclaw", "devices", "approve", id])`). Only ever applied
+// to a literal already tagged as display text by DISPLAY_COMMAND_FORMATTERS.
+const DISPLAY_BINARY_LITERAL_RE = /^(["'`])openclaw\1$/;
 
 // A string literal whose entire content is one bare command line and nothing
 // else (`"openclaw update"`, `"openclaw node restart"`) is a *value*, not
@@ -162,11 +181,18 @@ function isBareCommandLiteral(slice) {
 // command-format.ts`'s `formatCliCommand` decorates the command with the
 // active `--profile`/`--container` before printing it; its `CLI_PREFIX_RE`
 // accepts either alias, so renaming its argument keeps that decoration.
-const DISPLAY_COMMAND_FORMATTERS = new Set(["formatCliCommand"]);
+const DISPLAY_COMMAND_FORMATTERS = new Set(["formatCliCommand", "formatCliArgs"]);
 
 function isDisplayCommandArgument(node) {
-  const parent = node.parent;
-  if (!parent || !ts.isCallExpression(parent) || !parent.arguments.includes(node)) {
+  // Walk out of an argv array literal too: `formatCliArgs(["openclaw", ...])`
+  // passes the binary name as an element, not as the call's own argument.
+  let current = node;
+  let parent = current.parent;
+  if (parent && ts.isArrayLiteralExpression(parent)) {
+    current = parent;
+    parent = current.parent;
+  }
+  if (!parent || !ts.isCallExpression(parent) || !parent.arguments.includes(current)) {
     return false;
   }
   const callee = callExpressionCalleeName(parent.expression);
@@ -273,6 +299,9 @@ function countAndReplace(text, { commandAlias = false } = {}) {
     return { text, count: 0 };
   }
   let rewritten = shielded;
+  for (const rule of ARTICLE_RULES) {
+    rewritten = rewritten.replace(rule.pattern, rule.replacement);
+  }
   for (const rule of NAME_RULES) {
     rewritten = rewritten.replace(rule.pattern, rule.replacement);
   }
@@ -520,6 +549,17 @@ function collectLiteralRanges(sourceFile) {
       }
       return;
     }
+    if (ts.isRegularExpressionLiteral(node)) {
+      // A regex literal that spells the brand is matching text this tree
+      // produces (a thrown message, a rendered hint, the CLI's own
+      // `--version` line), so it moves with the string it matches. The brand
+      // and command names carry no regex metacharacters, so substituting them
+      // inside the pattern is safe. Files whose patterns parse *external*
+      // output are excluded whole (see CROSS_BOUNDARY_EXCLUDED_FILES: the
+      // systemd/schtasks installers parse installed unit files).
+      ranges.push([node.getStart(sourceFile), node.getEnd(), "literal"]);
+      return;
+    }
     if (
       ts.isNoSubstitutionTemplateLiteral(node) ||
       node.kind === ts.SyntaxKind.TemplateHead ||
@@ -612,6 +652,12 @@ export function rewriteTypeScriptContent(content, relativePath) {
     const slice = content.slice(start, end);
     if (excludedLiterals?.has(slice)) {
       output += slice;
+      cursor = end;
+      continue;
+    }
+    if (kind === "command-display" && DISPLAY_BINARY_LITERAL_RE.test(slice)) {
+      output += slice.replace("openclaw", NEW_CLI_NAME);
+      count += 1;
       cursor = end;
       continue;
     }

@@ -115,7 +115,7 @@ describe("rewriteProseContent (bundle/artifact names)", () => {
   it("still rewrites a hyphenated adjective that is not a filename", () => {
     const content = "This is an OpenClaw-managed and OpenClaw-owned resource.\n";
     const { content: rewritten, count } = rewriteProseContent(content, { isMarkdown: true });
-    expect(rewritten).toBe("This is an Vasudev-managed and Vasudev-owned resource.\n");
+    expect(rewritten).toBe("This is a Vasudev-managed and Vasudev-owned resource.\n");
     expect(count).toBe(2);
   });
 });
@@ -751,6 +751,73 @@ describe("protected tokens (values that cross a boundary this rebrand does not o
     expect(rewritten).toContain('"OpenClaw runtime context (internal):"');
     expect(rewritten).toContain("// Vasudev protects runtime-generated");
     expect(count).toBe(1);
+  });
+});
+
+describe("regex literals", () => {
+  it("rewrites the brand and a command inside a regex literal", () => {
+    const content = [
+      "expect(out).toMatch(/^OpenClaw \\d+\\./u);",
+      'await expect(run()).rejects.toThrow(/rerun "openclaw doctor"/iu);',
+      "const keep = /OpenClawConfig/u;",
+    ].join("\n");
+    const { content: rewritten, count } = rewriteTypeScriptContent(
+      content,
+      "src/commands/doctor.test.ts",
+    );
+    expect(rewritten).toContain("/^Vasudev \\d+\\./u");
+    expect(rewritten).toContain('/rerun "vasudev doctor"/iu');
+    // No word boundary after "OpenClaw", so the type name is still untouched.
+    expect(rewritten).toContain("/OpenClawConfig/u");
+    expect(count).toBe(2);
+  });
+});
+
+describe("article agreement", () => {
+  it('turns "an OpenClaw" into "a Vasudev" so the rename reads correctly', () => {
+    const content = [
+      'const hint = "Paste the API key value, not an OpenClaw onboarding command.";',
+      'const title = "An OpenClaw node hosts sessions.";',
+      'const kept = "This is an OpenClaw-managed resource.";',
+    ].join("\n");
+    const { content: rewritten } = rewriteTypeScriptContent(content, "src/commands/doctor-auth.ts");
+    expect(rewritten).toContain("not a Vasudev onboarding command.");
+    expect(rewritten).toContain('"A Vasudev node hosts sessions."');
+    expect(rewritten).toContain("This is a Vasudev-managed resource.");
+  });
+});
+
+describe("displayed argv binary token", () => {
+  it("renames the bare binary element of a displayed argv but not a spawned one", () => {
+    const content = [
+      'const shown = formatCliArgs(["openclaw", "devices", "approve", id]);',
+      'const run = spawnSync("openclaw", ["devices", "approve", id]);',
+      'const other = pick(["openclaw", "vasudev"]);',
+    ].join("\n");
+    const { content: rewritten } = rewriteTypeScriptContent(
+      content,
+      "src/commands/doctor-device-pairing.ts",
+    );
+    expect(rewritten).toContain('formatCliArgs(["vasudev", "devices", "approve", id])');
+    expect(rewritten).toContain('spawnSync("openclaw", ["devices", "approve", id])');
+    expect(rewritten).toContain('pick(["openclaw", "vasudev"])');
+  });
+
+  it("rewrites a command whose subcommand sits behind root options", () => {
+    const content = [
+      'const hint = "Run `openclaw --profile staging gateway status --deep` on the host.";',
+      'const container = "openclaw --container repair-test config validate now";',
+      'const version = "openclaw --version";',
+    ].join("\n");
+    const { content: rewritten } = rewriteTypeScriptContent(content, "src/commands/doctor.ts");
+    expect(rewritten).toContain(
+      "Run `vasudev --profile staging gateway status --deep` on the host.",
+    );
+    // A literal that is *only* a command line stays a value (see the bare
+    // command literal rule), root options included.
+    expect(rewritten).toContain('"openclaw --container repair-test config validate now"');
+    // No subcommand follows, so this is the real binary on PATH.
+    expect(rewritten).toContain('"openclaw --version"');
   });
 });
 
