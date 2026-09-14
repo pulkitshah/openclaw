@@ -846,6 +846,30 @@ describe("displayed CLI alias rewrite", () => {
     expect(rewritten).toContain('"pnpm vasudev plugins list"');
   });
 
+  it("never rewrites a literal that is a bare command line and nothing else", () => {
+    // These are values, not prose: `Type.Literal("openclaw update")` is a
+    // Gateway protocol schema literal the Control UI validates by exact
+    // equality and external SDK clients pin, and
+    // `generatedBy: "openclaw secrets configure"` is persisted provenance.
+    const content = [
+      'const schema = { updateCommand: Type.Literal("openclaw update") };',
+      'const headless = "openclaw node restart";',
+      'const provenance = { generatedBy: "openclaw secrets configure" };',
+      'const flagged = "openclaw doctor --fix";',
+      'const hint = "Run `openclaw doctor --fix` to repair it.";',
+    ].join("\n");
+    const { content: rewritten } = rewriteTypeScriptContent(
+      content,
+      "packages/gateway-protocol/src/schema/environments.ts",
+    );
+    expect(rewritten).toContain('Type.Literal("openclaw update")');
+    expect(rewritten).toContain('const headless = "openclaw node restart"');
+    expect(rewritten).toContain('generatedBy: "openclaw secrets configure"');
+    expect(rewritten).toContain('const flagged = "openclaw doctor --fix"');
+    // A command inside a sentence is prose and still renames.
+    expect(rewritten).toContain("Run `vasudev doctor --fix` to repair it.");
+  });
+
   it("never rewrites a comment, a real binary path, a package/config namespace, or a non-command word", () => {
     const content = [
       "// Run `openclaw doctor --fix` on the host before filing a bug.",

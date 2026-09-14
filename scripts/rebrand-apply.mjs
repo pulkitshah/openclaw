@@ -140,6 +140,39 @@ const COMMAND_ALIAS_RE = new RegExp(
   "g",
 );
 
+// A string literal whose entire content is one bare command line and nothing
+// else (`"openclaw update"`, `"openclaw node restart"`) is a *value*, not
+// prose: it is spawned, compared, or sent on the wire. Real examples in this
+// tree are `Type.Literal("openclaw update")` in the Gateway protocol schema
+// (which `ui/src/pages/new-session/discovery.ts` validates by exact equality,
+// and external SDK clients pin) and `generatedBy: "openclaw secrets configure"`
+// (persisted provenance). Prose that shows a command to a user always wraps it
+// in a sentence or backticks, so it has other characters in the literal and is
+// still rewritten. Consequence worth knowing: a structured command field the
+// UI renders as-is keeps naming the real binary, which is still `openclaw`.
+const BARE_COMMAND_LITERAL_RE =
+  /^(["'`])openclaw(?:[ ]-{1,2}[A-Za-z0-9][A-Za-z0-9-]*|[ ][a-z][a-z0-9-]*)*\1$/;
+
+function isBareCommandLiteral(slice) {
+  return BARE_COMMAND_LITERAL_RE.test(slice);
+}
+
+// Helpers whose whole job is to render a command for a human to read, so a
+// bare command literal passed to one is display text after all. `src/cli/
+// command-format.ts`'s `formatCliCommand` decorates the command with the
+// active `--profile`/`--container` before printing it; its `CLI_PREFIX_RE`
+// accepts either alias, so renaming its argument keeps that decoration.
+const DISPLAY_COMMAND_FORMATTERS = new Set(["formatCliCommand"]);
+
+function isDisplayCommandArgument(node) {
+  const parent = node.parent;
+  if (!parent || !ts.isCallExpression(parent) || !parent.arguments.includes(node)) {
+    return false;
+  }
+  const callee = callExpressionCalleeName(parent.expression);
+  return Boolean(callee && DISPLAY_COMMAND_FORMATTERS.has(callee));
+}
+
 // Occurrences spelled "OpenClaw" at a word boundary that are *not* product
 // prose: each is a value that crosses a boundary this rebrand does not own
 // (the wire, the OS, a third-party service, a user's git history, or data
@@ -479,7 +512,11 @@ function collectLiteralRanges(sourceFile) {
   const visit = (node) => {
     if (ts.isStringLiteral(node)) {
       if (!isStructuralStringLiteral(node)) {
-        ranges.push([node.getStart(sourceFile), node.getEnd(), "literal"]);
+        ranges.push([
+          node.getStart(sourceFile),
+          node.getEnd(),
+          isDisplayCommandArgument(node) ? "command-display" : "literal",
+        ]);
       }
       return;
     }
@@ -578,7 +615,10 @@ export function rewriteTypeScriptContent(content, relativePath) {
       cursor = end;
       continue;
     }
-    const result = countAndReplace(slice, { commandAlias: kind === "literal" });
+    const result = countAndReplace(slice, {
+      commandAlias:
+        kind === "command-display" || (kind === "literal" && !isBareCommandLiteral(slice)),
+    });
     output += result.text;
     count += result.count;
     cursor = end;
