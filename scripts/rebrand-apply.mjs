@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
-// Rewrites the literal product name "OpenClaw" -> "Vasudev" (and, inside
-// human-facing command examples only, the displayed CLI alias `openclaw ` ->
-// `vasudev `) across the Vasudev rebrand's user-visible prose allowlist:
+// Rewrites the literal product name "OpenClaw" -> "Vasudev", the mascot name
+// "Clawd" -> "Vasu" (the orb's name), and, inside human-facing command
+// examples only, the displayed CLI alias `openclaw ` -> `vasudev `, across the
+// Vasudev rebrand's user-visible prose allowlist:
 // docs, README, docs.json's `name` field, the two bundled-plugin manifest
 // fields that feed the Control UI channel picker, and every TypeScript source
 // under `src/**`, `extensions/*/src/**`, `packages/*/src/**` and `ui/src/**`
@@ -37,12 +38,22 @@ export const OLD_NAME = "OpenClaw";
 export const NEW_NAME = "Vasudev";
 export const OLD_CLI_NAME = "openclaw";
 export const NEW_CLI_NAME = "vasudev";
+export const OLD_MASCOT_NAME = "Clawd";
+export const NEW_MASCOT_NAME = "Vasu";
 
-// Case-sensitive, word-boundary only. See the header comment for the full
-// list of internal identifiers this pattern cannot match. `.match()` and
-// `.replace()` with a global regex always scan from the start regardless of
-// prior `lastIndex` state, so one shared pattern is safe to reuse below.
-const NAME_PATTERN = /\bOpenClaw\b/g;
+// The product name and the mascot name, both case-sensitive and
+// word-boundary only. See the header comment for the full list of internal
+// identifiers `\bOpenClaw\b` cannot match; `\bClawd\b` likewise cannot match
+// `Clawdbot`, `clawd`, `clawdtributors`, or `discord.gg/clawd`. The mascot is
+// the orb, and the orb's name is Vasu — the About page's "Wave hello to
+// Clawd" and every other mention of the old mascot is product copy, so it
+// moves with the rest of the prose. `.match()` and `.replace()` with a global
+// regex always scan from the start regardless of prior `lastIndex` state, so
+// these shared patterns are safe to reuse below.
+export const NAME_RULES = [
+  { name: "product-name", pattern: /\bOpenClaw\b/g, replacement: NEW_NAME },
+  { name: "mascot-name", pattern: /\bClawd\b/g, replacement: NEW_MASCOT_NAME },
+];
 
 // Top-level CLI commands. The displayed alias rewrite below only fires when
 // the `openclaw` token is followed by one of these, which is what tells a
@@ -175,6 +186,17 @@ const PROTECTED_TOKEN_RULES = [
     pattern: /\bOpenClaw-Publication\b/g,
   },
   {
+    // A hyphenated HTTP header name whose middle segment is the product name
+    // (`X-OpenClaw-Cli-Capture-Key`, `X-OpenClaw-Session-Key`). Header names
+    // are wire tokens: the sender and receiver must spell them identically,
+    // and clients outside this tree (the CLI capture path, paired nodes,
+    // the Control UI) already send the current spelling. Source spells most
+    // of them lowercase, which the case-sensitive rules never touch anyway;
+    // this catches the canonical-cased form wherever it is written out.
+    name: "http-header-name-token",
+    pattern: /(?<=\b[A-Za-z][A-Za-z0-9]*-)OpenClaw(?=-[A-Za-z0-9])/g,
+  },
+  {
     // A real path segment inside this repository or a shipped bundle
     // (`apps/macos/Sources/OpenClaw/AppProfile.swift`,
     // `apps/shared/OpenClawKit/...`). Requires a preceding path segment so a
@@ -210,13 +232,17 @@ function countAndReplace(text, { commandAlias = false } = {}) {
       return token;
     });
   }
-  const nameMatches = shielded.match(NAME_PATTERN) ?? [];
-  const aliasMatches = commandAlias ? (shielded.match(COMMAND_ALIAS_RE) ?? []) : [];
-  const count = nameMatches.length + aliasMatches.length;
+  let count = commandAlias ? (shielded.match(COMMAND_ALIAS_RE)?.length ?? 0) : 0;
+  for (const rule of NAME_RULES) {
+    count += shielded.match(rule.pattern)?.length ?? 0;
+  }
   if (count === 0) {
     return { text, count: 0 };
   }
-  let rewritten = shielded.replace(NAME_PATTERN, NEW_NAME);
+  let rewritten = shielded;
+  for (const rule of NAME_RULES) {
+    rewritten = rewritten.replace(rule.pattern, rule.replacement);
+  }
   if (commandAlias) {
     rewritten = rewritten.replace(COMMAND_ALIAS_RE, NEW_CLI_NAME);
   }
@@ -709,11 +735,13 @@ export function rewriteJsonManifestContent(content, basename) {
  * it by eye.
  */
 export function rewriteLocaleContent(content) {
-  const matches = content.match(NAME_PATTERN);
-  if (!matches) {
-    return { content, count: 0 };
+  let count = 0;
+  let rewritten = content;
+  for (const rule of NAME_RULES) {
+    count += rewritten.match(rule.pattern)?.length ?? 0;
+    rewritten = rewritten.replace(rule.pattern, rule.replacement);
   }
-  return { content: content.replace(NAME_PATTERN, NEW_NAME), count: matches.length };
+  return count === 0 ? { content, count: 0 } : { content: rewritten, count };
 }
 
 /** Dispatches one file to the TypeScript-aware, prose, or JSON-field rewrite by its path/basename. */
@@ -749,6 +777,9 @@ function gitLsFiles(cwd, patterns) {
   const output = execFileSync("git", ["ls-files", "-z", "--", ...patterns], {
     cwd,
     encoding: "utf8",
+    // The source globs list every TypeScript file in the repo; the default
+    // 1 MiB pipe buffer is not enough for that many NUL-separated paths.
+    maxBuffer: 256 * 1024 * 1024,
   });
   return output.split("\0").filter(Boolean);
 }

@@ -704,6 +704,24 @@ describe("protected tokens (values that cross a boundary this rebrand does not o
     expect(count).toBe(1);
   });
 
+  it("never rewrites a hyphenated HTTP header name, but still renames the prose beside it", () => {
+    // Header names are wire tokens: senders outside this tree (the CLI capture
+    // path, paired nodes, the Control UI) already spell them this way.
+    const content = [
+      "const request = `POST /mcp HTTP/1.1\\r\\nX-OpenClaw-Cli-Capture-Key: ${key}\\r\\n`;",
+      'const header = "X-OpenClaw-Session-Key";',
+      'const why = "OpenClaw sets the capture key header.";',
+    ].join("\n");
+    const { content: rewritten, count } = rewriteTypeScriptContent(
+      content,
+      "src/gateway/mcp-http.ts",
+    );
+    expect(rewritten).toContain("X-OpenClaw-Cli-Capture-Key:");
+    expect(rewritten).toContain('"X-OpenClaw-Session-Key"');
+    expect(rewritten).toContain('"Vasudev sets the capture key header."');
+    expect(count).toBe(1);
+  });
+
   it("never rewrites a real repository or bundle path segment", () => {
     const content = [
       "// Mirrors apps/macos/Sources/OpenClaw/AppProfile.swift so both surfaces agree.",
@@ -732,6 +750,52 @@ describe("protected tokens (values that cross a boundary this rebrand does not o
     );
     expect(rewritten).toContain('"OpenClaw runtime context (internal):"');
     expect(rewritten).toContain("// Vasudev protects runtime-generated");
+    expect(count).toBe(1);
+  });
+});
+
+describe("mascot name (Clawd -> Vasu)", () => {
+  it("rewrites the mascot in product copy and comments but never a lowercase identifier, URL or legacy name", () => {
+    const content = [
+      'const waveHello = "Wave hello to Clawd";',
+      'const note = "Clawd\'s Third Protocol Observer";',
+      "// No configured transports is a true empty state, so Clawd rests here.",
+      'const invite = "https://discord.gg/clawd";',
+      'const legacy = "clawdbot-gateway";',
+      'const legacyName = "Clawdbot";',
+      'const contributors = "clawdtributors";',
+    ].join("\n");
+
+    const { content: rewritten, count } = rewriteTypeScriptContent(
+      content,
+      "ui/src/i18n/locales/en.ts",
+    );
+
+    expect(rewritten).toContain('"Wave hello to Vasu"');
+    expect(rewritten).toContain('"Vasu\'s Third Protocol Observer"');
+    expect(rewritten).toContain("so Vasu rests here.");
+    // Lowercase spellings are identifiers, service names and URLs.
+    expect(rewritten).toContain("https://discord.gg/clawd");
+    expect(rewritten).toContain('"clawdbot-gateway"');
+    expect(rewritten).toContain('"Clawdbot"'); // no word boundary after "Clawd"
+    expect(rewritten).toContain('"clawdtributors"');
+    expect(count).toBe(3);
+  });
+
+  it("never rewrites a quoted voice-alias property key named Clawd", () => {
+    // `voiceAliases: { Clawd: "VoiceAlias..." }` is operator config data keyed
+    // by an agent's configured name, not product copy.
+    const content = 'const voiceAliases = { Clawd: "VoiceAlias1234567890" };\n';
+    const { content: rewritten, count } = rewriteTypeScriptContent(content, "src/config/talk.ts");
+    expect(rewritten).toBe(content);
+    expect(count).toBe(0);
+  });
+
+  it("rewrites the mascot in Markdown prose but not inside a code span", () => {
+    const content = "Clawd waves back. Run `clawd --help` and see `Clawdbot`.\n";
+    const { content: rewritten, count } = rewriteProseContent(content, { isMarkdown: true });
+    expect(rewritten).toContain("Vasu waves back.");
+    expect(rewritten).toContain("`clawd --help`");
     expect(count).toBe(1);
   });
 });
