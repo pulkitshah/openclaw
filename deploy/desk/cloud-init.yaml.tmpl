@@ -151,7 +151,10 @@ runcmd:
   - corepack prepare {{PNPM_PACKAGE_MANAGER}} --activate
   # Claude Code CLI: the desk's agents use the claude-cli provider (the owner's subscription);
   # the sign-in itself is an owner step after first boot (see the runbook).
-  - npm install -g @anthropic-ai/claude-code
+  # npm 11 skips install scripts by default; claude-code needs its postinstall to place the
+  # binary, so allow exactly that package's scripts (observed 2026-09-14: silent half-install).
+  - npm install -g --allow-scripts=@anthropic-ai/claude-code @anthropic-ai/claude-code
+  - claude --version
   # gog (Google Workspace CLI) drives the Gmail push watcher; pinned to the operator's version
   # with the release checksums from openclaw/homebrew-tap Formula/gogcli.rb - never fetched
   # unverified. Architecture-aware so the local (arm64) pre-flight and amd64 droplets both work.
