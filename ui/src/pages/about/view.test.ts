@@ -75,7 +75,6 @@ describe("renderAbout", () => {
     expect(container.querySelector(".about-footer")?.textContent).toBe(
       "Vasudev · by TripIn Studio",
     );
-    expect(container.querySelector(".about-footer")?.textContent).not.toContain("Vasudev");
   });
 
   it("keeps the upstream notice behind the Licences disclosure and loads it on open", () => {
@@ -87,9 +86,10 @@ describe("renderAbout", () => {
     expect(details).not.toBeNull();
     expect(details?.open).toBe(false);
     expect(details?.querySelector(".about-licences__summary")?.textContent).toBe("Licences");
-    // Nothing is fetched, and nothing names the upstream project, until opened.
+    // Nothing is fetched until the reader opens the panel; that the upstream
+    // name appears nowhere else is guarded by ui/src/i18n/locales/brand.test.ts,
+    // which is the one file the brand rewrite leaves alone so it can spell it.
     expect(container.querySelector(".about-licences__notice")).toBeNull();
-    expect(container.textContent).not.toContain("Vasudev");
 
     details!.open = true;
     details!.dispatchEvent(new Event("toggle"));
