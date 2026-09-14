@@ -1,0 +1,435 @@
+import { spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+
+// Exercises new-desk.sh, roll.sh, and snapshot.sh against stub `doctl`/`ssh`/`tailscale`/`node`
+// executables placed ahead of the real PATH in a temp bin dir. Each stub logs its argv (one line
+// per invocation) to a log file and, for the handful of calls whose output the scripts actually
+// parse, prints canned JSON driven by env vars the test sets per case. `node` is a passthrough
+// spy — it logs argv, then execs the real `node` (captured before PATH is overridden) — so
+// `render-cloud-init.mjs` really renders; `doctl`/`ssh`/`tailscale` are pure fakes: nothing here
+// ever touches a real DigitalOcean account, tailnet, or SSH session.
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const NEW_DESK = join(HERE, "new-desk.sh");
+const ROLL = join(HERE, "roll.sh");
+const SNAPSHOT = join(HERE, "snapshot.sh");
+const REAL_NODE = process.execPath;
+
+const TS_AUTHKEY_SECRET = "tskey-auth-FIXTURE-SECRET-0123456789";
+const TG_TOKEN_SECRET = "999999999:FIXTURE-SECRET-telegram-bot-token";
+
+function writeStub(binDir: string, name: string, body: string): void {
+  writeFileSync(join(binDir, name), `#!/usr/bin/env bash\n${body}\n`, { mode: 0o755 });
+}
+
+/** Installs the four stub executables. Each fixture-driven response is read from an env var the
+ *  test sets before invoking the script under test; when unset, list-style calls default to an
+ *  empty JSON array and mutating calls simply succeed with no output. */
+function installStubs(binDir: string): void {
+  writeStub(
+    binDir,
+    "doctl",
+    `set -euo pipefail
+printf '%s\\n' "doctl $*" >> "\${DOCTL_LOG:?}"
+args="$*"
+case "$args" in
+  "compute ssh-key list -o json")
+    printf '%s' "\${DOCTL_SSH_KEY_LIST_JSON:-[]}" ;;
+  "compute firewall list -o json")
+    printf '%s' "\${DOCTL_FIREWALL_LIST_JSON:-[]}" ;;
+  compute\\ firewall\\ create*)
+    printf '%s' "\${DOCTL_FIREWALL_CREATE_JSON:-[]}" ;;
+  compute\\ droplet\\ create*)
+    printf '%s' "\${DOCTL_DROPLET_CREATE_JSON:-[]}" ;;
+  "compute droplet list -o json")
+    printf '%s' "\${DOCTL_DROPLET_LIST_JSON:-[]}" ;;
+  compute\\ snapshot\\ list*)
+    printf '%s' "\${DOCTL_SNAPSHOT_LIST_JSON:-[]}" ;;
+  *)
+    : ;;
+esac
+exit 0`,
+  );
+
+  writeStub(
+    binDir,
+    "ssh",
+    `set -euo pipefail
+printf '%s\\n' "ssh $*" >> "\${SSH_LOG:?}"
+remote="\${*: -1}"
+case "$remote" in
+  *duties.runs.recent*)
+    if [ -n "\${SSH_RUNS_RECENT_JSON:-}" ]; then
+      printf '%s' "$SSH_RUNS_RECENT_JSON"
+    else
+      printf '{"runs":[]}'
+    fi
+    ;;
+  *--version*)
+    printf 'openclaw 2026.9.0-fixture\\n' ;;
+  *)
+    : ;;
+esac
+exit 0`,
+  );
+
+  writeStub(
+    binDir,
+    "tailscale",
+    `set -euo pipefail
+printf '%s\\n' "tailscale $*" >> "\${TAILSCALE_LOG:?}"
+if [ "$*" = "status --json" ]; then
+  if [ -n "\${TAILSCALE_STATUS_JSON:-}" ]; then
+    printf '%s' "$TAILSCALE_STATUS_JSON"
+  else
+    printf '{}'
+  fi
+fi
+exit 0`,
+  );
+
+  writeStub(
+    binDir,
+    "node",
+    `printf '%s\\n' "node $*" >> "\${NODE_LOG:?}"
+exec "\${REAL_NODE:?}" "$@"`,
+  );
+}
+
+type RunResult = { status: number | null; stdout: string; stderr: string };
+
+describe("deploy/desk operator scripts", () => {
+  let dir: string;
+  let binDir: string;
+  let doctlLog: string;
+  let sshLog: string;
+  let tailscaleLog: string;
+  let nodeLog: string;
+
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), "desk-scripts-test-"));
+    binDir = join(dir, "bin");
+    mkdirSync(binDir);
+    installStubs(binDir);
+    doctlLog = join(dir, "doctl.log");
+    sshLog = join(dir, "ssh.log");
+    tailscaleLog = join(dir, "tailscale.log");
+    nodeLog = join(dir, "node.log");
+    for (const log of [doctlLog, sshLog, tailscaleLog, nodeLog]) {
+      writeFileSync(log, "");
+    }
+  });
+
+  afterEach(() => {
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  function baseEnv(extra: Record<string, string> = {}): NodeJS.ProcessEnv {
+    return {
+      PATH: `${binDir}:${process.env.PATH ?? ""}`,
+      REAL_NODE,
+      DOCTL_LOG: doctlLog,
+      SSH_LOG: sshLog,
+      TAILSCALE_LOG: tailscaleLog,
+      NODE_LOG: nodeLog,
+      HOME: process.env.HOME ?? dir,
+      ...extra,
+    };
+  }
+
+  function run(script: string, args: string[], env: Record<string, string> = {}): RunResult {
+    const result = spawnSync("bash", [script, ...args], {
+      encoding: "utf8",
+      env: baseEnv(env),
+    });
+    return { status: result.status, stdout: result.stdout, stderr: result.stderr };
+  }
+
+  function readLog(path: string): string {
+    return existsSync(path) ? readFileSync(path, "utf8") : "";
+  }
+
+  function allLogsAndOutput(...runs: RunResult[]): string {
+    const logs = [readLog(doctlLog), readLog(sshLog), readLog(tailscaleLog), readLog(nodeLog)];
+    const outputs = runs.flatMap((r) => [r.stdout, r.stderr]);
+    return [...logs, ...outputs].join("\n");
+  }
+
+  describe("new-desk.sh", () => {
+    let tsAuthkeyFile: string;
+    let tgTokenFile: string;
+    const deskName = "desk-proof";
+
+    beforeEach(() => {
+      tsAuthkeyFile = join(dir, "ts-authkey");
+      tgTokenFile = join(dir, "tg-token");
+      writeFileSync(tsAuthkeyFile, `${TS_AUTHKEY_SECRET}\n`);
+      writeFileSync(tgTokenFile, `${TG_TOKEN_SECRET}\n`);
+    });
+
+    function happyPathEnv(extra: Record<string, string> = {}): Record<string, string> {
+      return {
+        DESK_POLL_SECONDS: "5",
+        DOCTL_SSH_KEY_LIST_JSON: JSON.stringify([{ id: "98765", name: "Pulkit Macbook Pro 2025" }]),
+        DOCTL_FIREWALL_LIST_JSON: "[]",
+        DOCTL_FIREWALL_CREATE_JSON: JSON.stringify([{ id: "fw-1", name: "desk-no-inbound" }]),
+        DOCTL_DROPLET_CREATE_JSON: JSON.stringify([{ id: 555, name: deskName }]),
+        TAILSCALE_STATUS_JSON: JSON.stringify({
+          MagicDNSSuffix: "tailnet-fixture.ts.net.",
+          Peer: { peer1: { HostName: deskName, Online: true } },
+        }),
+        ...extra,
+      };
+    }
+
+    it("creates the firewall when missing, creates the droplet with the right doctl args, attaches it, and prints the Control UI URL", () => {
+      const result = run(
+        NEW_DESK,
+        [
+          deskName,
+          "--ts-authkey-file",
+          tsAuthkeyFile,
+          "--tg-token-file",
+          tgTokenFile,
+          "--owner-target",
+          "123456789",
+        ],
+        happyPathEnv(),
+      );
+
+      expect(result.status).toBe(0);
+
+      const doctlCalls = readLog(doctlLog);
+      expect(doctlCalls).toContain("doctl compute ssh-key list -o json");
+      expect(doctlCalls).toContain("doctl compute firewall list -o json");
+      expect(doctlCalls).toContain("doctl compute firewall create --name desk-no-inbound");
+      expect(doctlCalls).toContain("--inbound-rules");
+      expect(doctlCalls).toContain("--outbound-rules");
+      expect(doctlCalls).toContain("protocol:tcp,ports:all,address:0.0.0.0/0,address:::/0");
+
+      const createLine = doctlCalls
+        .split("\n")
+        .find((line) => line.includes("compute droplet create"));
+      expect(createLine).toBeDefined();
+      expect(createLine).toContain(`compute droplet create ${deskName}`);
+      expect(createLine).toContain("--region blr1");
+      expect(createLine).toContain("--size s-2vcpu-4gb");
+      expect(createLine).toContain("--image ubuntu-24-04-x64");
+      expect(createLine).toContain("--ssh-keys 98765");
+      expect(createLine).toContain("--tag-names desk");
+      expect(createLine).toContain("--user-data-file");
+      expect(createLine).toContain("--wait");
+      expect(createLine).toContain("-o json");
+
+      expect(doctlCalls).toContain("doctl compute firewall add-droplets fw-1 --droplet-ids 555");
+
+      expect(result.stdout).toContain(`Control UI: https://${deskName}.tailnet-fixture.ts.net`);
+      expect(result.stdout).toContain(
+        `Sign in:    ssh ${deskName} 'sudo -u openclaw node /opt/openclaw/openclaw.mjs gateway auth-token --show'`,
+      );
+    });
+
+    it("does not create a firewall that already exists, but still attaches the droplet to it", () => {
+      const result = run(
+        NEW_DESK,
+        [
+          deskName,
+          "--ts-authkey-file",
+          tsAuthkeyFile,
+          "--tg-token-file",
+          tgTokenFile,
+          "--owner-target",
+          "123456789",
+        ],
+        happyPathEnv({
+          DOCTL_FIREWALL_LIST_JSON: JSON.stringify([
+            { id: "fw-existing", name: "desk-no-inbound" },
+          ]),
+        }),
+      );
+
+      expect(result.status).toBe(0);
+      const doctlCalls = readLog(doctlLog);
+      expect(doctlCalls).not.toContain("compute firewall create");
+      expect(doctlCalls).toContain(
+        "doctl compute firewall add-droplets fw-existing --droplet-ids 555",
+      );
+    });
+
+    it("fails before creating a droplet when the configured SSH key name is not found", () => {
+      const result = run(
+        NEW_DESK,
+        [
+          deskName,
+          "--ts-authkey-file",
+          tsAuthkeyFile,
+          "--tg-token-file",
+          tgTokenFile,
+          "--owner-target",
+          "123456789",
+        ],
+        happyPathEnv({ DOCTL_SSH_KEY_LIST_JSON: "[]" }),
+      );
+
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain("no doctl SSH key named");
+      expect(readLog(doctlLog)).not.toContain("compute droplet create");
+    });
+
+    it("never echoes the Tailscale auth key or Telegram bot token to any log or its own output", () => {
+      const result = run(
+        NEW_DESK,
+        [
+          deskName,
+          "--ts-authkey-file",
+          tsAuthkeyFile,
+          "--tg-token-file",
+          tgTokenFile,
+          "--owner-target",
+          "123456789",
+        ],
+        happyPathEnv(),
+      );
+
+      expect(result.status).toBe(0);
+      const everything = allLogsAndOutput(result);
+      expect(everything).not.toContain(TS_AUTHKEY_SECRET);
+      expect(everything).not.toContain(TG_TOKEN_SECRET);
+    });
+  });
+
+  describe("roll.sh", () => {
+    const deskName = "desk-proof";
+
+    it("exits 3 and never mutates when a run is busy", () => {
+      const result = run(ROLL, [deskName], {
+        SSH_RUNS_RECENT_JSON: JSON.stringify({ runs: [{ id: "r-1", status: "running" }] }),
+      });
+
+      expect(result.status).toBe(3);
+      expect(result.stderr).toContain("desk is busy: run r-1 is running; retry later or --force");
+      const sshCalls = readLog(sshLog);
+      expect(sshCalls).not.toContain("git checkout");
+      expect(sshCalls).not.toContain("systemctl restart");
+    });
+
+    it("treats a needs_input run as busy too", () => {
+      const result = run(ROLL, [deskName], {
+        SSH_RUNS_RECENT_JSON: JSON.stringify({ runs: [{ id: "r-2", status: "needs_input" }] }),
+      });
+
+      expect(result.status).toBe(3);
+      expect(result.stderr).toContain("run r-2 is needs_input");
+    });
+
+    it("rolls to the given ref, restarts, waits for /healthz, and prints the version when idle", () => {
+      const result = run(ROLL, [deskName, "feat/hosted-desk"], {
+        SSH_RUNS_RECENT_JSON: JSON.stringify({ runs: [{ id: "r-3", status: "success" }] }),
+      });
+
+      expect(result.status).toBe(0);
+      const sshCalls = readLog(sshLog);
+      expect(sshCalls).toContain("git fetch origin 'feat/hosted-desk'");
+      expect(sshCalls).toContain("git checkout --detach FETCH_HEAD");
+      expect(sshCalls).toContain("pnpm install --frozen-lockfile --ignore-scripts");
+      expect(sshCalls).toContain("pnpm build");
+      expect(sshCalls).toContain("chown -R root:openclaw /opt/openclaw");
+      expect(sshCalls).toContain("systemctl restart openclaw-gateway");
+      expect(sshCalls).toContain("http://127.0.0.1:18789/healthz");
+      expect(sshCalls).toContain("openclaw.mjs --version");
+      expect(result.stdout).toContain(`rolled to feat/hosted-desk and is healthy`);
+    });
+
+    it("--force skips the busy check entirely", () => {
+      const result = run(ROLL, [deskName, "--force"], {
+        SSH_RUNS_RECENT_JSON: JSON.stringify({ runs: [{ id: "r-4", status: "running" }] }),
+      });
+
+      expect(result.status).toBe(0);
+      const sshCalls = readLog(sshLog);
+      expect(sshCalls).not.toContain("duties.runs.recent");
+      expect(sshCalls).toContain("systemctl restart openclaw-gateway");
+    });
+
+    it("--reboot reboots instead of restarting the Gateway service", () => {
+      const result = run(ROLL, [deskName, "--reboot"], {
+        SSH_RUNS_RECENT_JSON: JSON.stringify({ runs: [] }),
+      });
+
+      expect(result.status).toBe(0);
+      const sshCalls = readLog(sshLog);
+      expect(sshCalls).toContain("systemctl reboot");
+      expect(sshCalls).not.toContain("systemctl restart openclaw-gateway");
+      expect(result.stdout).toContain("is rebooting");
+    });
+  });
+
+  describe("snapshot.sh", () => {
+    const deskName = "desk-proof";
+
+    it("fails when no droplet matches the desk name", () => {
+      const result = run(SNAPSHOT, [deskName], { DOCTL_DROPLET_LIST_JSON: "[]" });
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain(`no droplet named "${deskName}"`);
+    });
+
+    it("snapshots the droplet and prunes down to the newest 4 desk-<name>-* snapshots", () => {
+      const snapshots = [1, 2, 3, 4, 5, 6].map((n) => ({
+        id: `snap-${n}`,
+        name: `desk-${deskName}-2026010${n}000000`,
+        created_at: `2026-01-0${n}T00:00:00Z`,
+      }));
+      snapshots.push({
+        id: "snap-other",
+        name: "desk-some-other-desk-20260101000000",
+        created_at: "2026-01-09T00:00:00Z",
+      });
+
+      const result = run(SNAPSHOT, [deskName], {
+        DOCTL_DROPLET_LIST_JSON: JSON.stringify([{ id: "777", name: deskName }]),
+        DOCTL_SNAPSHOT_LIST_JSON: JSON.stringify(snapshots),
+      });
+
+      expect(result.status).toBe(0);
+      const doctlCalls = readLog(doctlLog);
+      const createLine = doctlCalls
+        .split("\n")
+        .find((line) => line.includes("droplet-action snapshot"));
+      expect(createLine).toBeDefined();
+      expect(createLine).toContain("droplet-action snapshot 777 --snapshot-name desk-desk-proof-");
+      expect(createLine).toContain("--wait");
+
+      expect(doctlCalls).toContain("snapshot delete snap-1 --force");
+      expect(doctlCalls).toContain("snapshot delete snap-2 --force");
+      expect(doctlCalls).not.toContain("snapshot delete snap-3");
+      expect(doctlCalls).not.toContain("snapshot delete snap-4");
+      expect(doctlCalls).not.toContain("snapshot delete snap-5");
+      expect(doctlCalls).not.toContain("snapshot delete snap-6");
+      expect(doctlCalls).not.toContain("snapshot delete snap-other");
+    });
+
+    it("respects DESK_SNAPSHOT_KEEP", () => {
+      const snapshots = [1, 2, 3].map((n) => ({
+        id: `keep-snap-${n}`,
+        name: `desk-${deskName}-2026010${n}000000`,
+        created_at: `2026-01-0${n}T00:00:00Z`,
+      }));
+
+      const result = run(SNAPSHOT, [deskName], {
+        DOCTL_DROPLET_LIST_JSON: JSON.stringify([{ id: "777", name: deskName }]),
+        DOCTL_SNAPSHOT_LIST_JSON: JSON.stringify(snapshots),
+        DESK_SNAPSHOT_KEEP: "1",
+      });
+
+      expect(result.status).toBe(0);
+      const doctlCalls = readLog(doctlLog);
+      expect(doctlCalls).toContain("snapshot delete keep-snap-1 --force");
+      expect(doctlCalls).toContain("snapshot delete keep-snap-2 --force");
+      expect(doctlCalls).not.toContain("snapshot delete keep-snap-3");
+    });
+  });
+});
