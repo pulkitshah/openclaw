@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
-import { credDelete, credGet, credHas, credSet } from "./creds.js";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import type { LinuxCredStore } from "./creds-linux.js";
+import { credDelete, credGet, credHas, credSet, setLinuxCredStoreForTests } from "./creds.js";
 import type { ExecFn } from "./creds.js";
 
 // Explicitly typed to ExecFn's parameter shape so `mock.calls[0]` is always inferred as the real
@@ -147,14 +148,57 @@ describe("creds (windows)", () => {
   });
 });
 
-describe("creds (unsupported platform)", () => {
-  it("rejects with a clear error on linux", async () => {
-    await expect(
-      credGet(
-        "k",
-        "linux",
-        mockExec(async () => ({ stdout: "" })),
-      ),
-    ).rejects.toThrow("credential store not supported on linux");
+describe("creds (linux)", () => {
+  function fakeStore(): LinuxCredStore {
+    const map = new Map<string, string>();
+    return {
+      async get(key) {
+        if (!map.has(key)) throw new Error(`no credential stored for ${key}`);
+        return map.get(key)!;
+      },
+      async set(key, value) {
+        map.set(key, value);
+      },
+      async delete(key) {
+        return map.delete(key);
+      },
+      async has(key) {
+        return map.has(key);
+      },
+    };
+  }
+
+  afterEach(() => {
+    setLinuxCredStoreForTests(undefined);
+  });
+
+  it("credGet delegates to the injected Linux store", async () => {
+    const store = fakeStore();
+    setLinuxCredStoreForTests(store);
+    await store.set("amigos.password", "s3cret");
+    await expect(credGet("amigos.password", "linux")).resolves.toBe("s3cret");
+  });
+
+  it("credSet delegates to the injected Linux store", async () => {
+    const store = fakeStore();
+    setLinuxCredStoreForTests(store);
+    await credSet("amigos.password", "s3cret", "linux");
+    await expect(store.get("amigos.password")).resolves.toBe("s3cret");
+  });
+
+  it("credDelete delegates to the injected Linux store", async () => {
+    const store = fakeStore();
+    setLinuxCredStoreForTests(store);
+    await store.set("amigos.password", "s3cret");
+    await expect(credDelete("amigos.password", "linux")).resolves.toBe(true);
+    await expect(credDelete("amigos.password", "linux")).resolves.toBe(false);
+  });
+
+  it("credHas delegates to the injected Linux store", async () => {
+    const store = fakeStore();
+    setLinuxCredStoreForTests(store);
+    await expect(credHas("amigos.password", "linux")).resolves.toBe(false);
+    await store.set("amigos.password", "s3cret");
+    await expect(credHas("amigos.password", "linux")).resolves.toBe(true);
   });
 });

@@ -1,4 +1,13 @@
 import { execFile } from "node:child_process";
+import { createLinuxCredStore, type LinuxCredStore } from "./creds-linux.js";
+
+let linuxStore: LinuxCredStore | undefined;
+/** Test-only injection point: lets tests point the Linux store at a temp dir/keyfile instead of
+ *  the real `/etc/openclaw/keyfile` + `~/.openclaw/...` defaults. Pass `undefined` to reset. */
+export function setLinuxCredStoreForTests(store?: LinuxCredStore): void {
+  linuxStore = store;
+}
+const linux = (): LinuxCredStore => (linuxStore ??= createLinuxCredStore());
 
 export type ExecFn = (
   file: string,
@@ -38,6 +47,7 @@ export async function credGet(
   exec: ExecFn = defaultExec,
 ): Promise<string> {
   assertKey(key);
+  if (platform === "linux") return linux().get(key);
   if (platform === "darwin") {
     let stored: string;
     try {
@@ -86,6 +96,7 @@ export async function credSet(
   exec: ExecFn = defaultExec,
 ): Promise<void> {
   assertKey(key);
+  if (platform === "linux") return linux().set(key, value);
   // An empty value would render as `-w \n` with no token, leaving `security -i` waiting for an
   // interactive password; there is also no legitimate empty credential to store.
   if (!value) throw new Error("credential value must not be empty");
@@ -129,6 +140,7 @@ export async function credDelete(
   exec: ExecFn = defaultExec,
 ): Promise<boolean> {
   assertKey(key);
+  if (platform === "linux") return linux().delete(key);
   if (platform === "darwin") {
     try {
       await exec("security", ["delete-generic-password", "-s", SERVICE_PREFIX + key], undefined);
@@ -155,6 +167,10 @@ export async function credHas(
   platform?: NodeJS.Platform,
   exec?: ExecFn,
 ): Promise<boolean> {
+  if ((platform ?? process.platform) === "linux") {
+    assertKey(key);
+    return linux().has(key);
+  }
   try {
     await credGet(key, platform, exec);
     return true;
