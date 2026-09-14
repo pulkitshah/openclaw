@@ -301,7 +301,20 @@ if [[ "$gateway_ready" -ne 1 ]]; then
   exit 4
 fi
 
+# A desk whose Chromium install or fork checkout failed still answers /healthz, so "the Gateway
+# is up" is not "provisioning succeeded" — cloud-init leaves /var/lib/openclaw/provision-failed
+# behind in either case (see cloud-init.yaml.tmpl). Surface it here rather than letting it show up
+# much later as a browser step dying mid-Duty; desk-health.sh reports the same marker as
+# `provisioned: false` to the Duties page's Desk card.
+if ssh -o BatchMode=yes "${DESK_SSH_USER}@${desk_name}" 'test -f /var/lib/openclaw/provision-failed' 2>/dev/null; then
+  echo >&2
+  echo "WARNING: \"$desk_name\" left /var/lib/openclaw/provision-failed behind — part of first boot failed (managed Chromium, or the fork checkout). The Gateway is up, but browser Duties will fail until it is fixed. Check: ssh ${DESK_SSH_USER}@${desk_name} journalctl -u cloud-init-output --no-pager" >&2
+fi
+
 echo
 echo "Desk \"$desk_name\" is up."
 echo "Control UI: ${control_ui_url}"
-echo "Sign in:    ssh ${DESK_SSH_USER}@${desk_name} 'sudo -u openclaw node /opt/openclaw/openclaw.mjs gateway auth-token --show'"
+# `ssh -t` (the Gateway refuses to print its token without a TTY on both ends) and `sudo -H` (so
+# the CLI reads the service user's own ~/.openclaw, not root's) are both required — without
+# either, this very first operator step fails.
+echo "Sign in:    ssh -t ${DESK_SSH_USER}@${desk_name} 'sudo -H -u openclaw node /opt/openclaw/openclaw.mjs gateway auth-token --show'"

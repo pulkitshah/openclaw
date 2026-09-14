@@ -328,6 +328,20 @@ describe("render-cloud-init.mjs", () => {
     );
     expect(config.plugins.entries.duties.enabled).toBe(true);
     expect(config.plugins.entries.telegram.enabled).toBe(true);
+    // A fresh desk must be able to ANSWER after `claude auth login` alone: the anthropic plugin
+    // supplies the models and every anthropic model id routes to the claude-cli runtime (the
+    // owner's subscription), so no second `openclaw models auth login` step is needed. Without
+    // this, a desk accepted the Claude login and still replied "Not logged in - please run
+    // /login" with no documented step to reach for.
+    expect(config.plugins.entries.anthropic.enabled).toBe(true);
+    const models: Record<string, { agentRuntime?: { id?: string } }> =
+      config.agents.defaults.models;
+    expect(Object.keys(models).length).toBeGreaterThan(0);
+    for (const [modelId, entry] of Object.entries(models)) {
+      expect(modelId.startsWith("anthropic/")).toBe(true);
+      expect(entry.agentRuntime?.id).toBe("claude-cli");
+    }
+    expect(models["anthropic/claude-opus-5"]?.agentRuntime?.id).toBe("claude-cli");
     expect(config.hooks.defaultSessionKey).toBe("hook:gmail:ingress");
     expect(config.channels.telegram.allowFrom).toEqual([ownerTarget]);
     // The runtime hook-templating placeholder must survive rendering untouched — it belongs to
@@ -375,6 +389,62 @@ describe("render-cloud-init.mjs", () => {
     const paths = doc.write_files.map((entry) => entry.path);
     expect(paths).not.toContain("/opt/openclaw/deploy/desk/desk-health.sh");
     expect(String(doc.runcmd)).toContain("chmod +x /opt/openclaw/deploy/desk/desk-health.sh");
+  });
+
+  it("generates the credential keyfile only when one is not already on the disk", () => {
+    const doc = parseYaml(render()) as CloudInitDoc;
+    const runcmd = doc.runcmd.map((item) => (Array.isArray(item) ? item.join(" ") : String(item)));
+    // A desk created with `--image <snapshot-id>` gets a new instance id, so cloud-init re-runs
+    // over a disk that already carries the previous desk's encrypted credential store. An
+    // unconditional keyfile there orphans that store permanently ("corrupt or was written with
+    // another keyfile") — so the write is guarded, while chown/chmod stay unconditional.
+    expect(runcmd).toContain(
+      "test -f /etc/openclaw/keyfile || head -c 32 /dev/urandom > /etc/openclaw/keyfile",
+    );
+    expect(runcmd).not.toContain("head -c 32 /dev/urandom > /etc/openclaw/keyfile");
+    expect(runcmd).toContain("chown root:openclaw /etc/openclaw/keyfile");
+    expect(runcmd).toContain("chmod 640 /etc/openclaw/keyfile");
+  });
+
+  it("blocks the metadata service for non-root users, enabling the guard only after provisioning", () => {
+    const output = render();
+    const doc = parseYaml(output) as CloudInitDoc;
+    const guard = doc.write_files.find(
+      (entry) => entry.path === "/etc/systemd/system/desk-metadata-guard.service",
+    );
+    // DigitalOcean keeps this droplet's user-data — which carried the Tailscale auth key, the bot
+    // token, the Gateway token and the hooks token — readable, unauthenticated, from the
+    // link-local metadata service for the droplet's life, to any local process including the
+    // service user that runs untrusted-mail-driven Duties.
+    expect(guard?.content).toContain("iptables -I OUTPUT -d 169.254.169.254");
+    expect(guard?.content).toContain("-m owner ! --uid-owner 0 -j REJECT");
+    expect(guard?.content).toContain("Type=oneshot");
+    expect(guard?.content).toContain("WantedBy=multi-user.target");
+    // ip6tables is best effort (a leading "-" on the ExecStart): the metadata service is IPv4
+    // link-local, and an image without the module must not leave the unit failed.
+    expect(guard?.content).toContain('ExecStart=-/bin/sh -c "ip6tables');
+
+    const runcmd = doc.runcmd.map((item) => (Array.isArray(item) ? item.join(" ") : String(item)));
+    const guardIndex = runcmd.findIndex((item) =>
+      item.includes("systemctl enable --now desk-metadata-guard.service"),
+    );
+    expect(guardIndex).toBeGreaterThan(-1);
+    // Enabled LAST: provisioning itself (cloud-init, DigitalOcean's own agents) may need the
+    // metadata service, and the Gateway must already be enabled by the time egress is closed.
+    expect(guardIndex).toBe(runcmd.length - 1);
+    expect(
+      runcmd.findIndex((item) => item.includes("systemctl enable --now openclaw-gateway.service")),
+    ).toBeLessThan(guardIndex);
+  });
+
+  it("marks provisioning failed rather than exiting when the Claude CLI install fails", () => {
+    const output = render();
+    // `runcmd` has no `set -e`, so an unguarded failure here left a desk whose agents can never
+    // answer with nothing to show for it; an `exit` would be worse still (it skips every later
+    // item, including the keyfile and unit enablement).
+    expect(output).toContain("desk: claude-code install FAILED");
+    expect(output).toContain("touch /var/lib/openclaw/provision-failed");
+    expect(output).not.toMatch(/^\s*- claude --version\s*$/m);
   });
 
   it("refuses to render when a required argument is missing, printing nothing to stdout", () => {

@@ -46,6 +46,7 @@ const INCLUDABLE_FILES = new Set([
   "units/openclaw-gateway.service",
   "units/desk-health.service",
   "units/desk-health.timer",
+  "units/desk-metadata-guard.service",
   "chromium-policy.json",
 ]);
 

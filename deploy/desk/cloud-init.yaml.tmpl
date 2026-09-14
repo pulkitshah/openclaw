@@ -66,6 +66,15 @@ write_files:
     content: |
       {{INCLUDE:units/desk-health.timer}}
 
+  # Blocks the link-local metadata service for non-root processes on every boot - the droplet's
+  # user-data (and therefore every secret this cloud-init carried) stays readable from it for the
+  # droplet's life. Enabled by the LAST runcmd item, after provisioning, not here.
+  - path: /etc/systemd/system/desk-metadata-guard.service
+    permissions: '0644'
+    owner: root:root
+    content: |
+      {{INCLUDE:units/desk-metadata-guard.service}}
+
   # The Playwright-managed Chromium reads the chromium/ path; chrome/ is installed alongside for
   # any distro Chrome build that lands on the box later (spec section 4.7).
   - path: /etc/chromium/policies/managed/desk.json
@@ -188,8 +197,15 @@ runcmd:
   # the sign-in itself is an owner step after first boot (see the runbook).
   # npm 11 skips install scripts by default; claude-code needs its postinstall to place the
   # binary, so allow exactly that package's scripts (observed 2026-09-14: silent half-install).
-  - npm install -g --allow-scripts=@anthropic-ai/claude-code @anthropic-ai/claude-code
-  - claude --version
+  # Guarded the same way the Chromium step below is: `runcmd` has no `set -e`, so a failed install
+  # would otherwise pass silently and leave a desk whose agents can never answer, with nothing to
+  # show for it. The marker is what desk-health.sh reports as `provisioned: false` and what
+  # new-desk.sh warns about before printing success. Never `exit` here - that would skip every
+  # later runcmd item (keyfile, unit enablement, reboot) and leave a dead box.
+  - >-
+    npm install -g --allow-scripts=@anthropic-ai/claude-code @anthropic-ai/claude-code &&
+    claude --version
+    || { echo "desk: claude-code install FAILED" >&2; touch /var/lib/openclaw/provision-failed; }
   # gog (Google Workspace CLI) drives the Gmail push watcher; pinned to the operator's version
   # with the release checksums from openclaw/homebrew-tap Formula/gogcli.rb - never fetched
   # unverified. Architecture-aware so the local (arm64) pre-flight and amd64 droplets both work.
@@ -278,7 +294,13 @@ runcmd:
     || { echo "desk: chromium install FAILED" >&2; touch /var/lib/openclaw/provision-failed; }
 
   # Per-desk credential keyfile for extensions/duties' Linux cred backend (spec section 5).
-  - "head -c 32 /dev/urandom > /etc/openclaw/keyfile"
+  # ONLY if absent: a droplet created from a prior desk's snapshot gets a new instance id, so
+  # cloud-init re-runs every per-instance module over a disk that already carries that desk's
+  # encrypted credential store (~openclaw/.openclaw/plugins/duties/creds.enc). A fresh keyfile
+  # cannot decrypt it and every login then fails with "credential store is corrupt or was written
+  # with another keyfile", with no hint that the keyfile was rotated underneath it. The
+  # ownership/mode lines stay unconditional so a restored keyfile is always correctly owned.
+  - "test -f /etc/openclaw/keyfile || head -c 32 /dev/urandom > /etc/openclaw/keyfile"
   - chown root:openclaw /etc/openclaw/keyfile
   - chmod 640 /etc/openclaw/keyfile
 
@@ -286,6 +308,18 @@ runcmd:
   - systemctl enable --now xvfb.service
   - systemctl enable --now desk-health.timer
   - systemctl enable --now openclaw-gateway.service
+
+  # Metadata guard LAST, and only now that provisioning is done: DigitalOcean keeps this droplet's
+  # user-data (which carried the Tailscale auth key, the Telegram bot token, the Gateway token and
+  # the minted hooks token) readable for the droplet's whole life from the unauthenticated
+  # link-local metadata service, to ANY local process - including a browser Duty or an `exec` step
+  # driven by untrusted inbound mail. This unit rejects egress to 169.254.169.254 for every
+  # non-root uid, which keeps the secrets out of reach of the `openclaw` service user while root
+  # (and cloud-init on the next boot) keeps working. Enabled only here because provisioning itself
+  # may need the metadata service; `--now` applies it immediately for the window before the reboot
+  # below. It is NOT a substitute for using a single-use/ephemeral Tailscale auth key - see the
+  # security notes in docs/hosted-desk.md.
+  - systemctl enable --now desk-metadata-guard.service
 
 power_state:
   mode: reboot

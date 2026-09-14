@@ -27,6 +27,7 @@
   },
   "plugins": {
     "entries": {
+      "anthropic": { "enabled": true },
       "duties": { "enabled": true },
       "telegram": { "enabled": true },
       "llm-task": { "enabled": true }
@@ -43,7 +44,17 @@
   "agents": {
     "ownership": "explicit",
     "defaults": {
-      "systemAgent": { "agentId": "krishna" }
+      "systemAgent": { "agentId": "krishna" },
+      "models": {
+        "anthropic/claude-opus-5": { "agentRuntime": { "id": "claude-cli" } },
+        "anthropic/claude-sonnet-5": { "agentRuntime": { "id": "claude-cli" } },
+        "anthropic/claude-fable-5-1": { "agentRuntime": { "id": "claude-cli" } },
+        "anthropic/claude-fable-5": { "agentRuntime": { "id": "claude-cli" } },
+        "anthropic/claude-opus-4-8": { "agentRuntime": { "id": "claude-cli" } },
+        "anthropic/claude-opus-4-7": { "agentRuntime": { "id": "claude-cli" } },
+        "anthropic/claude-sonnet-4-6": { "agentRuntime": { "id": "claude-cli" } },
+        "anthropic/claude-opus-4-6": { "agentRuntime": { "id": "claude-cli" } }
+      }
     },
     "entries": {
       "krishna": {

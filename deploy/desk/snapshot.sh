@@ -33,6 +33,13 @@ if [[ -z "$desk_name" ]]; then
   usage >&2
   exit 2
 fi
+# Same hostname shape render-cloud-init.mjs enforces on --name. Validated here because the name
+# becomes part of the prune regex below: a name carrying regex metacharacters could otherwise match
+# — and so delete — another desk's snapshots.
+if ! [[ "$desk_name" =~ ^[a-z0-9][a-z0-9-]{0,62}$ ]]; then
+  echo "snapshot.sh: <desk-name> \"$desk_name\" is invalid: must be a plain hostname (lowercase letters, digits and hyphens, starting with a letter or digit, max 63 chars)" >&2
+  exit 2
+fi
 
 echo "==> Looking up droplet \"$desk_name\"" >&2
 # jq takes the first match itself instead of piping through `head -n1` — see new-desk.sh's
@@ -52,14 +59,18 @@ echo "==> Snapshotting droplet $droplet_id as \"$snapshot_name\" (this can take 
 doctl compute droplet-action snapshot "$droplet_id" --snapshot-name "$snapshot_name" --wait
 
 echo "==> Pruning old snapshots for \"$desk_name\", keeping the newest $KEEP" >&2
-prefix="desk-${desk_name}-"
+# Matched on the FULL `desk-<name>-<14-digit timestamp>` shape, not a bare prefix: with
+# `startswith("desk-a-")`, pruning desk `a` also saw — and could delete — desk `a-b`'s
+# `desk-a-b-<timestamp>` snapshots, because that name starts with the same prefix. The timestamp
+# anchor makes the boundary unambiguous for hyphenated desk names.
+name_pattern="^desk-${desk_name}-[0-9]{14}$"
 old_snapshot_ids=()
 while IFS= read -r id; do
   [[ -n "$id" ]] && old_snapshot_ids+=("$id")
 done < <(
   doctl compute snapshot list --resource droplet -o json \
-    | jq -r --arg prefix "$prefix" --argjson keep "$KEEP" '
-        [.[] | select(.name | startswith($prefix))]
+    | jq -r --arg pattern "$name_pattern" --argjson keep "$KEEP" '
+        [.[] | select((.name // "") | test($pattern))]
         | sort_by(.created_at)
         | reverse
         | .[$keep:]

@@ -16,6 +16,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const NEW_DESK = join(HERE, "new-desk.sh");
 const ROLL = join(HERE, "roll.sh");
+const ROLL_REMOTE = join(HERE, "remote", "roll-remote.sh");
 const SNAPSHOT = join(HERE, "snapshot.sh");
 const REAL_NODE = process.execPath;
 
@@ -76,6 +77,15 @@ case "$remote" in
     else
       printf '{"runs":[]}'
     fi
+    ;;
+  # new-desk.sh's post-readiness check for cloud-init's provision-failed marker. A real desk
+  # answers non-zero when the marker is absent (the common case), so the stub does too unless the
+  # test asks for the failed-provisioning scenario.
+  *provision-failed*)
+    if [ "\${SSH_PROVISION_FAILED:-0}" = "1" ]; then
+      exit 0
+    fi
+    exit 1
     ;;
   *)
     : ;;
@@ -358,9 +368,14 @@ describe("deploy/desk operator scripts", () => {
       expect(doctlCalls).toContain("doctl compute firewall add-droplets fw-1 --droplet-ids 555");
 
       expect(result.stdout).toContain(`Control UI: https://${deskName}.tailnet-fixture.ts.net`);
+      // `ssh -t` and `sudo -H` are both load-bearing on this very first operator step:
+      // `gateway auth-token --show` refuses to print outside an interactive terminal (no TTY on a
+      // plain `ssh host 'cmd'`), and plain `sudo -u openclaw` leaves HOME=/root so the CLI reads
+      // /root/.openclaw and dies with "Gateway config is invalid" instead.
       expect(result.stdout).toContain(
-        `Sign in:    ssh root@${deskName} 'sudo -u openclaw node /opt/openclaw/openclaw.mjs gateway auth-token --show'`,
+        `Sign in:    ssh -t root@${deskName} 'sudo -H -u openclaw node /opt/openclaw/openclaw.mjs gateway auth-token --show'`,
       );
+      expect(result.stdout).not.toContain("'sudo -u openclaw");
     });
 
     it("does not create a firewall that already exists, but still attaches the droplet to it", () => {
@@ -479,6 +494,46 @@ describe("deploy/desk operator scripts", () => {
       expect(result.stderr).toContain("never answered");
       expect(result.stderr).toContain(`ssh root@${deskName} journalctl`);
     });
+
+    it("warns when cloud-init left a provision-failed marker, but still prints the URL", () => {
+      const args = [
+        deskName,
+        "--ts-authkey-file",
+        tsAuthkeyFile,
+        "--tg-token-file",
+        tgTokenFile,
+        "--owner-target",
+        "123456789",
+      ];
+      // A desk whose managed Chromium (or fork checkout, or Claude CLI) install failed still
+      // answers /healthz, so "the Gateway is up" is not "provisioning succeeded" — without this
+      // check the failure only surfaced later as a browser step dying mid-Duty.
+      const failed = run(NEW_DESK, args, happyPathEnv({ SSH_PROVISION_FAILED: "1" }));
+      expect(failed.status).toBe(0);
+      expect(failed.stderr).toContain("provision-failed");
+      expect(failed.stderr).toContain("browser Duties will fail");
+      expect(failed.stdout).toContain(`Desk "${deskName}" is up.`);
+      expect(readLog(sshLog)).toContain("test -f /var/lib/openclaw/provision-failed");
+    });
+
+    it("says nothing about provisioning when no marker is present", () => {
+      const result = run(
+        NEW_DESK,
+        [
+          deskName,
+          "--ts-authkey-file",
+          tsAuthkeyFile,
+          "--tg-token-file",
+          tgTokenFile,
+          "--owner-target",
+          "123456789",
+        ],
+        happyPathEnv(),
+      );
+      expect(result.status).toBe(0);
+      expect(result.stderr).not.toContain("provision-failed");
+      expect(result.stdout).toContain(`Desk "${deskName}" is up.`);
+    });
   });
 
   describe("roll.sh", () => {
@@ -561,14 +616,19 @@ describe("deploy/desk operator scripts", () => {
       expect(sshCalls).toContain('git fetch origin "$git_ref"');
       expect(sshCalls).toContain("git checkout --detach FETCH_HEAD");
       expect(sshCalls).toContain("pnpm install --frozen-lockfile --ignore-scripts");
-      expect(sshCalls).toContain("pnpm build");
-      expect(sshCalls).toContain("chown -R root:openclaw /opt/openclaw");
+      // Runtime-only, with the same explicit heap ceiling cloud-init's first-boot build uses — a
+      // plain `pnpm build` emits declarations and OOMs on the documented default 4 GB desk, so
+      // every roll of a default-size desk used to fail deterministically.
+      expect(sshCalls).toContain(
+        "OPENCLAW_RUN_NODE_SKIP_DTS_BUILD=1 OPENCLAW_TSDOWN_MAX_OLD_SPACE_MB=4352 pnpm build",
+      );
+      expect(sshCalls).toContain('chown -R root:openclaw "$root"');
       expect(sshCalls).toContain("systemctl stop openclaw-gateway");
       expect(sshCalls).toContain("systemctl start openclaw-gateway");
       expect(sshCalls).not.toContain("systemctl restart openclaw-gateway");
       expect(sshCalls).toContain("Gateway stopped, building");
       expect(sshCalls).toContain("http://127.0.0.1:${gateway_port}/healthz");
-      expect(sshCalls).toContain("openclaw.mjs --version");
+      expect(sshCalls).toContain('sudo -H -u openclaw node "$root/openclaw.mjs" --version');
       expect(result.stdout).toContain(`rolled to feat/hosted-desk and is healthy`);
 
       // The whole point of stopping first: the Gateway must be down for the entire
@@ -587,8 +647,24 @@ describe("deploy/desk operator scripts", () => {
 
       // The build snapshot (taken before the stop, in case fetch/install/build fails) is
       // discarded once the new build is actually in place — nothing left over on success.
-      expect(sshCalls).toContain("cp -a /opt/openclaw/dist /opt/openclaw/dist.prev");
-      expect(sshCalls).toContain("rm -rf /opt/openclaw/dist.prev /opt/openclaw/dist.prev.ref");
+      expect(sshCalls).toContain('cp -a "$root/dist" "$root/dist.prev"');
+      expect(sshCalls).toContain('rm -rf "$root/dist.prev" "$root/dist.prev.ref"');
+    });
+
+    it("sends the tree's own remote/roll-remote.sh over stdin, and refuses when it is missing", () => {
+      const result = run(ROLL, [deskName], { SSH_RUNS_RECENT_JSON: JSON.stringify({ runs: [] }) });
+      expect(result.status).toBe(0);
+      // Byte-for-byte what the operator's checkout carries: the remote body is a shipped file, not
+      // a heredoc, which is what lets the execution tests below run the real thing.
+      expect(readLog(sshLog)).toContain(readFileSync(ROLL_REMOTE, "utf8").trimEnd());
+
+      // Run a copy of roll.sh from a directory with no remote/ next to it: it must fail before
+      // touching the desk rather than piping an empty script into a live shell.
+      const orphan = join(dir, "roll-copy.sh");
+      writeFileSync(orphan, readFileSync(ROLL, "utf8"), { mode: 0o755 });
+      const missing = run(orphan, [deskName, "--force"]);
+      expect(missing.status).toBe(1);
+      expect(missing.stderr).toContain("the remote roll script is missing");
     });
 
     it("restores the previous build and restarts the Gateway when the remote build fails, exiting 5", () => {
@@ -606,8 +682,8 @@ describe("deploy/desk operator scripts", () => {
       expect(result.status).toBe(5);
       const sshCalls = readLog(sshLog);
       expect(sshCalls).toContain("restore_previous_build()");
-      expect(sshCalls).toContain("mv /opt/openclaw/dist.prev /opt/openclaw/dist");
-      expect(sshCalls).toContain('git checkout --detach "$(cat /opt/openclaw/dist.prev.ref)"');
+      expect(sshCalls).toContain('mv "$root/dist.prev" "$root/dist"');
+      expect(sshCalls).toContain('git checkout --detach "$(cat "$root/dist.prev.ref")"');
       expect(sshCalls).toContain("restore_previous_build || true");
       expect(sshCalls).toContain("systemctl start openclaw-gateway || true");
       expect(sshCalls).toContain(
@@ -621,7 +697,7 @@ describe("deploy/desk operator scripts", () => {
       // The recovery block is reached before the success-path cleanup/reboot/start below it —
       // an early `exit 5`/`exit 6` inside the failure branch, not merely present later.
       expect(sshCalls.indexOf("if ! build_new_ref; then")).toBeLessThan(
-        sshCalls.indexOf("rm -rf /opt/openclaw/dist.prev /opt/openclaw/dist.prev.ref"),
+        sshCalls.indexOf('rm -rf "$root/dist.prev" "$root/dist.prev.ref"'),
       );
     });
 
@@ -671,6 +747,167 @@ describe("deploy/desk operator scripts", () => {
         sshCalls.indexOf("systemctl reboot"),
       );
       expect(result.stdout).toContain("is rebooting");
+    });
+  });
+
+  // The body that actually runs ON a desk, EXECUTED here rather than string-matched: the recovery
+  // branch is the one piece of this that runs on a live client desk after a failed roll, so it is
+  // exercised for real against a temp checkout with stubbed git/pnpm/systemctl/curl/chown/sudo.
+  // `cp`/`mv`/`rm` are deliberately NOT stubbed — the whole point is to assert on the resulting
+  // file state (which build ended up in `dist`, whether the snapshot was cleaned up), and every
+  // one of those operations stays inside the temp OPENCLAW_DESK_ROOT below.
+  describe("remote/roll-remote.sh", () => {
+    const deskName = "desk-proof";
+    let deskRoot: string;
+    let gitLog: string;
+    let pnpmLog: string;
+    let systemctlLog: string;
+
+    beforeEach(() => {
+      deskRoot = join(dir, "opt-openclaw");
+      mkdirSync(join(deskRoot, "dist"), { recursive: true });
+      writeFileSync(join(deskRoot, "dist", "marker.txt"), "OLD");
+      gitLog = join(dir, "git.log");
+      pnpmLog = join(dir, "pnpm.log");
+      systemctlLog = join(dir, "systemctl.log");
+      for (const log of [gitLog, pnpmLog, systemctlLog]) {
+        writeFileSync(log, "");
+      }
+
+      writeStub(
+        binDir,
+        "git",
+        `printf '%s\\n' "git $*" >> "\${GIT_LOG:?}"
+case "$1" in
+  rev-parse) printf '%s\\n' "\${GIT_HEAD_SHA:-oldsha0000000000}" ;;
+  fetch) exit "\${GIT_FETCH_EXIT:-0}" ;;
+esac
+exit 0`,
+      );
+      writeStub(
+        binDir,
+        "pnpm",
+        `printf '%s\\n' "pnpm $*" >> "\${PNPM_LOG:?}"
+case "$1" in
+  install) exit "\${PNPM_INSTALL_EXIT:-0}" ;;
+  build)
+    if [ "\${PNPM_BUILD_EXIT:-0}" != 0 ]; then
+      exit "\${PNPM_BUILD_EXIT}"
+    fi
+    # A successful build replaces dist, so the file state below can tell the new build from the
+    # restored one.
+    mkdir -p "\${OPENCLAW_DESK_ROOT:?}/dist"
+    printf 'NEW' > "\${OPENCLAW_DESK_ROOT}/dist/marker.txt"
+    ;;
+esac
+exit 0`,
+      );
+      writeStub(
+        binDir,
+        "systemctl",
+        `printf '%s\\n' "systemctl $*" >> "\${SYSTEMCTL_LOG:?}"
+exit 0`,
+      );
+      // Not root here, so a real chown would fail and abort the script for the wrong reason.
+      writeStub(binDir, "chown", `printf '%s\\n' "chown $*" >> "\${SYSTEMCTL_LOG:?}"\nexit 0`);
+      writeStub(binDir, "sudo", `printf '%s\\n' "sudo $*" >> "\${SYSTEMCTL_LOG:?}"\nexit 0`);
+    });
+
+    function runRemote(env: Record<string, string> = {}, mode = "restart"): RunResult {
+      return run(ROLL_REMOTE, [deskName, "feat/hosted-desk", "18789", mode], {
+        OPENCLAW_DESK_ROOT: deskRoot,
+        OPENCLAW_DESK_HEALTH_ATTEMPTS: "2",
+        OPENCLAW_DESK_HEALTH_INTERVAL_SECONDS: "0",
+        GIT_LOG: gitLog,
+        PNPM_LOG: pnpmLog,
+        SYSTEMCTL_LOG: systemctlLog,
+        ...env,
+      });
+    }
+
+    function marker(): string {
+      return readFileSync(join(deskRoot, "dist", "marker.txt"), "utf8");
+    }
+
+    it("builds the new ref, discards the snapshot, and starts the Gateway after the build", () => {
+      const result = runRemote();
+
+      expect(result.status).toBe(0);
+      expect(marker()).toBe("NEW");
+      // Nothing left over on success — a stale dist.prev would be restored by a LATER failed roll.
+      expect(existsSync(join(deskRoot, "dist.prev"))).toBe(false);
+      expect(existsSync(join(deskRoot, "dist.prev.ref"))).toBe(false);
+
+      const systemctlCalls = readLog(systemctlLog);
+      const buildIndex = readLog(pnpmLog).indexOf("pnpm build");
+      expect(buildIndex).toBeGreaterThan(-1);
+      expect(readLog(pnpmLog).indexOf("pnpm install")).toBeLessThan(buildIndex);
+      expect(systemctlCalls).toContain("systemctl stop openclaw-gateway");
+      expect(systemctlCalls).toContain("systemctl start openclaw-gateway");
+      expect(systemctlCalls.indexOf("systemctl stop openclaw-gateway")).toBeLessThan(
+        systemctlCalls.indexOf("systemctl start openclaw-gateway"),
+      );
+      expect(systemctlCalls).toContain("sudo -H -u openclaw node");
+      expect(readLog(gitLog)).toContain("git checkout --detach FETCH_HEAD");
+    });
+
+    it("restores dist, the previous ref AND its node_modules, restarts, and exits 5 when the build fails", () => {
+      const result = runRemote({ PNPM_BUILD_EXIT: "1", GIT_HEAD_SHA: "prevsha111" });
+
+      expect(result.status).toBe(5);
+      expect(result.stderr).toContain("roll failed at pnpm build");
+      expect(result.stderr).toContain("previous build restored and Gateway restarted");
+      // The build that was serving before the roll is back, and the snapshot is consumed.
+      expect(marker()).toBe("OLD");
+      expect(existsSync(join(deskRoot, "dist.prev"))).toBe(false);
+      expect(readLog(gitLog)).toContain("git checkout --detach prevsha111");
+      // The forward install already replaced node_modules with the NEW ref's dependency tree, so
+      // the restored dist would otherwise run against dependencies it was never built for.
+      expect(readLog(pnpmLog)).toContain(
+        "pnpm install --frozen-lockfile --prefer-offline --ignore-scripts",
+      );
+      expect(readLog(systemctlLog)).toContain("systemctl start openclaw-gateway");
+    });
+
+    it("exits 6 when the Gateway will not come back even on the restored build", () => {
+      const result = runRemote({ PNPM_BUILD_EXIT: "1", CURL_FAIL_COUNT: "999999" });
+
+      expect(result.status).toBe(6);
+      expect(result.stderr).toContain("did not answer /healthz");
+      expect(result.stderr).toContain("journalctl -u openclaw-gateway");
+      expect(marker()).toBe("OLD");
+    });
+
+    it("recovers from a failed fetch without ever stopping short of restarting the Gateway", () => {
+      const result = runRemote({ GIT_FETCH_EXIT: "1" });
+
+      expect(result.status).toBe(5);
+      expect(result.stderr).toContain("roll failed at git fetch");
+      expect(marker()).toBe("OLD");
+      expect(readLog(pnpmLog)).not.toContain("pnpm build");
+      expect(readLog(systemctlLog)).toContain("systemctl start openclaw-gateway");
+    });
+
+    it("reboots instead of starting the Gateway in reboot mode, after a successful build", () => {
+      const result = runRemote({}, "reboot");
+
+      expect(result.status).toBe(0);
+      expect(marker()).toBe("NEW");
+      const systemctlCalls = readLog(systemctlLog);
+      expect(systemctlCalls).toContain("systemctl reboot");
+      expect(systemctlCalls).not.toContain("systemctl start openclaw-gateway");
+    });
+
+    it("refuses to run without its four arguments rather than acting on defaults", () => {
+      const result = run(ROLL_REMOTE, [deskName], {
+        OPENCLAW_DESK_ROOT: deskRoot,
+        GIT_LOG: gitLog,
+        PNPM_LOG: pnpmLog,
+        SYSTEMCTL_LOG: systemctlLog,
+      });
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).toContain("missing <git-ref>");
+      expect(readLog(systemctlLog)).toBe("");
     });
   });
 
@@ -736,6 +973,43 @@ describe("deploy/desk operator scripts", () => {
       expect(doctlCalls).toContain("snapshot delete keep-snap-1 --force");
       expect(doctlCalls).toContain("snapshot delete keep-snap-2 --force");
       expect(doctlCalls).not.toContain("snapshot delete keep-snap-3");
+    });
+
+    it("never prunes a longer-named desk's snapshots that share this desk's name as a prefix", () => {
+      // `desk-a-b-<timestamp>` starts with `desk-a-`, so pruning desk `a` with a bare prefix
+      // filter could delete desk `a-b`'s snapshots. The prune anchors on the full
+      // `desk-<name>-<14 digits>` shape instead.
+      const mine = [1, 2].map((n) => ({
+        id: `mine-${n}`,
+        name: `desk-a-2026010${n}000000`,
+        created_at: `2026-01-0${n}T00:00:00Z`,
+      }));
+      const neighbour = [1, 2, 3].map((n) => ({
+        id: `neighbour-${n}`,
+        name: `desk-a-b-2026010${n}000000`,
+        created_at: `2026-01-0${n}T00:00:00Z`,
+      }));
+
+      const result = run(SNAPSHOT, ["a"], {
+        DOCTL_DROPLET_LIST_JSON: JSON.stringify([{ id: "777", name: "a" }]),
+        DOCTL_SNAPSHOT_LIST_JSON: JSON.stringify([...mine, ...neighbour]),
+        DESK_SNAPSHOT_KEEP: "1",
+      });
+
+      expect(result.status).toBe(0);
+      const doctlCalls = readLog(doctlLog);
+      expect(doctlCalls).toContain("snapshot delete mine-1 --force");
+      expect(doctlCalls).not.toContain("snapshot delete mine-2");
+      for (const id of ["neighbour-1", "neighbour-2", "neighbour-3"]) {
+        expect(doctlCalls).not.toContain(`snapshot delete ${id}`);
+      }
+    });
+
+    it("refuses a desk name that is not a plain hostname, before any doctl call", () => {
+      const result = run(SNAPSHOT, ["desk-.*"], {});
+      expect(result.status).toBe(2);
+      expect(result.stderr).toContain("must be a plain hostname");
+      expect(readLog(doctlLog)).toBe("");
     });
   });
 });

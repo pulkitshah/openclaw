@@ -1,0 +1,25 @@
+[Unit]
+Description=Block the cloud metadata service for non-root processes
+# The droplet's user-data - which carried this desk's Tailscale auth key, Telegram bot token,
+# Gateway token and hooks token - stays readable, unauthenticated, from 169.254.169.254 for the
+# droplet's whole life, to any local process. The desk deliberately feeds untrusted inbound mail
+# to an agent that holds `exec`, so "any local process" is the exposure that matters.
+# Ordered before the Gateway (and after any host firewall that would flush the OUTPUT chain) so
+# the rule is in place by the time anything unprivileged can run.
+After=network-pre.target nftables.service iptables.service ufw.service
+Before=openclaw-gateway.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# The rule is idempotent: `-C` checks first, so a restart - or cloud-init re-running on a desk
+# created from a snapshot - does not stack duplicates. Root is exempt (`! --uid-owner 0`) so
+# cloud-init, DigitalOcean's own agents and the operator keep working.
+ExecStart=/bin/sh -c "iptables -C OUTPUT -d 169.254.169.254 -m owner ! --uid-owner 0 -j REJECT 2>/dev/null || iptables -I OUTPUT -d 169.254.169.254 -m owner ! --uid-owner 0 -j REJECT"
+# IPv6 counterpart, best effort: the metadata service is IPv4 link-local, and an image without
+# ip6tables or the owner match must not leave this unit failed (the leading "-" makes a non-zero
+# exit a no-op, not a failure) - the IPv4 rule above is the one that carries the guarantee.
+ExecStart=-/bin/sh -c "ip6tables -C OUTPUT -d fe80::a9fe:a9fe -m owner ! --uid-owner 0 -j REJECT 2>/dev/null || ip6tables -I OUTPUT -d fe80::a9fe:a9fe -m owner ! --uid-owner 0 -j REJECT"
+
+[Install]
+WantedBy=multi-user.target
