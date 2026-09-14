@@ -183,7 +183,18 @@ runcmd:
     cd /opt/openclaw &&
     npm_config_minimum_release_age=0 npm_config_minimum_release_age_strict=false
     pnpm install --frozen-lockfile --ignore-scripts
-  - cd /opt/openclaw && pnpm build
+  # Build memory: the fork's full build (declaration emission) needs ~4.7 GB and refuses on a
+  # 4 GB box; the desk only runs the Gateway, so it builds runtime-only (the same mode the
+  # installed updater uses: OPENCLAW_RUN_NODE_SKIP_DTS_BUILD=1) with the build's explicit heap
+  # override and a 4 GB swapfile as headroom (measured 2026-09-14 on 2 vCPU / 4 GB: 2m13s,
+  # 56 MB of swap touched). The swapfile stays for the Gateway's own peaks.
+  - >-
+    test -f /swapfile ||
+    (fallocate -l 4G /swapfile && chmod 600 /swapfile && mkswap /swapfile >/dev/null &&
+    swapon /swapfile && echo '/swapfile none swap sw 0 0' >> /etc/fstab)
+  - >-
+    cd /opt/openclaw &&
+    OPENCLAW_RUN_NODE_SKIP_DTS_BUILD=1 OPENCLAW_TSDOWN_MAX_OLD_SPACE_MB=4352 pnpm build
   - chown -R root:openclaw /opt/openclaw
   - chmod -R g+rX,o-rwx /opt/openclaw
   # desk-health.sh ships inside the fork checkout above (deploy/desk/desk-health.sh) rather than
