@@ -257,9 +257,11 @@ roughly nine-minute timer, and expires on its own.
 
 ## What failed, and what was fixed
 
-Seven defects were found by running the thing. Five are fixed on this branch,
-each with a test that fails without the fix; two are written up below. Five of
-the seven were first spotted by the authoring agent from its own run evidence.
+Eight defects were found by running the thing. Six are fixed on this branch,
+each with a test that fails without the fix; two are written up below. Five were
+first spotted by the authoring agent from its own run evidence; the last, and
+the worst for this flow, only surfaced when the approval gate was finally probed
+end to end.
 
 ### 1. `ai` and `ask` steps could not run at all on a multi-agent install
 
@@ -365,7 +367,9 @@ than in a sanitizer at the store.
 
 ### 6. Every `template` step fails under the default browser policy
 
-**Not fixed — the headline product gap.**
+**Recorded as a Part 2 gap, deliberately not fixed.** The browser plugin owns
+this policy and the ruling on this proof was to record it, not to change that
+plugin.
 
 ```
 could not open the render page at http://127.0.0.1:19001/plugins/duties/render/<token>:
@@ -381,11 +385,16 @@ step, and every `template_preview`, fails — and the failure is a browser polic
 message that says nothing about Duties.
 
 The proof was unblocked with the narrowest documented knob, everything else
-still blocked:
+still blocked. This is the exact line added to
+`~/.openclaw-duties/openclaw.json`, and any install that wants `template` steps
+to work needs it today:
 
 ```json
 { "browser": { "ssrfPolicy": { "allowedHostnames": ["127.0.0.1"] } } }
 ```
+
+With it, `duties.template.preview` returns a real `application/pdf`; without it
+the render fails on every attempt.
 
 That is a workaround, not the fix. This is not a model-chosen URL: the plugin
 constructs it, it points at this Gateway's own plugin route, and it carries a
@@ -418,42 +427,77 @@ The turn does not fail loudly: the agent simply has no tools and has to work out
 why. Three agent turns were lost to this before the pattern was clear. Every
 config change in this proof was followed by a Gateway restart from then on.
 
-## The two blockers the mail and chat proofs are waiting on
+### 8. Every hyphenated `ask` step failed before it reached anyone
 
-Both were established by experiment, not by reading code, and both need an owner
-decision rather than a patch made mid-proof.
+`fix(duties): send a question id the Gateway accepts for an ask step`
+— commit `7182a28152`
 
-### A. The hold approval cannot reach the owner on any channel
+The ask adapter passed the step id straight through as the question id, but the
+two vocabularies do not agree. A duty step id is a slug
+(`^[a-z0-9][a-z0-9_-]{0,63}$`, duty.ts) so hyphens and a leading digit are legal
+— and hyphens are exactly how these steps get named. `question.request` requires
+`^[a-z][a-z0-9_]*$`. So the ask failed with a raw schema error:
 
-The Duty's approval gate is an `ask` step, and the plan was for the owner to
-answer **Approve** on Telegram during the mail proof. That cannot happen today.
-
-Questions are delivered to a channel by the agent turn that raises them: the
-question-channel runtime tracks finalizers against an `AsyncLocalStorage` scope
-(`src/infra/question-channel-runtime-internal.ts`), and the actual send is done
-by whoever is running that turn. A Duty run raised out of band has no such
-scope, and a mail-triggered run's origin session is the dispatcher's
-`hook:gmail:*` session, which has no channel at all.
-
-Probed directly against the proof Gateway rather than inferred:
-
-```sh
-node openclaw.mjs gateway call question.request --params '{
-  "sessionKey": "hook:gmail:probe", "agentId": "duties-mail", "timeoutMs": 20000,
-  "questions": [{ "questionId": "probe", "header": "Probe", "question": "…",
-                  "options": [{"label":"Approve"},{"label":"Decline"}] }] }'
+```
+invalid question.request params: at /questions/0/questionId:
+must match pattern "^[a-z][a-z0-9_]*$"
 ```
 
-The Gateway accepted the question and returned an id. **No Telegram message was
-sent** — nothing appears in the channel log, and nothing arrived in the chat.
+Both ask steps in the authored Duty are named `ask-hold` and
+`ask-which-flight`, so **the hold approval could never have been raised**. This
+surfaced only because the ask was probed end to end on the live Gateway; every
+earlier staged run had stopped before the gate. The step id is now translated
+for the wire, and the same translation reads the answer back, since the answer
+map is keyed by the id that was sent.
 
-So a mail-triggered run reaching `ask-hold` parks on `needs_input` and waits for
-an answer the owner has no way to give from Telegram. The Control UI's
-"Waiting on you" is a real surface and would work, but it is not what the flow
-was designed around. Deciding where a Duty's `ask` should reach the owner —
-the configured owner route, the triggering conversation, or the Duties page
-only — is an owner call, and the `deliver` step already has exactly that
-vocabulary (`trigger` / `owner` / an explicit target) to borrow from.
+## Blocker A, resolved: asks and status lines now reach the owner
+
+`fix(duties): asks and status lines reach the chat origin or the owner`
+
+The Duty's approval gate is an `ask` step, and the owner is meant to answer it
+on Telegram. That did not work, for two independent reasons, both found by
+probing the live Gateway rather than by reading code.
+
+**Where the question lived.** An ask was raised in the run's own origin session.
+For a mail-triggered run that is the `duties-mail` dispatcher's `hook:gmail:*`
+session, which belongs to an agent the owner never talks to. Status lines had
+the mirror-image hole: they were posted only for chat origins, so an unattended
+mail run — the one worth reporting on — reported nowhere at all.
+
+Both now follow the rule `deliver` already uses: back to the chat the run came
+from, otherwise to the configured owner. The owner's session key comes from the
+host's own `resolveAgentRoute`, so the configured `bindings[]` decide which
+agent owns that channel and the session-scope rules decide whether an owner DM
+collapses onto that agent's main session. With no owner target configured the
+ask fails loudly with the existing `no owner target configured — set it on the
+Duties page`.
+
+**Whether anyone was told.** Choosing the session decides who can answer, not
+whether anyone is notified. Probed twice against the proof Gateway — once with
+the dispatcher's `hook:gmail:*` session, once with the owner's own
+`agent:krishna:main` — `question.request` accepted the question and returned an
+id, and **no Telegram message was sent either time**. Channel delivery of a
+question is performed by the agent turn that raises it
+(`runWithQuestionChannelDeliveries`/`registerDelivery`,
+`src/infra/question-channel-runtime-internal.ts`), and a Duty run has no such
+turn. So the run now also announces the question and its options through the
+`deliver` adapter, best-effort, so a run still parks correctly if the note
+cannot be delivered.
+
+Verified live, on a run given a **mail** origin:
+
+```
+[telegram] outbound send ok chatId=5995225650 messageId=280 …
+[telegram] outbound send ok chatId=5995225650 messageId=281 …
+```
+
+— the status line and the ask itself — with the run then sitting at
+`status: needs_input`,
+`waitingOn: { questionId: "…", stepId: "ask-owner" }`. This probe is also what
+uncovered defect 8: the first attempt failed outright on the question-id
+pattern.
+
+## Blocker B, still open
 
 ### B. A self-sent mail can never trigger the Gmail hook
 
@@ -540,7 +584,8 @@ Honest list, because the useful part of this document is the boundary:
   mail from an outside address.
 - **No chat-origin run from Telegram.** That needs the owner to message the bot.
 - **The Approve path has never run.** Every staged run stopped at or before the
-  approval ask, deliberately: no hold has been placed. What Amigos shows after
+  approval ask, deliberately: no hold has been placed. The ask itself is now
+  proved to reach Telegram from a mail-origin run, but only with a probe Duty. What Amigos shows after
   Hold Booking Proceed is unseen, so the PNR read and the final `deliver` are
   authored but unexercised.
 - **The not-found branch has never run**, because the requested flight is always
@@ -554,10 +599,10 @@ Honest list, because the useful part of this document is the boundary:
 
 ## Gates
 
-Run after each of the five code commits:
+Run after each of the seven code commits:
 
 ```sh
-node scripts/run-vitest.mjs extensions/duties   # 218 passed
+node scripts/run-vitest.mjs extensions/duties   # 223 passed
 pnpm tsgo:extensions
 pnpm check:assertion-safety                     # ratchet OK
 ./node_modules/.bin/oxfmt <changed files>
@@ -580,9 +625,9 @@ actually covers the session key the printed mapping asks for.
    what the register lookup matches), ideally with the G703-1002 PDF attached.
    A mail the account sends to itself is filtered out before the hook sees it.
 2. **Message the Telegram bot** with the same request, for the chat-origin run.
-3. **Decide where a Duty's `ask` should reach the owner** (blocker A). Until
-   then, a mail-triggered run will park at the approval gate and the hold can
-   only be approved from the Duties page.
+3. **Answer the approval on Telegram.** The run will message you with the
+   flight, fare, passengers and client, then `Approve / Decline`. Answer
+   Decline if you would rather not place a real hold on the live account.
 
 The proof Gateway on 19001 is left running with `book-flight-by-mail` saved and
 active, so both runs can be observed as they happen. The operator's Gateway on
