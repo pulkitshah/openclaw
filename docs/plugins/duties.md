@@ -11,6 +11,8 @@ The bundled `duties` plugin lets the agent save a job you do repeatedly — book
 
 Duties appear as their own tab in the Control UI, and the agent works with them through its `duty_*` and `template_*` tools.
 
+A Duty normally runs on whatever machine your Gateway is on, which has to be on and awake for a mail or scheduled trigger to fire. [Run it on a hosted desk](/hosted-desk) to keep Duties running around the clock instead.
+
 ## What a Duty is
 
 A Duty is a name, a summary, and a list of steps. Each step is one of:

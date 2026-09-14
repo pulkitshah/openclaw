@@ -1,0 +1,87 @@
+---
+summary: "An always-on cloud machine that runs your Gateway and Duties with a real, headed browser, reachable only over your tailnet"
+read_when:
+  - You want Duties to keep running while your laptop is closed
+  - You're deciding whether a hosted desk is worth the monthly cost
+  - You need the prerequisites or the command shape for creating one
+title: "Hosted desk"
+---
+
+A **hosted desk** is an always-on Linux machine in the cloud that runs your OpenClaw Gateway with a real, headed browser attached. Duties that click through a real site keep running on their own schedule, on mail, or on demand — even while your laptop is closed. Everything a desk exposes is reachable only over your own [Tailscale](/gateway/tailscale) network, never the public internet.
+
+One desk runs one Gateway. It is the same OpenClaw you already use, just running on a machine that never sleeps.
+
+## What it costs
+
+A desk is a single DigitalOcean droplet:
+
+| Size          | Good for                           | Price       |
+| ------------- | ---------------------------------- | ----------- |
+| `s-2vcpu-4gb` | One or two Duties running at once  | ≈ $24/month |
+| `s-4vcpu-8gb` | Several Duties running in parallel | ≈ $48/month |
+
+These are DigitalOcean's list prices in the region this setup uses, billed by DigitalOcean directly, and can change. Nothing else about a desk carries a recurring fee.
+
+## Before you create one
+
+You'll need, gathered ahead of time:
+
+- A DigitalOcean account, with `doctl` signed in on the machine you'll run the create command from.
+- A Tailscale account and an auth key for the tailnet the desk should join.
+- A Telegram bot token for the desk's own agent (each desk uses its own bot).
+- A Telegram user or chat id you want that bot to answer to.
+
+Put the Tailscale auth key and the Telegram bot token in two separate files — for example under `~/.openclaw-desk-secrets/`, each `chmod 600` — and pass their paths to the create command below. Never paste either value into chat or into a config file directly.
+
+## Create one
+
+```sh
+deploy/desk/new-desk.sh <desk-name> \
+  --ts-authkey-file <path-to-the-tailscale-authkey-file> \
+  --tg-token-file <path-to-the-telegram-bot-token-file> \
+  --owner-target <telegram-user-or-chat-id>
+```
+
+This boots a `s-2vcpu-4gb` droplet by default (pass `--size s-4vcpu-8gb` for more parallel runs), waits for the desk to join the tailnet, and prints the desk's Control UI address plus the command to reveal the first sign-in token. It takes about 10 minutes, most of it the droplet's own first-boot install. Full flag and environment-override reference: `deploy/desk/README.md`.
+
+## What runs on it
+
+Once first boot finishes, a desk runs:
+
+- The **Gateway** itself, as a system service that restarts on its own and comes back after a reboot.
+- A **virtual display and a headed Chromium** — the same browser a Duty would use on your own machine, just running on a screen nobody has to look at.
+- A **health check** every couple of minutes, which the Duties page's Desk card reads.
+- **Tailscale**, joined to your tailnet, serving the Control UI at a tailnet-only address.
+
+## How to reach it
+
+- **Control UI** — `https://<desk-name>.<tailnet>.ts.net`, open to any device on your tailnet, never to the public internet ([Tailscale Serve](/gateway/tailscale)).
+- **SSH** — over the tailnet, using the desk name as the host.
+- **The Telegram bot** — the one you supplied a token for, answering only the owner target you set.
+
+## Store logins
+
+Open the desk's Control UI [Logins page](/plugins/duties#logins) and add whatever a Duty needs to sign in somewhere. On a desk, those values are kept encrypted on the desk itself and are never sent through the agent's context.
+
+## Gmail push per desk
+
+A desk that should react to inbound mail needs the same [mail-trigger setup](/plugins/duties#setup) as any other Gateway, run once on the desk itself.
+
+## Parallel runs
+
+The Duties settings page's **Desk** card carries a parallel-runs setting alongside the desk's health chips. Raise it and more Duty runs execute at once, each in its own browser tab; lower it and extra runs wait their turn in the queue instead of failing. A `s-2vcpu-4gb` desk comfortably handles a couple of runs at once; a `s-4vcpu-8gb` desk handles several more.
+
+## Updating, snapshots, and tearing down
+
+- **Update** a desk in place by rolling it to a newer version — `deploy/desk/README.md`'s Roll section covers the command and how it avoids interrupting a live run.
+- **Snapshot** a desk so you can recreate it quickly later — see that runbook's Snapshot / restore section.
+- **Tear down** a desk you no longer need — see its Tear down section, which also covers revoking the desk's Telegram bot token.
+
+For the full command reference, health-check meaning, log locations, and troubleshooting, see `deploy/desk/README.md`.
+
+## Limits for now
+
+- Linux only — a Windows desk isn't available yet.
+- Browser Duties only — a desk can't drive a desktop app; there's no desktop or whole-screen control.
+- One desk per Gateway.
+- No automatic backups beyond the snapshots you take yourself.

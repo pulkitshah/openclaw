@@ -1855,6 +1855,7 @@
                       "plugins/beam",
                       "plugins/duties",
                       "plugins/geolocation",
+                      "hosted-desk",
                       "plugins/logbook",
                       "plugins/oc-path",
                       "plugins/session-share",
