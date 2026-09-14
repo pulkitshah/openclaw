@@ -74,10 +74,22 @@ export function createRenderServer(params: {
 
 export type RenderResult = {
   bytes: number;
-  /** Where the PNG of the printed page landed, when one could be taken. Absent is normal (a
-   *  profile with no screenshot route); it never fails the render. */
+  /** Where the captured preview image of the printed page landed, when one could be taken.
+   *  Absent is normal (a profile with no screenshot route); it never fails the render. Its
+   *  extension names the real format (see `previewContentType`) — the browser adapter's own
+   *  `screenshotPath` can hand back a JPEG-normalised capture instead of a PNG. */
   previewPath?: string;
 };
+
+/** The content type a `previewPath` (or any `screenshotPath` capture) actually holds, from its
+ *  extension. Mirrors `screenshot()`'s own detection in `adapters/browser.ts` so every consumer of
+ *  a captured preview — `copyPreview` below, `duties.run.file {kind:"preview"}`, and
+ *  `duties.template.preview` in `gateway-methods.ts` — labels the same bytes the same way instead
+ *  of assuming PNG. */
+export function previewContentType(filePath: string): "image/jpeg" | "image/png" {
+  const ext = path.extname(filePath).toLowerCase();
+  return ext === ".jpg" || ext === ".jpeg" ? "image/jpeg" : "image/png";
+}
 export type RenderAdapter = { toPdf(html: string, destPath: string): Promise<RenderResult> };
 
 /** One evaluate for the whole verification: the marker that proves identity plus the two strings
@@ -175,11 +187,12 @@ export function createRenderAdapter(params: {
       async function copyPreview(tab: string): Promise<string | undefined> {
         const shot = await browser.screenshotPath(tab);
         if (!shot) return undefined;
-        const ext = path.extname(destPath);
-        const dest = path.join(
-          path.dirname(destPath),
-          `${ext ? path.basename(destPath, ext) : path.basename(destPath)}.png`,
-        );
+        // Named after what the capture actually is (`previewContentType`), not assumed PNG: the
+        // browser adapter's screenshot route can hand back a JPEG-normalised capture.
+        const shotExt = previewContentType(shot) === "image/jpeg" ? ".jpg" : ".png";
+        const destExt = path.extname(destPath);
+        const destBase = destExt ? path.basename(destPath, destExt) : path.basename(destPath);
+        const dest = path.join(path.dirname(destPath), `${destBase}${shotExt}`);
         await copyFile(shot, dest);
         return dest;
       }

@@ -83,16 +83,31 @@ function esc(value: string): string {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
 
-/** How base64 file bytes reach a new tab (final review C4): a `blob:` object URL and a top-level
- *  `window.open`, never a framed `data:`/`blob:` src — the host's `frame-src` CSP is `'self' http:
- *  https:`, which blocks both, but a top-level navigation is not governed by `frame-src` at all.
- *  The URL is revoked a minute later, long enough for the new tab to have finished loading it. */
-function openBase64InNewTab(base64: string, contentType: string): void {
+/** Reserves a new browsing context synchronously — before any `await` — so it still carries the
+ *  click's live user activation; opening it only after the Gateway round trip (the old
+ *  `openBase64InNewTab` shape) meant browsers blocked it as a popup with no feedback. Mirrors the
+ *  host's `reserveExternalWindowForDeferredNavigation` in `ui/src/lib/open-external-url.ts` — the
+ *  plugin bundle cannot import from `ui/`, so this is a local copy of the same few lines. Detaching
+ *  `opener` keeps the blank tab from reaching back into this page. */
+function reserveWindowForDeferredNavigation(): Window | null {
+  const opened = window.open("about:blank", "_blank");
+  if (opened) opened.opener = null;
+  return opened;
+}
+
+/** How base64 file bytes reach the tab reserved by `reserveWindowForDeferredNavigation` (final
+ *  review C4): a `blob:` object URL and a top-level navigation, never a framed `data:`/`blob:` src
+ *  — the host's `frame-src` CSP is `'self' http: https:`, which blocks both, but a top-level
+ *  navigation is not governed by `frame-src` at all. The URL is revoked a minute later, long enough
+ *  for the tab to have finished loading it. A closed or never-reserved (e.g. popup-blocked) window
+ *  is a no-op. */
+function navigateReservedWindow(win: Window | null, base64: string, contentType: string): void {
+  if (!win || win.closed) return;
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   const url = URL.createObjectURL(new Blob([bytes], { type: contentType }));
-  window.open(url, "_blank");
+  win.location.href = url;
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
@@ -570,16 +585,22 @@ export default defineControlUiPlugin({
         };
 
         /** Fetches the same render as `previewTemplate` above and opens the PDF itself as a
-         *  `blob:` object URL in a new tab (see `openBase64InNewTab`) — the way to actually view
-         *  or print the document, independent of whether a PNG preview is available. */
+         *  `blob:` object URL in a new tab (see `navigateReservedWindow`) — the way to actually
+         *  view or print the document, independent of whether a PNG preview is available. The
+         *  window is reserved before the `await` so it carries this click's user activation. */
         const openTemplatePdf = async (id: string): Promise<void> => {
+          const reserved = reserveWindowForDeferredNavigation();
           try {
             const result = await host.request<TemplatePreviewResult>("duties.template.preview", {
               id,
             });
-            if (context.signal.aborted) return;
-            openBase64InNewTab(result.pdf.base64, result.pdf.contentType);
+            if (context.signal.aborted) {
+              reserved?.close();
+              return;
+            }
+            navigateReservedWindow(reserved, result.pdf.base64, result.pdf.contentType);
           } catch (error) {
+            reserved?.close();
             fail(error, () => void openTemplatePdf(id));
           }
         };
@@ -635,17 +656,23 @@ export default defineControlUiPlugin({
         };
 
         /** Fetches a run step's full produced document and opens it as a `blob:` object URL in a
-         *  new tab (see `openBase64InNewTab`) — replaces the old `data:` iframe, which the host's
-         *  `frame-src` CSP blocks (final review C4). Used for both PDFs ("Open PDF") and any other
-         *  file kind ("Open"); the file's disk path never reaches the page. */
+         *  new tab (see `navigateReservedWindow`) — replaces the old `data:` iframe, which the
+         *  host's `frame-src` CSP blocks (final review C4). Used for both PDFs ("Open PDF") and
+         *  any other file kind ("Open"); the file's disk path never reaches the page. The window is
+         *  reserved before the `await` so it carries this click's user activation. */
         const openRunFile = async (stepId: string): Promise<void> => {
           const runId = context.props.runId;
           if (!runId) return;
+          const reserved = reserveWindowForDeferredNavigation();
           try {
             const file = await host.request<RunFileResult>("duties.run.file", { runId, stepId });
-            if (context.signal.aborted) return;
-            openBase64InNewTab(file.base64, file.contentType);
+            if (context.signal.aborted) {
+              reserved?.close();
+              return;
+            }
+            navigateReservedWindow(reserved, file.base64, file.contentType);
           } catch (error) {
+            reserved?.close();
             fail(error, () => void openRunFile(stepId));
           }
         };

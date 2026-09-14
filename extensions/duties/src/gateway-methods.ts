@@ -5,7 +5,7 @@ import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { OpenClawPluginApi } from "../api.js";
-import type { RenderAdapter } from "./adapters/render.js";
+import { previewContentType, type RenderAdapter } from "./adapters/render.js";
 import {
   DEFAULT_MACHINE,
   DEFAULT_REPORTS_TO,
@@ -481,7 +481,7 @@ export function registerDutiesGatewayMethods(params: {
       const preview = await readCappedBase64(file.previewPath);
       return {
         name: basename(file.previewPath),
-        contentType: "image/png",
+        contentType: previewContentType(file.previewPath),
         base64: preview,
       };
     }
@@ -543,7 +543,8 @@ export function registerDutiesGatewayMethods(params: {
   }));
 
   /** The same render as `duties.template.render`, answered inline for the Control UI: the printed
-   *  PDF and, when the profile could take one, a PNG of the same page. Both are capped like
+   *  PDF and, when the profile could take one, an image of the same page (PNG, or JPEG when the
+   *  browser adapter normalised the capture — see `previewContentType`). Both are capped like
    *  `duties.run.file`. `preview` is omitted rather than null when there is no image. */
   register("duties.template.preview", "operator.write", async (params) => {
     const id = readId(params);
@@ -555,12 +556,15 @@ export function registerDutiesGatewayMethods(params: {
       id,
       ...(data ? { data } : {}),
     });
-    const image = rendered.previewPath
-      ? await readCappedBase64(rendered.previewPath).catch(() => undefined)
+    const previewPath = rendered.previewPath;
+    const image = previewPath
+      ? await readCappedBase64(previewPath).catch(() => undefined)
       : undefined;
     return {
       pdf: { contentType: "application/pdf", base64: await readCappedBase64(rendered.path) },
-      ...(image ? { preview: { contentType: "image/png", base64: image } } : {}),
+      ...(image && previewPath
+        ? { preview: { contentType: previewContentType(previewPath), base64: image } }
+        : {}),
     };
   });
 

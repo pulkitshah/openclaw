@@ -97,6 +97,35 @@ describe("createRenderAdapter", () => {
     expect(browser.close).toHaveBeenCalledWith("T9");
   });
 
+  it("names a JPEG-normalised preview capture .jpg instead of assuming .png", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "duties-render-"));
+    const produced = path.join(dir, "browser-out.pdf");
+    await writeFile(produced, "%PDF-1.4 fake");
+    const shot = path.join(dir, "browser-shot.jpg");
+    await writeFile(shot, "JPEG-BYTES");
+    const server = createRenderServer({ baseUrl: "http://127.0.0.1:19001" });
+    let token = "";
+    const publish = server.publish.bind(server);
+    vi.spyOn(server, "publish").mockImplementation((html: string) => {
+      const result = publish(html);
+      token = result.token;
+      return result;
+    });
+    const browser = {
+      open: vi.fn(async (_url: string, _timeoutMs?: number) => ({ targetId: "T9" })),
+      evaluate: vi.fn(async () => ({ marker: token, title: "", text: "" })),
+      text: vi.fn(async () => ""),
+      pdf: vi.fn(async () => produced),
+      screenshotPath: vi.fn(async () => shot),
+      close: vi.fn(async () => undefined),
+    };
+    const adapter = createRenderAdapter({ server, browser });
+    const dest = path.join(dir, "out", "t1.pdf");
+    const result = await adapter.toPdf("<h1>x</h1>", dest);
+    expect(result.previewPath).toBe(path.join(dir, "out", "t1.jpg"));
+    expect(await readFile(result.previewPath!, "utf8")).toBe("JPEG-BYTES");
+  });
+
   it("refuses to print a page that is not the published document, and closes the tab", async () => {
     const server = createRenderServer({ baseUrl: "http://127.0.0.1:19001" });
     const browser = {
