@@ -41,16 +41,13 @@ export function hasProtocolEventCoverageInput(changedPaths: string[]): boolean {
 // comments), and the guard's own scripts (so editing the guard re-runs it).
 // docs/superpowers/** is excluded like in rebrand-apply.mjs's own allowlist:
 // it holds this repo's planning/spec docs (including this rebrand's own),
-// not the published docs site, and is never in scope for the rewrite. ui/**
-// (including ui/src's TypeScript sources and its two single files) is
-// listed in the design spec as an eventual guard input but is not enforced
-// yet (see scripts/rebrand-apply.mjs's DEFERRED_ALLOWLIST_GLOBS) — a first
-// pass found many of its files are test files/helpers not yet re-verified
-// against the Control UI Vitest suite, plus at least one self-reference
-// exemption needed first (ui/src/i18n/locales/en.ts's upstream-attribution
-// line).
+// not the published docs site, and is never in scope for the rewrite. Every
+// TypeScript source under src/**, extensions/*/src/**, packages/*/src/** and
+// ui/src/** is now guarded (spec section 2b: no "OpenClaw" anywhere a user
+// can see it, errors included), test files included — rebrand-apply.mjs owns
+// which of them the *apply* may rewrite.
 const BRAND_GUARD_INPUT_RE =
-  /^(?:docs\/(?!superpowers\/).+\.md|docs\/docs\.json|README\.md|extensions\/[^/]+\/(?:openclaw\.plugin\.json|package\.json)|src\/channels\/plugins\/pairing-message\.ts|extensions\/telegram\/src\/bot-message-context\.session\.ts|extensions\/bonjour\/src\/advertiser\.ts|src\/(?:cli|wizard|flows)\/.+\.tsx?|scripts\/(?:rebrand-apply|check-brand)\.mjs)$/u;
+  /^(?:docs\/(?!superpowers\/).+\.md|docs\/docs\.json|README\.md|extensions\/[^/]+\/(?:openclaw\.plugin\.json|package\.json)|src\/.+\.tsx?|(?:extensions|packages)\/[^/]+\/src\/.+\.tsx?|ui\/src\/.+\.ts|scripts\/(?:rebrand-apply|check-brand)\.mjs)$/u;
 
 export function hasBrandGuardInput(changedPaths: string[]): boolean {
   return changedPaths.some((path) => BRAND_GUARD_INPUT_RE.test(path));

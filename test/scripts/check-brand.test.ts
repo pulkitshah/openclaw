@@ -4,13 +4,16 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  collectLocaleFiles,
   collectTargetFiles,
-  DEFERRED_ALLOWLIST_GLOBS,
+  parseRebrandArgv,
   rewriteFileContent,
   rewriteJsonManifestContent,
+  rewriteLocaleContent,
   rewriteProseContent,
   rewriteTypeScriptContent,
   runRebrand,
+  UPSTREAM_LICENCE_NOTICE_FILE,
 } from "../../scripts/rebrand-apply.mjs";
 import { createTempDirTracker } from "../helpers/temp-dir.ts";
 
@@ -325,7 +328,7 @@ describe("collectTargetFiles", () => {
     expect(files).not.toContain("docs/superpowers/specs/2026-09-14-vasudev-rebrand-design.md");
   });
 
-  it("resolves nested CLI/wizard/flows source files, excludes their test/fixture files, and leaves ui/** deferred", () => {
+  it("resolves every in-scope source tree, keeps ui/** config and non-English locales out, and excludes test/fixture files from the apply", () => {
     const rootDir = createFixtureRepo({
       "README.md": "# OpenClaw\n",
       "src/channels/plugins/pairing-message.ts": 'export const X = "no brand text here";\n',
@@ -336,20 +339,36 @@ describe("collectTargetFiles", () => {
       "src/cli/program/help.ts": 'export const HELP = "OpenClaw --help";\n',
       "src/wizard/i18n/locales/en.ts": 'export const EN = "Welcome to OpenClaw";\n',
       "src/flows/doctor-health.ts": 'intro("OpenClaw doctor");\n',
-      // Test/fixture files are never enforced -- see TEST_OR_FIXTURE_RE in
-      // rebrand-apply.mjs -- because they assert against real runtime
-      // output; rewriting the fixture without also migrating a possibly
-      // out-of-scope call site would desync the test from actual behavior.
+      "src/gateway/server-methods/system-agent.ts": 'const m = "OpenClaw needs inference";\n',
+      "extensions/whatsapp/src/pairing.ts": 'const m = "Pair with OpenClaw";\n',
+      "packages/sdk/src/client.ts": 'const m = "OpenClaw Gateway does not support";\n',
+      "ui/src/pages/about/view.ts": 'const m = "OpenClaw";\n',
+      // Nested fixture packages under extensions/**: `extensions/*/src/*`
+      // must match exactly one segment before `src/`.
+      "extensions/qa-lab/test-fixtures/demo/src/index.ts": 'const m = "OpenClaw";\n',
+      // Test/fixture files are excluded from the default apply -- see
+      // TEST_OR_FIXTURE_RE in rebrand-apply.mjs -- because they assert
+      // against real runtime output; they are rewritten only by an explicit
+      // `--tests` run, after the matching production chunk's lane has proved
+      // the real output.
       "src/cli/program/help.test.ts": 'export const HELP = "OpenClaw --help";\n',
       "src/cli/program/help.process.test.ts": 'export const HELP = "OpenClaw --help";\n',
       "src/cli/update-command.test-support.ts": 'export const X = "OpenClaw";\n',
       "src/wizard/setup.test-helpers.ts": 'export const X = "OpenClaw";\n',
+      "src/agents/reply.triggers.cases.ts": 'expect(text).toContain("OpenClaw");\n',
+      "src/test-utils/fake-gateway.ts": 'export const X = "OpenClaw";\n',
       "src/flows/__snapshots__/doctor-health.ts": "export const X = `OpenClaw`;\n",
       "src/cli/requirements-test-fixtures.ts": 'export const X = "OpenClaw";\n',
-      // ui/** is listed in DEFERRED_ALLOWLIST_GLOBS, not enforced yet (see
-      // that constant's comment in rebrand-apply.mjs): none of these should
-      // be swept even though they carry the literal name.
-      "ui/src/lit/openclaw-element.ts": "/** OpenClaw Lit base. */\nexport const X = 1;\n",
+      // Service-identity file: excluded from both apply and check.
+      "src/daemon/constants.ts": 'const TASK = "OpenClaw Gateway";\n',
+      // The About page's upstream MIT notice: the one reviewed place the
+      // upstream name may still appear in the product.
+      "ui/src/pages/about/upstream-licence.ts": 'export const N = "Copyright (c) OpenClaw";\n',
+      // Generated (non-English) locale catalogs: `--locales` only.
+      "ui/src/i18n/locales/de.ts": 'export const de = { brand: "OpenClaw" };\n',
+      "ui/src/i18n/locales/en.ts": 'export const en = { brand: "OpenClaw" };\n',
+      "ui/src/i18n/locales/en-GB.ts": 'export const enGB = { brand: "OpenClaw" };\n',
+      // ui/** outside ui/src is build tooling, not product copy.
       "ui/index.html": "<title>OpenClaw Control</title>\n",
       "ui/public/manifest.webmanifest": '{"name": "OpenClaw Control"}\n',
       "ui/vite.config.ts": 'export const base = "OpenClaw build config";\n',
@@ -361,25 +380,92 @@ describe("collectTargetFiles", () => {
     expect(files).toContain("src/cli/program/help.ts");
     expect(files).toContain("src/wizard/i18n/locales/en.ts");
     expect(files).toContain("src/flows/doctor-health.ts");
+    expect(files).toContain("src/gateway/server-methods/system-agent.ts");
+    expect(files).toContain("extensions/whatsapp/src/pairing.ts");
+    expect(files).toContain("packages/sdk/src/client.ts");
+    expect(files).toContain("ui/src/pages/about/view.ts");
+    expect(files).toContain("ui/src/i18n/locales/en.ts");
+    expect(files).toContain("ui/src/i18n/locales/en-GB.ts");
+    expect(files).not.toContain("extensions/qa-lab/test-fixtures/demo/src/index.ts");
     expect(files).not.toContain("src/cli/program/help.test.ts");
     expect(files).not.toContain("src/cli/program/help.process.test.ts");
     expect(files).not.toContain("src/cli/update-command.test-support.ts");
     expect(files).not.toContain("src/wizard/setup.test-helpers.ts");
+    expect(files).not.toContain("src/agents/reply.triggers.cases.ts");
+    expect(files).not.toContain("src/test-utils/fake-gateway.ts");
     expect(files).not.toContain("src/flows/__snapshots__/doctor-health.ts");
     expect(files).not.toContain("src/cli/requirements-test-fixtures.ts");
-    expect(files).not.toContain("ui/src/lit/openclaw-element.ts");
+    expect(files).not.toContain("src/daemon/constants.ts");
+    expect(files).not.toContain(UPSTREAM_LICENCE_NOTICE_FILE);
+    expect(files).not.toContain("ui/src/i18n/locales/de.ts");
     expect(files).not.toContain("ui/index.html");
     expect(files).not.toContain("ui/public/manifest.webmanifest");
     expect(files).not.toContain("ui/vite.config.ts");
     expect(files).not.toContain("ui/config/control-ui-locales.ts");
+
+    // The guard scans test files too, so a settled expectation stays settled.
+    const guarded = collectTargetFiles(rootDir, { includeTests: true });
+    expect(guarded).toContain("src/cli/program/help.test.ts");
+    expect(guarded).toContain("src/agents/reply.triggers.cases.ts");
+    expect(guarded).not.toContain("src/daemon/constants.ts");
+    expect(guarded).not.toContain(UPSTREAM_LICENCE_NOTICE_FILE);
+
+    expect(collectLocaleFiles(rootDir)).toEqual(["ui/src/i18n/locales/de.ts"]);
   });
 });
 
-describe("DEFERRED_ALLOWLIST_GLOBS", () => {
-  it("documents ui/** as an eventual guard input without enforcing it yet", () => {
-    expect(DEFERRED_ALLOWLIST_GLOBS).toEqual(
-      expect.arrayContaining(["ui/src/**/*.ts", "ui/index.html", "ui/public/manifest.webmanifest"]),
-    );
+describe("parseRebrandArgv", () => {
+  it("parses --check, --tests, --locales, repeated --only, and bare file arguments", () => {
+    expect(parseRebrandArgv(["--check"])).toMatchObject({ check: true, only: [] });
+    expect(
+      parseRebrandArgv(["--tests", "--only", "src/gateway", "--only=src/state"]),
+    ).toMatchObject({ includeTests: true, only: ["src/gateway", "src/state"] });
+    expect(parseRebrandArgv(["--locales"])).toMatchObject({ locales: true });
+    expect(parseRebrandArgv(["README.md"])).toMatchObject({ files: ["README.md"] });
+    expect(() => parseRebrandArgv(["--only"])).toThrow(/--only requires/u);
+    expect(() => parseRebrandArgv(["--nope"])).toThrow(/unknown option/u);
+  });
+});
+
+describe("--only chunked runs", () => {
+  it("restricts the pass to files under the given path prefix", () => {
+    const rootDir = createFixtureRepo({
+      "README.md": "# OpenClaw\n",
+      "docs/docs.json": '{"name": "OpenClaw"}\n',
+      "extensions/telegram/package.json": '{"description": "OpenClaw Telegram"}\n',
+      "extensions/telegram/openclaw.plugin.json": "{}\n",
+      "src/channels/plugins/pairing-message.ts": "export const X = 1;\n",
+      "extensions/telegram/src/bot-message-context.session.ts": "export const Y = 1;\n",
+      "extensions/bonjour/src/advertiser.ts": "export const Z = 1;\n",
+      "src/gateway/a.ts": 'const m = "OpenClaw gateway message";\n',
+      "src/state/b.ts": 'const m = "OpenClaw state message";\n',
+    });
+
+    const applied = runRebrand({ cwd: rootDir, only: ["src/gateway"] });
+    expect(applied.changes.map((change) => change.file)).toEqual(["src/gateway/a.ts"]);
+    expect(fs.readFileSync(path.join(rootDir, "src/state/b.ts"), "utf8")).toContain("OpenClaw");
+  });
+});
+
+describe("rewriteLocaleContent (--locales)", () => {
+  it("swaps only the product name and leaves every other byte alone", () => {
+    const content = [
+      "export const de = {",
+      '  brandName: "OpenClaw",',
+      '  docsUrl: "https://docs.openclaw.ai/start",',
+      '  hint: "Führe `openclaw doctor` aus, um OpenClaw zu reparieren.",',
+      "} satisfies OpenClawCatalog;",
+    ].join("\n");
+
+    const { content: rewritten, count } = rewriteLocaleContent(content);
+
+    expect(count).toBe(2);
+    expect(rewritten).toContain('brandName: "Vasudev",');
+    expect(rewritten).toContain("um Vasudev zu reparieren");
+    // No command-alias rewrite, no identifier rewrite, no URL rewrite.
+    expect(rewritten).toContain("`openclaw doctor`");
+    expect(rewritten).toContain("https://docs.openclaw.ai/start");
+    expect(rewritten).toContain("satisfies OpenClawCatalog;");
   });
 });
 
@@ -491,13 +577,16 @@ describe("rewriteTypeScriptContent", () => {
   });
 });
 
-describe("rewriteFileContent (test/fixture and value-comparison exclusions)", () => {
-  it("never rewrites a test, test-support, test-helpers, __snapshots__, or fixture file under the enforced trees", () => {
+describe("rewriteFileContent (test/fixture and cross-boundary exclusions)", () => {
+  it("never rewrites a test, test-support, test-helpers, cases, test-utils, __snapshots__, or fixture file in a default apply", () => {
     const cases = [
       "src/cli/program/help.test.ts",
       "src/cli/program/help.process.test.ts",
       "src/cli/update-command.test-support.ts",
       "src/wizard/setup.test-helpers.ts",
+      "extensions/matrix/src/onboarding.test-harness.ts",
+      "src/agents/reply.triggers.cases.ts",
+      "src/test-utils/fake-gateway.ts",
       "src/flows/__snapshots__/doctor-health.ts",
       "src/cli/requirements-test-fixtures.ts",
     ];
@@ -509,19 +598,206 @@ describe("rewriteFileContent (test/fixture and value-comparison exclusions)", ()
     }
   });
 
-  it("never rewrites src/cli/gateway-cli/startup-maintenance.ts's value comparison against the unmigrated startup-maintenance-required.ts reason constant", () => {
-    // Regression: src/infra/startup-maintenance-required.ts (out of scope)
-    // still emits the literal reason string "a newer OpenClaw build". A
-    // blind rewrite of only this file's `reason === "a newer OpenClaw
-    // build"` comparison silently makes the guarded branch unreachable --
-    // this looks like ordinary prose but is a discriminant, not display
-    // text.
-    const content = 'const guidance = reason === "a newer OpenClaw build" ? "a" : "b";\n';
+  it("rewrites a test file only under an explicit --tests run", () => {
+    const content = 'expect(out).toContain("OpenClaw doctor found an issue");\n';
+    expect(rewriteFileContent("src/cli/doctor.test.ts", content).count).toBe(0);
+    const forced = rewriteFileContent("src/cli/doctor.test.ts", content, { includeTests: true });
+    expect(forced.count).toBe(1);
+    expect(forced.content).toContain("Vasudev doctor found an issue");
+  });
+
+  it("never rewrites the OS service-identity files that name already-installed services", () => {
+    // src/daemon/constants.ts's "OpenClaw Gateway" is the Windows scheduled
+    // task name and systemd/launchd Description of services already
+    // installed on operators' machines; install, uninstall, status and
+    // update all look them up by that exact string. The systemd/schtasks
+    // installers parse and re-emit the same label, so all of them move
+    // together or none do.
+    const cases = [
+      "src/daemon/constants.ts",
+      "src/daemon/systemd-install.ts",
+      "src/daemon/systemd-unit.ts",
+      "src/daemon/schtasks-install.ts",
+      "src/daemon/inspect.ts",
+    ];
+    for (const relativePath of cases) {
+      const content = 'const label = "OpenClaw Gateway";\n';
+      const { content: rewritten, count } = rewriteFileContent(relativePath, content);
+      expect(rewritten, relativePath).toBe(content);
+      expect(count, relativePath).toBe(0);
+    }
+  });
+
+  it("never rewrites a cited per-file literal that identifies this client to a third party", () => {
+    const cases: ReadonlyArray<readonly [string, string]> = [
+      // Reported to model providers as the calling app (OpenRouter X-Title,
+      // X-BILLING-INVOKE-ORIGIN): providers key attribution and billing on it.
+      ["src/agents/provider-attribution.ts", 'const P = "OpenClaw";\n'],
+      // clientInfo.title in the Codex app-server initialize handshake.
+      ["extensions/codex/src/app-server/client.ts", 'const t = { title: "OpenClaw" };\n'],
+      // serviceName in Codex thread/start: Codex scopes credentials by it.
+      [
+        "extensions/codex/src/app-server/bounded-turn.ts",
+        'const s = { serviceName: "OpenClaw" };\n',
+      ],
+      [
+        "extensions/codex/src/app-server/thread-requests.ts",
+        'const s = { serviceName: "OpenClaw" };\n',
+      ],
+    ];
+    for (const [relativePath, content] of cases) {
+      const { content: rewritten, count } = rewriteFileContent(relativePath, content);
+      expect(rewritten, relativePath).toBe(content);
+      expect(count, relativePath).toBe(0);
+    }
+  });
+
+  it("still rewrites ordinary prose in a file that has one excluded literal", () => {
+    const content = [
+      'const product = "OpenClaw";',
+      'const note = "Documented app attribution headers. Verified in OpenClaw runtime wrapper.";',
+    ].join("\n");
     const { content: rewritten, count } = rewriteFileContent(
-      "src/cli/gateway-cli/startup-maintenance.ts",
+      "src/agents/provider-attribution.ts",
       content,
     );
-    expect(rewritten).toBe(content);
+    expect(rewritten).toContain('const product = "OpenClaw";');
+    expect(rewritten).toContain("Verified in Vasudev runtime wrapper.");
+    expect(count).toBe(1);
+  });
+});
+
+describe("protected tokens (values that cross a boundary this rebrand does not own)", () => {
+  it("never rewrites the OpenClaw/<version> User-Agent product token, but still renames prose that slashes two names", () => {
+    const content = [
+      "const ua = `teams.ts[apps]/${sdk} OpenClaw/${version}`;",
+      '/** Format: "OpenClaw/<openclaw-version>" — example "OpenClaw/2026.3.22". */',
+      "// Packaged OpenClaw/Bun hosts cannot interpret npm shims.",
+    ].join("\n");
+    const { content: rewritten, count } = rewriteTypeScriptContent(
+      content,
+      "extensions/msteams/src/user-agent.ts",
+    );
+    expect(rewritten).toContain("OpenClaw/${version}");
+    expect(rewritten).toContain('"OpenClaw/<openclaw-version>"');
+    expect(rewritten).toContain('"OpenClaw/2026.3.22"');
+    expect(rewritten).toContain("Packaged Vasudev/Bun hosts");
+    expect(count).toBe(1);
+  });
+
+  it("never rewrites the OpenClaw-Publication git commit trailer", () => {
+    // Written into commits in the user's own repository and read back to
+    // recognise an already-published commit; commits made by earlier builds
+    // carry the old spelling forever.
+    const content = [
+      'const marker = "OpenClaw-Publication";',
+      "const found = message.includes(`OpenClaw-Publication: ${requestId}`);",
+      "// OpenClaw appends the trailer once the push settles.",
+    ].join("\n");
+    const { content: rewritten, count } = rewriteTypeScriptContent(
+      content,
+      "src/gateway/github-publication-executor.ts",
+    );
+    expect(rewritten).toContain('const marker = "OpenClaw-Publication";');
+    expect(rewritten).toContain("`OpenClaw-Publication: ${requestId}`");
+    expect(rewritten).toContain("// Vasudev appends the trailer");
+    expect(count).toBe(1);
+  });
+
+  it("never rewrites a real repository or bundle path segment", () => {
+    const content = [
+      "// Mirrors apps/macos/Sources/OpenClaw/AppProfile.swift so both surfaces agree.",
+      "// Apple-silicon entries (MIT; see apps/macos/Sources/OpenClaw/Resources/NOTICE.md).",
+      "// OpenClaw resolves the profile before connecting.",
+    ].join("\n");
+    const { content: rewritten, count } = rewriteTypeScriptContent(content, "src/config/paths.ts");
+    expect(rewritten).toContain("apps/macos/Sources/OpenClaw/AppProfile.swift");
+    expect(rewritten).toContain("Sources/OpenClaw/Resources/NOTICE.md");
+    expect(rewritten).toContain("// Vasudev resolves the profile");
+    expect(count).toBe(1);
+  });
+
+  it("never rewrites the persisted internal-runtime-context header", () => {
+    // Older builds wrote this exact header into transcripts; the strippers
+    // match it verbatim to remove leaked internal context from stored
+    // sessions, so renaming the matcher is a privacy regression.
+    const content = [
+      'const LEGACY = "OpenClaw runtime context (internal):";',
+      'const leaked = value.includes("OpenClaw runtime context (internal):");',
+      "// OpenClaw protects runtime-generated prompt blocks.",
+    ].join("\n");
+    const { content: rewritten, count } = rewriteTypeScriptContent(
+      content,
+      "src/agents/internal-runtime-context.ts",
+    );
+    expect(rewritten).toContain('"OpenClaw runtime context (internal):"');
+    expect(rewritten).toContain("// Vasudev protects runtime-generated");
+    expect(count).toBe(1);
+  });
+});
+
+describe("structural literal exclusions", () => {
+  it("never rewrites a path.join/path.resolve segment, but still rewrites a Promise.resolve message", () => {
+    const content = [
+      'const legacy = path.join(root, "OpenClaw", FILE);',
+      'const nested = path.posix.join("OpenClaw", "cache");',
+      'const promised = Promise.resolve("OpenClaw update failed");',
+    ].join("\n");
+    const { content: rewritten, count } = rewriteTypeScriptContent(
+      content,
+      "src/commands/doctor/shared/legacy-oauth-sidecar.ts",
+    );
+    expect(rewritten).toContain('path.join(root, "OpenClaw", FILE)');
+    expect(rewritten).toContain('path.posix.join("OpenClaw", "cache")');
+    expect(rewritten).toContain('Promise.resolve("Vasudev update failed")');
+    expect(count).toBe(1);
+  });
+
+  it("never rewrites a process-spawn argument or an HTTP header value", () => {
+    const content = [
+      'spawnSync("openclaw", ["doctor"]);',
+      'execFileSync("openclaw gateway status", { shell: true });',
+      'const headers = { "X-OpenRouter-Title": "OpenClaw", "MM-API-Source": "OpenClaw" };',
+      'const hint = "Run `openclaw doctor --fix` to repair OpenClaw.";',
+    ].join("\n");
+    const { content: rewritten } = rewriteTypeScriptContent(content, "src/agents/sessions/sdk.ts");
+    expect(rewritten).toContain('spawnSync("openclaw", ["doctor"])');
+    expect(rewritten).toContain('execFileSync("openclaw gateway status"');
+    expect(rewritten).toContain('"X-OpenRouter-Title": "OpenClaw"');
+    expect(rewritten).toContain('"MM-API-Source": "OpenClaw"');
+    expect(rewritten).toContain("Run `vasudev doctor --fix` to repair Vasudev.");
+  });
+});
+
+describe("displayed CLI alias rewrite", () => {
+  it("rewrites a command example inside a human-facing string", () => {
+    const content = [
+      'const fixHint = "Run `openclaw doctor --fix` to repair it.";',
+      'const start = `Stop it (${formatCliCommand("openclaw gateway stop")}) first.`;',
+      'const dev = "pnpm openclaw plugins list";',
+    ].join("\n");
+    const { content: rewritten } = rewriteTypeScriptContent(content, "src/infra/ports-format.ts");
+    expect(rewritten).toContain("Run `vasudev doctor --fix`");
+    expect(rewritten).toContain('formatCliCommand("vasudev gateway stop")');
+    expect(rewritten).toContain('"pnpm vasudev plugins list"');
+  });
+
+  it("never rewrites a comment, a real binary path, a package/config namespace, or a non-command word", () => {
+    const content = [
+      "// Run `openclaw doctor --fix` on the host before filing a bug.",
+      'const unit = "ExecStart=/usr/bin/openclaw gateway run";',
+      'const pkg = "@openclaw/plugin-sdk";',
+      'const home = "~/.openclaw/openclaw.json";',
+      'const prose = "openclaw runtime context is internal";',
+      'const win = "C:\\\\Program Files\\\\openclaw gateway";',
+    ].join("\n");
+    const { content: rewritten, count } = rewriteTypeScriptContent(content, "src/cli/hints.ts");
+    expect(rewritten).toContain("// Run `openclaw doctor --fix` on the host");
+    expect(rewritten).toContain("ExecStart=/usr/bin/openclaw gateway run");
+    expect(rewritten).toContain('"@openclaw/plugin-sdk"');
+    expect(rewritten).toContain('"~/.openclaw/openclaw.json"');
+    expect(rewritten).toContain('"openclaw runtime context is internal"');
+    expect(rewritten).toContain("Program Files\\\\openclaw gateway");
     expect(count).toBe(0);
   });
 });

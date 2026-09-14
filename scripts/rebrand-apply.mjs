@@ -1,17 +1,29 @@
 #!/usr/bin/env node
 
-// Rewrites the literal product name "OpenClaw" -> "Vasudev" across the
-// Vasudev rebrand's user-visible prose allowlist: docs, README, docs.json's
-// `name` field, the two bundled-plugin manifest fields that feed the Control
-// UI channel picker, and the CLI help/wizard/doctor prose in `src/cli/**`,
-// `src/wizard/**`, and `src/flows/**` (a TypeScript-aware pass — see
-// `rewriteTypeScriptContent` below). `ui/**` is not enforced yet — see
-// DEFERRED_ALLOWLIST_GLOBS.
-// Internal identifiers (the
-// `openclaw` npm/CLI/config namespace, `OPENCLAW_` env vars,
-// `OpenClawConfig`-style type names, and any `openclaw.*` URL) are never
-// touched: none of them are spelled "OpenClaw" at a word boundary, so the
-// case-sensitive \bOpenClaw\b pattern already leaves them alone.
+// Rewrites the literal product name "OpenClaw" -> "Vasudev" (and, inside
+// human-facing command examples only, the displayed CLI alias `openclaw ` ->
+// `vasudev `) across the Vasudev rebrand's user-visible prose allowlist:
+// docs, README, docs.json's `name` field, the two bundled-plugin manifest
+// fields that feed the Control UI channel picker, and every TypeScript source
+// under `src/**`, `extensions/*/src/**`, `packages/*/src/**` and `ui/src/**`
+// (a TypeScript-aware pass — see `rewriteTypeScriptContent` below).
+//
+// Internal identifiers are never touched, because none of them is spelled
+// "OpenClaw" at a word boundary: the `openclaw` npm/CLI/config namespace,
+// `~/.openclaw`, `openclaw.json`, `ai.openclaw.*` launchd labels,
+// `_openclaw-gw` service types, `OPENCLAW_*` env vars, `OpenClawConfig`-style
+// type names, and any `openclaw.ai`/`openclaw.org`/`openclaw/openclaw` URL.
+// The case-sensitive `\bOpenClaw\b` pattern already leaves all of them alone;
+// `test/scripts/check-brand.test.ts` pins that.
+//
+// What does need real rules is everything that *is* spelled "OpenClaw" at a
+// word boundary but is not product prose. Those are the PROTECTED_TOKEN_RULES
+// (wire/protocol tokens, git trailers, real repository paths, persisted
+// transcript markers, shipped bundle/artifact filenames), the structural
+// literal exclusions in `isStructuralStringLiteral` (module specifiers,
+// property keys, enum members, `path.join` segments, HTTP header values,
+// process-spawn arguments), and the two cited per-file exclusion lists
+// (`CROSS_BOUNDARY_EXCLUDED_FILES`, `EXCLUDED_LITERALS_BY_FILE`).
 //
 // Idempotent and safe to re-run after an `upstream/main` merge reintroduces
 // the literal name in these same files/fields — a second run finds nothing
@@ -23,47 +35,195 @@ import ts from "typescript";
 
 export const OLD_NAME = "OpenClaw";
 export const NEW_NAME = "Vasudev";
+export const OLD_CLI_NAME = "openclaw";
+export const NEW_CLI_NAME = "vasudev";
 
-// Case-sensitive, word-boundary only. "OpenClawConfig"/"OpenClawPluginApi"
-// (no boundary before "Config"/"PluginApi"), lowercase "openclaw" identifiers
-// and commands, "OPENCLAW_" env vars, and "openclaw.ai"/"openclaw.org"/
-// "openclaw/openclaw" URLs are never matched by this pattern. `.match()` and
+// Case-sensitive, word-boundary only. See the header comment for the full
+// list of internal identifiers this pattern cannot match. `.match()` and
 // `.replace()` with a global regex always scan from the start regardless of
 // prior `lastIndex` state, so one shared pattern is safe to reuse below.
 const NAME_PATTERN = /\bOpenClaw\b/g;
 
-// Shipped bundle/installer/archive names. Native-app renaming is spec Phase
-// 3 (not this task): the actual files on disk, GitHub release assets, and
-// package manager listings are still literally named "OpenClaw.app" /
-// "OpenClaw-<version>-amd64.deb" / etc., so docs describing "launch
-// OpenClaw.app" or "download OpenClaw-Android.apk" must keep saying that --
-// renaming only the prose would make the doc describe a file that does not
-// exist. Matches a bare OpenClaw.<ext> bundle name (the extension whitelist
-// below) or an OpenClaw-<anything>.<ext> artifact filename (any extension,
-// since release assets vary: .apk, .deb, .AppImage, -SHA256SUMS.txt, ...).
-// Deliberately requires a literal extension after the hyphenated form so a
-// hyphenated *adjective* like "OpenClaw-managed" or "OpenClaw-owned" (never
-// a filename) is not caught and still renames.
-const BUNDLE_ARTIFACT_RE =
-  /\bOpenClaw(?:\.(?:app|dmg|exe|msi|pkg|zip)|-[A-Za-z0-9][A-Za-z0-9._-]*\.[A-Za-z0-9]+)\b/g;
+// Top-level CLI commands. The displayed alias rewrite below only fires when
+// the `openclaw` token is followed by one of these, which is what tells a
+// command example ("run `openclaw doctor --fix`") apart from prose that names
+// the lowercase internal namespace ("the openclaw config file", "openclaw
+// runtime context"). Curated rather than derived: the program builds its
+// command tree at runtime from plugin registrations, so there is no static
+// list to import, and an over-broad list is exactly the failure mode this
+// guards against.
+const CLI_SUBCOMMANDS = [
+  "acp",
+  "agent",
+  "agents",
+  "approvals",
+  "auth",
+  "automations",
+  "backup",
+  "browser",
+  "canvas",
+  "channels",
+  "claws",
+  "completion",
+  "config",
+  "configure",
+  "connect",
+  "cron",
+  "dashboard",
+  "devices",
+  "doctor",
+  "duties",
+  "explain",
+  "fleet",
+  "gateway",
+  "health",
+  "hooks",
+  "logs",
+  "mcp",
+  "media",
+  "memory",
+  "message",
+  "migrate",
+  "models",
+  "node",
+  "nodes",
+  "onboard",
+  "package",
+  "pairing",
+  "peer",
+  "plugins",
+  "projects",
+  "restart",
+  "sandbox",
+  "secrets",
+  "security",
+  "sessions",
+  "setup",
+  "skills",
+  "status",
+  "tasks",
+  "telemetry",
+  "tools",
+  "transcripts",
+  "triage",
+  "tts",
+  "tui",
+  "uninstall",
+  "update",
+  "webhook",
+];
 
-function countAndReplace(text) {
+// The displayed CLI alias. `package.json`'s `bin` map ships both `openclaw`
+// and `vasudev` for the same launcher, and the owner rule (spec section 2b)
+// is that commands shown to users spell the product: `vasudev doctor --fix`.
+// Only a token that is *followed by a real subcommand* is a command example.
+// The negative lookbehind keeps every non-command spelling intact:
+//   - `/usr/bin/openclaw gateway` (a systemd ExecStart: the real binary path)
+//   - `@openclaw/plugin-sdk`, `openclaw.json`, `~/.openclaw`, `_openclaw-gw`
+//   - `C:\openclaw gateway`-style Windows paths
+// This rewrite is applied to string/template-literal text only, never to
+// comments (a comment documenting the installed binary should keep naming
+// it) and never inside a process-spawn argument (see SPAWN_CALLEES).
+const COMMAND_ALIAS_RE = new RegExp(
+  String.raw`(?<![A-Za-z0-9_.@/\\-])openclaw(?= (?:${CLI_SUBCOMMANDS.join("|")})\b)`,
+  "g",
+);
+
+// Occurrences spelled "OpenClaw" at a word boundary that are *not* product
+// prose: each is a value that crosses a boundary this rebrand does not own
+// (the wire, the OS, a third-party service, a user's git history, or data
+// written by an older build). Shielded before the name rewrite and restored
+// afterwards, exactly like a fenced code block in Markdown. These are tokens
+// and identifiers, not prose phrases: an earlier revision of this script
+// carried a `PROTECTED_PROSE_PHRASES` list that shielded whole sentences and
+// was removed for good reason (it hid unmigrated copy behind the guard).
+// Every rule here is pinned by a test in `test/scripts/check-brand.test.ts`.
+const PROTECTED_TOKEN_RULES = [
+  {
+    // Shipped bundle/installer/archive names. Native-app renaming is spec
+    // Phase 3 (not this task): the actual files on disk, GitHub release
+    // assets, and package manager listings are still literally named
+    // "OpenClaw.app" / "OpenClaw-<version>-amd64.deb" / etc., so prose and
+    // code naming "/Applications/OpenClaw.app" or "OpenClaw-Android.apk"
+    // must keep saying that — renaming only the reference would name a file
+    // that does not exist. Matches a bare OpenClaw.<ext> bundle name (the
+    // extension whitelist below) or an OpenClaw-<anything>.<ext> artifact
+    // filename (any extension, since release assets vary: .apk, .deb,
+    // .AppImage, -SHA256SUMS.txt, ...). Deliberately requires a literal
+    // extension after the hyphenated form so a hyphenated *adjective* like
+    // "OpenClaw-managed" (never a filename) still renames.
+    name: "bundle-artifact",
+    pattern:
+      /\bOpenClaw(?:\.(?:app|dmg|exe|msi|pkg|zip)|-[A-Za-z0-9][A-Za-z0-9._-]*\.[A-Za-z0-9]+)\b/g,
+  },
+  {
+    // The HTTP User-Agent product token `OpenClaw/<version>`: a value the
+    // remote service parses and logs (extensions/msteams/src/user-agent.ts
+    // sends `teams.ts[apps]/<sdk> OpenClaw/<version>`). Recognised by the
+    // slash-then-version shape so prose that happens to slash two names
+    // together ("OpenClaw/Codex tool names", "Packaged OpenClaw/Bun hosts")
+    // still renames.
+    name: "user-agent-product-token",
+    pattern: /\bOpenClaw\/(?=\$\{|<|\d)/g,
+  },
+  {
+    // The `OpenClaw-Publication: <request id>` git commit trailer. It is
+    // written into commits in the *user's* repository and read back to
+    // recognise an already-published commit; commits made by earlier builds
+    // carry the old spelling forever, so the reader must keep matching it.
+    name: "git-commit-trailer",
+    pattern: /\bOpenClaw-Publication\b/g,
+  },
+  {
+    // A real path segment inside this repository or a shipped bundle
+    // (`apps/macos/Sources/OpenClaw/AppProfile.swift`,
+    // `apps/shared/OpenClawKit/...`). Requires a preceding path segment so a
+    // sentence never matches. Only the `OpenClaw` segment is shielded; the
+    // surrounding prose still renames.
+    name: "repository-path-segment",
+    pattern: /(?:[A-Za-z0-9._-]+\/)+OpenClaw(?=\/)/g,
+  },
+  {
+    // The legacy protected-runtime-context header. It is embedded in
+    // transcripts persisted by older builds and matched verbatim when
+    // stripping leaked internal context out of stored sessions
+    // (src/tasks/task-status.ts, src/agents/internal-runtime-context.ts's
+    // LEGACY_INTERNAL_CONTEXT_HEADER). Renaming the matcher would stop it
+    // stripping old sessions — a privacy regression, not a cosmetic one.
+    name: "persisted-context-header",
+    pattern: /\bOpenClaw runtime context \(internal\):/g,
+  },
+];
+
+/**
+ * Applies the brand rewrite (and, when `commandAlias` is set, the displayed
+ * CLI alias rewrite) to one span of prose, shielding every
+ * PROTECTED_TOKEN_RULES match first and restoring it afterwards.
+ */
+function countAndReplace(text, { commandAlias = false } = {}) {
   let shielded = text;
   const placeholders = [];
-  shielded = shielded.replace(BUNDLE_ARTIFACT_RE, (match) => {
-    const token = ` PROTECTED_ARTIFACT_${placeholders.length} `;
-    placeholders.push(match);
-    return token;
-  });
-  const matches = shielded.match(NAME_PATTERN);
-  if (!matches) {
+  for (const rule of PROTECTED_TOKEN_RULES) {
+    shielded = shielded.replace(rule.pattern, (match) => {
+      const token = ` PROTECTED_TOKEN_${placeholders.length} `;
+      placeholders.push(match);
+      return token;
+    });
+  }
+  const nameMatches = shielded.match(NAME_PATTERN) ?? [];
+  const aliasMatches = commandAlias ? (shielded.match(COMMAND_ALIAS_RE) ?? []) : [];
+  const count = nameMatches.length + aliasMatches.length;
+  if (count === 0) {
     return { text, count: 0 };
   }
   let rewritten = shielded.replace(NAME_PATTERN, NEW_NAME);
+  if (commandAlias) {
+    rewritten = rewritten.replace(COMMAND_ALIAS_RE, NEW_CLI_NAME);
+  }
   placeholders.forEach((phrase, index) => {
-    rewritten = rewritten.split(` PROTECTED_ARTIFACT_${index} `).join(phrase);
+    rewritten = rewritten.split(` PROTECTED_TOKEN_${index} `).join(phrase);
   });
-  return { text: rewritten, count: matches.length };
+  return { text: rewritten, count };
 }
 
 const MARKDOWN_FENCE_RE = /^\s*(`{3,}|~{3,})/;
@@ -103,9 +263,8 @@ const GENERATED_BLOCK_END_RE = /(?:clawtributors(?::hidden)?:end\s*-->|<!--\s*\/
 /**
  * Rewrites OpenClaw -> Vasudev in Markdown/plain-text prose. Markdown fenced
  * code blocks (``` ... ```) and inline code spans (`...`) are left verbatim;
- * everything else is prose and is rewritten. Non-Markdown files (the single
- * allowlisted `.ts` files) have no code-fence/code-span concept and are
- * rewritten line-for-line.
+ * everything else is prose and is rewritten. Non-Markdown files have no
+ * code-fence/code-span concept and are rewritten line-for-line.
  */
 export function rewriteProseContent(content, { isMarkdown = false } = {}) {
   let count = 0;
@@ -150,15 +309,74 @@ export function rewriteProseContent(content, { isMarkdown = false } = {}) {
   return { content: lines.join("\n"), count };
 }
 
+// Callees whose string arguments are filesystem path segments, never prose.
+// `path.join(root, "OpenClaw", FILE)` names a real directory on disk (the
+// legacy OAuth sidecar under `%APPDATA%\OpenClaw` and
+// `~/Library/Application Support/OpenClaw`); rewriting it makes the doctor
+// look for a directory that was never created.
+const PATH_BUILDER_METHODS = new Set(["join", "resolve", "relative", "normalize"]);
+// Objects those methods must be called on. Required, because `resolve` alone
+// also names `Promise.resolve("OpenClaw update failed")` — prose, not a path.
+const PATH_BUILDER_OBJECT_RE = /^(?:node_?)?path(?:Module)?$|^(?:posix|win32)$/i;
+
+// Callees that start a process. A string argument here is an executable name
+// or a shell command line, not display text, so neither the brand rewrite nor
+// the displayed-alias rewrite may touch it.
+const SPAWN_CALLEES = new Set([
+  "spawn",
+  "spawnSync",
+  "exec",
+  "execSync",
+  "execFile",
+  "execFileSync",
+  "execa",
+  "execaSync",
+]);
+
+// HTTP header name casing (`User-Agent`, `X-OpenRouter-Title`,
+// `MM-API-Source`, `X-BILLING-INVOKE-ORIGIN`). A string literal assigned to a
+// property with this shape is a header value read by a remote service, not
+// copy: it identifies this client on third-party dashboards, billing records
+// and rate-limit buckets.
+const HTTP_HEADER_NAME_RE = /^[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)+$/;
+
+function callExpressionCalleeName(expression) {
+  if (ts.isIdentifier(expression)) {
+    return expression.text;
+  }
+  if (ts.isPropertyAccessExpression(expression) && ts.isIdentifier(expression.name)) {
+    return expression.name.text;
+  }
+  return undefined;
+}
+
+function isPathBuilderCall(call) {
+  const expression = call.expression;
+  if (!ts.isPropertyAccessExpression(expression) || !ts.isIdentifier(expression.name)) {
+    return false;
+  }
+  if (!PATH_BUILDER_METHODS.has(expression.name.text)) {
+    return false;
+  }
+  let object = expression.expression;
+  while (ts.isPropertyAccessExpression(object)) {
+    object = object.name;
+  }
+  return ts.isIdentifier(object) && PATH_BUILDER_OBJECT_RE.test(object.text);
+}
+
 /**
  * Returns true when `node` (a StringLiteral) sits in a structural position —
  * a module specifier (`import`/`export ... from`, `require(...)`, dynamic
  * `import(...)`, `import ... = require(...)`), an import attribute
- * (`with { type: "json" }`), a quoted object/interface/class property key, or
- * an enum member's name/value — rather than user-facing prose. These read as
- * ordinary string literals to the parser but are identifiers/paths/constants
- * in disguise (e.g. `import x from "../OpenClawKit/x.json"` or `enum E { A =
- * "OpenClawA" }`), so the brand rewrite must never touch them.
+ * (`with { type: "json" }`), a quoted object/interface/class property key, an
+ * enum member's name/value, a `path.join(...)` segment, a process-spawn
+ * argument, or the value of an HTTP-header-shaped property — rather than
+ * user-facing prose. These read as ordinary string literals to the parser but
+ * are identifiers/paths/wire values in disguise (e.g.
+ * `import x from "../OpenClawKit/x.json"`, `enum E { A = "OpenClawA" }`,
+ * `{ "X-OpenRouter-Title": "OpenClaw" }`), so the brand rewrite must never
+ * touch them.
  */
 function isStructuralStringLiteral(node) {
   const parent = node.parent;
@@ -174,20 +392,24 @@ function isStructuralStringLiteral(node) {
   if (ts.isExternalModuleReference(parent) && parent.expression === node) {
     return true;
   }
-  if (ts.isCallExpression(parent) && parent.arguments[0] === node) {
-    if (ts.isImportCall(parent)) {
-      return true;
+  if (ts.isCallExpression(parent)) {
+    if (parent.arguments[0] === node) {
+      if (ts.isImportCall(parent)) {
+        return true;
+      }
+      if (ts.isIdentifier(parent.expression) && parent.expression.text === "require") {
+        return true;
+      }
     }
-    if (ts.isIdentifier(parent.expression) && parent.expression.text === "require") {
-      return true;
+    if (parent.arguments.includes(node)) {
+      if (isPathBuilderCall(parent)) {
+        return true;
+      }
+      const callee = callExpressionCalleeName(parent.expression);
+      if (callee && SPAWN_CALLEES.has(callee)) {
+        return true;
+      }
     }
-  }
-  if (
-    typeof ts.isImportAttribute === "function" &&
-    ts.isImportAttribute(parent) &&
-    (parent.name === node || parent.value === node)
-  ) {
-    return true;
   }
   if (
     (ts.isPropertyAssignment(parent) ||
@@ -196,6 +418,17 @@ function isStructuralStringLiteral(node) {
     parent.name === node
   ) {
     return true;
+  }
+  if (ts.isPropertyAssignment(parent) && parent.initializer === node) {
+    const key = parent.name;
+    const keyText = ts.isStringLiteral(key)
+      ? key.text
+      : ts.isIdentifier(key)
+        ? key.text
+        : undefined;
+    if (keyText && HTTP_HEADER_NAME_RE.test(keyText)) {
+      return true;
+    }
   }
   if (ts.isEnumMember(parent) && (parent.name === node || parent.initializer === node)) {
     return true;
@@ -212,14 +445,15 @@ function isStructuralStringLiteral(node) {
  * (excluding the structural positions above) and JSX text. Identifiers, type
  * names, and property/import/enum names are never yielded because they are
  * not literal-kind nodes — the AST itself is the exclusion mechanism, not a
- * regex denylist.
+ * regex denylist. Each range is tagged `literal` or `comment` so the
+ * displayed-alias rewrite can apply to strings only.
  */
 function collectLiteralRanges(sourceFile) {
   const ranges = [];
   const visit = (node) => {
     if (ts.isStringLiteral(node)) {
       if (!isStructuralStringLiteral(node)) {
-        ranges.push([node.getStart(sourceFile), node.getEnd()]);
+        ranges.push([node.getStart(sourceFile), node.getEnd(), "literal"]);
       }
       return;
     }
@@ -230,7 +464,7 @@ function collectLiteralRanges(sourceFile) {
       node.kind === ts.SyntaxKind.TemplateTail ||
       ts.isJsxText(node)
     ) {
-      ranges.push([node.getStart(sourceFile), node.getEnd()]);
+      ranges.push([node.getStart(sourceFile), node.getEnd(), "literal"]);
       return;
     }
     ts.forEachChild(node, visit);
@@ -265,7 +499,7 @@ function collectCommentRanges(sourceFile) {
       return;
     }
     for (const comment of comments) {
-      ranges.push([comment.pos, comment.end]);
+      ranges.push([comment.pos, comment.end, "comment"]);
     }
   };
   const visit = (node) => {
@@ -281,10 +515,12 @@ function collectCommentRanges(sourceFile) {
  * Rewrites OpenClaw -> Vasudev inside TypeScript source, restricted to
  * string-literal text, template-literal text, and comments — the only
  * positions the TypeScript compiler API structurally distinguishes as prose
- * rather than code. Identifiers (`OpenClawConfig`), import/require/dynamic-
- * import specifiers, quoted property keys, and enum member names/values are
- * therefore never touched even when they spell "OpenClaw" at a word
- * boundary; see `isStructuralStringLiteral` for the exact exclusions.
+ * rather than code. The displayed CLI alias rewrite additionally applies to
+ * string/template text only, never to comments. Identifiers
+ * (`OpenClawConfig`), import/require/dynamic-import specifiers, quoted
+ * property keys, enum member names/values, `path.join` segments, spawn
+ * arguments and HTTP header values are therefore never touched even when they
+ * spell "OpenClaw" at a word boundary; see `isStructuralStringLiteral`.
  */
 export function rewriteTypeScriptContent(content, relativePath) {
   const scriptKind = relativePath.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
@@ -298,18 +534,25 @@ export function rewriteTypeScriptContent(content, relativePath) {
   const ranges = [...collectLiteralRanges(sourceFile), ...collectCommentRanges(sourceFile)].sort(
     (left, right) => left[0] - right[0],
   );
+  const excludedLiterals = EXCLUDED_LITERALS_BY_FILE.get(relativePath);
 
   let count = 0;
   let output = "";
   let cursor = 0;
-  for (const [start, end] of ranges) {
+  for (const [start, end, kind] of ranges) {
     if (start < cursor) {
       // Defensive: literal and comment ranges are structurally disjoint, but
       // never let an unexpected overlap corrupt output by double-emitting.
       continue;
     }
     output += content.slice(cursor, start);
-    const result = countAndReplace(content.slice(start, end));
+    const slice = content.slice(start, end);
+    if (excludedLiterals?.has(slice)) {
+      output += slice;
+      cursor = end;
+      continue;
+    }
+    const result = countAndReplace(slice, { commandAlias: kind === "literal" });
     output += result.text;
     count += result.count;
     cursor = end;
@@ -318,61 +561,103 @@ export function rewriteTypeScriptContent(content, relativePath) {
   return { content: output, count };
 }
 
-// Directories whose `.ts`/`.tsx` files are rewritten with the TypeScript-
-// aware pass above rather than the plain-text pass: CLI help/wizard/doctor
-// prose, per the spec's user-visible-surfaces list. ui/** is not included
-// yet — see DEFERRED_ALLOWLIST_GLOBS below.
-const TYPESCRIPT_AWARE_PREFIXES = ["src/cli/", "src/wizard/", "src/flows/"];
+// Directory prefixes whose `.ts`/`.tsx` files are rewritten with the
+// TypeScript-aware pass above rather than the plain-text pass. Spec section
+// 2b: every user-facing string in these trees is in scope.
+const TYPESCRIPT_AWARE_PREFIXES = ["src/", "extensions/", "packages/", "ui/src/"];
 
-// Test and fixture files are never touched by the automated apply, in
-// either direction (never scanned by `brand:check`, never rewritten by
-// `brand:apply`) — not even a fallback to the plain-text pass. A test
-// asserts against real runtime output; a mechanical rewrite of its
-// expectation cannot verify the call site it exercises was migrated too; it
-// can only make the fixture say what the tool *wants* to be true, not what
-// the app prints. Test-file prose is instead read off real test-failure
-// output and adjusted by hand (see the report's per-test decision table),
-// which is the only way to know whether the underlying call site is
-// actually in scope (rename the expectation) or still owned by an
-// unmigrated module (revert it, since the test pins real output). Matches
-// `*.test.ts`/`*.test.tsx` (including compound suffixes like
-// `*.process.test.ts`, since they still end in ".test.ts"),
-// `*.test-support.ts`, `*.test-helpers.ts`, any `__snapshots__` directory,
-// and any path segment/filename containing "fixture"
-// (`requirements-test-fixtures.ts`, `update-cli/fixtures/*`, ...).
+// Test and fixture files are never rewritten by the default apply, only by an
+// explicit `--tests` run. A test asserts against real runtime output; a
+// mechanical rewrite of its expectation cannot by itself verify the call site
+// it exercises was migrated too. `--tests` is therefore only used
+// *after* the matching production chunk is rewritten and the chunk's Vitest
+// lane is run, so every rewritten expectation is proved against real output
+// by a green lane (and any expectation whose producer is excluded above fails
+// that lane and is reverted by hand — see the report's decision table).
+// `brand:check` does scan these files, so a settled tree stays settled.
+// Matches `*.test.ts`/`*.test.tsx` (including compound suffixes like
+// `*.process.test.ts`), `*.test-support.ts`, `*.test-helpers.ts`,
+// `*.test-harness.ts`, `*.test-utils.ts`, `*.cases.ts` (extracted
+// `it.each`/assertion tables), any `__snapshots__` or `test-utils` directory,
+// and any path segment/filename containing "fixture".
 const TEST_OR_FIXTURE_RE =
-  /(?:\.test(?:-support|-helpers)?\.tsx?$|(?:^|\/)__snapshots__(?:\/|$)|fixture)/i;
+  /(?:\.test(?:-support|-helpers|-harness|-utils)?\.tsx?$|\.cases\.tsx?$|(?:^|\/)(?:__snapshots__|test-utils)(?:\/|$)|fixture)/i;
 
-// Production (non-test) files under the enforced trees excluded outright —
-// not because they carry unmigrated user-facing prose, but because their
-// only "OpenClaw" occurrence is a *value comparison* against a string
-// literal owned by an out-of-scope module: an internal discriminant, not
-// display text. Rewriting only this side of the comparison silently changes
-// behavior (the branch the equality check guards becomes unreachable) while
-// looking like an ordinary, correct prose rename. An exact, reviewable file
-// list — not a phrase shield — because each entry can be checked against
-// its cited real occurrence and source; remove the entry once the owning
-// module is migrated and the comparison can rename too.
-const VALUE_COMPARISON_EXCLUDED_FILES = new Set([
-  // Line ~20: `reason === "a newer OpenClaw build"` compares against
-  // src/infra/startup-maintenance-required.ts's still-"OpenClaw" reason
-  // constant to choose rollback-vs-doctor guidance.
-  "src/cli/gateway-cli/startup-maintenance.ts",
+// Production (non-test) files under the enforced trees excluded outright,
+// because their "OpenClaw" occurrences are values that cross a boundary this
+// rebrand does not own, not display text. Rewriting one side of such a value
+// silently changes behaviour while looking like an ordinary prose rename. An
+// exact, reviewable file list — not a phrase shield — because each entry can
+// be checked against its cited real occurrence; remove the entry once the
+// boundary itself is renamed (a separate, breaking phase with a migration).
+const CROSS_BOUNDARY_EXCLUDED_FILES = new Set([
+  // Windows scheduled-task names ("OpenClaw Gateway", "OpenClaw Node") and
+  // systemd/launchd service descriptions. These identify services that are
+  // *already installed* on operators' machines: the installer, uninstaller,
+  // status and update paths all look them up by this exact name, so renaming
+  // the constant orphans every existing installation. The whole file is
+  // service identity; it carries no user prose.
+  "src/daemon/constants.ts",
+  // Parses and rewrites `Description=OpenClaw Gateway (...)` inside unit
+  // files already written to /etc/systemd and ~/.config/systemd.
+  "src/daemon/systemd-install.ts",
+  // Default `Description=` for a generated unit; must stay byte-identical to
+  // src/daemon/constants.ts's label or install/inspect stops recognising it.
+  "src/daemon/systemd-unit.ts",
+  // Default schtasks task description; same contract as the unit Description.
+  "src/daemon/schtasks-install.ts",
+  // Documents the real `\OpenClaw Gateway` task path that `schtasks /query`
+  // prints, which the parser strips by exact prefix.
+  "src/daemon/inspect.ts",
+]);
+
+// Individual string literals (matched by their exact source text, quotes
+// included) excluded inside one file. Used where a file is mostly prose but
+// carries one value that crosses a boundary, so a whole-file exclusion would
+// strand real copy.
+const EXCLUDED_LITERALS_BY_FILE = new Map([
+  [
+    // `OPENCLAW_ATTRIBUTION_PRODUCT` is the app name this client reports to
+    // third-party model providers (OpenRouter's `X-Title`, and
+    // `X-BILLING-INVOKE-ORIGIN`). Providers key attribution, leaderboards
+    // and billing records on the registered name.
+    "src/agents/provider-attribution.ts",
+    new Set(['"OpenClaw"']),
+  ],
+  [
+    // `clientInfo.title` in the Codex app-server `initialize` handshake: read
+    // by the third-party Codex binary, not by this product's UI.
+    "extensions/codex/src/app-server/client.ts",
+    new Set(['"OpenClaw"']),
+  ],
+  [
+    // `serviceName` in Codex `thread/start`. Codex scopes stored credentials
+    // and telemetry by it; changing it re-prompts every operator for auth.
+    "extensions/codex/src/app-server/bounded-turn.ts",
+    new Set(['"OpenClaw"']),
+  ],
+  [
+    // Same `serviceName` contract as bounded-turn.ts.
+    "extensions/codex/src/app-server/thread-requests.ts",
+    new Set(['"OpenClaw"']),
+  ],
 ]);
 
 function isUnderTypeScriptAwarePrefix(relativePath) {
   return TYPESCRIPT_AWARE_PREFIXES.some((prefix) => relativePath.startsWith(prefix));
 }
 
-function isTypeScriptAwareTarget(relativePath) {
+function isTypeScriptAwareTarget(relativePath, { includeTests = false } = {}) {
   if (!/\.tsx?$/.test(relativePath)) {
     return false;
   }
-  return (
-    isUnderTypeScriptAwarePrefix(relativePath) &&
-    !TEST_OR_FIXTURE_RE.test(relativePath) &&
-    !VALUE_COMPARISON_EXCLUDED_FILES.has(relativePath)
-  );
+  if (!isUnderTypeScriptAwarePrefix(relativePath)) {
+    return false;
+  }
+  if (CROSS_BOUNDARY_EXCLUDED_FILES.has(relativePath)) {
+    return false;
+  }
+  return includeTests || !TEST_OR_FIXTURE_RE.test(relativePath);
 }
 
 // JSON manifests carry both marketing copy and unrelated machine-readable
@@ -414,21 +699,34 @@ export function rewriteJsonManifestContent(content, basename) {
   return { content: lines.join("\n"), count };
 }
 
+/**
+ * Locale-catalog mode (`--locales`): the mechanical product-name swap only.
+ * The 30 non-English Control UI catalogs are generated from translation
+ * memory, so this is an interim so their brand line stops naming the upstream
+ * product; a real translation run is still owed (see the task report). No
+ * command-alias rewrite, no comment rewrite, no structural analysis — a plain
+ * `\bOpenClaw\b` -> `Vasudev` pass and nothing else, so a reviewer can diff
+ * it by eye.
+ */
+export function rewriteLocaleContent(content) {
+  const matches = content.match(NAME_PATTERN);
+  if (!matches) {
+    return { content, count: 0 };
+  }
+  return { content: content.replace(NAME_PATTERN, NEW_NAME), count: matches.length };
+}
+
 /** Dispatches one file to the TypeScript-aware, prose, or JSON-field rewrite by its path/basename. */
-export function rewriteFileContent(relativePath, content) {
+export function rewriteFileContent(relativePath, content, { includeTests = false } = {}) {
   const basename = path.basename(relativePath);
   if (JSON_KEYS_BY_BASENAME.has(basename)) {
     return rewriteJsonManifestContent(content, basename);
   }
   if (/\.tsx?$/.test(relativePath) && isUnderTypeScriptAwarePrefix(relativePath)) {
-    // A test/fixture file, or a file on the value-comparison exclusion
-    // list, under these three trees must never be touched by any pass,
-    // including a fallback to the plain-text one below — see
-    // TEST_OR_FIXTURE_RE and VALUE_COMPARISON_EXCLUDED_FILES.
-    if (
-      TEST_OR_FIXTURE_RE.test(relativePath) ||
-      VALUE_COMPARISON_EXCLUDED_FILES.has(relativePath)
-    ) {
+    // A test/fixture file (outside an explicit `--tests` run), or a file on
+    // the cross-boundary exclusion list, must never be touched by any pass,
+    // including a fallback to the plain-text one below.
+    if (!isTypeScriptAwareTarget(relativePath, { includeTests })) {
       return { content, count: 0 };
     }
     return rewriteTypeScriptContent(content, relativePath);
@@ -466,49 +764,52 @@ function gitLsFiles(cwd, patterns) {
 // that names the old string as a subject rather than using it as the brand.
 const DOCS_EXCLUDED_PREFIX_RE = /^docs\/superpowers\//;
 
-// CLI/wizard/doctor TypeScript sources, per the spec's user-visible-surfaces
-// list (help header, onboarding, doctor prose). Git's default (non-
-// `:(glob)`) pathspec matching runs `*` through `fnmatch(3)` without
-// `FNM_PATHNAME`, so a single `*` already crosses `/` — `src/cli/*.ts`
-// matches `src/cli/program/help.ts` the same way `docs/*.md` above matches
-// nested doc pages.
-const TYPESCRIPT_AWARE_GLOBS = [
-  "src/cli/*.ts",
-  "src/cli/*.tsx",
-  "src/wizard/*.ts",
-  "src/wizard/*.tsx",
-  "src/flows/*.ts",
-  "src/flows/*.tsx",
-];
+// The upstream MIT notice rendered by the About page's Licences disclosure.
+// Spec section 2b makes this the single place in the product where the
+// upstream name may appear, and only when the reader opens it on purpose;
+// `ui/src/i18n/locales/brand.test.ts` asserts the notice is still there, so
+// the exemption cannot go dead.
+export const UPSTREAM_LICENCE_NOTICE_FILE = "ui/src/pages/about/upstream-licence.ts";
 
-// Documented, not yet enforced. Spec section 2 lists ui/** as an eventual
-// guard input too, but a first pass over it (this task) found many of its
-// ~150 affected files are test files and test helpers whose expectations
-// were not re-verified against the actual Control UI Vitest suite (only
-// docs/README/manifest and cli/wizard/flows prose were gated here) — and at
-// least one file (ui/src/i18n/locales/en.ts's "Built on OpenClaw" upstream-
-// attribution line, credited alongside its own dedicated brand-completeness
-// test) needs a self-reference exemption before a blind sweep is safe, the
-// same class of bug as DOCS_EXCLUDED_PREFIX_RE's docs/superpowers exclusion
-// above. Migrating ui/** call sites and their test expectations together,
-// then proving them against the Control UI suite, is a follow-up task; wire
-// these globs into TYPESCRIPT_AWARE_GLOBS/collectTargetFiles once that is
-// done rather than sweeping them from this script alone.
-export const DEFERRED_ALLOWLIST_GLOBS = [
-  "ui/src/**/*.ts",
-  "ui/index.html",
-  "ui/public/manifest.webmanifest",
+// The Control UI locale catalogs. English is source-owned copy (rewritten by
+// the ordinary TypeScript-aware pass); the other 30 are generated from
+// translation memory and are handled only by `--locales`, so a normal apply
+// or check never touches them.
+const NON_ENGLISH_LOCALE_RE = /^ui\/src\/i18n\/locales\/(?!en(?:-|\.)).+\.ts$/;
+const LOCALE_GLOB = "ui/src/i18n/locales/*.ts";
+
+// TypeScript sources in scope, per spec section 2b. Git's default (non-
+// `:(glob)`) pathspec matching runs `*` through `fnmatch(3)` without
+// `FNM_PATHNAME`, so a single `*` already crosses `/` — `src/*.ts` matches
+// `src/cli/program/help.ts`. The `extensions/`/`packages/` patterns are
+// re-filtered below to exactly one path segment before `src/`, which keeps
+// the sweep off nested qa-lab test-fixture packages.
+const TYPESCRIPT_AWARE_GLOBS = [
+  "src/*.ts",
+  "src/*.tsx",
+  "extensions/*/src/*.ts",
+  "extensions/*/src/*.tsx",
+  "packages/*/src/*.ts",
+  "packages/*/src/*.tsx",
+  "ui/src/*.ts",
 ];
+const NESTED_SOURCE_TREE_RE = /^(?:extensions|packages)\/[^/]+\/src\//;
+
+function isInScopeTypeScriptPath(file) {
+  if (file.startsWith("extensions/") || file.startsWith("packages/")) {
+    return NESTED_SOURCE_TREE_RE.test(file);
+  }
+  return true;
+}
 
 /**
  * Resolves the full set of files this rebrand pass covers: docs/README
  * prose, docs.json's `name` field, the two bundled-plugin manifest fields,
- * the CLI/wizard/doctor/Control-UI TypeScript sources, and the single
- * already brand-module-backed files. Restricting the manifest globs to
- * exactly one path segment below `extensions/` (git's `*` pathspec otherwise
- * matches across `/`) keeps this off nested qa-lab test-fixture manifests.
+ * every in-scope TypeScript source, and the single already brand-module-backed
+ * files. `includeTests` adds test/fixture files (always true for the guard,
+ * true for the apply only under `--tests`).
  */
-export function collectTargetFiles(cwd) {
+export function collectTargetFiles(cwd, { includeTests = false } = {}) {
   const files = new Set();
   for (const file of gitLsFiles(cwd, ["docs/*.md"])) {
     if (!DOCS_EXCLUDED_PREFIX_RE.test(file)) {
@@ -528,7 +829,13 @@ export function collectTargetFiles(cwd) {
     }
   }
   for (const file of gitLsFiles(cwd, TYPESCRIPT_AWARE_GLOBS)) {
-    if (isTypeScriptAwareTarget(file)) {
+    if (!isInScopeTypeScriptPath(file)) {
+      continue;
+    }
+    if (file === UPSTREAM_LICENCE_NOTICE_FILE || NON_ENGLISH_LOCALE_RE.test(file)) {
+      continue;
+    }
+    if (isTypeScriptAwareTarget(file, { includeTests })) {
       files.add(file);
     }
   }
@@ -538,13 +845,46 @@ export function collectTargetFiles(cwd) {
   return [...files].sort((left, right) => left.localeCompare(right));
 }
 
+/** Resolves the 30 generated non-English Control UI locale catalogs. */
+export function collectLocaleFiles(cwd) {
+  return gitLsFiles(cwd, [LOCALE_GLOB])
+    .filter((file) => NON_ENGLISH_LOCALE_RE.test(file))
+    .sort((left, right) => left.localeCompare(right));
+}
+
 /**
  * Runs the rebrand pass over `files` (default: the full allowlist). In
  * `check` mode nothing is written; changed files are reported as violations
- * with a sample of their offending lines.
+ * with a sample of their offending lines. `check` always includes test files;
+ * `apply` includes them only when `includeTests` is set.
+ *
+ * @param {{
+ *   cwd?: string,
+ *   check?: boolean,
+ *   files?: string[],
+ *   includeTests?: boolean,
+ *   locales?: boolean,
+ *   only?: string[],
+ * }} [options]
  */
-export function runRebrand({ cwd = process.cwd(), check = false, files } = {}) {
-  const targets = files ?? collectTargetFiles(cwd);
+export function runRebrand({
+  cwd = process.cwd(),
+  check = false,
+  files,
+  includeTests = false,
+  locales = false,
+  only = [],
+} = {}) {
+  const includeTestFiles = check || includeTests;
+  let targets =
+    files ??
+    (locales
+      ? collectLocaleFiles(cwd)
+      : collectTargetFiles(cwd, { includeTests: includeTestFiles }));
+  if (only && only.length > 0) {
+    const prefixes = only.map((entry) => entry.replace(/\*+$/, ""));
+    targets = targets.filter((file) => prefixes.some((prefix) => file.startsWith(prefix)));
+  }
   const changes = [];
   const violations = [];
   for (const relativePath of targets) {
@@ -558,7 +898,9 @@ export function runRebrand({ cwd = process.cwd(), check = false, files } = {}) {
       }
       throw error;
     }
-    const { content, count } = rewriteFileContent(relativePath, original);
+    const { content, count } = locales
+      ? rewriteLocaleContent(original)
+      : rewriteFileContent(relativePath, original, { includeTests: includeTestFiles });
     if (count === 0) {
       continue;
     }
@@ -611,12 +953,57 @@ function printReport({ changes, violations }, { check }) {
   return 0;
 }
 
+/**
+ * Parses the CLI surface: `--check`, `--tests`, `--locales`, repeated
+ * `--only <prefix>` (chunked runs: `--only src/gateway`), and bare file
+ * arguments (an explicit file list overrides the allowlist).
+ */
+export function parseRebrandArgv(argv) {
+  const only = [];
+  const files = [];
+  let check = false;
+  let includeTests = false;
+  let locales = false;
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === "--check") {
+      check = true;
+      continue;
+    }
+    if (arg === "--tests") {
+      includeTests = true;
+      continue;
+    }
+    if (arg === "--locales") {
+      locales = true;
+      continue;
+    }
+    if (arg === "--only") {
+      const value = argv[index + 1];
+      if (!value || value.startsWith("--")) {
+        throw new Error("rebrand-apply: --only requires a path prefix or glob");
+      }
+      only.push(value);
+      index += 1;
+      continue;
+    }
+    if (arg.startsWith("--only=")) {
+      only.push(arg.slice("--only=".length));
+      continue;
+    }
+    if (arg.startsWith("--")) {
+      throw new Error(`rebrand-apply: unknown option "${arg}"`);
+    }
+    files.push(arg);
+  }
+  return { check, includeTests, locales, only, files: files.length > 0 ? files : undefined };
+}
+
 /** CLI entry point; returns the process exit code. */
 export function runRebrandCli(argv) {
-  const check = argv.includes("--check");
-  const fileArgs = argv.filter((arg) => !arg.startsWith("--"));
-  const result = runRebrand({ check, files: fileArgs.length > 0 ? fileArgs : undefined });
-  return printReport(result, { check });
+  const parsed = parseRebrandArgv(argv);
+  const result = runRebrand(parsed);
+  return printReport(result, { check: parsed.check });
 }
 
 if (process.argv[1] && import.meta.url === `file://${path.resolve(process.argv[1])}`) {
