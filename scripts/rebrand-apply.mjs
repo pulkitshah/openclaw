@@ -881,6 +881,19 @@ function gitLsFiles(cwd, patterns) {
 // that names the old string as a subject rather than using it as the brand.
 const DOCS_EXCLUDED_PREFIX_RE = /^docs\/superpowers\//;
 
+// Docs pages whose subject *is* the old name, the same class of self-reference
+// as docs/superpowers above. Renaming inside them does not rebrand anything; it
+// falsifies a record or breaks a joke, and there is no correct rewrite:
+//   - docs/releases/**: shipped release notes quoting real PR titles. The PRs
+//     say what they say, and a past release shipped what it shipped.
+//   - docs/start/lore.md and docs/reference/credits.md: the rename history and
+//     the credit to the old mascot by name.
+//   - docs/reference/templates/*.dev.md: the `--dev` persona is "C-3PO —
+//     Clawd's 3rd Protocol Observer"; renaming half of an acronym leaves
+//     nonsense. Retiring that persona is its own change, not a rename.
+const DOCS_SELF_REFERENCE_RE =
+  /^docs\/(?:releases\/|start\/lore\.md$|reference\/credits\.md$|reference\/templates\/[^/]+\.dev\.md$)/;
+
 // The upstream MIT notice rendered by the About page's Licences disclosure.
 // Spec section 2b makes this the single place in the product where the
 // upstream name may appear, and only when the reader opens it on purpose;
@@ -888,11 +901,19 @@ const DOCS_EXCLUDED_PREFIX_RE = /^docs\/superpowers\//;
 // the exemption cannot go dead.
 export const UPSTREAM_LICENCE_NOTICE_FILE = "ui/src/pages/about/upstream-licence.ts";
 
+// The test that proves the licence exemption is still in place has to be able to
+// spell the name it is asserting on, so it is excluded alongside the notice.
+const LICENCE_EXEMPTION_TEST_FILE = "ui/src/i18n/locales/brand.test.ts";
+
 // The Control UI locale catalogs. English is source-owned copy (rewritten by
 // the ordinary TypeScript-aware pass); the other 30 are generated from
 // translation memory and are handled only by `--locales`, so a normal apply
 // or check never touches them.
-const NON_ENGLISH_LOCALE_RE = /^ui\/src\/i18n\/locales\/(?!en(?:-|\.)).+\.ts$/;
+// A generated catalog is `<language tag>.ts` and nothing else: the directory
+// also holds English shards and `brand.test.ts`, which `--locales` must not
+// touch (it asserts against the literal name on purpose).
+const NON_ENGLISH_LOCALE_RE =
+  /^ui\/src\/i18n\/locales\/(?!en(?:-|\.))[a-z]{2,3}(?:-[A-Za-z]{2,4})?\.ts$/;
 const LOCALE_GLOB = "ui/src/i18n/locales/*.ts";
 
 // TypeScript sources in scope, per spec section 2b. Git's default (non-
@@ -929,7 +950,7 @@ function isInScopeTypeScriptPath(file) {
 export function collectTargetFiles(cwd, { includeTests = false } = {}) {
   const files = new Set();
   for (const file of gitLsFiles(cwd, ["docs/*.md"])) {
-    if (!DOCS_EXCLUDED_PREFIX_RE.test(file)) {
+    if (!DOCS_EXCLUDED_PREFIX_RE.test(file) && !DOCS_SELF_REFERENCE_RE.test(file)) {
       files.add(file);
     }
   }
@@ -949,7 +970,11 @@ export function collectTargetFiles(cwd, { includeTests = false } = {}) {
     if (!isInScopeTypeScriptPath(file)) {
       continue;
     }
-    if (file === UPSTREAM_LICENCE_NOTICE_FILE || NON_ENGLISH_LOCALE_RE.test(file)) {
+    if (
+      file === UPSTREAM_LICENCE_NOTICE_FILE ||
+      file === LICENCE_EXEMPTION_TEST_FILE ||
+      NON_ENGLISH_LOCALE_RE.test(file)
+    ) {
       continue;
     }
     if (isTypeScriptAwareTarget(file, { includeTests })) {

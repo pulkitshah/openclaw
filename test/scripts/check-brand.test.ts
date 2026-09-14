@@ -414,6 +414,37 @@ describe("collectTargetFiles", () => {
   });
 });
 
+describe("self-referential docs and the licence exemption", () => {
+  it("keeps release notes, the rename history, the credits page, the dev persona templates, the licence notice and its guard out of the allowlist", () => {
+    const rootDir = createFixtureRepo({
+      "README.md": "# OpenClaw\n",
+      "docs/docs.json": '{"name": "OpenClaw"}\n',
+      "extensions/telegram/package.json": '{"description": "OpenClaw Telegram"}\n',
+      "extensions/telegram/openclaw.plugin.json": "{}\n",
+      "src/channels/plugins/pairing-message.ts": "export const X = 1;\n",
+      "extensions/telegram/src/bot-message-context.session.ts": "export const Y = 1;\n",
+      "extensions/bonjour/src/advertiser.ts": "export const Z = 1;\n",
+      "docs/start/lore.md": "**Clawd -> Moltbot -> Vasudev.**\n",
+      "docs/reference/credits.md": "- **Clawd** - the space lobster\n",
+      "docs/reference/templates/SOUL.dev.md": "C-3PO: Clawd's 3rd Protocol Observer.\n",
+      "docs/releases/2026.8.1/native-apps.md": "- Add a mood-aware Clawd mascot\n",
+      "docs/start/getting-started.md": "OpenClaw runs on your machine.\n",
+      "ui/src/pages/about/upstream-licence.ts": 'export const N = "Copyright (c) OpenClaw";\n',
+      "ui/src/i18n/locales/brand.test.ts": 'expect(n).toContain("OpenClaw Foundation");\n',
+    });
+
+    const files = collectTargetFiles(rootDir, { includeTests: true });
+
+    expect(files).toContain("docs/start/getting-started.md");
+    expect(files).not.toContain("docs/start/lore.md");
+    expect(files).not.toContain("docs/reference/credits.md");
+    expect(files).not.toContain("docs/reference/templates/SOUL.dev.md");
+    expect(files).not.toContain("docs/releases/2026.8.1/native-apps.md");
+    expect(files).not.toContain(UPSTREAM_LICENCE_NOTICE_FILE);
+    expect(files).not.toContain("ui/src/i18n/locales/brand.test.ts");
+  });
+});
+
 describe("parseRebrandArgv", () => {
   it("parses --check, --tests, --locales, repeated --only, and bare file arguments", () => {
     expect(parseRebrandArgv(["--check"])).toMatchObject({ check: true, only: [] });
