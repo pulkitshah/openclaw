@@ -99,6 +99,72 @@ describe("duties plugin registration", () => {
     expect(resolveRenderBaseUrl({})).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/u);
   });
 
+  // The defect that forced the tools to become clients: the host loads this plugin a SECOND time
+  // in `tool-discovery` mode to list and run its tools, and `register()` runs again there. Every
+  // runtime thing below the tools is a single-owner resource — the render server's one-time token
+  // map, the RunManager, the events service — so a second copy is a competing owner, not a
+  // duplicate. Live, that meant tool renders 404'd (published in one copy, served by the other)
+  // and tool-started runs were invisible to cancel, events and orphan recovery.
+  it("registers only the tools in tool-discovery mode, and no runtime state", () => {
+    const captured = createCapturedPluginRegistration({
+      id: "duties",
+      name: "Duties",
+      registrationMode: "tool-discovery",
+    });
+    const registerHttpRoute = vi.fn();
+    const registerService = vi.fn();
+    const registerGatewayMethod = vi.fn();
+    const registerCli = vi.fn();
+    const registerTool = vi.fn();
+    captured.api.registerHttpRoute = registerHttpRoute;
+    captured.api.registerService = registerService;
+    captured.api.registerGatewayMethod = registerGatewayMethod;
+    captured.api.registerCli = registerCli;
+    captured.api.registerTool = registerTool;
+    // Opening the store or the blob store would throw through the captured runtime; the point of
+    // this case is that nothing here reaches for either.
+    captured.api.runtime.state.openBlobStore = () => {
+      throw new Error("tool-discovery must not open the blob store");
+    };
+    captured.api.runtime.state.resolveStateDir = () => {
+      throw new Error("tool-discovery must not resolve a state dir");
+    };
+
+    plugin.register(captured.api);
+
+    expect(registerTool).toHaveBeenCalled();
+    expect(registerHttpRoute).not.toHaveBeenCalled();
+    expect(registerService).not.toHaveBeenCalled();
+    expect(registerGatewayMethod).not.toHaveBeenCalled();
+    expect(registerCli).not.toHaveBeenCalled();
+    expect(captured.controlUiDescriptors).toHaveLength(0);
+  });
+
+  it("registers only CLI descriptors in cli-metadata mode", () => {
+    const captured = createCapturedPluginRegistration({
+      id: "duties",
+      name: "Duties",
+      registrationMode: "cli-metadata",
+    });
+    const registerCli = vi.fn();
+    const registerTool = vi.fn();
+    const registerService = vi.fn();
+    captured.api.registerCli = registerCli;
+    captured.api.registerTool = registerTool;
+    captured.api.registerService = registerService;
+    // No runtime stub here on purpose: in this mode the host makes `api.runtime` throw on any
+    // access, so registering without touching it is exactly what is being proved.
+
+    plugin.register(captured.api);
+
+    expect(registerCli).toHaveBeenCalledTimes(1);
+    expect(registerCli.mock.calls[0]?.[1]).toMatchObject({
+      descriptors: [{ name: "duties", hasSubcommands: true }],
+    });
+    expect(registerTool).not.toHaveBeenCalled();
+    expect(registerService).not.toHaveBeenCalled();
+  });
+
   // Two regressions in one place. Both adapters were built with a hardcoded sessionKey "main":
   // under `agents.ownership: "explicit"` with more than one agent, "main" has no owner, so every
   // ai and ask step failed with "session key \"main\" has no explicit owner" before it ran. And an

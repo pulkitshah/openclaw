@@ -1,30 +1,33 @@
+/**
+ * The agent-facing Duties tools.
+ *
+ * Every tool here is a thin client of this plugin's own Gateway methods. It owns no state: no
+ * store handle, no RunManager, no render adapter.
+ *
+ * That is not stylistic. The host loads a plugin a second time in
+ * `registrationMode: "tool-discovery"` to list and run its tools (docs/plugins/sdk-entrypoints/
+ * registration-mode.md), and `register()` runs again in that copy. When the tools owned runtime
+ * state, that second copy built its own store handles, RunManager, events service and render
+ * server — so a `template_preview` published its one-time token in the tool copy's map while the
+ * HTTP route was served by the full copy (every tool render printed a 404 page), and a
+ * tool-started run lived in the tool copy's RunManager, invisible to `duties.run.cancel`, to
+ * `plugin.duties.run` events and to orphan recovery. Routing through the Gateway gives runs,
+ * events and rendering exactly one owner: the full registration.
+ *
+ * Diagnosed by the owner's agent from a table of live renders on one pid: every Gateway-method
+ * preview rendered, every tool render 404'd.
+ */
 import { jsonResult } from "openclaw/plugin-sdk/core";
 import type { AnyAgentTool, OpenClawPluginToolContext } from "openclaw/plugin-sdk/plugin-entry";
 import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import { Type } from "typebox";
 import type { OpenClawPluginApi } from "../api.js";
-import type { RenderAdapter } from "./adapters/render.js";
-import {
-  validateDuty,
-  validateRunInputs,
-  type Duty,
-  type DutyInput,
-  type DutyNode,
-  type DutyTrigger,
-} from "./duty.js";
 import { MAIL_AGENT_ID } from "./mail.js";
-import { renderTemplatePreview } from "./preview.js";
-import type { RunManager } from "./run-service.js";
-import type { DutyStore, RunOrigin } from "./store.js";
-import { validateBrand, validateTemplate } from "./template.js";
+import type { RunOrigin } from "./store.js";
 
-/** Sensible header defaults for a freshly-drafted Duty that hasn't stated who runs it or
- *  reports on it yet, so `duty_draft` can save a valid-enough header immediately and let
- *  `duty_set_steps`'s errors focus on the steps being authored, not these unset fields. */
-const DEFAULT_MACHINE = "gateway";
-const DEFAULT_REPORTS_TO = "owner";
-/** A Duty with no trigger cannot be run by anyone; every draft is at least manually runnable. */
-const DEFAULT_TRIGGERS: DutyTrigger[] = [{ kind: "manual" }];
+/** One poll of `duties.run.wait`. The method itself caps how long it blocks; the tool loops. */
+const RUN_WAIT_POLL_MS = 30_000;
+const TERMINAL_RUN_STATUSES = new Set(["ok", "failed", "blocked", "cancelled", "lost"]);
 
 function readId(input: unknown): string {
   if (!isRecord(input) || typeof input.id !== "string" || !input.id) {
@@ -35,9 +38,9 @@ function readId(input: unknown): string {
 
 /**
  * Races `promise` against `signal` aborting, so a caller that abandons a `duty_run` tool call
- * (which can otherwise block on `runs.wait` for as long as an in-run `ask` step waits for the
- * owner, up to 15 minutes) gets a result immediately instead of hanging forever. Removes the
- * abort listener on whichever side settles first so it never lingers past this call.
+ * (which can otherwise block for as long as an in-run `ask` step waits for the owner, up to 15
+ * minutes) gets a result immediately instead of hanging forever. Removes the abort listener on
+ * whichever side settles first so it never lingers past this call.
  */
 function raceAbort<T>(
   promise: Promise<T>,
@@ -46,11 +49,8 @@ function raceAbort<T>(
   if (!signal) return promise.then((value) => ({ aborted: false, value }));
   if (signal.aborted) return Promise.resolve({ aborted: true });
   return new Promise((resolve, reject) => {
-    const onAbort = () => {
-      signal.removeEventListener("abort", onAbort);
-      resolve({ aborted: true });
-    };
-    signal.addEventListener("abort", onAbort);
+    const onAbort = () => resolve({ aborted: true });
+    signal.addEventListener("abort", onAbort, { once: true });
     promise.then(
       (value) => {
         signal.removeEventListener("abort", onAbort);
@@ -67,7 +67,8 @@ function raceAbort<T>(
 /** Where a `duty_run` call came from, read off the trusted tool context rather than anything the
  *  model can write: the mail agent id marks a mail dispatch, an active message channel marks a
  *  chat, and everything else (a CLI or Control UI turn) is a manual run. Only fields the host
- *  actually supplied are included — the plugin state store rejects explicit `undefined` values. */
+ *  actually supplied are included. `duties.run` revalidates this shape server-side — it arrives
+ *  there as ordinary params like any other caller's. */
 function originFromToolContext(ctx: OpenClawPluginToolContext): RunOrigin {
   const kind: RunOrigin["kind"] =
     ctx.agentId === MAIL_AGENT_ID ? "mail" : ctx.messageChannel ? "chat" : "manual";
@@ -81,25 +82,20 @@ function originFromToolContext(ctx: OpenClawPluginToolContext): RunOrigin {
 }
 
 /**
- * Registers the thirteen agent-facing Duties tools (`duty_list`, `duty_get`, `duty_draft`,
- * `duty_set_steps`, `duty_run`, `duty_save`, `cred_needed`, `template_list`, `template_get`,
- * `template_set`, `template_preview`, `brand_get`, `brand_set`) declared in
- * `openclaw.plugin.json`'s `contracts.tools`. Every tool returns `jsonResult(payload)`; failures
- * are thrown as `Error`s, following the same shape as `registerDutiesGatewayMethods` in
- * `gateway-methods.ts`.
+ * Registers the thirteen agent-facing Duties tools declared in `openclaw.plugin.json`'s
+ * `contracts.tools`. Each one forwards to the Gateway method that owns the same operation and
+ * returns its payload, so a tool and the Control UI can never disagree about what happened.
  *
  * `duty_run` is registered as a factory so each turn's tool instance closes over that turn's
  * trusted context (session key, agent, channel, account) and can record the run's origin.
  */
-export function registerDutyTools(params: {
-  api: OpenClawPluginApi;
-  store: DutyStore;
-  runs: Pick<RunManager, "start" | "wait" | "cancel">;
-  credHas: (key: string) => Promise<boolean>;
-  render: RenderAdapter;
-  previewDir: () => Promise<string>;
-}): void {
-  const { api, store, runs, credHas, render, previewDir } = params;
+export function registerDutyTools(params: { api: OpenClawPluginApi }): void {
+  const { api } = params;
+  const call = <T = Record<string, unknown>>(
+    method: string,
+    args: Record<string, unknown>,
+    scope: "operator.read" | "operator.write" | "operator.admin",
+  ) => api.runtime.gateway.request<T>(method, args, { scopes: [scope] });
 
   const register = (tool: AnyAgentTool) => api.registerTool(tool, { name: tool.name });
 
@@ -109,7 +105,9 @@ export function registerDutyTools(params: {
     description: "List every saved Duty with its id, name, status, and summary.",
     parameters: Type.Object({}),
     execute: async () => {
-      const duties = await store.listDuties();
+      const { duties } = await call<{
+        duties: Array<{ id: string; name: string; status: string; summary: string }>;
+      }>("duties.list", {}, "operator.read");
       return jsonResult({
         duties: duties.map((d) => ({
           id: d.id,
@@ -127,11 +125,12 @@ export function registerDutyTools(params: {
     description: "Get one Duty's full definition plus its last 5 successful runs.",
     parameters: Type.Object({ id: Type.String({ description: "Duty id." }) }),
     execute: async (_toolCallId, input) => {
-      const id = readId(input);
-      const duty = await store.getDuty(id);
-      if (!duty) throw new Error(`no Duty "${id}"`);
-      const runs_ = await store.listRuns(id, { onlySuccessful: true, limit: 5 });
-      return jsonResult({ duty, runs: runs_ });
+      const result = await call<{ duty: unknown; runs: unknown[] }>(
+        "duties.get",
+        { id: readId(input) },
+        "operator.read",
+      );
+      return jsonResult({ duty: result.duty, runs: result.runs.slice(0, 5) });
     },
   });
 
@@ -154,41 +153,7 @@ export function registerDutyTools(params: {
     }),
     execute: async (_toolCallId, rawInput) => {
       if (!isRecord(rawInput)) throw new Error("id is required");
-      const id = readId(rawInput);
-      const existing = await store.getDuty(id);
-      const draft: Duty = {
-        id,
-        name: typeof rawInput.name === "string" ? rawInput.name : (existing?.name ?? ""),
-        summary:
-          typeof rawInput.summary === "string" ? rawInput.summary : (existing?.summary ?? ""),
-        status: existing?.status ?? "building",
-        machine:
-          typeof rawInput.machine === "string"
-            ? rawInput.machine
-            : (existing?.machine ?? DEFAULT_MACHINE),
-        reportsTo:
-          typeof rawInput.reportsTo === "string"
-            ? rawInput.reportsTo
-            : (existing?.reportsTo ?? DEFAULT_REPORTS_TO),
-        ...(rawInput.exclusive !== undefined
-          ? { exclusive: rawInput.exclusive === true }
-          : existing?.exclusive !== undefined
-            ? { exclusive: existing.exclusive }
-            : {}),
-        // A header draft is saved as-is (it may still be missing fields validateDuty
-        // requires for an active Duty) and only `duty_set_steps`/`duty_save` enforce the
-        // full shape, so inputs/triggers are trusted here rather than re-validated.
-        // SAFETY: authored duty config passed straight through; an invalid shape only ever surfaces from validateDuty in duty_set_steps/duty_save, never from this draft save.
-        inputs: (rawInput.inputs as DutyInput[] | undefined) ?? existing?.inputs ?? [],
-        steps: existing?.steps ?? [],
-        // SAFETY: see inputs above.
-        triggers: (rawInput.triggers as DutyTrigger[] | undefined) ??
-          existing?.triggers ?? [...DEFAULT_TRIGGERS],
-        updatedAt: Date.now(),
-        ...(existing?.lastRunAt !== undefined ? { lastRunAt: existing.lastRunAt } : {}),
-      };
-      await store.saveDuty(draft);
-      return jsonResult({ ok: true, duty: draft });
+      return jsonResult(await call("duties.draft", rawInput, "operator.write"));
     },
   });
 
@@ -203,16 +168,13 @@ export function registerDutyTools(params: {
     }),
     execute: async (_toolCallId, rawInput) => {
       if (!isRecord(rawInput)) throw new Error("id is required");
-      const id = readId(rawInput);
-      const existing = await store.getDuty(id);
-      if (!existing) throw new Error(`no Duty "${id}"`);
-      // SAFETY: authored duty config passed straight to validateDuty below, which structurally checks every node; an invalid shape is reported in `errors`.
-      const steps = (rawInput.steps as DutyNode[] | undefined) ?? [];
-      const candidate: Duty = { ...existing, steps, updatedAt: Date.now() };
-      const result = validateDuty(candidate);
-      if (!result.ok) return jsonResult({ ok: false, errors: result.errors });
-      await store.saveDuty(result.duty);
-      return jsonResult({ ok: true, duty: result.duty });
+      return jsonResult(
+        await call(
+          "duties.steps",
+          { id: readId(rawInput), steps: rawInput.steps ?? [] },
+          "operator.write",
+        ),
+      );
     },
   });
 
@@ -238,30 +200,42 @@ export function registerDutyTools(params: {
     }),
     execute: async (_toolCallId, rawInput, signal) => {
       if (!isRecord(rawInput)) throw new Error("id is required");
-      const id = readId(rawInput);
-      const duty = await store.getDuty(id);
-      if (!duty) throw new Error(`no Duty "${id}"`);
-      const inputs = isRecord(rawInput.inputs) ? rawInput.inputs : {};
-      // A `mail`/`file` input the caller never supplied would otherwise surface deep inside the
-      // run as an unresolved placeholder, so the run is refused before it is even created.
-      const errors = validateRunInputs(duty, inputs);
-      if (errors.length) return jsonResult({ ok: false, errors });
-      const origin = originFromToolContext(ctx);
-      if (origin.kind === "mail") {
-        await store.updateSettings({ lastMailDispatchAt: Date.now(), lastMailDispatchDutyId: id });
+      const started = await call<{ runId?: string; ok?: boolean; errors?: string[] }>(
+        "duties.run",
+        {
+          id: readId(rawInput),
+          inputs: isRecord(rawInput.inputs) ? rawInput.inputs : {},
+          origin: originFromToolContext(ctx),
+          ...(typeof rawInput.toStepId === "string" ? { toStepId: rawInput.toStepId } : {}),
+          ...(rawInput.keepOpen === true ? { keepOpen: true } : {}),
+          ...(typeof rawInput.targetId === "string" ? { targetId: rawInput.targetId } : {}),
+        },
+        "operator.write",
+      );
+      // Missing inputs are reported by the method, not thrown, so the author can fix them.
+      if (started.ok === false || !started.runId) {
+        return jsonResult({ ok: false, errors: started.errors ?? ["run could not be started"] });
       }
-      const { runId } = await runs.start({
-        duty,
-        inputs,
-        trigger: origin.kind,
-        origin,
-        toStepId: typeof rawInput.toStepId === "string" ? rawInput.toStepId : undefined,
-        keepOpen: rawInput.keepOpen === true,
-        targetId: typeof rawInput.targetId === "string" ? rawInput.targetId : undefined,
-      });
-      const outcome = await raceAbort(runs.wait(runId), signal);
+      const runId = started.runId;
+
+      // The method answers after a bounded block rather than holding one request open for a
+      // fifteen-minute `ask`, so the terminal status is reached by polling it. The abort check is
+      // inside the loop as well as around it: `raceAbort` lets the tool return, but only this
+      // stops the polling itself, which would otherwise outlive the call forever.
+      const waitForTerminal = async (): Promise<Record<string, unknown>> => {
+        for (;;) {
+          const { run } = await call<{ run: Record<string, unknown> }>(
+            "duties.run.wait",
+            { runId, timeoutMs: RUN_WAIT_POLL_MS },
+            "operator.read",
+          );
+          if (TERMINAL_RUN_STATUSES.has(String(run.status)) || signal?.aborted) return run;
+        }
+      };
+
+      const outcome = await raceAbort(waitForTerminal(), signal);
       if (outcome.aborted) {
-        await runs.cancel(runId);
+        await call("duties.run.cancel", { runId }, "operator.write").catch(() => {});
         return jsonResult({ ok: false, runId, status: "cancelled", report: "tool call aborted" });
       }
       const run = outcome.value;
@@ -282,14 +256,10 @@ export function registerDutyTools(params: {
     label: "Save Duty",
     description: "Mark a Duty active so it can run on its triggers.",
     parameters: Type.Object({ id: Type.String({ description: "Duty id." }) }),
-    execute: async (_toolCallId, input) => {
-      const id = readId(input);
-      const existing = await store.getDuty(id);
-      if (!existing) throw new Error(`no Duty "${id}"`);
-      const next: Duty = { ...existing, status: "active", updatedAt: Date.now() };
-      await store.saveDuty(next);
-      return jsonResult({ duty: next });
-    },
+    execute: async (_toolCallId, input) =>
+      jsonResult(
+        await call("duties.status", { id: readId(input), status: "active" }, "operator.write"),
+      ),
   });
 
   register({
@@ -305,7 +275,11 @@ export function registerDutyTools(params: {
       if (!isRecord(input) || typeof input.key !== "string" || !input.key) {
         throw new Error("key is required");
       }
-      const stored = await credHas(input.key);
+      const { stored } = await call<{ stored: boolean }>(
+        "duties.cred.has",
+        { key: input.key },
+        "operator.read",
+      );
       return jsonResult({
         stored,
         howTo: `Ask the owner to open Duties → Logins and save the key ${input.key}`,
@@ -319,15 +293,10 @@ export function registerDutyTools(params: {
     description: "List every saved document/message template with its id, name, kind and slots.",
     parameters: Type.Object({}),
     execute: async () => {
-      const templates = await store.listTemplates();
-      return jsonResult({
-        templates: templates.map((t) => ({
-          id: t.id,
-          name: t.name,
-          kind: t.kind,
-          slots: t.slots.map((s) => s.name),
-        })),
-      });
+      const { templates } = await call<{
+        templates: Array<{ id: string; name: string; kind: string; slots: string[] }>;
+      }>("duties.template.list", {}, "operator.read");
+      return jsonResult({ templates });
     },
   });
 
@@ -336,12 +305,8 @@ export function registerDutyTools(params: {
     label: "Get Template",
     description: "Get one template's full definition, including its html and slot declarations.",
     parameters: Type.Object({ id: Type.String({ description: "Template id." }) }),
-    execute: async (_toolCallId, input) => {
-      const id = readId(input);
-      const template = await store.getTemplate(id);
-      if (!template) throw new Error(`no template "${id}"`);
-      return jsonResult({ template });
-    },
+    execute: async (_toolCallId, input) =>
+      jsonResult(await call("duties.template.get", { id: readId(input) }, "operator.read")),
   });
 
   register({
@@ -358,10 +323,9 @@ export function registerDutyTools(params: {
       if (!isRecord(rawInput) || !isRecord(rawInput.template)) {
         throw new Error("template is required");
       }
-      const result = validateTemplate({ ...rawInput.template, updatedAt: Date.now() });
-      if (!result.ok) return jsonResult({ ok: false, errors: result.errors });
-      await store.saveTemplate(result.template);
-      return jsonResult({ ok: true, template: result.template });
+      return jsonResult(
+        await call("duties.template.set", { template: rawInput.template }, "operator.write"),
+      );
     },
   });
 
@@ -379,16 +343,13 @@ export function registerDutyTools(params: {
       ),
     }),
     execute: async (_toolCallId, rawInput) => {
-      const id = readId(rawInput);
       const data = isRecord(rawInput) && isRecord(rawInput.data) ? rawInput.data : undefined;
-      const preview = await renderTemplatePreview({
-        store,
-        render,
-        previewDir,
-        id,
-        ...(data ? { data } : {}),
-      });
-      return jsonResult({ path: preview.path });
+      const { path } = await call<{ path: string; bytes: number }>(
+        "duties.template.render",
+        { id: readId(rawInput), ...(data ? { data } : {}) },
+        "operator.read",
+      );
+      return jsonResult({ path });
     },
   });
 
@@ -397,7 +358,7 @@ export function registerDutyTools(params: {
     label: "Get Brand",
     description: "Get the install's brand block (name, logo, colours, contact lines).",
     parameters: Type.Object({}),
-    execute: async () => jsonResult({ brand: await store.getBrand() }),
+    execute: async () => jsonResult(await call("duties.brand.get", {}, "operator.read")),
   });
 
   register({
@@ -412,10 +373,9 @@ export function registerDutyTools(params: {
     }),
     execute: async (_toolCallId, rawInput) => {
       if (!isRecord(rawInput) || !isRecord(rawInput.brand)) throw new Error("brand is required");
-      const result = validateBrand({ ...rawInput.brand, updatedAt: Date.now() });
-      if (!result.ok) return jsonResult({ ok: false, errors: result.errors });
-      await store.saveBrand(result.brand);
-      return jsonResult({ ok: true, brand: result.brand });
+      return jsonResult(
+        await call("duties.brand.set", { brand: rawInput.brand }, "operator.write"),
+      );
     },
   });
 }

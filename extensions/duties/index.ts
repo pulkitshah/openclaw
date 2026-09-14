@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { resolveGatewayPort, type OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import { definePluginEntry } from "./api.js";
+import { definePluginEntry, type OpenClawPluginApi } from "./api.js";
 import { createAiAdapter } from "./src/adapters/ai.js";
 import { createAskAdapter } from "./src/adapters/ask.js";
 import { createBrowserAdapter } from "./src/adapters/browser.js";
@@ -56,6 +56,30 @@ export default definePluginEntry({
   name: "Duties",
   description: "Saved, replayable automations the agent authors from your instructions.",
   register(api) {
+    // The host loads this plugin a second time in `tool-discovery` mode to list and run its tools
+    // (docs/plugins/sdk-entrypoints/registration-mode.md). Everything below the tools owns runtime
+    // state — the store handles, the RunManager, the events service, the blob store and the
+    // render server's one-time token map — and a second copy of that state is not a duplicate, it
+    // is a competing owner: renders published in the tool copy were served 404 by the full copy's
+    // route, and tool-started runs were invisible to `duties.run.cancel`, to `plugin.duties.run`
+    // events and to orphan recovery. So the tool copy registers the tools and nothing else; the
+    // tools are clients of the full copy's Gateway methods.
+    if (api.registrationMode === "tool-discovery") {
+      registerDutyTools({ api });
+      return;
+    }
+    // `cli-metadata` cannot touch runtime at all; it exists to collect root command descriptors.
+    if (api.registrationMode === "cli-metadata") {
+      registerDutiesCli(api);
+      return;
+    }
+    // `discovery` is a read-only capability sweep: descriptors are fine, services and sockets are
+    // not. `setup-only` has no runtime to open a store with.
+    if (api.registrationMode !== "full") {
+      registerDutiesCli(api);
+      return;
+    }
+
     api.session.controls.registerControlUiDescriptor({
       surface: "tab",
       id: "duties",
@@ -198,28 +222,31 @@ export default definePluginEntry({
       store,
       runs,
       emit: events.emit,
-      creds: { set: (key, value) => credSet(key, value), delete: (key) => credDelete(key) },
+      creds: {
+        set: (key, value) => credSet(key, value),
+        delete: (key) => credDelete(key),
+        has: (key) => credHas(key),
+      },
       evidence,
       render,
       previewDir: () => runFiles.previewDir(),
     });
-    registerDutyTools({
-      api,
-      store,
-      runs,
-      credHas: (key) => credHas(key),
-      render,
-      previewDir: () => runFiles.previewDir(),
-    });
+    registerDutyTools({ api });
 
-    api.registerCli(
-      async ({ program, config }) => {
-        const { registerDutiesSetupCli } = await import("./src/cli.js");
-        registerDutiesSetupCli({ program, config });
-      },
-      {
-        descriptors: [{ name: "duties", description: "Duties setup", hasSubcommands: true }],
-      },
-    );
+    registerDutiesCli(api);
   },
 });
+
+/** The `duties` CLI command. Registered in every mode that collects CLI surface, including
+ *  `cli-metadata`, where the descriptor is all the host reads and the loader body never runs. */
+function registerDutiesCli(api: OpenClawPluginApi): void {
+  api.registerCli(
+    async ({ program, config }) => {
+      const { registerDutiesSetupCli } = await import("./src/cli.js");
+      registerDutiesSetupCli({ program, config });
+    },
+    {
+      descriptors: [{ name: "duties", description: "Duties setup", hasSubcommands: true }],
+    },
+  );
+}
