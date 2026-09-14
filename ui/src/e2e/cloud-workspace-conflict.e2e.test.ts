@@ -232,7 +232,7 @@ suite.define(() => {
     {
       customType: "cloud-workspace-recovery-failed",
       content:
-        "Cloud workspace recovery attempt failed: snapshot verification failed. OpenClaw preserved the result and will retry.",
+        "Cloud workspace recovery attempt failed: snapshot verification failed. Vasudev preserved the result and will retry.",
     },
     {
       customType: "run-failed-before-reply",

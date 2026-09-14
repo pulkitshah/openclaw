@@ -28,7 +28,7 @@ const enSettings = {
       secret: "Gateway secret",
       secretPlaceholder: "Paste the token or type the password",
       setupCodeHint:
-        "This is a device setup code for the Vasudev mobile app, not the Gateway secret. Paste it in the app's Gateway settings instead; the Gateway secret comes from openclaw gateway auth-token --show on the Gateway host.",
+        "This is a device setup code for the Vasudev mobile app, not the Gateway secret. Paste it in the app's Gateway settings instead; the Gateway secret comes from vasudev gateway auth-token --show on the Gateway host.",
       secretHint: "Tokens are saved for this tab after connecting. Passwords are never stored.",
       tokenHint: "This Gateway expects its token. Saved for this tab after connecting.",
       passwordHint: "This Gateway expects its password. Passwords are never stored.",
@@ -175,7 +175,7 @@ const enSettings = {
       recoveryChanged: "The Gateway connection changed. Refresh snapshots and try recovery again.",
       migration: "Needs migration",
       migrationHint:
-        "Run openclaw doctor --fix and follow its provider-cleanup recovery instructions before provisioning workers.",
+        "Run vasudev doctor --fix and follow its provider-cleanup recovery instructions before provisioning workers.",
     },
     intro: "Run agent sessions on ephemeral cloud machines instead of this gateway.",
     sectionTitle: "Profiles",
@@ -625,7 +625,7 @@ const enSettings = {
       chromeExtensionInstalled:
         "Native host registered and extension found. Open the extension to check its connection; installation alone does not verify a connection.",
       chromeExtensionFailed:
-        "Setup could not finish. Install the Vasudev CLI on this Mac and run openclaw browser extension install for details.",
+        "Setup could not finish. Install the Vasudev CLI on this Mac and run vasudev browser extension install for details.",
       browserImport: "Browser logins",
       browserImportHint:
         "Copy cookies from a Chrome-family profile into an isolated managed profile.",

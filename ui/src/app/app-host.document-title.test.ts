@@ -20,7 +20,7 @@ function roster(defaultId: string, agents: GatewayAgentRow[]): AgentsListResult 
   return { defaultId, mainKey: "main", scope: "per-sender", agents };
 }
 
-describe("OpenClaw shell document title", () => {
+describe("Vasudev shell document title", () => {
   function createShell(context?: ApplicationContext): ShellDocumentTitleState {
     const shell = document.createElement(
       "openclaw-app-shell",

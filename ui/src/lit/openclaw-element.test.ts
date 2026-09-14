@@ -42,7 +42,7 @@ if (!customElements.get(LIGHT_CONTENTS_ELEMENT_NAME)) {
   customElements.define(LIGHT_CONTENTS_ELEMENT_NAME, TestLightDomContentsElement);
 }
 
-describe("OpenClaw Lit elements", () => {
+describe("Vasudev Lit elements", () => {
   beforeEach(async () => {
     await i18n.setLocale("en");
   });

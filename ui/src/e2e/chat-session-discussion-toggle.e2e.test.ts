@@ -145,7 +145,7 @@ describeControlUiE2e("session discussion toggle", () => {
             article { padding: 16px; border: 1px solid var(--host-border, #e4e4e7);
               border-radius: 8px; background: var(--host-card, #fff); }
           </style></head><body><article><h2>Cross-origin discussion</h2>
-          <p>The sidebar follows its OpenClaw host.</p></article>
+          <p>The sidebar follows its Vasudev host.</p></article>
           <script>
             const params = new URLSearchParams(location.search);
             document.documentElement.dataset.hostMode = params.get("theme") || "dark";

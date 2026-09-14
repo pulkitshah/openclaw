@@ -197,7 +197,7 @@ describe("SidebarUpdateCard", () => {
     const element = await mount(null);
     element.updateRun = createUpdateRunFixture();
     await element.updateComplete;
-    expect(element.textContent).toContain("OpenClaw update in progress: staging");
+    expect(element.textContent).toContain("Vasudev update in progress: staging");
     expect(element.textContent).toContain("phases complete");
     expect(element.querySelector<HTMLButtonElement>(".sidebar-update-card__action")?.disabled).toBe(
       false,
@@ -210,7 +210,7 @@ describe("SidebarUpdateCard", () => {
       after: { version: "2026.9.2" },
     });
     await element.updateComplete;
-    expect(element.textContent).toContain("OpenClaw updated to 2026.9.2");
+    expect(element.textContent).toContain("Vasudev updated to 2026.9.2");
     element.updateRunAcknowledged = true;
     await element.updateComplete;
     expect(element.querySelector(".sidebar-update-card")).toBeNull();

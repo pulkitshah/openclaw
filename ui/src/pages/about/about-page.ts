@@ -21,6 +21,8 @@ class AboutPage extends OpenClawLightDomElement {
 
   @state() private copyState: AboutCommitCopyState = "idle";
   @state() private clawdWaving = false;
+  @state() private licenceNotice: string | null = null;
+  private licenceLoad: Promise<void> | null = null;
 
   private copyResetTimer: ReturnType<typeof globalThis.setTimeout> | null = null;
   private waveResetTimer: ReturnType<typeof globalThis.setTimeout> | null = null;
@@ -51,6 +53,25 @@ class AboutPage extends OpenClawLightDomElement {
       this.waveResetTimer = null;
       this.clawdWaving = false;
     }, CLAWD_WAVE_MS);
+  }
+
+  // The upstream notice is a few hundred bytes of legal text nobody reads until
+  // they open the panel, and the startup asset budget has almost no headroom
+  // left, so it lives in its own module and arrives on first open only.
+  private loadLicenceNotice() {
+    if (this.licenceNotice !== null || this.licenceLoad) {
+      return;
+    }
+    this.licenceLoad = import("./upstream-licence.ts")
+      .then(({ UPSTREAM_LICENCE_NOTICE }) => {
+        if (this.isConnected) {
+          this.licenceNotice = UPSTREAM_LICENCE_NOTICE;
+        }
+      })
+      .catch(() => {
+        // Leave the panel showing its unavailable state; a reopen retries.
+        this.licenceLoad = null;
+      });
   }
 
   private async copyCommit() {
@@ -86,6 +107,8 @@ class AboutPage extends OpenClawLightDomElement {
       onCopyCommit: () => void this.copyCommit(),
       clawdWaving: this.clawdWaving,
       onPokeClawd: () => this.pokeClawd(),
+      licenceNotice: this.licenceNotice,
+      onOpenLicences: () => this.loadLicenceNotice(),
     });
     return html`
       <section class="content-header">

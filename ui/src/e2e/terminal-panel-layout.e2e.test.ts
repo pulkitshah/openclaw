@@ -106,7 +106,7 @@ suite.define(() => {
           await gateway.emitGatewayEvent("terminal.data", {
             sessionId: `terminal-layout-${theme}`,
             seq: 0,
-            data: "OpenClaw release workspace\r\n$ pnpm test ui/src/components/terminal/terminal-panel.test.ts\r\n22 tests passed\r\n$ ",
+            data: "Vasudev release workspace\r\n$ pnpm test ui/src/components/terminal/terminal-panel.test.ts\r\n22 tests passed\r\n$ ",
           });
 
           const panel = page.locator("openclaw-terminal-panel");

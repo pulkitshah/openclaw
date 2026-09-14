@@ -593,7 +593,7 @@ describe.runIf(process.env.OPENCLAW_UI_MEMORY_CHROMIUM_E2E === "1")(
             plugins: [
               {
                 id: "memory-core",
-                name: "OpenClaw Memory",
+                name: "Vasudev Memory",
                 installed: true,
                 enabled: true,
                 state: "enabled",

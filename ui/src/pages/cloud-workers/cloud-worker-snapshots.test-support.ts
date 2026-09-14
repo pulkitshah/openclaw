@@ -92,7 +92,7 @@ export function snapshotListFixture(): SnapshotsResult {
         leaseId: "legacy-worker",
         selector: "legacy-lease-selector",
         recoveryHint:
-          "Stop the owning Gateway and capture processes, confirm the worker is stopped, then run openclaw doctor --fix.",
+          "Stop the owning Gateway and capture processes, confirm the worker is stopped, then run vasudev doctor --fix.",
       },
     ],
   };

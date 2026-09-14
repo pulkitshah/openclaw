@@ -24,7 +24,7 @@ const suite = createSessionManagementE2eSuite();
 
 suite.define(() => {
   it("keeps long group titles on one line and reveals them on hover", async () => {
-    const groupName = "OpenClaw Bugfixes / Miscellaneous Product Work and Release Coordination";
+    const groupName = "Vasudev Bugfixes / Miscellaneous Product Work and Release Coordination";
     const context = await suite.browser.newContext({
       colorScheme: "dark",
       locale: "en-US",

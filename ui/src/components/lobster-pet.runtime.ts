@@ -1,7 +1,7 @@
 // Decorative lobster pet that perches on the sidebar footer and mirrors
 // gateway status: it idles (naps, waves, wanders) when nothing is running,
 // scurries while runs are active, and paces worriedly while disconnected.
-// Drawn in the smooth OpenClaw lobster style (see the dreams scene and
+// Drawn in the smooth Vasudev lobster style (see the dreams scene and
 // icons.lobster). Look and personality are seeded per session + page load so
 // every new session hatches a slightly different lobster.
 import { expectDefined } from "@openclaw/normalization-core";

@@ -20,7 +20,7 @@ const enUpdateActions = {
       retryUpdate: "Retry update",
       installing: "Installing the update on the Gateway. It restarts once the install finishes.",
       notStarted:
-        "The update request went unanswered. Run `openclaw triage` on the Gateway host and inspect the result before retrying.",
+        "The update request went unanswered. Run `vasudev triage` on the Gateway host and inspect the result before retrying.",
     },
     triage: {
       failedTitle: "Diagnose failed update",

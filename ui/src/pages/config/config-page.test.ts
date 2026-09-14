@@ -256,7 +256,7 @@ describe("ConfigPage synced preference provenance", () => {
       basePath: "",
       config: {
         current: {
-          assistantIdentity: { name: "OpenClaw" },
+          assistantIdentity: { name: "Vasudev" },
           serverVersion: "2026.7.1",
         },
       },
@@ -655,7 +655,7 @@ describe("ConfigPage Updates integration", () => {
     page.pageId = "updates";
     state.context = {
       config: {
-        current: { assistantIdentity: { name: "OpenClaw" }, serverVersion: "2026.8.1" },
+        current: { assistantIdentity: { name: "Vasudev" }, serverVersion: "2026.8.1" },
       },
       runtimeConfig: {
         canSet: true,

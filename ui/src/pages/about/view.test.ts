@@ -28,6 +28,8 @@ function createProps(overrides: Partial<AboutProps> = {}): AboutProps {
     onCopyCommit: vi.fn(),
     clawdWaving: false,
     onPokeClawd: vi.fn(),
+    licenceNotice: null,
+    onOpenLicences: vi.fn(),
     ...overrides,
   };
 }
@@ -49,7 +51,7 @@ describe("renderAbout", () => {
     expect(hero?.querySelector(".about-hero__clawd vasu-orb")).not.toBeNull();
 
     const clawd = hero?.querySelector<HTMLButtonElement>(".about-hero__clawd");
-    expect(clawd?.getAttribute("aria-label")).toBe("Wave hello to Clawd");
+    expect(clawd?.getAttribute("aria-label")).toBe("Wave hello to Vasu");
     clawd?.click();
     expect(onPokeClawd).toHaveBeenCalledOnce();
 
@@ -68,7 +70,44 @@ describe("renderAbout", () => {
       expect(link.getAttribute("rel")).toContain("noreferrer");
     }
 
-    expect(container.querySelector(".about-footer")?.textContent).toContain("MIT License");
+    // The attribution line names only this product and its maker; the upstream
+    // MIT notice lives behind the Licences disclosure (spec section 2b).
+    expect(container.querySelector(".about-footer")?.textContent).toBe(
+      "Vasudev · by TripIn Studio",
+    );
+    expect(container.querySelector(".about-footer")?.textContent).not.toContain("Vasudev");
+  });
+
+  it("keeps the upstream notice behind the Licences disclosure and loads it on open", () => {
+    const onOpenLicences = vi.fn();
+    const container = document.createElement("div");
+    render(renderAbout(createProps({ onOpenLicences })), container);
+
+    const details = container.querySelector<HTMLDetailsElement>("details.about-licences");
+    expect(details).not.toBeNull();
+    expect(details?.open).toBe(false);
+    expect(details?.querySelector(".about-licences__summary")?.textContent).toBe("Licences");
+    // Nothing is fetched, and nothing names the upstream project, until opened.
+    expect(container.querySelector(".about-licences__notice")).toBeNull();
+    expect(container.textContent).not.toContain("Vasudev");
+
+    details!.open = true;
+    details!.dispatchEvent(new Event("toggle"));
+    expect(onOpenLicences).toHaveBeenCalledOnce();
+  });
+
+  it("renders the loaded upstream notice inside the disclosure", () => {
+    const container = document.createElement("div");
+    render(
+      renderAbout(
+        createProps({ licenceNotice: "MIT License\n\nCopyright (c) 2026 Vasudev Foundation" }),
+      ),
+      container,
+    );
+
+    const notice = container.querySelector(".about-licences__notice");
+    expect(notice?.textContent).toContain("MIT License");
+    expect(notice?.textContent).toContain("Vasudev Foundation");
   });
 
   it("marks the hero as waving only while a poke is active", () => {

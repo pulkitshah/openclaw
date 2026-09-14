@@ -198,7 +198,7 @@ describe("renderSidebarUpdateSurface", () => {
           "openclaw-sidebar-update-card",
         )!;
         await card.updateComplete;
-        expect(container.textContent).toContain(state === "visible" ? "OpenClaw updated" : "3.0.0");
+        expect(container.textContent).toContain(state === "visible" ? "Vasudev updated" : "3.0.0");
         container.querySelector<HTMLButtonElement>(".sidebar-issues-panel__dismiss")!.click();
         expect(dismiss).toHaveBeenCalledExactlyOnceWith(expected);
         expect(overlays.snapshot.updateRunAcknowledged).toBe(state === "acknowledged");

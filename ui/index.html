@@ -124,9 +124,7 @@
         try {
           var base =
             document.documentElement.getAttribute("data-openclaw-control-ui-base-path") || "";
-          var buildId = document.documentElement.getAttribute(
-            "data-openclaw-control-ui-build-id",
-          );
+          var buildId = document.documentElement.getAttribute("data-openclaw-control-ui-build-id");
           var version = buildId ? "?v=" + encodeURIComponent(buildId) : "";
           var preload = document.createElement("link");
           preload.rel = "preload";

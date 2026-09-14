@@ -82,7 +82,7 @@ describeControlUiE2e("Control UI Markdown table interactions", () => {
                   cases: [
                     // Main is the only session and does not match this palette query.
                     {
-                      match: { search: "Ask OpenClaw" },
+                      match: { search: "Ask Vasudev" },
                       response: { count: 0, sessions: [] },
                     },
                   ],
@@ -112,8 +112,8 @@ describeControlUiE2e("Control UI Markdown table interactions", () => {
         await page.goto(`${server.baseUrl}chat`);
         if (surface === "assistant panel") {
           await page.locator(".sidebar-brand__search").click();
-          await page.getByPlaceholder("Search chats and commands…").fill("Ask OpenClaw");
-          await page.getByRole("option", { name: "Ask OpenClaw", exact: true }).click();
+          await page.getByPlaceholder("Search chats and commands…").fill("Ask Vasudev");
+          await page.getByRole("option", { name: "Ask Vasudev", exact: true }).click();
         }
         const bubble = page.locator(
           surface === "chat" ? '[data-entry-id="assistant-table"]' : ".custodian__messages",
@@ -549,7 +549,7 @@ describeControlUiE2e("Control UI Markdown table interactions", () => {
           await page.locator(".sidebar-footer-bar__home").click();
           await page
             .locator("openclaw-assistant-panel")
-            .getByRole("button", { name: "Ask OpenClaw", exact: true })
+            .getByRole("button", { name: "Ask Vasudev", exact: true })
             .click();
         }
       };

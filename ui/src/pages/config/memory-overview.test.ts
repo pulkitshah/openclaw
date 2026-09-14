@@ -231,7 +231,7 @@ describe("renderMemoryOverview", () => {
     payload.embedding = {
       ok: false,
       checked: false,
-      error: "run `openclaw memory status --deep` to probe",
+      error: "run `vasudev memory status --deep` to probe",
     };
     const onProbeEmbeddings = vi.fn();
     const container = renderOverview({ kind: "ready", payload }, undefined, { onProbeEmbeddings });

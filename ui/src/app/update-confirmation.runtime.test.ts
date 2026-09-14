@@ -272,7 +272,7 @@ it("keeps the server success report visible across restart until the operator cl
   await view.updateComplete;
   expect(document.body.querySelector("openclaw-modal-dialog")).not.toBeNull();
   expect(view.querySelector(".update-run-view__report")?.textContent).toContain(
-    "OpenClaw updated to 2026.9.2",
+    "Vasudev updated to 2026.9.2",
   );
   findButton("Close").click();
   await settled;

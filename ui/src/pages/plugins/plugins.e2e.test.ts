@@ -200,7 +200,7 @@ describeControlUiE2e("Control UI Plugins mocked Gateway E2E", () => {
         (await gateway.getRequests("plugins.catalog.get")).map((request) => request.params),
       ).toContainEqual({ id: matrixDiscoveryPlugin.id });
       expect(
-        await page.getByText("Connect OpenClaw to Matrix rooms and direct messages.").count(),
+        await page.getByText("Connect Vasudev to Matrix rooms and direct messages.").count(),
       ).toBe(1);
       const detailTabs = page.locator("wa-tab-group.plugin-catalog-detail__tabs");
       const detailMain = page.locator(".plugin-catalog-detail__hero main");

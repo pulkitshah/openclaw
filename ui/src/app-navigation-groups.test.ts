@@ -281,7 +281,7 @@ describe("sidebar entries", () => {
     expect(normalizeSidebarEntries([])).toEqual([]);
   });
 
-  it("recognizes OpenClaw settings and drops stale sidebar pins", () => {
+  it("recognizes Vasudev settings and drops stale sidebar pins", () => {
     expect(isSettingsNavigationRoute("custodian")).toBe(true);
     expect(normalizeSidebarEntries(["route:custodian", "route:usage"])).toEqual(["route:usage"]);
   });

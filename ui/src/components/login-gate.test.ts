@@ -347,7 +347,7 @@ describe("login gate failure recovery", () => {
     );
     expect(steps).toHaveLength(3);
     expect(steps[0]).toContain("prints the exact approve command");
-    expect(steps[1]).toContain("Prefer a link? Run openclaw dashboard");
+    expect(steps[1]).toContain("Prefer a link? Run vasudev dashboard");
     expect(steps[1]).toContain("on the Gateway host and open the one-time URL");
     expect(steps[2]).toBe("Once approved, click Connect.");
     // The form stays reachable but folded; its summary names the target without a credential.

@@ -113,7 +113,7 @@ function propsFor(mode: SkillWorkshopMode): SkillWorkshopProps {
     revisionKey: null,
     revisionDraft: "",
     revisionRecoveryActive: false,
-    assistantName: "OpenClaw",
+    assistantName: "Vasudev",
     workshopAgentName: "Research",
     selfLearning: null,
     onRetry: vi.fn(),

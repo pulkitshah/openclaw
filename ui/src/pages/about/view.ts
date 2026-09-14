@@ -26,6 +26,9 @@ type AboutProps = {
   onCopyCommit: () => void;
   clawdWaving: boolean;
   onPokeClawd: () => void;
+  /** Upstream notice text, loaded on first open; null until it arrives. */
+  licenceNotice: string | null;
+  onOpenLicences: () => void;
 };
 
 const SHORT_COMMIT_LENGTH = 12;
@@ -186,6 +189,31 @@ function renderHero(props: AboutProps) {
   `;
 }
 
+// Third-party notices, closed by default. The notice text is the only place in
+// the product that names the upstream project (spec section 2b), and it is
+// fetched by `onOpenLicences` on first open so it never reaches the startup
+// bundle.
+function renderLicences(props: AboutProps) {
+  return html`
+    <details
+      class="about-licences"
+      @toggle=${(event: Event) => {
+        if ((event.currentTarget as HTMLDetailsElement).open) {
+          props.onOpenLicences();
+        }
+      }}
+    >
+      <summary class="about-licences__summary">${t("aboutPage.licencesTitle")}</summary>
+      <p class="muted">${t("aboutPage.licencesHint")}</p>
+      ${
+        props.licenceNotice
+          ? html`<pre class="about-licences__notice" dir="ltr">${props.licenceNotice}</pre>`
+          : html`<p class="muted">${t("aboutPage.unavailable")}</p>`
+      }
+    </details>
+  `;
+}
+
 export function renderAbout(props: AboutProps) {
   const buildDate = formatControlUiBuildDate(props.buildInfo.builtAt, i18n.getLocale());
   const buildFacts = html`
@@ -253,5 +281,6 @@ export function renderAbout(props: AboutProps) {
       }),
     ),
     html`<p class="about-footer">${t("aboutPage.license")}</p>`,
+    renderLicences(props),
   ]);
 }

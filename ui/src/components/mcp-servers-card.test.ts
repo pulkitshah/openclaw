@@ -218,7 +218,7 @@ describe("openclaw-mcp-servers-card", () => {
       card.querySelector('[data-mcp-name="docs; echo unsafe"]'),
       "hostile-name row",
     );
-    expect(hostile.textContent).toContain("openclaw mcp probe 'docs; echo unsafe'");
+    expect(hostile.textContent).toContain("vasudev mcp probe 'docs; echo unsafe'");
   });
 
   it("renders the empty state when no servers are configured", async () => {

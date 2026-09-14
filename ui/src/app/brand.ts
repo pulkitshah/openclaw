@@ -11,7 +11,7 @@ export const TAGLINE = "All your chats, one Vasudev.";
 /** Which optional product surfaces this build ships.
  *
  * `lobsterDex` covers the decorative sidebar pet, its appearance-settings
- * section and the `/lobsterdex` page. It is OpenClaw's mascot feature, so the
+ * section and the `/lobsterdex` page. It is Vasudev's mascot feature, so the
  * Vasudev build ships with it off; the code, sprites and locale strings stay in
  * place, and turning the flag back on restores all three surfaces. */
 export const FEATURES: { lobsterDex: boolean } = { lobsterDex: false };

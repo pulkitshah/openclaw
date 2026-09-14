@@ -171,7 +171,7 @@ function renderRecordedAttempt(props: UpdatesViewProps) {
             stacked: true,
             control: html`<details class="updates-attempt-details">
               <summary>${t("updates.page.showCliFallback")}</summary>
-              <pre><code>openclaw triage</code></pre>
+              <pre><code>vasudev triage</code></pre>
             </details>`,
           }),
         ]),

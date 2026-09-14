@@ -21,7 +21,7 @@ import {
 } from "./update-schedule-dto.ts";
 import { formatUpdateCampaignLabel } from "./update-schedule-projection.ts";
 
-const TRIAGE_HINT = "Run openclaw triage on the Gateway host before retrying.";
+const TRIAGE_HINT = "Run vasudev triage on the Gateway host before retrying.";
 const translations: Record<string, string> = {
   "updates.triage.hostHint": TRIAGE_HINT,
   "updates.status": "Update {status}: {reason}. {guidance}",

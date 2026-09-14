@@ -192,7 +192,7 @@ suite.define(() => {
         await pairFromSettings.click();
 
         const dialog = page.getByRole("dialog", { name: "Pair a device" });
-        const qr = page.getByAltText("OpenClaw mobile pairing QR code");
+        const qr = page.getByAltText("Vasudev mobile pairing QR code");
         await dialog.waitFor();
         await page.getByRole("button", { name: "Create setup code" }).waitFor();
         const dialogBox = await page.locator(".device-pair-setup").boundingBox();
@@ -428,7 +428,7 @@ suite.define(() => {
           includeQr: false,
         });
         await page
-          .getByText('openclaw node run --pair "oc-pair://Node_AbC123"', { exact: true })
+          .getByText('vasudev node run --pair "oc-pair://Node_AbC123"', { exact: true })
           .waitFor();
         expect(await qr.count()).toBe(0);
         await page.getByRole("button", { name: "Manage devices" }).click();

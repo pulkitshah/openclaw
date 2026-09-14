@@ -41,7 +41,7 @@ describe("custodian page history", () => {
               at: Date.now() - 10_000,
               kind: "external-edit",
               source: "external",
-              summary: "Configuration edited outside OpenClaw",
+              summary: "Configuration edited outside Vasudev",
               invalid: true,
               opaqueChange: true,
             },

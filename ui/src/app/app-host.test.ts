@@ -279,7 +279,7 @@ function committedRouterState(
   } as unknown as RouterState<RouteId>;
 }
 
-describe("OpenClaw app lifecycle", () => {
+describe("Vasudev app lifecycle", () => {
   it("hides revealed login credentials when the app connection epoch ends", () => {
     const app = document.createElement("openclaw-app") as unknown as AppLifecycleState;
     app.loginShowGatewaySecret = true;
@@ -320,7 +320,7 @@ describe("OpenClaw app lifecycle", () => {
   });
 });
 
-describe("OpenClaw shell source initialization", () => {
+describe("Vasudev shell source initialization", () => {
   it("preserves reload intent on disconnect but clears it on context replacement", () => {
     vi.stubGlobal("sessionStorage", createStorageMock());
     persistLazyShellAction({ eventType: COMMAND_PALETTE_OPEN_EVENT });
@@ -463,7 +463,7 @@ describe("OpenClaw shell source initialization", () => {
   });
 });
 
-describe("OpenClaw shell route session commits", () => {
+describe("Vasudev shell route session commits", () => {
   it("builds session paths from the requested destination face", () => {
     const navigate = vi.fn();
     const shell = document.createElement(
@@ -595,7 +595,7 @@ describe("OpenClaw shell route session commits", () => {
   });
 });
 
-describe("OpenClaw shell server preferences", () => {
+describe("Vasudev shell server preferences", () => {
   it("refreshes live navigation when a sidebar preference arrives from the gateway", () => {
     vi.stubGlobal("localStorage", createStorageMock());
     resetServerUiPrefsSync();
@@ -633,7 +633,7 @@ describe("OpenClaw shell server preferences", () => {
   });
 });
 
-describe("OpenClaw shell settings search", () => {
+describe("Vasudev shell settings search", () => {
   it("loads config and schema for a non-empty query", async () => {
     const runtimeConfig = {
       ensureLoaded: vi.fn(() => Promise.resolve()),
@@ -718,7 +718,7 @@ describe("OpenClaw shell settings search", () => {
   );
 });
 
-describe("OpenClaw shell keyboard shortcuts", () => {
+describe("Vasudev shell keyboard shortcuts", () => {
   it("resolves onboarding mode from the active route search", () => {
     expect(resolveOnboardingMode("?onboarding=1")).toBe(true);
     expect(resolveOnboardingMode("?onboarding=true")).toBe(true);

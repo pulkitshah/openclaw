@@ -78,7 +78,7 @@ describe("GoogleLiveRealtimeTalkTransport control results", () => {
           mode: "status",
           sessionKey: "main",
           active: true,
-          message: "OpenClaw is working in read (running).",
+          message: "Vasudev is working in read (running).",
           speak: true,
           show: true,
           suppress: false,
@@ -130,7 +130,7 @@ describe("GoogleLiveRealtimeTalkTransport control results", () => {
     const sent = ws.sent.map((payload) => JSON.parse(payload));
     expect(sent).toContainEqual({
       realtimeInput: {
-        text: expect.stringContaining('Status: "OpenClaw is working in read (running)."'),
+        text: expect.stringContaining('Status: "Vasudev is working in read (running)."'),
       },
     });
     transport.stop();
@@ -220,7 +220,7 @@ describe("GoogleLiveRealtimeTalkTransport control results", () => {
           sessionKey: "main",
           active: true,
           aborted: true,
-          message: "Cancelled the active OpenClaw run.",
+          message: "Cancelled the active Vasudev run.",
           speak: true,
           show: true,
           suppress: false,

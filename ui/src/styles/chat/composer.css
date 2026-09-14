@@ -4424,7 +4424,7 @@
   object-fit: cover;
 }
 
-/* The 120x120 Clawd canvas stays centered in the existing hero slot. */
+/* The 120x120 Vasu canvas stays centered in the existing hero slot. */
 .agent-chat__welcome-clawd {
   width: 128px;
   height: 112px;

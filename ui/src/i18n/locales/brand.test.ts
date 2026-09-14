@@ -7,13 +7,12 @@ import { PRODUCT_NAME } from "../../app/brand.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
-/** Lines allowed to write the upstream project's name. "OpenClaw" is the name of
- * the code this product is built on, and the About page credits it alongside its
- * license; that is attribution, not copy the rebrand missed. Every entry must
- * still be present, so a line that moves on cannot leave a dead exemption. */
-const UPSTREAM_ATTRIBUTION_LINES: Readonly<Record<string, readonly string[]>> = {
-  "en.ts": ['license: "Vasudev · by TripIn Studio. Built on OpenClaw, MIT License.",'],
-};
+/** The upstream project's name no longer belongs in any catalog: the About page
+ * shows only "Vasudev · by TripIn Studio", and upstream's MIT notice moved to the
+ * Licences disclosure, whose text lives in `ui/src/pages/about/upstream-licence.ts`
+ * (the one reviewed exemption — spec section 2b). The notice file is asserted
+ * below so the exemption cannot go dead. */
+const UPSTREAM_LICENCE_MODULE = "../../pages/about/upstream-licence.ts";
 
 /** Only the English catalogs are source-owned copy. The other locales are
  * generated from translation memory and are refreshed by the locale workflow,
@@ -31,14 +30,16 @@ describe("English catalogs carry the product name", () => {
     expect(files.length).toBeGreaterThan(10);
   });
 
-  it.each(englishCatalogFiles())("%s names the upstream product only to credit it", (file) => {
+  it.each(englishCatalogFiles())("%s never names the upstream product", (file) => {
     const source = readFileSync(path.join(here, file), "utf8");
-    let remaining = source;
-    for (const line of UPSTREAM_ATTRIBUTION_LINES[file] ?? []) {
-      expect(remaining.includes(line)).toBe(true);
-      remaining = remaining.replace(line, "");
-    }
-    expect(remaining).not.toMatch(/\bOpenClaw\b/u);
+    expect(source).not.toMatch(/\bOpenClaw\b/u);
+    expect(source).not.toMatch(/\bClawd\b/u);
+  });
+
+  it("keeps the upstream MIT notice in the Licences module the catalogs no longer carry", () => {
+    const notice = readFileSync(path.join(here, UPSTREAM_LICENCE_MODULE), "utf8");
+    expect(notice).toContain("MIT License");
+    expect(notice).toContain("OpenClaw Foundation");
   });
 
   it("names the product in the shared catalog", () => {

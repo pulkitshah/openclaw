@@ -118,7 +118,7 @@ function populatedColdOpenScenario(): ControlUiMockGatewayScenario {
                 {
                   targetId: "target-1",
                   tabId: "tab-1",
-                  title: "OpenClaw",
+                  title: "Vasudev",
                   url: "https://example.test/",
                 },
               ],
@@ -167,7 +167,7 @@ function populatedColdOpenScenario(): ControlUiMockGatewayScenario {
               "--- a/README.md",
               "+++ b/README.md",
               "@@ -1 +1,2 @@",
-              " OpenClaw",
+              " Vasudev",
               "+Cold-open invariant",
               "",
             ].join("\n"),

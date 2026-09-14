@@ -251,7 +251,7 @@ suite.define(() => {
         });
         for (const route of ["device", "device/permissions"]) {
           expect((await page.goto(`${suite.server.baseUrl}settings/${route}`))?.status()).toBe(200);
-          await page.getByText(/only available inside the OpenClaw app/).waitFor();
+          await page.getByText(/only available inside the Vasudev app/).waitFor();
           await page.locator('.settings-sidebar__item[href="/settings/devices"]').waitFor();
           expect(
             await page

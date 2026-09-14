@@ -44,7 +44,7 @@ const shortFence = `\`\`\`json
 \`\`\``;
 
 const wideFence = `\`\`\`bash
-openclaw gateway start ${"--flag value ".repeat(40)}
+vasudev gateway start ${"--flag value ".repeat(40)}
 \`\`\``;
 
 async function setThemeMode(page: Page, mode: "dark" | "light"): Promise<void> {

@@ -134,7 +134,7 @@ describe("update triage presentation", () => {
               question: {
                 id: "access",
                 header: "Access",
-                question: "How should OpenClaw work?",
+                question: "How should Vasudev work?",
                 options: [{ label: "Full access" }, { label: "Ask first" }],
               },
             }
@@ -191,7 +191,7 @@ describe("update triage presentation", () => {
                     question: {
                       id: "access",
                       header: "Access",
-                      question: "How should OpenClaw work?",
+                      question: "How should Vasudev work?",
                       options: [{ label: "Full access" }, { label: "Ask first" }],
                     },
                   }
