@@ -677,7 +677,7 @@ before starting exactly **one**. Also check port 8788: an orphaned
 Gateway's mail watcher then gives up restarting — the mail trigger is silently
 dead until that process is cleared.
 
-## Blocker B, still open
+## Blocker B, worked around for the proof
 
 ### B. A self-sent mail can never trigger the Gmail hook
 
@@ -706,11 +706,20 @@ documented "send from another address" note in `duties setup-mail`, would close
 it. Either is a new configuration surface, so it was left for the owner rather
 than added here.
 
-The consequence for this task: **the mail proof needs one mail sent from any
-address other than the watched account.** Everything else on the mail path is
-verified — `duties.mail.status` reports all four checks true, the watcher is
-running against `pulkit.works@gmail.com` over the Tailscale Funnel, and the
-dispatcher agent, its mapping and its `gog` exec allowlist are all in place.
+The mail proof was run by sending from a different address, and it dispatched on
+the first try — everything else on the mail path was already verified
+(`duties.mail.status` all four true, the watcher running over the Tailscale
+Funnel, the dispatcher agent, its mapping and its `gog` exec allowlist in
+place). The finding stands regardless: the obvious way to check a Duties mail
+setup, send yourself a test, silently does nothing. A config override for the
+exclusion list, or a "send from another address" note in `duties setup-mail`,
+would close it. Either is a new configuration surface, so it was left for the
+owner rather than added here.
+
+One more thing to clear before any restart: an orphaned `gog gmail watch serve`
+holding port 8788 makes the next Gateway's watcher give up ("gog serve failed to
+bind (address already in use); stopping restarts"), and the mail trigger is then
+silently dead.
 
 ## Setup gaps that were not code defects
 
@@ -755,6 +764,78 @@ requester, with the stop reason intact in the run report.
 `book-flight-by-mail` when the scope grew to holding the ticket, and deleted
 through `duties.delete` so the dispatcher has exactly one Duty with triggers.
 
+## Acceptance: the two runs
+
+Both triggers were exercised end to end on the proof Gateway against the real
+Amigos Alliance portal, the real mailbox and the owner's real Telegram.
+
+### Mail trigger — run `931e5620-9ef4-4073-9345-ad051dc4dfc5`
+
+`status: ok`, `trigger: mail`, **62 steps**, origin
+`{ kind: "mail", agentId: "duties-mail" }` — dispatched by the `duties-mail`
+agent calling `duty_run`, exactly as §3.2 describes.
+
+What the run worked out for itself, from the mail alone:
+
+| output | value |
+| --- | --- |
+| requester | `os.nagpur@licindia.com` |
+| client | `91925` · LIFE INSURANCE CORPORATION OF INDIA NAGPUR · Maharashtra |
+| route / date | IXU → COK, 02/10/2026 |
+| adults | 2 |
+| airline / time | IndiGo / 07:15 |
+| chosenFlight | `IndiGo (6E-6126, 6E-673) 07:15 → 14:25, 1 Stop, Economy, from ₹ 25,742` |
+| fare | **Agency Fare** ₹ 27,036 |
+| cartRef | `AAMH1776482` |
+
+The last six steps are the hold gate working as designed:
+
+```
+tick-terms              browser           ok  #chkTerms
+read-hold-ready         browser.evaluate  ok  "ready"
+open-hold-confirmation  browser           ok  #HoldButton
+wait-hold-confirmation  browser           ok  waited
+read-confirm-summary    browser.evaluate  ok  Cart Booking Reference : AAMH1776482 …
+ask-hold                ask               ok  Decline
+```
+
+`report: hold declined by owner`. The `Hold?` card reached the owner on Telegram
+and they answered with the **Decline button** — the tap resolved the question,
+which is defect 9's fix proving itself on the real flow rather than on a probe.
+
+**The Approve branch was not exercised, by the owner's choice.** Nothing was
+held, and what Amigos shows after Hold Booking Proceed is still unseen, so the
+PNR read and the final "Held: …" deliver remain authored but unrun.
+
+### Chat trigger — run `28f2922d-d812-48f6-a254-d226712ac5a8`
+
+`status: ok`, `trigger: chat`, **46 steps**, origin
+`{ kind: "chat", channel: "telegram", agentId: "krishna" }`.
+
+This run took the **not-found branch**, which is the one the mail run could not
+reach:
+
+```
+find-flight       browser.evaluate  ok  {"matchState":"none", …}
+render-options    template          ok  render-options.pdf (85332 bytes)
+deliver-options   deliver           ok  → telegram:5995225650
+```
+
+`report: the requested Air India 16:00 flight was not found; the options PDF was
+sent to the requester`, with the run's `files[]` carrying
+`render-options.pdf` (85,332 bytes). So the `template` → `deliver` chain is
+proved from a run's own evidence, not only from `template_preview`: a real
+branded PDF, produced by a step and delivered to the owner's Telegram.
+
+Between them the two runs cover the acceptance list: mail and chat triggers,
+mail inputs and nested placeholders, run origin, the `template` step and its
+rendered file, `deliver` to the trigger, and the owner-approval `ask` answered
+from a channel.
+
+One honest gap in the evidence: both runs predate the named-files change, so the
+chat run's document is still called `render-options.pdf` after its step. Named
+files ship in this branch with tests, but no acceptance run has exercised them.
+
 ## What is not proved yet
 
 Honest list, because the useful part of this document is the boundary:
@@ -776,6 +857,14 @@ Honest list, because the useful part of this document is the boundary:
   names at final submit. The same test passengers plus an existing cart could
   raise it, and the Duty has no step vocabulary for a JavaScript alert, so it
   would time out rather than explain itself.
+- **Control UI: the in-app PDF preview does not render.** It points an iframe at
+  a `data:` URL, which Chrome blocks for top-level frame navigation. It needs a
+  `blob:` object URL instead, plus a check that the Control UI's CSP allows
+  `blob:` in `frame-src`/`object-src`.
+- **Control UI: the run page does not show what the run is looking at.** Step
+  screenshots are captured and stored, but a run in progress shows none of them;
+  the page should follow the newest step's screenshot while the run is running,
+  which is the whole point of watching an unattended browser run.
 
 ## Gates
 
@@ -797,18 +886,16 @@ outputs object survives the JSON round-trip the store requires, and the setup
 snippets are asserted key by key — including that the hook prefix allowlist
 actually covers the session key the printed mapping asks for.
 
-## What the owner needs to do next
+## What is left for the owner
 
-1. **Send the request mail from any address other than `pulkit.works@gmail.com`**
-   to `pulkit.works@gmail.com`, subject `Fwd: Ref Id G703-1002 travel request`,
-   body as quoted above (the `From: os.nagpur@licindia.com` line matters — it is
-   what the register lookup matches), ideally with the G703-1002 PDF attached.
-   A mail the account sends to itself is filtered out before the hook sees it.
-2. **Message the Telegram bot** with the same request, for the chat-origin run.
-3. **Answer the approval on Telegram.** The run will message you with the
-   flight, fare, passengers and client, then `Approve / Decline`. Answer
-   Decline if you would rather not place a real hold on the live account.
+1. **Run the Approve branch once**, when they are willing to place a real hold —
+   it is the only part of the flow no run has reached, so the confirmation page,
+   the PNR read and the final "Held: …" deliver are all still unexercised.
+2. **Decide the two shipped-but-unowned gaps**: the browser policy that blocks
+   the plugin's own render page (defect 6 — the browser plugin's owner has to
+   rule on it) and the Gmail `SENT` exclusion (blocker B — a new config surface).
+3. **Fix the two Control UI gaps**: the `data:` iframe PDF preview, and the run
+   page not following the newest step screenshot while a run is in progress.
 
-The proof Gateway on 19001 is left running with `book-flight-by-mail` saved and
-active, so both runs can be observed as they happen. The operator's Gateway on
-18789 is still stopped and was never touched.
+The operator's Gateway on 18789 was stopped for the whole proof and never
+touched.
