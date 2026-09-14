@@ -314,7 +314,7 @@ launchctl bootstrap gui/$UID ~/Library/LaunchAgents/ai.openclaw.ssh-tunnel.plist
 
 The tunnel starts automatically at login, restarts on crash, and keeps the forwarded port live.
 
-Open or reopen Vasudev.app after setup, then verify the connection using the
+Open or reopen OpenClaw.app after setup, then verify the connection using the
 [macOS remote access](/platforms/mac/remote) checks.
 
 <Note>

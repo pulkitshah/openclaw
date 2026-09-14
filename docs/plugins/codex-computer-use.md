@@ -20,15 +20,15 @@ runtime setup itself, see [Codex harness](/plugins/codex-harness).
 
 This is distinct from Vasudev's built-in [node-backed computer tool](/nodes/computer-use). Use the built-in tool when the same agent contract should control a paired Mac whether the agent runs on the Gateway or another node. Use Codex Computer Use when Codex app-server should own local MCP installation, permissions, and native tool calls.
 
-## Vasudev.app and Peekaboo
+## OpenClaw.app and Peekaboo
 
-Vasudev.app's Peekaboo integration is separate from Codex Computer Use. The
+OpenClaw.app's Peekaboo integration is separate from Codex Computer Use. The
 macOS app can host a PeekabooBridge socket so the `peekaboo` CLI can reuse the
 app's local Accessibility and Screen Recording grants for Peekaboo's own
 automation tools. That bridge does not install or proxy Codex Computer Use, and
 Codex Computer Use does not call through the PeekabooBridge socket.
 
-Use [Peekaboo bridge](/platforms/mac/peekaboo) when you want Vasudev.app to be
+Use [Peekaboo bridge](/platforms/mac/peekaboo) when you want OpenClaw.app to be
 a permission-aware host for Peekaboo CLI automation. Use this page when a
 Codex-mode Vasudev agent should have Codex's native `computer-use` MCP plugin
 available before the turn starts.

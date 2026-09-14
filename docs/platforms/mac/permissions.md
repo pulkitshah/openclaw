@@ -59,7 +59,7 @@ If access still appears missing, quit and reopen Vasudev from the same app path.
 
 ## Accessibility grants for Node and CLI runtimes
 
-Prefer granting Accessibility to Vasudev.app, Peekaboo.app, or another signed helper with its own bundle identifier instead of a generic `node` binary.
+Prefer granting Accessibility to OpenClaw.app, Peekaboo.app, or another signed helper with its own bundle identifier instead of a generic `node` binary.
 
 macOS TCC grants Accessibility to the code identity of the process it sees. If a Homebrew, nvm, pnpm, or npm workflow causes a shared `node` executable to receive Accessibility, any JavaScript package launched through that same executable may inherit GUI automation privileges.
 

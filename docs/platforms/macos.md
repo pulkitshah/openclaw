@@ -26,7 +26,7 @@ Only need the CLI and Gateway? Start with [Getting started](/start/getting-start
 
 ## Requirements
 
-**Vasudev.app requires macOS 15.0 (Sequoia) or later.** This also applies to
+**OpenClaw.app requires macOS 15.0 (Sequoia) or later.** This also applies to
 its native `openclaw-mac` helper. [Voice Wake and push-to-talk](/platforms/mac/voicewake#requirements)
 require macOS 26 or later.
 
@@ -52,7 +52,7 @@ has no macOS app asset, use the newest one that does, or build from source with
 
 ## First run
 
-1. Install and launch **Vasudev.app**.
+1. Install and launch **OpenClaw.app**.
 2. Pick **This Mac** for a local Gateway, or **Connect to an existing Gateway**
    to enter its address and sign in. A saved Gateway opens its dashboard after
    connection and completes first-run setup without changing the Mac's primary

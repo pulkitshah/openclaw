@@ -88,6 +88,73 @@ describe("rewriteProseContent (Markdown)", () => {
   });
 });
 
+describe("rewriteProseContent (bundle/artifact names)", () => {
+  it("never rewrites a shipped bundle name or a versioned release artifact filename", () => {
+    // Native-app renaming is spec Phase 3, not this task: the files on disk
+    // and GitHub release assets are still literally named this, so the docs
+    // describing them must keep saying so.
+    const content = [
+      "Launch **OpenClaw.app** from Applications.",
+      "Download `OpenClaw-Android.apk` from the latest OpenClaw release.",
+      "Verify it against `OpenClaw-Android-SHA256SUMS.txt`.",
+    ].join("\n");
+
+    const { content: rewritten, count } = rewriteProseContent(content, { isMarkdown: true });
+
+    expect(rewritten).toContain("Launch **OpenClaw.app**");
+    expect(rewritten).toContain("`OpenClaw-Android.apk`");
+    expect(rewritten).toContain("`OpenClaw-Android-SHA256SUMS.txt`");
+    expect(rewritten).toContain("the latest Vasudev release"); // surrounding prose still renames
+    expect(count).toBe(1);
+  });
+
+  it("still rewrites a hyphenated adjective that is not a filename", () => {
+    const content = "This is an OpenClaw-managed and OpenClaw-owned resource.\n";
+    const { content: rewritten, count } = rewriteProseContent(content, { isMarkdown: true });
+    expect(rewritten).toBe("This is an Vasudev-managed and Vasudev-owned resource.\n");
+    expect(count).toBe(2);
+  });
+});
+
+describe("rewriteProseContent (generated blocks)", () => {
+  it("never rewrites inside a clawtributors block, visible or hidden-comment variant", () => {
+    const content = [
+      "Thanks to all clawtributors:",
+      "",
+      "<!-- clawtributors:start -->",
+      '<a href="https://github.com/stevebot"><img alt="Steve (OpenClaw)"></a>',
+      "<!-- clawtributors:end -->",
+      "<!-- clawtributors:hidden:start",
+      "some-user (OpenClaw)",
+      "clawtributors:hidden:end -->",
+      "",
+      "OpenClaw is developed in the open.",
+    ].join("\n");
+
+    const { content: rewritten, count } = rewriteProseContent(content, { isMarkdown: true });
+
+    expect(rewritten).toContain('alt="Steve (OpenClaw)"');
+    expect(rewritten).toContain("some-user (OpenClaw)");
+    expect(rewritten).toContain("Vasudev is developed in the open."); // prose outside the block still renames
+    expect(count).toBe(1);
+  });
+
+  it("never rewrites inside a generic <!-- generated --> block", () => {
+    const content = [
+      "<!-- generated -->",
+      "OpenClaw internal table row",
+      "<!-- /generated -->",
+      "OpenClaw prose outside the block.",
+    ].join("\n");
+
+    const { content: rewritten, count } = rewriteProseContent(content, { isMarkdown: true });
+
+    expect(rewritten).toContain("OpenClaw internal table row");
+    expect(rewritten).toContain("Vasudev prose outside the block.");
+    expect(count).toBe(1);
+  });
+});
+
 describe("rewriteProseContent (link fragments)", () => {
   it("never rewrites a markdown link's #fragment, even one spelled in lowercase openclaw", () => {
     // A regression check: an earlier version of this script also tried to
@@ -198,6 +265,31 @@ describe("rewriteJsonManifestContent", () => {
     expect(rewritten).toContain('"help": "OpenClaw does not currently support this model."');
     expect(rewritten).toContain('"label": "OpenClaw Model"');
   });
+
+  it("rewrites only docs.json's name field, never its logo/favicon/colors", () => {
+    const content = [
+      "{",
+      '  "$schema": "https://mintlify.com/docs.json",',
+      '  "name": "OpenClaw",',
+      '  "logo": {',
+      '    "light": "/assets/pixel-lobster.svg"',
+      "  },",
+      '  "favicon": "/assets/pixel-lobster.svg",',
+      '  "colors": {',
+      '    "primary": "#D84A31"',
+      "  }",
+      "}",
+      "",
+    ].join("\n");
+
+    const { content: rewritten, count } = rewriteJsonManifestContent(content, "docs.json");
+
+    expect(count).toBe(1);
+    expect(rewritten).toContain('"name": "Vasudev"');
+    expect(rewritten).toContain('"light": "/assets/pixel-lobster.svg"');
+    expect(rewritten).toContain('"favicon": "/assets/pixel-lobster.svg"');
+    expect(rewritten).toContain('"primary": "#D84A31"');
+  });
 });
 
 describe("collectTargetFiles", () => {
@@ -219,6 +311,7 @@ describe("collectTargetFiles", () => {
     const files = collectTargetFiles(rootDir);
 
     expect(files).toContain("README.md");
+    expect(files).toContain("docs/docs.json");
     expect(files).toContain("docs/start/why-openclaw.md");
     expect(files).toContain("extensions/telegram/package.json");
     expect(files).toContain("extensions/telegram/openclaw.plugin.json");
@@ -333,6 +426,32 @@ describe("rewriteTypeScriptContent", () => {
     const { content: rewritten, count } = rewriteTypeScriptContent(content, "src/cli/enum.ts");
     expect(rewritten).toBe(content);
     expect(count).toBe(0);
+  });
+
+  it("rewrites a locale file's brandName string value while leaving its key, a docs URL, and a type name alone", () => {
+    // The brief's fourth required fixture case: a locale-shaped file (the
+    // real ui/src/i18n/locales/en.ts is not yet swept -- see
+    // DEFERRED_ALLOWLIST_GLOBS -- but the TypeScript-aware rewrite mechanism
+    // this exercises is the same one that will run over it once ui/** is
+    // migrated).
+    const content = [
+      "import type { OpenClawConfig } from '../config.ts';",
+      "",
+      "export const en = {",
+      '  brandName: "OpenClaw",',
+      '  docsUrl: "https://docs.openclaw.ai/start/getting-started",',
+      "} satisfies OpenClawConfig;",
+    ].join("\n");
+    const { content: rewritten, count } = rewriteTypeScriptContent(
+      content,
+      "ui/src/i18n/locales/en.ts",
+    );
+
+    expect(rewritten).toContain('brandName: "Vasudev",');
+    expect(rewritten).toContain('docsUrl: "https://docs.openclaw.ai/start/getting-started",');
+    expect(rewritten).toContain("import type { OpenClawConfig }");
+    expect(rewritten).toContain("} satisfies OpenClawConfig;");
+    expect(count).toBe(1); // only the brandName string value
   });
 });
 

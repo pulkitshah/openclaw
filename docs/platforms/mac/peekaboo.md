@@ -1,7 +1,7 @@
 ---
 summary: "PeekabooBridge integration for macOS UI automation"
 read_when:
-  - Hosting PeekabooBridge in Vasudev.app
+  - Hosting PeekabooBridge in OpenClaw.app
   - Integrating Peekaboo via Swift Package Manager
   - Changing PeekabooBridge protocol/paths
   - Deciding between PeekabooBridge, Codex Computer Use, and cua-driver MCP
@@ -12,7 +12,7 @@ Vasudev can host **PeekabooBridge** as a local, permission-aware UI automation b
 
 ## What this is (and is not)
 
-- **Host**: Vasudev.app can act as a PeekabooBridge host.
+- **Host**: OpenClaw.app can act as a PeekabooBridge host.
 - **Client**: the `peekaboo` CLI, installed from [peekaboo.sh](https://peekaboo.sh/) (there is no separate `openclaw ui ...` surface).
 - **UI**: visual overlays stay in Peekaboo.app. Vasudev is a thin broker host.
 
@@ -20,12 +20,12 @@ Vasudev can host **PeekabooBridge** as a local, permission-aware UI automation b
 
 Vasudev has four desktop-control paths that intentionally stay separate:
 
-- **PeekabooBridge host**: Vasudev.app hosts the local PeekabooBridge socket. The `peekaboo` CLI is the client and uses Vasudev.app's macOS permissions for screenshots, clicks, menus, dialogs, Dock actions, and window management.
+- **PeekabooBridge host**: OpenClaw.app hosts the local PeekabooBridge socket. The `peekaboo` CLI is the client and uses OpenClaw.app's macOS permissions for screenshots, clicks, menus, dialogs, Dock actions, and window management.
 - **Agent-driven computer use (`computer.act`)**: the gateway agent's built-in `computer` tool captures screenshots via `screen.snapshot`. It drives the pointer and keyboard through the dangerous `computer.act` node command. A macOS node fulfills `computer.act` in-process. It uses the embedded Peekaboo automation services this bridge exposes, plus narrow CoreGraphics primitives. It does not go through the PeekabooBridge socket or the `peekaboo` CLI. See [Computer use](/nodes/computer-use).
 - **Codex Computer Use**: the bundled `codex` plugin checks and can install Codex's `computer-use` MCP plugin (`extensions/codex/src/app-server/computer-use.ts`). Codex then owns native desktop-control tool calls during Codex-mode turns. Vasudev does not proxy those actions through PeekabooBridge.
 - **Direct `cua-driver` MCP**: Vasudev can register TryCua's upstream `cua-driver mcp` server as a normal MCP server. This gives agents the CUA driver's own schemas and pid/window/element-index workflow. It does not route through the Codex marketplace or the PeekabooBridge socket.
 
-Use Peekaboo for the broad macOS automation surface via Vasudev.app's permission-aware bridge host. Use agent-driven computer use when the gateway agent should see and control the desktop. It does this through a uniform `computer.act` node command that any vision model can drive. Use Codex Computer Use when a Codex-mode agent should rely on Codex's native plugin. Use direct `cua-driver mcp` to expose the CUA driver to any Vasudev-managed runtime as a normal MCP server.
+Use Peekaboo for the broad macOS automation surface via OpenClaw.app's permission-aware bridge host. Use agent-driven computer use when the gateway agent should see and control the desktop. It does this through a uniform `computer.act` node command that any vision model can drive. Use Codex Computer Use when a Codex-mode agent should rely on Codex's native plugin. Use direct `cua-driver mcp` to expose the CUA driver to any Vasudev-managed runtime as a normal MCP server.
 
 ## Enable the bridge
 
@@ -126,7 +126,7 @@ Peekaboo clients typically try hosts in this order:
 
 1. Peekaboo.app (full UX)
 2. Claude.app (if installed)
-3. Vasudev.app (thin broker)
+3. OpenClaw.app (thin broker)
 
 Use `peekaboo bridge status --verbose` to see which host is active and which socket path is in use. Override with:
 
@@ -151,7 +151,7 @@ export PEEKABOO_BRIDGE_SOCKET=/path/to/bridge.sock
 ## Troubleshooting
 
 - If `peekaboo` reports "bridge client is not authorized", ensure the client is properly signed. As an alternative, run the host with `PEEKABOO_ALLOW_UNSIGNED_SOCKET_CLIENTS=1` in **debug** mode only.
-- If no hosts are found, open one of the host apps (Peekaboo.app or Vasudev.app). Then check that permissions are granted.
+- If no hosts are found, open one of the host apps (Peekaboo.app or OpenClaw.app). Then check that permissions are granted.
 
 ## Related
 

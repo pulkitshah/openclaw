@@ -21,7 +21,7 @@ then return here for first-run setup.
 
 <Steps>
 <Step title="Approve macOS warning">
-The first time you open Vasudev.app, macOS asks you to approve a downloaded
+The first time you open OpenClaw.app, macOS asks you to approve a downloaded
 app. Click **Open** to continue.
 
 <Frame>

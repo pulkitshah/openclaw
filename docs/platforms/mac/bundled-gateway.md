@@ -1,13 +1,13 @@
 ---
 summary: "Gateway runtime on macOS (external launchd service)"
 read_when:
-  - Packaging Vasudev.app
+  - Packaging OpenClaw.app
   - Debugging the macOS gateway launchd service
   - Installing the gateway CLI for macOS
 title: "Gateway on macOS"
 ---
 
-Vasudev.app bundles a private Node runtime and matching Vasudev package for
+OpenClaw.app bundles a private Node runtime and matching Vasudev package for
 its app-owned `node worker` helper. Rebuilding or replacing the app replaces
 that helper too, including rebuilds with the same public version. The helper
 runs from the signed bundle, so moving the app or removing its build checkout

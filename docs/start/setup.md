@@ -72,7 +72,7 @@ node openclaw.mjs gateway --port 18789 --verbose
 
 ## Stable workflow (macOS app first)
 
-1. Install + launch **Vasudev.app** (menu bar).
+1. Install + launch **OpenClaw.app** (menu bar).
 2. Complete the onboarding/permissions checklist (TCC prompts).
 3. Ensure Gateway is **Local** and running (the app manages it).
 4. Link surfaces (example: WhatsApp):
@@ -135,7 +135,7 @@ TypeScript rebuilds triggered by `pnpm openclaw ...` or `pnpm gateway:watch` pre
 
 ### 2) Point the macOS app at your running Gateway
 
-In **Vasudev.app**:
+In **OpenClaw.app**:
 
 - Connection Mode: **Local**
   The app will attach to the running gateway on the configured port.

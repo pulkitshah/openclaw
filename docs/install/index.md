@@ -22,7 +22,7 @@ Prefer a normal app download over the CLI? Vasudev ships desktop companions:
   - [OpenClawCompanion-Setup-x64.exe](https://github.com/openclaw/openclaw-windows-node/releases/latest/download/OpenClawCompanion-Setup-x64.exe)
   - [OpenClawCompanion-Setup-arm64.exe](https://github.com/openclaw/openclaw-windows-node/releases/latest/download/OpenClawCompanion-Setup-arm64.exe)
   - All Hub releases: [Windows Hub releases page](https://github.com/openclaw/openclaw-windows-node/releases/latest)
-- **macOS**: the [macOS menu bar app](/platforms/macos) — download the `OpenClaw-<version>.dmg` (preferred) or `.zip` asset from [Vasudev GitHub releases](https://github.com/openclaw/openclaw/releases), then install and launch **Vasudev.app**. See the [macOS app page](/platforms/macos) for details, including what to do when the newest release ships no macOS asset.
+- **macOS**: the [macOS menu bar app](/platforms/macos) — download the `OpenClaw-<version>.dmg` (preferred) or `.zip` asset from [Vasudev GitHub releases](https://github.com/openclaw/openclaw/releases), then install and launch **OpenClaw.app**. See the [macOS app page](/platforms/macos) for details, including what to do when the newest release ships no macOS asset.
 
 Both desktop apps can provision a local Gateway during first-run setup, or connect to an existing remote Gateway.
 
