@@ -1,4 +1,5 @@
 import { readFile, stat } from "node:fs/promises";
+import { basename } from "node:path";
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { OpenClawPluginApi } from "../api.js";
@@ -34,6 +35,25 @@ type Scope = "operator.read" | "operator.write" | "operator.admin";
 /** Same per-entry ceiling the evidence blob store enforces on screenshots (`index.ts`), applied
  *  here by hand because a rendered document is a plain file with no store to bound it. */
 const MAX_RUN_FILE_BYTES = 4 * 1024 * 1024;
+
+/**
+ * Reads a file this plugin itself produced and returns it base64, bounded.
+ *
+ * One owner for the bound: every method that answers a rendered document or its preview image
+ * sends the whole thing in one RPC frame, and base64 inflates it by a third, so they share both
+ * the ceiling and its wording. Sized before reading, not after — and the sweep can still remove
+ * the file between the stat and the read.
+ */
+async function readCappedBase64(filePath: string): Promise<string> {
+  const info = await stat(filePath).catch(() => undefined);
+  if (!info) throw new Error("that file is no longer stored");
+  if (info.size > MAX_RUN_FILE_BYTES) {
+    throw new Error(`file too large to return (${info.size} bytes)`);
+  }
+  const bytes = await readFile(filePath).catch(() => undefined);
+  if (!bytes) throw new Error("that file is no longer stored");
+  return bytes.toString("base64");
+}
 
 /**
  * Registers the Duties Gateway RPC surface, following the
@@ -336,23 +356,29 @@ export function registerDutiesGatewayMethods(params: {
   register("duties.run.file", "operator.read", async (params) => {
     const runId = readRunId(params);
     if (typeof params.stepId !== "string" || !params.stepId) throw new Error("stepId is required");
+    if (params.kind !== undefined && params.kind !== "document" && params.kind !== "preview") {
+      throw new Error('kind must be "document" or "preview"');
+    }
     const run = await store.getRun(runId);
     if (!run) throw new Error("no such run");
     // Only a path this run itself recorded is ever read: the caller never names a path, so this
     // method cannot be turned into an arbitrary file read.
     const file = (run.files ?? []).find((f) => f.stepId === params.stepId);
     if (!file) throw new Error("no document for that step");
-    // Sized before reading, not after: base64 inflates by a third and the whole thing goes out in
-    // one RPC frame. Matches the evidence blob store's own per-entry cap (`index.ts`).
-    const info = await stat(file.path).catch(() => undefined);
-    if (!info) throw new Error("that file is no longer stored");
-    if (info.size > MAX_RUN_FILE_BYTES) {
-      throw new Error(`file too large to return (${info.size} bytes)`);
+    if (params.kind === "preview") {
+      if (!file.previewPath) throw new Error("no preview image for that step");
+      const preview = await readCappedBase64(file.previewPath);
+      return {
+        name: basename(file.previewPath),
+        contentType: "image/png",
+        base64: preview,
+      };
     }
-    const bytes = await readFile(file.path).catch(() => undefined);
-    // The sweep can remove the run directory between the stat and the read.
-    if (!bytes) throw new Error("that file is no longer stored");
-    return { name: file.name, contentType: file.contentType, base64: bytes.toString("base64") };
+    return {
+      name: file.name,
+      contentType: file.contentType,
+      base64: await readCappedBase64(file.path),
+    };
   });
 
   register("duties.template.list", "operator.read", async () => ({
@@ -384,8 +410,11 @@ export function registerDutiesGatewayMethods(params: {
 
   /** Renders a preview to a file and returns where it landed. `duties.template.preview` below
    *  answers the same render as base64 for the Control UI; both go through `renderTemplatePreview`
-   *  so the owner can never be shown two different documents for one template. */
-  register("duties.template.render", "operator.read", async (params) => {
+   *  so the owner can never be shown two different documents for one template.
+   *
+   *  `operator.write`, not read: rendering drives the managed browser, opens a tab and writes a
+   *  file to disk. The spec put preview on the read side, but nothing about this call is a read. */
+  register("duties.template.render", "operator.write", async (params) => {
     const id = readId(params);
     const data = isRecord(params.data) ? params.data : undefined;
     return await renderTemplatePreview({
@@ -402,19 +431,25 @@ export function registerDutiesGatewayMethods(params: {
     stored: await creds.has(readCredKey(params)),
   }));
 
-  register("duties.template.preview", "operator.read", async (params) => {
+  /** The same render as `duties.template.render`, answered inline for the Control UI: the printed
+   *  PDF and, when the profile could take one, a PNG of the same page. Both are capped like
+   *  `duties.run.file`. `preview` is omitted rather than null when there is no image. */
+  register("duties.template.preview", "operator.write", async (params) => {
     const id = readId(params);
     const data = isRecord(params.data) ? params.data : undefined;
-    const preview = await renderTemplatePreview({
+    const rendered = await renderTemplatePreview({
       store,
       render,
       previewDir,
       id,
       ...(data ? { data } : {}),
     });
+    const image = rendered.previewPath
+      ? await readCappedBase64(rendered.previewPath).catch(() => undefined)
+      : undefined;
     return {
-      contentType: "application/pdf",
-      base64: (await readFile(preview.path)).toString("base64"),
+      pdf: { contentType: "application/pdf", base64: await readCappedBase64(rendered.path) },
+      ...(image ? { preview: { contentType: "image/png", base64: image } } : {}),
     };
   });
 

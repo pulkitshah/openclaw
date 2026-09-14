@@ -3,9 +3,14 @@ import { copyFile, mkdir, stat } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { BrowserAdapter } from "../runner.js";
+import { RENDER_ALLOWLIST_REMEDY } from "../setup.js";
 
 export const RENDER_ROUTE_PATH = "/plugins/duties/render/";
+/** The `<meta name>` the served document carries, holding that document's own single-use token.
+ *  It is what proves the tab the adapter is about to print is the document it just published. */
+export const RENDER_MARKER_NAME = "duties-render";
 const DEFAULT_TTL_MS = 60_000;
 
 export type RenderServer = {
@@ -54,40 +59,126 @@ export function createRenderServer(params: {
       res.statusCode = 200;
       res.setHeader("content-type", "text/html; charset=utf-8");
       res.setHeader("cache-control", "no-store");
-      res.end(entry.html);
+      // Prepended rather than spliced into a `<head>`: a template's html is an authored fragment
+      // with no guaranteed head, and a leading `<meta>` is parsed into the implied head anyway
+      // (HTML "before head" insertion mode), so `document.querySelector` finds it either way. The
+      // token is a uuid, so it needs no escaping to sit inside the attribute.
+      res.end(`<meta name="${RENDER_MARKER_NAME}" content="${token}">\n${entry.html}`);
       return true;
     },
   };
 }
 
-export type RenderAdapter = { toPdf(html: string, destPath: string): Promise<{ bytes: number }> };
+export type RenderResult = {
+  bytes: number;
+  /** Where the PNG of the printed page landed, when one could be taken. Absent is normal (a
+   *  profile with no screenshot route); it never fails the render. */
+  previewPath?: string;
+};
+export type RenderAdapter = { toPdf(html: string, destPath: string): Promise<RenderResult> };
+
+/** One evaluate for the whole verification: the marker that proves identity plus the two strings
+ *  used to describe whatever loaded instead. Function SOURCE, not a body — the act route evals
+ *  `"(" + fnSource + ")"` and requires the result to be a function
+ *  (extensions/browser/src/browser/pw-tools-core.interactions.actions.ts:389-400). */
+const MARKER_PROBE_FN = `() => ({
+  marker: document.querySelector('meta[name="${RENDER_MARKER_NAME}"]')?.content ?? "",
+  title: document.title ?? "",
+  text: (document.body?.innerText ?? "").trim()
+})`;
+
+/** The shapes the navigation guard and the SSRF policy under it report a blocked loopback
+ *  navigation as (`Blocked hostname or private/internal/special-use IP address`,
+ *  src/infra/net/ssrf.ts:360; `Navigation blocked: …`,
+ *  extensions/browser/src/browser/navigation-guard.ts:133-163). Matching them is what lets the one
+ *  error an owner sees carry its own remedy. */
+const NAVIGATION_BLOCKED_RE = /navigation blocked|blocked hostname|private\/internal|special-use/iu;
+
+/** What the tab is showing, in the fewest words that identify it: the title, else the first 80
+ *  characters of its text. Never the page's full text — a render page can hold customer data. */
+function describePage(title: string, text: string): string {
+  const label = title.trim() || text.trim();
+  return label.slice(0, 80);
+}
 
 export function createRenderAdapter(params: {
   server: RenderServer;
-  browser: Pick<BrowserAdapter, "open" | "pdf" | "close">;
+  browser: Pick<BrowserAdapter, "open" | "pdf" | "close" | "evaluate" | "text" | "screenshotPath">;
   timeoutMs?: number;
 }): RenderAdapter {
+  const { browser } = params;
+  /** Reads the marker the served document carries. Falls back to `/text` for the description
+   *  only: the marker lives in a `<meta>`, which page text never contains, so a probe that could
+   *  not run is a failure to verify, not a pass. */
+  const readPage = async (targetId: string): Promise<{ marker: string; description: string }> => {
+    try {
+      const probed = await browser.evaluate(targetId, MARKER_PROBE_FN, params.timeoutMs);
+      if (isRecord(probed)) {
+        return {
+          marker: typeof probed.marker === "string" ? probed.marker : "",
+          description: describePage(
+            typeof probed.title === "string" ? probed.title : "",
+            typeof probed.text === "string" ? probed.text : "",
+          ),
+        };
+      }
+    } catch {
+      // A profile that cannot evaluate still has to say what it is showing.
+    }
+    const text = await browser.text(targetId).catch(() => "");
+    return { marker: "", description: describePage("", text) };
+  };
+
   return {
     async toPdf(html, destPath) {
-      const { url } = params.server.publish(html);
+      const { url, token } = params.server.publish(html);
       let targetId: string;
       try {
-        ({ targetId } = await params.browser.open(url, params.timeoutMs ?? 30_000));
+        ({ targetId } = await browser.open(url, params.timeoutMs ?? 30_000));
       } catch (error) {
-        // Naming the URL is the whole point: the two ways this fails in practice are a wrong
-        // scheme (a TLS-enabled Gateway) and a wrong port, and a bare browser navigation error
-        // says neither. The URL carries a single-use token, never a credential.
-        throw new Error(`could not open the render page at ${url}: ${coerceErrorMessage(error)}`, {
+        // Naming the URL is the whole point: the ways this fails in practice are a wrong scheme
+        // (a TLS-enabled Gateway), a wrong port, and the browser's own SSRF policy refusing
+        // loopback — and a bare browser navigation error says none of them. The URL carries a
+        // single-use token, never a credential.
+        const message = coerceErrorMessage(error);
+        const remedy = NAVIGATION_BLOCKED_RE.test(message) ? ` — ${RENDER_ALLOWLIST_REMEDY}` : "";
+        throw new Error(`could not open the render page at ${url}: ${message}${remedy}`, {
           cause: error,
         });
       }
       try {
-        const produced = await params.browser.pdf(targetId);
+        // Printing whatever the tab happens to show is how a 404 page, an interstitial, or a
+        // second Gateway's answer became a plausible `<name>.pdf` that a `deliver` step then sent
+        // to a customer. The marker is this document's own single-use token, so only the page
+        // just published can carry it.
+        const page = await readPage(targetId);
+        if (page.marker !== token) {
+          throw new Error(
+            `render page not served at ${url} (got ${page.description || "an empty page"})`,
+          );
+        }
+        const produced = await browser.pdf(targetId);
         await mkdir(path.dirname(destPath), { recursive: true });
         await copyFile(produced, destPath);
-        return { bytes: (await stat(destPath)).size };
+        const bytes = (await stat(destPath)).size;
+        // Best-effort: a PNG of the same tab, next to the PDF, so the owner can see the document
+        // in the Control UI without a PDF viewer. A profile that cannot screenshot still renders.
+        const previewPath = await copyPreview(targetId).catch(() => undefined);
+        return { bytes, ...(previewPath ? { previewPath } : {}) };
       } finally {
-        await params.browser.close(targetId).catch(() => {});
+        await browser.close(targetId).catch(() => {});
+      }
+
+      async function copyPreview(tab: string): Promise<string | undefined> {
+        const shot = await browser.screenshotPath(tab);
+        if (!shot) return undefined;
+        const ext = path.extname(destPath);
+        const dest = path.join(
+          path.dirname(destPath),
+          `${ext ? path.basename(destPath, ext) : path.basename(destPath)}.png`,
+        );
+        await copyFile(shot, dest);
+        return dest;
       }
     },
   };

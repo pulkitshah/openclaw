@@ -18,7 +18,7 @@ export async function renderTemplatePreview(params: {
   previewDir: () => Promise<string>;
   id: string;
   data?: Record<string, unknown>;
-}): Promise<{ path: string; bytes: number }> {
+}): Promise<{ path: string; bytes: number; previewPath?: string }> {
   const template = await params.store.getTemplate(params.id);
   if (!template) throw new Error(`no template "${params.id}"`);
   if (template.kind !== "pdf") {
@@ -38,6 +38,6 @@ export async function renderTemplatePreview(params: {
     safeFileName(`${template.name} preview ${Date.now()}`, ".pdf") ??
     `${template.id}-preview-${Date.now()}.pdf`;
   const dest = path.join(await params.previewDir(), name);
-  const { bytes } = await params.render.toPdf(rendered.output, dest);
-  return { path: dest, bytes };
+  const { bytes, previewPath } = await params.render.toPdf(rendered.output, dest);
+  return { path: dest, bytes, ...(previewPath ? { previewPath } : {}) };
 }

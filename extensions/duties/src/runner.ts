@@ -71,7 +71,14 @@ export type BrowserAdapter = {
   text(targetId: string, target?: Target, timeoutMs?: number): Promise<string>;
   url(targetId: string): Promise<string>;
   evaluate(targetId: string, fn: string, timeoutMs?: number): Promise<unknown>;
+  /** Captures the tab and registers the image in the evidence blob store, returning its blob key.
+   *  `undefined` when this adapter has no blob store (a render tab, which keeps its image as a
+   *  file instead — see `screenshotPath`). */
   screenshot(targetId: string): Promise<string | undefined>;
+  /** Captures the tab and returns the path the browser plugin wrote the image to, with no blob
+   *  store involved. The render adapter copies that file next to the PDF it just printed, so a
+   *  rendered document has a picture of itself that needs no PDF viewer to look at. */
+  screenshotPath(targetId: string): Promise<string | undefined>;
   close(targetId: string): Promise<void>;
   /** Prints the tab to PDF via the browser plugin's `/pdf` route; returns the absolute path the
    *  browser plugin wrote it to (not the caller's destination — the render adapter copies it). */
@@ -460,13 +467,16 @@ export async function runDuty(
               `${path.basename(step.id)}.pdf`,
           );
           const dest = path.join(deps.filesDir, name);
-          const { bytes } = await deps.render.toPdf(rendered.output, dest);
+          const { bytes, previewPath } = await deps.render.toPdf(rendered.output, dest);
           const file: RunFile = {
             stepId: step.id,
             name,
             path: dest,
             bytes,
             contentType: "application/pdf",
+            // Conditional so an absent preview never becomes an explicit `undefined`-valued key:
+            // the plugin state store rejects those (`isPluginJsonValue`).
+            ...(previewPath ? { previewPath } : {}),
           };
           files.push(file);
           deps.onFile?.(file);

@@ -255,6 +255,15 @@ export function createBrowserAdapter(params: {
     }
   };
 
+  /** The one call that captures a tab. `screenshot` keeps the bytes in the evidence blob store;
+   *  the render adapter keeps the file. */
+  const screenshotPath = async (targetId: string): Promise<string | undefined> => {
+    const r = await call<{ path?: string }>("POST", "/screenshot", {
+      body: { targetId, fullPage: false },
+    });
+    return r.path || undefined;
+  };
+
   return {
     drainRetryNotes() {
       return retryNotes.splice(0, retryNotes.length);
@@ -360,14 +369,14 @@ export function createBrowserAdapter(params: {
       const r = await act<{ result?: unknown }>(targetId, { kind: "evaluate", fn }, timeoutMs);
       return "result" in r ? r.result : undefined;
     },
+    screenshotPath,
     async screenshot(targetId) {
       if (!params.blobs) return undefined;
-      const r = await call<{ path?: string }>("POST", "/screenshot", {
-        body: { targetId, fullPage: false },
-      });
-      if (!r.path) return undefined;
-      const bytes = await readFile(r.path);
-      const ext = extname(r.path).toLowerCase();
+      // One owner for the capture itself; this method only decides where the bytes are kept.
+      const file = await screenshotPath(targetId);
+      if (!file) return undefined;
+      const bytes = await readFile(file);
+      const ext = extname(file).toLowerCase();
       const contentType = ext === ".jpg" || ext === ".jpeg" ? "image/jpeg" : "image/png";
       return params.blobs.put(bytes, contentType);
     },

@@ -344,10 +344,11 @@ export function registerDutyTools(params: { api: OpenClawPluginApi }): void {
     }),
     execute: async (_toolCallId, rawInput) => {
       const data = isRecord(rawInput) && isRecord(rawInput.data) ? rawInput.data : undefined;
+      // `operator.write`: the render drives the managed browser, opens a tab and writes a file.
       const { path } = await call<{ path: string; bytes: number }>(
         "duties.template.render",
         { id: readId(rawInput), ...(data ? { data } : {}) },
-        "operator.read",
+        "operator.write",
       );
       return jsonResult({ path });
     },

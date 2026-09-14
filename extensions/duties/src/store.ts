@@ -24,6 +24,10 @@ export type RunFile = {
   path: string;
   bytes: number;
   contentType: string;
+  /** PNG of the page this document was printed from, written beside it by the render adapter.
+   *  Absent when the browser profile could not screenshot — `duties.run.file` then says so
+   *  rather than inventing an image. */
+  previewPath?: string;
 };
 
 /**

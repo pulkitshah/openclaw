@@ -115,7 +115,8 @@ describe("duty tools as gateway clients", () => {
     expect(calls[0]).toMatchObject({
       method: "duties.template.render",
       params: { id: "flight-options", data: { route: "IXU" } },
-      scopes: ["operator.read"],
+      // A render drives the managed browser, opens a tab and writes a file: not a read.
+      scopes: ["operator.write"],
     });
   });
 

@@ -375,18 +375,22 @@ describe("duties gateway methods", () => {
     expect(JSON.stringify(swept)).not.toContain(dir);
   });
 
-  it("duties.template.preview renders a pdf template and reports its content type", async () => {
+  it("duties.template.preview returns the pdf and the png of the same render, both write-scoped", async () => {
     const previews = await mkdtemp(path.join(tmpdir(), "duties-preview-"));
     const { call, store, methods } = harness({
       previewDir: previews,
       render: {
         toPdf: async (_html, dest) => {
           await writeFile(dest, "%PDF-preview");
-          return { bytes: 12 };
+          const previewPath = `${dest.slice(0, -".pdf".length)}.png`;
+          await writeFile(previewPath, "PNG-preview");
+          return { bytes: 12, previewPath };
         },
       },
     });
-    expect(methods.get("duties.template.preview")?.scope).toBe("operator.read");
+    // Both render methods drive the managed browser and write a file: neither is a read.
+    expect(methods.get("duties.template.preview")?.scope).toBe("operator.write");
+    expect(methods.get("duties.template.render")?.scope).toBe("operator.write");
     expect(methods.get("duties.template.delete")?.scope).toBe("operator.admin");
     await store.saveTemplate({
       id: "note",
@@ -399,10 +403,84 @@ describe("duties gateway methods", () => {
 
     const preview = await call("duties.template.preview", { id: "note" });
     expect(preview.result).toEqual({
-      contentType: "application/pdf",
-      base64: Buffer.from("%PDF-preview").toString("base64"),
+      pdf: {
+        contentType: "application/pdf",
+        base64: Buffer.from("%PDF-preview").toString("base64"),
+      },
+      preview: { contentType: "image/png", base64: Buffer.from("PNG-preview").toString("base64") },
     });
     expect((await call("duties.template.preview", { id: "missing" })).ok).toBe(false);
+  });
+
+  it("duties.template.preview caps its base64 payload exactly like duties.run.file", async () => {
+    const previews = await mkdtemp(path.join(tmpdir(), "duties-preview-big-"));
+    const oversize = 4 * 1024 * 1024 + 1;
+    const { call, store } = harness({
+      previewDir: previews,
+      render: {
+        toPdf: async (_html, dest) => {
+          await writeFile(dest, Buffer.alloc(oversize));
+          return { bytes: oversize };
+        },
+      },
+    });
+    await store.saveTemplate({
+      id: "note",
+      name: "Note",
+      kind: "pdf",
+      html: "<p>{{slot:who}}</p>",
+      slots: [{ name: "who", kind: "text", description: "Who" }],
+      updatedAt: 1,
+    });
+    const tooBig = await call("duties.template.preview", { id: "note" });
+    expect(tooBig.ok).toBe(false);
+    expect(tooBig.error).toMatchObject({
+      message: `file too large to return (${oversize} bytes)`,
+    });
+  });
+
+  it("duties.run.file kind:preview answers the png the render adapter saved beside the document", async () => {
+    const { call, store } = harness();
+    const dir = await mkdtemp(path.join(tmpdir(), "duties-run-preview-"));
+    const pdf = path.join(dir, "quote.pdf");
+    const png = path.join(dir, "quote.png");
+    await writeFile(pdf, "%PDF-1.4");
+    await writeFile(png, "PNG-BYTES");
+    await store.createRun({
+      id: "r1",
+      dutyId: "d1",
+      status: "ok",
+      startedAt: 1,
+      trigger: "manual",
+      inputs: {},
+      outputs: {},
+      steps: [],
+      files: [
+        {
+          stepId: "p1",
+          name: "quote.pdf",
+          path: pdf,
+          bytes: 8,
+          contentType: "application/pdf",
+          previewPath: png,
+        },
+        { stepId: "p2", name: "plain.pdf", path: pdf, bytes: 8, contentType: "application/pdf" },
+      ],
+    });
+
+    const preview = await call("duties.run.file", { runId: "r1", stepId: "p1", kind: "preview" });
+    expect(preview.result).toEqual({
+      name: "quote.png",
+      contentType: "image/png",
+      base64: Buffer.from("PNG-BYTES").toString("base64"),
+    });
+    // A step whose render could not be screenshotted says so rather than answering the PDF.
+    const none = await call("duties.run.file", { runId: "r1", stepId: "p2", kind: "preview" });
+    expect(none.ok).toBe(false);
+    expect(none.error).toMatchObject({ message: "no preview image for that step" });
+    expect((await call("duties.run.file", { runId: "r1", stepId: "p1", kind: "zip" })).ok).toBe(
+      false,
+    );
   });
 
   it("duties.mail.status reports each missing piece of the Gmail path without leaking the address", async () => {
