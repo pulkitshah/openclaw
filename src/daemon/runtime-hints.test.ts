@@ -13,7 +13,7 @@ describe("buildPlatformRuntimeLogHints", () => {
           OPENCLAW_LOG_PREFIX: "gateway",
         },
         systemdServiceName: "openclaw-gateway",
-        windowsTaskName: "OpenClaw Gateway",
+        windowsTaskName: "Vasudev Gateway",
       }),
     ).toEqual([
       "Launchd stdout and stderr (if installed): /Users/test/Library/Logs/openclaw/gateway.log",
@@ -29,7 +29,7 @@ describe("buildPlatformRuntimeLogHints", () => {
           OPENCLAW_STATE_DIR: "/tmp/openclaw-state",
         },
         systemdServiceName: "openclaw-gateway",
-        windowsTaskName: "OpenClaw Gateway",
+        windowsTaskName: "Vasudev Gateway",
       }),
     ).toEqual([
       "Logs: journalctl --user -u openclaw-gateway.service -n 200 --no-pager",
@@ -42,10 +42,10 @@ describe("buildPlatformRuntimeLogHints", () => {
           OPENCLAW_STATE_DIR: "/tmp/openclaw-state",
         },
         systemdServiceName: "openclaw-gateway",
-        windowsTaskName: "OpenClaw Gateway",
+        windowsTaskName: "Vasudev Gateway",
       }),
     ).toEqual([
-      'Logs: schtasks /Query /TN "OpenClaw Gateway" /V /FO LIST',
+      'Logs: schtasks /Query /TN "Vasudev Gateway" /V /FO LIST',
       "Restart attempts: /tmp/openclaw-state/logs/gateway-restart.log",
     ]);
   });
@@ -56,29 +56,29 @@ describe("buildPlatformServiceStartHints", () => {
     expect(
       buildPlatformServiceStartHints({
         platform: "darwin",
-        installHint: "openclaw gateway install",
-        startCommand: "openclaw gateway",
+        installHint: "vasudev gateway install",
+        startCommand: "vasudev gateway",
         launchAgentPlistPath: "~/Library/LaunchAgents/com.openclaw.gateway.plist",
         systemdServiceName: "openclaw-gateway",
-        windowsTaskName: "OpenClaw Gateway",
+        windowsTaskName: "Vasudev Gateway",
       }),
     ).toEqual([
-      "openclaw gateway install",
-      "openclaw gateway",
+      "vasudev gateway install",
+      "vasudev gateway",
       "launchctl bootstrap gui/$UID ~/Library/LaunchAgents/com.openclaw.gateway.plist",
     ]);
     expect(
       buildPlatformServiceStartHints({
         platform: "linux",
-        installHint: "openclaw gateway install",
-        startCommand: "openclaw gateway",
+        installHint: "vasudev gateway install",
+        startCommand: "vasudev gateway",
         launchAgentPlistPath: "~/Library/LaunchAgents/com.openclaw.gateway.plist",
         systemdServiceName: "openclaw-gateway",
-        windowsTaskName: "OpenClaw Gateway",
+        windowsTaskName: "Vasudev Gateway",
       }),
     ).toEqual([
-      "openclaw gateway install",
-      "openclaw gateway",
+      "vasudev gateway install",
+      "vasudev gateway",
       "systemctl --user start openclaw-gateway.service",
     ]);
   });

@@ -336,7 +336,7 @@ export async function prepareProviderChannelLogin(params: {
     return {
       status: "rejected",
       reply: {
-        text: "No chat owner is configured. Ask the OpenClaw owner to add your chat account to `commands.ownerAllowFrom` in the OpenClaw configuration, then send `/login` again.",
+        text: "No chat owner is configured. Ask the Vasudev owner to add your chat account to `commands.ownerAllowFrom` in the Vasudev configuration, then send `/login` again.",
       },
     };
   }
@@ -344,7 +344,7 @@ export async function prepareProviderChannelLogin(params: {
     return {
       status: "rejected",
       reply: {
-        text: "Only an OpenClaw owner can sign in here. Ask the owner to connect this provider or grant you owner access.",
+        text: "Only a Vasudev owner can sign in here. Ask the owner to connect this provider or grant you owner access.",
       },
     };
   }
@@ -352,7 +352,7 @@ export async function prepareProviderChannelLogin(params: {
     return {
       status: "reply",
       reply: {
-        text: "Provider login requires a private chat or Control UI session. Open a private chat with OpenClaw and send `/login` there.",
+        text: "Provider login requires a private chat or Control UI session. Open a private chat with Vasudev and send `/login` there.",
       },
     };
   }

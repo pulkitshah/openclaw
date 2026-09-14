@@ -3593,7 +3593,7 @@ describe("runPreparedReply media-only handling", () => {
     expect(call?.followupRun.currentInboundContext?.text).toContain(
       "#35675 obviyus ->#35674: Are you fr fr",
     );
-    expect(call?.followupRun.currentInboundContext?.text).toContain("[OpenClaw room event]");
+    expect(call?.followupRun.currentInboundContext?.text).toContain("[Vasudev room event]");
     expect(call?.followupRun.currentInboundContext?.text).toContain(
       ROOM_EVENT_MESSAGE_TOOL_DIRECTIVE,
     );
@@ -3860,11 +3860,11 @@ describe("runPreparedReply media-only handling", () => {
   });
 
   it.each([
-    ["heartbeat", undefined, "heartbeat", "[OpenClaw heartbeat poll]"],
-    ["cron", undefined, "cron", "[OpenClaw cron wake]"],
-    ["exec", undefined, "exec", "[OpenClaw exec completion]"],
-    ["heartbeat", "background-task", "background-task", "[OpenClaw session event]"],
-    ["heartbeat", "exec-event", "exec-event", "[OpenClaw exec completion]"],
+    ["heartbeat", undefined, "heartbeat", "[Vasudev heartbeat poll]"],
+    ["cron", undefined, "cron", "[Vasudev cron wake]"],
+    ["exec", undefined, "exec", "[Vasudev exec completion]"],
+    ["heartbeat", "background-task", "background-task", "[Vasudev session event]"],
+    ["heartbeat", "exec-event", "exec-event", "[Vasudev exec completion]"],
   ] as const)(
     "keeps %s wake metadata private and preserves %s event provenance",
     async (source, suppliedSourceTool, expectedSourceTool, transcriptPrompt) => {
@@ -4628,8 +4628,8 @@ describe("runPreparedReply media-only handling", () => {
       expect(call?.commandBody).toContain("telegram-user-1");
       expect(call?.followupRun.prompt).toContain("A new session was started via /new or /reset.");
       expect(call?.followupRun.prompt).toContain("Sender:");
-      expect(call?.transcriptCommandBody).toBe(`[OpenClaw session ${startupAction}]`);
-      expect(call?.followupRun.transcriptPrompt).toBe(`[OpenClaw session ${startupAction}]`);
+      expect(call?.transcriptCommandBody).toBe(`[Vasudev session ${startupAction}]`);
+      expect(call?.followupRun.transcriptPrompt).toBe(`[Vasudev session ${startupAction}]`);
       expect(call?.followupRun.transcriptPrompt).not.toContain("Sender:");
     },
   );

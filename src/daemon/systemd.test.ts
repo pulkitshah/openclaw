@@ -919,7 +919,7 @@ describe("system-scope gateway unit detection (openclaw#87577)", () => {
     expect(warning).toContain("/etc/systemd/system/openclaw-gateway.service");
     expect(warning).toContain("18789");
     expect(warning).toContain(
-      "Run `openclaw doctor` interactively to inspect both scopes and review supported cleanup.",
+      "Run `vasudev doctor` interactively to inspect both scopes and review supported cleanup.",
     );
     // The unguarded startup path must not hand out a destructive command.
     expect(warning).not.toContain("rm ");
@@ -1532,10 +1532,10 @@ describe("splitArgsPreservingQuotes", () => {
 
   it("supports schtasks-style escaped quotes while preserving other backslashes", () => {
     expect(
-      splitArgsPreservingQuotes('openclaw --path "C:\\\\Program Files\\\\OpenClaw"', {
+      splitArgsPreservingQuotes('openclaw --path "C:\\\\Program Files\\\\Vasudev"', {
         escapeMode: "backslash-quote-only",
       }),
-    ).toEqual(["openclaw", "--path", "C:\\\\Program Files\\\\OpenClaw"]);
+    ).toEqual(["openclaw", "--path", "C:\\\\Program Files\\\\Vasudev"]);
 
     expect(
       splitArgsPreservingQuotes('openclaw --label "My \\"Quoted\\" Name"', {
@@ -2615,7 +2615,7 @@ describe("stageSystemdService", () => {
           unitPath,
           [
             "[Unit]",
-            "Description=OpenClaw Gateway (v2026.7.1-2)",
+            "Description=Vasudev Gateway (v2026.7.1-2)",
             "",
             "[Service]",
             comment,
@@ -2634,7 +2634,7 @@ describe("stageSystemdService", () => {
         await expect(refreshLegacySystemdServiceMetadata(env, 5_000)).resolves.toBe(true);
 
         const unit = await fs.readFile(unitPath, "utf8");
-        expect(unit).toContain("Description=OpenClaw Gateway\n");
+        expect(unit).toContain("Description=Vasudev Gateway\n");
         expect(unit.split("\n")).toContain("ExecStart=/usr/bin/openclaw gateway run");
         expect(unit).not.toContain("OPENCLAW_SERVICE_VERSION");
         expect(unit).toContain('Environment="OTHER_SETTING=kept value"');
@@ -2657,7 +2657,7 @@ describe("stageSystemdService", () => {
     await withStageFixture(async ({ env, unitPath }) => {
       const previous = [
         "[Unit]",
-        "Description=OpenClaw Gateway (v2026.7.1-2)",
+        "Description=Vasudev Gateway (v2026.7.1-2)",
         "",
         "[Service]",
         "ExecStart=/usr/bin/openclaw gateway run",
@@ -2696,7 +2696,7 @@ describe("stageSystemdService", () => {
     await withStageFixture(async ({ env, unitPath }) => {
       const previous = [
         "[Unit]",
-        "Description=OpenClaw Gateway (v2026.7.1-2)",
+        "Description=Vasudev Gateway (v2026.7.1-2)",
         "",
         "[Service]",
         ...environment,
@@ -2717,7 +2717,7 @@ describe("stageSystemdService", () => {
     await withStageFixture(async ({ env, unitPath }) => {
       const previous = [
         "[Unit]",
-        "Description=OpenClaw Gateway (v2026.7.1-2)",
+        "Description=Vasudev Gateway (v2026.7.1-2)",
         "",
         "[Service]",
         "Environment=OPENCLAW_SERVICE_MARKER=openclaw",
@@ -2742,7 +2742,7 @@ describe("stageSystemdService", () => {
     await withStageFixture(async ({ env, unitPath }) => {
       const previous = [
         "[Unit]",
-        "Description=OpenClaw Gateway (v2026.7.1-2)",
+        "Description=Vasudev Gateway (v2026.7.1-2)",
         "",
         "[Service]",
         "Environment=OPENCLAW_SERVICE_MARKER=openclaw",
@@ -2909,7 +2909,7 @@ describe("stageSystemdService", () => {
 
       const unit = await fs.readFile(unitPath, "utf8");
 
-      expect(unit).toContain("Description=OpenClaw Gateway");
+      expect(unit).toContain("Description=Vasudev Gateway");
       expect(unit).not.toContain("OPENCLAW_SERVICE_VERSION");
       expect(unit).not.toContain("EnvironmentFile=");
       expect(unit).toContain("Environment=OPENCLAW_GATEWAY_PORT=18789");
@@ -3366,7 +3366,7 @@ describe("stageSystemdService", () => {
         programArguments: ["/usr/bin/openclaw", "gateway", "run"],
         workingDirectory: "/tmp",
         // Staging manages OPENCLAW_GATEWAY_TOKEN inline; OPENCLAW_SERVICE_MANAGED_ENV_KEYS
-        // marks it as an OpenClaw-managed key so the stale env-file copy is cleared.
+        // marks it as a Vasudev-managed key so the stale env-file copy is cleared.
         environment: {
           OPENCLAW_GATEWAY_TOKEN: "fresh-gateway-token",
           LLM_API_KEY: "dotenv-key",
@@ -3610,7 +3610,7 @@ describe("systemd service install and uninstall", () => {
 
       await installSystemdService(
         nodeSystemdServiceFixture(env, {
-          description: "OpenClaw Node Host",
+          description: "Vasudev Node Host",
           environment: {
             OPENCLAW_SYSTEMD_UNIT: "openclaw-node",
           },
@@ -3619,8 +3619,8 @@ describe("systemd service install and uninstall", () => {
 
       const unit = await fs.readFile(unitPath, "utf8");
       expect(unitPath).toMatch(/openclaw-node\.service$/);
-      expect(unit).toContain("Description=OpenClaw Node Host");
-      expect(unit).toContain("openclaw node run");
+      expect(unit).toContain("Description=Vasudev Node Host");
+      expect(unit).toContain("vasudev node run");
       expect(unit).not.toContain("OPENCLAW_SERVICE_VERSION");
       expect(execFileMock).toHaveBeenCalledTimes(4);
     });
@@ -3825,7 +3825,7 @@ describe("systemd service install and uninstall", () => {
   ])("refuses to remove the unit when systemctl disable fails: %s", async (detail) => {
     await withNodeSystemdFixture(async ({ env, unitPath, nodeEnvFilePath }) => {
       await fs.mkdir(path.dirname(unitPath), { recursive: true, mode: 0o755 });
-      await fs.writeFile(unitPath, "[Unit]\nDescription=OpenClaw Node\n", {
+      await fs.writeFile(unitPath, "[Unit]\nDescription=Vasudev Node\n", {
         encoding: "utf8",
         mode: 0o644,
       });
@@ -3849,7 +3849,7 @@ describe("systemd service install and uninstall", () => {
       await expect(uninstallSystemdService({ env, stdout })).rejects.toThrow(
         `systemctl disable failed: ${detail}`,
       );
-      await expect(fs.readFile(unitPath, "utf8")).resolves.toContain("OpenClaw Node");
+      await expect(fs.readFile(unitPath, "utf8")).resolves.toContain("Vasudev Node");
       await expect(fs.readFile(nodeEnvFilePath, "utf8")).resolves.toContain("preserved-token");
     });
   });
@@ -3883,11 +3883,11 @@ describe("systemd service install and uninstall", () => {
   it("disables the OPENCLAW_SYSTEMD_UNIT override during uninstall", async () => {
     await withNodeSystemdFixture(async ({ env, unitPath, nodeEnvFilePath }) => {
       await fs.mkdir(path.dirname(unitPath), { recursive: true, mode: 0o755 });
-      await fs.writeFile(unitPath, "[Unit]\nDescription=OpenClaw Node\n", {
+      await fs.writeFile(unitPath, "[Unit]\nDescription=Vasudev Node\n", {
         encoding: "utf8",
         mode: 0o644,
       });
-      await fs.writeFile(`${unitPath}.bak`, "[Unit]\nDescription=Previous OpenClaw Node\n", {
+      await fs.writeFile(`${unitPath}.bak`, "[Unit]\nDescription=Previous Vasudev Node\n", {
         mode: 0o644,
       });
       await fs.writeFile(
@@ -3935,7 +3935,7 @@ describe("systemd service install and uninstall", () => {
   it("removes a password-only node environment file during uninstall", async () => {
     await withNodeSystemdFixture(async ({ env, unitPath, nodeEnvFilePath }) => {
       await fs.mkdir(path.dirname(unitPath), { recursive: true, mode: 0o755 });
-      await fs.writeFile(unitPath, "[Unit]\nDescription=OpenClaw Node\n", {
+      await fs.writeFile(unitPath, "[Unit]\nDescription=Vasudev Node\n", {
         encoding: "utf8",
         mode: 0o644,
       });
@@ -3959,11 +3959,11 @@ describe("systemd service install and uninstall", () => {
   it("preserves node env file values when unit removal fails during uninstall", async () => {
     await withNodeSystemdFixture(async ({ env, unitPath, nodeEnvFilePath }) => {
       await fs.mkdir(path.dirname(unitPath), { recursive: true, mode: 0o755 });
-      await fs.writeFile(unitPath, "[Unit]\nDescription=OpenClaw Node\n", {
+      await fs.writeFile(unitPath, "[Unit]\nDescription=Vasudev Node\n", {
         encoding: "utf8",
         mode: 0o644,
       });
-      await fs.writeFile(`${unitPath}.bak`, "[Unit]\nDescription=Previous OpenClaw Node\n", {
+      await fs.writeFile(`${unitPath}.bak`, "[Unit]\nDescription=Previous Vasudev Node\n", {
         mode: 0o644,
       });
       await fs.writeFile(
@@ -3985,9 +3985,9 @@ describe("systemd service install and uninstall", () => {
         "EACCES: permission denied",
       );
 
-      await expect(fs.readFile(unitPath, "utf8")).resolves.toContain("OpenClaw Node");
+      await expect(fs.readFile(unitPath, "utf8")).resolves.toContain("Vasudev Node");
       await expect(fs.readFile(`${unitPath}.bak`, "utf8")).resolves.toContain(
-        "Previous OpenClaw Node",
+        "Previous Vasudev Node",
       );
       await expect(fs.readFile(nodeEnvFilePath, "utf8")).resolves.toBe(
         "OPENCLAW_GATEWAY_TOKEN=stale-node-token\nOPENROUTER_API_KEY=operator-key\n",
@@ -4166,7 +4166,7 @@ describe("uninstallUserSystemdGatewayUnit", () => {
 
   it("disables and removes the user-scope unit when systemctl is available", async () => {
     await withUserUnitFixture(async ({ env, unitPath }) => {
-      await fs.writeFile(unitPath, "[Unit]\nDescription=OpenClaw Gateway\n", {
+      await fs.writeFile(unitPath, "[Unit]\nDescription=Vasudev Gateway\n", {
         encoding: "utf8",
         mode: 0o644,
       });
@@ -4212,7 +4212,7 @@ describe("uninstallUserSystemdGatewayUnit", () => {
 
   it("removes the unit file only when systemctl is unavailable", async () => {
     await withUserUnitFixture(async ({ env, unitPath }) => {
-      await fs.writeFile(unitPath, "[Unit]\nDescription=OpenClaw Gateway\n", {
+      await fs.writeFile(unitPath, "[Unit]\nDescription=Vasudev Gateway\n", {
         encoding: "utf8",
         mode: 0o644,
       });
@@ -4237,7 +4237,7 @@ describe("uninstallUserSystemdGatewayUnit", () => {
     "preserves the unit file when disable fails after status %s",
     async (termination) => {
       await withUserUnitFixture(async ({ env, unitPath }) => {
-        await fs.writeFile(unitPath, "[Unit]\nDescription=OpenClaw Gateway\n", {
+        await fs.writeFile(unitPath, "[Unit]\nDescription=Vasudev Gateway\n", {
           encoding: "utf8",
           mode: 0o644,
         });
@@ -4275,7 +4275,7 @@ describe("uninstallUserSystemdGatewayUnit", () => {
 
   it("surfaces daemon-reload failure after removing the disabled unit", async () => {
     await withUserUnitFixture(async ({ env, unitPath }) => {
-      await fs.writeFile(unitPath, "[Unit]\nDescription=OpenClaw Gateway\n", {
+      await fs.writeFile(unitPath, "[Unit]\nDescription=Vasudev Gateway\n", {
         encoding: "utf8",
         mode: 0o644,
       });

@@ -162,7 +162,7 @@ export function recoverMisplacedAgentDatabaseCopies(params: {
       const recovery = moveSqliteFilesAside(target.path, () => params.maintenance.assertOwned());
       results.set(target.path, {
         recovered: true,
-        warning: `Recovered agent ${target.agentId}: ${target.path} was a byte-identical copy of agent ${ownerId}'s database. Preserved the copy at ${recovery.movedFiles.join(", ")}. Agent ${target.agentId} can start with a fresh database. Run openclaw doctor --fix to verify repairs.`,
+        warning: `Recovered agent ${target.agentId}: ${target.path} was a byte-identical copy of agent ${ownerId}'s database. Preserved the copy at ${recovery.movedFiles.join(", ")}. Agent ${target.agentId} can start with a fresh database. Run vasudev doctor --fix to verify repairs.`,
       });
     } catch (error) {
       results.set(target.path, {

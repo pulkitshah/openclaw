@@ -25,7 +25,7 @@ import { resolveAwsSdkEnvVarName } from "./model-auth-runtime-shared.js";
  * markers for secrets managed outside plain environment variables.
  */
 type ModelsConfig = NonNullable<OpenClawConfig["models"]>;
-/** Provider config entry from the canonical OpenClaw models config. */
+/** Provider config entry from the canonical Vasudev models config. */
 export type ProviderConfig = NonNullable<ModelsConfig["providers"]>[string];
 
 /** Default secret reference sources applied when config omits an explicit source. */

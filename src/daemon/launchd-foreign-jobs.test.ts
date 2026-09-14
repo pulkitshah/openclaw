@@ -91,7 +91,7 @@ describe("foreign launchd command classification", () => {
       ["start"],
     ],
     ["ai.openclaw.echo", ["/bin/echo", "openclaw", "gateway", "restart"], []],
-    ["ai.openclaw.inline", ["/bin/sh", "-c", "openclaw gateway restart"], []],
+    ["ai.openclaw.inline", ["/bin/sh", "-c", "vasudev gateway restart"], []],
     [
       "ai.openclaw.inline-absolute",
       ["/bin/sh", "-c", "/usr/local/bin/openclaw gateway restart"],
@@ -193,7 +193,7 @@ describe("foreign launchd command classification", () => {
     ["#!/bin/sh\nset -eu\nopenclaw gateway restart\n", []],
     ["#!/bin/sh\nexec >/dev/null\nopenclaw gateway restart\n", []],
     ["#!/bin/sh\nUID=/usr/local/bin/openclaw gateway restart\n", []],
-    ["#!/bin/sh\nenv PATH=/usr/local/bin openclaw gateway restart\n", []],
+    ["#!/bin/sh\nenv PATH=/usr/local/bin vasudev gateway restart\n", []],
     [
       '#!/bin/sh\nset -u\nopenclaw_bin=/usr/local/bin/openclaw\n"$openclaw_bin" gateway restart --profile "$PROFILE"\nopenclaw gateway restart\n',
       [],
@@ -207,7 +207,7 @@ describe("foreign launchd command classification", () => {
       ["restart"],
     ],
     ["#!/bin/sh\n/opt/bin/openclaw gateway stop\n/opt/bin/openclaw gateway start\n", ["stop"]],
-    ['#!/bin/sh\n# openclaw gateway restart\necho "openclaw gateway start"\n', []],
+    ['#!/bin/sh\n# vasudev gateway restart\necho "vasudev gateway start"\n', []],
     ["#!/bin/sh\ncat <<EOF\nopenclaw gateway restart\nEOF\n", []],
     ['#!/bin/sh\necho "example:\nopenclaw gateway restart\n"\n', []],
     ["#!/bin/sh\noc=\"/opt/bin/openclaw\"\n'$oc' gateway restart\n", []],
@@ -422,7 +422,7 @@ describe("foreign launchd command classification", () => {
   });
 
   it("does not remove shell syntax-check jobs", async () => {
-    addJob(label, ["/bin/sh", "-nc", "openclaw gateway restart"]);
+    addJob(label, ["/bin/sh", "-nc", "vasudev gateway restart"]);
     expect((await findForeignLaunchdJobs({}))[0]).toMatchObject({ safeToRemove: false });
   });
 
@@ -431,14 +431,14 @@ describe("foreign launchd command classification", () => {
     async ({ prefix }) => {
       const file = path.join(dir, "harmless.sh");
       await fs.writeFile(file, "#!/bin/sh\nsleep 120\n");
-      addJob(label, ["/bin/sh", ...prefix, file, "-c", "openclaw gateway restart"]);
+      addJob(label, ["/bin/sh", ...prefix, file, "-c", "vasudev gateway restart"]);
       expect((await findForeignLaunchdJobs({}))[0]).toMatchObject({ safeToRemove: false });
     },
   );
 
   it("leaves oversized and symlinked shell scripts unverified", async () => {
     const file = path.join(dir, "validator.sh");
-    await fs.writeFile(file, `openclaw gateway restart\n${"#".repeat(65536)}`);
+    await fs.writeFile(file, `vasudev gateway restart\n${"#".repeat(65536)}`);
     addJob(label, ["/bin/sh", file]);
     expect((await findForeignLaunchdJobs({}))[0]).toMatchObject({ safeToRemove: false });
     const link = path.join(dir, "link.sh");

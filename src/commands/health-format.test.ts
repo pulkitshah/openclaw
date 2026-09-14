@@ -442,7 +442,7 @@ describe("formatHealthChannelLines", () => {
     };
 
     expect(formatHealthChannelLines(summary)).toStrictEqual([
-      "Plugin calendar: failed - service scheduler: address already in use; run openclaw doctor",
+      "Plugin calendar: failed - service scheduler: address already in use; run vasudev doctor",
     ]);
   });
 
@@ -461,9 +461,9 @@ describe("formatHealthChannelLines", () => {
     const lines = formatHealthChannelLines(summary);
 
     expect(lines).toHaveLength(21);
-    expect(lines[0]).toBe(`Plugin plugin-0: failed - ${"x".repeat(500)}; run openclaw doctor`);
+    expect(lines[0]).toBe(`Plugin plugin-0: failed - ${"x".repeat(500)}; run vasudev doctor`);
     expect(lines.at(-1)).toBe(
-      "Plugins: failed - 2 additional activated failures; run openclaw doctor",
+      "Plugins: failed - 2 additional activated failures; run vasudev doctor",
     );
   });
 

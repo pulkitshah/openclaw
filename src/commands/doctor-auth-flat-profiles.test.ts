@@ -2234,7 +2234,7 @@ describe("legacy flat profiles through the canonical auth migration owner", () =
       "Auth profile SQLite migration",
     );
     expect(note).toHaveBeenCalledWith(
-      expect.stringContaining("openclaw doctor --fix"),
+      expect.stringContaining("vasudev doctor --fix"),
       "Auth profile SQLite migration",
     );
     note.mockRestore();

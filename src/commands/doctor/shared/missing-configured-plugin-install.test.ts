@@ -1156,7 +1156,7 @@ describe("repairMissingConfiguredPluginInstalls", () => {
       checkId: "core/doctor/configured-plugin-installs",
       severity: "warning",
       target: "matrix",
-      fixHint: "Run `openclaw doctor --fix` to install @openclaw/plugin-matrix.",
+      fixHint: "Run `vasudev doctor --fix` to install @openclaw/plugin-matrix.",
     });
     expect(
       configuredPluginInstallIssueToRepairEffect(expectDefined(issue, "issue test invariant")),
@@ -1318,7 +1318,7 @@ describe("repairMissingConfiguredPluginInstalls", () => {
     expect(result.records).toBe(baselineRecords);
   });
 
-  it("installs a missing configured OpenClaw channel plugin from npm by default", async () => {
+  it("installs a missing configured Vasudev channel plugin from npm by default", async () => {
     const cfg = {
       security: { installPolicy: { enabled: true } },
       channels: {
@@ -1705,7 +1705,7 @@ describe("repairMissingConfiguredPluginInstalls", () => {
     ]);
   });
 
-  it("honors npm-first catalog metadata for missing OpenClaw channel plugins", async () => {
+  it("honors npm-first catalog metadata for missing Vasudev channel plugins", async () => {
     mocks.installPluginFromNpmSpec.mockResolvedValueOnce(
       successfulInstall({
         pluginId: "twitch",
@@ -2390,11 +2390,11 @@ describe("repairMissingConfiguredPluginInstalls", () => {
     expect(mocks.writePersistedInstalledPluginIndexInstallRecords).not.toHaveBeenCalled();
     expect(result).toEqual({
       changes: [
-        'Skipped package-manager repair for configured plugin "discord" during package update; rerun "openclaw doctor --fix" after the update completes.',
+        'Skipped package-manager repair for configured plugin "discord" during package update; rerun "vasudev doctor --fix" after the update completes.',
       ],
       warnings: [],
       deferredRepairDetails: [
-        'Skipped package-manager repair for configured plugin "discord" during package update; rerun "openclaw doctor --fix" after the update completes.',
+        'Skipped package-manager repair for configured plugin "discord" during package update; rerun "vasudev doctor --fix" after the update completes.',
       ],
       records,
     });
@@ -2834,11 +2834,11 @@ describe("repairMissingConfiguredPluginInstalls", () => {
     expect(mocks.writePersistedInstalledPluginIndexInstallRecords).not.toHaveBeenCalled();
     expect(result).toEqual({
       changes: [
-        'Skipped package-manager repair for configured plugin "discord" during package update; rerun "openclaw doctor --fix" after the update completes.',
+        'Skipped package-manager repair for configured plugin "discord" during package update; rerun "vasudev doctor --fix" after the update completes.',
       ],
       warnings: [],
       deferredRepairDetails: [
-        'Skipped package-manager repair for configured plugin "discord" during package update; rerun "openclaw doctor --fix" after the update completes.',
+        'Skipped package-manager repair for configured plugin "discord" during package update; rerun "vasudev doctor --fix" after the update completes.',
       ],
       records,
     });
@@ -4100,7 +4100,7 @@ describe("repairMissingConfiguredPluginInstalls", () => {
       },
     };
     const repairWarning =
-      'Could not repair openclaw peer link for "demo" at /tmp/openclaw-plugins/demo: permission denied';
+      'Could not repair vasudev peer link for "demo" at /tmp/openclaw-plugins/demo: permission denied';
     mocks.loadInstalledPluginIndexInstallRecords.mockResolvedValue(records);
     mocks.updateNpmInstalledPlugins.mockImplementationOnce(
       async (params: {

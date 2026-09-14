@@ -73,7 +73,7 @@ function formatStartupPluginSmokeFailure(failure: PluginPayloadSmokeFailure): st
     reason: failure.reason,
     detail: failure.detail,
     ...(failure.installPath ? { installPath: failure.installPath } : {}),
-  })}. Run \`openclaw update repair\` to retry plugin repair.`;
+  })}. Run \`vasudev update repair\` to retry plugin repair.`;
 }
 
 export async function runStartupUpgradeConvergence(params: {
@@ -229,7 +229,7 @@ export function formatStartupPluginVerificationFailure(
   diagnostic: StartupPluginVerificationDiagnostic,
 ): string {
   return [
-    "OpenClaw plugin verification failed; refusing to report the gateway ready.",
+    "Vasudev plugin verification failed; refusing to report the gateway ready.",
     ...diagnostic.messages.map((message) => `- ${message}`),
     "Resolve the plugin verification errors above, then restart the Gateway.",
   ].join("\n");

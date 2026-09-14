@@ -555,7 +555,7 @@ describe("legacy workspace Doctor migration", () => {
     expect(result.warnings[0]).toContain(sourcePath);
     expect(result.warnings[0]).toContain("Stop the Gateway");
     expect(result.warnings[0]).toContain(".rejected-<timestamp>");
-    expect(result.warnings[0]).toContain("openclaw doctor --fix");
+    expect(result.warnings[0]).toContain("vasudev doctor --fix");
     expect(fs.existsSync(sourcePath)).toBe(true);
     expect(fs.existsSync(`${sourcePath}.doctor-importing`)).toBe(false);
     const identity = resolveWorkspaceStateIdentity(context.workspaceDir);

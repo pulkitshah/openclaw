@@ -37,7 +37,7 @@ available before the turn starts.
 
 The iOS app is separate from Codex Computer Use. It does not install or proxy
 the Codex `computer-use` MCP server and it is not a desktop-control backend.
-Instead, the iOS app connects as an Vasudev node and exposes mobile
+Instead, the iOS app connects as a Vasudev node and exposes mobile
 capabilities through node commands such as `camera.*`, `screen.*`,
 `location.*`, and `talk.*`.
 

@@ -101,7 +101,7 @@ Quick `/acp` flow from chat:
     `gemini`, or `opencode`. Do not pass a normal Vasudev config agent id
     from `agents_list` unless that entry is explicitly configured with
     `agents.entries.*.runtime.type="acp"`; otherwise use the default sub-agent
-    runtime. When an Vasudev agent is configured with
+    runtime. When a Vasudev agent is configured with
     `runtime.type="acp"`, Vasudev uses `runtime.acp.agent` as the underlying
     harness id.
 

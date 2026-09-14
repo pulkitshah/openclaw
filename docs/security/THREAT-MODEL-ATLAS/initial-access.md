@@ -2,7 +2,7 @@
 summary: "Vasudev initial access threats (AML.TA0004): T-ACCESS-001, T-ACCESS-002, T-ACCESS-003"
 title: "Initial access (AML.TA0004)"
 read_when:
-  - Reviewing initial access threats against an Vasudev deployment
+  - Reviewing initial access threats against a Vasudev deployment
   - Working on mitigations for T-ACCESS-001, T-ACCESS-002, T-ACCESS-003
 ---
 

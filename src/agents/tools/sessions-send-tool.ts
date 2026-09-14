@@ -556,7 +556,7 @@ export function createSessionsSendTool(opts?: {
         return jsonResult({
           runId: crypto.randomUUID(),
           status: "error",
-          error: `Agent "${labelAgentIdInput}" not found. Run openclaw agents list to see configured agents.`,
+          error: `Agent "${labelAgentIdInput}" not found. Run vasudev agents list to see configured agents.`,
         });
       }
       const explicitTargetAgentId = normalizedLabelAgentId?.value;
@@ -574,7 +574,7 @@ export function createSessionsSendTool(opts?: {
           return jsonResult({
             runId: crypto.randomUUID(),
             status: "error",
-            error: `Agent "${labelAgentIdInput}" not found. Run openclaw agents list to see configured agents.`,
+            error: `Agent "${labelAgentIdInput}" not found. Run vasudev agents list to see configured agents.`,
           });
         }
         sessionKey = agentMainKey;

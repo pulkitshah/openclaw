@@ -93,7 +93,7 @@ export type OnboardingPluginInstallEntry = {
   label: string;
   install: PluginPackageInstall;
   trustedSourceLinkedOfficialInstall?: boolean;
-  /** Keep this official runtime package on the same release cohort as OpenClaw. */
+  /** Keep this official runtime package on the same release cohort as Vasudev. */
   versionBoundToOpenClaw?: boolean;
   preferRemoteInstall?: boolean;
 };

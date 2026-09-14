@@ -57,9 +57,9 @@ if (process.env.VITEST || process.env.NODE_ENV === "test") {
 }
 
 /**
- * Create bash operations using OpenClaw runtime's built-in local shell execution backend.
+ * Create bash operations using Vasudev runtime's built-in local shell execution backend.
  *
- * This is useful for extensions that intercept user_bash and still want OpenClaw runtime's
+ * This is useful for extensions that intercept user_bash and still want Vasudev runtime's
  * standard local shell behavior while wrapping or rewriting commands.
  */
 export function createLocalBashOperations(options?: { shellPath?: string }): BashOperations {

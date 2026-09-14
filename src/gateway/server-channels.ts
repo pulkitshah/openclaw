@@ -1328,7 +1328,7 @@ export function createChannelManager(opts: ChannelManagerOptions): ChannelManage
               // A plugin stopAccount that never settles must not wedge every
               // stop-driven flow (health monitor sweeps, thaw recovery, reload).
               // Ordinary recovery retains the timed-out owner; explicit handoff
-              // retires its slots after revoking OpenClaw runtime authority.
+              // retires its slots after revoking Vasudev runtime authority.
               const runStopAccount = () =>
                 run({
                   ...context,

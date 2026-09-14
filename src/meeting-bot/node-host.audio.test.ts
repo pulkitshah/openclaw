@@ -163,7 +163,7 @@ describe("meeting node host audio backend", () => {
     childProcessMocks.spawn.mockReturnValueOnce(outputProcess).mockReturnValueOnce(inputProcess);
     const prepareAudio = vi.fn(async () => ({
       backend: "pipewire-pulse" as const,
-      deviceLabel: "OpenClaw Meeting Audio",
+      deviceLabel: "Vasudev Meeting Audio",
       inputCommand: ["parec", "--device", "input name", ""],
       outputCommand: ["pacat", "--device", "output name", ""],
     }));
@@ -210,7 +210,7 @@ describe("meeting node host audio backend", () => {
     );
     expect(started).toMatchObject({
       audioBackend: "pipewire-pulse",
-      audioDeviceLabel: "OpenClaw Meeting Audio",
+      audioDeviceLabel: "Vasudev Meeting Audio",
       audioBridge: { type: "node-command-pair" },
     });
     await invokeHost(host, { action: "stop", bridgeId: started.bridgeId });
@@ -222,7 +222,7 @@ describe("meeting node host audio backend", () => {
       events.push("prepare");
       return {
         backend: "pipewire-pulse" as const,
-        deviceLabel: "OpenClaw Meeting Audio",
+        deviceLabel: "Vasudev Meeting Audio",
         inputCommand: ["parec"],
         outputCommand: ["pacat"],
       };
@@ -252,7 +252,7 @@ describe("meeting node host audio backend", () => {
   it("returns the concrete backend from setup without starting bridge processes", async () => {
     const prepareAudio = vi.fn(async () => ({
       backend: "pipewire-pulse" as const,
-      deviceLabel: "OpenClaw Meeting Audio",
+      deviceLabel: "Vasudev Meeting Audio",
       inputCommand: ["parec"],
       outputCommand: ["pacat"],
     }));
@@ -268,7 +268,7 @@ describe("meeting node host audio backend", () => {
     ).resolves.toEqual({
       ok: true,
       audioBackend: "pipewire-pulse",
-      audioDeviceLabel: "OpenClaw Meeting Audio",
+      audioDeviceLabel: "Vasudev Meeting Audio",
     });
     expect(childProcessMocks.spawn).not.toHaveBeenCalled();
   });
@@ -280,7 +280,7 @@ describe("meeting node host audio backend", () => {
     const host = createHost({
       prepareAudio: vi.fn(async () => ({
         backend: "pipewire-pulse" as const,
-        deviceLabel: "OpenClaw Meeting Audio",
+        deviceLabel: "Vasudev Meeting Audio",
         inputCommand,
         outputCommand,
       })),

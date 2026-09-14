@@ -430,7 +430,7 @@ export async function executeRepositoryGitHubPublication(params: {
         "\n\n" +
         marker +
         (sessionUrl?.startsWith("https://")
-          ? "\n\n---\n[View the OpenClaw team session](" + sessionUrl + ")"
+          ? "\n\n---\n[View the Vasudev team session](" + sessionUrl + ")"
           : "");
       identity = await refreshIdentity();
       assertCurrent();

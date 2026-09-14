@@ -192,7 +192,7 @@ describe("session creation snapshot", () => {
       closeOpenClawAgentDatabasesForTest();
       await expect(
         createSessionEntryWithTranscript(scope, () => ({ ok: false, error: "unreachable" })),
-      ).rejects.toThrow("openclaw doctor --fix");
+      ).rejects.toThrow("vasudev doctor --fix");
     },
   );
 

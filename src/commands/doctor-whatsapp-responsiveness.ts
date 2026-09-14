@@ -49,7 +49,7 @@ function parsePsPidLine(line: string): LocalTuiProcess | null {
   return { pid, command };
 }
 
-/** Lists local OpenClaw TUI processes without inferring their Gateway or activity. */
+/** Lists local Vasudev TUI processes without inferring their Gateway or activity. */
 function listLocalTuiProcesses(): LocalTuiProcess[] {
   if (process.platform === "win32") {
     return [];
@@ -122,7 +122,7 @@ export function collectWhatsappResponsivenessHealthFindings(params: {
       target: pids,
       requirement: "local-tui-event-loop-pressure",
       fixHint: `Inspect Gateway diagnostics with ${formatCliCommand(
-        "openclaw gateway diagnostics export",
+        "vasudev gateway diagnostics export",
       )} before deciding whether to close clients.`,
     },
   ];

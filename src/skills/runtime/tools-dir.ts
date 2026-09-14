@@ -5,7 +5,7 @@ import { resolveConfigDir } from "../../utils.js";
 import { resolveSkillKey } from "../loading/frontmatter.js";
 import type { SkillEntry } from "../types.js";
 
-/** Resolves a skill's tools directory relative to the OpenClaw config dir. */
+/** Resolves a skill's tools directory relative to the Vasudev config dir. */
 export function resolveSkillToolsRootDir(entry: SkillEntry): string {
   const key = resolveSkillKey(entry.skill, entry);
   const safeKey = safePathSegmentHashed(key);

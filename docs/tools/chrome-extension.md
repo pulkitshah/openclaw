@@ -21,7 +21,7 @@ a Settings link.
 ## Requirements
 
 - Google Chrome, Chrome for Testing, or Chromium
-- Vasudev installed on the same machine as Chrome, or an Vasudev browser node
+- Vasudev installed on the same machine as Chrome, or a Vasudev browser node
   on that machine
 - macOS or Linux for automatic native bootstrap
 - Chrome launched at least once so its user-data directory exists

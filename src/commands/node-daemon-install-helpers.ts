@@ -94,6 +94,6 @@ export async function buildNodeInstallPlan(params: {
     workingDirectory,
     environment,
     environmentValueSources: buildNodeInstallEnvironmentValueSources(),
-    description: "OpenClaw Node Host",
+    description: "Vasudev Node Host",
   };
 }

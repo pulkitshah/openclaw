@@ -106,11 +106,11 @@ export function registerSetupCommand(program: Command): void {
       "after",
       () =>
         `\n${theme.heading("Examples:")}\n` +
-        `  ${theme.command("openclaw setup")}\n` +
+        `  ${theme.command("vasudev setup")}\n` +
         `    ${theme.muted("Chat with Vasudev, or onboard when setup is incomplete.")}\n` +
-        `  ${theme.command('openclaw setup -m "status"')}\n` +
+        `  ${theme.command('vasudev setup -m "status"')}\n` +
         `    ${theme.muted("Run one system-agent request.")}\n` +
-        `  ${theme.command("openclaw setup --wizard")}\n` +
+        `  ${theme.command("vasudev setup --wizard")}\n` +
         `    ${theme.muted("Run full onboarding.")}\n\n` +
         `${theme.muted("Docs:")} ${formatDocsLink("/cli/setup", "docs.openclaw.ai/cli/setup")}\n`,
     )
@@ -176,7 +176,7 @@ export function registerSetupCommand(program: Command): void {
   addSystemAgentOptions(
     program
       .command("crestodian", { hidden: true }) // hidden alias
-      .description("Deprecated: use openclaw setup"),
+      .description("Deprecated: use vasudev setup"),
   ).action(async (options) => {
     const { defaultRuntime } = await import("../../runtime.js");
     await runCommandWithRuntime(defaultRuntime, async () => {

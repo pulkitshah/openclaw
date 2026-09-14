@@ -81,22 +81,22 @@ export function registerSecurityCli(program: Command) {
       "after",
       () =>
         `\n${theme.heading("Examples:")}\n${formatHelpExamples([
-          ["openclaw security audit", "Run a local security audit."],
+          ["vasudev security audit", "Run a local security audit."],
           [
-            "openclaw security audit --deep",
+            "vasudev security audit --deep",
             "Include best-effort live Gateway probes and plugin-owned security audit collectors.",
           ],
-          ["openclaw security audit --deep --token <token>", "Use explicit token for deep probe."],
+          ["vasudev security audit --deep --token <token>", "Use explicit token for deep probe."],
           [
-            "openclaw security audit --deep --password <password>",
+            "vasudev security audit --deep --password <password>",
             "Use explicit password for deep probe.",
           ],
           [
-            "openclaw security audit --auth password --password <password>",
+            "vasudev security audit --auth password --password <password>",
             "Audit a runtime-only password-mode Gateway secret.",
           ],
-          ["openclaw security audit --fix", "Apply safe remediations and file-permission fixes."],
-          ["openclaw security audit --json", "Output machine-readable JSON."],
+          ["vasudev security audit --fix", "Apply safe remediations and file-permission fixes."],
+          ["vasudev security audit --json", "Output machine-readable JSON."],
         ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/security", "docs.openclaw.ai/cli/security")}\n`,
     );
 
@@ -168,13 +168,13 @@ export function registerSecurityCli(program: Command) {
       if ((report.suppressedFindings?.length ?? 0) > 0) {
         lines.push(muted(`Suppressed: ${report.suppressedFindings?.length ?? 0} configured`));
       }
-      lines.push(muted(`Run deeper: ${formatCliCommand("openclaw security audit --deep")}`));
+      lines.push(muted(`Run deeper: ${formatCliCommand("vasudev security audit --deep")}`));
       for (const diagnostic of secretDiagnostics) {
         lines.push(muted(`[secrets] ${diagnostic}`));
       }
 
       if (opts.fix) {
-        lines.push(muted(`Fix: ${formatCliCommand("openclaw security audit --fix")}`));
+        lines.push(muted(`Fix: ${formatCliCommand("vasudev security audit --fix")}`));
         if (!fixResult) {
           lines.push(muted("Fixes: failed to apply (unexpected error)"));
         } else if (

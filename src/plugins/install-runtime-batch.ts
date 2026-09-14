@@ -294,7 +294,7 @@ export class PluginInstallRuntimeBatch {
           (application
             ? `Gateway generation ${application.generation} was applied, but source cleanup failed. `
             : "Runtime activation was not confirmed. ") +
-          `Fix the reported issue, then run openclaw plugins reload <plugin-id> for each affected plugin. ${formatErrorMessage(error)}`,
+          `Fix the reported issue, then run vasudev plugins reload <plugin-id> for each affected plugin. ${formatErrorMessage(error)}`,
         { cause: error },
       );
     } finally {

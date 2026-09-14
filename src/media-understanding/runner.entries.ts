@@ -466,7 +466,7 @@ function resolveAudioProviderPrompt(params: {
     return params.prompt;
   }
   // OpenAI-compatible transcription prompts guide style/context and should
-  // match the audio language; omit OpenClaw's English default for autodetection
+  // match the audio language; omit Vasudev's English default for autodetection
   // and non-English hints unless the user supplied an explicit prompt.
   return undefined;
 }
@@ -734,7 +734,7 @@ function formatMissingProviderHint(providerId: string): string {
   if (!catalogHint) {
     return "";
   }
-  return ` Install the official external plugin with: ${formatCliCommand(catalogHint.installCommand)}, then run ${formatCliCommand("openclaw plugins registry --refresh")} and stop and start the gateway service, or run ${formatCliCommand(catalogHint.doctorFixCommand)} to repair automatically.`;
+  return ` Install the official external plugin with: ${formatCliCommand(catalogHint.installCommand)}, then run ${formatCliCommand("vasudev plugins registry --refresh")} and stop and start the gateway service, or run ${formatCliCommand(catalogHint.doctorFixCommand)} to repair automatically.`;
 }
 
 /** Executes one provider-backed media-understanding entry for one attachment. */

@@ -178,7 +178,7 @@ turns omit both fields, so content hashing stays out of the normal request hot
 path. Remote/WebSocket harnesses need a server attestation contract before
 they can participate; a version string alone is not an artifact identity.
 
-The prepared attempt also includes `params.runtimePlan`, an Vasudev-owned
+The prepared attempt also includes `params.runtimePlan`, a Vasudev-owned
 policy bundle for runtime decisions that must stay shared across Vasudev and
 native harnesses:
 

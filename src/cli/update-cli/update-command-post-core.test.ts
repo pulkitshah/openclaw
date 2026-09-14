@@ -196,7 +196,7 @@ describe("readPostCorePluginInstallRecordsFile", () => {
       `Malformed JSON in plugin install records file: ${filePath}`,
     );
     await expect(readPostCorePluginInstallRecordsFile(filePath)).rejects.toThrow(
-      "Run openclaw doctor to inspect and repair plugin installation state.",
+      "Run vasudev doctor to inspect and repair plugin installation state.",
     );
   });
 

@@ -197,7 +197,7 @@ it("continues independent Doctor repairs while preserving a divergent wrong-owne
     expect(warning).toContain("belongs to agent main");
     expect(warning).toContain("quarantine move");
     expect(warning).toContain(".corrupt-");
-    expect(warning).toContain("openclaw doctor --fix");
+    expect(warning).toContain("vasudev doctor --fix");
     expect(() => throwIfDoctorStateMigrationRefused(result.stepReceipts)).toThrow(
       "Independent state repairs were run",
     );

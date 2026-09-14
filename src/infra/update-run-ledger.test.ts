@@ -160,7 +160,7 @@ describe("update run ledger", () => {
     ];
     const original = structuredClone(changes);
     const steps = updateRunStepsFromResultStep({
-      name: "openclaw doctor",
+      name: "vasudev doctor",
       exitCode: 1,
       configChanges: changes,
       configWriteRefusal: {
@@ -201,7 +201,7 @@ describe("update run ledger", () => {
       );
       const migration = "Enabled the configured provider plugin.";
       const step: UpdateStepResult = {
-        name: "openclaw doctor",
+        name: "vasudev doctor",
         command: "doctor --fix",
         cwd: "/synthetic",
         durationMs: 1,
@@ -569,7 +569,7 @@ describe("update run ledger", () => {
       recordUpdateRunStep(
         run.runId,
         {
-          step: "openclaw doctor",
+          step: "vasudev doctor",
           status: "in_progress",
           startedAtMs: 1_000,
         },
@@ -581,8 +581,8 @@ describe("update run ledger", () => {
 
       const persisted = getUpdateRun(run.runId, options);
       expect(persisted?.steps.some((step) => step.status === "in_progress")).toBe(false);
-      expect(persisted?.steps.find((step) => step.step === "openclaw doctor")).toEqual({
-        step: "openclaw doctor",
+      expect(persisted?.steps.find((step) => step.step === "vasudev doctor")).toEqual({
+        step: "vasudev doctor",
         status: stepStatus,
         startedAtMs: 1_000,
         endedAtMs: 2_000,
@@ -840,7 +840,7 @@ describe("update run ledger", () => {
       {
         trigger: "cli",
         origin: {
-          nextAction: "Run openclaw update cleanup --dry-run for state /home/operator/.openclaw.",
+          nextAction: "Run vasudev update cleanup --dry-run for state /home/operator/.openclaw.",
         },
       },
       options,

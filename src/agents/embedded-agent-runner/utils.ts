@@ -18,7 +18,7 @@ export function mapThinkingLevelForProvider(level?: ThinkLevel): ProviderThinkLe
 }
 
 export function mapThinkingLevel(level?: ThinkLevel): ThinkingLevel {
-  // agent runtime supports elevated levels; OpenClaw enables them for specific models.
+  // agent runtime supports elevated levels; Vasudev enables them for specific models.
   const providerLevel = mapThinkingLevelForProvider(level);
   if (!providerLevel) {
     return "off";

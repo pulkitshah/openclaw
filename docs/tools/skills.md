@@ -79,7 +79,7 @@ the bundled precedence tier but is absent for every agent except the configured
 system/Custodian agent.
 
 <Note>
-  Codex CLI's native `$CODEX_HOME/skills` directory is **not** an Vasudev
+  Codex CLI's native `$CODEX_HOME/skills` directory is **not** a Vasudev
   skill root. Use `openclaw migrate plan codex` to inventory those skills, then
   `openclaw migrate codex` to copy them into your Vasudev workspace.
 </Note>

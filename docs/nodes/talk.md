@@ -116,7 +116,7 @@ with your own values.
 OpenAI browser WebRTC and Gateway-relay Talk support native GPT-Live. Select
 `gpt-live-1` for the public API or `gpt-live-1-codex` for the Codex route in
 **Settings → Talk**. The public API requires a Platform key; the Codex route
-prefers an Vasudev ChatGPT OAuth profile and falls back to Platform API-key
+prefers a Vasudev ChatGPT OAuth profile and falls back to Platform API-key
 authentication. Browser Talk uses client WebRTC with Gateway-owned control.
 Gateway relay uses direct Platform-key WebSockets for `gpt-live-1` and
 Gateway-owned WebRTC for `gpt-live-1-codex`. Discord uses these same Gateway
@@ -171,7 +171,7 @@ contract.
 For GA `gpt-realtime-2.1`, `gpt-realtime-2.1-mini`, and `gpt-realtime-2`
 browser sessions, Platform credentials remain preferred in this order: the
 configured realtime API key, an `openai` API-key profile, then
-`OPENAI_API_KEY`. With none configured, browser Talk falls back to an Vasudev
+`OPENAI_API_KEY`. With none configured, browser Talk falls back to a Vasudev
 ChatGPT OAuth profile and exchanges SDP through the Gateway's single-use offer
 broker, so the OAuth token never reaches the browser. A configured Platform
 credential that cannot be resolved fails closed instead of silently falling

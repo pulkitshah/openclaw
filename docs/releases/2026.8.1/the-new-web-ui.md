@@ -279,7 +279,7 @@ Supported Codex conversations can branch from an earlier message without changin
 
 - Control UI catalog sessions select in place and resume Claude Desktop work [#106074](https://github.com/openclaw/openclaw/pull/106074)
 - Add reasoning selection to new cloud sessions [#108679](https://github.com/openclaw/openclaw/pull/108679)
-- Create session groups in an Vasudev dialog [#121249](https://github.com/openclaw/openclaw/pull/121249)
+- Create session groups in a Vasudev dialog [#121249](https://github.com/openclaw/openclaw/pull/121249)
 - Guard session deletion against same-key replacements [#124097](https://github.com/openclaw/openclaw/pull/124097)
 - Explain why a new session cannot start yet [#124613](https://github.com/openclaw/openclaw/pull/124613)
 - Show progress cards from titled chat session links [#125733](https://github.com/openclaw/openclaw/pull/125733)

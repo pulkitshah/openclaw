@@ -20,8 +20,8 @@ const BACKUP_RESTORE_WARNINGS = [
   "Restoring an archive is time travel: every restored state surface rolls back to the archive timestamp.",
   "Messaging-channel credentials with ratchet state, especially WhatsApp, may desynchronize after rollback and require relinking.",
   "Approvals and delivery/dedupe state also roll back; review pending approvals before resuming the Gateway.",
-  "Plugin node_modules are not archived; after activation, run `openclaw plugins update <id>` or reinstall with `openclaw plugins install <spec> --force`.",
-  "Generated plugin-skills links are not archived; after activation, run `openclaw skills list` or start an agent session to rebuild them.",
+  "Plugin node_modules are not archived; after activation, run `vasudev plugins update <id>` or reinstall with `vasudev plugins install <spec> --force`.",
+  "Generated plugin-skills links are not archived; after activation, run `vasudev skills list` or start an agent session to rebuild them.",
 ] as const;
 
 type BackupRestoreOptions = {
@@ -42,7 +42,7 @@ async function assertTargetOutsideLiveState(targetPath: string): Promise<void> {
   ]);
   if (isPathWithin(canonicalTarget, canonicalStateDir)) {
     throw new Error(
-      `Backup restore target must be outside the live OpenClaw state directory: ${targetPath}`,
+      `Backup restore target must be outside the live Vasudev state directory: ${targetPath}`,
     );
   }
   const configSnapshot = await readConfigFileSnapshot({ observe: false });
@@ -54,7 +54,7 @@ async function assertTargetOutsideLiveState(targetPath: string): Promise<void> {
   for (const { sourcePath } of agentRoots) {
     if (isPathWithin(canonicalTarget, sourcePath)) {
       throw new Error(
-        `Backup restore target must be outside the live OpenClaw agent directory: ${targetPath}`,
+        `Backup restore target must be outside the live Vasudev agent directory: ${targetPath}`,
       );
     }
   }
@@ -135,7 +135,7 @@ function formatRestoreResult(result: BackupRestoreResult): string {
     "Rollback warnings:",
     ...result.warnings.map((warning) => `- ${warning}`),
     "",
-    "Activation is explicit: stop the Gateway, move the restored asset tree into place or point OPENCLAW_STATE_DIR at the restored state asset, then run `openclaw doctor`.",
+    "Activation is explicit: stop the Gateway, move the restored asset tree into place or point OPENCLAW_STATE_DIR at the restored state asset, then run `vasudev doctor`.",
   ].join("\n");
 }
 

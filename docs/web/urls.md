@@ -166,7 +166,7 @@ also works under `/dashboard/<agentId>`.
 
 ## Social previews
 
-Use **Copy → Preview link** in a session's menu to share a link with an Vasudev
+Use **Copy → Preview link** in a session's menu to share a link with a Vasudev
 social card. It opens a small public landing page; **Open dashboard** or
 **Open session** then takes the recipient to the normal authenticated view.
 **Copy → Session link** still copies the direct link.

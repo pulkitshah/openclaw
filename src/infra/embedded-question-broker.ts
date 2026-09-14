@@ -30,7 +30,7 @@ import {
 } from "./agent-run-registry.js";
 
 const EMBEDDED_SECRET_STORE_REQUEST_BLOCKER =
-  "Secret store requests need a running Gateway; ask the operator to run `openclaw secrets store` or use the Control UI.";
+  "Secret store requests need a running Gateway; ask the operator to run `vasudev secrets store` or use the Control UI.";
 
 type QuestionEvent =
   | { event: "question.requested"; payload: QuestionRequestedEvent }

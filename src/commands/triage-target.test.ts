@@ -477,7 +477,7 @@ describe.skipIf(process.platform === "win32")("embedded triage installation targ
                     expect(runSignal.aborted).toBe(false);
                     expect(opts.assertSourceCurrent).toBe(assertCurrent);
                     expect(prompt).toContain("## Triggering failure");
-                    expect(prompt).toContain("openclaw health --json");
+                    expect(prompt).toContain("vasudev health --json");
                     if (fails) {
                       controller.abort(runFailure);
                       expect(runSignal.aborted).toBe(true);
@@ -558,7 +558,7 @@ describe.skipIf(process.platform === "win32")("embedded triage installation targ
                 expect
                   .soft(
                     childTarget,
-                    "child OpenClaw must select the original config and default workspace",
+                    "child Vasudev must select the original config and default workspace",
                   )
                   .toEqual(before);
               } finally {

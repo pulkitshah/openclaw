@@ -1,4 +1,4 @@
-// Covers locating OpenClaw docs and source paths from package roots.
+// Covers locating Vasudev docs and source paths from package roots.
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";

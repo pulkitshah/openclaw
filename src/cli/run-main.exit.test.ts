@@ -2931,7 +2931,7 @@ describe("runCli exit behavior", () => {
 
     expect(error).toBeInstanceOf(ExpectedCliError);
     expect((error as ExpectedCliError).humanOutput).toContain(
-      "Did you mean this?\n  openclaw update\n",
+      "Did you mean this?\n  vasudev update\n",
     );
 
     expect(startProxyMock).not.toHaveBeenCalled();
@@ -3692,7 +3692,7 @@ describe("runCli exit behavior", () => {
     });
 
     await expectNonInteractiveBareCliError(
-      "Onboarding needs an interactive TTY. Use `openclaw onboard --non-interactive --accept-risk ...` for automation.",
+      "Onboarding needs an interactive TTY. Use `vasudev onboard --non-interactive --accept-risk ...` for automation.",
       () => {
         expect(setupWizardCommandMock).not.toHaveBeenCalled();
         expect(tryRouteCliMock).not.toHaveBeenCalled();
@@ -4417,7 +4417,7 @@ describe("runCli exit behavior", () => {
 
       expect(process.exitCode).toBe(1);
       expect(errorSpy).toHaveBeenCalledWith(
-        "Vasudev TUI needs an interactive TTY. Use `openclaw agent --local ...` for automation.",
+        "Vasudev TUI needs an interactive TTY. Use `vasudev agent --local ...` for automation.",
       );
       expect(runTuiMock).not.toHaveBeenCalled();
     } finally {
@@ -4457,7 +4457,7 @@ describe("runCli exit behavior", () => {
       sourceConfig: { gateway: { mode: "local" } },
     });
     await expectNonInteractiveBareCliError(
-      "Vasudev config is invalid. Run `openclaw doctor --fix` before onboarding.",
+      "Vasudev config is invalid. Run `vasudev doctor --fix` before onboarding.",
       () => expect(setupWizardCommandMock).not.toHaveBeenCalled(),
     );
   });

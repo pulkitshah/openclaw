@@ -537,7 +537,7 @@ describe("users model-account connection lifecycle", () => {
       undefined,
       expect.objectContaining({
         code: "INVALID_REQUEST",
-        message: expect.stringContaining("openclaw models auth login"),
+        message: expect.stringContaining("vasudev models auth login"),
       }),
     );
     expect(

@@ -187,7 +187,7 @@ describe("asynchronous agent database maintenance admission", () => {
         expect(open).toThrow(
           cached
             ? /another maintenance mutation scope/
-            : /another OpenClaw process owns state-handles/,
+            : /another Vasudev process owns state-handles/,
         );
       } finally {
         release.resolve();

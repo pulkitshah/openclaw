@@ -74,7 +74,7 @@ beforeEach(() => {
 });
 
 describe("install security scan official bypass", () => {
-  it("bypasses plugin install friction for bundled OpenClaw sources", async () => {
+  it("bypasses plugin install friction for bundled Vasudev sources", async () => {
     const sourceDir = makeTempDir();
     const result = await scanBundleInstallSourceRuntime({
       logger: {},
@@ -100,7 +100,7 @@ describe("install security scan official bypass", () => {
     expectOnlyOperatorPolicyRan();
   });
 
-  it("bypasses skill install friction for bundled OpenClaw sources", async () => {
+  it("bypasses skill install friction for bundled Vasudev sources", async () => {
     const result = await evaluateSkillInstallPolicyRuntime({
       installId: "node",
       logger: {},
@@ -450,7 +450,7 @@ describe("legacy file install scan compatibility", () => {
         guidance: [
           "This invocation cannot approve install policy warnings.",
           "To continue:",
-          "  • Run the matching direct `openclaw plugins ...` or `openclaw skills ...` command interactively.",
+          "  • Run the matching direct `vasudev plugins ...` or `vasudev skills ...` command interactively.",
           "  • For reviewed direct CLI automation, add --acknowledge-install-policy-warning.",
           "  • If no equivalent direct command exists, change security.installPolicy to allow this reviewed request, then retry.",
           "  • --force does not approve install policy warnings.",
@@ -629,7 +629,7 @@ describe("legacy file install scan compatibility", () => {
       const guidance = [
         "This invocation cannot approve install policy warnings.",
         "To continue:",
-        "  • Run the matching direct `openclaw plugins ...` or `openclaw skills ...` command interactively.",
+        "  • Run the matching direct `vasudev plugins ...` or `vasudev skills ...` command interactively.",
         "  • For reviewed direct CLI automation, add --acknowledge-install-policy-warning.",
         "  • If no equivalent direct command exists, change security.installPolicy to allow this reviewed request, then retry.",
         "  • --force does not approve install policy warnings.",

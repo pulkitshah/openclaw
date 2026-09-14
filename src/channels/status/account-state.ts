@@ -70,7 +70,7 @@ export function resolveUnavailableChannelAccountSnapshot(
   // retain usable credentials and are excluded by the secrets runtime lookup.
   const lastError = owner
     ? new SecretSurfaceUnavailableError(owner).message
-    : pluginError && `${truncateUtf16Safe(pluginError, 1_000)}; run openclaw doctor`;
+    : pluginError && `${truncateUtf16Safe(pluginError, 1_000)}; run vasudev doctor`;
   if (!lastError) {
     return undefined;
   }

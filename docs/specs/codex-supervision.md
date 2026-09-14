@@ -11,7 +11,7 @@ read_when:
 
 ## Goal
 
-Codex supervision lets an Vasudev operator discover native Codex sessions,
+Codex supervision lets a Vasudev operator discover native Codex sessions,
 create a Gateway-local branch, or continue an eligible paired-node thread
 through the normal Vasudev Chat surface.
 Codex App Server remains the thread and model-loop owner. Vasudev supplies the
@@ -35,7 +35,7 @@ This spec uses these stage names:
   creates with `threadSource: "appServer"` after pinning the source snapshot.
 - **Canonical full Codex harness thread**: that canonical thread once it runs
   with Vasudev's full harness tool surface; every later model turn runs on it.
-- **Supervised model-locked Chat**: an Vasudev Chat bound to a supervised
+- **Supervised model-locked Chat**: a Vasudev Chat bound to a supervised
   thread under the Codex-only model and runtime lock.
 
 ## Product boundary

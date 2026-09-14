@@ -78,7 +78,7 @@ function resolveLifecycleAgentId(rawAgent: string | undefined): string | undefin
 
 function listHint(agent?: string): string {
   const agentFlag = agent ? ` --agent ${agent}` : "";
-  return formatCliCommand(`openclaw sessions list${agentFlag} --json`);
+  return formatCliCommand(`vasudev sessions list${agentFlag} --json`);
 }
 
 function notFoundResult(key: string, agent?: string): SessionsLifecycleResult {
@@ -186,8 +186,8 @@ function outputLifecycleResults(
             runtime.log("Archived transcripts can remain eligible for memory search.");
             runtime.log(
               agentId
-                ? `To remove indexed memories for this session, run openclaw memory forget --agent ${quoteCliArg(agentId)} --session ${quoteCliArg(result.key)} on the Gateway host or container using its state and configuration.`
-                : "Run openclaw memory forget on the Gateway host or container using its state and configuration; select the owning agent with --agent and this session with --session.",
+                ? `To remove indexed memories for this session, run vasudev memory forget --agent ${quoteCliArg(agentId)} --session ${quoteCliArg(result.key)} on the Gateway host or container using its state and configuration.`
+                : "Run vasudev memory forget on the Gateway host or container using its state and configuration; select the owning agent with --agent and this session with --session.",
             );
           }
           if (result.worktreePreserved) {

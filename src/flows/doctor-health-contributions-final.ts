@@ -117,7 +117,7 @@ export function resolveFinalDoctorHealthContributions(params: {
             message: `Plugin ${failure.pluginId} declared ${failure.metadataKey}, but its checker failed to load: ${failure.detail}`,
             target: failure.pluginId,
             requirement: "declared-channel-package-state-capability-loadable",
-            fixHint: `Rebuild or reinstall plugin ${failure.pluginId}, then rerun \`openclaw doctor\`.`,
+            fixHint: `Rebuild or reinstall plugin ${failure.pluginId}, then rerun \`vasudev doctor\`.`,
           }));
         },
       },

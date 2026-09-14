@@ -232,7 +232,7 @@ describe("default install identity", () => {
     {
       platform: "win32" as const,
       envKey: "OPENCLAW_WINDOWS_TASK_NAME",
-      value: "OpenClaw Gateway",
+      value: "Vasudev Gateway",
     },
   ])("rejects a named profile overriding $envKey on $platform", ({ platform, envKey, value }) => {
     const home = "/home/test";

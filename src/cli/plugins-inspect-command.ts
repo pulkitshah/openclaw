@@ -327,7 +327,7 @@ export async function runPluginsInspectCommand(
   process.stderr.write(globalDiagnostics);
   if (output === undefined) {
     failPluginInspect(
-      formatMissingPluginMessage({ id, listCommand: "openclaw plugins list --json" }),
+      formatMissingPluginMessage({ id, listCommand: "vasudev plugins list --json" }),
       opts.json,
     );
   } else if (opts.json) {

@@ -193,7 +193,7 @@ describe("prepareCliBundleMcpConfig gemini", () => {
 
     expect(prepared.env?.CONTEXT7_API_KEY).toBe("ctx7-test");
     expect(typeof prepared.env?.GEMINI_CLI_SYSTEM_SETTINGS_PATH).toBe("string");
-    // User OpenClaw transport names are normalized to Gemini's expected schema.
+    // User Vasudev transport names are normalized to Gemini's expected schema.
     const raw = JSON.parse(
       await fs.readFile(prepared.env?.GEMINI_CLI_SYSTEM_SETTINGS_PATH as string, "utf-8"),
     ) as {

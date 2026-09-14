@@ -60,7 +60,7 @@ const {
   >(async () => ({
     status: "started" as const,
     pid: 12345,
-    command: "openclaw update --yes --channel beta --timeout 2700",
+    command: "vasudev update --yes --channel beta --timeout 2700",
     logPath: "/tmp/openclaw-handoff.log",
     handoffId: "auto-handoff-id",
     installRoot: "/opt/openclaw",
@@ -303,7 +303,7 @@ describe("update-startup", () => {
     startManagedServiceUpdateHandoffMock.mockResolvedValue({
       status: "started",
       pid: 12345,
-      command: "openclaw update --yes --channel beta --timeout 2700",
+      command: "vasudev update --yes --channel beta --timeout 2700",
       logPath: "/tmp/openclaw-handoff.log",
       handoffId: "auto-handoff-id",
       installRoot: "/opt/openclaw",
@@ -618,7 +618,7 @@ describe("update-startup", () => {
       { surface: "gateway" },
     );
     expect(log.info).toHaveBeenCalledWith(
-      `update available (latest): v2.0.0 (current v1.0.0). Run: ${formatCliCommand("openclaw update")}`,
+      `update available (latest): v2.0.0 (current v1.0.0). Run: ${formatCliCommand("vasudev update")}`,
     );
     expect(parsed?.lastNotifiedVersion).toBe("2.0.0");
     expect(parsed?.lastAvailableVersion).toBe("2.0.0");
@@ -1020,7 +1020,7 @@ describe("update-startup", () => {
     expect(checkTelemetryUpdateMock).toHaveBeenCalledTimes(2);
     expect(log.info).toHaveBeenCalledTimes(1);
     expect(log.info).toHaveBeenCalledWith(
-      `update available (extended-stable): v2.0.0 (current v1.0.0). Run: ${formatCliCommand("openclaw update")}`,
+      `update available (extended-stable): v2.0.0 (current v1.0.0). Run: ${formatCliCommand("vasudev update")}`,
     );
     expect(onUpdateAvailableChange).toHaveBeenCalledTimes(1);
     expect(onUpdateAvailableChange).toHaveBeenCalledWith({
@@ -2651,7 +2651,7 @@ describe("update-startup", () => {
       kind: "update",
       status: "skipped",
       message: expect.stringMatching(
-        /Stop the foreground Gateway.*`openclaw --profile work update --yes --channel beta --tag 2\.0\.0-beta\.1 --timeout 2700`.*then launch the Gateway again/s,
+        /Stop the foreground Gateway.*`vasudev --profile work update --yes --channel beta --tag 2\.0\.0-beta\.1 --timeout 2700`.*then launch the Gateway again/s,
       ),
       stats: { reason: "managed-service-handoff-unavailable" },
     });
@@ -2668,7 +2668,7 @@ describe("update-startup", () => {
     startManagedServiceUpdateHandoffMock.mockResolvedValueOnce({
       status: "started",
       pid: 12345,
-      command: "openclaw update --yes --channel beta --tag 2.0.0-beta.1 --timeout 2700",
+      command: "vasudev update --yes --channel beta --tag 2.0.0-beta.1 --timeout 2700",
       logPath: "/tmp/openclaw-handoff.log",
       handoffId: "started-auto-handoff-id",
       installRoot: await fs.realpath(installRoot),
@@ -2723,7 +2723,7 @@ describe("update-startup", () => {
       version: "2.0.0-beta.1",
       tag: "beta",
       forced: false,
-      command: "openclaw update --yes --channel beta --tag 2.0.0-beta.1 --timeout 2700",
+      command: "vasudev update --yes --channel beta --tag 2.0.0-beta.1 --timeout 2700",
       logPath: "/tmp/openclaw-handoff.log",
     });
     expect(getUpdateSchedule()?.campaign?.state).toBe("applying");
@@ -2745,7 +2745,7 @@ describe("update-startup", () => {
       if (triageFails) {
         runUpdateFailureTriageMock.mockResolvedValueOnce({
           status: "failed",
-          hint: "Triage could not complete: collector failed. Run openclaw triage.",
+          hint: "Triage could not complete: collector failed. Run vasudev triage.",
         });
       }
       const log = { info: vi.fn() };
@@ -2807,7 +2807,7 @@ describe("update-startup", () => {
     startManagedServiceUpdateHandoffMock.mockResolvedValueOnce({
       status: "joined",
       pid: 12345,
-      command: "openclaw update --yes --channel beta --timeout 2700",
+      command: "vasudev update --yes --channel beta --timeout 2700",
       logPath: "/tmp/openclaw-handoff.log",
       handoffId: "handoff-existing",
     });

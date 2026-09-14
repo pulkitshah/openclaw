@@ -7,7 +7,7 @@ read_when:
 title: "Claude Max API proxy"
 ---
 
-**claude-max-api-proxy** is a community npm package (not an Vasudev plugin) that
+**claude-max-api-proxy** is a community npm package (not a Vasudev plugin) that
 exposes a Claude Max/Pro subscription as an OpenAI-compatible API endpoint, so
 you can point any OpenAI-compatible tool at your subscription instead of an
 Anthropic API key.

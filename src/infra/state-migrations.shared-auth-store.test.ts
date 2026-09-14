@@ -482,7 +482,7 @@ describe("shared auth store relocation", () => {
       };
       if (!converges) {
         expect(result.warnings[0]).toContain(conflictDetails[scenario]);
-        expect(result.warnings[0]).toContain("openclaw doctor --fix");
+        expect(result.warnings[0]).toContain("vasudev doctor --fix");
         expect(result.warnings[0]).toContain(JSON.stringify(sourcePath));
         expect(result.warnings[0]).toContain(
           JSON.stringify(path.join(fixture.stateDir, "state", "openclaw.sqlite")),
@@ -933,7 +933,7 @@ describe("shared auth store relocation", () => {
       expect.objectContaining({
         name: "SharedAuthStoreSourceInspectionError",
         code: "SHARED_AUTH_STORE_SOURCE_UNREADABLE",
-        action: "openclaw doctor --fix",
+        action: "vasudev doctor --fix",
         sourcePath,
       }),
     );

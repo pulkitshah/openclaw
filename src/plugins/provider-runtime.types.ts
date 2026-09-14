@@ -59,7 +59,7 @@ export type ProviderPreferRuntimeResolvedModelContext = {
 /**
  * Last-chance rewrite hook for provider-owned transport normalization.
  *
- * Runs after OpenClaw resolves an explicit/discovered/dynamic model and before
+ * Runs after Vasudev resolves an explicit/discovered/dynamic model and before
  * the embedded runner uses it. Typical uses: swap API ids, fix base URLs, or
  * patch provider-specific compat bits.
  */
@@ -140,7 +140,7 @@ export type ProviderPreparedRuntimeAuth = {
  * snapshots often need a different credential source than live inference
  * requests, and they run outside the embedded runner.
  *
- * The helper methods cover the common OpenClaw auth resolution paths:
+ * The helper methods cover the common Vasudev auth resolution paths:
  *
  * - `resolveApiKeyFromConfigAndStore`: env/config/plain token/api_key profiles
  * - `resolveOAuthToken`: oauth/token profiles resolved through the auth store,
@@ -223,7 +223,7 @@ export type ProviderFetchUsageSnapshotContext = {
 /**
  * Provider-owned auth-doctor hint input.
  *
- * Called when OAuth refresh fails and OpenClaw wants a provider-specific repair
+ * Called when OAuth refresh fails and Vasudev wants a provider-specific repair
  * hint to append to the generic re-auth message. Use this for legacy profile-id
  * migrations or other provider-owned auth-store cleanup guidance.
  */
@@ -235,13 +235,13 @@ export type ProviderAuthDoctorHintContext = {
 };
 
 /**
- * Provider-owned extra-param normalization before OpenClaw builds its generic
+ * Provider-owned extra-param normalization before Vasudev builds its generic
  * stream option wrapper.
  *
  * Use this to set provider defaults or rewrite provider-specific config keys
  * into the merged `extraParams` object. Return the full next extraParams object.
  */
-/** Provider-facing effort after OpenClaw lowers orchestration-only modes. */
+/** Provider-facing effort after Vasudev lowers orchestration-only modes. */
 type ProviderTransportThinkingLevel = Exclude<ThinkLevel, "ultra">;
 
 export type ProviderPrepareExtraParamsContext = {

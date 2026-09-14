@@ -117,7 +117,7 @@ export function normalizeFallbackFailureReason(
     case "global install verify":
     case "global install swap":
       return "global-install-failed";
-    case "openclaw doctor":
+    case "vasudev doctor":
       return "doctor-failed";
     case "post-install verification":
       return "runtime-verification-failed";

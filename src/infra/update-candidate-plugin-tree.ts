@@ -382,7 +382,7 @@ export async function prepareUpdateCandidatePluginTrees(params: {
         }));
       if (excludesInferredRoot(owner)) {
         throw new Error(
-          `Cannot privately copy host-owned plugin link ${file} -> ${real}; use the openclaw package/SDK import or a separately owned plugin dependency.`,
+          `Cannot privately copy host-owned plugin link ${file} -> ${real}; use the vasudev package/SDK import or a separately owned plugin dependency.`,
         );
       }
       assertSource(owner);

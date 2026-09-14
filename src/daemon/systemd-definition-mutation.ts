@@ -325,7 +325,7 @@ export async function withSystemdDefinitionMutation<T>(
         }
         const written = await fs.lstat(temporary);
         await refresh(true);
-        // Locks coordinate OpenClaw writers, not external editors: POSIX rename
+        // Locks coordinate Vasudev writers, not external editors: POSIX rename
         // has no expected-inode check. Quiesce administrative edits during installation.
         assertGatewayServiceUpdateCurrent();
         await fs.rename(temporary, file);

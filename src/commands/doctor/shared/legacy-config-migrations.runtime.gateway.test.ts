@@ -10,7 +10,7 @@ describe("retired Control UI tool-title preference", () => {
       const raw = { gateway: { controlUi: { enabled: true, toolTitles } } };
       expect(findLegacyConfigIssues(raw)).toContainEqual({
         path: "gateway.controlUi.toolTitles",
-        message: expect.stringContaining("openclaw doctor --fix"),
+        message: expect.stringContaining("vasudev doctor --fix"),
       });
       expect(validateConfigObject(raw).ok).toBe(false);
 

@@ -245,7 +245,7 @@ describe("bundle plugin hooks", () => {
     expect(entries).toHaveLength(0);
   });
 
-  it("does not treat Claude hooks.json bundles as OpenClaw hook packs", async () => {
+  it("does not treat Claude hooks.json bundles as Vasudev hook packs", async () => {
     const bundleRoot = path.join(workspaceDir, ".openclaw", "extensions", "claude-bundle");
     await fsp.mkdir(path.join(bundleRoot, ".claude-plugin"), { recursive: true });
     await fsp.mkdir(path.join(bundleRoot, "hooks"), { recursive: true });

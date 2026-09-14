@@ -188,8 +188,8 @@ export const PLUGIN_COMPAT_RECORDS = [
       "openclaw/plugin-sdk/session-store-runtime updateSessionStore",
       "openclaw/plugin-sdk/session-store-runtime resolveSessionFilePath",
       "openclaw/plugin-sdk/session-store-runtime resolveSessionStoreEntry",
-      "openclaw package root loadSessionStore",
-      "openclaw package root saveSessionStore",
+      "vasudev package root loadSessionStore",
+      "vasudev package root saveSessionStore",
     ],
     diagnostics: ["plugin SDK deprecation"],
     tests: [
@@ -586,7 +586,7 @@ export const PLUGIN_COMPAT_RECORDS = [
     ],
     tests: ["src/plugin-sdk/shipped-channel-compat.test.ts", "src/plugins/compat/registry.test.ts"],
     releaseNote:
-      "Published OpenClaw channel packages through 2026.7.1 remain loadable while they migrate to plugin-owned config and setup helpers.",
+      "Published Vasudev channel packages through 2026.7.1 remain loadable while they migrate to plugin-owned config and setup helpers.",
   },
   {
     code: "generated-bundled-channel-config-fallback",

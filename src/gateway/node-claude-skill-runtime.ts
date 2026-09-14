@@ -63,7 +63,7 @@ export async function prepareNodeClaudeSkillRuntime(
     target.kind === "node" ? gateway?.nodeRegistry.get(target.placement.nodeId) : undefined;
   if (!gateway || !node || !node.caps.includes(NODE_CLAUDE_SKILLS_CAPABILITY)) {
     throw new Error(
-      "Paired node needs claude-cli-skills-v1. Upgrade OpenClaw on the paired node, restart its node host, and retry this turn.",
+      "Paired node needs claude-cli-skills-v1. Upgrade Vasudev on the paired node, restart its node host, and retry this turn.",
     );
   }
   const assertRun = resolveAdmittedRunActiveAssertion(run.admittedRunContext, signal);

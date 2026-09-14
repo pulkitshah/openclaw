@@ -81,7 +81,7 @@ describe("Gateway status owner routing", () => {
         session: { store: path.join(stateDir, "sessions.json") },
       };
       const hint =
-        'Run "openclaw doctor --fix" against the same state/config, then restart the gateway.';
+        'Run "vasudev doctor --fix" against the same state/config, then restart the gateway.';
 
       const reader = await callStatus(config);
       const readerPayload = reader.mock.calls[0]?.[1];

@@ -1,4 +1,4 @@
-// OpenClaw TUI backend tests cover rescue status integration with the TUI backend.
+// Vasudev TUI backend tests cover rescue status integration with the TUI backend.
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import * as preparedModelCatalog from "../agents/prepared-model-catalog.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
@@ -152,7 +152,7 @@ describe("runSystemAgentTui", () => {
     expect(runChannelsAdd).not.toHaveBeenCalled();
   });
 
-  it("runs OpenClaw inside the shared TUI shell", async () => {
+  it("runs Vasudev inside the shared TUI shell", async () => {
     let runTuiCalls = 0;
     let runTuiOptions: unknown;
     const verified = await createVerifiedTuiOptions(
@@ -199,7 +199,7 @@ describe("runSystemAgentTui", () => {
     expect(options.session).toBe("agent:openclaw:main");
     expect(options.historyLimit).toBe(200);
     expect(options.config).toEqual({});
-    expect(options.title).toBe("openclaw setup");
+    expect(options.title).toBe("vasudev setup");
     if (!options.backend || typeof options.backend !== "object") {
       throw new Error("expected openclaw TUI backend");
     }
@@ -277,7 +277,7 @@ describe("runSystemAgentTui", () => {
         expect.objectContaining({
           local: true,
           session: "agent:openclaw:main",
-          title: "openclaw setup",
+          title: "vasudev setup",
         }),
       );
     } finally {
@@ -639,7 +639,7 @@ describe("runSystemAgentTui", () => {
         "disposed",
         expected,
         ...(handoff.target === "gateway"
-          ? ["log:Done — gateway settings saved. Run `openclaw gateway restart` to apply them."]
+          ? ["log:Done — gateway settings saved. Run `vasudev gateway restart` to apply them."]
           : []),
       ]);
     }

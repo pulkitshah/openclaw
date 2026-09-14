@@ -55,7 +55,7 @@ export async function resolveGitDoctorEntry(root: string, steps: UpdateStepResul
     return entry;
   }
   steps.push({
-    name: "openclaw doctor entry",
+    name: "vasudev doctor entry",
     command: `verify ${entry}`,
     cwd: root,
     durationMs: 0,
@@ -75,7 +75,7 @@ export async function runGitDoctorStep(params: {
   step: (name: string, argv: string[], cwd: string, env?: NodeJS.ProcessEnv) => RunStepOptions;
 }) {
   const options = params.step(
-    "openclaw doctor",
+    "vasudev doctor",
     [
       params.nodePath,
       params.entryPath,
@@ -90,7 +90,7 @@ export async function runGitDoctorStep(params: {
     const result = await params.runDoctor(params.root);
     options.results?.push(
       result ?? {
-        name: "openclaw doctor",
+        name: "vasudev doctor",
         command: "run activation doctor",
         cwd: params.root,
         durationMs: 0,

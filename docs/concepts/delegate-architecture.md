@@ -11,7 +11,7 @@ This extends [Multi-Agent Routing](/concepts/multi-agent) from personal use into
 
 ## What is a delegate
 
-A delegate is an Vasudev agent that:
+A delegate is a Vasudev agent that:
 
 - Has its **own identity** (email address, display name, calendar).
 - Acts **on behalf of** one or more humans, never pretends to be them.

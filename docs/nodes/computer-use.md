@@ -69,7 +69,7 @@ The pinned CUA Driver fixes its permission mode and bounded manifest when the ru
 
 The `computer.act` node-invoke policy classifies exact arguments before transport dispatch. Forced app termination, browser navigation, browser downloads, browser file inputs, recording start, trajectory replay, and desktop-scope escalation are separate high-risk families; ordinary observation and input remain distinct. Classification does not add a per-action prompt or weaken the command-level gates: every action still requires the same exposed tool, armed command, approved pairing, enabled node provider, and OS permissions.
 
-The managed endpoint is not part of the model contract. The CUA plugin registers no model tool, CLI command, service, or raw node-MCP descriptor, and its action schema accepts neither helper binaries, sockets, native sessions, driver arguments, nor provider tool names. On macOS only the app-owned worker receives the endpoint, while node shell execution is routed through the app host without that worker-only value. These boundaries prevent an Vasudev model action from selecting an alternate route to the managed daemon.
+The managed endpoint is not part of the model contract. The CUA plugin registers no model tool, CLI command, service, or raw node-MCP descriptor, and its action schema accepts neither helper binaries, sockets, native sessions, driver arguments, nor provider tool names. On macOS only the app-owned worker receives the endpoint, while node shell execution is routed through the app host without that worker-only value. These boundaries prevent a Vasudev model action from selecting an alternate route to the managed daemon.
 
 CUA creates the Unix socket with mode `0600`, and Vasudev places it in a random owner-only `0700` directory. This excludes remote clients and other local users. It does not authenticate or sandbox processes running as the same logged-in user: those processes are inside this boundary and may be able to discover and use same-user resources. Unrestricted CUA mode does not contain a compromised user account. Stronger same-user isolation would require inherited connected IPC or an OS-enforced process boundary.
 
@@ -292,7 +292,7 @@ For a dedicated Mac that should stay awake between jobs, explicitly enable
 subject to the current connection, hosting, and unlocked-session requirements.
 Screen Sharing may request an immediate lock when its last viewer disconnects;
 Vasudev honors that lock even when unattended desktop hosting is enabled. The
-web Desktop viewer does not create an Vasudev keep-awake execution.
+web Desktop viewer does not create a Vasudev keep-awake execution.
 See [Desktop availability and keeping awake](/platforms/mac/permissions#desktop-availability-and-keeping-awake).
 
 <a id="macos-permission-troubleshooting" />

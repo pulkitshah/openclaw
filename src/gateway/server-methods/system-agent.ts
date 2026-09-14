@@ -1,4 +1,4 @@
-// OpenClaw gateway methods host the setup/repair conversation for clients.
+// Vasudev gateway methods host the setup/repair conversation for clients.
 import {
   buildSystemAgentInferenceUnavailableErrorDetails,
   buildSystemAgentSessionInvalidatedErrorDetails,
@@ -259,7 +259,7 @@ export const systemAgentHandlers: GatewayRequestHandlers = {
               const snapshot = await setupShared.readSetupConfigFileSnapshot();
               if (!snapshot.valid) {
                 throw new Error(
-                  "Config is invalid. Run `openclaw doctor` before preparing a model.",
+                  "Config is invalid. Run `vasudev doctor` before preparing a model.",
                 );
               }
               // Match the classic wizard: mutate the authored shape, not runtimeConfig,
@@ -294,7 +294,7 @@ export const systemAgentHandlers: GatewayRequestHandlers = {
               );
               if (!prepared || prepared.retrySelection) {
                 throw new Error(
-                  `Provider setup resolution failed for "${params.authChoice}". Run \`openclaw doctor --fix\`, restart the Gateway, and try again.`,
+                  `Provider setup resolution failed for "${params.authChoice}". Run \`vasudev doctor --fix\`, restart the Gateway, and try again.`,
                 );
               }
               signal.throwIfAborted();
@@ -398,7 +398,7 @@ export const systemAgentHandlers: GatewayRequestHandlers = {
         respond(
           false,
           undefined,
-          errorShape(ErrorCodes.INVALID_REQUEST, "OpenClaw caller identity unavailable."),
+          errorShape(ErrorCodes.INVALID_REQUEST, "Vasudev caller identity unavailable."),
         );
         return undefined;
       }
@@ -409,7 +409,7 @@ export const systemAgentHandlers: GatewayRequestHandlers = {
         respond(
           false,
           undefined,
-          errorShape(ErrorCodes.INVALID_REQUEST, "OpenClaw session belongs to another caller.", {
+          errorShape(ErrorCodes.INVALID_REQUEST, "Vasudev session belongs to another caller.", {
             details: buildSystemAgentSessionInvalidatedErrorDetails(),
           }),
         );
@@ -433,8 +433,8 @@ export const systemAgentHandlers: GatewayRequestHandlers = {
           errorShape(
             ErrorCodes.INVALID_REQUEST,
             params.wizardCancel !== undefined
-              ? "No active OpenClaw chat session is awaiting that wizard cancel."
-              : "No active OpenClaw chat session is awaiting that wizard answer.",
+              ? "No active Vasudev chat session is awaiting that wizard cancel."
+              : "No active Vasudev chat session is awaiting that wizard answer.",
             { details: buildSystemAgentSessionInvalidatedErrorDetails() },
           ),
         );
@@ -458,7 +458,7 @@ export const systemAgentHandlers: GatewayRequestHandlers = {
             undefined,
             errorShape(
               ErrorCodes.UNAVAILABLE,
-              `OpenClaw requires working inference: ${inference.error}`,
+              `Vasudev requires working inference: ${inference.error}`,
               {
                 details: buildSystemAgentInferenceUnavailableErrorDetails(),
               },
@@ -595,7 +595,7 @@ export const systemAgentHandlers: GatewayRequestHandlers = {
           respond(
             false,
             undefined,
-            errorShape(ErrorCodes.INVALID_REQUEST, "OpenClaw chat input is missing."),
+            errorShape(ErrorCodes.INVALID_REQUEST, "Vasudev chat input is missing."),
           );
           return undefined;
         }

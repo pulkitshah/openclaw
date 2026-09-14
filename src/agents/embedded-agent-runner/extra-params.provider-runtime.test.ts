@@ -173,7 +173,7 @@ describe("extra-params: provider runtime handoff", () => {
   });
 
   it("supports cached WebSockets and filters unknown upstream transport values", () => {
-    // Upstream transports can name modes OpenClaw does not own; unresolved values
+    // Upstream transports can name modes Vasudev does not own; unresolved values
     // must be filtered before plugin runtime hooks receive them.
     const settingsManager = {
       getGlobalSettings: () => ({}),

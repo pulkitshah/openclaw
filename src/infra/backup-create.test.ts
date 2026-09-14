@@ -2275,7 +2275,7 @@ describe("createBackupArchive", () => {
             nowMs: Date.UTC(2026, 4, 9, 8, 30, 30),
           }),
         ).rejects.toThrow(
-          /repairable task_delivery_state\.task_id references task_runs\.task_id.*\(1 rows\).*openclaw doctor --fix/iu,
+          /repairable task_delivery_state\.task_id references task_runs\.task_id.*\(1 rows\).*vasudev doctor --fix/iu,
         );
         expect(await fs.readdir(outputDir)).toEqual([]);
         const unchanged = new sqlite.DatabaseSync(resolveOpenClawStateSqlitePath(state.env), {

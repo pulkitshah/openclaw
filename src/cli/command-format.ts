@@ -1,7 +1,12 @@
 // Formats CLI command examples with active container/profile hints when they apply.
 import { normalizeProfileName } from "./profile-utils.js";
 
-const CLI_PREFIX_RE = /^(?:pnpm|npm|bunx|npx)\s+openclaw\b|^openclaw\b/;
+// Both published bin names (see package.json's `bin` map). Displayed commands
+// spell the product (`vasudev …`); the installed binary is still also
+// `openclaw`, and upstream-authored strings keep using it, so the decoration
+// below has to recognise either alias or it silently stops appending the
+// active `--profile`/`--container`.
+const CLI_PREFIX_RE = /^(?:pnpm|npm|bunx|npx)\s+(?:openclaw|vasudev)\b|^(?:openclaw|vasudev)\b/;
 const CONTAINER_FLAG_RE = /(?:^|\s)--container(?:\s|=|$)/;
 const PROFILE_FLAG_RE = /(?:^|\s)--profile(?:\s|=|$)/;
 const DEV_FLAG_RE = /(?:^|\s)--dev(?:\s|$)/;

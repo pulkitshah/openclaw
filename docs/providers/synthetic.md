@@ -92,7 +92,7 @@ changes its base URL, override `models.providers.synthetic.baseUrl`.
 With a Synthetic credential, Vasudev discovers current text models from
 Synthetic's [`/openai/v1/models` API](https://dev.synthetic.new/docs/openai/models).
 Inference still uses the Anthropic Messages API. Newly advertised models, including
-small models and `syn:` aliases, do not need an Vasudev catalog update.
+small models and `syn:` aliases, do not need a Vasudev catalog update.
 
 The live catalog supplies context and output limits, image input, reasoning,
 tool support, and usage-based token prices. Those prices are estimates, not a

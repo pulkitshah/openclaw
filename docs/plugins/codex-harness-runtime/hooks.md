@@ -95,7 +95,7 @@ the native thread unless Codex exposes that through app-server or native hook
 callbacks.
 
 Codex app-server report-mode `PreToolUse` events defer plugin approval to the
-matching app-server approval. If an Vasudev `before_tool_call` hook returns
+matching app-server approval. If a Vasudev `before_tool_call` hook returns
 `requireApproval` while the native payload sets `openclaw_approval_mode:
 "report"`, the native hook relay records the plugin approval requirement and
 returns no native decision. When Codex later sends the app-server approval

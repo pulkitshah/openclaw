@@ -74,7 +74,7 @@ describe("Doctor auth alias preservation", () => {
           const run = () =>
             runDoctorRepairSequence({
               state: { cfg, candidate: structuredClone(cfg), pendingChanges: false, fixHints: [] },
-              doctorFixCommand: "openclaw doctor --fix",
+              doctorFixCommand: "vasudev doctor --fix",
               env: fixture.env,
             });
           // The durable store commit survives even when the caller cannot save this candidate.
@@ -175,7 +175,7 @@ describe("Doctor auth alias preservation", () => {
         );
         const repaired = await runDoctorRepairSequence({
           state: { cfg, candidate: structuredClone(cfg), pendingChanges: false, fixHints: [] },
-          doctorFixCommand: "openclaw doctor --fix",
+          doctorFixCommand: "vasudev doctor --fix",
           env: fixture.env,
         });
         await maybeRepairCodexSessionRoutes({
@@ -292,7 +292,7 @@ describe("Doctor auth alias preservation", () => {
         );
         const result = await runDoctorRepairSequence({
           state: { cfg, candidate: structuredClone(cfg), pendingChanges: false, fixHints: [] },
-          doctorFixCommand: "openclaw doctor --fix",
+          doctorFixCommand: "vasudev doctor --fix",
           env: fixture.env,
         });
         expect(result.state.candidate.auth?.order).toEqual({

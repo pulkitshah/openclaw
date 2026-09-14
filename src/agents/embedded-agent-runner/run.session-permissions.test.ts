@@ -24,7 +24,7 @@ function requestPermissionChange(
 
 // The mocked harness only supports the OpenAI route, so these params keep the
 // plugin harness selected. Falling back to the built-in host harness would drag
-// the whole OpenClaw tool graph into this shard and prove the wrong owner.
+// the whole Vasudev tool graph into this shard and prove the wrong owner.
 function createPluginHarnessRunParams(state: OpenClawTestState) {
   return {
     ...createOverflowRunParams(state),

@@ -1,5 +1,5 @@
 ---
-summary: "Scaffold, build, validate, and pack an Vasudev plugin with `openclaw plugins init`"
+summary: "Scaffold, build, validate, and pack a Vasudev plugin with `openclaw plugins init`"
 title: "Author plugins"
 read_when:
   - You want to scaffold a tool, feature, or provider plugin

@@ -656,7 +656,7 @@ function addLegacyNpmDeclarationDiagnostic(params: {
     level: "warn",
     pluginId: declaration.pluginId,
     source: declaration.source,
-    message: `legacy npm plugin declaration ignored for "${declaration.pluginId}"; run "openclaw doctor --fix" to install ${declaration.npmSpec} into the managed plugin root`,
+    message: `legacy npm plugin declaration ignored for "${declaration.pluginId}"; run "vasudev doctor --fix" to install ${declaration.npmSpec} into the managed plugin root`,
   });
   return true;
 }
@@ -693,7 +693,7 @@ function shouldSkipIncompatiblePackagePluginApi(params: {
   params.diagnostics.push({
     level: "warn",
     source: path.join(params.packageDir, "package.json"),
-    message: `plugin requires plugin API ${packagePluginApiRange}, but this host is ${compatibilityHostVersion}; skipping discovery (check "openclaw --version", OPENCLAW_COMPATIBILITY_HOST_VERSION, or run "openclaw doctor")`,
+    message: `plugin requires plugin API ${packagePluginApiRange}, but this host is ${compatibilityHostVersion}; skipping discovery (check "openclaw --version", OPENCLAW_COMPATIBILITY_HOST_VERSION, or run "vasudev doctor")`,
     pluginId: params.pluginId,
   });
   return true;
@@ -1392,7 +1392,7 @@ export function discoverOpenClawPlugins(params: {
         scanner.discoverConfiguredPaths(params.extraPaths ?? [], workspaceDir);
         const workspaceMatchesBundledRoot = resolvesToSameDirectory(workspaceRoot, roots.stock);
         if (roots.workspace && workspaceRoot && !workspaceMatchesBundledRoot) {
-          // Keep workspace auto-discovery constrained to the OpenClaw extensions root.
+          // Keep workspace auto-discovery constrained to the Vasudev extensions root.
           // Recursively scanning the full workspace treats arbitrary project folders as
           // plugin candidates and causes noisy "plugin manifest not found" validation failures.
           discoverInDirectory({

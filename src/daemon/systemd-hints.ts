@@ -40,6 +40,6 @@ export function renderSystemdUnavailableHints(
     ...(resolveDaemonContainerContext(options.env) || options.kind !== "user_bus_unavailable"
       ? []
       : renderSystemdHeadlessServerHints()),
-    `If you're in a container, run the gateway in the foreground instead of \`${formatCliCommand("openclaw gateway", options.env)}\`.`,
+    `If you're in a container, run the gateway in the foreground instead of \`${formatCliCommand("vasudev gateway", options.env)}\`.`,
   ];
 }

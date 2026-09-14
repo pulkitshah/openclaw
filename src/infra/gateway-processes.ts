@@ -10,7 +10,7 @@ import {
 } from "./windows-port-pids.js";
 
 // Gateway process helpers verify argv before signaling or reporting listener
-// PIDs so stale port owners cannot be mistaken for OpenClaw.
+// PIDs so stale port owners cannot be mistaken for Vasudev.
 const GATEWAY_PS_PROBE_TIMEOUT_MS = 1_000;
 
 /** Read command argv for a PID using the current platform's process APIs. */

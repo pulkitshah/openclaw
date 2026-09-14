@@ -60,7 +60,7 @@ export async function ensureStartupLocalCliPairing(): Promise<StartupLocalCliPai
   const pairing = await requestDevicePairing({
     deviceId: identity.deviceId,
     publicKey,
-    displayName: "OpenClaw CLI",
+    displayName: "Vasudev CLI",
     ...resolveGatewayClientPlatformIdentity(process.platform),
     clientId: GATEWAY_CLIENT_NAMES.CLI,
     clientMode: GATEWAY_CLIENT_MODES.CLI,
@@ -73,7 +73,7 @@ export async function ensureStartupLocalCliPairing(): Promise<StartupLocalCliPai
     callerScopes: [ADMIN_SCOPE],
     approvedVia: "silent",
     accessMetadata: {
-      displayName: "OpenClaw CLI",
+      displayName: "Vasudev CLI",
       remoteIp: "127.0.0.1",
       lastSeenAtMs: Date.now(),
       lastSeenReason: "runtime-token-startup",

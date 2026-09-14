@@ -542,7 +542,7 @@ describe("resolveNodeProgramArguments", () => {
       USERPROFILE: home,
       OPENCLAW_STATE_DIR: path.join(home, "state"),
       OPENCLAW_TASK_SCRIPT_NAME: "node.cmd",
-      OPENCLAW_WINDOWS_TASK_NAME: "OpenClaw Node Fixture",
+      OPENCLAW_WINDOWS_TASK_NAME: "Vasudev Node Fixture",
     };
     const stdout = new PassThrough();
     const options = {

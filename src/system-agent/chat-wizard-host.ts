@@ -579,13 +579,13 @@ export class ChatWizardHost {
         this.bridge = null;
         const target =
           bridge.kind === "channel"
-            ? `Say \`open channel wizard\` and I'll hand you to the masked terminal wizard for ${bridge.label}, or run \`openclaw channels add --channel ${bridge.label}\` yourself later.`
+            ? `Say \`open channel wizard\` and I'll hand you to the masked terminal wizard for ${bridge.label}, or run \`vasudev channels add --channel ${bridge.label}\` yourself later.`
             : bridge.kind === "gateway"
-              ? "Say `open gateway wizard` and I'll hand you to the masked terminal wizard, or run `openclaw configure --section gateway` yourself later."
-              : "Say `open search wizard` and I'll hand you to the masked terminal wizard, or run `openclaw configure --section web` yourself later.";
+              ? "Say `open gateway wizard` and I'll hand you to the masked terminal wizard, or run `vasudev configure --section gateway` yourself later."
+              : "Say `open search wizard` and I'll hand you to the masked terminal wizard, or run `vasudev configure --section web` yourself later.";
         return {
           text: [
-            "Sensitive input is not accepted in the OpenClaw chat because terminal input is visible.",
+            "Sensitive input is not accepted in the Vasudev chat because terminal input is visible.",
             target,
           ].join("\n"),
           configWritten: false,

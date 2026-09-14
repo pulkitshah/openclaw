@@ -1,4 +1,4 @@
-// Tests isolated OpenClaw test-state setup and cleanup behavior.
+// Tests isolated Vasudev test-state setup and cleanup behavior.
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -104,7 +104,7 @@ describe("openclaw test state", () => {
         await state.cleanup();
       }
       expect(settled).toHaveLength(2);
-      expect(() => state.applyEnv()).toThrow("released OpenClaw test state");
+      expect(() => state.applyEnv()).toThrow("released Vasudev test state");
     },
   );
 

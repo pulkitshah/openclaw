@@ -11,7 +11,7 @@ Thread binding rules for ordinary and supervised Codex sessions, including safe 
 
 ## Thread bindings and model changes
 
-When an Vasudev session is attached to an existing Codex thread, the next
+When a Vasudev session is attached to an existing Codex thread, the next
 turn resends the currently selected model, approval policy, sandbox,
 approvals reviewer, and service tier to app-server. Switching from
 `openai/gpt-5.5` to `openai/gpt-5.2` keeps the thread binding but asks Codex to

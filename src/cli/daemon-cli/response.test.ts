@@ -11,11 +11,11 @@ describe("daemon action JSON hints", () => {
 
   it("classifies common daemon hint kinds", () => {
     const hints = [
-      "openclaw gateway install",
+      "vasudev gateway install",
       "Restart the container or the service that manages it for openclaw-demo-container.",
       "systemd user services are unavailable; install/enable systemd or run the gateway under your supervisor.",
       "On a headless server (SSH/no desktop session): run `sudo loginctl enable-linger $(whoami)` to persist your systemd user session across logins.",
-      "If you're in a container, run the gateway in the foreground instead of `openclaw gateway`.",
+      "If you're in a container, run the gateway in the foreground instead of `vasudev gateway`.",
       "WSL2 needs systemd enabled: edit /etc/wsl.conf with [boot]\\nsystemd=true",
     ];
     const writeJson = vi.spyOn(defaultRuntime, "writeJson").mockImplementation(() => {});
@@ -27,7 +27,7 @@ describe("daemon action JSON hints", () => {
         action: "install",
         hints,
         hintItems: [
-          { kind: "install", text: "openclaw gateway install" },
+          { kind: "install", text: "vasudev gateway install" },
           {
             kind: "container-restart",
             text: "Restart the container or the service that manages it for openclaw-demo-container.",
@@ -42,7 +42,7 @@ describe("daemon action JSON hints", () => {
           },
           {
             kind: "container-foreground",
-            text: "If you're in a container, run the gateway in the foreground instead of `openclaw gateway`.",
+            text: "If you're in a container, run the gateway in the foreground instead of `vasudev gateway`.",
           },
           {
             kind: "wsl-systemd",
@@ -56,7 +56,7 @@ describe("daemon action JSON hints", () => {
   it.each([
     "openclaw --profile work gateway install",
     "openclaw --container demo gateway install",
-    "openclaw node install",
+    "vasudev node install",
     "openclaw --profile work node install",
     "openclaw --container demo node install",
   ])("classifies scoped Gateway and node service install hints: %s", (hint) => {

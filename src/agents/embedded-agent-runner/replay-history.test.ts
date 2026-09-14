@@ -17,7 +17,7 @@ import { wrapStreamFnSanitizeMalformedToolCalls } from "./run/attempt-tool-call-
 
 // Preface of carriers persisted before the stable system prompt explained the markers.
 const LEGACY_NEXT_TURN_RUNTIME_CONTEXT_HEADER =
-  "OpenClaw runtime context for the active user request in this turn. Do not reply to or describe this context. Use it to continue answering the active user request now. Do not wait for another message.";
+  "Vasudev runtime context for the active user request in this turn. Do not reply to or describe this context. Use it to continue answering the active user request now. Do not wait for another message.";
 
 const FALLBACK_TEXT = "[assistant turn failed before producing content]";
 const COPIED_INBOUND_METADATA_ONLY_TEXT = [

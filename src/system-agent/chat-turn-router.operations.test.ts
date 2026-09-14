@@ -240,7 +240,7 @@ describe("SystemAgentChatEngine operations", () => {
     expect(reply.action).toBe("none");
     expect(reply.handoff).toBeUndefined();
     expect(reply.text).toContain("Opening the menu wizard");
-    expect(reply.text).toContain("run `openclaw onboard`");
+    expect(reply.text).toContain("run `vasudev onboard`");
   });
 
   it("starts the channel wizard from an agent-loop directive", async () => {
@@ -610,10 +610,10 @@ describe("SystemAgentChatEngine operations", () => {
 
     expect(reply).toContain("failed validation");
     expect(reply).toContain("The write was applied");
-    expect(reply).toContain("openclaw doctor --fix");
+    expect(reply).toContain("vasudev doctor --fix");
   });
 
-  it("keeps doctor repair outside OpenClaw when no post-write repair is proposed", async () => {
+  it("keeps doctor repair outside Vasudev when no post-write repair is proposed", async () => {
     mocks.readConfigFileSnapshot.mockResolvedValue({
       exists: true,
       valid: false,
@@ -626,8 +626,8 @@ describe("SystemAgentChatEngine operations", () => {
 
     const reply = await verifyConfigAfterSystemAgentWrite(async () => ({ text: "" }));
 
-    expect(reply).toContain("with OpenClaw stopped");
-    expect(reply).toContain("openclaw doctor --fix");
+    expect(reply).toContain("with Vasudev stopped");
+    expect(reply).toContain("vasudev doctor --fix");
     expect(reply).toContain("machine running it");
   });
 
@@ -649,7 +649,7 @@ describe("SystemAgentChatEngine operations", () => {
     expect(reply).toContain("The write was applied");
     expect(reply).toContain("post-write verification is unavailable");
     expect(reply).toContain("openclaw.json was not found");
-    expect(reply).toContain("openclaw doctor --fix");
+    expect(reply).toContain("vasudev doctor --fix");
   });
 
   it("warns when the applied write cannot be read back for verification", async () => {
@@ -662,7 +662,7 @@ describe("SystemAgentChatEngine operations", () => {
     expect(reply).toContain("The write was applied");
     expect(reply).toContain("post-write verification is unavailable");
     expect(reply).toContain("openclaw.json could not be read");
-    expect(reply).toContain("openclaw doctor --fix");
+    expect(reply).toContain("vasudev doctor --fix");
   });
 
   it("stays quiet when the post-write validation passes", async () => {

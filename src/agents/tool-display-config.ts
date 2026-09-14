@@ -251,7 +251,7 @@ export const TOOL_DISPLAY_CONFIG: ToolDisplayConfig = {
     },
     openclaw: {
       emoji: "🦀",
-      title: "OpenClaw",
+      title: "Vasudev",
       detailKeys: ["action", "path", "model"],
     },
     gateway: {

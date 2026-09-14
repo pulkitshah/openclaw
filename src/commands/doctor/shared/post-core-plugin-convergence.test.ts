@@ -230,7 +230,7 @@ describe("runPostCorePluginConvergence", () => {
     });
   });
 
-  it("repairs managed npm openclaw peer links in every managed npm project before payload smoke checks", async () => {
+  it("repairs managed npm vasudev peer links in every managed npm project before payload smoke checks", async () => {
     mocks.repairMissingConfiguredPluginInstalls.mockResolvedValue({
       changes: [],
       warnings: [],
@@ -270,7 +270,7 @@ describe("runPostCorePluginConvergence", () => {
       onPackageReadError: expect.any(Function),
     });
     expect(result.changes).toEqual([
-      "Repaired OpenClaw host peer link(s) for 1 managed npm plugin package(s).",
+      "Repaired Vasudev host peer link(s) for 1 managed npm plugin package(s).",
     ]);
     expect(
       mocks.relinkOpenClawPeerDependenciesInManagedNpmRoot.mock.invocationCallOrder[0],
@@ -448,12 +448,12 @@ describe("runPostCorePluginConvergence", () => {
         pluginId: "discord",
         reason: message,
         message,
-        guidance: ["Run `openclaw update repair` to retry plugin repair."],
+        guidance: ["Run `vasudev update repair` to retry plugin repair."],
       },
       {
         reason: unclassifiedMessage,
         message: unclassifiedMessage,
-        guidance: ["Run `openclaw update repair` to retry plugin repair."],
+        guidance: ["Run `vasudev update repair` to retry plugin repair."],
       },
     ]);
   });
@@ -484,7 +484,7 @@ describe("runPostCorePluginConvergence", () => {
         pluginId: "matrix",
         reason: message,
         message,
-        guidance: ["Run `openclaw update repair` to retry plugin repair."],
+        guidance: ["Run `vasudev update repair` to retry plugin repair."],
       },
     ]);
     expect(mocks.runPluginPayloadSmokeCheck).toHaveBeenCalledWith({
@@ -621,8 +621,8 @@ describe("runPostCorePluginConvergence", () => {
         message:
           'Plugin "brave" failed post-core payload smoke check (missing-main-entry): Plugin main entry "dist/index.js" not found at /p/brave/dist/index.js',
         guidance: [
-          "Run `openclaw update repair` to retry plugin repair.",
-          "Run `openclaw plugins inspect brave --runtime --json` for details.",
+          "Run `vasudev update repair` to retry plugin repair.",
+          "Run `vasudev plugins inspect brave --runtime --json` for details.",
         ],
       },
     ]);
@@ -659,8 +659,8 @@ describe("runPostCorePluginConvergence", () => {
         message:
           'Plugin "brave" failed post-core payload smoke check (missing-install-path): Install path is missing from the plugin install record.',
         guidance: [
-          "Run `openclaw update repair` to retry plugin repair.",
-          "Run `openclaw plugins inspect brave --runtime --json` for details.",
+          "Run `vasudev update repair` to retry plugin repair.",
+          "Run `vasudev plugins inspect brave --runtime --json` for details.",
         ],
       },
     ]);
@@ -694,8 +694,8 @@ describe("runPostCorePluginConvergence", () => {
     const message =
       'Plugin "brave" failed post-core payload smoke check (unreadable-package-json): Could not read package.json at /p/brave/package.json: EACCES: permission denied';
     const guidance = [
-      "Fix file access for /p/brave/package.json so it is readable by the user running OpenClaw. For EACCES or EPERM, correct its ownership or permissions; otherwise resolve the reported filesystem I/O error, then retry.",
-      "Run `openclaw plugins inspect brave --runtime --json` for details.",
+      "Fix file access for /p/brave/package.json so it is readable by the user running Vasudev. For EACCES or EPERM, correct its ownership or permissions; otherwise resolve the reported filesystem I/O error, then retry.",
+      "Run `vasudev plugins inspect brave --runtime --json` for details.",
     ];
     expect(result.warnings).toStrictEqual([
       {
@@ -854,9 +854,9 @@ describe("runPostCorePluginConvergence", () => {
 
     expect(result.warnings).toStrictEqual([
       {
-        reason: "Failed to repair managed npm OpenClaw host peer links: EACCES: permission denied",
-        message: "Failed to repair managed npm OpenClaw host peer links: EACCES: permission denied",
-        guidance: ["Run `openclaw update repair` to retry plugin repair."],
+        reason: "Failed to repair managed npm Vasudev host peer links: EACCES: permission denied",
+        message: "Failed to repair managed npm Vasudev host peer links: EACCES: permission denied",
+        guidance: ["Run `vasudev update repair` to retry plugin repair."],
       },
     ]);
     expect(result.errored).toBe(false);

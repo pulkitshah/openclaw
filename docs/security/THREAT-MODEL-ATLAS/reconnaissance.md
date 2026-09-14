@@ -2,7 +2,7 @@
 summary: "Vasudev reconnaissance threats (AML.TA0002): T-RECON-001, T-RECON-002"
 title: "Reconnaissance (AML.TA0002)"
 read_when:
-  - Reviewing reconnaissance threats against an Vasudev deployment
+  - Reviewing reconnaissance threats against a Vasudev deployment
   - Working on mitigations for T-RECON-001, T-RECON-002
 ---
 

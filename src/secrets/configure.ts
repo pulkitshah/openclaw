@@ -892,7 +892,7 @@ export async function runSecretsConfigureInteractive(
       log.warn(
         `Shared auth-profile store has ${sharedPlaintextCount} plaintext credential(s). ` +
           "`secrets configure` edits the selected agent's local store only and cannot migrate shared credentials. " +
-          "Run `openclaw secrets audit` to review them; a shared-store SecretRef migration path is tracked separately.",
+          "Run `vasudev secrets audit` to review them; a shared-store SecretRef migration path is tracked separately.",
         { output: process.stderr },
       );
     }

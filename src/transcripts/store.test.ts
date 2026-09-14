@@ -426,7 +426,7 @@ describe("TranscriptsStore", () => {
     fs.mkdirSync(store.sessionDir(lower), { recursive: true });
     fs.writeFileSync(path.join(store.sessionDir(lower), "transcript.jsonl"), "legacy\n");
 
-    await expect(store.writeSession(lower)).rejects.toThrow("run openclaw doctor --fix");
+    await expect(store.writeSession(lower)).rejects.toThrow("run vasudev doctor --fix");
     await expect(store.readSession(lower.sessionId)).resolves.toBeUndefined();
   });
 
@@ -442,7 +442,7 @@ describe("TranscriptsStore", () => {
     expect(fs.readdirSync(store.sessionDir(lower))).toContain("TRANSCRIPT.JSONL");
 
     if (fs.existsSync(path.join(store.sessionDir(lower), "transcript.jsonl"))) {
-      await expect(store.writeSession(lower)).rejects.toThrow("run openclaw doctor --fix");
+      await expect(store.writeSession(lower)).rejects.toThrow("run vasudev doctor --fix");
     } else {
       await expect(store.writeSession(lower)).resolves.toBeUndefined();
     }
@@ -456,7 +456,7 @@ describe("TranscriptsStore", () => {
     const transcriptPath = path.join(sessionDir, "transcript.jsonl");
     fs.writeFileSync(transcriptPath, '{"text":"legacy line"}\n');
 
-    await expect(store.writeSession(target)).rejects.toThrow("run openclaw doctor --fix");
+    await expect(store.writeSession(target)).rejects.toThrow("run vasudev doctor --fix");
     expect(fs.readFileSync(transcriptPath, "utf8")).toContain("legacy line");
   });
 
@@ -469,7 +469,7 @@ describe("TranscriptsStore", () => {
       fs.mkdirSync(legacyDir, { recursive: true });
       fs.writeFileSync(path.join(legacyDir, "transcript.jsonl"), "legacy\n");
 
-      await expect(store.writeSession(target)).rejects.toThrow("run openclaw doctor --fix");
+      await expect(store.writeSession(target)).rejects.toThrow("run vasudev doctor --fix");
       await expect(store.readSession(target.sessionId)).resolves.toBeUndefined();
     },
   );
@@ -481,7 +481,7 @@ describe("TranscriptsStore", () => {
     fs.mkdirSync(transcriptRoot, { recursive: true });
     fs.writeFileSync(path.join(transcriptRoot, "transcript.jsonl"), "legacy root transcript\n");
 
-    await expect(store.writeSession(session(".."))).rejects.toThrow("run openclaw doctor --fix");
+    await expect(store.writeSession(session(".."))).rejects.toThrow("run vasudev doctor --fix");
     await expect(store.readSession("..")).resolves.toBeUndefined();
   });
 
@@ -507,7 +507,7 @@ describe("TranscriptsStore", () => {
       summary: { sessionId: target.sessionId },
     });
     await expect(store.materializeSessionArtifacts(target, "transcript")).rejects.toThrow(
-      "run openclaw doctor --fix",
+      "run vasudev doctor --fix",
     );
   });
 

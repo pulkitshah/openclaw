@@ -409,7 +409,7 @@ export const skillsHandlers: GatewayRequestHandlers = {
           undefined,
           errorShape(
             ErrorCodes.INVALID_REQUEST,
-            `ClawHub cannot return details for ${requested.requestedReference}; external skill sources are install-only. Install it directly, or run "openclaw skills install ${requested.requestedReference}".`,
+            `ClawHub cannot return details for ${requested.requestedReference}; external skill sources are install-only. Install it directly, or run "vasudev skills install ${requested.requestedReference}".`,
           ),
         );
         return;

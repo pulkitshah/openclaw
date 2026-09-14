@@ -177,7 +177,7 @@ describe("channel migration artifact consent", () => {
         expect(result.summary.errors[0]?.message).toContain(
           "did not install the replacement plugin payload",
         );
-        expect(result.summary.errors[0]?.message).toContain("openclaw update repair");
+        expect(result.summary.errors[0]?.message).toContain("vasudev update repair");
         if (source !== "npm") {
           expect(result.summary.errors[0]?.message).toContain(`(ClawHub clawhub:${pluginId}).`);
         }

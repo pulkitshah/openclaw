@@ -115,7 +115,7 @@ describe("runAuthProbes", () => {
             async () => undefined,
           ),
         ).rejects.toThrow(
-          `A Gateway is running for this state directory (pid ${process.pid}, port 28789). Stop the Gateway first (openclaw gateway stop), then rerun models status --probe.`,
+          `A Gateway is running for this state directory (pid ${process.pid}, port 28789). Stop the Gateway first (vasudev gateway stop), then rerun models status --probe.`,
         );
       } finally {
         await gatewayLock.release();
@@ -171,7 +171,7 @@ describe("runAuthProbes", () => {
     });
   });
 
-  it("runs Codex-pinned auth probes through raw OpenClaw model-run mode", async () => {
+  it("runs Codex-pinned auth probes through raw Vasudev model-run mode", async () => {
     const runEmbeddedAgent = vi.fn(
       async (params: {
         agentDir?: string;

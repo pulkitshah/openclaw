@@ -18,5 +18,5 @@ export function formatAgentDatabaseOwnershipRepairHint(pathname: string): string
         : `mv -n -- ${quoteCliArg(sourcePath)} ${quoteCliArg(destinationPath)}`,
     )
     .join(process.platform === "win32" ? "; " : " && ");
-  return `Preserve and inspect this database before accepting a fresh agent. With all OpenClaw processes stopped, the explicit quarantine move is${process.platform === "win32" ? " (PowerShell)" : ""}:\n${action}\nThen run openclaw doctor --fix and restart the Gateway.`;
+  return `Preserve and inspect this database before accepting a fresh agent. With all Vasudev processes stopped, the explicit quarantine move is${process.platform === "win32" ? " (PowerShell)" : ""}:\n${action}\nThen run vasudev doctor --fix and restart the Gateway.`;
 }

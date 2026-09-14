@@ -186,7 +186,7 @@ export function resolveCompatibilityHostVersion(
   });
 }
 
-// Single source of truth for the current OpenClaw version.
+// Single source of truth for the current Vasudev version.
 // - Embedded/bundled builds: bundled-version env var.
 // - Dev/npm builds: package.json.
 export const VERSION = resolveBinaryVersion({

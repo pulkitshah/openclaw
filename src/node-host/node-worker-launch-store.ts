@@ -82,7 +82,7 @@ function ensureNodeWorkerLaunchSchema(
   const start = OPENCLAW_STATE_SCHEMA_SQL.indexOf(startMarker);
   const end = start >= 0 ? OPENCLAW_STATE_SCHEMA_SQL.indexOf(endMarker, start) : -1;
   if (start < 0 || end < start) {
-    throw new Error(`OpenClaw node worker launch ${kind} schema marker is missing.`);
+    throw new Error(`Vasudev node worker launch ${kind} schema marker is missing.`);
   }
   database.exec(OPENCLAW_STATE_SCHEMA_SQL.slice(start, end + endMarker.length)); // sqlite-allow-raw -- Canonical feature-local additive DDL only.
 }

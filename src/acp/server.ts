@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** ACP stdio server that bridges Agent Client Protocol clients to the OpenClaw Gateway. */
+/** ACP stdio server that bridges Agent Client Protocol clients to the Vasudev Gateway. */
 import { Readable, Writable } from "node:stream";
 import { fileURLToPath } from "node:url";
 import {
@@ -165,10 +165,10 @@ export async function serveAcpGateway(opts: AcpServerOptions = {}): Promise<void
       // Gateway delivery stays non-blocking, but translator failures must not
       // escape this callback as unhandled process rejections.
       void agent?.handleGatewayEvent(evt).catch((err: unknown) => {
-        process.stderr.write(`openclaw acp: gateway event ${evt.event} failed\n`);
+        process.stderr.write(`vasudev acp: gateway event ${evt.event} failed\n`);
         if (opts.verbose) {
           process.stderr.write(
-            `openclaw acp: gateway event ${evt.event} error: ${formatErrorMessage(err)}\n`,
+            `vasudev acp: gateway event ${evt.event} error: ${formatErrorMessage(err)}\n`,
           );
         }
       });
@@ -407,7 +407,7 @@ function parseArgs(args: string[]): AcpServerOptions {
 }
 
 function printHelp(): void {
-  console.log(`Usage: openclaw acp [options]
+  console.log(`Usage: vasudev acp [options]
 
 Gateway-backed ACP server for IDE integration.
 

@@ -549,7 +549,7 @@ describe("plugin capability consent", () => {
     const message = error instanceof Error ? error.message : String(error);
     expect(message).toContain("The plugin was not installed");
     expect(message).toContain(
-      'Re-run the same "openclaw plugins install" or "openclaw plugins update" command with --accept-capabilities',
+      'Re-run the same "vasudev plugins install" or "vasudev plugins update" command with --accept-capabilities',
     );
     expect(message).toContain("keeping its source and other options");
     expect(message).toContain("complete the plugin command first, then retry Doctor or setup");
@@ -586,7 +586,7 @@ describe("plugin capability consent", () => {
     const message = error instanceof Error ? error.message : String(error);
     expect(message).toContain("The plugin was not updated");
     expect(message).toContain(
-      'Re-run the same "openclaw plugins install" or "openclaw plugins update" command with --accept-capabilities',
+      'Re-run the same "vasudev plugins install" or "vasudev plugins update" command with --accept-capabilities',
     );
     expect(message).toContain("keeping its source and other options");
     expect(message).toContain("complete the plugin command first, then retry Doctor or setup");

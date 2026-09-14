@@ -1,5 +1,5 @@
 /**
- * OpenClaw stdio transport wrapper for MCP server subprocesses.
+ * Vasudev stdio transport wrapper for MCP server subprocesses.
  */
 import fs from "node:fs/promises";
 import process from "node:process";

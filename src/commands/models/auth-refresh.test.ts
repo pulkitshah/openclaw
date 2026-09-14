@@ -124,7 +124,7 @@ describe("refreshRunningGatewayAuthState", () => {
       );
     }
     expect(warn).toHaveBeenCalledWith(
-      "Warning: Model auth changes were saved, but the running Gateway could not refresh them. Run `openclaw gateway restart` to apply the saved changes.",
+      "Warning: Model auth changes were saved, but the running Gateway could not refresh them. Run `vasudev gateway restart` to apply the saved changes.",
     );
   });
 
@@ -165,7 +165,7 @@ describe("refreshRunningGatewayAuthState", () => {
     );
 
     expect(warn).toHaveBeenCalledWith(
-      "Warning: Model auth changes were saved, but the running Gateway could not refresh them. Run `openclaw gateway restart` to apply the saved changes.",
+      "Warning: Model auth changes were saved, but the running Gateway could not refresh them. Run `vasudev gateway restart` to apply the saved changes.",
     );
   });
 
@@ -181,7 +181,7 @@ describe("refreshRunningGatewayAuthState", () => {
     );
 
     expect(warn).toHaveBeenCalledWith(
-      "Warning: Model auth changes were saved, but the running Gateway could not refresh them. Run `openclaw gateway restart` to apply the saved changes.",
+      "Warning: Model auth changes were saved, but the running Gateway could not refresh them. Run `vasudev gateway restart` to apply the saved changes.",
     );
   });
 

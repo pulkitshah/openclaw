@@ -290,7 +290,7 @@ function assertListedMigrationProvider(
     available.length > 0
       ? ` Available providers: ${available.join(", ")}.`
       : " No migration providers are installed.";
-  const listCommand = formatCliCommand("openclaw migrate list");
+  const listCommand = formatCliCommand("vasudev migrate list");
   throw new Error(
     `Unknown migration provider "${providerId}".${suffix} Run ${listCommand} to see the current list.`,
   );

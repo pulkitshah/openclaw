@@ -39,7 +39,7 @@ export function loadUndiciGlobalDispatcherDeps(): UndiciGlobalDispatcherDeps {
   return loadUndiciModule(["getGlobalDispatcher", "setGlobalDispatcher"]);
 }
 
-/** Creates a direct undici Agent with OpenClaw's HTTP/1-only dispatcher policy. */
+/** Creates a direct undici Agent with Vasudev's HTTP/1-only dispatcher policy. */
 export function createHttp1Agent(
   options?: UndiciAgentOptions,
   timeoutMs?: number,

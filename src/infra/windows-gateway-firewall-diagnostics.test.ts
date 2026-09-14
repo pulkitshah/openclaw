@@ -129,7 +129,7 @@ function ruleRow(params?: {
   remoteAddress?: string;
 }) {
   return {
-    DisplayName: params?.displayName ?? "OpenClaw Gateway",
+    DisplayName: params?.displayName ?? "Vasudev Gateway",
     Profile: params?.profile ?? "Any",
     PolicyStoreSource: params?.policyStoreSource ?? "PersistentStore",
     PolicyStoreSourceType: params?.policyStoreSourceType ?? "Local",
@@ -228,7 +228,7 @@ describe("Windows Gateway firewall diagnostics", () => {
       severity: "warning",
       code: "windows_firewall_local_rules_ignored",
     });
-    expect(diagnostic.details.join("\n")).toContain("OpenClaw Gateway");
+    expect(diagnostic.details.join("\n")).toContain("Vasudev Gateway");
   });
 
   it("requires every active profile to allow local firewall rules", async () => {
@@ -387,29 +387,29 @@ describe("Windows Gateway firewall diagnostics", () => {
     [
       "a nonzero exit",
       async () => ({ code: 1, stdout: quickPayloadJson() }),
-      "OpenClaw could not quickly inspect Windows Firewall LAN Gateway policy.",
+      "Vasudev could not quickly inspect Windows Firewall LAN Gateway policy.",
     ],
     [
       "truncated stdout",
       async () => ({ code: 0, stdout: quickPayloadJson(), stdoutTruncatedBytes: 1 }),
-      "OpenClaw could not quickly inspect Windows Firewall LAN Gateway policy.",
+      "Vasudev could not quickly inspect Windows Firewall LAN Gateway policy.",
     ],
     [
       "truncated stderr",
       async () => ({ code: 0, stdout: quickPayloadJson(), stderrTruncatedBytes: 1 }),
-      "OpenClaw could not quickly inspect Windows Firewall LAN Gateway policy.",
+      "Vasudev could not quickly inspect Windows Firewall LAN Gateway policy.",
     ],
     [
       "malformed JSON",
       async () => ({ code: 0, stdout: "{" }),
-      "OpenClaw could not parse Windows Firewall LAN Gateway policy.",
+      "Vasudev could not parse Windows Firewall LAN Gateway policy.",
     ],
     [
       "a runner exception",
       async () => {
         throw new Error("probe failed");
       },
-      "OpenClaw could not quickly inspect Windows Firewall LAN Gateway policy.",
+      "Vasudev could not quickly inspect Windows Firewall LAN Gateway policy.",
     ],
   ] satisfies Array<[string, FirewallCommandRunner, string]>)(
     "fails closed after %s",
@@ -429,7 +429,7 @@ describe("Windows Gateway firewall diagnostics", () => {
         code: "windows_firewall_inspection_failed",
         message,
         details: [
-          "Run `openclaw gateway status --deep` again, or verify the advertised LAN URL from another device.",
+          "Run `vasudev gateway status --deep` again, or verify the advertised LAN URL from another device.",
         ],
       });
       expect(runner).toHaveBeenCalledTimes(1);

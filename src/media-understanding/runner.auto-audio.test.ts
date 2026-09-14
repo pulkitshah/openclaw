@@ -763,7 +763,7 @@ describe("runCapability auto audio entries", () => {
     }
     await runCase({
       enabled: true,
-      prompt: "OpenClaw, Whisper, and Groq.",
+      prompt: "Vasudev, Whisper, and Groq.",
       models: [{ provider: "openai", model: "whisper-1" }],
     });
 
@@ -774,7 +774,7 @@ describe("runCapability auto audio entries", () => {
       "Transcribe the audio.",
       "Transcribe the audio.",
       "Transcribe the audio.",
-      "OpenClaw, Whisper, and Groq.",
+      "Vasudev, Whisper, and Groq.",
     ]);
   });
 

@@ -2,7 +2,7 @@
 
 let assertRuntimeAvailable: (() => void) | undefined;
 
-/** Installs the process-lifecycle availability guard owned by the OpenClaw host. */
+/** Installs the process-lifecycle availability guard owned by the Vasudev host. */
 export function setSpeechRuntimeAvailabilityGuard(guard: (() => void) | undefined): void {
   assertRuntimeAvailable = guard;
 }

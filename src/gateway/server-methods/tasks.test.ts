@@ -733,7 +733,7 @@ describe("tasks gateway handlers", () => {
     expect(payload?.task?.error).toBe("Tool failed");
     expect(payload?.task).not.toHaveProperty("lastActivity");
     expect(payload?.task?.prompt).toBe("Compile artifact");
-    expect(JSON.stringify(calls[0]?.[1])).not.toContain("OpenClaw runtime context");
+    expect(JSON.stringify(calls[0]?.[1])).not.toContain("Vasudev runtime context");
   });
 
   it("exposes tool activity in task summaries", async () => {

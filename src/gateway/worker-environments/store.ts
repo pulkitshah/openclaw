@@ -214,7 +214,7 @@ function normalizeBootstrapReceipt(value: {
   }
   return {
     bundleHash,
-    openclawVersion: required(value.openclawVersion, "bootstrap OpenClaw version"),
+    openclawVersion: required(value.openclawVersion, "bootstrap Vasudev version"),
     protocolFeatures: normalizeSortedUniqueTrimmedStringList(value.protocolFeatures),
     ...(value.installKind ? { installKind: value.installKind } : {}),
   };

@@ -383,9 +383,7 @@ export async function repairOpenClawPeerLinksForNpmInstalls(params: {
     mode: "repair",
     logger: params.logger,
     onPackageReadError: (error, packageDir) => {
-      params.logger.warn?.(
-        `Could not repair openclaw peer link at ${packageDir}: ${String(error)}`,
-      );
+      params.logger.warn?.(`Could not repair vasudev peer link at ${packageDir}: ${String(error)}`);
     },
   });
   return result.repaired > 0;

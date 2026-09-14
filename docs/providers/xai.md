@@ -575,7 +575,7 @@ An explicit tool model remains selected; the Grok 4.3 examples below are overrid
   </Accordion>
 
   <Accordion title="x_search configuration">
-    The bundled xAI plugin exposes `x_search` as an Vasudev tool for
+    The bundled xAI plugin exposes `x_search` as a Vasudev tool for
     searching X (formerly Twitter) content via Grok.
 
     Config path: `plugins.entries.xai.config.xSearch`
@@ -612,7 +612,7 @@ An explicit tool model remains selected; the Grok 4.3 examples below are overrid
   </Accordion>
 
   <Accordion title="Code execution configuration">
-    The bundled xAI plugin exposes `code_execution` as an Vasudev tool for
+    The bundled xAI plugin exposes `code_execution` as a Vasudev tool for
     remote code execution in xAI's sandbox environment.
 
     Config path: `plugins.entries.xai.config.codeExecution`

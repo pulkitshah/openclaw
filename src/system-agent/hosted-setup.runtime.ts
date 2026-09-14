@@ -33,7 +33,7 @@ export function requireLocalGateway(config: OpenClawConfig): void {
     return;
   }
   throw new Error(
-    "Hosted Gateway setup manages only a local Gateway. Use `openclaw onboard` for fresh setup or `openclaw configure` for the mode question, then retry after selecting local mode.",
+    "Hosted Gateway setup manages only a local Gateway. Use `vasudev onboard` for fresh setup or `vasudev configure` for the mode question, then retry after selecting local mode.",
   );
 }
 
@@ -66,7 +66,7 @@ export async function runHostedSetup(params: {
       const snapshot = await readSetupConfigFileSnapshot();
       if (!snapshot.exists || !snapshot.valid || !snapshot.hash) {
         throw new Error(
-          `${params.label} requires a valid saved config snapshot. On the machine running OpenClaw, run \`openclaw doctor --fix\` and resolve any remaining validation errors; then retry.`,
+          `${params.label} requires a valid saved config snapshot. On the machine running Vasudev, run \`vasudev doctor --fix\` and resolve any remaining validation errors; then retry.`,
         );
       }
       const baseConfig = snapshot.sourceConfig ?? snapshot.config;
@@ -230,7 +230,7 @@ export async function runHostedMemoryImport(
   const snapshot = await readSetupConfigFileSnapshot();
   if (!snapshot.exists || !snapshot.valid || !snapshot.hash) {
     throw new Error(
-      "Memory import requires a valid saved config. Run `openclaw doctor --fix`, then retry.",
+      "Memory import requires a valid saved config. Run `vasudev doctor --fix`, then retry.",
     );
   }
   const baseHash = snapshot.hash;
@@ -345,7 +345,7 @@ export async function renderMemoryImport(
   if (outcome.status === "workspace-missing") {
     return [
       `Memory import is unavailable because the default agent workspace does not exist at ${outcome.workspace}.`,
-      "Finish onboarding first with `openclaw onboard`, then retry.",
+      "Finish onboarding first with `vasudev onboard`, then retry.",
     ].join("\n");
   }
   if (outcome.status === "nothing-to-import") {

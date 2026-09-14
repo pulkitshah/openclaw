@@ -121,7 +121,7 @@ export async function channelsResolveCommand(opts: ChannelsResolveOptions, runti
   const entries = normalizeStringEntries(opts.entries);
   if (entries.length === 0) {
     throw new Error(
-      `At least one entry is required. Example: ${formatCliCommand("openclaw channels resolve --channel discord <name-or-id>")}.`,
+      `At least one entry is required. Example: ${formatCliCommand("vasudev channels resolve --channel discord <name-or-id>")}.`,
     );
   }
 
@@ -154,7 +154,7 @@ export async function channelsResolveCommand(opts: ChannelsResolveOptions, runti
     : null;
   if (explicitChannel && resolvedExplicit?.catalogEntry && !resolvedExplicit.plugin) {
     throw new Error(
-      `Channel plugin "${resolvedExplicit.catalogEntry.id}" is not installed. Run ${formatCliCommand(`openclaw channels add --channel ${resolvedExplicit.catalogEntry.id}`)} first.`,
+      `Channel plugin "${resolvedExplicit.catalogEntry.id}" is not installed. Run ${formatCliCommand(`vasudev channels add --channel ${resolvedExplicit.catalogEntry.id}`)} first.`,
     );
   }
   const selection = explicitChannel

@@ -28,7 +28,7 @@ describe("automatic local-model lean migration", () => {
     const entries = structuredClone(raw.agents.entries);
     expect(findLegacyConfigIssues(raw)).toContainEqual({
       path: "wizard.localModelLeanAutoModel",
-      message: expect.stringContaining('Run "openclaw doctor --fix"'),
+      message: expect.stringContaining('Run "vasudev doctor --fix"'),
     });
 
     const { changes } = applyRetiredMigrations(raw);

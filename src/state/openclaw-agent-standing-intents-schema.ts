@@ -36,7 +36,7 @@ export function ensureOpenClawAgentStandingIntentsSchema(db: DatabaseSync): void
       extractSqliteTableSchema(OPENCLAW_AGENT_SCHEMA_SQL, STANDING_INTENTS_TABLE, {
         endMarker: "CREATE TABLE IF NOT EXISTS session_transcript_index_state (",
         includeEndMarker: false,
-        errorMessage: "OpenClaw standing-intents schema markers are missing.",
+        errorMessage: "Vasudev standing-intents schema markers are missing.",
       }),
     );
     ensureStandingIntentCreatorColumn(db);

@@ -1,5 +1,5 @@
 /**
- * Claude CLI argument helpers for OpenClaw-managed bundle MCP config.
+ * Claude CLI argument helpers for Vasudev-managed bundle MCP config.
  */
 import fs from "node:fs/promises";
 import { isRecord } from "@openclaw/normalization-core/record-coerce";
@@ -17,7 +17,7 @@ export function findClaudeMcpConfigPaths(args?: string[]): string[] {
     if (arg === "--mcp-config") {
       // Claude treats --mcp-config as variadic. Keep this scan aligned with
       // extensions/anthropic/cli-shared.ts so user config files are not leaked
-      // as positional prompts after OpenClaw injects its strict overlay.
+      // as positional prompts after Vasudev injects its strict overlay.
       while (typeof args[i + 1] === "string" && !args[i + 1]?.startsWith("-")) {
         i += 1;
         const path = normalizeOptionalString(args[i]);
@@ -37,7 +37,7 @@ export function findClaudeMcpConfigPaths(args?: string[]): string[] {
   return paths;
 }
 
-/** Return Claude args with OpenClaw's strict MCP config path injected. */
+/** Return Claude args with Vasudev's strict MCP config path injected. */
 function mergeClaudeDisallowedTools(args: string[], deniedTools: string[]): string[] {
   if (deniedTools.length === 0) {
     return args;
@@ -109,7 +109,7 @@ export function injectClaudeMcpConfigArgs(
   return mergeClaudeDisallowedTools(next, deniedTools.toSorted());
 }
 
-/** Writes the active per-attempt capture token into OpenClaw's generated Claude MCP config. */
+/** Writes the active per-attempt capture token into Vasudev's generated Claude MCP config. */
 export async function writeClaudeMcpCaptureConfig(params: {
   mcpConfigPath: string;
   captureKey: string;

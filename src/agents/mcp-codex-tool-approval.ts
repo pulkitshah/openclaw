@@ -92,5 +92,5 @@ export function requiresMcpCodexToolApproval(params: {
 export function formatMcpCodexApprovalRemedy(serverName?: string): string {
   // Config keys are unbounded; keep model-visible hints short and never emit a CLI option as a name.
   const server = serverName && /^[\w.][\w.-]{0,127}$/.test(serverName) ? serverName : "<server>";
-  return `Run openclaw mcp configure ${server} --approval approve for a trusted server, or change the session permission mode.`;
+  return `Run vasudev mcp configure ${server} --approval approve for a trusted server, or change the session permission mode.`;
 }

@@ -117,7 +117,7 @@ function readAuthoredModelContextTokens(model: ConfigModelEntry | undefined): nu
     : undefined;
 }
 
-/** Returns only the per-model contextTokens value authored in OpenClaw config. */
+/** Returns only the per-model contextTokens value authored in Vasudev config. */
 export function resolveAuthoredModelContextTokens(
   params: Pick<ContextTokenResolutionParams, "cfg" | "provider" | "modelProvider" | "model">,
 ): number | undefined {

@@ -2,7 +2,7 @@
 summary: "Microsoft Teams meetings plugin: join work or consumer meetings as a Chrome browser guest"
 doc-schema-version: 1
 read_when:
-  - You want an Vasudev agent to join a Microsoft Teams meeting
+  - You want a Vasudev agent to join a Microsoft Teams meeting
   - You need Teams-specific guest policy or manual-action guidance
 title: "Microsoft Teams meetings plugin"
 ---

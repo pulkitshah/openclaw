@@ -325,7 +325,7 @@ describe("doctor session transcript repair", () => {
     );
     expect(note).toHaveBeenCalledWith(
       expect.stringContaining(
-        'shrinking the on-disk database requires "openclaw doctor --session-sqlite compact --session-sqlite-all-agents"',
+        'shrinking the on-disk database requires "vasudev doctor --session-sqlite compact --session-sqlite-all-agents"',
       ),
       "Session SQLite",
     );
@@ -370,7 +370,7 @@ describe("doctor session transcript repair", () => {
     });
     expect(note).toHaveBeenCalledWith(
       expect.stringContaining(
-        'Inspect with "openclaw doctor --session-sqlite dry-run --session-sqlite-all-agents".',
+        'Inspect with "vasudev doctor --session-sqlite dry-run --session-sqlite-all-agents".',
       ),
       "Session SQLite",
     );
@@ -393,7 +393,7 @@ describe("doctor session transcript repair", () => {
     });
     runPostSessionPluginDoctorStateRepairs.mockResolvedValueOnce({
       changes: ["Removed 2 orphaned plugin session bindings"],
-      warnings: ["Plugin lifecycle ownership unavailable; rerun openclaw doctor --fix"],
+      warnings: ["Plugin lifecycle ownership unavailable; rerun vasudev doctor --fix"],
     });
 
     const receipts: unknown[] = [];
@@ -417,7 +417,7 @@ describe("doctor session transcript repair", () => {
       "Plugin session repair",
     );
     expect(note).toHaveBeenCalledWith(
-      expect.stringContaining("rerun openclaw doctor --fix"),
+      expect.stringContaining("rerun vasudev doctor --fix"),
       "Plugin session repair",
     );
   });
@@ -578,7 +578,7 @@ describe("doctor session transcript repair", () => {
       "Session SQLite",
     );
     expect(note).toHaveBeenCalledWith(
-      expect.stringContaining('run "openclaw doctor --fix" for session-store maintenance'),
+      expect.stringContaining('run "vasudev doctor --fix" for session-store maintenance'),
       "Session SQLite",
     );
   });

@@ -85,7 +85,7 @@ describe.each([false, true])("assertSqliteSchemaContains (statement cache: %s)",
       // Operators hit this throw as gateway startup failure text, so it must
       // name the repair owner instead of dead-ending on the drift detail.
       expect(() => assertSqliteSchemaContains(database, "test database", CANONICAL_SCHEMA)).toThrow(
-        /missing or drifted index idx_children_parent; run openclaw doctor --fix to repair it\./,
+        /missing or drifted index idx_children_parent; run vasudev doctor --fix to repair it\./,
       );
     } finally {
       database.close();

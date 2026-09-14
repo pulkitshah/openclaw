@@ -1,4 +1,4 @@
-// Resolves trusted official external plugin installs from the OpenClaw-owned catalog.
+// Resolves trusted official external plugin installs from the Vasudev-owned catalog.
 import { parseClawHubPluginSpec } from "../infra/clawhub-spec.js";
 import { parseRegistryNpmSpec } from "../infra/npm-registry-spec.js";
 import { resolveDefaultNpmSpec } from "./install-channel-specs.js";

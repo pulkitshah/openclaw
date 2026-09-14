@@ -43,7 +43,7 @@ async function assertNoNativeGitHubConfiguration(env: NodeJS.ProcessEnv, cwd: st
   const xdg = value("XDG_CONFIG_HOME");
   const appData = value("APPDATA");
   // Match gh's external config contract, including Windows USERPROFILE rather
-  // than OpenClaw's own home overrides. Existing files remain indeterminate.
+  // than Vasudev's own home overrides. Existing files remain indeterminate.
   const configured =
     value("GH_CONFIG_DIR") ||
     (xdg ? nativePath.join(xdg, "gh") : undefined) ||

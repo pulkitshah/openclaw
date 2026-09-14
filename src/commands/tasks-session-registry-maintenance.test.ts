@@ -209,7 +209,7 @@ describe("runSessionRegistryMaintenance", () => {
       closeOpenClawAgentDatabasesForTest();
 
       await expect(runSessionRegistryMaintenance({ apply: false })).rejects.toThrow(
-        "OpenClaw agent database is unavailable while agent retired is deleted.",
+        "Vasudev agent database is unavailable while agent retired is deleted.",
       );
     });
   });

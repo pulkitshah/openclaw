@@ -370,7 +370,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
             const guidance =
               model.unavailableReason === "cooldown"
                 ? "Wait and retry, or choose another model."
-                : "Run openclaw models auth login or choose another model.";
+                : "Run vasudev models auth login or choose another model.";
             chatLog.addSystem(
               `model unavailable: ${model.unavailableReason ?? "unavailable"}. ${guidance}`,
             );
@@ -604,7 +604,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
     queue: async (_args, raw) => await sendMessage(raw),
     openclaw: (args) => {
       chatLog.addSystem(
-        args ? `returning to OpenClaw with request: ${args}` : "returning to OpenClaw",
+        args ? `returning to Vasudev with request: ${args}` : "returning to Vasudev",
       );
       requestExit({
         exitReason: "return-to-system-agent",

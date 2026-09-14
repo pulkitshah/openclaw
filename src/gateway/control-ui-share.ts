@@ -45,17 +45,17 @@ export function serveControlUiShareDocument(
   const target = escapeHtml(`${basePath}${targetPath}${suffix}`);
   const canonical = escapeHtml(`${origin}${url.pathname}${suffix}`);
   const image = escapeHtml(`${origin}${basePath}/share/card.png`);
-  const title = session.namespace === "dashboard" ? "OpenClaw dashboard" : "OpenClaw session";
-  const description = "Open this shared link in OpenClaw. Access to the session is required.";
+  const title = session.namespace === "dashboard" ? "Vasudev dashboard" : "Vasudev session";
+  const description = "Open this shared link in Vasudev. Access to the session is required.";
   const body = `<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title}</title><meta name="robots" content="noindex, nofollow">
-<meta property="og:type" content="website"><meta property="og:site_name" content="OpenClaw">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Vasudev">
 <meta property="og:title" content="${title}"><meta property="og:description" content="${description}">
 <meta property="og:url" content="${canonical}"><meta property="og:image" content="${image}">
 <meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="OpenClaw logo and lobster mascot">
+<meta property="og:image:alt" content="Vasudev logo and lobster mascot">
 <meta name="twitter:card" content="summary_large_image">
 <style>
 :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#0b1016;color:#f5f7fa}
@@ -64,8 +64,8 @@ img{display:block;width:100%;height:auto;border-radius:20px}h1{font-size:clamp(2
 p{color:#b2bdc9;line-height:1.6;margin:0 0 28px}a{display:inline-block;border-radius:12px;padding:14px 22px;background:#ff5c50;color:#160b0a;font-weight:700;text-decoration:none}
 a:focus-visible{outline:3px solid #fff;outline-offset:5px}
 </style></head><body><main>
-<img src="${image}" width="1200" height="630" alt="OpenClaw logo and lobster mascot">
-<h1>${title}</h1><p>${description}</p><a href="${target}">Open ${title === "OpenClaw dashboard" ? "dashboard" : "session"}</a>
+<img src="${image}" width="1200" height="630" alt="Vasudev logo and lobster mascot">
+<h1>${title}</h1><p>${description}</p><a href="${target}">Open ${title === "Vasudev dashboard" ? "dashboard" : "session"}</a>
 </main></body></html>`;
   res.statusCode = 200;
   res.setHeader("Content-Type", "text/html; charset=utf-8");

@@ -50,7 +50,7 @@ export async function noteMacForeignLaunchdJobs(
   const candidates = jobs.filter((job) => job.safeToRemove);
   if (candidates.length > 0) {
     lines.push(
-      `Run ${formatCliCommand("openclaw doctor --fix", env)} to remove confirmed stray Gateway lifecycle jobs.`,
+      `Run ${formatCliCommand("vasudev doctor --fix", env)} to remove confirmed stray Gateway lifecycle jobs.`,
     );
   }
   note(lines.join("\n"), "Foreign launchd jobs (macOS)");

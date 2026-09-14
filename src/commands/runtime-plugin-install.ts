@@ -20,7 +20,7 @@ type RuntimePluginInstallDescriptor = {
   label: string;
   npmSpec: string;
   warningLabel: string;
-  /** Keep this official runtime package on the same release cohort as OpenClaw. */
+  /** Keep this official runtime package on the same release cohort as Vasudev. */
   versionBoundToOpenClaw?: boolean;
 };
 

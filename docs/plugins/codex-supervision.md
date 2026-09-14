@@ -102,7 +102,7 @@ Codex state too. Supervision honors explicit `appServer` connection settings
 instead of replacing them with its local user-home default.
 
 Catalog reads use the selected store's native Codex authentication, including
-when that store is under an Vasudev agent directory. Browsing stored sessions
+when that store is under a Vasudev agent directory. Browsing stored sessions
 does not require importing a native credential into Vasudev. Ordinary managed
 agent runs retain their own credential-import and authentication requirements.
 

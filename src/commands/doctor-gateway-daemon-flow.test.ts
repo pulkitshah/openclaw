@@ -345,7 +345,7 @@ describe("maybeRepairGatewayDaemon", () => {
   });
 
   it.each([
-    { environment: "container without an OpenClaw service", detected: true },
+    { environment: "container without a Vasudev service", detected: true },
     { environment: "Kubernetes pod without container markers", kubernetes: true },
     { environment: "globally external supervisor", external: true },
   ])(
@@ -787,7 +787,7 @@ describe("maybeRepairGatewayDaemon", () => {
     expect(service.install).not.toHaveBeenCalled();
     expect(service.restart).not.toHaveBeenCalled();
     expect(note).toHaveBeenCalledWith(
-      `Run ${formatCliCommand("openclaw gateway install")} when you want to install the gateway service.`,
+      `Run ${formatCliCommand("vasudev gateway install")} when you want to install the gateway service.`,
       "Gateway",
     );
   });
@@ -862,7 +862,7 @@ describe("maybeRepairGatewayDaemon", () => {
     expect(note).toHaveBeenCalledWith(EXTERNAL_SERVICE_REPAIR_NOTE, "Gateway");
   });
 
-  it("skips gateway service install when a system OpenClaw gateway service exists", async () => {
+  it("skips gateway service install when a system Vasudev gateway service exists", async () => {
     setPlatform("linux");
     service.isLoaded.mockResolvedValue(false);
     findSystemGatewayServices.mockResolvedValue([
@@ -883,10 +883,10 @@ describe("maybeRepairGatewayDaemon", () => {
     expect(service.restart).not.toHaveBeenCalled();
     expect(note).toHaveBeenCalledWith(
       [
-        "System-level OpenClaw gateway service detected while the user gateway service is not installed.",
+        "System-level Vasudev gateway service detected while the user gateway service is not installed.",
         "- openclaw-gateway.service (unit: /etc/systemd/system/openclaw-gateway.service)",
-        "OpenClaw will not install a second user-level gateway service automatically.",
-        "Run `openclaw gateway status --deep` or `openclaw doctor --deep` to inspect duplicate services.",
+        "Vasudev will not install a second user-level gateway service automatically.",
+        "Run `vasudev gateway status --deep` or `vasudev doctor --deep` to inspect duplicate services.",
         `Set ${SERVICE_REPAIR_POLICY_ENV}=external if a system supervisor owns the gateway lifecycle.`,
       ].join("\n"),
       "Gateway",

@@ -111,7 +111,7 @@ export async function readStartupMigrationSnapshot(params: {
       }
       const repair = read.snapshot.valid ? null : params.planRepair(read);
       if (!read.snapshot.valid && !repair) {
-        throw new Error('OpenClaw config is invalid; run "openclaw doctor --fix" before startup.');
+        throw new Error('Vasudev config is invalid; run "vasudev doctor --fix" before startup.');
       }
       await params.validateConfig?.(repair?.snapshot ?? read.snapshot);
       if (params.beforeStateMigrations && !(await params.beforeStateMigrations(read.snapshot))) {
@@ -254,7 +254,7 @@ export async function completeStartupMigrationPreflight(params: {
   ) {
     throw params.startupMigrationHeartbeatError instanceof Error
       ? params.startupMigrationHeartbeatError
-      : new Error("OpenClaw startup migration lease heartbeat failed.");
+      : new Error("Vasudev startup migration lease heartbeat failed.");
   }
   if (
     params.shouldRecordStateCheckpoint &&
@@ -264,7 +264,7 @@ export async function completeStartupMigrationPreflight(params: {
     snapshot.valid
   ) {
     if (!params.migrationCheckpoint) {
-      throw new Error("OpenClaw state migration checkpoint module was not loaded.");
+      throw new Error("Vasudev state migration checkpoint module was not loaded.");
     }
     params.migrationCheckpoint.recordSuccessfulStateMigrations({
       env: params.startupMigrationEnv,
@@ -294,7 +294,7 @@ export async function completeStartupMigrationPreflight(params: {
   // Advisory findings allow service, but must not certify unfinished migration work.
   if (params.shouldRecordStartupCheckpoint && params.startupMigrationWarnings.length === 0) {
     if (!params.migrationCheckpoint) {
-      throw new Error("OpenClaw startup migration checkpoint module was not loaded.");
+      throw new Error("Vasudev startup migration checkpoint module was not loaded.");
     }
     params.migrationCheckpoint.recordSuccessfulStartupMigrations({
       env: params.startupMigrationEnv,

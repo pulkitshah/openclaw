@@ -168,7 +168,7 @@ export async function runUpdateRepairWorker(
         // Never let one reopen a migrated copy under the previous runtime.
         if (params.context.phase === "validating" && !message.candidateRehearsal) {
           throw new Error(
-            "This candidate cannot repair isolated rehearsal state. Run openclaw triage to inspect the validation failure.",
+            "This candidate cannot repair isolated rehearsal state. Run vasudev triage to inspect the validation failure.",
           );
         }
         started = true;

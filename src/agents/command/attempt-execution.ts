@@ -1029,7 +1029,7 @@ export function runAgentAttempt(params: {
           // The store is already cleared above, so no stale --resume can leak to a
           // later turn. Still return the bound id as the reuse candidate: prepare
           // re-detects the missing transcript, keeps useResume=false, and arms
-          // raw-transcript reseed from prior OpenClaw history. Returning undefined
+          // raw-transcript reseed from prior Vasudev history. Returning undefined
           // strips the candidate and starves reseed, losing warm-stdin continuity.
           return cliSessionBinding;
         };

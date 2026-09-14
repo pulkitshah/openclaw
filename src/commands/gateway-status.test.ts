@@ -634,7 +634,7 @@ describe("gateway-status command", () => {
       warnings?: Array<{ code?: string; message?: string }>;
     };
     const warning = parsed.warnings?.find((entry) => entry.code === "no_gateway_reachable");
-    expect(warning?.message).toContain("openclaw gateway status --deep --require-rpc");
+    expect(warning?.message).toContain("vasudev gateway status --deep --require-rpc");
     expect(warning?.message).toContain("ss -ltnp");
   });
 

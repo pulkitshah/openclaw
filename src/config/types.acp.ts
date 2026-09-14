@@ -13,7 +13,7 @@ export type AcpStreamConfig = {
   deliveryMode?: "live" | "final_only";
   /**
    * Per-sessionUpdate visibility overrides.
-   * Keys not listed here fall back to OpenClaw defaults.
+   * Keys not listed here fall back to Vasudev defaults.
    */
   tagVisibility?: Partial<Record<AcpSessionUpdateTag, boolean>>;
 };

@@ -122,7 +122,7 @@ export function formatHooksList(report: HookStatusReport, opts: HooksListOptions
 
   if (hooks.length === 0) {
     const message = opts.eligible
-      ? `No eligible hooks found. Run \`${formatCliCommand("openclaw hooks list")}\` to see all hooks.`
+      ? `No eligible hooks found. Run \`${formatCliCommand("vasudev hooks list")}\` to see all hooks.`
       : "No hooks found.";
     return message;
   }
@@ -171,7 +171,7 @@ export function formatHookInfo(
       const failure = formatCliJsonFailure(`Hook "${hookName}" not found.`);
       return JSON.stringify({ ...failure, hook: hookName }, null, 2);
     }
-    return `Hook "${hookName}" not found. Run \`${formatCliCommand("openclaw hooks list")}\` to see available hooks.`;
+    return `Hook "${hookName}" not found. Run \`${formatCliCommand("vasudev hooks list")}\` to see available hooks.`;
   }
 
   if (opts.json) {

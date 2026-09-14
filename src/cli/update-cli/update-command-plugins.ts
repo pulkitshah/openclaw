@@ -355,7 +355,7 @@ export async function updatePluginsAfterCoreUpdate(params: {
       reason: unavailable ? "plugin-target-unavailable" : "retained-plugin-pin",
       message,
       guidance: unavailable
-        ? [formatCliCommand(`openclaw plugins update ${outcome.pluginId}`)]
+        ? [formatCliCommand(`vasudev plugins update ${outcome.pluginId}`)]
         : ["Keep the pin if intentional; replacing it is an explicit operator choice."],
     });
     if (unavailable) {

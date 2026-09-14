@@ -227,7 +227,7 @@ describe("noteWorkspaceStatus", () => {
         target: "codex",
         requirement: "plugin-version-drift",
         message: expect.stringContaining("2026.5.30-beta.1"),
-        fixHint: expect.stringContaining("openclaw plugins update codex"),
+        fixHint: expect.stringContaining("vasudev plugins update codex"),
       }),
     ]);
   });
@@ -277,8 +277,8 @@ describe("noteWorkspaceStatus", () => {
         fixHint: expect.stringContaining("No install command generated"),
       }),
     ]);
-    expect(findings[0]?.fixHint).not.toContain("openclaw plugins update");
-    expect(findings[0]?.fixHint).not.toContain("openclaw gateway restart");
+    expect(findings[0]?.fixHint).not.toContain("vasudev plugins update");
+    expect(findings[0]?.fixHint).not.toContain("vasudev gateway restart");
   });
 
   it("collects compatibility warnings, plugin diagnostics, and TaskFlow recovery findings", async () => {
@@ -343,7 +343,7 @@ describe("noteWorkspaceStatus", () => {
         target: "flow-123",
         requirement: "taskflow-recovery",
         message: expect.stringContaining("task-missing"),
-        fixHint: expect.stringContaining("openclaw tasks flow show flow-123"),
+        fixHint: expect.stringContaining("vasudev tasks flow show flow-123"),
       }),
     ]);
   });
@@ -388,10 +388,10 @@ describe("noteWorkspaceStatus", () => {
       );
       expect(driftCalls).toHaveLength(1);
       const [body] = expectDefined(driftCalls[0], "(driftCalls)[0] test invariant");
-      expect(body).toContain("1 active official plugin not on post-restart OpenClaw 2026.6.1");
+      expect(body).toContain("1 active official plugin not on post-restart Vasudev 2026.6.1");
       expect(body).toContain("codex: 2026.5.30-beta.1 (npm) -> expected 2026.6.1");
-      expect(body).toContain("openclaw plugins update codex");
-      expect(body).toContain("openclaw gateway restart");
+      expect(body).toContain("vasudev plugins update codex");
+      expect(body).toContain("vasudev gateway restart");
     } finally {
       noteSpy.mockRestore();
     }
@@ -445,9 +445,9 @@ describe("noteWorkspaceStatus", () => {
       );
       expect(driftCalls).toHaveLength(1);
       const [body] = expectDefined(driftCalls[0], "(driftCalls)[0] test invariant");
-      expect(body).toContain("openclaw plugins update @openclaw/brave-plugin@2026.6.10-beta.1");
-      expect(body).not.toContain("openclaw plugins update brave");
-      expect(body).toContain("openclaw gateway restart");
+      expect(body).toContain("vasudev plugins update @openclaw/brave-plugin@2026.6.10-beta.1");
+      expect(body).not.toContain("vasudev plugins update brave");
+      expect(body).toContain("vasudev gateway restart");
     } finally {
       noteSpy.mockRestore();
     }
@@ -566,7 +566,7 @@ describe("noteWorkspaceStatus", () => {
       expect(recoveryCalls).toHaveLength(1);
       const [body] = expectDefined(recoveryCalls[0], "(recoveryCalls)[0] test invariant");
       expect(body).toContain("flow-123");
-      expect(body).toContain("openclaw tasks flow show <flow-id>");
+      expect(body).toContain("vasudev tasks flow show <flow-id>");
     } finally {
       noteSpy.mockRestore();
     }

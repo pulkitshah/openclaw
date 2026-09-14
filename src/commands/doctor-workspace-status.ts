@@ -89,8 +89,8 @@ function noteFlowRecoveryHints() {
     [
       ...suspicious.slice(0, 5).map((finding) => finding.message),
       suspicious.length > 5 ? `...and ${suspicious.length - 5} more.` : null,
-      `Inspect: ${formatCliCommand("openclaw tasks flow show <flow-id>")}`,
-      `Cancel: ${formatCliCommand("openclaw tasks flow cancel <flow-id>")}`,
+      `Inspect: ${formatCliCommand("vasudev tasks flow show <flow-id>")}`,
+      `Cancel: ${formatCliCommand("vasudev tasks flow cancel <flow-id>")}`,
     ]
       .filter((line): line is string => Boolean(line))
       .join("\n"),
@@ -113,10 +113,10 @@ function pluginVersionDriftToHealthFindings(
       {
         checkId: WORKSPACE_STATUS_CHECK_ID,
         severity: "warning",
-        message: `Active official plugins match post-restart OpenClaw ${drift.gatewayVersion}, but the running Gateway is ${runningGatewayVersion}.`,
+        message: `Active official plugins match post-restart Vasudev ${drift.gatewayVersion}, but the running Gateway is ${runningGatewayVersion}.`,
         path: "plugins",
         requirement: "plugin-version-gateway-restart",
-        fixHint: formatCliCommand("openclaw gateway restart"),
+        fixHint: formatCliCommand("vasudev gateway restart"),
       },
     ];
   }
@@ -130,13 +130,13 @@ function pluginVersionDriftToHealthFindings(
     return {
       checkId: WORKSPACE_STATUS_CHECK_ID,
       severity: "warning",
-      message: `Plugin ${entry.pluginId} is ${entry.installedVersion}, but a Gateway restart will load OpenClaw ${drift.gatewayVersion}.${runningGatewayVersion ? ` The running Gateway is ${runningGatewayVersion}.` : ""}${updateCommand ? "" : ` Repair target resolution failed: ${targetError}.`}`,
+      message: `Plugin ${entry.pluginId} is ${entry.installedVersion}, but a Gateway restart will load Vasudev ${drift.gatewayVersion}.${runningGatewayVersion ? ` The running Gateway is ${runningGatewayVersion}.` : ""}${updateCommand ? "" : ` Repair target resolution failed: ${targetError}.`}`,
       path: `plugins.entries.${entry.pluginId}`,
       target: entry.pluginId,
       requirement: "plugin-version-drift",
       fixHint: updateCommand
-        ? `${formatCliCommand(updateCommand)} && ${formatCliCommand("openclaw gateway restart")}`
-        : `No install command generated; retry openclaw doctor after checking registry availability (${targetError}).`,
+        ? `${formatCliCommand(updateCommand)} && ${formatCliCommand("vasudev gateway restart")}`
+        : `No install command generated; retry vasudev doctor after checking registry availability (${targetError}).`,
     };
   });
 }
@@ -169,7 +169,7 @@ function pluginVersionReadinessToHealthFindings(
       path: "plugins",
       requirement: "plugin-version-restart-readiness",
       fixHint:
-        "Repair the Gateway service installation, then rerun openclaw doctor before restarting.",
+        "Repair the Gateway service installation, then rerun vasudev doctor before restarting.",
     },
   ];
 }
@@ -209,8 +209,8 @@ function taskFlowRecoveryToHealthFinding(finding: TaskFlowRecoveryFinding): Heal
     target: finding.flowId,
     requirement: "taskflow-recovery",
     fixHint: [
-      formatCliCommand(`openclaw tasks flow show ${finding.flowId}`),
-      formatCliCommand(`openclaw tasks flow cancel ${finding.flowId}`),
+      formatCliCommand(`vasudev tasks flow show ${finding.flowId}`),
+      formatCliCommand(`vasudev tasks flow cancel ${finding.flowId}`),
     ].join(" or "),
   };
 }
@@ -265,10 +265,10 @@ function notePluginVersionReadiness(readiness: PluginVersionRestartReadiness | u
   }
   if (readiness.status === "unresolved") {
     const running = readiness.runningGatewayVersion
-      ? `\nRunning Gateway: OpenClaw ${readiness.runningGatewayVersion}`
+      ? `\nRunning Gateway: Vasudev ${readiness.runningGatewayVersion}`
       : "";
     note(
-      `${readiness.reason}${running}\nRepair the Gateway service installation, then rerun openclaw doctor before restarting.`,
+      `${readiness.reason}${running}\nRepair the Gateway service installation, then rerun vasudev doctor before restarting.`,
       "Plugin restart readiness",
     );
     return;
@@ -280,9 +280,9 @@ function notePluginVersionReadiness(readiness: PluginVersionRestartReadiness | u
     }
     note(
       [
-        `Running Gateway: OpenClaw ${readiness.runningGatewayVersion}`,
-        `Active official plugins match post-restart OpenClaw ${drift.gatewayVersion}.`,
-        `Fix: ${formatCliCommand("openclaw gateway restart")}.`,
+        `Running Gateway: Vasudev ${readiness.runningGatewayVersion}`,
+        `Active official plugins match post-restart Vasudev ${drift.gatewayVersion}.`,
+        `Fix: ${formatCliCommand("vasudev gateway restart")}.`,
       ].join("\n"),
       "Plugin restart readiness",
     );
@@ -300,11 +300,11 @@ function notePluginVersionReadiness(readiness: PluginVersionRestartReadiness | u
   const unresolvedRepairs = repairs.filter(({ command }) => !command);
   const lines = [
     ...(readiness.runningGatewayVersion
-      ? [`Running Gateway: OpenClaw ${readiness.runningGatewayVersion}`]
+      ? [`Running Gateway: Vasudev ${readiness.runningGatewayVersion}`]
       : []),
     `${drift.drifts.length} active official plugin${
       drift.drifts.length === 1 ? "" : "s"
-    } not on post-restart OpenClaw ${drift.gatewayVersion}`,
+    } not on post-restart Vasudev ${drift.gatewayVersion}`,
     ...drift.drifts.map((entry) => {
       const sourceLabel = entry.source === "clawhub" ? "clawhub" : "npm";
       return `- ${entry.pluginId}: ${entry.installedVersion} (${sourceLabel}) -> expected ${drift.gatewayVersion}`;
@@ -318,13 +318,13 @@ function notePluginVersionReadiness(readiness: PluginVersionRestartReadiness | u
       return `Repair target resolution failed for ${entry.pluginId}: ${detail}. No install command generated.`;
     }),
     singleDrift && updateCommands.length === 1
-      ? `Fix: ${updateCommands[0]} && ${formatCliCommand("openclaw gateway restart")}.`
+      ? `Fix: ${updateCommands[0]} && ${formatCliCommand("vasudev gateway restart")}.`
       : updateCommands.length > 0
         ? [
             "Fix each drifted plugin:",
             ...updateCommands.map((command) => `- ${command}`),
             ...(unresolvedRepairs.length === 0
-              ? [`Then run ${formatCliCommand("openclaw gateway restart")}.`]
+              ? [`Then run ${formatCliCommand("vasudev gateway restart")}.`]
               : []),
           ].join("\n")
         : null,

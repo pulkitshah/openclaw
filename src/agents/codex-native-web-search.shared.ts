@@ -58,7 +58,7 @@ function normalizeUserLocation(value: unknown): CodexNativeSearchUserLocation | 
     : undefined;
 }
 
-/** Resolve Codex native web-search config from OpenClaw tool settings. */
+/** Resolve Codex native web-search config from Vasudev tool settings. */
 export function resolveCodexNativeWebSearchConfig(
   config: OpenClawConfig | undefined,
 ): ResolvedCodexNativeWebSearchConfig {

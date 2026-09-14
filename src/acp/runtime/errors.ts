@@ -1,4 +1,4 @@
-/** ACP runtime error exports wired to OpenClaw secret redaction. */
+/** ACP runtime error exports wired to Vasudev secret redaction. */
 import { configureAcpErrorRedactor } from "@openclaw/acp-core";
 import { redactToolPayloadText } from "../../logging/redact.js";
 

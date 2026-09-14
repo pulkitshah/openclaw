@@ -672,9 +672,9 @@ describe("ensureConfigReady", () => {
       "Problem:",
       "  - channels.quietchat: invalid",
       "",
-      `Inspect: ${formatCliCommand("openclaw config validate")}`,
+      `Inspect: ${formatCliCommand("vasudev config validate")}`,
       "Audit, status, health, logs, tasks list/audit, and doctor commands still run with invalid config.",
-      `Run "${formatCliCommand("openclaw doctor --fix")}" to repair the config, then retry.`,
+      `Run "${formatCliCommand("vasudev doctor --fix")}" to repair the config, then retry.`,
     ]);
     expect(runtime.exit).toHaveBeenCalledWith(1);
   });
@@ -723,7 +723,7 @@ describe("ensureConfigReady", () => {
 
       const runtime = await runEnsureConfigReady(["message"]);
       const output = plainErrorCalls(runtime).join("\n");
-      const hint = `Config was last written by OpenClaw ${touchedVersion}, but you are running ${VERSION} — upgrade or re-run setup.`;
+      const hint = `Config was last written by Vasudev ${touchedVersion}, but you are running ${VERSION} — upgrade or re-run setup.`;
 
       expect(output.includes(hint)).toBe(expected);
     },
@@ -751,7 +751,7 @@ describe("ensureConfigReady", () => {
     );
 
     expect(confirm).toHaveBeenCalledWith(
-      `Run "${formatCliCommand("openclaw doctor --fix")}" now?`,
+      `Run "${formatCliCommand("vasudev doctor --fix")}" now?`,
       true,
     );
     expect(runDoctor).toHaveBeenCalledOnce();
@@ -881,7 +881,7 @@ describe("ensureConfigReady", () => {
     const calls = plainErrorCalls(runtime);
 
     expect(calls).toContain(`Fix: ${pluginPackagingRecoveryHint}`);
-    expect(calls).not.toContain(`Fix: ${formatCliCommand("openclaw doctor --fix")}`);
+    expect(calls).not.toContain(`Fix: ${formatCliCommand("vasudev doctor --fix")}`);
     expect(runtime.exit).toHaveBeenCalledWith(1);
 
     const gatewayRuntime = await runEnsureConfigReady(["gateway", "start"]);

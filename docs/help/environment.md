@@ -7,7 +7,7 @@ read_when:
 title: "Environment variables"
 ---
 
-Vasudev pulls environment variables from multiple sources. The normal rule is **never override existing values**. For an Vasudev-installed systemd service, the global `.env` may replace only service values that Vasudev recorded as managed. Operator-owned service values still take precedence.
+Vasudev pulls environment variables from multiple sources. The normal rule is **never override existing values**. For a Vasudev-installed systemd service, the global `.env` may replace only service values that Vasudev recorded as managed. Operator-owned service values still take precedence.
 Workspace `.env` files are a lower-trust source: Vasudev ignores provider credentials and protected runtime controls from workspace `.env` before applying precedence.
 
 ## Precedence (highest to lowest)

@@ -13,7 +13,7 @@ Vasudev uses `pnpm-lock.yaml` as its committed product dependency review boundar
 
 Vasudev does not commit npm-format locks for product packages or publish them in package tarballs. [npm 12 removed shrinkwrap support](https://github.com/npm/cli/releases/tag/v12.0.0), including the `npm shrinkwrap` command and loading `npm-shrinkwrap.json` from package roots or dependency tarballs.
 
-The trusted ClawHub and Vercel release toolchains are separate exceptions: `.github/release/clawhub-cli/package-lock.json` and `.github/release/vercel-cli/package-lock.json` are committed npm project locks used by release automation. Neither is shipped in an Vasudev package.
+The trusted ClawHub and Vercel release toolchains are separate exceptions: `.github/release/clawhub-cli/package-lock.json` and `.github/release/vercel-cli/package-lock.json` are committed npm project locks used by release automation. Neither is shipped in a Vasudev package.
 
 These projects do not inherit root pnpm overrides. The Vercel project uses approved, version-scoped npm overrides for vulnerable upstream pins; remove each override when its owning dependency accepts a fixed version. Lock audits cover resolved package identities, not code already bundled into upstream CLI artifacts.
 

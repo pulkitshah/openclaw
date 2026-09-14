@@ -12,7 +12,7 @@ export function requireValidSystemAgentSetupSnapshot(snapshot: ConfigFileSnapsho
     const issue = snapshot.issues?.[0];
     const detail = issue ? ` (${issue.path ? `${issue.path}: ` : ""}${issue.message})` : "";
     throw new Error(
-      `OpenClaw config ${shortenHomePath(snapshot.path)} is invalid${detail}. Fix it before running setup.`,
+      `Vasudev config ${shortenHomePath(snapshot.path)} is invalid${detail}. Fix it before running setup.`,
     );
   }
   const sourceConfig = snapshot.exists ? (snapshot.sourceConfig ?? snapshot.config) : {};

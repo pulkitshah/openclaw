@@ -17,7 +17,7 @@ describe("renderTriagePrompt", () => {
         checkId: "core/error",
         severity: "error",
         message: "model routing failed",
-        fixHint: "Run `openclaw doctor --fix`.",
+        fixHint: "Run `vasudev doctor --fix`.",
       },
     ];
 
@@ -29,7 +29,7 @@ describe("renderTriagePrompt", () => {
 
     expect(prompt.indexOf("[error]")).toBeLessThan(prompt.indexOf("[warning]"));
     expect(prompt.indexOf("[warning]")).toBeLessThan(prompt.indexOf("[info]"));
-    expect(prompt).toContain("Fix: Run `openclaw doctor --fix`.");
+    expect(prompt).toContain("Fix: Run `vasudev doctor --fix`.");
     expect(prompt).toContain("Sanitized ZIP: $OPENCLAW_STATE_DIR/diagnostics.zip");
     expect(prompt).toContain(
       "The diagnostics archive excludes secrets, tokens, raw chat payloads, and raw logs",
@@ -80,7 +80,7 @@ describe("renderTriagePrompt", () => {
     const rendered = prompt.match(/^- \[warning\]/gmu)?.length ?? 0;
     expect(rendered).toBeGreaterThan(0);
     expect(prompt).toContain(
-      `${findings.length - rendered} more findings omitted; run \`openclaw doctor\` for the full list.`,
+      `${findings.length - rendered} more findings omitted; run \`vasudev doctor\` for the full list.`,
     );
     expect(prompt).toContain("## Privacy");
     expect(prompt).not.toContain("\uFFFD");
@@ -114,15 +114,15 @@ describe("renderTriagePrompt", () => {
     const rendered = prompt.match(/^- \[warning\]/gmu)?.length ?? 0;
     expect(rendered).toBeGreaterThan(0);
     expect(prompt).toContain(
-      `${findings.length - rendered} more findings omitted; run \`openclaw doctor\` for the full list.`,
+      `${findings.length - rendered} more findings omitted; run \`vasudev doctor\` for the full list.`,
     );
     expect(prompt).toContain("## Privacy");
     expect(prompt).not.toContain("\uFFFD");
     expect(prompt).toContain("...");
     expect(prompt).toContain("restart-unhealthy");
     expect(prompt).not.toContain("sk-test-triage-secret-1234567890");
-    expect(prompt).toContain("openclaw health --json");
-    expect(prompt).toContain("openclaw gateway status --deep");
+    expect(prompt).toContain("vasudev health --json");
+    expect(prompt).toContain("vasudev gateway status --deep");
     expect(prompt).toContain("2026.8.31");
     expect(prompt).toContain("original symptom");
   });

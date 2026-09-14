@@ -176,8 +176,8 @@ async function stopGatewayWithoutServiceManager(
     if (portUsage !== "free") {
       throw new Error(
         portUsage === "busy"
-          ? `Port ${port} is in use but the owning process could not be identified. Run ${formatCliCommand("openclaw gateway status --deep")} to diagnose.`
-          : `Could not determine whether port ${port} is still in use, so the gateway cannot be confirmed stopped. Run ${formatCliCommand("openclaw gateway status --deep")} to diagnose.`,
+          ? `Port ${port} is in use but the owning process could not be identified. Run ${formatCliCommand("vasudev gateway status --deep")} to diagnose.`
+          : `Could not determine whether port ${port} is still in use, so the gateway cannot be confirmed stopped. Run ${formatCliCommand("vasudev gateway status --deep")} to diagnose.`,
       );
     }
     return null;
@@ -243,7 +243,7 @@ async function signalGatewayRestart(
   }
   if (pids.length > 1) {
     throw new Error(
-      `multiple gateway processes are listening on port ${port}: ${formatGatewayPidList(pids)}; use "openclaw gateway status --deep" before retrying restart`,
+      `multiple gateway processes are listening on port ${port}: ${formatGatewayPidList(pids)}; use "vasudev gateway status --deep" before retrying restart`,
     );
   }
   const pid = expectDefined(pids[0], "pids entry at 0");
@@ -665,7 +665,7 @@ export async function runDaemonRestart(opts: DaemonLifecycleOptions = {}): Promi
 
         fail(
           `Gateway restart timed out after ${unmanagedRestartWaitSeconds}s waiting for health checks.`,
-          [formatCliCommand("openclaw gateway status --deep"), formatCliCommand("openclaw doctor")],
+          [formatCliCommand("vasudev gateway status --deep"), formatCliCommand("vasudev doctor")],
           activationAccepted ? "restart-health-failed" : undefined,
         );
         throw new Error("unreachable after gateway restart health failure");
@@ -740,7 +740,7 @@ export async function runDaemonRestart(opts: DaemonLifecycleOptions = {}): Promi
 
       fail(
         failure.failMessage,
-        [formatCliCommand("openclaw gateway status --deep"), formatCliCommand("openclaw doctor")],
+        [formatCliCommand("vasudev gateway status --deep"), formatCliCommand("vasudev doctor")],
         activationAccepted ? "restart-health-failed" : undefined,
       );
       throw new Error("unreachable after gateway restart failure");

@@ -273,10 +273,10 @@ describe("statusSummaryRuntime.resolveSessionRuntime", () => {
         model: "gpt-5.5",
         sessionKey: "agent:main:main",
       }),
-    ).toEqual({ id: "codex", label: "OpenAI Codex (previous runtime: OpenClaw Default)" });
+    ).toEqual({ id: "codex", label: "OpenAI Codex (previous runtime: Vasudev Default)" });
   });
 
-  it("reports the owning Codex harness for a locked session with stale OpenClaw metadata", () => {
+  it("reports the owning Codex harness for a locked session with stale Vasudev metadata", () => {
     expect(
       resolveSessionRuntime({
         cfg: {

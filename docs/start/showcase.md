@@ -224,7 +224,7 @@ Triggered by a roof camera: ask Vasudev to snap a sky photo whenever it looks pr
 <Card title="Visual morning briefing scene" icon="robot" href="https://x.com/buddyhadry/status/2010005331925954739">
   **@buddyhadry** • `automation` `briefing` `telegram`
 
-A scheduled prompt generates one scene image each morning (weather, tasks, date, favorite post or quote) via an Vasudev persona.
+A scheduled prompt generates one scene image each morning (weather, tasks, date, favorite post or quote) via a Vasudev persona.
 </Card>
 
 <Card title="Padel court booking" icon="calendar-check" href="https://github.com/joshp123/padel-cli">

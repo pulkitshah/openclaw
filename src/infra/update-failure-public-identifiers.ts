@@ -40,7 +40,7 @@ const NATIVE_CHECKS = new Set<string>([
   "plugin-sync",
   "plugin-convergence",
   "build",
-  "openclaw doctor",
+  "vasudev doctor",
   "post-install verification",
   "package rollback",
   "global install verify",

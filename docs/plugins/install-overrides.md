@@ -48,7 +48,7 @@ setup-time plugin installer.
 - Overrides still enforce the expected plugin id: a tarball mapped to `codex`
   must install a plugin whose manifest id is `codex`.
 - Overrides do not inherit official trusted-source status. Even when the
-  catalog entry normally represents an Vasudev-owned package, an override is
+  catalog entry normally represents a Vasudev-owned package, an override is
   treated as operator-supplied test input.
 - Workspace `.env` files cannot enable install overrides; both env vars are on
   the blocked workspace dotenv list. Set them in the trusted shell, CI job, or

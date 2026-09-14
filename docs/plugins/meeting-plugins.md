@@ -2,7 +2,7 @@
 summary: "Choose and configure Google Meet, Microsoft Teams, or Zoom meeting participation"
 doc-schema-version: 1
 read_when:
-  - You want an Vasudev agent to join a video meeting
+  - You want a Vasudev agent to join a video meeting
   - You are choosing between the Google Meet, Microsoft Teams meetings, and Zoom meetings plugins
   - You need the shared Chrome, virtual-audio, or meeting-mode setup
 title: "Meeting plugins"
@@ -169,7 +169,7 @@ Only join meetings where the operator is authorized to add an agent. Tell partic
 
 ## Discord voice chat
 
-[Discord voice channels](/channels/discord/voice-channels#voice-channels) provide native, audio-only realtime conversation without browser meeting automation. Vasudev can join a voice channel, listen, route turns through an Vasudev agent or realtime voice model, and speak replies. It does not send or receive camera video or screen sharing, even when people use video in the same Discord channel, so Discord voice is a related live-conversation surface rather than a fourth browser meeting plugin.
+[Discord voice channels](/channels/discord/voice-channels#voice-channels) provide native, audio-only realtime conversation without browser meeting automation. Vasudev can join a voice channel, listen, route turns through a Vasudev agent or realtime voice model, and speak replies. It does not send or receive camera video or screen sharing, even when people use video in the same Discord channel, so Discord voice is a related live-conversation surface rather than a fourth browser meeting plugin.
 
 ## Platform guides
 

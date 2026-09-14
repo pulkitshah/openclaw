@@ -207,7 +207,7 @@ export const createPluginRuntime: PluginRuntimeFactory = (
   let modelAuth = _options.modelAuth;
   let modelConfig = _options.modelConfig;
   const runtime: PluginRuntime = {
-    // Sourced from the shared OpenClaw version resolver (#52899) so plugins
+    // Sourced from the shared Vasudev version resolver (#52899) so plugins
     // always see the same version the CLI reports, avoiding API-version drift.
     version: VERSION,
     gateway: _options.gateway ?? createRuntimeGateway(),

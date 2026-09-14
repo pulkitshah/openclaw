@@ -167,7 +167,7 @@ describe("prior-release state startup corpus", () => {
             fixHints: [],
           },
           shouldRepair: true,
-          doctorFixCommand: "openclaw doctor --fix",
+          doctorFixCommand: "vasudev doctor --fix",
         });
         const normalized = normalizeCompatibilityConfigValues(migrated.state.candidate, {
           sourceRaw: snapshot.parsed,

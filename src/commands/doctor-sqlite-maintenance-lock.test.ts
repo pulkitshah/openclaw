@@ -256,7 +256,7 @@ describe("doctor SQLite maintenance lock", () => {
         },
         { lockOptions: fixture.lockOptions },
       ),
-    ).rejects.toThrow(/outside the active OpenClaw state directory/);
+    ).rejects.toThrow(/outside the active Vasudev state directory/);
     expect(run).not.toHaveBeenCalled();
 
     const gatewayLock = await acquireGatewayLock({
@@ -298,7 +298,7 @@ describe("doctor SQLite maintenance lock", () => {
         },
         { lockOptions: fixture.lockOptions },
       ),
-    ).rejects.toThrow(/outside the active OpenClaw state directory/);
+    ).rejects.toThrow(/outside the active Vasudev state directory/);
     expect(run).not.toHaveBeenCalled();
   });
 
@@ -325,7 +325,7 @@ describe("doctor SQLite maintenance lock", () => {
         },
         { lockOptions: fixture.lockOptions },
       ),
-    ).rejects.toThrow(/outside the active OpenClaw state directory/);
+    ).rejects.toThrow(/outside the active Vasudev state directory/);
     expect(run).not.toHaveBeenCalled();
   });
 

@@ -184,7 +184,7 @@ export type CliSessionReuseResult =
   | { mode: "invalidate"; invalidatedReason: CliSessionInvalidatedReason };
 
 const CLI_SESSION_DRIFT_NOTE_PREFIX =
-  "OpenClaw resumed this CLI session after prompt content changed.";
+  "Vasudev resumed this CLI session after prompt content changed.";
 
 /** User-turn note telling a resumed CLI session that its prompt content drifted. */
 export function buildCliSessionDriftNote(reasons: readonly CliSessionContentDriftReason[]): string {

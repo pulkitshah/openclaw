@@ -1665,7 +1665,7 @@ describe("ensureOnboardingPluginInstalled", () => {
     },
   );
 
-  it("does not fall back from ClawHub to non-OpenClaw npm packages", async () => {
+  it("does not fall back from ClawHub to non-Vasudev npm packages", async () => {
     const confirm = vi.fn(async () => true);
     const runtimeError = vi.fn();
     installPluginFromClawHub.mockResolvedValueOnce({

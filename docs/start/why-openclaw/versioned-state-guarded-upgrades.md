@@ -2,7 +2,7 @@
 summary: "Database-first state, schema version contracts, guarded updates, release channels, and the maturity scorecard"
 title: "Versioned state, guarded upgrades"
 read_when:
-  - You need to know whether an Vasudev upgrade can break your on-disk state
+  - You need to know whether a Vasudev upgrade can break your on-disk state
   - You are choosing between the stable, extended-stable, beta, and dev channels
   - You are assessing per-surface readiness before deploying
 ---

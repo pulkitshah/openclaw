@@ -429,7 +429,7 @@ for the node command and security boundary.
 
 With an Anthropic API key configured, Vasudev refreshes the Claude catalog from
 Anthropic's models endpoint, so newly published snapshots of supported model
-families appear without an Vasudev release. Models the shipped catalog already
+families appear without a Vasudev release. Models the shipped catalog already
 describes always keep their published metadata and pricing.
 
 A newly discovered model is only offered when Anthropic's advertised

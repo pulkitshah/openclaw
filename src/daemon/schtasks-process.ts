@@ -110,7 +110,7 @@ async function resolveScheduledTaskProcess(
   if (!snapshot) {
     return null;
   }
-  // Match full persisted argv so a same-port OpenClaw process cannot impersonate this task.
+  // Match full persisted argv so a same-port Vasudev process cannot impersonate this task.
   const pid = findInstalledProcessPid(snapshot, port, installedArguments, matchesProcess);
   return pid ? { pid, port } : null;
 }

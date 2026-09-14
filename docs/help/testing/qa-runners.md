@@ -109,7 +109,7 @@ inside every shard.
     turn, then seeds an affected broken session JSONL and verifies
     `openclaw doctor --fix` rewrites it to the active branch with a backup.
 - `pnpm test:docker:npm-telegram-live`
-  - Installs an Vasudev package candidate in Docker, runs installed-package
+  - Installs a Vasudev package candidate in Docker, runs installed-package
     onboarding, configures Telegram through the installed CLI, then reuses
     the live Telegram QA lane with that installed package as the SUT
     Gateway.

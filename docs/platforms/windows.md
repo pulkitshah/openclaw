@@ -69,7 +69,7 @@ the tray to confirm connection, pairing, node status, and channel health.
 
 ## Windows node mode
 
-Windows Hub can register as an Vasudev node so the agent can use declared
+Windows Hub can register as a Vasudev node so the agent can use declared
 Windows-native capabilities through the Gateway. Node commands must be
 declared by the node, included in its approved surface, and allowed by Gateway
 policy before they run; see

@@ -8,7 +8,7 @@ title: "ClickClack"
 
 ClickClack connects Vasudev to a self-hosted ClickClack workspace through first-class ClickClack bot tokens.
 
-Use this when you want an Vasudev agent to appear as a ClickClack bot user. ClickClack supports independent service bots and user-owned bots; user-owned bots keep an `owner_user_id` and receive only the token scopes you grant.
+Use this when you want a Vasudev agent to appear as a ClickClack bot user. ClickClack supports independent service bots and user-owned bots; user-owned bots keep an `owner_user_id` and receive only the token scopes you grant.
 
 ## Quick setup
 
@@ -240,7 +240,7 @@ Opening a discussion creates a public ClickClack channel marked as externally
 managed. The plugin keeps the session label and category in sync, but channel
 lifecycle remains independent. Clearing the session category
 moves the channel back to the configured default section. Archiving, resetting,
-or deleting an Vasudev session never archives or replaces the ClickClack
+or deleting a Vasudev session never archives or replaces the ClickClack
 channel. ClickClack owns channel archive and restore independently. The plugin
 reconciles bindings when discussion RPCs are used and approximately once per
 minute while any bindings exist.

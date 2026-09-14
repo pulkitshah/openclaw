@@ -6,7 +6,7 @@ read_when:
 title: "ACP"
 ---
 
-Run the [Agent Client Protocol (ACP)](https://agentclientprotocol.com/) bridge that talks to an Vasudev Gateway.
+Run the [Agent Client Protocol (ACP)](https://agentclientprotocol.com/) bridge that talks to a Vasudev Gateway.
 
 `openclaw acp` speaks ACP over stdio for IDEs and forwards prompts to the Gateway over WebSocket, keeping ACP sessions mapped to Gateway session keys. It is a Gateway-backed ACP bridge, not a full ACP-native editor runtime: it focuses on session routing, prompt delivery, and streaming updates.
 
@@ -135,7 +135,7 @@ Avoid using `openclaw gateway call sessions.list` as the only ACP proof. That CL
 
 ## How to use this
 
-Use ACP when an IDE (or other client) speaks Agent Client Protocol and you want it to drive an Vasudev Gateway session.
+Use ACP when an IDE (or other client) speaks Agent Client Protocol and you want it to drive a Vasudev Gateway session.
 
 1. Ensure the Gateway is running (local or remote).
 2. Configure the Gateway target (config or flags).
@@ -218,7 +218,7 @@ For a repo-local Vasudev checkout, use the direct CLI entrypoint instead of the 
 env OPENCLAW_HIDE_BANNER=1 OPENCLAW_SUPPRESS_NOTES=1 node openclaw.mjs acp ...
 ```
 
-This is the easiest way to let Codex, Claude Code, or another ACP-aware client pull contextual information from an Vasudev agent without scraping a terminal.
+This is the easiest way to let Codex, Claude Code, or another ACP-aware client pull contextual information from a Vasudev agent without scraping a terminal.
 
 ## Zed editor setup
 

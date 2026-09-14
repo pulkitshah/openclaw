@@ -549,7 +549,7 @@ function rejectDroppedAgentRosterEntries(params: {
     errorShape(
       ErrorCodes.INVALID_REQUEST,
       `config.set would remove existing agent entries: ${droppedIds.join(", ")}. ` +
-        "Use the agents.delete RPC or `openclaw agents delete <id>` for intentional deletion.",
+        "Use the agents.delete RPC or `vasudev agents delete <id>` for intentional deletion.",
     ),
   );
   return true;
@@ -983,7 +983,7 @@ export const configHandlers: GatewayRequestHandlers = {
         undefined,
         errorShape(
           ErrorCodes.INVALID_REQUEST,
-          `${summarizeConfigValidationIssues(snapshot.issues)}; fix (openclaw doctor) before patching`,
+          `${summarizeConfigValidationIssues(snapshot.issues)}; fix (vasudev doctor) before patching`,
           { details: { issues: snapshot.issues } },
         ),
       );

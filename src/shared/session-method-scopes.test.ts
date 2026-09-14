@@ -65,7 +65,7 @@ describe("resolveDynamicSessionMutationRequiredScope", () => {
     },
     { name: "icon set", patch: { icon: "🦞" } },
     { name: "icon reset", patch: { icon: null } },
-    { name: "automatic device name", patch: { autoLabel: "OpenClaw App · Pixel" } },
+    { name: "automatic device name", patch: { autoLabel: "Vasudev App · Pixel" } },
     { name: "automatic device name reset", patch: { autoLabel: null } },
     {
       name: "safe mixed patch",

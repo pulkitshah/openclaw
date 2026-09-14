@@ -1,13 +1,13 @@
 ---
 summary: "Google Meet plugin: join explicit Meet URLs through Chrome or Twilio with agent talk-back defaults"
 read_when:
-  - You want an Vasudev agent to join a Google Meet call
-  - You want an Vasudev agent to create a new Google Meet call
+  - You want a Vasudev agent to join a Google Meet call
+  - You want a Vasudev agent to create a new Google Meet call
   - You are configuring Chrome, Chrome node, or Twilio as a Google Meet transport
 title: "Google Meet plugin"
 ---
 
-The `google-meet` plugin joins explicit Meet URLs on behalf of an Vasudev agent. It is deliberately narrow:
+The `google-meet` plugin joins explicit Meet URLs on behalf of a Vasudev agent. It is deliberately narrow:
 
 - It only joins `https://meet.google.com/...` URLs; it never dials into a meeting from a phone number it discovers itself.
 - `googlemeet create` can mint a new Meet URL through the Google Meet API (or a browser fallback) and join it by default.

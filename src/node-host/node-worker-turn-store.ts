@@ -39,7 +39,7 @@ function ensureTurnSchema(database: DatabaseSync): void {
   const endMarker = "\n  WHERE state = 'running';";
   const end = OPENCLAW_STATE_SCHEMA_SQL.indexOf(endMarker, start);
   if (start < 0 || end < start) {
-    throw new Error("OpenClaw node worker turn schema marker is missing.");
+    throw new Error("Vasudev node worker turn schema marker is missing.");
   }
   database.exec(OPENCLAW_STATE_SCHEMA_SQL.slice(start, end + endMarker.length)); // sqlite-allow-raw -- Canonical feature-local additive DDL only.
 }

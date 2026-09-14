@@ -13,7 +13,7 @@ import { PROXY_ATTRIBUTION_REQUIRED_REASON } from "../../ingress-attribution.js"
 export type AuthProvidedKind = "token" | "bootstrap-token" | "device-token" | "password" | "none";
 
 const SETUP_CODE_REJECTED_MESSAGE =
-  "unauthorized: setup code invalid, expired, revoked, or already used (create a new code; review `openclaw devices list`)";
+  "unauthorized: setup code invalid, expired, revoked, or already used (create a new code; review `vasudev devices list`)";
 
 /** Formats a client-specific auth failure message without exposing secret values. */
 export function formatGatewayAuthFailureMessage(params: {
@@ -28,11 +28,11 @@ export function formatGatewayAuthFailureMessage(params: {
   const isControlUi = isOperatorUiClient(client);
   const isWebchat = isWebchatClient(client);
   if (client?.mode === "node" && reason?.startsWith("trusted_proxy_missing_header_")) {
-    return "gateway rejected this node: trusted-proxy identity-header authentication is required and no usable machine credential was accepted; run `openclaw doctor` on the Gateway";
+    return "gateway rejected this node: trusted-proxy identity-header authentication is required and no usable machine credential was accepted; run `vasudev doctor` on the Gateway";
   }
   const uiHint = "open the dashboard URL and paste the token in Control UI settings";
   const missingUiTokenHint =
-    "paste in Control UI settings or openclaw doctor --generate-gateway-token; restart";
+    "paste in Control UI settings or vasudev doctor --generate-gateway-token; restart";
   // Local CLI clients share this gateway's config and have no gateway.remote
   // block; pointing them at gateway.remote.* would be a dead end.
   const tokenHint = isCli

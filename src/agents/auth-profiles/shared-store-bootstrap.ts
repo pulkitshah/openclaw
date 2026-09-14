@@ -45,7 +45,7 @@ export type SharedAuthLegacyRows = {
 
 export class SharedAuthStoreSourceInspectionError extends Error {
   readonly code = "SHARED_AUTH_STORE_SOURCE_UNREADABLE" as const;
-  readonly action = "openclaw doctor --fix" as const;
+  readonly action = "vasudev doctor --fix" as const;
   readonly sourcePath: string;
 
   constructor(sourcePath: string, operation: string, cause: unknown) {

@@ -219,7 +219,7 @@ const COMMAND_PROFILES: Record<string, CommandProfile> = {
   },
   "system.notify": {
     buildParams: () => ({
-      title: "OpenClaw Android E2E",
+      title: "Vasudev Android E2E",
       body: "Live node integration check",
       sound: "none",
       priority: "passive",
@@ -578,7 +578,7 @@ describeLive("android node capability integration (preconditioned)", () => {
         [
           `selected node is not ready (nodeId=${nodeId}, connected=${String(target.connected)}, paired=${String(target.paired)})`,
           pendingHint,
-          "precondition: open app, keep foreground, ensure pairing approved (`openclaw nodes pending` / `openclaw nodes approve <requestId>`)",
+          "precondition: open app, keep foreground, ensure pairing approved (`vasudev nodes pending` / `vasudev nodes approve <requestId>`)",
         ].join("\n"),
       );
     }

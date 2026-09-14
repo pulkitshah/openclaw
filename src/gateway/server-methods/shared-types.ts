@@ -98,7 +98,7 @@ export type { GatewayOperatorRoleActor };
 
 export type { RespondFn } from "./response-types.js";
 
-/** Minimal hosted OpenClaw contract retained by the gateway request router. */
+/** Minimal hosted Vasudev contract retained by the gateway request router. */
 /**
  * Structural mirror of the engine's SystemAgentAssistantTurn. Kept local as a
  * leaf contract: importing the assistant module here closes a madge cycle

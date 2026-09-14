@@ -15,10 +15,9 @@
  */
 export const SYSTEM_AGENT_CONFIG_WRITE_DENYLIST: Readonly<Record<string, string>> = {
   $include: "alternate-config inclusion; edit openclaw.json in a trusted shell",
-  auth: "provider auth; `openclaw onboard` on the machine running OpenClaw",
+  auth: "provider auth; `vasudev onboard` on the machine running Vasudev",
   env: "environment/credential injection; edit openclaw.json in a trusted shell",
-  models:
-    "provider/catalog definitions feed routing; use `set_default_model` or `openclaw onboard`",
+  models: "provider/catalog definitions feed routing; use `set_default_model` or `vasudev onboard`",
   secrets: "secret providers; edit openclaw.json in a trusted shell",
 };
 

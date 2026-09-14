@@ -15,10 +15,10 @@ import { runConfigureWizard } from "./configure.wizard.js";
 const CONFIGURE_NON_TTY_HINT = [
   "Interactive configuration requires an interactive terminal (TTY).",
   "For non-interactive setup, use these subcommands instead:",
-  `  ${formatCliCommand("openclaw config set <path> <value>")}  write a config entry`,
-  `  ${formatCliCommand("openclaw config get <path>")}          read a config entry`,
-  `  ${formatCliCommand("openclaw config patch")}              apply a JSON patch`,
-  `  ${formatCliCommand("openclaw config validate")}           validate configuration`,
+  `  ${formatCliCommand("vasudev config set <path> <value>")}  write a config entry`,
+  `  ${formatCliCommand("vasudev config get <path>")}          read a config entry`,
+  `  ${formatCliCommand("vasudev config patch")}              apply a JSON patch`,
+  `  ${formatCliCommand("vasudev config validate")}           validate configuration`,
 ].join("\n");
 
 /**
@@ -63,7 +63,7 @@ export async function configureCommandFromSectionsArg(
   const { sections, invalid } = parseConfigureWizardSections(rawSections);
   if (invalid.length > 0) {
     runtime.error(
-      `Invalid --section: ${invalid.map((section) => section || '""').join(", ")}. Expected one of: ${CONFIGURE_WIZARD_SECTIONS.join(", ")}. Run ${formatCliCommand("openclaw configure")} without --section to use the full wizard.`,
+      `Invalid --section: ${invalid.map((section) => section || '""').join(", ")}. Expected one of: ${CONFIGURE_WIZARD_SECTIONS.join(", ")}. Run ${formatCliCommand("vasudev configure")} without --section to use the full wizard.`,
     );
     runtime.exit(1);
     return;

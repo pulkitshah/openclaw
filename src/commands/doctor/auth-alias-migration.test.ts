@@ -113,7 +113,7 @@ describe("Doctor stored auth alias migration", () => {
       );
       const result = await runDoctorRepairSequence({
         state: { cfg, candidate: structuredClone(cfg), pendingChanges: false, fixHints: [] },
-        doctorFixCommand: "openclaw doctor --fix",
+        doctorFixCommand: "vasudev doctor --fix",
         env: fixture.env,
       });
       expect(result.state.candidate.auth).toEqual(cfg.auth);
@@ -133,7 +133,7 @@ describe("Doctor stored auth alias migration", () => {
       });
       const result = await runDoctorRepairSequence({
         state: { cfg, candidate: structuredClone(cfg), pendingChanges: false, fixHints: [] },
-        doctorFixCommand: "openclaw doctor --fix",
+        doctorFixCommand: "vasudev doctor --fix",
         env: fixture.env,
       });
       expect(result.state.candidate.auth?.profiles).toEqual({
@@ -429,7 +429,7 @@ describe("Doctor stored auth alias migration", () => {
 
       const result = await runDoctorRepairSequence({
         state: { cfg, candidate: structuredClone(cfg), pendingChanges: false, fixHints: [] },
-        doctorFixCommand: "openclaw doctor --fix",
+        doctorFixCommand: "vasudev doctor --fix",
         env: fixture.env,
       });
 

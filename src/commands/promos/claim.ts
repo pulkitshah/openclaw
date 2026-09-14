@@ -166,7 +166,7 @@ function resolveAuthChoice(
   const entry = manifestEntry ?? catalogEntry;
   if (!entry) {
     throw new Error(
-      `Promotion "${promotion.slug}" requires auth choice "${authChoiceId}", which this OpenClaw version does not know. Update OpenClaw and retry.`,
+      `Promotion "${promotion.slug}" requires auth choice "${authChoiceId}", which this Vasudev version does not know. Update Vasudev and retry.`,
     );
   }
   if (entry.providerId !== provider) {
@@ -203,7 +203,7 @@ function requirePromotionPlugins(
     ? `auth choice "${authChoice.entry.choiceId}"`
     : "a missing auth choice";
   throw new Error(
-    `Promotion "${promotion.slug}" requires plugin package "${unsupported[0]}", but ${authChoiceLabel} does not provide it in this OpenClaw version. Update OpenClaw and retry.`,
+    `Promotion "${promotion.slug}" requires plugin package "${unsupported[0]}", but ${authChoiceLabel} does not provide it in this Vasudev version. Update Vasudev and retry.`,
   );
 }
 
@@ -243,7 +243,7 @@ async function ensureProviderAuth(params: {
   }
   if (!catalogEntry) {
     throw new Error(
-      `No credentials configured for provider "${provider}". Add one with ${formatCliCommand("openclaw models auth add")} and retry.`,
+      `No credentials configured for provider "${provider}". Add one with ${formatCliCommand("vasudev models auth add")} and retry.`,
     );
   }
   if (promotion.signupUrl) {
@@ -434,11 +434,11 @@ export async function promosClaimCommand(
   if (makeDefault && suggested) {
     runtime.log(`  Default model set to ${sanitizeTerminalText(suggested.modelRef)}.`);
     runtime.log(
-      `  Revert anytime with ${formatCliCommand("openclaw models set <previous-model>")}.`,
+      `  Revert anytime with ${formatCliCommand("vasudev models set <previous-model>")}.`,
     );
   } else if (suggested) {
     runtime.log(
-      `  Try it: ${formatCliCommand(`openclaw models set ${suggested.modelRef}`)} (promotion ends ${new Date(promotion.endsAt).toLocaleDateString()}).`,
+      `  Try it: ${formatCliCommand(`vasudev models set ${suggested.modelRef}`)} (promotion ends ${new Date(promotion.endsAt).toLocaleDateString()}).`,
     );
   }
 }

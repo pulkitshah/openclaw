@@ -30,7 +30,7 @@ Vasudev auto-detects the `opencode` CLI on the Gateway and paired nodes. Stored
 sessions then appear in the **OpenCode** sessions-sidebar group, with transcript
 browsing through the official `opencode --pure db ... --format json` and
 `opencode --pure export` commands. Local rows also offer **Continue**, which
-creates an Vasudev session whose first turn resumes the native OpenCode session
+creates a Vasudev session whose first turn resumes the native OpenCode session
 through ACP. OpenCode retains the full server-side model context, and the catalog
 viewer continues to show that history. Vasudev also imports the recent native
 history into the adopted session transcript. Very long transcripts import only

@@ -77,7 +77,7 @@ function formatUnsupportedCompactionWarning(params: {
   fixHint: string;
 }): string {
   return [
-    "- Codex runtime uses native server-side compaction and ignores OpenClaw compaction summarizer overrides.",
+    "- Codex runtime uses native server-side compaction and ignores Vasudev compaction summarizer overrides.",
     ...params.hits.map(
       (hit) => `- ${hit.path}: ${hit.value} is ignored while this agent uses Codex runtime.`,
     ),
@@ -108,7 +108,7 @@ function formatLegacyLosslessCompactionWarning(params: {
     "- Legacy Lossless compaction config should use the Lossless context-engine slot for Codex.",
     ...configLines,
     params.canAutoFix
-      ? "- Run `openclaw doctor --fix`: it migrates legacy Lossless compaction config to the Lossless context-engine slot."
+      ? "- Run `vasudev doctor --fix`: it migrates legacy Lossless compaction config to the Lossless context-engine slot."
       : "- Move the Lossless config manually; doctor will not overwrite an existing non-Lossless context-engine slot or collapse conflicting per-agent summary models.",
   ].join("\n");
 }
@@ -118,8 +118,8 @@ function formatDisabledCodexPluginWarning(params: {
   repairBlocked: boolean;
 }): string {
   const fixHint = params.repairBlocked
-    ? "- Enable plugins.entries.codex and plugin loading, and remove `codex` from plugins.deny; or set the affected OpenAI models to an OpenClaw runtime policy."
-    : "- Run `openclaw doctor --fix`: it enables plugins.entries.codex, or set the affected OpenAI models to an OpenClaw runtime policy.";
+    ? "- Enable plugins.entries.codex and plugin loading, and remove `codex` from plugins.deny; or set the affected OpenAI models to a Vasudev runtime policy."
+    : "- Run `vasudev doctor --fix`: it enables plugins.entries.codex, or set the affected OpenAI models to a Vasudev runtime policy.";
   return [
     "- Codex runtime is selected, but the Codex plugin is disabled.",
     ...params.hits.map(
@@ -152,9 +152,9 @@ function collectCodexAppServerCommandWarnings(cfg: OpenClawConfig): string[] {
         ]
       : []),
     [
-      "- Custom Codex app-server command bypasses OpenClaw's managed exact-version binary.",
+      "- Custom Codex app-server command bypasses Vasudev's managed exact-version binary.",
       "- plugins.entries.codex.config.appServer.command: Doctor did not execute, inspect, or rewrite this command.",
-      "- Remove the override to use managed Codex startup, or verify the custom binary matches the Codex version bundled with this OpenClaw release.",
+      "- Remove the override to use managed Codex startup, or verify the custom binary matches the Codex version bundled with this Vasudev release.",
     ].join("\n"),
   ];
 }
@@ -264,7 +264,7 @@ function collectCodexModelParamHits(
 
 function formatCodexModelParamWarning(hits: readonly CodexModelParamHit[]): string {
   const fixHint = hits.some((hit) => hit.removable)
-    ? '- Run `openclaw doctor --fix` to remove only redundant priority service-tier params; remove any remaining params or set the affected route\'s agentRuntime.id to "openclaw".'
+    ? '- Run `vasudev doctor --fix` to remove only redundant priority service-tier params; remove any remaining params or set the affected route\'s agentRuntime.id to "openclaw".'
     : '- Remove these params or set the affected route\'s agentRuntime.id to "openclaw"; Doctor cannot migrate them without changing behavior.';
   return [
     "- Explicit native Codex model routes cannot reproduce authored request transport parameters.",
@@ -414,7 +414,7 @@ export function collectCodexRouteWarnings(params: {
               hit.runtime ? `; current runtime is "${hit.runtime}"` : ""
             }.`,
         ),
-        "- Run `openclaw doctor --fix`: it rewrites configured model refs and stale sessions to `openai/*`, moves Codex intent to provider/model runtime policy, and clears old whole-agent runtime pins.",
+        "- Run `vasudev doctor --fix`: it rewrites configured model refs and stale sessions to `openai/*`, moves Codex intent to provider/model runtime policy, and clears old whole-agent runtime pins.",
       ].join("\n"),
     );
   }
@@ -465,8 +465,7 @@ export function collectCodexRouteWarnings(params: {
     warnings.push(
       formatUnsupportedCompactionWarning({
         hits: fixableHits,
-        fixHint:
-          "- Run `openclaw doctor --fix`: it removes unsupported Codex compaction overrides.",
+        fixHint: "- Run `vasudev doctor --fix`: it removes unsupported Codex compaction overrides.",
       }),
     );
   }

@@ -55,14 +55,14 @@ describe("update run report", () => {
               )
             ).body;
       expect(text).toContain(
-        "A 2026.9.2-era update never progressed past admission; treated as abandoned after 24 h; run `openclaw update` to retry.",
+        "A 2026.9.2-era update never progressed past admission; treated as abandoned after 24 h; run `vasudev update` to retry.",
       );
     },
   );
 
   it.each([
     ["requester-revoked", "A current command owner must start a new update"],
-    ["repair-requires-config-change", "run openclaw doctor --fix under your own authority"],
+    ["repair-requires-config-change", "run vasudev doctor --fix under your own authority"],
   ])("renders the repair stop reason %s with an unambiguous next action", (reason, guidance) => {
     const report = renderUpdateRunReport(
       run({
@@ -95,7 +95,7 @@ describe("update run report", () => {
         after: { version: "2026.8.1", sha: "9f3c21a0000000000000000000000000000000aa" },
       }),
     );
-    expect(report.headline).toBe("✅ OpenClaw updated to 9f3c21a0 (from 11111111).");
+    expect(report.headline).toBe("✅ Vasudev updated to 9f3c21a0 (from 11111111).");
     expect(report.markdown).toContain(report.headline);
   });
 
@@ -112,15 +112,15 @@ describe("update run report", () => {
     ].map((record) => renderUpdateRunReport(record).markdown);
     expect(reports).toMatchInlineSnapshot(`
       [
-        "✅ OpenClaw updated to 2026.9.2 (from 2026.9.1).
+        "✅ Vasudev updated to 2026.9.2 (from 2026.9.1).
       Phases: staging (300ms)",
-        "⚠️ OpenClaw update failed: restart-unhealthy. The gateway is running 2026.9.1.
+        "⚠️ Vasudev update failed: restart-unhealthy. The gateway is running 2026.9.1.
       Phases: staging (300ms)
       Verification: service running.
-      Run openclaw triage to diagnose and repair the failed update.",
-        "ℹ️ OpenClaw update skipped: dry-run.
+      Run vasudev triage to diagnose and repair the failed update.",
+        "ℹ️ Vasudev update skipped: dry-run.
       Phases: staging (300ms)",
-        "↩️ OpenClaw update rolled back to 2026.9.1: build-failed.
+        "↩️ Vasudev update rolled back to 2026.9.1: build-failed.
       Phases: staging (300ms)",
       ]
     `);
@@ -156,7 +156,7 @@ describe("update run report", () => {
     expect(report.markdown.length).toBeLessThanOrEqual(1500);
     expect(Buffer.from(report.markdown).toString("utf8")).toBe(report.markdown);
     expect(
-      report.markdown.endsWith("Run openclaw triage to diagnose and repair the failed update."),
+      report.markdown.endsWith("Run vasudev triage to diagnose and repair the failed update."),
     ).toBe(true);
     expect(report.lines.join("\n").length).toBeGreaterThan(1500);
   });
@@ -178,10 +178,10 @@ describe("update run report", () => {
     { reason: "requester-revoked", source: "options" },
     { reason: "repair-requires-config-change", source: "options" },
   ])("keeps $source recovery scoped to its profile after $reason", ({ reason, source }) => {
-    const originAction = "Run `openclaw --profile work triage` to repair this installation.";
+    const originAction = "Run `vasudev --profile work triage` to repair this installation.";
     const nextAction =
       source === "options"
-        ? "Run `openclaw --profile team triage` to repair this installation."
+        ? "Run `vasudev --profile team triage` to repair this installation."
         : originAction;
     const report = renderUpdateRunReport(
       run({ status: "failed", reason, origin: { nextAction: originAction } }),
@@ -189,9 +189,9 @@ describe("update run report", () => {
     );
     expect(report.lines.at(-1)).toBe(nextAction);
     expect(report.markdown.endsWith(nextAction)).toBe(true);
-    expect(report.markdown).not.toContain("Run openclaw triage");
-    expect(report.markdown).not.toContain("run openclaw doctor --fix");
-    expect(report.markdown).not.toContain("operator can run openclaw triage locally");
+    expect(report.markdown).not.toContain("Run vasudev triage");
+    expect(report.markdown).not.toContain("run vasudev doctor --fix");
+    expect(report.markdown).not.toContain("operator can run vasudev triage locally");
     if (source === "options") {
       expect(report.markdown).not.toContain(originAction);
     }
@@ -210,8 +210,8 @@ describe("update run report", () => {
         durationMs: 1,
         steps: [
           {
-            name: "openclaw doctor",
-            command: "openclaw doctor",
+            name: "vasudev doctor",
+            command: "vasudev doctor",
             cwd: "/tmp",
             durationMs: 1,
             exitCode: 1,
@@ -244,7 +244,7 @@ describe("update run report", () => {
         status: "running",
         phase: "verifying",
         after: {},
-        origin: { doctorHint: "Run openclaw doctor", nextAction: "Run the update manually" },
+        origin: { doctorHint: "Run vasudev doctor", nextAction: "Run the update manually" },
         verification: {
           booted: true,
           versionMatch: false,
@@ -256,8 +256,8 @@ describe("update run report", () => {
         ],
       }),
     );
-    expect(report.headline).toBe("⬆️ OpenClaw update in progress: verifying.");
-    expect(report.markdown).not.toContain("openclaw doctor");
+    expect(report.headline).toBe("⬆️ Vasudev update in progress: verifying.");
+    expect(report.markdown).not.toContain("vasudev doctor");
     expect(report.markdown).not.toContain("Run the update manually");
     expect(report.markdown).toContain(
       "version mismatch; channels not ready; 1 plugin activation error(s)",

@@ -24,7 +24,7 @@ export function formatElevatedUnavailableMessage(params: {
   lines.push("- agents.entries.*.tools.elevated.allowFrom.<provider>");
   if (params.sessionKey) {
     lines.push(
-      `See: ${formatCliCommand(`openclaw sandbox explain --session ${params.sessionKey}`)}`,
+      `See: ${formatCliCommand(`vasudev sandbox explain --session ${params.sessionKey}`)}`,
     );
   }
   return lines.join("\n");

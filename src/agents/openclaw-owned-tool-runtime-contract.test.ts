@@ -1,4 +1,4 @@
-// Verifies OpenClaw-owned tool hooks preserve adjusted params and telemetry.
+// Verifies Vasudev-owned tool hooks preserve adjusted params and telemetry.
 import type { AgentTool } from "openclaw/plugin-sdk/agent-core";
 import {
   installOpenClawOwnedToolHooks,
@@ -104,7 +104,7 @@ async function waitForAfterToolCall(hooks: {
   return call as [Record<string, unknown>, Record<string, unknown>];
 }
 
-describe("OpenClaw-owned tool runtime contract - embedded agent adapter", () => {
+describe("Vasudev-owned tool runtime contract - embedded agent adapter", () => {
   afterEach(() => {
     resetOpenClawOwnedToolHooks();
   });

@@ -54,7 +54,7 @@ describe("managed Tailscale upgrade", () => {
       });
       expect(JSON.parse(await readFile(marker, "utf8"))).toEqual({});
       expect(info).toHaveBeenCalledWith(
-        expect.stringContaining("adopted from a previous OpenClaw release"),
+        expect.stringContaining("adopted from a previous Vasudev release"),
       );
     } finally {
       await cleanup?.();

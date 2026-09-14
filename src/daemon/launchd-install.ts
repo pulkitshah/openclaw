@@ -257,7 +257,7 @@ async function restoreLaunchAgentInstall(params: {
       domain: params.domain,
       serviceTarget,
       plistPath: params.plistPath,
-      actionHint: "openclaw gateway start",
+      actionHint: "vasudev gateway start",
       retryPendingTeardown: true,
     });
   }
@@ -298,7 +298,7 @@ async function activateLaunchAgent(params: {
       domain,
       serviceTarget: `${domain}/${label}`,
       plistPath: params.plistPath,
-      actionHint: "openclaw gateway install --force",
+      actionHint: "vasudev gateway install --force",
       retryPendingTeardown: true,
     });
   } catch (error) {

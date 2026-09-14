@@ -8,7 +8,7 @@ title: "Pull request review flow"
 sidebarTitle: "PR review flow"
 ---
 
-This page explains the review flow after you open or update an Vasudev pull
+This page explains the review flow after you open or update a Vasudev pull
 request: what Barnacle and ClawSweeper do, how to improve the PR from their
 feedback, and what to check when automation stays quiet.
 

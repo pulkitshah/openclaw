@@ -1,4 +1,4 @@
-/** Tests bundle manifest parsing for Agent, Codex, Claude, Cursor, and OpenClaw formats. */
+/** Tests bundle manifest parsing for Agent, Codex, Claude, Cursor, and Vasudev formats. */
 import fs from "node:fs";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";

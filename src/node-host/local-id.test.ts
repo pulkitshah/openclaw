@@ -82,7 +82,7 @@ describe("resolveLocalNodeId", () => {
   it("retries after a failed canonical identity read", async () => {
     const state = await createState("local-node-id-retry");
     const legacyPath = await state.writeText("identity/device.json", "{}\n");
-    await expect(resolveLocalNodeId(state.env)).rejects.toThrow("openclaw doctor --fix");
+    await expect(resolveLocalNodeId(state.env)).rejects.toThrow("vasudev doctor --fix");
 
     await fs.rm(legacyPath);
     const identity = loadOrCreateDeviceIdentity({ env: state.env });

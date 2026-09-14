@@ -83,7 +83,7 @@ export async function sandboxRecreateCommand(
 
   if (filtered.containers.length + filtered.browsers.length === 0) {
     runtime.log(
-      `No sandbox runtimes found matching the criteria. Run ${formatCliCommand("openclaw sandbox list")} to inspect active runtimes.`,
+      `No sandbox runtimes found matching the criteria. Run ${formatCliCommand("vasudev sandbox list")} to inspect active runtimes.`,
     );
     return;
   }
@@ -106,7 +106,7 @@ export async function sandboxRecreateCommand(
 function validateRecreateOptions(opts: SandboxRecreateOptions, runtime: RuntimeEnv): boolean {
   if (!opts.all && !opts.session && !opts.agent) {
     runtime.error(
-      `Choose the sandbox scope: --all, --session <key>, or --agent <id>. Run ${formatCliCommand("openclaw sandbox list")} to inspect active runtimes first.`,
+      `Choose the sandbox scope: --all, --session <key>, or --agent <id>. Run ${formatCliCommand("vasudev sandbox list")} to inspect active runtimes first.`,
     );
     runtime.exit(1);
     return false;
@@ -205,7 +205,7 @@ async function removeContainer(
     return { success: true };
   } catch (err) {
     runtime.error(
-      `Failed to remove ${containerName}: ${formatErrorMessage(err)}. Run ${formatCliCommand("openclaw sandbox list")} to inspect what remains.`,
+      `Failed to remove ${containerName}: ${formatErrorMessage(err)}. Run ${formatCliCommand("vasudev sandbox list")} to inspect what remains.`,
     );
     return { success: false };
   }

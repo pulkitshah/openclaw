@@ -102,7 +102,7 @@ one opaque, versioned handoff argument. The argument encodes only the exact
 agent-qualified session key and selected Gateway WebSocket URL. The key is
 bounded to 512 user-perceived characters. Its URL-safe alphabet needs no shell
 quoting, so the command is safe to paste in common POSIX shells, PowerShell, and
-`cmd.exe`. Run it in an Vasudev CLI profile that is already configured for that
+`cmd.exe`. Run it in a Vasudev CLI profile that is already configured for that
 Gateway; the terminal authenticates independently. The Gateway canonicalizes
 the key before the TUI attaches, and a missing session produces recovery
 guidance instead of creating another session. The session ACL still applies.

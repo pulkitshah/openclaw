@@ -13,7 +13,7 @@ export function resolveSkillWorkshopToolConstructionBlock(
     return {
       detail:
         '"skill_workshop" is unavailable in a sandboxed run without library-authoring authority.',
-      fix: "Use a non-sandboxed session for this agent, or a human turn with host-granted library-authoring authority. The openclaw skills workshop CLI is also available.",
+      fix: "Use a non-sandboxed session for this agent, or a human turn with host-granted library-authoring authority. The vasudev skills workshop CLI is also available.",
     };
   }
   return undefined;

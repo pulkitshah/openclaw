@@ -189,13 +189,13 @@ async function recoverPluginInstallConfig(
 ): Promise<OpenClawConfig> {
   if (resolvePluginInstallInvalidConfigPolicy(request) !== "allow-plugin-recovery") {
     throw new PluginInstallConfigError(
-      "Config invalid; run `openclaw doctor --fix` before installing plugins.",
+      "Config invalid; run `vasudev doctor --fix` before installing plugins.",
     );
   }
   const parsed = snapshot.parsed ?? {};
   if (!snapshot.exists || Object.keys(parsed).length === 0) {
     throw new PluginInstallConfigError(
-      "Config file could not be parsed; run `openclaw doctor` to repair it.",
+      "Config file could not be parsed; run `vasudev doctor` to repair it.",
     );
   }
   const ownedLoadPaths = await resolveRequestedPluginInstallPaths(
@@ -211,7 +211,7 @@ async function recoverPluginInstallConfig(
   ) {
     const pluginLabel = request.bundledPluginId ?? "the requested plugin";
     throw new PluginInstallConfigError(
-      `Config invalid outside the plugin recovery path for ${pluginLabel}; run \`openclaw doctor --fix\` before reinstalling it.`,
+      `Config invalid outside the plugin recovery path for ${pluginLabel}; run \`vasudev doctor --fix\` before reinstalling it.`,
     );
   }
   if (
@@ -219,7 +219,7 @@ async function recoverPluginInstallConfig(
     !supportsInstallConfigSingleTopLevelIncludeShape(isRecord(parsed) ? parsed.plugins : undefined)
   ) {
     throw new PluginInstallConfigError(
-      "Config plugin recovery uses an unsupported $include shape; use a single-file top-level plugins include or run `openclaw doctor --fix` before reinstalling it.",
+      "Config plugin recovery uses an unsupported $include shape; use a single-file top-level plugins include or run `vasudev doctor --fix` before reinstalling it.",
     );
   }
   return removeOwnedMissingPluginLoadPaths(

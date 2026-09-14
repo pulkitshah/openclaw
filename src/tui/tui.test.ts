@@ -379,7 +379,7 @@ describe("resolveInitialTuiAgentId", () => {
 
   it("keeps an ownerless explicit fleet selection-required", () => {
     expect(() => resolveInitialTuiAgentId({ cfg, cwd: "/var/tmp/unrelated" })).toThrow(
-      "Multiple agents are configured, but TUI startup has no explicit owner. Pass an agent-scoped --session key (e.g., 'openclaw tui --session agent:agentname:main').",
+      "Multiple agents are configured, but TUI startup has no explicit owner. Pass an agent-scoped --session key (e.g., 'vasudev tui --session agent:agentname:main').",
     );
   });
 
@@ -475,12 +475,12 @@ describe("resolveGatewayDisconnectState", () => {
     });
     expect(state.connectionStatus).toContain("pairing required");
     expect(state.activityStatus).toBe("device approval needed: preview latest request");
-    expect(state.remediation).toContain("openclaw devices approve --latest");
-    expect(state.remediation).toContain("openclaw devices approve <requestId>");
+    expect(state.remediation).toContain("vasudev devices approve --latest");
+    expect(state.remediation).toContain("vasudev devices approve <requestId>");
     expect(state.remediation).toContain("--url");
     expect(state.remediation).toContain("--token/--password");
     // Must steer users to `devices`, not the unrelated chat-DM `pairing` command.
-    expect(state.remediation).not.toContain("openclaw pairing");
+    expect(state.remediation).not.toContain("vasudev pairing");
   });
 
   it("uses structured pairing details before the generic close reason", () => {
@@ -490,7 +490,7 @@ describe("resolveGatewayDisconnectState", () => {
     });
     expect(state.activityStatus).toBe("device approval needed: preview latest request");
     expect(state.connectionStatus).toContain("scope upgrade pending approval");
-    expect(state.remediation).toContain("openclaw devices approve --latest");
+    expect(state.remediation).toContain("vasudev devices approve --latest");
   });
 
   it("shows the device-token rotation command for structured token mismatch", () => {
@@ -500,7 +500,7 @@ describe("resolveGatewayDisconnectState", () => {
     });
     expect(state.activityStatus).toBe("gateway authentication needs attention");
     expect(state.remediation).toContain(
-      "openclaw devices rotate --device <deviceId> --role operator",
+      "vasudev devices rotate --device <deviceId> --role operator",
     );
   });
 
@@ -1114,7 +1114,7 @@ describe("TUI shutdown safety", () => {
     vi.advanceTimersByTime(1999);
     expect(exit).not.toHaveBeenCalled();
     expect(() => vi.advanceTimersByTime(1)).toThrow(exited);
-    expect(writeStderr).toHaveBeenCalledWith("openclaw tui forcing process exit after return\n");
+    expect(writeStderr).toHaveBeenCalledWith("vasudev tui forcing process exit after return\n");
     expect(exit).toHaveBeenCalledWith(0);
     clearInterval(lingeringHandle);
   });

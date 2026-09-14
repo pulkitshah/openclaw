@@ -80,7 +80,7 @@ function redirectWithoutLocationResponse(status = 302): Response {
 
 function latestStreamableTransportOptions(): StreamableTransportOptions {
   // The SDK transport is constructor-injected; tests inspect the most recent
-  // options to exercise OpenClaw's wrapped fetch implementation directly.
+  // options to exercise Vasudev's wrapped fetch implementation directly.
   const latestCall = streamableTransportConstructorMock.mock.calls[
     streamableTransportConstructorMock.mock.calls.length - 1
   ] as unknown[] | undefined;

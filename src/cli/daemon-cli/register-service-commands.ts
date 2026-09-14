@@ -177,7 +177,7 @@ export function addGatewayServiceCommands(parent: Command, opts?: { statusDescri
     .option("--force", "Restart immediately without waiting for active gateway work", false)
     .option(
       "--safe",
-      "Request an Vasudev-aware restart after active work drains " +
+      "Request a Vasudev-aware restart after active work drains " +
         "(bounded wait; may force after the timeout expires)",
       false,
     )

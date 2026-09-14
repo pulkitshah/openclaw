@@ -317,7 +317,7 @@ export async function compactEmbeddedAgentSessionDirect(
   });
   // Native control operations reuse the backend's existing authenticated session.
   // Run them before generic model preparation so subscription-only CLI sessions do
-  // not incorrectly require an OpenClaw model API credential.
+  // not incorrectly require a Vasudev model API credential.
   const nativeCliResult = await compactNativeCliSession({
     runtime: runtimeSelection.selectedHarnessRuntime,
     compactParams: {

@@ -1,6 +1,6 @@
 /** Server identity advertised by the local MCP loopback initialize response. */
 export const MCP_LOOPBACK_SERVER_NAME = "openclaw";
-/** Protocol-facing loopback server version, independent from the OpenClaw app version. */
+/** Protocol-facing loopback server version, independent from the Vasudev app version. */
 export const MCP_LOOPBACK_SERVER_VERSION = "0.1.0";
 /** MCP protocol versions accepted by the loopback HTTP bridge, newest first for negotiation. */
 export const MCP_LOOPBACK_SUPPORTED_PROTOCOL_VERSIONS = ["2025-03-26", "2024-11-05"] as const;

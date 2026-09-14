@@ -48,7 +48,7 @@ More control over the server. Hostinger deploys Vasudev via Docker on your VPS. 
 
 <Steps>
   <Step title="Purchase a VPS">
-    1. From the [Hostinger Vasudev page](https://www.hostinger.com/openclaw), choose an Vasudev on VPS plan and complete checkout.
+    1. From the [Hostinger Vasudev page](https://www.hostinger.com/openclaw), choose a Vasudev on VPS plan and complete checkout.
 
     <Note>
     You can select **Ready-to-Use AI** credits during checkout. These credits are pre-purchased and integrated instantly inside Vasudev. You can start chatting without any external accounts or API keys from other providers.

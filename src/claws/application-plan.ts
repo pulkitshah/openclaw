@@ -162,8 +162,8 @@ function extensionCapabilityChange(params: {
     action: params.preflight.action === "reuse" ? ("reuse" as const) : ("install" as const),
     reason:
       params.preflight.action === "reuse"
-        ? "The OpenClaw profile requires access to an existing native extension."
-        : "The OpenClaw profile requires installation of native extension content or executable code.",
+        ? "The Vasudev profile requires access to an existing native extension."
+        : "The Vasudev profile requires installation of native extension content or executable code.",
     effect,
   };
   return clawAddCapabilityChange(change);

@@ -307,13 +307,13 @@ describe("memory.search gateway method", () => {
         warning:
           "Memory index is stale: embedding request timed out. Search results may be incomplete.",
         action:
-          "Run: openclaw memory status --index --agent main. Rebuilding uses keyword indexing only and does not call an embedding provider.",
+          "Run: vasudev memory status --index --agent main. Rebuilding uses keyword indexing only and does not call an embedding provider.",
       },
       undefined,
     );
   });
 
-  it("preserves OpenClaw index ownership and configured provider intent", async () => {
+  it("preserves Vasudev index ownership and configured provider intent", async () => {
     const cfg = createConfig(testState.workspaceDir);
     const manager = createStubManager();
     manager.status.mockReturnValue({
@@ -346,7 +346,7 @@ describe("memory.search gateway method", () => {
         warning:
           "Memory index is stale: index provenance classifier changed (owner: openclaw, code: provenance_version). Search results may be incomplete.",
         action:
-          "Run: openclaw memory status --index --agent main. Rebuilding may call the configured embedding provider and can incur provider cost.",
+          "Run: vasudev memory status --index --agent main. Rebuilding may call the configured embedding provider and can incur provider cost.",
       },
       undefined,
     );

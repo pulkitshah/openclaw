@@ -9,7 +9,7 @@ function splitSessionSharingSchema(sql: string): { sharing: string; withoutShari
   const start = sql.indexOf(SHARING_SCHEMA_START);
   const end = sql.indexOf(SHARING_SCHEMA_END, start);
   if (start === -1 || end === -1) {
-    throw new Error("OpenClaw agent session-sharing schema markers are missing.");
+    throw new Error("Vasudev agent session-sharing schema markers are missing.");
   }
   return {
     sharing: sql.slice(start, end),
@@ -20,7 +20,7 @@ function splitSessionSharingSchema(sql: string): { sharing: string; withoutShari
 const sessionSharingSchema = splitSessionSharingSchema(AGENT_SCHEMA_WITHOUT_PROGRESS_CARD_SQL);
 const sessionSuggestionsStart = sessionSharingSchema.sharing.indexOf(SUGGESTIONS_SCHEMA_START);
 if (sessionSuggestionsStart === -1) {
-  throw new Error("OpenClaw agent session-suggestions schema marker is missing.");
+  throw new Error("Vasudev agent session-suggestions schema marker is missing.");
 }
 export const AGENT_V14_SESSION_SHARING_SCHEMA_SQL = sessionSharingSchema.sharing.slice(
   0,

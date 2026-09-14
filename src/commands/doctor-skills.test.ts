@@ -138,7 +138,7 @@ describe("doctor skills", () => {
     });
     expect(cfg.skills?.entries?.["optional-tool"]?.enabled).toBe(true);
     const output = mocks.note.mock.calls.map(([message]) => String(message)).join("\n");
-    expect(output.includes("Disable unused skills: openclaw doctor --fix")).toBe(
+    expect(output.includes("Disable unused skills: vasudev doctor --fix")).toBe(
       update && !available,
     );
   });
@@ -196,8 +196,8 @@ describe("doctor skills", () => {
     expect(typeof body === "string" ? body.split("\n") : []).toEqual([
       "2 allowed skills are not usable in this environment (missing binaries, env vars, or config).",
       "- calendar, places",
-      "Disable unused skills: openclaw doctor --fix",
-      "Inspect details: openclaw skills check --agent <id> or openclaw skills info <name> --agent <id>",
+      "Disable unused skills: vasudev doctor --fix",
+      "Inspect details: vasudev skills check --agent <id> or vasudev skills info <name> --agent <id>",
     ]);
   });
 

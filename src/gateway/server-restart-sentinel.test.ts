@@ -953,7 +953,7 @@ describe("scheduleRestartSentinelWake", () => {
           ts: 123,
           sessionKey: "agent:main:main",
           stats: { runId: record.runId },
-          doctorHint: "Run openclaw --profile work doctor --non-interactive.",
+          doctorHint: "Run vasudev --profile work doctor --non-interactive.",
         },
       });
 
@@ -969,7 +969,7 @@ describe("scheduleRestartSentinelWake", () => {
               serviceRunning: true,
               runningVersion: resolveRuntimeServiceVersion(),
               noticeDelivered: true,
-              doctorHint: "Run openclaw --profile work doctor --non-interactive.",
+              doctorHint: "Run vasudev --profile work doctor --non-interactive.",
             },
       );
       if (terminal) {
@@ -1206,7 +1206,7 @@ describe("scheduleRestartSentinelWake", () => {
         const finishedRun = updateRun ? getUpdateRun(updateRun.runId) : undefined;
         const report = finishedRun
           ? renderUpdateRunReport(finishedRun).markdown
-          : "✅ OpenClaw updated.";
+          : "✅ Vasudev updated.";
         if (updateRun) {
           expect.soft(finishedRun?.verification.noticeDelivered).toBe(true);
           expect.soft(mocks.enqueueSessionDelivery).not.toHaveBeenCalled();
@@ -1303,17 +1303,17 @@ describe("scheduleRestartSentinelWake", () => {
   );
 
   it.each([
-    { kind: "update", status: "ok", notice: "✅ OpenClaw updated." },
+    { kind: "update", status: "ok", notice: "✅ Vasudev updated." },
     {
       kind: "update",
       status: "skipped",
-      notice: "ℹ️ OpenClaw update skipped: already-current.",
+      notice: "ℹ️ Vasudev update skipped: already-current.",
     },
     {
       kind: "update",
       status: "error",
       notice:
-        "⚠️ OpenClaw update failed: verification failed.\nRun openclaw triage to diagnose and repair the failed update.",
+        "⚠️ Vasudev update failed: verification failed.\nRun vasudev triage to diagnose and repair the failed update.",
     },
     {
       kind: "restart",
@@ -3568,7 +3568,7 @@ describe("scheduleRestartSentinelWake", () => {
           status: "error",
           ts: 123,
           message: null,
-          doctorHint: "Run openclaw doctor --non-interactive",
+          doctorHint: "Run vasudev doctor --non-interactive",
           stats: { runId: run.runId },
         },
       });
@@ -3639,7 +3639,7 @@ describe("scheduleRestartSentinelWake", () => {
           deliveryContext: undefined,
           threadId: undefined,
           message: null,
-          doctorHint: "Run openclaw doctor --non-interactive",
+          doctorHint: "Run vasudev doctor --non-interactive",
           stats: {
             mode: kind === "config-patch" ? "config.patch" : "config.apply",
             root: "/tmp/openclaw.json",
@@ -3739,7 +3739,7 @@ describe("scheduleRestartSentinelWake", () => {
           to: "123",
           accountId: "bot",
           threadId: "7",
-          payloads: [{ text: "✅ OpenClaw updated." }],
+          payloads: [{ text: "✅ Vasudev updated." }],
         }),
       );
       const eventOptions = mocks.enqueueSystemEvent.mock.calls[0]?.[1];

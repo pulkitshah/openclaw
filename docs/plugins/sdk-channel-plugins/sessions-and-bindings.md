@@ -129,7 +129,7 @@ deadline and its reason, preferring idle expiration on ties; omitted deadlines
 are disabled. The plugin still owns timestamp validation and duration defaults.
 
 Preserve opaque plugin ownership metadata when projecting binding records.
-Plugin-owned targets do not require an Vasudev agent id; use
+Plugin-owned targets do not require a Vasudev agent id; use
 `isPluginOwnedSessionBindingRecord(...)` from
 `openclaw/plugin-sdk/conversation-binding-runtime` to distinguish them from
 agent-owned targets before resolving an agent.

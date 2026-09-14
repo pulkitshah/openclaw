@@ -4,7 +4,7 @@ read_when:
   - You want an isolated branch and checkout for an agent task
   - You are configuring Workboard cards with worktree workspaces
   - You want to store managed worktrees on another disk or in a custom folder
-  - You need to restore or clean up an Vasudev-managed worktree
+  - You need to restore or clean up a Vasudev-managed worktree
 title: "Managed worktrees"
 ---
 

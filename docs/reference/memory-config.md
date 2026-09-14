@@ -276,7 +276,7 @@ Use `provider: "openai-compatible"` for a generic OpenAI-compatible
   <Accordion title="Bedrock">
     ### Bedrock embedding config
 
-    Bedrock uses the AWS SDK default credential chain plus an Vasudev-checked bearer token, so no API keys are stored in config. If Vasudev runs on EC2 with a Bedrock-enabled instance role, just set the provider and model:
+    Bedrock uses the AWS SDK default credential chain plus a Vasudev-checked bearer token, so no API keys are stored in config. If Vasudev runs on EC2 with a Bedrock-enabled instance role, just set the provider and model:
 
     ```json5
     {

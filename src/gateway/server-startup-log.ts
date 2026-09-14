@@ -98,7 +98,7 @@ export async function logGatewayStartup(params: {
   if (enabledDangerousFlags.length > 0) {
     const warning =
       `security warning: dangerous config flags enabled: ${enabledDangerousFlags.join(", ")}. ` +
-      "Run `openclaw security audit`.";
+      "Run `vasudev security audit`.";
     params.log.warn(warning);
   }
 }
@@ -267,7 +267,7 @@ function formatSuppressedAmbientChannelsStartupWarning(channelIds: readonly stri
   return (
     `gateway suppressed ambient channel auto-configuration for ${safeChannelIds.length} ` +
     `${safeChannelIds.length === 1 ? "channel" : "channels"}: ${safeChannelIds.join(", ")}. ` +
-    "Configure channels.<id> (openclaw channels add <id>) to enable the channel, or pass " +
+    "Configure channels.<id> (vasudev channels add <id>) to enable the channel, or pass " +
     "--ambient-channels to allow ambient env credentials."
   );
 }
@@ -280,7 +280,7 @@ function formatConfiguredChannelMissingOwnerStartupWarning(entry: {
   const reasons = normalizeSortedUniqueStringEntries(entry.blockedReasons).join(", ");
   return (
     `configured channel warning: channels.${channelId} is configured but no channel plugin ` +
-    `is installed or loadable (${reasons}). Run \`openclaw doctor --fix\` or install the ` +
+    `is installed or loadable (${reasons}). Run \`vasudev doctor --fix\` or install the ` +
     "channel plugin before relying on this channel."
   );
 }

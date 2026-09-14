@@ -1,5 +1,5 @@
 /**
- * Debounced realtime voice talkback queue for delegated OpenClaw consults.
+ * Debounced realtime voice talkback queue for delegated Vasudev consults.
  *
  * Transcript fragments can arrive quickly while one consult is already running;
  * this queue batches compatible fragments, runs consults serially, and aborts
@@ -31,7 +31,7 @@ export type RealtimeVoiceAgentTalkbackQueueParams = {
   logPrefix: string;
   responseStyle: string;
   fallbackText: string;
-  /** Delegates a batched question to OpenClaw and respects the abort signal. */
+  /** Delegates a batched question to Vasudev and respects the abort signal. */
   consult: (args: {
     question: string;
     metadata?: unknown;

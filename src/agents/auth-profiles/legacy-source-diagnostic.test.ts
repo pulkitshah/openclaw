@@ -110,7 +110,7 @@ describe("assertAuthProfileMigrationReady", () => {
           );
         }
         expect(() => assertAuthProfileMigrationReady(agentDir, undefined, blockedProvider)).toThrow(
-          "run openclaw doctor --fix",
+          "run vasudev doctor --fix",
         );
         // An unscoped operation still cannot publish or mutate this owner.
         expect(() => assertAuthProfileMigrationReady(agentDir)).toThrow(

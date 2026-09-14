@@ -7,7 +7,7 @@ import type { OpenClawConfig } from "../config/types.openclaw.js";
 import { withTempHome as withTempHomeBase } from "../plugin-sdk/test-env.js";
 import type { CronJob } from "./types.js";
 
-/** Runs a test callback with an isolated OpenClaw home for cron tests. */
+/** Runs a test callback with an isolated Vasudev home for cron tests. */
 export async function withTempCronHome<T>(fn: (home: string) => Promise<T>): Promise<T> {
   return withTempHomeBase(fn, { prefix: "openclaw-cron-" });
 }

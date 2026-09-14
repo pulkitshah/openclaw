@@ -125,7 +125,7 @@ describe("handleUpdateCommand", () => {
       expect(await handleUpdateCommand(params, true)).toEqual({
         shouldContinue: false,
         reply: {
-          text: "You are not authorized to use this owner-only command. Ask the operator to run `openclaw config set commands.ownerAllowFrom '[\"telegram:123456789\"]'` in a terminal to make this sender a command owner.",
+          text: "You are not authorized to use this owner-only command. Ask the operator to run `vasudev config set commands.ownerAllowFrom '[\"telegram:123456789\"]'` in a terminal to make this sender a command owner.",
         },
       });
       expect(dispatch).not.toHaveBeenCalled();
@@ -134,7 +134,7 @@ describe("handleUpdateCommand", () => {
 
   it("relays owner recovery instructions when the gateway revokes an admitted owner", async () => {
     const message =
-      "Ask the operator to run `openclaw config set commands.ownerAllowFrom '[\"telegram:owner\"]'` in a terminal.";
+      "Ask the operator to run `vasudev config set commands.ownerAllowFrom '[\"telegram:owner\"]'` in a terminal.";
     getRun.mockReturnValue(
       updateRun({
         phase: "finished",
@@ -256,7 +256,7 @@ describe("handleUpdateCommand", () => {
   it.each([true, false])(
     "preserves queued ack custody without a duplicate reply (%s)",
     async (ackQueued) => {
-      const acknowledgement = "⬆️ Updating OpenClaw 2026.9.1 → 2026.9.2.";
+      const acknowledgement = "⬆️ Updating Vasudev 2026.9.1 → 2026.9.2.";
       dispatch.mockResolvedValueOnce({
         ok: true,
         runId,

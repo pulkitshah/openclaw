@@ -86,7 +86,7 @@ describe("logNonInteractiveOnboardingFailure", () => {
 
     const parsed = JSON.parse(readCapturedJson()) as { hints: string[] };
     expect(parsed.hints).toEqual([
-      "Fix: start `openclaw gateway run`, or run `openclaw gateway restart` for a managed gateway.",
+      "Fix: start `vasudev gateway run`, or run `vasudev gateway restart` for a managed gateway.",
     ]);
   });
 
@@ -256,7 +256,7 @@ describe("onboard (non-interactive): gateway and remote auth", () => {
             throw new Error(`exit:${code}`);
           },
         };
-        const message = "Config invalid. Run `openclaw doctor` to repair it, then re-run setup.";
+        const message = "Config invalid. Run `vasudev doctor` to repair it, then re-run setup.";
 
         await expect(
           runNonInteractiveSetup(
@@ -698,7 +698,7 @@ describe("onboard (non-interactive): gateway and remote auth", () => {
       );
 
       expect(log.mock.calls.flat().join("\n")).toMatch(
-        /Setup complete; gateway was not installed or started because daemon installation was explicitly skipped\.[\s\S]*Gateway did not become reachable[\s\S]*Classification: not-listening[\s\S]*only waits for an already-running gateway unless you pass `--install-daemon` to `openclaw onboard`[\s\S]*openclaw onboard --install-daemon[\s\S]*openclaw onboard --skip-health/,
+        /Setup complete; gateway was not installed or started because daemon installation was explicitly skipped\.[\s\S]*Gateway did not become reachable[\s\S]*Classification: not-listening[\s\S]*only waits for an already-running gateway unless you pass `--install-daemon` to `vasudev onboard`[\s\S]*vasudev onboard --install-daemon[\s\S]*vasudev onboard --skip-health/,
       );
     });
   }, 60_000);
@@ -716,7 +716,7 @@ describe("onboard (non-interactive): gateway and remote auth", () => {
           runtime,
         ),
       ).rejects.toThrow(
-        /Gateway did not become reachable[\s\S]*Classification: not-listening[\s\S]*openclaw onboard --install-daemon[\s\S]*openclaw onboard --skip-health/,
+        /Gateway did not become reachable[\s\S]*Classification: not-listening[\s\S]*vasudev onboard --install-daemon[\s\S]*vasudev onboard --skip-health/,
       );
     });
   }, 60_000);
@@ -885,7 +885,7 @@ describe("onboard (non-interactive): gateway and remote auth", () => {
       expect(parsed.installDaemon).toBe(true);
       expect(parsed.detail).toContain("1006 abnormal closure");
       expect(parsed.gateway?.wsUrl).toContain("ws://127.0.0.1:");
-      expect(parsed.hints).toContain("Run `openclaw gateway status --deep` for more detail.");
+      expect(parsed.hints).toContain("Run `vasudev gateway status --deep` for more detail.");
       expect(parsed.diagnostics?.service?.label).toBe("LaunchAgent");
       expect(parsed.diagnostics?.service?.loaded).toBe(true);
       expect(parsed.diagnostics?.service?.loadState).toEqual({ status: "loaded" });
@@ -930,7 +930,7 @@ describe("onboard (non-interactive): gateway and remote auth", () => {
       expect(parsed.phase).toBe("gateway-health");
       expect(parsed.message).toContain("health check failed");
       expect(parsed.detail).toContain("Gateway credentials rejected.");
-      expect(parsed.hints).toContain("Run `openclaw health` for full diagnostics.");
+      expect(parsed.hints).toContain("Run `vasudev health` for full diagnostics.");
     });
   }, 60_000);
 
@@ -1017,7 +1017,7 @@ describe("onboard (non-interactive): gateway and remote auth", () => {
       expect(parsed.ok).toBe(false);
       expect(parsed.phase).toBe("gateway-health");
       expect(parsed.classification).toBe("service-stopped");
-      expect(parsed.hints).toContain("Fix: run `openclaw --profile work gateway restart`.");
+      expect(parsed.hints).toContain("Fix: run `vasudev --profile work gateway restart`.");
     });
   }, 60_000);
 });

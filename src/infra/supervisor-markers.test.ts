@@ -1,4 +1,4 @@
-// Covers supervisor marker files used to identify managed OpenClaw processes.
+// Covers supervisor marker files used to identify managed Vasudev processes.
 import { describe, expect, it } from "vitest";
 import {
   detectGatewayRespawnSupervisor,
@@ -19,7 +19,7 @@ describe("SUPERVISOR_HINT_ENV_VARS", () => {
 });
 
 describe("detectRespawnSupervisor", () => {
-  it("detects launchd from OpenClaw's explicit marker or current gateway launchd job", () => {
+  it("detects launchd from Vasudev's explicit marker or current gateway launchd job", () => {
     expect(
       detectRespawnSupervisor({ OPENCLAW_LAUNCHD_LABEL: " ai.openclaw.gateway " }, "darwin"),
     ).toBe("launchd");
@@ -51,7 +51,7 @@ describe("detectRespawnSupervisor", () => {
     expect(detectRespawnSupervisor({ JOURNAL_STREAM: "" }, "linux")).toBeNull();
   });
 
-  it("detects Linux OpenClaw gateway service markers only for opt-in callers", () => {
+  it("detects Linux Vasudev gateway service markers only for opt-in callers", () => {
     const gatewayServiceEnv = {
       OPENCLAW_SERVICE_MARKER: " openclaw ",
       OPENCLAW_SERVICE_KIND: " gateway ",
@@ -86,7 +86,7 @@ describe("detectRespawnSupervisor", () => {
 
   it("detects scheduled-task supervision on Windows from either hint family", () => {
     expect(
-      detectRespawnSupervisor({ OPENCLAW_WINDOWS_TASK_NAME: "OpenClaw Gateway" }, "win32"),
+      detectRespawnSupervisor({ OPENCLAW_WINDOWS_TASK_NAME: "Vasudev Gateway" }, "win32"),
     ).toBe("schtasks");
     expect(
       detectRespawnSupervisor(

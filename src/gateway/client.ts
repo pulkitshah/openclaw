@@ -1,5 +1,5 @@
-// OpenClaw Gateway client facade.
-// Injects OpenClaw host dependencies into the shared gateway-client package.
+// Vasudev Gateway client facade.
+// Injects Vasudev host dependencies into the shared gateway-client package.
 import { GatewayClient as BaseGatewayClient } from "../../packages/gateway-client/src/index.js";
 import type {
   GatewayClientConnectionMetadata,
@@ -110,7 +110,7 @@ function createOpenClawGatewayClientHostDeps(
     ? { ...deviceAuthDeps, loadDeviceAuthToken: () => preparedDeviceAuth }
     : deviceAuthDeps;
   return {
-    // This wrapper is the only place the package reaches into OpenClaw runtime
+    // This wrapper is the only place the package reaches into Vasudev runtime
     // state. Keep device identity, token storage, proxy, and redaction here.
     loadOrCreateDeviceIdentity,
     signDevicePayload,

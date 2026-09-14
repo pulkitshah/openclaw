@@ -48,7 +48,7 @@ describe("plugin update finalization", () => {
   it.each([false, true])(
     "preserves the peer-link failure when rollback fails: %s",
     async (rollbackFails) => {
-      const root = new Error("Cannot repair OpenClaw peer link: target is not a directory");
+      const root = new Error("Cannot repair Vasudev peer link: target is not a directory");
       const cleanup = new Error("Cannot restore plugin backup");
       repairPeerLinks.mockRejectedValueOnce(root);
       const rollback = vi.fn(async () => {

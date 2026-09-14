@@ -77,7 +77,7 @@ Crabline local provider servers. Use `release` for Stable/LTS proof against
 live channels. Use `all` only for explicit full-taxonomy evidence runs; it
 selects every active maturity category and can be dispatched through the `QA
 Profile Evidence` GitHub Actions workflow with `qa_profile=all`. When a
-command also needs an Vasudev root profile, put the root profile before the
+command also needs a Vasudev root profile, put the root profile before the
 QA command:
 
 ```bash

@@ -960,7 +960,7 @@ describe("agentCommand", () => {
       const canonicalWorkspace = path.join(home, "project");
       fs.mkdirSync(canonicalWorkspace, { recursive: true });
       execFileSync("git", ["-C", canonicalWorkspace, "init", "-b", "main"]);
-      execFileSync("git", ["-C", canonicalWorkspace, "config", "user.name", "OpenClaw Test"]);
+      execFileSync("git", ["-C", canonicalWorkspace, "config", "user.name", "Vasudev Test"]);
       execFileSync("git", [
         "-C",
         canonicalWorkspace,

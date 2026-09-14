@@ -18,7 +18,7 @@ export async function resolveGatewayLifecycleContext(
     : await service.readCommand(process.env).catch(() => null);
   if (requireEffective && !command) {
     throw new Error(
-      "Updated gateway service could not be inspected; run `openclaw gateway status --deep`.",
+      "Updated gateway service could not be inspected; run `vasudev gateway status --deep`.",
     );
   }
   const env = mergeGatewayServiceEnv(process.env, command);

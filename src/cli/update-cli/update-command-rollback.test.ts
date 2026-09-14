@@ -516,7 +516,7 @@ describe("verified package rollback", () => {
             });
           });
           return {
-            name: "openclaw doctor",
+            name: "vasudev doctor",
             command: "doctor",
             cwd: candidateRoot,
             durationMs: 1,

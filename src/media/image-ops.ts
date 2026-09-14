@@ -14,7 +14,7 @@ export { createImageProcessor } from "./image-processor.js";
 
 export type { ImageMetadata, ImageProbe };
 
-/** OpenClaw-facing image backend availability error, preserving the failed operation and causes. */
+/** Vasudev-facing image backend availability error, preserving the failed operation and causes. */
 class ImageProcessorUnavailableError extends Error {
   readonly code = "IMAGE_PROCESSOR_UNAVAILABLE";
   readonly operation: string;
@@ -41,7 +41,7 @@ type ResizeToJpegParams = {
 /** Ordered JPEG quality ladder used when shrinking generated or attached images. */
 export const IMAGE_REDUCE_QUALITY_STEPS = [85, 75, 65, 55, 45, 35] as const;
 
-/** Detects either OpenClaw's wrapper error or Rastermill's native unavailable error. */
+/** Detects either Vasudev's wrapper error or Rastermill's native unavailable error. */
 export function isImageProcessorUnavailableError(err: unknown): boolean {
   return err instanceof ImageProcessorUnavailableError || isRastermillUnavailableError(err);
 }

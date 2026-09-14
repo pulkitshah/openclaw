@@ -316,7 +316,7 @@ async function expectNoAdditionalLifecycleChanges(
 
 async function initializeGitWorkspace(workspace: string): Promise<void> {
   await execFileAsync("git", ["init", "-b", "main", workspace]);
-  await execFileAsync("git", ["-C", workspace, "config", "user.name", "OpenClaw Tests"]);
+  await execFileAsync("git", ["-C", workspace, "config", "user.name", "Vasudev Tests"]);
   await execFileAsync("git", ["-C", workspace, "config", "user.email", "tests@openclaw.invalid"]);
   await execFileAsync("git", ["-C", workspace, "add", "."]);
   await execFileAsync("git", ["-C", workspace, "commit", "-m", "initial"]);

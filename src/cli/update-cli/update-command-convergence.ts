@@ -163,7 +163,7 @@ export async function convergeUpdatePlugins(params: {
             reason: "post-core-update-failed",
           },
           detail:
-            "The installed target could not resume plugin convergence. Run openclaw update using the installed target executable.",
+            "The installed target could not resume plugin convergence. Run vasudev update using the installed target executable.",
         };
       }
 
@@ -235,7 +235,7 @@ export async function convergeUpdatePlugins(params: {
       if (failureFacts.length) {
         resultWithPostUpdate.steps.push({
           name: "post-update verification",
-          command: "openclaw plugins update",
+          command: "vasudev plugins update",
           cwd: postUpdateRoot,
           durationMs: 0,
           exitCode: 1,
@@ -245,7 +245,7 @@ export async function convergeUpdatePlugins(params: {
       resultWithPostUpdate.steps.push(
         ...normalizeUpdatePostInstallDoctorWarnings(doctorWarnings).map((message, index) => ({
           name: `post-plugin doctor warning ${index + 1}`,
-          command: "openclaw doctor --fix",
+          command: "vasudev doctor --fix",
           cwd: postUpdateRoot,
           durationMs: 0,
           exitCode: 0,
@@ -265,7 +265,7 @@ export async function convergeUpdatePlugins(params: {
       resultWithPostUpdate.steps.push(
         ...pluginAdvisories.map((warning, index) => ({
           name: `finalize:plugins:${index}`,
-          command: "openclaw plugins update",
+          command: "vasudev plugins update",
           cwd: postUpdateRoot,
           durationMs: 0,
           exitCode: 0,

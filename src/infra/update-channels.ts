@@ -1,4 +1,4 @@
-// Resolves OpenClaw update channels from config, tags, and versions.
+// Resolves Vasudev update channels from config, tags, and versions.
 import { normalizeOptionalLowercaseString } from "@openclaw/normalization-core/string-coerce";
 import { parse as parseSemver } from "semver";
 import { compareOpenClawReleaseVersions } from "./npm-registry-spec.js";
@@ -51,7 +51,7 @@ export function normalizeUpdateChannel(value?: string | null): UpdateChannel | n
   return null;
 }
 
-/** Maps an OpenClaw update channel to the npm dist-tag used for package lookups. */
+/** Maps a Vasudev update channel to the npm dist-tag used for package lookups. */
 export function channelToNpmTag(channel: UpdateChannel): string {
   if (channel === "extended-stable") {
     return "extended-stable";

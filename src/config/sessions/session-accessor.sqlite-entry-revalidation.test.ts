@@ -164,7 +164,7 @@ describe("SQLite session entry patch commit revalidation", () => {
               },
               replaceEntry,
             ),
-          ).rejects.toThrow("openclaw doctor --fix");
+          ).rejects.toThrow("vasudev doctor --fix");
 
           setCanonicalSqliteSessionMainKey(database, "main");
           expect(loadExactSessionEntry(scope)?.entry.label).toBe("original");
@@ -209,7 +209,7 @@ describe("SQLite session entry patch commit revalidation", () => {
           expect(closeOpenClawAgentDatabaseByPath(database.path)).toBe(true);
           return null;
         }),
-      ).rejects.toThrow("openclaw doctor --fix");
+      ).rejects.toThrow("vasudev doctor --fix");
       // Test cleanup must not depend on admitting the deliberately invalid store.
       closeOpenClawAgentDatabaseByPath(database.path);
       const cleanup = new DatabaseSync(database.path);

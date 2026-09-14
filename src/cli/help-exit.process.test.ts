@@ -214,7 +214,7 @@ describe("CLI help process exit", () => {
     const result = await runCliProcess({ args: ["backup", "--help"], keepAlive: true });
 
     expect(result.stderr).toBe("");
-    expect(result.stdout).toContain("Usage: openclaw backup [options] [command]");
+    expect(result.stdout).toContain("Usage: vasudev backup [options] [command]");
   });
   it("flushes explicitly requested entry traces on precomputed help", async () => {
     const result = await runCliProcess({
@@ -267,8 +267,8 @@ describe("CLI help process exit", () => {
   );
 
   it.concurrent.each([
-    { args: ["acp", "--help"], usage: "Usage: openclaw acp [options] [command]" },
-    { args: ["acp", "client", "--help"], usage: "Usage: openclaw acp client [options]" },
+    { args: ["acp", "--help"], usage: "Usage: vasudev acp [options] [command]" },
+    { args: ["acp", "client", "--help"], usage: "Usage: vasudev acp client [options]" },
   ])("renders in-process ACP help for $args", async ({ args, usage }) => {
     let stdout = "";
     let stderr = "";

@@ -667,9 +667,9 @@ export async function inspectWindowsGatewayFirewall(
       applies: true,
       severity: "warning",
       code: "windows_firewall_inspection_failed",
-      message: "OpenClaw could not quickly inspect Windows Firewall LAN Gateway policy.",
+      message: "Vasudev could not quickly inspect Windows Firewall LAN Gateway policy.",
       details: [
-        "Run `openclaw gateway status --deep` again, or verify the advertised LAN URL from another device.",
+        "Run `vasudev gateway status --deep` again, or verify the advertised LAN URL from another device.",
       ],
     };
   }
@@ -679,9 +679,9 @@ export async function inspectWindowsGatewayFirewall(
       applies: true,
       severity: "warning",
       code: "windows_firewall_inspection_failed",
-      message: "OpenClaw could not parse Windows Firewall LAN Gateway policy.",
+      message: "Vasudev could not parse Windows Firewall LAN Gateway policy.",
       details: [
-        "Run `openclaw gateway status --deep` again, or verify the advertised LAN URL from another device.",
+        "Run `vasudev gateway status --deep` again, or verify the advertised LAN URL from another device.",
       ],
     };
   }
@@ -700,9 +700,9 @@ export async function inspectWindowsGatewayFirewall(
       applies: true,
       severity: "warning",
       code: "windows_firewall_inspection_failed",
-      message: "OpenClaw could not parse Windows Firewall LAN Gateway policy.",
+      message: "Vasudev could not parse Windows Firewall LAN Gateway policy.",
       details: [
-        "Run `openclaw gateway status --deep` again, or verify the advertised LAN URL from another device.",
+        "Run `vasudev gateway status --deep` again, or verify the advertised LAN URL from another device.",
       ],
     };
   }
@@ -717,9 +717,9 @@ export async function inspectWindowsGatewayFirewall(
         applies: true,
         severity: "warning",
         code: "windows_firewall_inspection_failed",
-        message: "OpenClaw could not parse Windows Firewall LAN Gateway policy.",
+        message: "Vasudev could not parse Windows Firewall LAN Gateway policy.",
         details: [
-          "Run `openclaw gateway status --deep` again, or verify the advertised LAN URL from another device.",
+          "Run `vasudev gateway status --deep` again, or verify the advertised LAN URL from another device.",
         ],
       };
 }
@@ -733,6 +733,6 @@ export function formatWindowsGatewayFirewallGuidance(params: {
     return [];
   }
   return [
-    "Windows firewall: if another device cannot connect to the LAN URL, run `openclaw gateway status --deep` from this Windows host.",
+    "Windows firewall: if another device cannot connect to the LAN URL, run `vasudev gateway status --deep` from this Windows host.",
   ];
 }

@@ -82,7 +82,7 @@ function isCodexMcpServerAllowedForAgent(
 }
 
 /**
- * Applies Codex-only agent scoping before OpenClaw resolves credentials or opens transports.
+ * Applies Codex-only agent scoping before Vasudev resolves credentials or opens transports.
  * Session overrides may narrow this result, but cannot widen `codex.agents`.
  */
 export function resolveCodexMcpToolOverridesForAgent(
@@ -127,7 +127,7 @@ function selectCodexProjectableMcpServers(
       if (!allowed) {
         return false;
       }
-      // Remote app servers cannot receive OpenClaw-managed bearer credentials.
+      // Remote app servers cannot receive Vasudev-managed bearer credentials.
       // Omit these servers before catalog discovery can use that credential.
       if (options?.allowLiteralOAuthProjection === false && requiresMcpBearerProjection(server)) {
         options.onServerUnavailable?.(
@@ -152,7 +152,7 @@ export function injectCodexMcpConfigArgs(
   return [...(args ?? []), "-c", `mcp_servers=${overrides}`];
 }
 
-/** Async runtime projection that resolves OpenClaw-managed MCP bearer tokens. */
+/** Async runtime projection that resolves Vasudev-managed MCP bearer tokens. */
 export async function buildCodexUserMcpServersThreadConfigPatchForRuntime(
   cfg: OpenClawConfig | undefined,
   options?: CodexUserMcpServersProjectionOptions,

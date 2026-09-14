@@ -202,7 +202,7 @@ The Codex harness changes the low-level embedded agent executor only.
   native shell.
 - Codex owns native compaction. Vasudev keeps a transcript mirror for
   channel history, search, `/new`, `/reset`, and future model or harness
-  switching, but does not replace Codex compaction with an Vasudev or
+  switching, but does not replace Codex compaction with a Vasudev or
   context-engine summarizer.
   Completed commentary and tool activity are saved during the turn rather than
   waiting for its final answer, preserving completed work across Gateway interruption.

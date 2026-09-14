@@ -59,7 +59,7 @@ export function resolveCompatibleAgentRuntimeForProvider(params: {
     return runtime;
   }
   const provider = params.provider?.trim().toLowerCase() ?? "";
-  // The Codex harness owns both OpenClaw's virtual Codex namespace and canonical OpenAI routes.
+  // The Codex harness owns both Vasudev's virtual Codex namespace and canonical OpenAI routes.
   if (runtime === "codex" && (provider === "codex" || provider === "openai")) {
     return runtime;
   }

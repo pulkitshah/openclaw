@@ -164,7 +164,7 @@ function formatBackupOutputFailure(
   }
 
   const outputParent = path.dirname(outputPath);
-  const retry = "run `openclaw backup create --output <archive>` again.";
+  const retry = "run `vasudev backup create --output <archive>` again.";
   let detail: string;
   switch (filesystemError.code) {
     case "ENOENT":
@@ -448,8 +448,8 @@ export async function createBackupArchive(
   if (plan.included.length === 0) {
     throw new Error(
       onlyConfig
-        ? "No OpenClaw config file was found to back up."
-        : "No local OpenClaw state was found to back up.",
+        ? "No Vasudev config file was found to back up."
+        : "No local Vasudev state was found to back up.",
     );
   }
 

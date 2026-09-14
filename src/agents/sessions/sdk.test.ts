@@ -617,7 +617,7 @@ describe("createAgentSession tool defaults", () => {
       settingsManager: SettingsManager.inMemory(),
       modelRegistry: ModelRegistry.inMemory(AuthStorage.inMemory()),
     });
-    const systemPrompt = "You are a personal assistant running inside OpenClaw.";
+    const systemPrompt = "You are a personal assistant running inside Vasudev.";
 
     session.setBaseSystemPrompt(systemPrompt);
     session.setActiveToolsByName(["bash", "custom_lookup"]);

@@ -296,7 +296,7 @@ describe("status-all diagnosis port checks", () => {
 
     const output = params.lines.join("\n");
     expect(output).toContain("✓ Port 18789");
-    expect(output).toContain("Detected OpenClaw Gateway listener on the configured port.");
+    expect(output).toContain("Detected Vasudev Gateway listener on the configured port.");
     expect(output).not.toContain("Port 18789 is already in use.");
   });
 
@@ -310,7 +310,7 @@ describe("status-all diagnosis port checks", () => {
 
     const output = params.lines.join("\n");
     expect(output).toContain("! Port 18789");
-    expect(output).toContain("2 OpenClaw gateway processes appear to be listening on port 18789");
+    expect(output).toContain("2 Vasudev gateway processes appear to be listening on port 18789");
     expect(output).toContain("Port 18789 is already in use.");
   });
 
@@ -337,21 +337,21 @@ describe("status-all diagnosis port checks", () => {
     const output = params.lines.join("\n");
     expect(output).toContain("! Port 18789");
     expect(output).toContain("Port 18789 availability could not be determined.");
-    expect(output).not.toContain("Detected OpenClaw Gateway listener");
+    expect(output).not.toContain("Detected Vasudev Gateway listener");
   });
 
   it.each([
     {
       status: "error",
       reason: "managed-service-handoff-failed",
-      headline: "⚠️ OpenClaw update failed: managed-service-handoff-failed.",
-      hint: "Run openclaw triage to diagnose and repair the failed update.",
+      headline: "⚠️ Vasudev update failed: managed-service-handoff-failed.",
+      hint: "Run vasudev triage to diagnose and repair the failed update.",
     },
     {
       status: "skipped",
       reason: "restart-health-pending",
-      headline: "⬆️ OpenClaw update in progress: restarting.",
-      hint: "Check progress with openclaw update status.",
+      headline: "⬆️ Vasudev update in progress: restarting.",
+      hint: "Check progress with vasudev update status.",
     },
   ] as const)(
     "includes the shared update report for $status sentinels",
@@ -369,7 +369,7 @@ describe("status-all diagnosis port checks", () => {
       const output = params.lines.join("\n");
       expect(output).toContain(`Update restart: ${headline}`);
       expect(output).toContain(hint);
-      expect(output).not.toContain("run openclaw gateway restart");
+      expect(output).not.toContain("run vasudev gateway restart");
     },
   );
 
@@ -482,12 +482,12 @@ describe("status-all diagnosis port checks", () => {
     expect(output).toContain(
       "Exporter diagnostics failed: Error: diagnostics probe timed out at wss://***:***@gateway.example/socket?token=***",
     );
-    expect(output).toContain("Retry: openclaw gateway stability --type telemetry.exporter");
+    expect(output).toContain("Retry: vasudev gateway stability --type telemetry.exporter");
     expect(output).toContain("! Inbound delivery telemetry: unavailable");
     expect(output).toContain(
       "Delivery diagnostics failed: Error: diagnostics probe timed out at wss://***:***@gateway.example/socket?token=***",
     );
-    expect(output).toContain("Retry: openclaw gateway stability");
+    expect(output).toContain("Retry: vasudev gateway stability");
     expect(output).not.toContain("received 0 · dispatch 0/0 · turns 0 · processed 0");
     expect(output).not.toContain("probe-user");
     expect(output).not.toContain("probe-pass");
@@ -607,7 +607,7 @@ describe("status-all diagnosis port checks", () => {
     expect(output).not.toContain("Gateway health:");
     expect(output).not.toContain("Inbound delivery telemetry: unavailable");
     expect(output).not.toContain("Telemetry exporters: unavailable");
-    expect(output).not.toContain("Retry: openclaw gateway stability");
+    expect(output).not.toContain("Retry: vasudev gateway stability");
   });
 
   it("does not read or display stale stderr tails on Darwin", async () => {

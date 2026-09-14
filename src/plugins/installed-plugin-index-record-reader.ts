@@ -115,7 +115,7 @@ function readManagedNpmInstallTimestampMs(params: {
   projectRoot: string;
   sharedLegacyRoot: boolean;
 }): number {
-  // Isolated flat/generation roots have an OpenClaw-owned project manifest that
+  // Isolated flat/generation roots have a Vasudev-owned project manifest that
   // is rewritten during install. The legacy root is shared, so only its
   // package-local directory mtime can represent this plugin's install.
   const timestampPaths = params.sharedLegacyRoot
@@ -238,7 +238,7 @@ function emitManagedNpmRecoveryFallbackWarning(params: {
   candidates: readonly RecoveredManagedNpmInstallCandidate[];
 }): void {
   process.emitWarning(
-    `Managed npm recovery found ${params.candidates.length} installs for plugin "${params.pluginId}" without an authoritative active path; selected the most recently installed candidate. Run \`openclaw doctor --fix\` to persist and retire stale generations.`,
+    `Managed npm recovery found ${params.candidates.length} installs for plugin "${params.pluginId}" without an authoritative active path; selected the most recently installed candidate. Run \`vasudev doctor --fix\` to persist and retire stale generations.`,
     {
       code: "OPENCLAW_PLUGIN_INSTALL_RECOVERY_FALLBACK",
       type: "OpenClawPluginRecoveryWarning",
@@ -468,7 +468,7 @@ function requireLoadablePluginInstallRecordState(
   const state = inspectPersistedInstalledPluginIndexInstallRecordsSync(options);
   if (state.status === "invalid") {
     throw new Error(
-      "Persisted plugin install records are invalid. Run openclaw doctor to inspect and repair plugin installation state.",
+      "Persisted plugin install records are invalid. Run vasudev doctor to inspect and repair plugin installation state.",
     );
   }
   return state.status === "valid" ? state.records : null;

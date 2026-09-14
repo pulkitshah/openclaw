@@ -170,7 +170,7 @@ export async function backupFleetCell(params: {
     assertManagedInspection(params.record, inspection);
     if (inspection.running) {
       throw new Error(
-        `Fleet cell ${params.record.tenantId} is running; stop it first (openclaw fleet stop ${params.record.tenantId}) so SQLite state is captured consistently.`,
+        `Fleet cell ${params.record.tenantId} is running; stop it first (vasudev fleet stop ${params.record.tenantId}) so SQLite state is captured consistently.`,
       );
     }
   }
@@ -469,7 +469,7 @@ export async function restoreFleetCell(params: {
   );
   if (inspectionResult.kind === "missing") {
     throw new Error(
-      `Fleet cell container is missing for ${params.record.tenantId}; remove the stale registration without purging data (openclaw fleet rm ${params.record.tenantId} --force), recreate a stopped cell with the intended image (openclaw fleet create ${params.record.tenantId} --no-start --image <image>), then retry fleet restore.`,
+      `Fleet cell container is missing for ${params.record.tenantId}; remove the stale registration without purging data (vasudev fleet rm ${params.record.tenantId} --force), recreate a stopped cell with the intended image (vasudev fleet create ${params.record.tenantId} --no-start --image <image>), then retry fleet restore.`,
     );
   }
   const inspection = assertManagedInspection(params.record, inspectionResult);

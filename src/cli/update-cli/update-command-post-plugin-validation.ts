@@ -23,7 +23,7 @@ export function applyPostPluginConfigValidation(
         reason: "Config remained invalid after updated plugin migrations.",
         message:
           "Post-update plugin migration did not produce a valid config; refusing to restart.",
-        guidance: ["Run `openclaw doctor --fix`, then rerun `openclaw update repair`."],
+        guidance: ["Run `vasudev doctor --fix`, then rerun `vasudev update repair`."],
       },
     ],
   };

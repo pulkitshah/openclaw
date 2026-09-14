@@ -1,7 +1,7 @@
 ---
 summary: "Recover from failed Vasudev updates in the Control UI or CLI"
 read_when:
-  - An Vasudev update failed
+  - A Vasudev update failed
   - The Gateway did not report a final update result
 title: "Update troubleshooting"
 ---

@@ -809,7 +809,7 @@ describe("forceResetGlobalDispatcher", () => {
     expect(setGlobalDispatcher).not.toHaveBeenCalled();
   });
 
-  it("restores a direct Agent when clearing a proxy dispatcher installed by OpenClaw", () => {
+  it("restores a direct Agent when clearing a proxy dispatcher installed by Vasudev", () => {
     vi.mocked(resolveEnvHttpProxyAgentOptions).mockReturnValue(DEFAULT_PROXY_OPTIONS);
     ensureGlobalUndiciEnvProxyDispatcher();
     expect(getCurrentDispatcher()).toBeInstanceOf(EnvHttpProxyAgent);

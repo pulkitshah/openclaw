@@ -403,7 +403,7 @@ async function migrateOneSource(params: {
         ? `Preserved historical Workshop workspace setup at ${params.source.sourcePath} for manual review: ${formatErrorMessage(error)}.`
         : formatDoctorStateRepairFailure(
             `Failed reading legacy workspace state at ${params.source.sourcePath}: ${formatErrorMessage(error)}`,
-            "Stop the Gateway. Restore this source or its .doctor-importing claim from a verified backup, or rename the unreadable source or claim with a .rejected-<timestamp> suffix to retain its bytes if its setup/attestation history can be discarded. Then rerun openclaw doctor --fix against the same state/config.",
+            "Stop the Gateway. Restore this source or its .doctor-importing claim from a verified backup, or rename the unreadable source or claim with a .rejected-<timestamp> suffix to retain its bytes if its setup/attestation history can be discarded. Then rerun vasudev doctor --fix against the same state/config.",
           ),
     ],
     ...(params.historical ? { warningDisposition: "recoverable" as const } : {}),

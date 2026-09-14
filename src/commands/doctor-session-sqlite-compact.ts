@@ -37,17 +37,17 @@ export async function compactDoctorSessionSqliteTarget(
     };
   }
   if (!stat.isFile()) {
-    throw new Error(`OpenClaw agent database is not a regular file: ${sqlitePath}`);
+    throw new Error(`Vasudev agent database is not a regular file: ${sqlitePath}`);
   }
   if (isOpenClawAgentDatabaseOpen(sqlitePath)) {
     throw new Error(
-      `OpenClaw agent database ${sqlitePath} is already open in this process. Stop OpenClaw and retry.`,
+      `Vasudev agent database ${sqlitePath} is already open in this process. Stop Vasudev and retry.`,
     );
   }
   const requireQuarantineCleared = () => {
     if (!clearOpenClawAgentDatabaseOpenFailure(sqlitePath, { env: options.env })) {
       throw new Error(
-        `OpenClaw agent database ${sqlitePath} was repaired, but its persisted quarantine record could not be cleared. Rerun openclaw doctor --fix so the database is not refused again.`,
+        `Vasudev agent database ${sqlitePath} was repaired, but its persisted quarantine record could not be cleared. Rerun vasudev doctor --fix so the database is not refused again.`,
       );
     }
   };

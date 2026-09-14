@@ -2201,7 +2201,7 @@ describe("updateNpmInstalledPlugins", () => {
           message:
             `${pluginId} is pinned to ${packageName}@1.2.3 (installed 1.2.3); ` +
             `registry ${updateChannel === "beta" ? "beta" : "latest"} resolves to ${registryVersion}. ` +
-            `Pass \`openclaw plugins update ${overrideSpec}\` to replace this version pin.`,
+            `Pass \`vasudev plugins update ${overrideSpec}\` to replace this version pin.`,
         },
       ]);
     },
@@ -2305,7 +2305,7 @@ describe("updateNpmInstalledPlugins", () => {
         nextVersion: "1.2.4",
         message:
           "demo is pinned to @acme/demo@1.2.3 (installed 1.2.3); registry latest resolves to 1.2.4. " +
-          "Pass `openclaw plugins update @acme/demo@latest` to replace this version pin.",
+          "Pass `vasudev plugins update @acme/demo@latest` to replace this version pin.",
       },
     ]);
   });
@@ -2366,7 +2366,7 @@ describe("updateNpmInstalledPlugins", () => {
     }
   });
 
-  it("repairs missing openclaw peer links before skipping unchanged npm plugins", async () => {
+  it("repairs missing vasudev peer links before skipping unchanged npm plugins", async () => {
     const installPath = createInstalledPackageDir({
       name: "@openclaw/codex",
       version: "2026.5.3",
@@ -2424,7 +2424,7 @@ describe("updateNpmInstalledPlugins", () => {
     ]);
   });
 
-  it("skips unchanged npm plugins when the openclaw peer link already resolves", async () => {
+  it("skips unchanged npm plugins when the vasudev peer link already resolves", async () => {
     const installPath = createInstalledPackageDir({
       name: "@openclaw/codex",
       version: "2026.5.3",
@@ -2545,7 +2545,7 @@ describe("updateNpmInstalledPlugins", () => {
     },
   );
 
-  it("repairs openclaw peer links after batch npm updates prune earlier plugin links", async () => {
+  it("repairs vasudev peer links after batch npm updates prune earlier plugin links", async () => {
     const plugins = [
       { pluginId: "brave", packageName: "@openclaw/brave-plugin" },
       { pluginId: "codex", packageName: "@openclaw/codex" },
@@ -2606,7 +2606,7 @@ describe("updateNpmInstalledPlugins", () => {
     );
   });
 
-  it("repairs sibling openclaw peer links after a targeted npm update prunes the shared install tree", async () => {
+  it("repairs sibling vasudev peer links after a targeted npm update prunes the shared install tree", async () => {
     const plugins = [
       { pluginId: "brave", packageName: "@openclaw/brave-plugin" },
       { pluginId: "codex", packageName: "@openclaw/codex" },
@@ -2761,7 +2761,7 @@ describe("updateNpmInstalledPlugins", () => {
     },
   );
 
-  it("continues repairing sibling openclaw peer links after one recorded npm install cannot be relinked", async () => {
+  it("continues repairing sibling vasudev peer links after one recorded npm install cannot be relinked", async () => {
     const plugins = [
       { pluginId: "brave", packageName: "@openclaw/brave-plugin" },
       { pluginId: "codex", packageName: "@openclaw/codex" },
@@ -2832,7 +2832,7 @@ describe("updateNpmInstalledPlugins", () => {
     expect(fs.existsSync(peerLinkPath("codex"))).toBe(true);
     expect(warnMessages).toEqual([
       expect.stringContaining(
-        `Could not repair openclaw peer link at ${malformedInstallPath}: SyntaxError:`,
+        `Could not repair vasudev peer link at ${malformedInstallPath}: SyntaxError:`,
       ),
       `Skipping openclaw peerDependency link because ${path.join(brokenInstallPath, "node_modules")} is not a real directory.`,
     ]);
@@ -3205,7 +3205,7 @@ describe("updateNpmInstalledPlugins", () => {
       expect(message).toContain(spec);
       expect(message).toContain("2026.9.4");
       expect(message).toContain(stderr.startsWith("E404") ? "Package not found" : "ECONNREFUSED");
-      expect(message).toContain("openclaw plugins update demo");
+      expect(message).toContain("vasudev plugins update demo");
       expect(warn).toHaveBeenCalledWith(message);
       expect(result.config).toBe(config);
       expect(result.changed).toBe(false);
@@ -3311,7 +3311,7 @@ describe("updateNpmInstalledPlugins", () => {
     });
 
     const message =
-      'Disabled "lossless-claw" after plugin update failure; OpenClaw will continue without it. Failed to check lossless-claw: npm view failed: registry timeout';
+      'Disabled "lossless-claw" after plugin update failure; Vasudev will continue without it. Failed to check lossless-claw: npm view failed: registry timeout';
     expect(warn).toHaveBeenCalledWith(message);
     expect(result.changed).toBe(true);
     expect(result.config.plugins?.entries?.["lossless-claw"]).toEqual({
@@ -3408,7 +3408,7 @@ describe("updateNpmInstalledPlugins", () => {
     });
 
     const message =
-      'Disabled "demo" after plugin update failure; OpenClaw will continue without it. Failed to update demo: npm view failed: registry timeout';
+      'Disabled "demo" after plugin update failure; Vasudev will continue without it. Failed to update demo: npm view failed: registry timeout';
     expect(warn).toHaveBeenCalledWith(message);
     expect(result.changed).toBe(true);
     expect(result.config.plugins?.entries?.demo).toEqual({
@@ -3817,7 +3817,7 @@ describe("updateNpmInstalledPlugins", () => {
         status: "unchanged",
         currentVersion: "1.2.3",
         nextVersion: "1.2.4",
-        message: `${pluginId} is pinned to ${spec} (installed 1.2.3); registry latest resolves to 1.2.4. Pass \`openclaw plugins update ${packageName}@latest\` to replace this version pin.`,
+        message: `${pluginId} is pinned to ${spec} (installed 1.2.3); registry latest resolves to 1.2.4. Pass \`vasudev plugins update ${packageName}@latest\` to replace this version pin.`,
       });
     },
   );
@@ -3949,7 +3949,7 @@ describe("updateNpmInstalledPlugins", () => {
       message: scenario.warns
         ? `diagnostics-otel is pinned to ${spec} ` +
           "(installed 2026.9.1); ClawHub latest resolves to 2026.9.2. " +
-          "Pass `openclaw plugins install clawhub:@openclaw/diagnostics-otel --force` " +
+          "Pass `vasudev plugins install clawhub:@openclaw/diagnostics-otel --force` " +
           "to replace this version pin."
         : dryRun
           ? "diagnostics-otel is up to date (2026.9.1)."
@@ -4138,7 +4138,7 @@ describe("updateNpmInstalledPlugins", () => {
     expect(npmInstallCall()?.spec).toBe("@acme/demo");
     expect(npmInstallCall()?.expectedPluginId).toBe("demo");
     const message =
-      'Disabled "demo" after plugin update failure; OpenClaw will continue without it. Failed to update demo: registry timeout';
+      'Disabled "demo" after plugin update failure; Vasudev will continue without it. Failed to update demo: registry timeout';
     expect(warn).toHaveBeenCalledWith(message);
     expect(result.changed).toBe(true);
     expect(result.config.plugins?.entries?.demo).toEqual({
@@ -4261,7 +4261,7 @@ describe("updateNpmInstalledPlugins", () => {
     expect(result.config.plugins?.allow).toEqual(["demo"]);
     expect(result.config.plugins?.slots).toBeUndefined();
     const message =
-      'Disabled "demo" after plugin update failure; OpenClaw will continue without it. Failed to update demo: ClawHub blocked this release; update was not started. (ClawHub clawhub:demo).';
+      'Disabled "demo" after plugin update failure; Vasudev will continue without it. Failed to update demo: ClawHub blocked this release; update was not started. (ClawHub clawhub:demo).';
     expect(warn).toHaveBeenCalledWith(message);
     expect(result.outcomes).toEqual([
       {
@@ -6609,7 +6609,7 @@ describe("syncPluginsForUpdateChannel", () => {
         pluginId: "legacy-chat",
         code: "package_not_found",
         message:
-          'Failed to update legacy-chat: Package not found on ClawHub. (ClawHub clawhub:legacy-chat@2026.5.1-beta.2).\nBundled relocation did not install the replacement plugin payload; resolve the error above, then run "openclaw update repair".',
+          'Failed to update legacy-chat: Package not found on ClawHub. (ClawHub clawhub:legacy-chat@2026.5.1-beta.2).\nBundled relocation did not install the replacement plugin payload; resolve the error above, then run "vasudev update repair".',
       },
     ]);
   });
@@ -6705,7 +6705,7 @@ describe("syncPluginsForUpdateChannel", () => {
         pluginId: "legacy-chat",
         code: "archive_integrity_mismatch",
         message:
-          'Failed to update legacy-chat: ClawHub ClawPack integrity mismatch. (ClawHub clawhub:legacy-chat@2026.5.1-beta.2).\nBundled relocation did not install the replacement plugin payload; resolve the error above, then run "openclaw update repair".',
+          'Failed to update legacy-chat: ClawHub ClawPack integrity mismatch. (ClawHub clawhub:legacy-chat@2026.5.1-beta.2).\nBundled relocation did not install the replacement plugin payload; resolve the error above, then run "vasudev update repair".',
       },
     ]);
   });
@@ -6779,7 +6779,7 @@ describe("syncPluginsForUpdateChannel", () => {
       {
         pluginId: "legacy-chat",
         message:
-          'Failed to update legacy-chat: package unavailable\nBundled relocation did not install the replacement plugin payload; resolve the error above, then run "openclaw update repair".',
+          'Failed to update legacy-chat: package unavailable\nBundled relocation did not install the replacement plugin payload; resolve the error above, then run "vasudev update repair".',
       },
     ]);
   });

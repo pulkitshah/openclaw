@@ -52,6 +52,6 @@ export async function agentsTeamCreateCommand(
     runtime.log(note);
   }
   runtime.log(
-    `Talk to the coordinator: ${formatCliCommand(`openclaw agent --agent ${result.coordinatorId} --message "Describe your task"`)}`,
+    `Talk to the coordinator: ${formatCliCommand(`vasudev agent --agent ${result.coordinatorId} --message "Describe your task"`)}`,
   );
 }

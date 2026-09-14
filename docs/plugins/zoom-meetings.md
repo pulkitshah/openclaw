@@ -2,7 +2,7 @@
 summary: "Zoom meetings plugin: join meetings as a Chrome browser guest"
 doc-schema-version: 1
 read_when:
-  - You want an Vasudev agent to join a Zoom meeting
+  - You want a Vasudev agent to join a Zoom meeting
   - You need Zoom-specific guest policy or manual-action guidance
 title: "Zoom meetings plugin"
 ---

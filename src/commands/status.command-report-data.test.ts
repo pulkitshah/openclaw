@@ -110,7 +110,7 @@ describe("buildStatusCommandReportData", () => {
       Item: "OS",
       Value: "macOS · node " + process.versions.node,
     });
-    expect(result.taskMaintenanceHint).toBe("Task maintenance: openclaw tasks maintenance --apply");
+    expect(result.taskMaintenanceHint).toBe("Task maintenance: vasudev tasks maintenance --apply");
     expect(result.pluginCompatibilityLines.map(stripAnsi)).toEqual(["  WARN a legacy"]);
     const pairingTitle = expectDefined(result.pairingRecoveryLines[0], "pairing recovery title");
     expect(stripAnsi(pairingTitle)).toBe("Gateway pairing approval required.");
@@ -123,7 +123,7 @@ describe("buildStatusCommandReportData", () => {
       Status: "reachable",
       Detail: "42ms",
     });
-    expect(result.footerLines.at(-1)).toBe("  Need to test channels? openclaw status --deep");
+    expect(result.footerLines.at(-1)).toBe("  Need to test channels? vasudev status --deep");
   });
 
   it("shows skipped audit text when fast status omits the security audit", async () => {
@@ -134,8 +134,8 @@ describe("buildStatusCommandReportData", () => {
     );
 
     expect(result.securityAuditLines.map(stripAnsi)).toEqual([
-      "Skipped in fast status. Full report: openclaw security audit",
-      "Deep probe: openclaw status --deep",
+      "Skipped in fast status. Full report: vasudev security audit",
+      "Deep probe: vasudev status --deep",
     ]);
   });
 

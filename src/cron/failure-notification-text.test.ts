@@ -25,7 +25,7 @@ describe("cronFailureDetailLines", () => {
   it("explains how to repair an unsupported model selection", () => {
     expect(cronFailureDetailLines("model_not_found")).toEqual([
       "Cause: model_not_found",
-      "Run `openclaw doctor --fix` to repair provider-declared retired model references.",
+      "Run `vasudev doctor --fix` to repair provider-declared retired model references.",
       "Choose a supported model for this automation or remove its model override to use the agent default. If the agent default is unavailable, update it too.",
     ]);
   });

@@ -98,7 +98,7 @@ export function encodeWindowsLauncherScript(params: {
   return encoded;
 }
 
-/** Decodes launcher scripts written by any OpenClaw version (UTF-16 LE BOM, marked code page, or UTF-8). */
+/** Decodes launcher scripts written by any Vasudev version (UTF-16 LE BOM, marked code page, or UTF-8). */
 export function decodeWindowsLauncherScript(params: { buffer: Buffer }): string {
   const { buffer } = params;
   if (buffer.length >= 2 && buffer[0] === 0xff && buffer[1] === 0xfe) {

@@ -56,10 +56,10 @@ function formatUnavailableSkillDoctorLines(
       .join(", ")}`,
   ];
   if (includeDisableHint) {
-    lines.push(`Disable unused skills: ${formatCliCommand("openclaw doctor --fix")}`);
+    lines.push(`Disable unused skills: ${formatCliCommand("vasudev doctor --fix")}`);
   }
   lines.push(
-    `Inspect details: ${formatCliCommand("openclaw skills check --agent <id>")} or ${formatCliCommand("openclaw skills info <name> --agent <id>")}`,
+    `Inspect details: ${formatCliCommand("vasudev skills check --agent <id>")} or ${formatCliCommand("vasudev skills info <name> --agent <id>")}`,
   );
   return lines;
 }

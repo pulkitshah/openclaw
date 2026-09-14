@@ -26,7 +26,7 @@ export type GatewayHostLifecycle = {
 export type GatewayStartupOperation = <T>(run: (signal: AbortSignal) => Promise<T>) => Promise<T>;
 
 export type GatewayServer = {
-  /** Process-local endpoint used by OpenClaw-managed Tailscale proxying. */
+  /** Process-local endpoint used by Vasudev-managed Tailscale proxying. */
   getTailscaleIngressEndpoint: () => GatewayTailscaleIngressEndpoint | undefined;
   /** Fences WebSocket ingress and joins received work and connection cleanup before disposal. */
   close: (opts?: GatewayCloseOptions) => Promise<void>;

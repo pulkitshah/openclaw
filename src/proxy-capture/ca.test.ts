@@ -121,7 +121,7 @@ describe("ensureDebugProxyCa", () => {
     expect(path.dirname(outputPath(args, "-config"))).toBe(path.dirname(outputPath(args, "-out")));
     expect(path.dirname(outputPath(args, "-out")).startsWith(`${certDir}${path.sep}`)).toBe(true);
     expect(options).toEqual({ logOutput: false, timeoutMs: 30_000 });
-    expect(generatedConfig).toContain("CN = OpenClaw Debug Proxy");
+    expect(generatedConfig).toContain("CN = Vasudev Debug Proxy");
     expect(generatedConfig).toContain("basicConstraints = critical, CA:TRUE");
     expect(generatedConfig).toContain("keyUsage = critical, keyCertSign, cRLSign");
   });

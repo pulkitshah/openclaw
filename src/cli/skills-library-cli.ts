@@ -56,7 +56,7 @@ export function registerSkillsLibraryCli(skills: Command): void {
     .option("--json", "Output as JSON", false)
     .addHelpText(
       "after",
-      "\nCreate: openclaw skills library create ./my-skill --slug my-skill\nRead:   openclaw skills library read <skill-id> --json\nUpdate: openclaw skills library update <skill-id> ./SKILL.md --expected-revision <hash>\nPersonal libraries require a signed-in Gateway profile. Workspace installs remain under skills install.\n",
+      "\nCreate: vasudev skills library create ./my-skill --slug my-skill\nRead:   vasudev skills library read <skill-id> --json\nUpdate: vasudev skills library update <skill-id> ./SKILL.md --expected-revision <hash>\nPersonal libraries require a signed-in Gateway profile. Workspace installs remain under skills install.\n",
     );
   const leaf = (name: string, description: string) =>
     addGatewayClientOptions(library.command(name).description(description)).option(

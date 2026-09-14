@@ -44,7 +44,7 @@ describe("formatCliOutputError", () => {
 
     expect(error).toBe(
       "Claude CLI ended the turn without a reply (terminal_reason: hook_stopped, stop_reason: tool_use). " +
-        "OpenClaw run: run-1. OpenClaw session: session-1. Claude session: claude-session-1. " +
+        "Vasudev run: run-1. Vasudev session: session-1. Claude session: claude-session-1. " +
         "Tool actions may already have run; verify their effects before retrying. " +
         "A Claude Code hook stopped this turn; user-scope hooks (including plugin hooks) " +
         "apply to headless runs — move or disable that hook.",
@@ -226,7 +226,7 @@ describe("parseCliJsonl errors", () => {
       }),
     ).toBe(
       "Claude CLI stopped after reaching the maximum number of turns (limit: 1). " +
-        "OpenClaw run: run-max-turns. OpenClaw session: openclaw-session-max-turns. " +
+        "Vasudev run: run-max-turns. Vasudev session: openclaw-session-max-turns. " +
         "Claude session: session-max-turns. Tool actions may already have run; verify their effects before retrying. " +
         "Retry with a higher --max-turns value or a narrower task.",
     );

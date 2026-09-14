@@ -1,4 +1,4 @@
-// Fresh-process fixture: value imports stay outside OpenClaw until each scenario demands them.
+// Fresh-process fixture: value imports stay outside Vasudev until each scenario demands them.
 import assert from "node:assert/strict";
 import { channel } from "node:diagnostics_channel";
 import fs from "node:fs";

@@ -57,10 +57,10 @@ export function prepareOwnedBundleMcpDataDirs(params: {
 }
 
 /**
- * User config stores OpenClaw MCP transport names, while CLI backends such as
+ * User config stores Vasudev MCP transport names, while CLI backends such as
  * Claude Code and Gemini expect a downstream `type` field. Keep this adapter
- * out of the generic merge path because embedded OpenClaw still consumes the raw
- * OpenClaw `transport` shape directly.
+ * out of the generic merge path because embedded Vasudev still consumes the raw
+ * Vasudev `transport` shape directly.
  */
 export function toCliBundleMcpServerConfig(server: BundleMcpServerConfig): BundleMcpServerConfig {
   const next = { ...server } as Record<string, unknown>;
@@ -122,7 +122,7 @@ export function loadMergedBundleMcpConfig(params: {
 
   return {
     config: {
-      // OpenClaw config is the owner-managed layer, so it overrides bundle defaults.
+      // Vasudev config is the owner-managed layer, so it overrides bundle defaults.
       mcpServers: {
         ...Object.fromEntries(
           Object.entries(enabledBundleMcp).map(([name, server]) => [

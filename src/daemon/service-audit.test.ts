@@ -345,7 +345,7 @@ describe("auditGatewayServiceConfig", () => {
     expect(issue?.detail).toContain("/opt/pnpm/bin");
   });
 
-  it("accepts an expected active OpenClaw bin even when it looks package-managed", async () => {
+  it("accepts an expected active Vasudev bin even when it looks package-managed", async () => {
     const expectedServicePath = [
       "/opt/homebrew/opt/node/bin",
       "/Users/testuser/Library/pnpm",

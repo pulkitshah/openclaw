@@ -215,7 +215,7 @@ export function createCronExitWatchers(
           mode: "child",
           argv: [shell.command, ...shell.argsFor(command)],
           ...(cwd ? { cwd } : {}),
-          // Mark the child as an OpenClaw-launched subprocess (loop protection /
+          // Mark the child as a Vasudev-launched subprocess (loop protection /
           // detection) and bound its lifetime — consistent with how cron
           // command-payload jobs run via runCommandWithTimeout.
           env: markOpenClawExecEnv({ ...process.env }),

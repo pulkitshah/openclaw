@@ -398,7 +398,7 @@ export class AcpTranslatorSessionLifecycle {
       return;
     }
     throw new Error(
-      "ACP bridge mode does not support per-session MCP servers. Configure MCP on the OpenClaw gateway or agent instead.",
+      "ACP bridge mode does not support per-session MCP servers. Configure MCP on the Vasudev gateway or agent instead.",
     );
   }
 

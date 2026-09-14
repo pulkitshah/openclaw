@@ -1,4 +1,4 @@
-// Validates the current runtime before OpenClaw startup.
+// Validates the current runtime before Vasudev startup.
 import process from "node:process";
 import { format } from "node:util";
 import { expectDefined } from "@openclaw/normalization-core/expect";
@@ -121,7 +121,7 @@ function detectCurrentRuntimeSqlite(): {
   }
 }
 
-/** Returns whether a detected runtime meets OpenClaw's minimum runtime contract. */
+/** Returns whether a detected runtime meets Vasudev's minimum runtime contract. */
 function runtimeSatisfies(details: RuntimeDetails): boolean {
   if (details.sqliteSelectionError) {
     return false;
@@ -142,17 +142,17 @@ function runtimeSatisfies(details: RuntimeDetails): boolean {
   return false;
 }
 
-/** Returns whether the current process runtime satisfies OpenClaw's engine contract. */
+/** Returns whether the current process runtime satisfies Vasudev's engine contract. */
 export function isCurrentRuntimeSupported(): boolean {
   return runtimeSatisfies(detectRuntime());
 }
 
-/** Checks a Node version label against OpenClaw's supported Node version range. */
+/** Checks a Node version label against Vasudev's supported Node version range. */
 export function isSupportedNodeVersion(version: string | null): boolean {
   return isSupportedOpenClawNodeVersion(version);
 }
 
-/** Checks a Bun version label against OpenClaw's minimum supported release. */
+/** Checks a Bun version label against Vasudev's minimum supported release. */
 export function isSupportedBunVersion(version: string | null): boolean {
   return isAtLeast(parseSemver(version), MINIMUM_BUN_VERSION);
 }
@@ -287,7 +287,7 @@ export async function assertSupportedRuntime(
         "openclaw requires Node >=24.16.0 <25, or >=26.1.0.";
   const retryHint =
     details.kind === "bun"
-      ? "Upgrade Bun or run OpenClaw with a supported Node release."
+      ? "Upgrade Bun or run Vasudev with a supported Node release."
       : "Upgrade Node and re-run openclaw.";
 
   runtime.error(

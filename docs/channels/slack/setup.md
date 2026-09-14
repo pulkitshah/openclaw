@@ -539,7 +539,7 @@ HTTP Request URL configuration:
 ```
 
 <Warning>
-  DMs and group DMs work only through the user-scope event subscription above. A bot cannot join a human 1:1 DM or be inserted into an existing group DM. The companion app is invisible plumbing: other Slack members see messages from the authorizing human, not from an Vasudev bot.
+  DMs and group DMs work only through the user-scope event subscription above. A bot cannot join a human 1:1 DM or be inserted into an existing group DM. The companion app is invisible plumbing: other Slack members see messages from the authorizing human, not from a Vasudev bot.
 </Warning>
 
 Vasudev automatically drops user-scope message events authored by the resolved human identity, so messages it sends do not trigger self-replies.

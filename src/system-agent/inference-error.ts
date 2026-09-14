@@ -4,7 +4,7 @@ import { formatErrorMessage } from "../infra/errors.js";
 type SystemAgentInferenceStage = "agent-turn" | "planner" | "conversation";
 
 const INFERENCE_UNAVAILABLE_MESSAGE =
-  "OpenClaw could not reach working inference. Run `openclaw onboard` on the machine running OpenClaw to reconnect — it live-tests the route before saving it. Then try again.";
+  "Vasudev could not reach working inference. Run `vasudev onboard` on the machine running Vasudev to reconnect — it live-tests the route before saving it. Then try again.";
 const INFERENCE_FAILURE_SUMMARY_MAX_CHARS = 300;
 
 function inferenceUnavailableMessage(failures: readonly unknown[]): string {
@@ -19,7 +19,7 @@ function inferenceUnavailableMessage(failures: readonly unknown[]): string {
   return `${INFERENCE_UNAVAILABLE_MESSAGE} Cause: ${summary}`;
 }
 
-/** Safe public error for an OpenClaw turn that could not complete with intelligence. */
+/** Safe public error for a Vasudev turn that could not complete with intelligence. */
 export class SystemAgentInferenceUnavailableError extends Error {
   readonly code = "SYSTEM_AGENT_INFERENCE_UNAVAILABLE";
 

@@ -43,7 +43,7 @@ changing config.
 | Embeddings                | memory embedding provider                                                                     | Yes                                                                |
 
 <Note>
-Released GPT-Live browser and Gateway-relay WebRTC try an Vasudev ChatGPT OAuth
+Released GPT-Live browser and Gateway-relay WebRTC try a Vasudev ChatGPT OAuth
 profile first and fall back to Platform API-key auth. Ordinary GA browser
 Realtime tries Platform auth first and falls back to OAuth only when no Platform
 credential source is configured. Direct backend sockets and unlisted or private

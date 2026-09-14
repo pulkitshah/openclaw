@@ -1,4 +1,4 @@
-// Tests OpenClaw execution environment construction.
+// Tests Vasudev execution environment construction.
 import { describe, expect, it } from "vitest";
 import { deleteTestEnvValue, setTestEnvValue } from "../test-utils/env.js";
 import {

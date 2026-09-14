@@ -34,7 +34,7 @@ describe("Git updater release tag refresh", () => {
     const root = path.join(directory, "installed");
     git(directory, "init", "--bare", "--initial-branch=main", upstream);
     git(directory, "clone", upstream, seed);
-    git(seed, "config", "user.name", "OpenClaw Test");
+    git(seed, "config", "user.name", "Vasudev Test");
     git(seed, "config", "user.email", "openclaw@example.invalid");
     writeFileSync(
       path.join(seed, "package.json"),

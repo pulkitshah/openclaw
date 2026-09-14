@@ -30,7 +30,7 @@ async function gitWorkspace(name: string) {
     ["add", ".gitignore"],
     [
       "-c",
-      "user.name=OpenClaw Test",
+      "user.name=Vasudev Test",
       "-c",
       "user.email=test@openclaw.invalid",
       "commit",

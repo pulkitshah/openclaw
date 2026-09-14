@@ -149,7 +149,7 @@ describe("doctor context-engine host compatibility", () => {
       });
       const pending = collectContextEngineHostCompatibilityWarnings({
         cfg: configWithEngine(id),
-        doctorFixCommand: "openclaw doctor --fix",
+        doctorFixCommand: "vasudev doctor --fix",
       });
       try {
         expect(
@@ -197,7 +197,7 @@ describe("doctor context-engine host compatibility", () => {
         release: async () => undefined,
       }));
       const cfg = configWithEngine(id);
-      const params = { cfg, doctorFixCommand: "openclaw doctor --fix" };
+      const params = { cfg, doctorFixCommand: "vasudev doctor --fix" };
       const warnings = await collectContextEngineHostCompatibilityWarnings(params);
       expect(warnings.join("\n")).toContain(
         discovered
@@ -227,7 +227,7 @@ describe("doctor context-engine host compatibility", () => {
     });
   });
 
-  it("evaluates native Codex and OpenClaw agent-run hosts", async () => {
+  it("evaluates native Codex and Vasudev agent-run hosts", async () => {
     const engineId = registerEngine(["thread-bootstrap-projection"]);
     const warnings = await collectContextEngineHostCompatibilityWarnings({
       cfg: configWithEngine(engineId, {
@@ -240,10 +240,10 @@ describe("doctor context-engine host compatibility", () => {
           },
         },
       }),
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "vasudev doctor --fix",
     });
 
-    expect(warnings.join("\n")).toContain("OpenClaw embedded runner");
+    expect(warnings.join("\n")).toContain("Vasudev embedded runner");
     expect(warnings.join("\n")).toContain("Some configured runtimes support");
     expect(warnings.join("\n")).not.toContain("Codex app-server harness (");
   });
@@ -261,7 +261,7 @@ describe("doctor context-engine host compatibility", () => {
           },
         },
       }),
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "vasudev doctor --fix",
     });
 
     expect(warnings).toEqual([]);
@@ -284,7 +284,7 @@ describe("doctor context-engine host compatibility", () => {
           },
         },
       }),
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "vasudev doctor --fix",
     });
 
     expect(warnings).toEqual([]);
@@ -309,11 +309,11 @@ describe("doctor context-engine host compatibility", () => {
     });
     const warnings = await collectContextEngineHostCompatibilityWarnings({
       cfg,
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "vasudev doctor --fix",
     });
     const result = await maybeRepairContextEngineHostCompatibility({
       cfg,
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "vasudev doctor --fix",
     });
 
     expect(warnings.join("\n")).toContain(
@@ -338,7 +338,7 @@ describe("doctor context-engine host compatibility", () => {
     });
     const result = await maybeRepairContextEngineHostCompatibility({
       cfg,
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "vasudev doctor --fix",
     });
 
     expect(result.config).toBe(cfg);
@@ -359,7 +359,7 @@ describe("doctor context-engine host compatibility", () => {
     });
     const result = await maybeRepairContextEngineHostCompatibility({
       cfg,
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "vasudev doctor --fix",
     });
 
     expect(result.config).toBe(cfg);

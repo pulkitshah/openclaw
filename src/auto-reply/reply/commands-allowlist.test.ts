@@ -343,7 +343,7 @@ describe("handleAllowlistCommand", () => {
 
     expect(result?.shouldContinue).toBe(false);
     expect(result?.reply?.text).toContain(
-      "Paired allowFrom (store): unavailable (read failed). Retry this command; if it still fails, run openclaw doctor.",
+      "Paired allowFrom (store): unavailable (read failed). Retry this command; if it still fails, run vasudev doctor.",
     );
   });
 

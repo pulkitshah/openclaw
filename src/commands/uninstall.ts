@@ -37,7 +37,7 @@ async function stopAndUninstallService(runtime: RuntimeEnv): Promise<boolean> {
   if (isNixMode) {
     // Nix owns service lifecycle in Nix mode; uninstalling via launchd/systemd would fight the profile.
     runtime.error(
-      `Nix mode detected; service uninstall is disabled. Manage the service through your Nix profile instead, then run ${formatCliCommand("openclaw status")} to verify.`,
+      `Nix mode detected; service uninstall is disabled. Manage the service through your Nix profile instead, then run ${formatCliCommand("vasudev status")} to verify.`,
     );
     return false;
   }
@@ -47,7 +47,7 @@ async function stopAndUninstallService(runtime: RuntimeEnv): Promise<boolean> {
     loaded = await service.isLoaded({ env: process.env });
   } catch (err) {
     runtime.error(
-      `Gateway service check failed: ${formatErrorMessage(err)}. Run ${formatCliCommand("openclaw gateway status --deep")} for service diagnostics.`,
+      `Gateway service check failed: ${formatErrorMessage(err)}. Run ${formatCliCommand("vasudev gateway status --deep")} for service diagnostics.`,
     );
     return false;
   }
@@ -61,7 +61,7 @@ async function stopAndUninstallService(runtime: RuntimeEnv): Promise<boolean> {
     } catch (err) {
       stopped = false;
       runtime.error(
-        `Gateway stop failed: ${formatErrorMessage(err)}. Run ${formatCliCommand("openclaw gateway status --deep")} before retrying uninstall.`,
+        `Gateway stop failed: ${formatErrorMessage(err)}. Run ${formatCliCommand("vasudev gateway status --deep")} before retrying uninstall.`,
       );
     }
   }
@@ -69,7 +69,7 @@ async function stopAndUninstallService(runtime: RuntimeEnv): Promise<boolean> {
     await service.uninstall({ env: process.env, stdout: process.stdout });
   } catch (err) {
     runtime.error(
-      `Gateway uninstall failed: ${formatErrorMessage(err)}. Run ${formatCliCommand("openclaw gateway status --deep")} for the service state.`,
+      `Gateway uninstall failed: ${formatErrorMessage(err)}. Run ${formatCliCommand("vasudev gateway status --deep")} for the service state.`,
     );
     return false;
   }
@@ -97,7 +97,7 @@ export async function uninstallCommand(runtime: RuntimeEnv, opts: UninstallOptio
   const interactive = !opts.nonInteractive;
   if (!interactive && !opts.yes) {
     runtime.error(
-      `Non-interactive uninstall requires --yes. Preview first with ${formatCliCommand("openclaw uninstall --dry-run --all")}.`,
+      `Non-interactive uninstall requires --yes. Preview first with ${formatCliCommand("vasudev uninstall --dry-run --all")}.`,
     );
     runtime.exit(1);
     return;
@@ -175,7 +175,7 @@ export async function uninstallCommand(runtime: RuntimeEnv, opts: UninstallOptio
   const removesLocalData = scopes.has("state") || scopes.has("workspace");
 
   if (removesLocalData) {
-    runtime.log(`Recommended first: ${formatCliCommand("openclaw backup create")}`);
+    runtime.log(`Recommended first: ${formatCliCommand("vasudev backup create")}`);
   }
 
   if (scopes.has("service")) {

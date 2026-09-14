@@ -38,7 +38,7 @@ function getEmbeddedAgentParams(): {
 } {
   const params = runEmbeddedAgentMock.mock.calls[0]?.[0];
   if (!params || typeof params !== "object" || Array.isArray(params)) {
-    throw new Error("Expected embedded OpenClaw agent params to be an object");
+    throw new Error("Expected embedded Vasudev agent params to be an object");
   }
   return params;
 }
@@ -50,7 +50,7 @@ function getCliAgentParams(): {
 } {
   const params = runCliAgentMock.mock.calls[0]?.[0];
   if (!params || typeof params !== "object" || Array.isArray(params)) {
-    throw new Error("Expected CLI OpenClaw agent params to be an object");
+    throw new Error("Expected CLI Vasudev agent params to be an object");
   }
   return params as { authProfileId?: string; provider?: string };
 }

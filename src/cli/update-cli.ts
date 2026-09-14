@@ -76,12 +76,12 @@ function createUpdateLeafAction(
     try {
       if (inheritOptionFromParent<boolean>(command, "reapplyLocalOverrides")) {
         throw new Error(
-          `--reapply-local-overrides is not supported for openclaw update ${command.name()}. Use it with openclaw update.`,
+          `--reapply-local-overrides is not supported for vasudev update ${command.name()}. Use it with vasudev update.`,
         );
       }
       if (!options.supportsDryRun && inheritOptionFromParent<boolean>(command, "dryRun")) {
         throw new Error(
-          `--dry-run is not supported for \`openclaw update ${command.name()}\`. Run \`openclaw update --dry-run\` instead.`,
+          `--dry-run is not supported for \`vasudev update ${command.name()}\`. Run \`vasudev update --dry-run\` instead.`,
         );
       }
       await action(opts, command);
@@ -167,7 +167,7 @@ export function registerUpdateCli(program: Command) {
         ["openclaw update --accept-capabilities", "Accept reviewed plugin capability changes"],
         ["openclaw update repair", "Repair stranded post-update plugin state"],
         ["openclaw update wizard", "Interactive update wizard"],
-        ["openclaw --update", "Shorthand for openclaw update"],
+        ["openclaw --update", "Shorthand for vasudev update"],
       ] as const;
       const fmtExamples = examples
         .map(([cmd, desc]) => `  ${theme.command(cmd)} ${theme.muted(`# ${desc}`)}`)
@@ -179,7 +179,7 @@ ${theme.heading("What this does:")}
 
 ${theme.heading("Switch channels:")}
   - Use --channel stable|extended-stable|beta|dev to persist the update channel in config
-  - Run openclaw update status to see the active channel and source
+  - Run vasudev update status to see the active channel and source
   - Use --tag <dist-tag|version|spec> for a one-off package update without persisting
   - Use --channel dev for the moving GitHub main checkout; package installs reject --tag main
 
@@ -234,7 +234,7 @@ ${theme.muted("Docs:")} ${formatDocsLink("/cli/update", "docs.openclaw.ai/cli/up
               update.getOptionValueSource(key) !== "default"
             ) {
               throw new Error(
-                `--${key === "restart" ? "no-restart" : key === "acceptCapabilities" ? "accept-capabilities" : key} is not supported for openclaw update cleanup.`,
+                `--${key === "restart" ? "no-restart" : key === "acceptCapabilities" ? "accept-capabilities" : key} is not supported for vasudev update cleanup.`,
               );
             }
           }
@@ -308,7 +308,7 @@ ${theme.muted("Docs:")} ${formatDocsLink("/cli/update", "docs.openclaw.ai/cli/up
         `\n${theme.heading("Examples:")}\n${formatHelpExamples([
           ["openclaw update status", "Show channel + version status."],
           ["openclaw update status --json", "JSON output."],
-          ["openclaw update status --timeout 10", "Custom timeout."],
+          ["vasudev update status --timeout 10", "Custom timeout."],
         ])}\n\n${theme.heading("Notes:")}\n${theme.muted(
           "- Shows current update channel (stable/extended-stable/beta/dev) and source",
         )}\n${theme.muted("- Includes git tag/branch/SHA for source checkouts")}\n\n${theme.muted(

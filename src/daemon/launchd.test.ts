@@ -1097,7 +1097,7 @@ describe("launchd runtime state", () => {
 });
 
 describe("launchctl list detection", () => {
-  it("parses stale OpenClaw updater jobs from launchctl list", () => {
+  it("parses stale Vasudev updater jobs from launchctl list", () => {
     const jobs = parseLaunchctlListOpenClawUpdateJobs(
       [
         "123 0 ai.openclaw.gateway",
@@ -1128,7 +1128,7 @@ describe("launchctl list detection", () => {
   });
 
   it.runIf(process.platform === "darwin")(
-    "finds stale OpenClaw updater jobs via launchctl list",
+    "finds stale Vasudev updater jobs via launchctl list",
     async () => {
       state.listOutput = "- 127 ai.openclaw.update.2026.5.12\n";
 
@@ -1346,7 +1346,7 @@ describe("launchctl list detection", () => {
   );
 
   it.runIf(process.platform === "darwin")(
-    "disables the current legacy updater launchd job from OpenClaw label env",
+    "disables the current legacy updater launchd job from Vasudev label env",
     async () => {
       await expect(
         disableCurrentOpenClawUpdateLaunchdJob({
@@ -1363,7 +1363,7 @@ describe("launchctl list detection", () => {
   );
 
   it.runIf(process.platform === "darwin")(
-    "does not let non-update launchd markers mask the OpenClaw update label",
+    "does not let non-update launchd markers mask the Vasudev update label",
     async () => {
       await expect(
         disableCurrentOpenClawUpdateLaunchdJob({
@@ -2264,12 +2264,12 @@ describe("launchd install", () => {
     };
     await installLaunchAgent(
       launchAgentFixture(env, ["node", "node-host.js"], {
-        description: "OpenClaw Node Host",
+        description: "Vasudev Node Host",
       }),
     );
 
     const plist = state.files.get(resolveLaunchAgentPlistPath(env)) ?? "";
-    expect(plist).toContain("<key>Comment</key>\n    <string>OpenClaw Node Host</string>");
+    expect(plist).toContain("<key>Comment</key>\n    <string>Vasudev Node Host</string>");
     expect(plist).not.toContain("OPENCLAW_SERVICE_VERSION");
   });
 
@@ -2378,7 +2378,7 @@ describe("launchd install", () => {
 
     expect(output).toContain("Warning:");
     expect(output).toContain("contains custom behavior and will be overwritten");
-    expect(output).toContain("openclaw gateway install --wrapper <path>");
+    expect(output).toContain("vasudev gateway install --wrapper <path>");
     expect(output).toContain("OPENCLAW_WRAPPER");
     expect(state.files.get(wrapperPath)).toBe(generatedWrapper);
   });
@@ -2411,7 +2411,7 @@ describe("launchd install", () => {
 
     expect(output).toContain("Warning:");
     expect(output).toContain("contains custom behavior and will be overwritten");
-    expect(output).toContain("openclaw gateway install --wrapper <path>");
+    expect(output).toContain("vasudev gateway install --wrapper <path>");
     expect(output).toContain("OPENCLAW_WRAPPER");
     expect(state.files.get(wrapperPath)).toBe(generatedWrapper);
   });
@@ -3358,7 +3358,7 @@ describe("launchd install", () => {
     );
     expect(message).toContain(`LaunchAgent ${domain}/ai.openclaw.gateway is not loaded`);
     expect(message).toContain("The gateway is down and launchd has no job left to respawn it.");
-    expect(message).toContain("openclaw gateway start");
+    expect(message).toContain("vasudev gateway start");
   });
 
   it("does not wait out the teardown deadline when the reload bootstrap reports already-loaded", async () => {

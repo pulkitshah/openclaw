@@ -4834,7 +4834,7 @@ describe("chat directive tag stripping for non-streaming final payloads", () => 
         payload: {
           text: [
             "Trajectory exports can include prompts, model messages, tool schemas, tool results, runtime events, and local paths.",
-            "Trajectory bundle: requested `openclaw sessions export-trajectory` through exec approval. Approve once to create the bundle; do not use allow-all for trajectory exports.",
+            "Trajectory bundle: requested `vasudev sessions export-trajectory` through exec approval. Approve once to create the bundle; do not use allow-all for trajectory exports.",
           ].join("\n"),
         },
       },
@@ -4924,7 +4924,7 @@ describe("chat directive tag stripping for non-streaming final payloads", () => 
       {
         kind: "final",
         payload: {
-          text: "Scan this QR code with the OpenClaw iOS app:",
+          text: "Scan this QR code with the Vasudev iOS app:",
           channelData: {
             openclawPairingQr: {
               setupCode,
@@ -4943,7 +4943,7 @@ describe("chat directive tag stripping for non-streaming final payloads", () => 
     const content = getMessageContent(payload);
     expect(content[0]).toEqual({
       type: "text",
-      text: "Scan this QR code with the OpenClaw iOS app:",
+      text: "Scan this QR code with the Vasudev iOS app:",
     });
     expect(content[1]).toEqual(
       expect.objectContaining({
@@ -4955,7 +4955,7 @@ describe("chat directive tag stripping for non-streaming final payloads", () => 
     );
     const transcriptMessages = await readActiveAssistantTranscriptMessages();
     const serializedTranscript = JSON.stringify(transcriptMessages);
-    expect(serializedTranscript).toContain("Scan this QR code with the OpenClaw iOS app:");
+    expect(serializedTranscript).toContain("Scan this QR code with the Vasudev iOS app:");
     expect(serializedTranscript).not.toContain("openclaw_pairing_qr");
     expect(serializedTranscript).not.toContain("data:image/png");
     expect(serializedTranscript).not.toContain("terminalText");
@@ -5297,7 +5297,7 @@ describe("chat directive tag stripping for non-streaming final payloads", () => 
   it("renders image reply payloads as assistant image content instead of MEDIA text", async () => {
     await createTranscriptFixture("openclaw-chat-send-agent-image-");
     mockState.finalPayload = {
-      text: "Scan this QR code with the OpenClaw iOS app:",
+      text: "Scan this QR code with the Vasudev iOS app:",
       mediaUrl: `data:image/png;base64,${TINY_PNG_BASE64}`,
     };
     const payload = await createChatRequestFixture().send({
@@ -5309,7 +5309,7 @@ describe("chat directive tag stripping for non-streaming final payloads", () => 
     expect(getMessage(payload)?.role).toBe("assistant");
     expect(content[0]).toEqual({
       type: "text",
-      text: "Scan this QR code with the OpenClaw iOS app:",
+      text: "Scan this QR code with the Vasudev iOS app:",
     });
     expect(image).toMatchObject({
       type: "image",
@@ -6532,7 +6532,7 @@ describe("chat directive tag stripping for non-streaming final payloads", () => 
   it("does not persist sensitive image media into transcript updates", async () => {
     await createTranscriptFixture("openclaw-chat-send-sensitive-media-final-");
     mockState.finalPayload = {
-      text: "Scan this QR code with the OpenClaw iOS app:",
+      text: "Scan this QR code with the Vasudev iOS app:",
       mediaUrl: "data:image/png;base64,cG5n",
       sensitiveMedia: true,
     };
@@ -6544,7 +6544,7 @@ describe("chat directive tag stripping for non-streaming final payloads", () => 
     expect(getMessage(payload)?.role).toBe("assistant");
     expect(content[0]).toEqual({
       type: "text",
-      text: "Scan this QR code with the OpenClaw iOS app:",
+      text: "Scan this QR code with the Vasudev iOS app:",
     });
     expect(content[1]).toEqual({ type: "input_image", image_url: "data:image/png;base64,cG5n" });
     const transcriptUpdate = mockState.emittedTranscriptUpdates.find(
@@ -6557,7 +6557,7 @@ describe("chat directive tag stripping for non-streaming final payloads", () => 
     expect(transcriptMessage?.role).toBe("assistant");
     expect(transcriptMessage?.content?.[0]).toEqual({
       type: "text",
-      text: "Scan this QR code with the OpenClaw iOS app:",
+      text: "Scan this QR code with the Vasudev iOS app:",
     });
     expect(JSON.stringify(transcriptUpdate)).not.toContain("input_image");
     expect(JSON.stringify(transcriptUpdate)).not.toContain("data:image/png;base64,cG5n");

@@ -521,7 +521,7 @@ export function resolveCompletionProfileHint(shell: CompletionShell): string {
     : profilePath;
 }
 
-/** Returns whether a shell profile already contains an Vasudev completion block or source line. */
+/** Returns whether a shell profile already contains a Vasudev completion block or source line. */
 export async function isCompletionInstalled(
   shell: CompletionShell,
   binName = "openclaw",

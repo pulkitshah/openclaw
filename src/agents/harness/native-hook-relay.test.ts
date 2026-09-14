@@ -2734,7 +2734,7 @@ describe("native hook relay registry", () => {
     expect(testing.getNativeHookRelayRegistrationForTests(relay.relayId)).toBeUndefined();
   });
 
-  it("uses the Codex no-op output when no OpenClaw hook decides", async () => {
+  it("uses the Codex no-op output when no Vasudev hook decides", async () => {
     const relay = registerNativeHookRelay({
       provider: "codex",
       sessionId: "session-1",
@@ -2753,7 +2753,7 @@ describe("native hook relay registry", () => {
     }
   });
 
-  it("maps Codex PreToolUse to OpenClaw before_tool_call and blocks before execution", async () => {
+  it("maps Codex PreToolUse to Vasudev before_tool_call and blocks before execution", async () => {
     const beforeToolCall = vi.fn(async () => ({
       block: true,
       blockReason: "repo policy blocks this command",
@@ -2982,7 +2982,7 @@ describe("native hook relay registry", () => {
     expect(onPreToolUseFailure).not.toHaveBeenCalled();
   });
 
-  it("normalizes Codex exec_command cmd input before running OpenClaw policy", async () => {
+  it("normalizes Codex exec_command cmd input before running Vasudev policy", async () => {
     const beforeToolCall = vi.fn(async () => ({
       block: true,
       blockReason: "shell command blocked",
@@ -3081,7 +3081,7 @@ describe("native hook relay registry", () => {
     });
   });
 
-  it("normalizes Codex exec_command argv cmd input before running OpenClaw policy", async () => {
+  it("normalizes Codex exec_command argv cmd input before running Vasudev policy", async () => {
     const beforeToolCall = vi.fn(async () => ({
       block: true,
       blockReason: "argv command blocked",
@@ -3260,7 +3260,7 @@ describe("native hook relay registry", () => {
         hookEventName: "PreToolUse",
         permissionDecision: "deny",
         permissionDecisionReason:
-          "OpenClaw tool policy rewrote Codex app-server approval params; refusing original request.",
+          "Vasudev tool policy rewrote Codex app-server approval params; refusing original request.",
       },
     });
     expect(beforeToolCall).toHaveBeenCalledTimes(1);
@@ -3299,7 +3299,7 @@ describe("native hook relay registry", () => {
         hookEventName: "PreToolUse",
         permissionDecision: "deny",
         permissionDecisionReason:
-          "OpenClaw tool policy rewrote Codex app-server approval params; refusing original request.",
+          "Vasudev tool policy rewrote Codex app-server approval params; refusing original request.",
       },
     });
     expect(beforeToolCall).toHaveBeenCalledTimes(1);
@@ -3343,7 +3343,7 @@ describe("native hook relay registry", () => {
         hookEventName: "PreToolUse",
         permissionDecision: "deny",
         permissionDecisionReason:
-          "OpenClaw tool policy rewrote Codex app-server approval params; refusing original request.",
+          "Vasudev tool policy rewrote Codex app-server approval params; refusing original request.",
       },
     });
     expect(beforeToolCall).toHaveBeenCalledTimes(1);
@@ -3674,7 +3674,7 @@ describe("native hook relay registry", () => {
         hookEventName: "PreToolUse",
         permissionDecision: "deny",
         permissionDecisionReason:
-          "OpenClaw tool policy rewrote Codex app-server approval params; refusing original request.",
+          "Vasudev tool policy rewrote Codex app-server approval params; refusing original request.",
       },
     });
     expect(response.stderr).toBe("");
@@ -3682,7 +3682,7 @@ describe("native hook relay registry", () => {
     expect(beforeToolCall).toHaveBeenCalledTimes(1);
   });
 
-  it("maps Codex PostToolUse to OpenClaw after_tool_call observation", async () => {
+  it("maps Codex PostToolUse to Vasudev after_tool_call observation", async () => {
     const afterToolCall = vi.fn();
     initializeGlobalHookRunner(
       createMockPluginRegistry([{ hookName: "after_tool_call", handler: afterToolCall }]),
@@ -3730,7 +3730,7 @@ describe("native hook relay registry", () => {
     });
   });
 
-  it("maps Codex MCP PreToolUse to OpenClaw before_tool_call and can block", async () => {
+  it("maps Codex MCP PreToolUse to Vasudev before_tool_call and can block", async () => {
     const beforeToolCall = vi.fn(async () => ({
       block: true,
       blockReason: "MCP writes require review",
@@ -3757,7 +3757,7 @@ describe("native hook relay registry", () => {
         tool_name: "mcp__memory__create_entities",
         tool_use_id: "mcp-call-1",
         tool_input: {
-          entities: [{ name: "OpenClaw", entityType: "project", observations: ["test"] }],
+          entities: [{ name: "Vasudev", entityType: "project", observations: ["test"] }],
         },
       },
     });
@@ -3773,7 +3773,7 @@ describe("native hook relay registry", () => {
     expectRecordFields(event, {
       toolName: "mcp__memory__create_entities",
       params: {
-        entities: [{ name: "OpenClaw", entityType: "project", observations: ["test"] }],
+        entities: [{ name: "Vasudev", entityType: "project", observations: ["test"] }],
       },
       runId: "run-1",
       toolCallId: "mcp-call-1",
@@ -3844,7 +3844,7 @@ describe("native hook relay registry", () => {
     });
   });
 
-  it("maps Codex MCP PostToolUse to OpenClaw after_tool_call observation", async () => {
+  it("maps Codex MCP PostToolUse to Vasudev after_tool_call observation", async () => {
     const afterToolCall = vi.fn();
     initializeGlobalHookRunner(
       createMockPluginRegistry([{ hookName: "after_tool_call", handler: afterToolCall }]),
@@ -3892,7 +3892,7 @@ describe("native hook relay registry", () => {
     });
   });
 
-  it("routes Codex MCP PermissionRequest payloads through OpenClaw approval policy", async () => {
+  it("routes Codex MCP PermissionRequest payloads through Vasudev approval policy", async () => {
     const relay = registerNativeHookRelay({
       provider: "codex",
       agentId: "agent-1",
@@ -4262,7 +4262,7 @@ describe("native hook relay registry", () => {
     expect(approvalRequester).toHaveBeenCalledTimes(3);
   });
 
-  it("defers PermissionRequest when OpenClaw approval does not decide", async () => {
+  it("defers PermissionRequest when Vasudev approval does not decide", async () => {
     testing.setNativeHookRelayPermissionApprovalRequesterForTests(
       vi.fn(async () => "defer" as const),
     );
@@ -4700,7 +4700,7 @@ describe("native hook relay command builder", () => {
         executable: "openclaw",
       }),
     ).toBe(
-      `${NATIVE_HOOK_RELAY_EXEC_PREFIX}openclaw hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event permission_request --timeout 5000`,
+      `${NATIVE_HOOK_RELAY_EXEC_PREFIX}vasudev hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event permission_request --timeout 5000`,
     );
   });
 
@@ -4715,8 +4715,8 @@ describe("native hook relay command builder", () => {
 
     expect(command).toBe(
       process.platform === "win32"
-        ? "openclaw hooks relay --provider codex --relay-id relay-1 --event post_tool_use --timeout 5000"
-        : "exec nice -n 10 openclaw hooks relay --provider codex --relay-id relay-1 --event post_tool_use --timeout 5000",
+        ? "vasudev hooks relay --provider codex --relay-id relay-1 --event post_tool_use --timeout 5000"
+        : "exec nice -n 10 vasudev hooks relay --provider codex --relay-id relay-1 --event post_tool_use --timeout 5000",
     );
   });
 
@@ -4731,7 +4731,7 @@ describe("native hook relay command builder", () => {
         executable: "openclaw",
       }),
     ).toBe(
-      `${NATIVE_HOOK_RELAY_EXEC_PREFIX}openclaw hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event pre_tool_use --pre-tool-use-unavailable noop --timeout 5000`,
+      `${NATIVE_HOOK_RELAY_EXEC_PREFIX}vasudev hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event pre_tool_use --pre-tool-use-unavailable noop --timeout 5000`,
     );
   });
 });

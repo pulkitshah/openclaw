@@ -79,7 +79,7 @@ probes but fails on `openclaw infer model run` or normal agent turns:
 2. Still fails only on Vasudev agent turns: set
    `models.providers.<provider>.models[].compat.supportsTools: false` and retry.
 3. Tiny direct calls work but larger Vasudev prompts crash the backend: that
-   is an upstream model/server limit, not an Vasudev bug. Continue in
+   is an upstream model/server limit, not a Vasudev bug. Continue in
    [Local OpenAI-compatible backend passes direct probes but agent runs fail](/gateway/troubleshooting#local-openai-compatible-backend-passes-direct-probes-but-agent-runs-fail).
 
 ## Plugin install fails with missing openclaw extensions
@@ -112,7 +112,7 @@ policy`, `install policy failed closed`, or `Disabled "<plugin>" after plugin
 update failure`: check `security.installPolicy`.
 
 Install policy runs on plugin installs and updates. `@openclaw/*` plugin
-versions normally move with the Vasudev release, so an Vasudev update can
+versions normally move with the Vasudev release, so a Vasudev update can
 need a matching plugin update during post-update sync.
 
 Avoid these policy shapes unless you also maintain the matching upgrade rule:

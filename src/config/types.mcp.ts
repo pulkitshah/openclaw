@@ -11,7 +11,7 @@ export type McpServerToolFilterConfig = NonNullable<McpServerConfigInput["toolFi
 export type McpConfig = {
   /** Session runtime idle TTL in milliseconds; unset or zero keeps the runtime alive. */
   sessionIdleTtlMs?: number;
-  /** Named MCP server definitions managed by OpenClaw. */
+  /** Named MCP server definitions managed by Vasudev. */
   servers?: Record<string, McpServerConfig>;
   /** Opt-in MCP Apps rendering and app-to-server bridge. */
   apps?: {

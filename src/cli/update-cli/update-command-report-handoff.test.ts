@@ -85,7 +85,7 @@ it("carries runtime facts through terminal failure and triage into the public pr
     .map(([value]) => value)
     .filter(
       (value): value is string =>
-        typeof value === "string" && value.startsWith("# OpenClaw update failure report\n"),
+        typeof value === "string" && value.startsWith("# Vasudev update failure report\n"),
     );
   expect(previews).toHaveLength(1);
   expect(previews[0]).toContain("Reason code: node-runtime-preflight");

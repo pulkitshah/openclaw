@@ -17,7 +17,7 @@ function sanitizePlainObject(value: Record<string, unknown>): Record<string, unk
   return sanitized;
 }
 
-/** Merge plain objects while preserving OpenClaw's null, undefined, and array policies. */
+/** Merge plain objects while preserving Vasudev's null, undefined, and array policies. */
 export function mergeDeep(
   base: unknown,
   override: unknown,

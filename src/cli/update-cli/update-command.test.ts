@@ -82,7 +82,7 @@ describe("applyPostPluginConfigValidation", () => {
       reason: "post-plugin-doctor-invalid-config",
       warnings: [
         {
-          guidance: ["Run `openclaw doctor --fix`, then rerun `openclaw update repair`."],
+          guidance: ["Run `vasudev doctor --fix`, then rerun `vasudev update repair`."],
         },
       ],
     });
@@ -660,9 +660,9 @@ describe("formatPostUpdateGatewayRecoveryInstructions", () => {
     );
 
     expect(line).toContain("the systemd user service");
-    expect(line).toContain("openclaw gateway restart");
-    expect(line).toContain("openclaw gateway install --force");
-    expect(line).toContain("openclaw gateway status --deep");
+    expect(line).toContain("vasudev gateway restart");
+    expect(line).toContain("vasudev gateway install --force");
+    expect(line).toContain("vasudev gateway status --deep");
     expect(line).not.toContain("Linux reports");
     expect(line).not.toContain("macOS");
     expect(line).not.toContain("LaunchAgent");
@@ -1004,8 +1004,8 @@ describe("updatePluginsAfterCoreUpdate (invalid config)", () => {
         message:
           "Plugin post-update convergence skipped because the config is invalid; refusing to restart the gateway with an unverified plugin set.",
         guidance: [
-          "Run `openclaw doctor` to inspect the config validation errors.",
-          "Once the config parses, rerun `openclaw update repair`.",
+          "Run `vasudev doctor` to inspect the config validation errors.",
+          "Once the config parses, rerun `vasudev update repair`.",
         ],
       },
     ]);
@@ -1023,8 +1023,8 @@ describe("buildInvalidConfigPostCoreUpdateResult", () => {
   it("surfaces actionable repair guidance in both the structural warnings and the message string", () => {
     const built = updateCommandPluginsTesting.buildInvalidConfigPostCoreUpdateResult();
     expect(built.guidance).toStrictEqual([
-      "Run `openclaw doctor` to inspect the config validation errors.",
-      "Once the config parses, rerun `openclaw update repair`.",
+      "Run `vasudev doctor` to inspect the config validation errors.",
+      "Once the config parses, rerun `vasudev update repair`.",
     ]);
     expect(built.result.warnings).toStrictEqual([
       {

@@ -502,7 +502,7 @@ describe("exec approvals SQLite store", () => {
       }
       expect(caught).toBeInstanceOf(ExecApprovalsMigrationRequiredError);
       expect(caught).toMatchObject({
-        message: `Legacy exec approvals exist at ${sourcePath}. Run \`openclaw doctor --fix\` with OPENCLAW_STATE_DIR set to ${stateDir} before using exec approvals.`,
+        message: `Legacy exec approvals exist at ${sourcePath}. Run \`vasudev doctor --fix\` with OPENCLAW_STATE_DIR set to ${stateDir} before using exec approvals.`,
       });
 
       fs.rmSync(legacyPath);
@@ -524,7 +524,7 @@ describe("exec approvals SQLite store", () => {
     // Prose, not `VAR=value cmd`: no Windows shell accepts that form, and a path
     // containing spaces would need shell-specific quoting to survive a paste.
     expect(error.message).toContain(
-      `Run \`openclaw doctor --fix\` with OPENCLAW_STATE_DIR set to ${stateDir}`,
+      `Run \`vasudev doctor --fix\` with OPENCLAW_STATE_DIR set to ${stateDir}`,
     );
   });
 

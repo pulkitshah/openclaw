@@ -72,7 +72,7 @@ by local policy, use an ordinary session permission mode to request approval,
 or deliberately change the node's local policy and reconnect it.
 Policy tightening during launch preparation refuses the stale launch.
 
-Codex launches its node exec-server directly rather than starting an Vasudev
+Codex launches its node exec-server directly rather than starting a Vasudev
 worker, so a paired host remains eligible when all worker slots are occupied.
 The command must still be effectively invocable: declaring it without the
 approved pairing surface and Gateway allowlist is insufficient.
@@ -98,7 +98,7 @@ cold disk startup does not consume Codex's initialize-handshake budget. Startup
 remains cancellable through the existing attempt lifecycle. The Gateway
 relays complete Codex JSON-RPC messages through the existing authenticated,
 approval-gated duplex node channel, with a 64 MiB limit per message. It does not
-start an Vasudev worker child, open a reverse tunnel, or copy provider, cloud,
+start a Vasudev worker child, open a reverse tunnel, or copy provider, cloud,
 or GitHub credentials to the device. Authenticated remote HTTP is unavailable:
 the Gateway rejects requests containing bearer/OAuth authorization, cookies,
 API keys, or other sensitive authentication headers before sending them to the
@@ -152,7 +152,7 @@ placement-scoped approval or explicitly selected Full access rules apply,
 including the cloud node's local exec policy and approvals floors.
 
 Codex runs its managed exec-server over the enrolled node's authenticated
-outbound connection without starting an Vasudev worker child or consuming a
+outbound connection without starting a Vasudev worker child or consuming a
 worker slot. Its app-server, model connection, provider authentication, and
 transcript remain Gateway-owned. Process and filesystem access still have the
 node operating-system account's permissions, and only credential-free HTTP is

@@ -47,7 +47,7 @@ export async function checkGitCandidateNodeRuntime(
     nodeVersionSatisfiesEngine(systemNode.version, engine) !== false
   ) {
     systemDiagnostic =
-      "OpenClaw did not select or activate another runtime. " +
+      "Vasudev did not select or activate another runtime. " +
       `Existing compatible Node ${systemNode.version}: ${systemNode.path}`;
   } else {
     systemDiagnostic = "No compatible existing system Node was found.";

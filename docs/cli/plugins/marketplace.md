@@ -2,7 +2,7 @@
 summary: "`plugins marketplace` entries, list, and refresh, plus hosted feed trust and signed feed profiles"
 title: "Marketplace feeds"
 read_when:
-  - You want to browse, list, or refresh an Vasudev marketplace feed
+  - You want to browse, list, or refresh a Vasudev marketplace feed
   - You are configuring a signed feed profile or pinning a feed payload checksum
 ---
 

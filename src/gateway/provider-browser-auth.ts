@@ -135,7 +135,7 @@ function respond(res: ServerResponse, status: number, message: string): void {
   res.setHeader("Referrer-Policy", "no-referrer");
   res.setHeader("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'");
   res.end(
-    `<!doctype html><html lang="en"><meta charset="utf-8"><title>Provider sign-in</title><body><main><h1>${message}</h1><p>Return to OpenClaw for the sign-in result.</p></main></body></html>`,
+    `<!doctype html><html lang="en"><meta charset="utf-8"><title>Provider sign-in</title><body><main><h1>${message}</h1><p>Return to Vasudev for the sign-in result.</p></main></body></html>`,
   );
 }
 

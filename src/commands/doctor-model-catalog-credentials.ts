@@ -343,13 +343,13 @@ export async function maybeMigrateModelCatalogCredentials(params: {
 
   if (detected > 0) {
     note(
-      `Found ${detected} plaintext model credential${detected === 1 ? "" : "s"}. Run openclaw doctor --fix to copy and verify them in agent SQLite before plaintext catalog authentication is retired.`,
+      `Found ${detected} plaintext model credential${detected === 1 ? "" : "s"}. Run vasudev doctor --fix to copy and verify them in agent SQLite before plaintext catalog authentication is retired.`,
       "Model catalog credentials",
     );
   }
   if (removable > 0) {
     note(
-      `Found ${removable} stored unresolved model credential marker${removable === 1 ? "" : "s"}. Run openclaw doctor --fix to remove them from agent SQLite.`,
+      `Found ${removable} stored unresolved model credential marker${removable === 1 ? "" : "s"}. Run vasudev doctor --fix to remove them from agent SQLite.`,
       "Model catalog credentials",
     );
   }

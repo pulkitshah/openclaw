@@ -283,7 +283,7 @@ export async function triageCommand(
     updateFailure,
     failure: automatic?.failure,
   });
-  // Packaged OpenClaw/Bun hosts cannot interpret npm shim entrypoints. Reuse the
+  // Packaged Vasudev/Bun hosts cannot interpret npm shim entrypoints. Reuse the
   // active Node runtime or require an installed node.exe before choosing a shim.
   const nodeExecutable = isNodeRuntime(process.execPath)
     ? process.execPath
@@ -393,7 +393,7 @@ export async function triageCommand(
     canStartAgent &&
     (options.recovery !== undefined || automatic?.failure.kind === "update");
   const agentLabel = runEmbedded
-    ? "the embedded OpenClaw agent using your configured model"
+    ? "the embedded Vasudev agent using your configured model"
     : handoff?.agent;
   if (needsConfirmation) {
     runtime.log(`Agent: ${agentLabel}. This will use your own account/tokens.`);
@@ -603,7 +603,7 @@ export async function triageCommand(
     return;
   }
   if (!installRoot) {
-    throw new Error("Cannot locate the OpenClaw installation; use a suggested handoff command.");
+    throw new Error("Cannot locate the Vasudev installation; use a suggested handoff command.");
   }
   const failedResult =
     updateFailure && "result" in updateFailure ? updateFailure.result : undefined;
@@ -646,7 +646,7 @@ export async function triageCommand(
         const entrypoint = await resolveGatewayInstallEntrypoint(installRoot);
         signal.throwIfAborted();
         if (!entrypoint) {
-          throw new Error("The installed OpenClaw entrypoint is unavailable.");
+          throw new Error("The installed Vasudev entrypoint is unavailable.");
         }
         // A fresh child reads the repaired installation and can be cancelled without
         // leaving Doctor's temporary process-global state active in this CLI.
@@ -710,11 +710,11 @@ export async function triageCommand(
   if (result.status === "unavailable") {
     if (result.reason === "exec-denied-by-policy") {
       throw new Error(
-        "The operator's policy denies unattended repair (exec-denied-by-policy). Use `openclaw triage` for an external handoff.",
+        "The operator's policy denies unattended repair (exec-denied-by-policy). Use `vasudev triage` for an external handoff.",
       );
     }
     throw new Error(
-      `Embedded agent unavailable: ${result.reason}. Run \`openclaw onboard\` or use a suggested handoff command.`,
+      `Embedded agent unavailable: ${result.reason}. Run \`vasudev onboard\` or use a suggested handoff command.`,
     );
   }
   for (const attempt of result.attempts) {

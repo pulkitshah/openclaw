@@ -1,4 +1,4 @@
-/** Interactive stdio ACP client used to connect a terminal session to an OpenClaw ACP server. */
+/** Interactive stdio ACP client used to connect a terminal session to a Vasudev ACP server. */
 import { spawn, type ChildProcess } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -250,7 +250,7 @@ export async function runAcpClientInteractive(opts: AcpClientOptions = {}): Prom
     output: process.stdout,
   });
 
-  console.log("OpenClaw ACP client");
+  console.log("Vasudev ACP client");
   console.log(`Session: ${sessionId}`);
   console.log('Type a prompt, or "exit" to quit.\n');
 

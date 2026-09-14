@@ -24,7 +24,7 @@ export function useIsolatedStateGuard(): void {
         resolveIdentityPathViaExistingAncestorSync(pathname),
       );
       if (relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
-        throw new Error(`OpenClaw state escaped the isolated test home: ${pathname}`);
+        throw new Error(`Vasudev state escaped the isolated test home: ${pathname}`);
       }
     };
     // Check resolution too: a missing foreign DB would otherwise make the leak silently pass.

@@ -53,7 +53,7 @@ export async function buildStatusAllReportLines(params: {
       "",
     );
   }
-  lines.push(heading("OpenClaw status --all"));
+  lines.push(heading("Vasudev status --all"));
   const report = { lines, heading, width: tableWidth, renderTable };
   const overviewColumns = [...statusOverviewTableColumns];
   const overviewRows = params.overviewRows;

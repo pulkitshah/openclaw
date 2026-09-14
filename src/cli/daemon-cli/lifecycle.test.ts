@@ -152,7 +152,7 @@ vi.mock("./start-repair.js", () => ({
 vi.mock("../terminal-interactivity.js", () => ({
   isTerminalInteractive: () => isTerminalInteractive(),
   NON_INTERACTIVE_GATEWAY_STOP_MESSAGE:
-    "This stops the operator's running gateway service. Use an isolated dev gateway (openclaw gateway run --dev, or --profile <name> with a free port) for testing, or re-run with --force if you really mean it.",
+    "This stops the operator's running gateway service. Use an isolated dev gateway (vasudev gateway run --dev, or --profile <name> with a free port) for testing, or re-run with --force if you really mean it.",
 }));
 
 vi.mock("./lifecycle-audit.js", () => ({
@@ -614,8 +614,8 @@ describe("runDaemonRestart health checks", () => {
     const error = await expectRestartError(runDaemonRestart({ json: true }));
     expect(error.message).toBe("Gateway restart timed out after 60s waiting for health checks.");
     expect(error.hints).toEqual([
-      formatCliCommand("openclaw gateway status --deep"),
-      formatCliCommand("openclaw doctor"),
+      formatCliCommand("vasudev gateway status --deep"),
+      formatCliCommand("vasudev doctor"),
     ]);
     expect(terminateStaleGatewayPids).not.toHaveBeenCalled();
     expect(renderRestartDiagnostics).toHaveBeenCalledTimes(1);
@@ -678,8 +678,8 @@ describe("runDaemonRestart health checks", () => {
       "Gateway restart failed after 13s: service stayed stopped and health checks never came up.",
     );
     expect(error.hints).toEqual([
-      formatCliCommand("openclaw gateway status --deep"),
-      formatCliCommand("openclaw doctor"),
+      formatCliCommand("vasudev gateway status --deep"),
+      formatCliCommand("vasudev doctor"),
     ]);
     expect(terminateStaleGatewayPids).not.toHaveBeenCalled();
     expect(renderRestartDiagnostics).toHaveBeenCalledTimes(1);
@@ -715,7 +715,7 @@ describe("runDaemonRestart health checks", () => {
     expect(writeJson).toHaveBeenCalledWith(
       expect.objectContaining({
         ok: false,
-        error: expect.stringContaining("openclaw gateway run --dev"),
+        error: expect.stringContaining("vasudev gateway run --dev"),
       }),
     );
     expect(runServiceStop).not.toHaveBeenCalled();
@@ -961,7 +961,7 @@ describe("runDaemonRestart health checks", () => {
   it("does not fall back to unmanaged restart when launchd repair reports headless GUI bootstrap failure", async () => {
     vi.spyOn(process, "platform", "get").mockReturnValue("darwin");
     recoverInstalledLaunchAgent.mockRejectedValue(
-      new Error("LaunchAgent openclaw gateway restart requires a logged-in macOS GUI session"),
+      new Error("LaunchAgent vasudev gateway restart requires a logged-in macOS GUI session"),
     );
     findVerifiedGatewayListenerPidsOnPortSync.mockReturnValue([4200]);
     mockUnmanagedRestart();

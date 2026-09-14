@@ -57,7 +57,7 @@ export async function inspectUpdateDatabaseContexts(params: {
     if (inspected.serviceUpdateVerdict?.kind === "unresolved") {
       throw new UpdatePreMutationError(
         "managed-service-preflight",
-        "Gateway service installation ownership is unresolved. Run `openclaw gateway status --deep` and retry before changing package or Git files.",
+        "Gateway service installation ownership is unresolved. Run `vasudev gateway status --deep` and retry before changing package or Git files.",
       );
     }
     services.set(root, inspected);

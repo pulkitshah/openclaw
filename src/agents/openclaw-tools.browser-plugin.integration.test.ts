@@ -1,4 +1,4 @@
-// Verifies OpenClaw plugin tools are resolved with browser/runtime context.
+// Verifies Vasudev plugin tools are resolved with browser/runtime context.
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -43,7 +43,7 @@ vi.mock("../plugins/tools.js", async (importOriginal) => ({
 }));
 
 function firstResolvePluginToolsParams(): Record<string, unknown> {
-  // Captures the plugin runtime contract passed from OpenClaw tool resolution.
+  // Captures the plugin runtime contract passed from Vasudev tool resolution.
   const call = hoisted.resolvePluginTools.mock.calls[0];
   if (!call) {
     throw new Error("Expected plugin tool resolution");

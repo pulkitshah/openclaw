@@ -410,7 +410,7 @@ async function migrateLegacyMainSessionKeysInternal(
       outcomes: [{ kind: "not-armed", detail: arming.reason }],
       warnings: unresolved
         ? [
-            `session: legacy ${legacyAgentId} rows have no unambiguous configured owner; preserve them and run openclaw doctor after assigning agents.defaults.sessionStore.agentId`,
+            `session: legacy ${legacyAgentId} rows have no unambiguous configured owner; preserve them and run vasudev doctor after assigning agents.defaults.sessionStore.agentId`,
           ]
         : [],
     };
@@ -439,7 +439,7 @@ async function migrateLegacyMainSessionKeysInternal(
   }
   for (const pathname of resolved.jsonPaths) {
     warnings.push(
-      `session: deferred legacy-main session migration for JSON store ${pathname}; run openclaw doctor --fix`,
+      `session: deferred legacy-main session migration for JSON store ${pathname}; run vasudev doctor --fix`,
     );
   }
   const identityBase = { legacyAgentId, mainKey, ownerAgentId };

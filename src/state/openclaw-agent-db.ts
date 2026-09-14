@@ -1,4 +1,4 @@
-// OpenClaw agent database stores agent-scoped persisted runtime state.
+// Vasudev agent database stores agent-scoped persisted runtime state.
 import { existsSync } from "node:fs";
 import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
@@ -540,7 +540,7 @@ export function getOpenClawAgentDatabaseIfOpen(
     isIncognitoOpenClawAgentSqlitePath(pathname, options) &&
     readAgentDeletionJournal(agentId, { env: options.env })
   ) {
-    throw new Error(`OpenClaw agent database is unavailable while agent ${agentId} is deleted.`);
+    throw new Error(`Vasudev agent database is unavailable while agent ${agentId} is deleted.`);
   }
   const database = cache.databases.get(pathname);
   if (!database?.db.isOpen) {
@@ -552,7 +552,7 @@ export function getOpenClawAgentDatabaseIfOpen(
   }
   if (database.agentId !== agentId) {
     throw new Error(
-      `OpenClaw agent database ${pathname} is already open for agent ${database.agentId}; requested agent ${agentId}.`,
+      `Vasudev agent database ${pathname} is already open for agent ${database.agentId}; requested agent ${agentId}.`,
     );
   }
   assertAgentDeletionDatabaseCleanupAccess(database, options);

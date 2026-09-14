@@ -259,14 +259,14 @@ describe("session accessor readonly listing", () => {
     const retainedScope = { ...scope, sessionKey: "agent:main:retained" };
     const exactReadFailure = {
       ok: false,
-      error: expect.objectContaining({ message: expect.stringContaining("openclaw doctor --fix") }),
+      error: expect.objectContaining({ message: expect.stringContaining("vasudev doctor --fix") }),
     };
     for (const projection of ["full", "list"] as const) {
       expect(loadExactSessionEntryReadOnly({ ...retainedScope, projection })).toBeUndefined();
       for (const key of ["pending", "bad-json", "bad-timestamp"]) {
         expect(() =>
           loadExactSessionEntryReadOnly({ ...scope, sessionKey: `agent:main:${key}`, projection }),
-        ).toThrow("openclaw doctor --fix");
+        ).toThrow("vasudev doctor --fix");
       }
       const grouped = loadExactSessionEntryCandidatesReadOnlyBatch(
         [
@@ -302,11 +302,11 @@ describe("session accessor readonly listing", () => {
       retainedScope.sessionKey,
     );
     expect(() => loadExactSessionEntryReadOnly({ ...retainedScope, projection: "list" })).toThrow(
-      "openclaw doctor --fix",
+      "vasudev doctor --fix",
     );
 
     closeOpenClawAgentDatabasesForTest();
-    expect(() => readSessionStoreSummaryReadOnly(scope, options)).toThrow("openclaw doctor --fix");
+    expect(() => readSessionStoreSummaryReadOnly(scope, options)).toThrow("vasudev doctor --fix");
     expect(
       loadExactSessionEntryCandidatesReadOnlyBatch(
         ["agent:main:pending", "agent:main:tie-a"].map((sessionKey) => ({

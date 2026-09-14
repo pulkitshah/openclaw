@@ -47,7 +47,7 @@ title: "llmman"
     `llmman serve` has no dedicated `/health` route at the top level; use `/v1/models` or `/api/version` for a readiness probe.
 
   </Step>
-  <Step title="Add an Vasudev provider entry">
+  <Step title="Add a Vasudev provider entry">
     Add an explicit provider entry and point your default model at it. See the config example below.
   </Step>
 </Steps>
@@ -159,7 +159,7 @@ Vasudev can start `llmman` itself only when an `llmman/...` model is selected. A
     }
     ```
 
-    That reduces prompt pressure on stricter local backends. If tiny direct requests still work but normal Vasudev agent turns keep crashing inside `llama-server`, treat it as an upstream model/server limitation rather than an Vasudev transport issue.
+    That reduces prompt pressure on stricter local backends. If tiny direct requests still work but normal Vasudev agent turns keep crashing inside `llama-server`, treat it as an upstream model/server limitation rather than a Vasudev transport issue.
 
   </Accordion>
 

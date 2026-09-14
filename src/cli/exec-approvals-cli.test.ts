@@ -809,7 +809,7 @@ describe("exec approvals CLI", () => {
       "tools.exec askFallback",
       {
         effective: "deny",
-        source: "OpenClaw default (deny)",
+        source: "Vasudev default (deny)",
       },
     );
 
@@ -826,7 +826,7 @@ describe("exec approvals CLI", () => {
     });
     expectFields(requireRecord(agentScope.askFallback, "agent askFallback"), "agent askFallback", {
       effective: "deny",
-      source: "OpenClaw default (deny)",
+      source: "Vasudev default (deny)",
     });
   });
 
@@ -889,7 +889,7 @@ describe("exec approvals CLI", () => {
       ).rejects.toThrow("__exit__:1");
 
       expect(runtimeErrors).toStrictEqual([
-        'Unknown agent id "nope-agent". Run openclaw agents list to see configured agents.',
+        'Unknown agent id "nope-agent". Run vasudev agents list to see configured agents.',
       ]);
       expect(updateExecApprovals).not.toHaveBeenCalled();
       expect(localSnapshot.file.agents).toEqual({});

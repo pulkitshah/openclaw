@@ -172,7 +172,7 @@ The existing metadata-only model transport diagnostics emit lines shaped like:
 The plugin sends bounded `X-ClawRouter-Client`, `X-ClawRouter-Agent-Id`, and
 `X-ClawRouter-Session-Id` headers when those identifiers are available. It also
 maps the model call's diagnostic `callId` (`<run-id>:model:<n>`) to
-`X-Request-ID`, so an Vasudev model-call event can be joined to ClawRouter's
+`X-Request-ID`, so a Vasudev model-call event can be joined to ClawRouter's
 metadata-only audit trail. Values within the 128-character request-id budget are
 identical. Longer values retain the `:model:<n>` suffix and a deterministic
 hash so distinct calls remain bounded and joinable. Static deployment metadata
@@ -191,7 +191,7 @@ content-retention state.
 `GET /v1/catalog` returns `{ providers: [...] }`, where each provider entry
 lists its own `models[]` (with upstream id, capabilities, and pricing) and its
 supported request routes. Vasudev does not ship a second, fixed list of
-ClawRouter models. A catalog model is advertised as an Vasudev model when:
+ClawRouter models. A catalog model is advertised as a Vasudev model when:
 
 - the ClawRouter key's policy grants its provider;
 - the catalog model advertises a supported LLM capability (`llm.responses`,
@@ -230,7 +230,7 @@ Anthropic and Google Gemini replay policies). Perplexity models get a strict
 schema rewrite: `patternProperties` and `additionalProperties` are removed and
 every object schema declares `properties`, because Perplexity rejects tool
 schemas without them. A catalog provider exposing only an
-unsupported request format is intentionally not advertised as an Vasudev
+unsupported request format is intentionally not advertised as a Vasudev
 text model. Normalize those providers to one of the supported contracts in
 ClawRouter rather than sending an incompatible payload.
 

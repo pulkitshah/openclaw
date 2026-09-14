@@ -237,7 +237,7 @@ describe("setupWizardCommand", () => {
     );
 
     expect(runtime.error).toHaveBeenCalledExactlyOnceWith(
-      `Invalid --secret-input-mode. Use "plaintext" or "ref", or run ${formatCliCommand("openclaw onboard")} for the interactive setup.`,
+      `Invalid --secret-input-mode. Use "plaintext" or "ref", or run ${formatCliCommand("vasudev onboard")} for the interactive setup.`,
     );
     expect(runtime.exit).toHaveBeenCalledWith(1);
     expect(mocks.runInteractiveSetup).not.toHaveBeenCalled();
@@ -253,7 +253,7 @@ describe("setupWizardCommand", () => {
 
       expect(runtime.log).toHaveBeenCalledWith(
         [
-          "Windows detected - OpenClaw runs great on WSL2!",
+          "Windows detected - Vasudev runs great on WSL2!",
           "Native Windows might be trickier.",
           "Quick setup: wsl --install (one command, one reboot)",
           "Guide: https://docs.openclaw.ai/windows",
@@ -284,7 +284,7 @@ describe("setupWizardCommand", () => {
     await setupWizardCommand(options, runtime);
 
     const message =
-      "Onboarding needs an interactive TTY. Use `openclaw onboard --non-interactive --accept-risk ...` for automation.";
+      "Onboarding needs an interactive TTY. Use `vasudev onboard --non-interactive --accept-risk ...` for automation.";
     expect(runtime.error).toHaveBeenCalledWith(message);
     expect(vi.mocked(runtime.log).mock.calls).toEqual(
       "json" in options
@@ -451,7 +451,7 @@ describe("setupWizardCommand", () => {
     );
 
     expect(runtime.error).toHaveBeenCalledExactlyOnceWith(
-      `Invalid --reset-scope. Use "config", "config+creds+sessions", or "full". Run ${formatCliCommand("openclaw onboard --reset --reset-scope config")} for a config-only reset.`,
+      `Invalid --reset-scope. Use "config", "config+creds+sessions", or "full". Run ${formatCliCommand("vasudev onboard --reset --reset-scope config")} for a config-only reset.`,
     );
     expect(runtime.exit).toHaveBeenCalledWith(1);
     expect(mocks.handleReset).not.toHaveBeenCalled();
@@ -465,7 +465,7 @@ describe("setupWizardCommand", () => {
     await setupWizardCommand({ resetScope: "full" }, runtime);
 
     expect(runtime.error).toHaveBeenCalledWith(
-      "--reset-scope requires --reset. Re-run with openclaw onboard --reset --reset-scope full.",
+      "--reset-scope requires --reset. Re-run with vasudev onboard --reset --reset-scope full.",
     );
     expect(runtime.exit).toHaveBeenCalledWith(1);
     expect(mocks.handleReset).not.toHaveBeenCalled();
@@ -479,7 +479,7 @@ describe("setupWizardCommand", () => {
     { mode: "", json: false },
   ])("fails fast for invalid non-interactive --mode $mode before reset", async ({ mode, json }) => {
     const runtime = makeRuntime();
-    const message = `Invalid --mode "${mode}". Use "local" or "remote", or run ${formatCliCommand("openclaw onboard")} for interactive setup.`;
+    const message = `Invalid --mode "${mode}". Use "local" or "remote", or run ${formatCliCommand("vasudev onboard")} for interactive setup.`;
 
     await setupWizardCommand(
       {
@@ -532,7 +532,7 @@ describe("setupWizardCommand", () => {
           `remote mode without a URL${json ? " in JSON output" : ""}`,
           { mode: "remote" as const, json },
           formatCliCommand(
-            "openclaw onboard --non-interactive --accept-risk --mode remote --remote-url ws://127.0.0.1:3000",
+            "vasudev onboard --non-interactive --accept-risk --mode remote --remote-url ws://127.0.0.1:3000",
           ),
         ] as const,
     ),
@@ -872,7 +872,7 @@ describe("setupWizardCommand", () => {
     await expectAuthPreflightError(
       { authChoice: "apiKey", tokenProvider: "anthropic", anthropicApiKey: "" },
       () =>
-        `Missing --anthropic-api-key (or ANTHROPIC_API_KEY in env). Export ANTHROPIC_API_KEY, pass --anthropic-api-key, or run ${formatCliCommand("openclaw onboard")} for interactive setup.`,
+        `Missing --anthropic-api-key (or ANTHROPIC_API_KEY in env). Export ANTHROPIC_API_KEY, pass --anthropic-api-key, or run ${formatCliCommand("vasudev onboard")} for interactive setup.`,
     );
   });
 

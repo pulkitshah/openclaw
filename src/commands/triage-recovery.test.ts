@@ -59,7 +59,7 @@ function failedUpdate(root: string): UpdateRunResult {
     steps: [
       {
         name: "doctor",
-        command: "openclaw doctor --fix",
+        command: "vasudev doctor --fix",
         cwd: root,
         exitCode: 1,
         durationMs: 12,
@@ -168,7 +168,7 @@ describe("triage external recovery handoff", () => {
         const commands = runtime.log.mock.calls.filter(([line]) => String(line).startsWith("  "));
         expect(commands).toHaveLength(1);
         expect(commands[0]?.[0]).toContain(
-          agent === "claude" ? "claude -p" : agent === "codex" ? "codex exec" : "openclaw triage",
+          agent === "claude" ? "claude -p" : agent === "codex" ? "codex exec" : "vasudev triage",
         );
         expect(output).toContain("No repair agent was started.");
         expect(output).not.toContain("Ready-to-run agent handoffs:");
@@ -439,7 +439,7 @@ describe("standalone triage update evidence", () => {
             steps: [
               {
                 name: "doctor",
-                command: "openclaw doctor --fix",
+                command: "vasudev doctor --fix",
                 log: {
                   exitCode: 1,
                   stderrTail: " \n",

@@ -117,7 +117,7 @@ export async function withUpdateAdmissionReporting<T>(
     if (!(error instanceof GatewayServiceUpdateOwnershipError)) {
       throw error;
     }
-    const message = `${error.message} Run \`openclaw gateway status --deep\` from the service's owning account before retrying.`;
+    const message = `${error.message} Run \`vasudev gateway status --deep\` from the service's owning account before retrying.`;
     if (opts.json) {
       defaultRuntime.error(message);
     }

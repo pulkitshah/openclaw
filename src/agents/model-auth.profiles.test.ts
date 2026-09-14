@@ -859,9 +859,9 @@ describe("getApiKeyForModelCore", () => {
           `Auth store: ${resolveOpenClawStateSqlitePath(state.env)} (agentDir: ${state.agentDir()}).`,
         );
         expect((error as Error).message).toContain(
-          "openclaw models auth paste-api-key --provider openai",
+          "vasudev models auth paste-api-key --provider openai",
         );
-        expect((error as Error).message).not.toContain("openclaw agents add");
+        expect((error as Error).message).not.toContain("vasudev agents add");
       },
     );
 
@@ -973,7 +973,7 @@ describe("getApiKeyForModelCore", () => {
               "zai:default": {
                 type: "api_key",
                 provider: "zai",
-                key: "openclaw onboard --auth-choice zai-coding-global",
+                key: "vasudev onboard --auth-choice zai-coding-global",
               },
             },
           },
@@ -2048,7 +2048,7 @@ describe("resolveApiKeyForProviderCore — per-entry apiKey as profile ID refere
                 code: "AUTH_PROFILE_MIGRATION_REQUIRED",
                 affectedProviders: ["anthropic"],
                 message: expect.stringContaining(
-                  "affected providers: anthropic; run openclaw doctor --fix",
+                  "affected providers: anthropic; run vasudev doctor --fix",
                 ),
               });
             }
@@ -2130,7 +2130,7 @@ describe("resolveApiKeyForProviderCore — per-entry apiKey as profile ID refere
             }).finally(() => clearAuthProfileMigrationDiagnostics()),
           ).rejects.toMatchObject({
             code: "AUTH_PROFILE_MIGRATION_REQUIRED",
-            action: "openclaw doctor --fix",
+            action: "vasudev doctor --fix",
           });
         },
       );

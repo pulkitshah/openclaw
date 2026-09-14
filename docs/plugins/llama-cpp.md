@@ -43,7 +43,7 @@ Review the named host, execution backend, model, and download size, then confirm
 the download. Setup verifies pinned model files and the llama.cpp build,
 prepares a loopback endpoint, and checks inference before saving the new
 default. Guided activation also asks the model to read a temporary file through
-an Vasudev tool and return its contents. The tool check uses an isolated
+a Vasudev tool and return its contents. The tool check uses an isolated
 workspace without your agent's bootstrap instructions. A plain text reply alone
 does not pass that check. Each verification check has a 90-second deadline.
 Changing `agents.defaults.timeoutSeconds` does not extend setup verification.

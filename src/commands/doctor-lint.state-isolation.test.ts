@@ -344,9 +344,7 @@ describe("doctor lint state isolation", () => {
                   requirement: "device-auth-store-legacy-file",
                   message: expect.stringContaining(sourcePath),
                   fixHint: expect.stringContaining(
-                    entry.profile
-                      ? "openclaw --profile work doctor --fix"
-                      : "openclaw doctor --fix",
+                    entry.profile ? "openclaw --profile work doctor --fix" : "vasudev doctor --fix",
                   ),
                 }),
                 expect.objectContaining({

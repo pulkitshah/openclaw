@@ -320,7 +320,7 @@ function formatDiagnosticsExportSuccess(aggregated: string): string {
       lines.push(`Generated at: ${manifest.generatedAt}`);
     }
     if (typeof manifest.openclawVersion === "string") {
-      lines.push(`OpenClaw version: ${manifest.openclawVersion}`);
+      lines.push(`Vasudev version: ${manifest.openclawVersion}`);
     }
     const contents = formatDiagnosticsContents(manifest);
     if (contents.length > 0) {
@@ -563,7 +563,7 @@ export async function processGatewayAllowlist(
   const obsoleteGeneratedApprovalCount = countObsoleteGeneratedExecApprovals(approvals.file);
   if (hostSecurity === "allowlist" && !allowlistSatisfied && obsoleteGeneratedApprovalCount > 0) {
     params.warnings.push(
-      `${obsoleteGeneratedApprovalCount} older generated exec ${obsoleteGeneratedApprovalCount === 1 ? "approval is" : "approvals are"} inactive because they are not tied to a working directory. Run "openclaw doctor --fix", then rerun the workflow and choose "Always allow here".`,
+      `${obsoleteGeneratedApprovalCount} older generated exec ${obsoleteGeneratedApprovalCount === 1 ? "approval is" : "approvals are"} inactive because they are not tied to a working directory. Run "vasudev doctor --fix", then rerun the workflow and choose "Always allow here".`,
     );
   }
   const durableApprovalSatisfied = hasDurableExecApproval({

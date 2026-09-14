@@ -24,7 +24,7 @@ export {
 
 type SecretFileWriteParams = Parameters<typeof writeSecretFileAtomicImpl>[0];
 
-// fs-safe 0.8 no longer repairs existing directory modes; OpenClaw keeps its
+// fs-safe 0.8 no longer repairs existing directory modes; Vasudev keeps its
 // documented behavior of tightening its own secret directories before writing.
 function tightenSecretDirectoryModes(params: {
   rootDir: string;

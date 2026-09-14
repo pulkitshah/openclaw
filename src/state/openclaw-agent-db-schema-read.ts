@@ -20,7 +20,7 @@ export function assertSupportedAgentSchemaVersion(db: DatabaseSync, pathname: st
   const userVersion = readSqliteUserVersion(db);
   if (userVersion > OPENCLAW_AGENT_SCHEMA_VERSION) {
     throw createNewerSqliteSchemaVersionError(
-      "OpenClaw agent database",
+      "Vasudev agent database",
       pathname,
       userVersion,
       OPENCLAW_AGENT_SCHEMA_VERSION,
@@ -45,7 +45,7 @@ export function assertCanonicalAgentPersistenceVersion(
   }
   if (userVersion < OPENCLAW_AGENT_SCHEMA_VERSION && !isNewUnownedDatabase) {
     throw new Error(
-      `OpenClaw agent database ${pathname} uses schema version ${userVersion}; stop active agents and run openclaw doctor --fix to migrate session identities before using it.`,
+      `Vasudev agent database ${pathname} uses schema version ${userVersion}; stop active agents and run vasudev doctor --fix to migrate session identities before using it.`,
     );
   }
 }
@@ -61,15 +61,15 @@ export function assertExistingAgentSchemaOwner(
   // Agent DB files are not interchangeable; opening another role/id would corrupt ownership.
   if (existing.role !== "agent") {
     throw new Error(
-      `OpenClaw agent database ${pathname} has schema role ${existing.role ?? "unknown"}; expected agent.`,
+      `Vasudev agent database ${pathname} has schema role ${existing.role ?? "unknown"}; expected agent.`,
     );
   }
   if (!existing.agentId) {
-    throw new Error(`OpenClaw agent database ${pathname} has no agent owner.`);
+    throw new Error(`Vasudev agent database ${pathname} has no agent owner.`);
   }
   if (normalizeAgentId(existing.agentId) !== agentId) {
     throw new Error(
-      `OpenClaw agent database ${pathname} belongs to agent ${existing.agentId}; requested agent ${agentId}.`,
+      `Vasudev agent database ${pathname} belongs to agent ${existing.agentId}; requested agent ${agentId}.`,
     );
   }
 }

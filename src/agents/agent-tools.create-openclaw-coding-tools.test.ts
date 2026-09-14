@@ -552,7 +552,7 @@ describe("createOpenClawCodingTools", () => {
     expect(names.has("read")).toBe(true);
   });
 
-  it("keeps Tool Search controls when core OpenClaw tools are not materialized", () => {
+  it("keeps Tool Search controls when core Vasudev tools are not materialized", () => {
     const createOpenClawToolsMock = vi.mocked(createOpenClawTools);
     createOpenClawToolsMock.mockClear();
 
@@ -615,13 +615,13 @@ describe("createOpenClawCodingTools", () => {
   it("keeps the injected ring-zero tool under policy and rejects a same-name replacement", () => {
     const injectedTool = {
       ...stubTool("openclaw"),
-      label: "OpenClaw",
+      label: "Vasudev",
       description: "trusted ring-zero tool",
       execute: async () => ({ content: [], details: {} }),
     };
     const duplicateTool = {
       ...stubTool("openclaw"),
-      label: "OpenClaw",
+      label: "Vasudev",
       description: "duplicate plugin tool",
       execute: async () => ({ content: [], details: {} }),
     };
@@ -930,7 +930,7 @@ describe("createOpenClawCodingTools", () => {
     }
   });
 
-  it("passes source reply delivery mode to OpenClaw tool construction", () => {
+  it("passes source reply delivery mode to Vasudev tool construction", () => {
     const createOpenClawToolsMock = vi.mocked(createOpenClawTools);
     createOpenClawToolsMock.mockClear();
 
@@ -1075,7 +1075,7 @@ describe("createOpenClawCodingTools", () => {
     }
   });
 
-  it("passes configured filesystem policy to OpenClaw tool construction", () => {
+  it("passes configured filesystem policy to Vasudev tool construction", () => {
     const createOpenClawToolsMock = vi.mocked(createOpenClawTools);
     createOpenClawToolsMock.mockClear();
 
@@ -1265,7 +1265,7 @@ describe("createOpenClawCodingTools", () => {
     expect(extractToolText(next)).toBe(original.slice(continuation?.cursor));
   });
 
-  it("passes plugin suppression into OpenClaw tool construction plans", () => {
+  it("passes plugin suppression into Vasudev tool construction plans", () => {
     const createOpenClawToolsMock = vi.mocked(createOpenClawTools);
     createOpenClawToolsMock.mockClear();
 
@@ -1284,7 +1284,7 @@ describe("createOpenClawCodingTools", () => {
     expect(latestCreateOpenClawToolsOptions().disablePluginTools).toBe(true);
   });
 
-  it("forwards trusted conversation recall to OpenClaw tool construction", () => {
+  it("forwards trusted conversation recall to Vasudev tool construction", () => {
     const createOpenClawToolsMock = vi.mocked(createOpenClawTools);
     createOpenClawToolsMock.mockClear();
     const conversationRecall = {
@@ -1308,7 +1308,7 @@ describe("createOpenClawCodingTools", () => {
     expect(latestCreateOpenClawToolsOptions().conversationRecall).toEqual(conversationRecall);
   });
 
-  it("keeps plugin-only construction off the OpenClaw core factory", () => {
+  it("keeps plugin-only construction off the Vasudev core factory", () => {
     const createOpenClawToolsMock = vi.mocked(createOpenClawTools);
     createOpenClawToolsMock.mockClear();
 
@@ -1699,7 +1699,7 @@ describe("createOpenClawCodingTools", () => {
     expectListIncludes(latestCreateOpenClawToolsOptions().pluginToolDenylist, ["workboard_block"]);
   });
 
-  it("passes explicit denylist entries to OpenClaw tool factory planning", () => {
+  it("passes explicit denylist entries to Vasudev tool factory planning", () => {
     const createOpenClawToolsMock = vi.mocked(createOpenClawTools);
     createOpenClawToolsMock.mockClear();
 
@@ -1746,7 +1746,7 @@ describe("createOpenClawCodingTools", () => {
     }
   });
 
-  it("passes inherited allowlist entries to OpenClaw plugin discovery", async () => {
+  it("passes inherited allowlist entries to Vasudev plugin discovery", async () => {
     const createOpenClawToolsMock = vi.mocked(createOpenClawTools);
     createOpenClawToolsMock.mockClear();
     const agentId = `inherited-allow-${Date.now()}-${Math.random().toString(16).slice(2)}`;

@@ -1,4 +1,4 @@
-// Shared policy and messaging for installs outside OpenClaw's trusted plugin sources.
+// Shared policy and messaging for installs outside Vasudev's trusted plugin sources.
 import { sanitizeTerminalText } from "../../packages/terminal-core/src/safe-text.js";
 import { parseRegistryNpmSpec } from "../infra/npm-registry-spec.js";
 import {

@@ -92,7 +92,7 @@ function migrationFinding(params: {
     path: params.storePath,
     target: params.agentId,
     requirement: params.requirement,
-    fixHint: `Run ${formatCliCommand("openclaw doctor --fix")} to convert heartbeat tasks into automations.`,
+    fixHint: `Run ${formatCliCommand("vasudev doctor --fix")} to convert heartbeat tasks into automations.`,
   };
 }
 
@@ -178,7 +178,7 @@ function taskJobInput(params: {
     ),
     displayName: truncateUtf16Safe(`Heartbeat task: ${params.task.name}`, 200),
     name: params.task.name,
-    description: "Migrated from heartbeat monitor scratch by openclaw doctor.",
+    description: "Migrated from heartbeat monitor scratch by vasudev doctor.",
     agentId: params.agentId,
     enabled: true,
     schedule: {

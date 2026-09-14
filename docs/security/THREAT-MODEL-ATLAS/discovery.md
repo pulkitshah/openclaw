@@ -2,7 +2,7 @@
 summary: "Vasudev discovery threats (AML.TA0008): T-DISC-001, T-DISC-002"
 title: "Discovery (AML.TA0008)"
 read_when:
-  - Reviewing discovery threats against an Vasudev deployment
+  - Reviewing discovery threats against a Vasudev deployment
   - Working on mitigations for T-DISC-001, T-DISC-002
 ---
 

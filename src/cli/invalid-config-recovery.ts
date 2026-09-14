@@ -20,7 +20,7 @@ export async function offerInvalidConfigRecovery<T>(params: {
   retry: () => Promise<T>;
   deps?: InvalidConfigRecoveryDeps;
 }): Promise<InvalidConfigRecoveryResult<T>> {
-  const command = formatCliCommand("openclaw doctor --fix");
+  const command = formatCliCommand("vasudev doctor --fix");
   const printCommand = () => {
     params.runtime.error(`Run "${command}" to repair the config, then retry.`);
   };

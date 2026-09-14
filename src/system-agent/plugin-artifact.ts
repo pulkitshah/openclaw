@@ -45,7 +45,7 @@ async function assertArtifactConfigPublicationSupported(): Promise<void> {
     (Object.hasOwn(parsed, "$include") || containsConfigIncludeDirective(parsed.plugins))
   ) {
     throw new Error(
-      `${GUARDED_CONFIG_INCLUDE_WRITE_ERROR} Install the reviewed archive with openclaw plugins install.`,
+      `${GUARDED_CONFIG_INCLUDE_WRITE_ERROR} Install the reviewed archive with vasudev plugins install.`,
     );
   }
 }
@@ -116,7 +116,7 @@ async function prunePendingArtifacts(
 async function readVerifiedArtifact(filePath: string, sha256: string): Promise<Buffer> {
   if (!path.isAbsolute(filePath) || !/\.(?:tgz|tar\.gz)$/u.test(filePath)) {
     throw new Error(
-      "Plugin artifact path must be an absolute .tgz or .tar.gz file from openclaw plugins pack.",
+      "Plugin artifact path must be an absolute .tgz or .tar.gz file from vasudev plugins pack.",
     );
   }
   const source = await root(path.dirname(filePath), {
@@ -143,7 +143,7 @@ async function inspectArtifact(rootDir: string): Promise<ArtifactReview> {
     const value = packageJson[field];
     if (value !== undefined && (!isRecord(value) || Object.keys(value).length > 0)) {
       throw new Error(
-        `Plugin artifacts cannot contain ${field}. Use openclaw plugins pack to bundle the plugin first.`,
+        `Plugin artifacts cannot contain ${field}. Use vasudev plugins pack to bundle the plugin first.`,
       );
     }
   }
@@ -154,7 +154,7 @@ async function inspectArtifact(rootDir: string): Promise<ArtifactReview> {
     (await artifact.exists("node_modules"))
   ) {
     throw new Error(
-      "Plugin artifacts must bundle dependencies and may only reference the host openclaw peer.",
+      "Plugin artifacts must bundle dependencies and may only reference the host vasudev peer.",
     );
   }
   const extensions = resolvePackageExtensionEntries(packageJson);
@@ -235,7 +235,7 @@ export async function prepareSystemAgentPluginArtifact(
   await assertArtifactConfigPublicationSupported();
   if (await isPluginBackingDefaultInferenceRoute(review.pluginId)) {
     throw new Error(
-      "This plugin backs OpenClaw's active inference route. Stop OpenClaw and install the artifact from a trusted shell.",
+      "This plugin backs Vasudev's active inference route. Stop Vasudev and install the artifact from a trusted shell.",
     );
   }
   return await withArtifactImports(async (files, assertOwned) => {
@@ -295,7 +295,7 @@ export async function executePluginArtifactActivation(
             await assertArtifactConfigPublicationSupported();
             if (await isPluginBackingDefaultInferenceRoute(review.pluginId)) {
               throw new Error(
-                "Artifact activation stopped: this plugin now backs the active inference route. Stop OpenClaw and install it from a trusted shell.",
+                "Artifact activation stopped: this plugin now backs the active inference route. Stop Vasudev and install it from a trusted shell.",
               );
             }
             assertPersistentApply();

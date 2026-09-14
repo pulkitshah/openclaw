@@ -50,7 +50,7 @@ export async function recoverInstalledLaunchAgent<
     }
     if (repaired.status === "gui-session-unavailable") {
       const actionHint =
-        params.result === "started" ? "openclaw gateway start" : "openclaw gateway restart";
+        params.result === "started" ? "vasudev gateway start" : "vasudev gateway restart";
       throw new Error(
         formatLaunchAgentGuiSessionError({
           detail: repaired.detail,

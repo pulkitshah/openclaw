@@ -8,7 +8,7 @@ title: "Raft"
 sidebarTitle: "Raft"
 ---
 
-Raft connects an Vasudev agent to a Raft External Agent through the local
+Raft connects a Vasudev agent to a Raft External Agent through the local
 Raft CLI. Raft sends authenticated wake hints to the Gateway; the agent then
 uses the Raft CLI to check and send messages. Direct chat only (no groups).
 

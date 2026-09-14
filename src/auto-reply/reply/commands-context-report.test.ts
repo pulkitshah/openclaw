@@ -171,7 +171,7 @@ describe("buildContextReply", () => {
     expect(result.text).not.toContain("Bootstrap context is over configured limits");
   });
 
-  it("reports native Codex project docs as unverified without OpenClaw limit advice", async () => {
+  it("reports native Codex project docs as unverified without Vasudev limit advice", async () => {
     const result = await buildContextReply(
       makeParams("/context detail", false, { nativeUnverified: true }),
     );

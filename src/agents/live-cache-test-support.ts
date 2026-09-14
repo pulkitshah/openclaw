@@ -180,7 +180,7 @@ export function buildAssistantHistoryTurn(
   });
 }
 
-/** Compute cache-hit ratio from OpenClaw usage counters. */
+/** Compute cache-hit ratio from Vasudev usage counters. */
 export function computeCacheHitRate(usage: {
   input?: number;
   cacheRead?: number;

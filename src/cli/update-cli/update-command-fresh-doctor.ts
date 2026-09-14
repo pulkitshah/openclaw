@@ -98,7 +98,7 @@ function createPostPluginDoctorExecutionFailure(
       {
         reason,
         message: "Updated plugin migrations could not be run in a fresh process.",
-        guidance: ["Run `openclaw update repair` to retry post-update plugin repair."],
+        guidance: ["Run `vasudev update repair` to retry post-update plugin repair."],
       },
     ],
   };

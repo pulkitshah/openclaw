@@ -195,8 +195,8 @@ describeLive("session event wake through a live Gateway", () => {
         completedMessages.slice(foregroundMessages.length),
         "user",
       );
-      expect(completionUsers).toContain("[OpenClaw exec completion]");
-      expect(completionUsers).not.toContain("[OpenClaw heartbeat poll]");
+      expect(completionUsers).toContain("[Vasudev exec completion]");
+      expect(completionUsers).not.toContain("[Vasudev heartbeat poll]");
       expect(await fs.readFile(path.join(workspace, "command-completed"), "utf8")).toBe(
         "completed",
       );
@@ -223,7 +223,7 @@ describeLive("session event wake through a live Gateway", () => {
       await vi.waitFor(
         async () => {
           const mainMessages = await readMessages(mainSessionKey);
-          expect(messagesWithRole(mainMessages, "user")).toContain("[OpenClaw heartbeat poll]");
+          expect(messagesWithRole(mainMessages, "user")).toContain("[Vasudev heartbeat poll]");
           expect(messagesWithRole(mainMessages, "assistant")).toContain(monitorReply);
         },
         { timeout: TURN_TIMEOUT_MS, interval: 1_000 },

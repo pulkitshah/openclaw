@@ -2,7 +2,7 @@
 import type { OpenClawConfig } from "../config/types.js";
 import type { CommandNormalizeOptions } from "./commands-registry.types.js";
 
-/** Runtime-injected predicate for deciding whether visible text is an OpenClaw command. */
+/** Runtime-injected predicate for deciding whether visible text is a Vasudev command. */
 export type IsControlCommandMessage = (
   text?: string,
   cfg?: OpenClawConfig,

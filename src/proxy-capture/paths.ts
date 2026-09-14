@@ -2,7 +2,7 @@
 import path from "node:path";
 import { resolveStateDir } from "../config/paths.js";
 
-// Debug proxy CA files live under OpenClaw state. Capture data lives in the
+// Debug proxy CA files live under Vasudev state. Capture data lives in the
 // shared global state database.
 function resolveDebugProxyRootDir(env: NodeJS.ProcessEnv = process.env): string {
   return path.join(resolveStateDir(env), "debug-proxy");

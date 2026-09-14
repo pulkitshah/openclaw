@@ -77,7 +77,7 @@ values to disk.
 
 Agents use it for workflows that intentionally exceed the plugin's narrow
 contracts, for example creating or rotating an item or injecting credentials
-into a one-off command. When a credential is already wired to an Vasudev
+into a one-off command. When a credential is already wired to a Vasudev
 SecretRef target, the owning Vasudev workflow should resolve it; the agent does
 not need to call `op` directly.
 

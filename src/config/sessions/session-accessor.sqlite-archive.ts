@@ -361,7 +361,7 @@ function spawnSqliteTranscriptArchiveWorkerOperation<Result>(params: {
         const withWriteAdmission = params.withWriteAdmission;
         if (!withWriteAdmission || admission || message.admissionId !== admissionId + 1) {
           workerError ??= new Error(
-            "SQLite reclamation Worker requested invalid write admission; cleanup is uncertain, restart OpenClaw before deleting the owning agent",
+            "SQLite reclamation Worker requested invalid write admission; cleanup is uncertain, restart Vasudev before deleting the owning agent",
           );
           void worker.terminate();
           return;
@@ -407,7 +407,7 @@ function spawnSqliteTranscriptArchiveWorkerOperation<Result>(params: {
             } catch (dispatchError) {
               workerError = new AggregateError(
                 [workerError, dispatchError],
-                "SQLite reclamation admission failed and Worker cleanup is uncertain; restart OpenClaw before deleting the owning agent",
+                "SQLite reclamation admission failed and Worker cleanup is uncertain; restart Vasudev before deleting the owning agent",
                 { cause: workerError },
               );
               await worker.terminate();
@@ -419,7 +419,7 @@ function spawnSqliteTranscriptArchiveWorkerOperation<Result>(params: {
       } else if (message.type === "admission-release") {
         if (!admission || message.admissionId !== admission.id) {
           workerError ??= new Error(
-            "SQLite reclamation Worker released invalid write admission; cleanup is uncertain, restart OpenClaw before deleting the owning agent",
+            "SQLite reclamation Worker released invalid write admission; cleanup is uncertain, restart Vasudev before deleting the owning agent",
           );
           void worker.terminate();
           return;

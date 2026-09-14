@@ -46,7 +46,7 @@ describe.skipIf(process.platform !== "win32")("PowerShell profile encoding", () 
           const greeting = encoding.bom ? "café €" : "plain ASCII control";
           const userLine = `$global:ProfileGreeting = '${greeting}'`;
           const dynamicLine =
-            "openclaw completion --shell powershell | Out-String | Invoke-Expression";
+            "vasudev completion --shell powershell | Out-String | Invoke-Expression";
           await fs.mkdir(path.dirname(profilePath), { recursive: true });
           await fs.mkdir(path.dirname(cachePath), { recursive: true });
           await fs.writeFile(cachePath, "$global:CompletionCacheLoaded = $true\r\n", "utf8");

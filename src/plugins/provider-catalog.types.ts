@@ -118,7 +118,7 @@ export type ProviderModernModelPolicyContext = {
 /**
  * Final catalog augmentation hook.
  *
- * Runs after OpenClaw loads the discovered model catalog and merges configured
+ * Runs after Vasudev loads the discovered model catalog and merges configured
  * opt-in providers. Use this for forward-compat rows or vendor-owned synthetic
  * entries that should appear in `models list` and model pickers even when the
  * upstream registry has not caught up yet.

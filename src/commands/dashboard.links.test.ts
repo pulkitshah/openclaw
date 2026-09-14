@@ -168,7 +168,7 @@ describe("dashboardCommand", () => {
       "http://127.0.0.1:18789/#bootstrapToken=browser-bootstrap&bootstrapProfile=owner&gatewayUrl=ws%3A%2F%2F127.0.0.1%3A18789",
     );
     expect(runtime.log).toHaveBeenCalledWith(
-      "Opened in your browser. Keep that tab to control OpenClaw.",
+      "Opened in your browser. Keep that tab to control Vasudev.",
     );
   });
 
@@ -360,7 +360,7 @@ describe("dashboardCommand", () => {
       "Browser launch disabled (--no-open). Use the URL above.",
     );
     expect(runtime.log).toHaveBeenCalledWith(
-      "One-time pairing URL not delivered. Run `openclaw dashboard --json` and open its `browserUrl` within ten minutes.",
+      "One-time pairing URL not delivered. Run `vasudev dashboard --json` and open its `browserUrl` within ten minutes.",
     );
   });
 

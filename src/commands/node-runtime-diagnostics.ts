@@ -30,7 +30,7 @@ function unsupportedNodeFinding(
       formatUnsupportedNodeVersionMessage(version),
       ...(source === "gateway-service"
         ? [
-            "After switching Node, refresh a managed Gateway with `openclaw gateway install --force`; for an externally managed service, have its deployment owner update the launcher.",
+            "After switching Node, refresh a managed Gateway with `vasudev gateway install --force`; for an externally managed service, have its deployment owner update the launcher.",
           ]
         : []),
     ].join("\n"),
@@ -105,7 +105,7 @@ async function collectServiceNodeRuntimeFindings(
       severity: "warning",
       source: "gateway-service",
       message: "The recorded Gateway service Node runtime could not be inspected.",
-      fixHint: "Run `openclaw gateway status --deep` and check access to its recorded executable.",
+      fixHint: "Run `vasudev gateway status --deep` and check access to its recorded executable.",
     });
   }
   return findings;

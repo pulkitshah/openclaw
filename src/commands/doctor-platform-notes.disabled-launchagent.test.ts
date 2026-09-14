@@ -44,7 +44,7 @@ describe("Doctor disabled LaunchAgent diagnosis", () => {
       profile: undefined,
       label: "ai.openclaw.gateway",
       override: undefined,
-      command: "openclaw gateway start",
+      command: "vasudev gateway start",
     },
     {
       profile: "staging",
@@ -56,7 +56,7 @@ describe("Doctor disabled LaunchAgent diagnosis", () => {
       profile: undefined,
       label: "dev.openclaw.custom",
       override: "dev.openclaw.custom",
-      command: "OPENCLAW_LAUNCHD_LABEL=dev.openclaw.custom openclaw gateway start",
+      command: "OPENCLAW_LAUNCHD_LABEL=dev.openclaw.custom vasudev gateway start",
     },
   ])(
     "diagnoses $label during offline repair without activating it",

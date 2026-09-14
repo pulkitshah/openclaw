@@ -18,7 +18,7 @@ export function collectDeepProbeFindings(params: {
       severity: "warn",
       title: "Gateway probe failed (deep)",
       detail: params.deep.gateway.error ?? "gateway unreachable",
-      remediation: `Run "${formatCliCommand("openclaw status --all")}" to debug connectivity/auth, then re-run "${formatCliCommand("openclaw security audit --deep")}".`,
+      remediation: `Run "${formatCliCommand("vasudev status --all")}" to debug connectivity/auth, then re-run "${formatCliCommand("vasudev security audit --deep")}".`,
     });
   }
   if (params.authWarning) {
@@ -27,7 +27,7 @@ export function collectDeepProbeFindings(params: {
       severity: "warn",
       title: "Gateway probe auth SecretRef is unavailable",
       detail: params.authWarning,
-      remediation: `Set OPENCLAW_GATEWAY_TOKEN/OPENCLAW_GATEWAY_PASSWORD in this shell or resolve the external secret provider, then re-run "${formatCliCommand("openclaw security audit --deep")}".`,
+      remediation: `Set OPENCLAW_GATEWAY_TOKEN/OPENCLAW_GATEWAY_PASSWORD in this shell or resolve the external secret provider, then re-run "${formatCliCommand("vasudev security audit --deep")}".`,
     });
   }
   return findings;

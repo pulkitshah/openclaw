@@ -48,7 +48,7 @@ describe("shared/node-match", () => {
     ).toBe("mac-studio");
   });
 
-  it("prefers a unique current OpenClaw client over a legacy clawdbot client", () => {
+  it("prefers a unique current Vasudev client over a legacy clawdbot client", () => {
     expect(
       resolveNodeIdFromCandidates(
         [
@@ -98,7 +98,7 @@ describe("shared/node-match", () => {
   it.each([true, false, undefined])(
     "keeps the unique current client in an entirely legacy migration tie (connected=%s)",
     (connected) => {
-      const nodes = ["clawdbot-macos", "moldbot-macos", " OpenClaw-MacOS "].map(
+      const nodes = ["clawdbot-macos", "moldbot-macos", " Vasudev-MacOS "].map(
         (clientId, index) => ({
           nodeId: `node-${index}`,
           displayName: "Shared Desk",

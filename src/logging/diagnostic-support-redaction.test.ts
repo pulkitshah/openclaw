@@ -198,7 +198,7 @@ describe("diagnostic support redaction", () => {
     "preserves install guidance for %s beside private diagnostics across support handoffs",
     (packageSpec) => {
       const redaction = { env: {}, stateDir: tempDir };
-      const command = `openclaw plugins install ${packageSpec}`;
+      const command = `vasudev plugins install ${packageSpec}`;
       const input =
         `Unable to resolve Codex doctor health API: install the official Codex plugin with ${command}\n` +
         `Config: ${tempDir}/openclaw.json; contact @support_bot or alice@example.com\n` +

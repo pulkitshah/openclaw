@@ -126,7 +126,7 @@ overwrite the agent-specific choice.
 
 The existing API-key configuration remains supported:
 
-Before rolling back to an Vasudev version without Reef OAuth support, restore
+Before rolling back to a Vasudev version without Reef OAuth support, restore
 the API-key guard configuration below. Remove `authMode` and `authProfileId`;
 older versions reject those fields. This feature does not change Reef's stored
 identity, keys, or message-state format.

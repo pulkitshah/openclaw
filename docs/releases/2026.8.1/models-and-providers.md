@@ -41,7 +41,7 @@ The list shows models Vasudev can identify, while the provider, account, region,
 - Complete Claude Opus 5 support across Anthropic routes [#113392](https://github.com/openclaw/openclaw/pull/113392)
 - Curate model pickers around current-generation choices [#113594](https://github.com/openclaw/openclaw/pull/113594)
 - Complete Claude Opus 5 support across Anthropic routes [#113633](https://github.com/openclaw/openclaw/pull/113633)
-- Refresh model catalogs without an Vasudev release [#113660](https://github.com/openclaw/openclaw/pull/113660)
+- Refresh model catalogs without a Vasudev release [#113660](https://github.com/openclaw/openclaw/pull/113660)
 - Refresh provider catalogs to current model lineups [#113681](https://github.com/openclaw/openclaw/pull/113681)
 - Start warm agent turns faster [#113817](https://github.com/openclaw/openclaw/pull/113817)
 - Add first-class Kimi K3 support [#113909](https://github.com/openclaw/openclaw/pull/113909)

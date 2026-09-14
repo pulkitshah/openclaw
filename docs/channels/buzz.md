@@ -1,7 +1,7 @@
 ---
 summary: "Connect Vasudev agents to Buzz rooms"
 read_when:
-  - You want people to reach an Vasudev agent from Buzz
+  - You want people to reach a Vasudev agent from Buzz
   - You are setting up a Buzz bot identity and room access
   - You are troubleshooting a Buzz connection
 title: "Buzz"

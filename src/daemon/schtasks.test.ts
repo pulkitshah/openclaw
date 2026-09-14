@@ -82,7 +82,7 @@ describe("scheduled task runtime derivation", () => {
     });
     const runtime = await readRuntimeFromQueryOutput(
       [
-        "Aufgabenname: \\OpenClaw Gateway",
+        "Aufgabenname: \\Vasudev Gateway",
         `Status: ${task.label}`,
         "Letzte Laufzeit: 02.08.2026 14:00:00",
         "Letztes Ergebnis: 0",
@@ -107,8 +107,8 @@ describe("scheduled task runtime derivation", () => {
       state: task.name,
       lastRunResult: String(task.result),
     });
-    expect(probeScheduledTaskExists("OpenClaw Gateway")).toBe(true);
-    expect(isScheduledTaskDefinitelyNotRunning("OpenClaw Gateway")).toBe(
+    expect(probeScheduledTaskExists("Vasudev Gateway")).toBe(true);
+    expect(isScheduledTaskDefinitelyNotRunning("Vasudev Gateway")).toBe(
       task.expected === "stopped",
     );
   });
@@ -123,8 +123,8 @@ describe("scheduled task runtime derivation", () => {
       status: "stopped",
       state: "Ready",
     });
-    expect(probeScheduledTaskExists("OpenClaw Gateway")).toBe(true);
-    expect(isScheduledTaskDefinitelyNotRunning("OpenClaw Gateway")).toBe(true);
+    expect(probeScheduledTaskExists("Vasudev Gateway")).toBe(true);
+    expect(isScheduledTaskDefinitelyNotRunning("Vasudev Gateway")).toBe(true);
   });
 
   it.each([null, "3", 5])(
@@ -132,8 +132,8 @@ describe("scheduled task runtime derivation", () => {
     async (state) => {
       spawnSync.mockReturnValue({ status: 0, stdout: JSON.stringify({ state }) });
       await expect(readRuntimeFromQueryOutput("")).resolves.toMatchObject({ status: "unknown" });
-      expect(probeScheduledTaskExists("OpenClaw Gateway")).toBe(true);
-      expect(isScheduledTaskDefinitelyNotRunning("OpenClaw Gateway")).toBe(false);
+      expect(probeScheduledTaskExists("Vasudev Gateway")).toBe(true);
+      expect(isScheduledTaskDefinitelyNotRunning("Vasudev Gateway")).toBe(false);
     },
   );
 
@@ -145,8 +145,8 @@ describe("scheduled task runtime derivation", () => {
         status: "stopped",
         missingUnit: true,
       });
-      expect(probeScheduledTaskExists("OpenClaw Gateway")).toBe(false);
-      expect(isScheduledTaskDefinitelyNotRunning("OpenClaw Gateway")).toBe(false);
+      expect(probeScheduledTaskExists("Vasudev Gateway")).toBe(false);
+      expect(isScheduledTaskDefinitelyNotRunning("Vasudev Gateway")).toBe(false);
     },
   );
 
@@ -166,7 +166,7 @@ describe("scheduled task runtime derivation", () => {
       missingUnit: false,
       inspectionFailure: { code: "service-runtime-inspection-failed" },
     });
-    expect(probeScheduledTaskExists("OpenClaw Gateway")).toBeNull();
+    expect(probeScheduledTaskExists("Vasudev Gateway")).toBeNull();
   });
 
   it("requires current Scheduler running state before retiring the Startup owner", async () => {
@@ -362,7 +362,7 @@ describe("readScheduledTaskCommand", () => {
       {
         scriptLines: [
           "@echo off",
-          "rem OpenClaw Gateway",
+          "rem Vasudev Gateway",
           "cd /d C:\\Projects\\openclaw",
           "set NODE_ENV=production",
           "set OPENCLAW_PORT=18789",
@@ -417,15 +417,15 @@ describe("readScheduledTaskCommand", () => {
       {
         scriptLines: [
           "@echo off",
-          '"\\\\fileserver\\OpenClaw Share\\node.exe" "\\\\fileserver\\OpenClaw Share\\dist\\index.js" gateway --port 18789',
+          '"\\\\fileserver\\Vasudev Share\\node.exe" "\\\\fileserver\\Vasudev Share\\dist\\index.js" gateway --port 18789',
         ],
       },
       async (env) => {
         const result = await readScheduledTaskCommand(env);
         expect(result).toEqual({
           programArguments: [
-            "\\\\fileserver\\OpenClaw Share\\node.exe",
-            "\\\\fileserver\\OpenClaw Share\\dist\\index.js",
+            "\\\\fileserver\\Vasudev Share\\node.exe",
+            "\\\\fileserver\\Vasudev Share\\dist\\index.js",
             "gateway",
             "--port",
             "18789",
@@ -488,7 +488,7 @@ it.each([false, true])("retains observed Task Scheduler enable policy %s", (enab
     stdout: JSON.stringify({ state: 3, enabled }),
     stderr: "",
   });
-  expect(probeScheduledTaskState("OpenClaw Gateway")).toMatchObject({
+  expect(probeScheduledTaskState("Vasudev Gateway")).toMatchObject({
     status: "found",
     state: 3,
     enabled,

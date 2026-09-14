@@ -30,7 +30,7 @@ process, filesystem, capability, and credential-free HTTP operations. The
 Gateway rejects authentication, cookie, API-key, and other sensitive HTTP
 headers before they reach the node; authenticated HTTP must run on the
 Gateway. The existing duplex node channel carries the Codex JSON-RPC stream
-without starting an Vasudev worker child or consuming a worker slot. Explicit
+without starting a Vasudev worker child or consuming a worker slot. Explicit
 Gateway command allowlisting remains required. Launch needs per-attempt
 allow-once approval or exact admitted session Full access with node-local
 full/off policy. Full access never overrides local deny, ask, or allowlist

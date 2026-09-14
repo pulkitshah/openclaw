@@ -1,4 +1,4 @@
-// Selector components adapt Pi TUI list controls for OpenClaw settings.
+// Selector components adapt Pi TUI list controls for Vasudev settings.
 import { type SettingItem, SettingsList } from "@earendil-works/pi-tui";
 import {
   filterableSelectListTheme,

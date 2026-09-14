@@ -142,7 +142,7 @@ A separate WhatsApp number is recommended (setup and metadata are optimized for 
 
 ## Call the current requester with MeowCaller (experimental)
 
-The plugin can expose `whatsapp_call` in WhatsApp-originated agent turns. It uses [MeowCaller](https://github.com/purpshell/meowcaller) to place a WhatsApp voice call to the current authorized requester and play an Vasudev TTS message after they answer. The tool has no destination-number parameter, so a prompt cannot redirect the call. Disabled by default.
+The plugin can expose `whatsapp_call` in WhatsApp-originated agent turns. It uses [MeowCaller](https://github.com/purpshell/meowcaller) to place a WhatsApp voice call to the current authorized requester and play a Vasudev TTS message after they answer. The tool has no destination-number parameter, so a prompt cannot redirect the call. Disabled by default.
 
 <Warning>
 MeowCaller is experimental, has no tagged release, and uses a separately paired whatsmeow linked-device session — it cannot reuse the plugin's Baileys credentials. Pairing adds another linked device to the same WhatsApp account; scan with the identity used by Vasudev. Personal-number/self-chat mode cannot call itself; use a dedicated Vasudev number to call your personal number.

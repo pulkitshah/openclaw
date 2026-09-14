@@ -66,7 +66,7 @@ the Gateway already runs inside a managed Google Cloud environment.
     With a configured API key, Vasudev refreshes Google AI Studio's text-model
     catalog from the Gemini `models.list` API. Newly released Gemini 3 Pro, Flash,
     and Flash-Lite variants therefore appear in
-    `openclaw models list --provider google` without waiting for an Vasudev
+    `openclaw models list --provider google` without waiting for a Vasudev
     release. Failed refreshes report the failure and retain the last successful
     inventory, or bundled models before the first success. A successful empty
     response clears discovered models. Vertex uses its separate static catalog.

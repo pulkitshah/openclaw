@@ -46,7 +46,7 @@ it.each([
       } else {
         expect(output).not.toContain("Saved sign-in activated");
         expect(output).toContain("verified and saved");
-        expect(output).toContain("openclaw gateway restart");
+        expect(output).toContain("vasudev gateway restart");
       }
     } finally {
       await state.cleanup();

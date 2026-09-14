@@ -89,12 +89,12 @@ charts, or links. Reports render directly on the dashboard without an iframe or
 inline preview. The agent updates the report's data when you ask; use an HTML
 widget when you need custom interactivity. See [Native dashboard reports](/tools/show-widget#native-dashboard-reports).
 
-Watch Patrick Erichsen build an Vasudev 2.0 release dashboard from one prompt:
+Watch Patrick Erichsen build a Vasudev 2.0 release dashboard from one prompt:
 
 <iframe
   style={{ width: "100%", height: "auto", aspectRatio: "16 / 9", border: 0, borderRadius: "8px" }}
   src="https://www.youtube-nocookie.com/embed/gHyBueWideg"
-  title="Build an Vasudev Dashboard with One Prompt"
+  title="Build a Vasudev Dashboard with One Prompt"
   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
   referrerPolicy="strict-origin-when-cross-origin"
   allowFullScreen

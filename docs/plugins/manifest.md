@@ -1,7 +1,7 @@
 ---
 summary: "Plugin manifest + JSON schema requirements (strict config validation)"
 read_when:
-  - You are building an Vasudev plugin
+  - You are building a Vasudev plugin
   - You need to ship a plugin config schema or debug plugin validation errors
 title: "Plugin manifest"
 ---

@@ -99,7 +99,7 @@ Running `openclaw migrate <provider>` with no other flags plans, previews, and (
 
   </Accordion>
   <Accordion title="Backups">
-    Apply creates and verifies an Vasudev backup before applying the migration. If no local Vasudev state exists yet, the backup step is skipped and the migration continues. To skip a backup when state exists, pass both `--no-backup` and `--force`.
+    Apply creates and verifies a Vasudev backup before applying the migration. If no local Vasudev state exists yet, the backup step is skipped and the migration continues. To skip a backup when state exists, pass both `--no-backup` and `--force`.
   </Accordion>
   <Accordion title="Conflicts">
     Apply refuses to continue when the plan has conflicts. Review the plan, then rerun with `--overwrite` if replacing existing targets is intentional. Providers may still write item-level backups for overwritten files in the migration report directory.

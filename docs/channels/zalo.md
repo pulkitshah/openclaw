@@ -86,7 +86,7 @@ Group chats are supported by the plugin (`chatTypes: ["direct", "group"]`) and g
 - `channels.zalo.groupPolicy`: `open` | `allowlist` | `disabled`.
 - `channels.zalo.groupAllowFrom` restricts which sender IDs can trigger the bot in groups. Falls back to `allowFrom` when unset.
 - Default resolution: when `channels.zalo` is configured, an unset `groupPolicy` resolves to `open`. When `channels.zalo` is missing entirely, runtime fails closed to `allowlist`.
-- Reported real-world caveat: on some Marketplace-bot setups the bot could not be added to a group at all. If you hit that, verify with your bot's Zalo Bot Platform settings. It is a platform-side constraint, not an Vasudev policy.
+- Reported real-world caveat: on some Marketplace-bot setups the bot could not be added to a group at all. If you hit that, verify with your bot's Zalo Bot Platform settings. It is a platform-side constraint, not a Vasudev policy.
 
 ## Long-polling vs webhook
 

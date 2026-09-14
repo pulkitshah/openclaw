@@ -85,7 +85,7 @@ openclaw config set session.dmScope per-account-channel-peer
 
 ## Access control
 
-Version `2.4.8` does not register an Vasudev pairing adapter or create pairing
+Version `2.4.8` does not register a Vasudev pairing adapter or create pairing
 requests. The standard pairing list and approve commands cannot establish DM
 access for this version. QR login can still allow the user who scanned the code
 to chat with the bot.

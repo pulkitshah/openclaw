@@ -91,7 +91,7 @@ type HookMappingResult =
 // spawning unbounded agent runs from one authenticated request.
 export const HOOK_MAPPING_FAN_OUT_MAX_ITEMS = 200;
 
-// Body bound for gmail-path hooks, derived from the producer contract OpenClaw
+// Body bound for gmail-path hooks, derived from the producer contract Vasudev
 // itself provisions: gog posts up to 100 history records per push (gogcli
 // internal/cmd/gmail_watch_types.go defaultHistoryMaxResults) with each body
 // truncated to hooks.gmail.maxBytes. Reserve JSON-escaping (up to ~3x for

@@ -29,7 +29,7 @@ describe("isGatewayArgv", () => {
   });
 
   it("matches known entrypoints across slash and case variants", () => {
-    expect(isGatewayArgv(["NODE", "C:\\OpenClaw\\DIST\\ENTRY.JS", "gateway"])).toBe(true);
+    expect(isGatewayArgv(["NODE", "C:\\Vasudev\\DIST\\ENTRY.JS", "gateway"])).toBe(true);
     expect(isGatewayArgv(["bun", "/srv/openclaw/scripts/run-node.mjs", "gateway"])).toBe(true);
     expect(isGatewayArgv(["node", "/srv/openclaw/openclaw.mjs", "gateway"])).toBe(true);
     expect(isGatewayArgv(["tsx", "/srv/openclaw/src/entry.ts", "gateway"])).toBe(true);
@@ -64,15 +64,15 @@ describe("isOpenClawCommandArgv", () => {
     expect(isOpenClawCommandArgv(["node", "/srv/openclaw/openclaw.mjs", "doctor"], "doctor")).toBe(
       true,
     );
-    expect(
-      isOpenClawCommandArgv(["NODE", "C:\\OpenClaw\\DIST\\ENTRY.JS", "DOCTOR"], "doctor"),
-    ).toBe(true);
+    expect(isOpenClawCommandArgv(["NODE", "C:\\Vasudev\\DIST\\ENTRY.JS", "DOCTOR"], "doctor")).toBe(
+      true,
+    );
     expect(isOpenClawCommandArgv(["C:\\bin\\openclaw.cmd", "doctor", "--fix"], "doctor")).toBe(
       true,
     );
   });
 
-  it("rejects other OpenClaw commands and unrelated doctor processes", () => {
+  it("rejects other Vasudev commands and unrelated doctor processes", () => {
     expect(isOpenClawCommandArgv(["openclaw", "gateway"], "doctor")).toBe(false);
     expect(isOpenClawCommandArgv(["python", "doctor", "worker.py"], "doctor")).toBe(false);
   });

@@ -104,7 +104,7 @@ describe("bundled plugin load path repair", () => {
     expect(result.config.plugins?.load?.paths).toStrictEqual([]);
   });
 
-  it("removes stale bundled paths from old versioned OpenClaw package roots", () => {
+  it("removes stale bundled paths from old versioned Vasudev package roots", () => {
     const currentPackageRoot = path.resolve("node_modules", "openclaw");
     const stalePackageRoot = path.resolve(
       "pnpm-global",
@@ -127,7 +127,7 @@ describe("bundled plugin load path repair", () => {
     expect(result.config.plugins?.load?.paths).toStrictEqual(["/custom/path"]);
   });
 
-  it("removes stale legacy bundled paths from old versioned OpenClaw package roots", () => {
+  it("removes stale legacy bundled paths from old versioned Vasudev package roots", () => {
     const currentPackageRoot = path.resolve("node_modules", "openclaw");
     const stalePackageRoot = path.resolve(
       "pnpm-global",
@@ -234,12 +234,12 @@ describe("bundled plugin load path repair", () => {
           pathLabel: "plugins.load.paths",
         },
       ],
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "vasudev doctor --fix",
     });
 
     expect(warnings).toEqual([
-      `- plugins.load.paths: bundled plugin path "${legacyPath}" still aliases feishu; OpenClaw loads the packaged bundled plugin from "${bundledPath}".`,
-      '- Run "openclaw doctor --fix" to remove these redundant bundled plugin paths.',
+      `- plugins.load.paths: bundled plugin path "${legacyPath}" still aliases feishu; Vasudev loads the packaged bundled plugin from "${bundledPath}".`,
+      '- Run "vasudev doctor --fix" to remove these redundant bundled plugin paths.',
     ]);
   });
 

@@ -264,7 +264,7 @@ configured default model is never replaced.
     churn. The visible live catalog excludes models hidden from GitHub's picker
     or disabled by account policy. Automatic setup defaults additionally require
     streaming and tool-call support.
-    Newly published Copilot models become visible without an Vasudev upgrade,
+    Newly published Copilot models become visible without a Vasudev upgrade,
     and context windows reflect the real per-model limits
     (e.g. 400k for the gpt-5.x series, 1M for the internal
     `claude-opus-*-1m` variants).

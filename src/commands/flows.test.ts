@@ -442,7 +442,7 @@ describe("flows commands", () => {
           error: {
             type: "cli_error",
             message:
-              "TaskFlow not found: missing-flow. Run openclaw tasks flow list to see recent flow ids.",
+              "TaskFlow not found: missing-flow. Run vasudev tasks flow list to see recent flow ids.",
           },
         },
         2,

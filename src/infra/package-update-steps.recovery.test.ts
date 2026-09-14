@@ -785,8 +785,8 @@ describe("package update recovery safety", () => {
               return null;
             }
             return {
-              name: "openclaw doctor",
-              command: "openclaw doctor --non-interactive --fix",
+              name: "vasudev doctor",
+              command: "vasudev doctor --non-interactive --fix",
               cwd: candidateRoot,
               durationMs: 0,
               exitCode: outcome === "blocking" ? 1 : 0,
@@ -823,7 +823,7 @@ describe("package update recovery safety", () => {
           });
           expect(
             result.steps.find((step) => step.name === "global install swap")?.stdoutTail,
-          ).toContain("restored previous openclaw package and affected launchers");
+          ).toContain("restored previous vasudev package and affected launchers");
           expect(
             result.steps.find((step) => step.name === "global install swap")?.stdoutTail,
           ).toContain("candidate Doctor may have changed persistent state");
@@ -889,8 +889,8 @@ describe("package update recovery safety", () => {
             };
           },
           postVerifyStep: async (candidateRoot) => ({
-            name: "openclaw doctor",
-            command: "openclaw doctor --non-interactive --fix",
+            name: "vasudev doctor",
+            command: "vasudev doctor --non-interactive --fix",
             cwd: candidateRoot,
             durationMs: 0,
             exitCode: 1,

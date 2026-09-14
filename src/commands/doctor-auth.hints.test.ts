@@ -55,7 +55,7 @@ describe("doctor auth hints", () => {
     noteCopilotAmbientToken(cfg, env);
     noteCopilotAmbientToken(cfg, env);
     expect(mocks.note).toHaveBeenCalledExactlyOnceWith(
-      "GitHub Copilot is no longer enabled by GH_TOKEN/GITHUB_TOKEN. To use Copilot, run `openclaw models auth login --provider github-copilot` or set COPILOT_GITHUB_TOKEN.",
+      "GitHub Copilot is no longer enabled by GH_TOKEN/GITHUB_TOKEN. To use Copilot, run `vasudev models auth login --provider github-copilot` or set COPILOT_GITHUB_TOKEN.",
       "GitHub Copilot",
     );
   });
@@ -159,7 +159,7 @@ describe("doctor auth hints", () => {
     noteSharedAuthStoreStatus(env);
 
     expect(mocks.note).toHaveBeenCalledWith(
-      expect.stringContaining("openclaw doctor --fix"),
+      expect.stringContaining("vasudev doctor --fix"),
       "Shared auth store",
     );
 

@@ -124,10 +124,10 @@ it.each([
     },
   });
   const action = nestedSdk
-    ? "this plugin bundles an incompatible OpenClaw SDK; update it or contact its author"
+    ? "this plugin bundles an incompatible Vasudev SDK; update it or contact its author"
     : pluginId
       ? "update this plugin or contact its author"
-      : "run `openclaw plugins update whatsapp`";
+      : "run `vasudev plugins update whatsapp`";
   for (const text of [
     record.error,
     formatPluginLine(record),

@@ -380,7 +380,7 @@ async function cloneGitCheckoutTransactionally(params: {
   }
 }
 
-/** Ensure the configured source-update directory exists and points at an Vasudev checkout. */
+/** Ensure the configured source-update directory exists and points at a Vasudev checkout. */
 export async function ensureGitCheckout(params: {
   dir: string;
   timeoutMs: number;
@@ -461,7 +461,7 @@ export async function resolveGlobalManager(params: {
 
 const COMPLETION_CACHE_WRITE_TIMEOUT_MS = 30_000;
 const COMPLETION_CACHE_MANUAL_REFRESH_HINT =
-  "Shell tab-completion may be stale; refresh manually with: openclaw completion --write-state";
+  "Shell tab-completion may be stale; refresh manually with: vasudev completion --write-state";
 
 /** Best-effort refresh of shell completion state after a successful update. */
 export async function tryWriteCompletionCache(

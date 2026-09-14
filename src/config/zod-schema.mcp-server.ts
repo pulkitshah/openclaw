@@ -103,7 +103,7 @@ export const McpServerSchema = z
       const disabled = Reflect.get(data, "disabled") as unknown;
       const replacement =
         typeof disabled === "boolean"
-          ? `"enabled: ${!disabled}" instead, then run "openclaw doctor --fix" to migrate existing config`
+          ? `"enabled: ${!disabled}" instead, then run "vasudev doctor --fix" to migrate existing config`
           : 'the canonical "enabled" boolean instead';
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

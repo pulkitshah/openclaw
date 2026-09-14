@@ -136,10 +136,10 @@ export function renderPublicSessionDocument(params: {
     truncated ||= clipped;
     remaining -= text.length;
     rows.push(
-      `<article class="message ${message.role}" aria-label="${message.role === "user" ? "User" : "Assistant"} message"><h2>${message.role === "user" ? "User" : "OpenClaw"}</h2><div class="content">${markdown.render(text)}${clipped ? '<p class="omitted">Message shortened for this public view.</p>' : ""}</div></article>`,
+      `<article class="message ${message.role}" aria-label="${message.role === "user" ? "User" : "Assistant"} message"><h2>${message.role === "user" ? "User" : "Vasudev"}</h2><div class="content">${markdown.render(text)}${clipped ? '<p class="omitted">Message shortened for this public view.</p>' : ""}</div></article>`,
     );
   }
-  const description = "A public, read-only OpenClaw conversation. No login required.";
+  const description = "A public, read-only Vasudev conversation. No login required.";
   const canonicalMetadata = params.canonicalUrl
     ? `<link rel="canonical" href="${escapeHtml(params.canonicalUrl)}">
 <meta property="og:url" content="${escapeHtml(params.canonicalUrl)}">`
@@ -152,8 +152,8 @@ export function renderPublicSessionDocument(params: {
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer"><meta name="robots" content="noindex, nofollow">
 ${isLatest ? '<meta http-equiv="refresh" content="15">' : ""}
-<title>${title} · OpenClaw</title>${canonicalMetadata}
-<meta property="og:type" content="website"><meta property="og:site_name" content="OpenClaw">
+<title>${title} · Vasudev</title>${canonicalMetadata}
+<meta property="og:type" content="website"><meta property="og:site_name" content="Vasudev">
 <meta property="og:title" content="${title}"><meta property="og:description" content="${description}">
 <meta property="og:image" content="${escapeHtml(params.cardUrl)}">
 <meta name="twitter:card" content="summary_large_image">
@@ -165,7 +165,7 @@ h1{font-size:clamp(28px,5vw,42px);line-height:1.15;letter-spacing:-.045em;margin
 .pagination{display:flex;justify-content:space-between;gap:18px;margin:24px 0;font-size:13px}.pagination a{padding:9px 0}.transcript{border-top:1px solid #26313b}.message{padding:27px 0;display:grid;grid-template-columns:90px minmax(0,1fr);gap:18px;border-bottom:1px solid #202b35}.message h2{margin:3px 0 0;font-size:12px;letter-spacing:.02em;font-weight:650;color:#99a9ba}.assistant h2{color:#ff958b}.content{min-width:0;font-size:15px;line-height:1.75;overflow-wrap:anywhere}.content>:first-child{margin-top:0}.content>:last-child{margin-bottom:0}.content p{margin:0 0 16px}.content h1,.content h2,.content h3,.content h4{color:#edf1f5;font-size:18px;line-height:1.4;letter-spacing:-.02em;margin:24px 0 12px}.content li{padding-left:3px;margin:5px 0}.content ul,.content ol{padding-left:24px}.content blockquote{margin:20px 0;border-left:3px solid #465b6d;padding:0 18px;color:#b1bfcb}.content pre{overflow:auto;max-width:100%;padding:16px 18px;border:1px solid #283541;border-radius:10px;background:#080d12;font-size:12px;line-height:1.7}.content code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.88em}.content :not(pre)>code{background:#1a2631;padding:2px 5px;border-radius:4px}.content table{display:block;max-width:100%;overflow:auto;border-collapse:collapse;font-size:13px}.content th,.content td{border:1px solid #34414d;text-align:left;padding:8px 12px}.content hr{border:0;border-top:1px solid #34414d;margin:24px 0}.omitted,.empty{color:#8c9dad;font-size:13px}.empty{padding:36px 0;line-height:1.7}footer{display:flex;justify-content:space-between;gap:20px;color:#80909f;font-size:12px;line-height:1.6;margin-top:30px}footer a{color:#a6b3c0}
 @media(max-width:560px){main{width:calc(100% - 32px);padding-top:26px}.message{display:block;padding:23px 0}.message h2{margin:0 0 10px}.content h2{margin:24px 0 12px}.badge{font-size:11px}h1{margin-top:32px}footer{display:block}footer a{display:inline-block;margin-top:10px}}
 </style></head><body><main>
-<header><div class="masthead"><div class="brand"><span aria-hidden="true">✳</span>OpenClaw</div><span class="badge">Public · Read-only</span></div>
+<header><div class="masthead"><div class="brand"><span aria-hidden="true">✳</span>Vasudev</div><span class="badge">Public · Read-only</span></div>
 <h1>${title}</h1><p class="intro"><strong>Shared with everyone, no login required.</strong> This ${isLatest ? "live view" : "page"} includes conversation text. Tool output, files, images, reasoning, and interactive content are omitted.</p></header>
 ${!isLatest ? `<p class="page-label">Earlier conversation · <a href="${escapeHtml(params.latestUrl)}">Back to latest</a></p>` : ""}
 ${truncated ? '<aside class="notice">Some messages or long text are omitted to keep this public page within its size limit.</aside>' : ""}

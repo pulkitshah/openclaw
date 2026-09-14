@@ -25,7 +25,7 @@ async function writeSystemdUnitForAudit(
     unitPath,
     [
       "[Unit]",
-      "Description=OpenClaw Gateway",
+      "Description=Vasudev Gateway",
       "[Service]",
       ...lines,
       "ExecStart=/usr/bin/node gateway",

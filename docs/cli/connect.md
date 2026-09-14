@@ -1,5 +1,5 @@
 ---
-summary: "Connect a machine to an Vasudev Gateway with one pasted command"
+summary: "Connect a machine to a Vasudev Gateway with one pasted command"
 read_when:
   - Pairing a new headless node with a Gateway
   - Installing a node host from a join URL or setup code
@@ -8,7 +8,7 @@ title: "Connect"
 
 # `openclaw connect`
 
-Connect the current machine to an Vasudev Gateway as a headless node. The
+Connect the current machine to a Vasudev Gateway as a headless node. The
 command redeems a short-lived bootstrap credential, saves the Gateway endpoint
 in the existing node-host state, and runs the same runtime as
 [`openclaw node run`](/cli/node).

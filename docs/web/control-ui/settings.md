@@ -314,7 +314,7 @@ dashboard pairing and backend plugin operations remain available.
 ## Import assistant memory
 
 Open **Settings** → **Import Memory** to bring local Codex, Claude Code, or Hermes memory
-into an Vasudev agent. The Gateway discovers supported local memory on its own
+into a Vasudev agent. The Gateway discovers supported local memory on its own
 host, so a remote Control UI imports from the Gateway computer rather than the
 browser computer.
 

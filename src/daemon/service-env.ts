@@ -73,7 +73,7 @@ function readServiceSqliteEnvironment(
 function readServiceProxyEnvironment(
   env: Record<string, string | undefined>,
 ): Record<string, string | undefined> {
-  // Service env intentionally preserves only the canonical OpenClaw proxy knob;
+  // Service env intentionally preserves only the canonical Vasudev proxy knob;
   // generic shell proxy vars are audited but not frozen into services.
   const proxyUrl = normalizeOptionalString(env.OPENCLAW_PROXY_URL);
   return proxyUrl ? { OPENCLAW_PROXY_URL: proxyUrl } : {};

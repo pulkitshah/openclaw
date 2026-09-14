@@ -1,4 +1,4 @@
-// OpenClaw overview tests cover summary output for rescue diagnostics.
+// Vasudev overview tests cover summary output for rescue diagnostics.
 import { describe, expect, it } from "vitest";
 import type { ConfigFileSnapshot, OpenClawConfig } from "../config/config.js";
 import {
@@ -102,7 +102,7 @@ describe("loadSystemAgentOverview", () => {
       'Next: run "gateway status" or "restart gateway"',
     );
     const startup = formatSystemAgentStartupMessage(overview);
-    expect(startup).toContain("Hi, I'm OpenClaw — caretaker");
+    expect(startup).toContain("Hi, I'm Vasudev — caretaker");
     expect(startup).toContain("Model: openai/gpt-5.2");
     expect(startup).toContain("Gateway: not reachable");
     expect(startup).not.toContain("`gateway status`");
@@ -116,11 +116,11 @@ describe("loadSystemAgentOverview", () => {
 
     const startup = formatSystemAgentStartupMessage(overview);
     expect(formatSystemAgentOverview(overview)).toContain(
-      'Next: run "openclaw onboard" to establish inference',
+      'Next: run "vasudev onboard" to establish inference',
     );
     expect(startup).toContain("Inference is unavailable");
-    expect(startup).toContain("Run `openclaw onboard`");
-    expect(startup.match(/`[^`]+`/g)).toEqual(["`openclaw onboard`"]);
+    expect(startup).toContain("Run `vasudev onboard`");
+    expect(startup.match(/`[^`]+`/g)).toEqual(["`vasudev onboard`"]);
     expect(startup).not.toContain("local Claude Code/Codex/Gemini login");
     expect(startup).not.toContain("typed commands as last resort");
   });

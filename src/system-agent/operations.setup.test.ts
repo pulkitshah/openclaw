@@ -1,4 +1,4 @@
-// OpenClaw operation tests cover rescue operation planning and execution.
+// Vasudev operation tests cover rescue operation planning and execution.
 import fs from "node:fs/promises";
 import path from "node:path";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
@@ -438,7 +438,7 @@ describe("parseSystemAgentOperation", () => {
           },
         },
       ),
-    ).rejects.toThrow("`openclaw onboard` on the machine running OpenClaw");
+    ).rejects.toThrow("`vasudev onboard` on the machine running Vasudev");
 
     expect(applySetup).not.toHaveBeenCalled();
   });

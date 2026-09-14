@@ -125,7 +125,7 @@ authoritative model metadata from `https://models.opencode.ai/api.json`.
 Vasudev fetches and caches that catalog only when OpenCode Zen or Go is
 configured or explicitly selected with OpenCode credentials; startup and
 unrelated providers never download it. New upstream models become available
-without an Vasudev update when their metadata describes a supported transport
+without a Vasudev update when their metadata describes a supported transport
 on the trusted OpenCode endpoint. A key-scoped response can omit models
 unavailable to that workspace. Metadata and lifecycle status refresh together;
 deprecated models are excluded from active discovery and its offline fallback.

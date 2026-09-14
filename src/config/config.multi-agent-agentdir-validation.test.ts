@@ -86,7 +86,7 @@ Conflicts:
 - ${shared}: "a", "b"
 
 Fix: remove the shared agents.entries.*.agentDir override (or give each agent its own directory).
-Auth profiles live in each agent's SQLite store, so a shared agentDir is not how credentials are shared: give each agent its own directory and either leave its store empty to inherit the main agent's profiles, or log it in with \`openclaw models auth login\`.`,
+Auth profiles live in each agent's SQLite store, so a shared agentDir is not how credentials are shared: give each agent its own directory and either leave its store empty to inherit the main agent's profiles, or log it in with \`vasudev models auth login\`.`,
         },
       ]);
     }

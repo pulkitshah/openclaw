@@ -118,24 +118,24 @@ function registerSessionsLifecycleCommand(
   const destructive = operation === "delete";
   const examples: Array<[string, string]> = destructive
     ? [
-        ['openclaw sessions delete "agent:main:scratch-1"', "Delete with confirmation."],
+        ['vasudev sessions delete "agent:main:scratch-1"', "Delete with confirmation."],
         [
-          'openclaw sessions delete "agent:main:scratch-1" "agent:main:scratch-2" --yes',
+          'vasudev sessions delete "agent:main:scratch-1" "agent:main:scratch-2" --yes',
           "Delete several sessions non-interactively.",
         ],
         [
-          'openclaw sessions delete "agent:work:scratch-1" --agent work --dry-run',
+          'vasudev sessions delete "agent:work:scratch-1" --agent work --dry-run',
           "Preview an agent-scoped delete.",
         ],
       ]
     : [
-        ['openclaw sessions archive "agent:main:scratch-1"', "Archive one session."],
+        ['vasudev sessions archive "agent:main:scratch-1"', "Archive one session."],
         [
-          'openclaw sessions archive "agent:main:scratch-1" "agent:main:scratch-2"',
+          'vasudev sessions archive "agent:main:scratch-1" "agent:main:scratch-2"',
           "Archive several sessions.",
         ],
         [
-          'openclaw sessions archive "agent:work:scratch-1" --agent work --dry-run',
+          'vasudev sessions archive "agent:work:scratch-1" --agent work --dry-run',
           "Preview an agent-scoped archive.",
         ],
       ];
@@ -157,7 +157,7 @@ function registerSessionsLifecycleCommand(
         `\n${theme.heading("Examples:")}\n${formatHelpExamples(examples)}${
           destructive
             ? `\n\n${theme.muted(
-                "Deletion uses the Control UI lifecycle operation, including transcript archival and runtime cleanup. Retained deleted-session archives can remain eligible for memory search. To remove indexed memories, run `openclaw memory forget --agent <agent-id> --session <id-or-key>` on the Gateway host or container using its state and configuration. Use the agent that owned the deleted session, including for global keys. Memory cleanup runs locally; --url does not forward it to a remote Gateway.",
+                "Deletion uses the Control UI lifecycle operation, including transcript archival and runtime cleanup. Retained deleted-session archives can remain eligible for memory search. To remove indexed memories, run `vasudev memory forget --agent <agent-id> --session <id-or-key>` on the Gateway host or container using its state and configuration. Use the agent that owned the deleted session, including for global keys. Memory cleanup runs locally; --url does not forward it to a remote Gateway.",
               )}`
             : ""
         }`,
@@ -229,15 +229,15 @@ export function registerStatusHealthSessionsCommands(program: Command) {
       "after",
       () =>
         `\n${theme.heading("Examples:")}\n${formatHelpExamples([
-          ["openclaw status", "Show channel health + session summary."],
-          ["openclaw status --all", "Full diagnosis (read-only)."],
-          ["openclaw status --json", "Machine-readable output."],
-          ["openclaw status --usage", "Show model provider usage/quota snapshots."],
+          ["vasudev status", "Show channel health + session summary."],
+          ["vasudev status --all", "Full diagnosis (read-only)."],
+          ["vasudev status --json", "Machine-readable output."],
+          ["vasudev status --usage", "Show model provider usage/quota snapshots."],
           [
-            "openclaw status --deep",
+            "vasudev status --deep",
             "Run channel probes (WA + Telegram + Discord + Slack + Signal).",
           ],
-          ["openclaw status --deep --timeout 5000", "Tighten probe timeout."],
+          ["vasudev status --deep --timeout 5000", "Tighten probe timeout."],
         ])}`,
     )
     .addHelpText(
@@ -296,13 +296,13 @@ export function registerStatusHealthSessionsCommands(program: Command) {
       "after",
       () =>
         `\n${theme.heading("Examples:")}\n${formatHelpExamples([
-          ["openclaw sessions", "List all sessions."],
-          ["openclaw sessions --agent work", "List sessions for one agent."],
-          ["openclaw sessions --all-agents", "Aggregate sessions across agents."],
-          ["openclaw sessions --active 120", "Only last 2 hours."],
-          ["openclaw sessions --limit 25", "Show the newest 25 sessions."],
-          ["openclaw sessions --json", "Machine-readable output."],
-          ["openclaw sessions --store ./tmp/sessions.sqlite", "Use a specific session store."],
+          ["vasudev sessions", "List all sessions."],
+          ["vasudev sessions --agent work", "List sessions for one agent."],
+          ["vasudev sessions --all-agents", "Aggregate sessions across agents."],
+          ["vasudev sessions --active 120", "Only last 2 hours."],
+          ["vasudev sessions --limit 25", "Show the newest 25 sessions."],
+          ["vasudev sessions --json", "Machine-readable output."],
+          ["vasudev sessions --store ./tmp/sessions.sqlite", "Use a specific session store."],
         ])}\n\n${theme.muted(
           "Shows token usage per session when the agent reports it; set the model entry's contextTokens to cap the window and show %.",
         )}`,
@@ -348,20 +348,20 @@ export function registerStatusHealthSessionsCommands(program: Command) {
       "after",
       () =>
         `\n${theme.heading("Examples:")}\n${formatHelpExamples([
-          ["openclaw sessions cleanup --dry-run", "Preview stale/cap cleanup."],
+          ["vasudev sessions cleanup --dry-run", "Preview stale/cap cleanup."],
           [
-            "openclaw sessions cleanup --dry-run --fix-missing",
+            "vasudev sessions cleanup --dry-run --fix-missing",
             "Also preview pruning entries with missing transcript files.",
           ],
           [
-            "openclaw sessions cleanup --dry-run --fix-dm-scope",
+            "vasudev sessions cleanup --dry-run --fix-dm-scope",
             "Preview stale direct-DM rows after returning dmScope to main.",
           ],
-          ["openclaw sessions cleanup --enforce", "Apply maintenance now."],
-          ["openclaw sessions cleanup --agent work --dry-run", "Preview one agent store."],
-          ["openclaw sessions cleanup --all-agents --dry-run", "Preview all agent stores."],
+          ["vasudev sessions cleanup --enforce", "Apply maintenance now."],
+          ["vasudev sessions cleanup --agent work --dry-run", "Preview one agent store."],
+          ["vasudev sessions cleanup --all-agents --dry-run", "Preview all agent stores."],
           [
-            "openclaw sessions cleanup --enforce --store ./tmp/sessions.sqlite",
+            "vasudev sessions cleanup --enforce --store ./tmp/sessions.sqlite",
             "Use a specific store.",
           ],
         ])}`,
@@ -475,15 +475,15 @@ export function registerStatusHealthSessionsCommands(program: Command) {
       () =>
         `\n${theme.heading("Examples:")}\n${formatHelpExamples([
           [
-            'openclaw sessions compact "agent:main:main"',
+            'vasudev sessions compact "agent:main:main"',
             "LLM-summarize a session to reclaim context budget.",
           ],
           [
-            'openclaw sessions compact "agent:main:main" --max-lines 200',
+            'vasudev sessions compact "agent:main:main" --max-lines 200',
             "Truncate to the last 200 transcript lines instead.",
           ],
           [
-            'openclaw sessions compact "agent:work:main" --agent work --json',
+            'vasudev sessions compact "agent:work:main" --agent work --json',
             "Target one agent's session and emit JSON.",
           ],
         ])}\n\n${theme.muted(

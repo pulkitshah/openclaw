@@ -86,7 +86,7 @@ describe("triage --run", () => {
     expect(mocks.confirm).toHaveBeenCalledOnce();
     expect(mocks.agentExecCommand).not.toHaveBeenCalled();
     expect(runtime.log.mock.calls.flat().join("\n")).toContain(
-      "the embedded OpenClaw agent using your configured model",
+      "the embedded Vasudev agent using your configured model",
     );
     expect(runtime.log.mock.calls.flat().join("\n")).not.toContain("gpt-5.6-luna");
     expect(runtime.log).toHaveBeenCalledWith("No repair agent was started.");
@@ -103,7 +103,7 @@ describe("triage --run", () => {
 
     await withTriageTerminal(true, async () => {
       await expect(triageCommand(runtime, { noExport: true, run: true })).rejects.toThrow(
-        "Run `openclaw onboard` or use a suggested handoff command.",
+        "Run `vasudev onboard` or use a suggested handoff command.",
       );
     });
     expect(mocks.runUpdateRepairLoop).toHaveBeenCalledOnce();
@@ -213,7 +213,7 @@ describe("triage --run", () => {
         triageCommand(createTriageRuntime(), { noExport: true, run: true }),
       ),
     ).rejects.toThrow(
-      "The operator's policy denies unattended repair (exec-denied-by-policy). Use `openclaw triage` for an external handoff.",
+      "The operator's policy denies unattended repair (exec-denied-by-policy). Use `vasudev triage` for an external handoff.",
     );
   });
 

@@ -2443,7 +2443,7 @@ describe("models.authSetApiKey", () => {
       {
         provider: "openrouter",
         profileId: "openrouter:manual",
-        ...(refreshFails ? { warning: expect.stringContaining("openclaw gateway restart") } : {}),
+        ...(refreshFails ? { warning: expect.stringContaining("vasudev gateway restart") } : {}),
       },
       undefined,
     ]);
@@ -2894,7 +2894,7 @@ describe("models.authLogout", () => {
       expect(ok).toBe(true);
       expect(payload).toMatchObject({
         abortedRunIds: ["revoked"],
-        warning: expect.stringContaining("openclaw gateway restart"),
+        warning: expect.stringContaining("vasudev gateway restart"),
       });
       expect(error).toBeUndefined();
     },

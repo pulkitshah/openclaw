@@ -48,7 +48,7 @@ function createDeepStateEnv(): NodeJS.ProcessEnv {
   return env;
 }
 
-describe("OpenClaw database paths on Windows", () => {
+describe("Vasudev database paths on Windows", () => {
   it.runIf(process.platform === "win32")(
     "opens, preflights, compacts, and reopens canonical databases beyond MAX_PATH",
     async () => {

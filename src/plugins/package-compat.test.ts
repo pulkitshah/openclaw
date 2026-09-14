@@ -17,7 +17,7 @@ describe("package plugin API compatibility", () => {
     expect(satisfiesPluginApiRange("invalid", "^1.2.0")).toBe(false);
   });
 
-  it("treats OpenClaw release correction versions as stable plugin API hosts", () => {
+  it("treats Vasudev release correction versions as stable plugin API hosts", () => {
     expect(satisfiesPluginApiRange("2026.5.3-1", ">=2026.5.3")).toBe(true);
     expect(satisfiesPluginApiRange("2026.5.32-1", ">=2026.5.32")).toBe(true);
     expect(satisfiesPluginApiRange("2026.5.3-2", ">=2026.5.3")).toBe(true);

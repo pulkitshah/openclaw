@@ -486,13 +486,13 @@ async function migrateLegacyAuditLogSource(params: {
       if (!scrubbedRecords.ok) {
         warnings.push(...scrubbedRecords.warnings);
         warnings.push(
-          `Retained uncheckpointed ${params.source.label} recovery archive; rerun openclaw doctor --fix`,
+          `Retained uncheckpointed ${params.source.label} recovery archive; rerun vasudev doctor --fix`,
         );
         return result("refused");
       }
       if (scrubbedRecords.records.length !== 0) {
         warnings.push(
-          `A legacy ${params.source.label} writer appended during recovery; rerun openclaw doctor --fix to import the retained rows`,
+          `A legacy ${params.source.label} writer appended during recovery; rerun vasudev doctor --fix to import the retained rows`,
         );
         return result("refused");
       }
@@ -553,13 +553,13 @@ async function migrateLegacyAuditLogSource(params: {
     if (!scrubbedRecords.ok) {
       warnings.push(...scrubbedRecords.warnings);
       warnings.push(
-        `Retained uncheckpointed ${params.source.label} recovery archive; rerun openclaw doctor --fix`,
+        `Retained uncheckpointed ${params.source.label} recovery archive; rerun vasudev doctor --fix`,
       );
       return result("refused");
     }
     if (scrubbedRecords.records.length !== 0) {
       warnings.push(
-        `A legacy ${params.source.label} writer appended during migration; rerun openclaw doctor --fix to import the retained rows`,
+        `A legacy ${params.source.label} writer appended during migration; rerun vasudev doctor --fix to import the retained rows`,
       );
       return result("refused");
     }
@@ -588,7 +588,7 @@ async function migrateLegacyAuditLogSource(params: {
     }
     if ((await root.exists(sourceRelativePath)) && !params.recreatedSourceScheduled) {
       warnings.push(
-        `An old writer recreated ${params.source.label} at ${params.source.logicalSourcePath}; rerun openclaw doctor --fix to import the retained rows`,
+        `An old writer recreated ${params.source.label} at ${params.source.logicalSourcePath}; rerun vasudev doctor --fix to import the retained rows`,
       );
     }
     return result(checkpointed ? "completed" : "refused");

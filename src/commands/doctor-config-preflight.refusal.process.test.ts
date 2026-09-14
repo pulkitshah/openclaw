@@ -88,7 +88,7 @@ describe("Doctor CLI migration refusal", () => {
         expect(result.error, output).toBeUndefined();
         expect(result.status, output).toBe(1);
         expect(output).toContain(
-          "Doctor refused update-time schema repair driven by OpenClaw 2026.9.2",
+          "Doctor refused update-time schema repair driven by Vasudev 2026.9.2",
         );
         expect(files.map((file) => fs.readFileSync(file))).toEqual(before);
         expect(writer.prepare("PRAGMA user_version").get()?.user_version).toBe(
@@ -158,7 +158,7 @@ describe("Doctor CLI migration refusal", () => {
     expect(output).toContain(databasePath);
     expect(output).toContain(workspaceDir);
     expect(text).toContain("unsupported workspace setup version 99");
-    expect(text).toContain("compatible OpenClaw build");
+    expect(text).toContain("compatible Vasudev build");
     expect(output).toContain(sourcePath);
     expect(text).toContain("reconcile this file");
     expect(text).not.toMatch(/(?:openclaw\s+)?doctor\s+--(?:fix|repair)/i);

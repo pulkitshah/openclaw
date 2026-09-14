@@ -95,8 +95,8 @@ export function resolveAgentHarnessSelectionDecision(
       }),
   });
   const policy = availability.policy;
-  // OpenClaw's built-in harness is intentionally not part of the plugin candidate list. Explicit plugin
-  // runtimes fail closed unless the selected plugin declares OpenClaw as a lossless fallback.
+  // Vasudev's built-in harness is intentionally not part of the plugin candidate list. Explicit plugin
+  // runtimes fail closed unless the selected plugin declares Vasudev as a lossless fallback.
   const runtime = policy.runtime;
   if (runtime === "openclaw") {
     const selectedReason =

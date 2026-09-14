@@ -92,11 +92,11 @@ account-based. Vasudev selects auth in this order:
    reports no account: `CODEX_API_KEY`, then `OPENAI_API_KEY`.
 
 Status and catalog reads ask Codex about its native login without importing
-credentials into an Vasudev profile. A fresh auth refresh observes native login
+credentials into a Vasudev profile. A fresh auth refresh observes native login
 and logout. Native API-key and subscription accounts select their matching
 routes. Model runtime choices use the same route and account as thinking
 metadata; an unavailable runtime cannot be selected. Explicit auth import
-remains available when you want an Vasudev-owned profile.
+remains available when you want a Vasudev-owned profile.
 
 The default per-agent `codex-home/auth.json` is not a runtime auth store. If
 you copied or mounted Codex CLI credentials there, import them into the agent's
@@ -123,5 +123,5 @@ model or dropping out of the Codex harness. Once the reset time passes, the
 subscription profile is eligible again.
 
 Chat `/status` reports the authentication mode from the selected runtime's current
-prepared account. A native login stays distinct from an Vasudev profile; it does
+prepared account. A native login stays distinct from a Vasudev profile; it does
 not satisfy an unavailable explicit profile pin.

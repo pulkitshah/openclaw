@@ -55,10 +55,10 @@ vi.mock("../../plugins/official-external-plugin-repair-hints.js", () => ({
               channelId,
               label: "Feishu",
               installSpec: "@openclaw/feishu",
-              installCommand: "openclaw plugins install @openclaw/feishu",
-              doctorFixCommand: "openclaw doctor --fix",
+              installCommand: "vasudev plugins install @openclaw/feishu",
+              doctorFixCommand: "vasudev doctor --fix",
               repairHint:
-                "Install the official external plugin with: openclaw plugins install @openclaw/feishu, or run: openclaw doctor --fix.",
+                "Install the official external plugin with: vasudev plugins install @openclaw/feishu, or run: vasudev doctor --fix.",
             },
           ]
         : [],
@@ -270,7 +270,7 @@ describe("buildChannelsTable", () => {
           enabled: true,
           state: "warn",
           detail:
-            "plugin not installed - run openclaw plugins install @openclaw/feishu or openclaw doctor --fix",
+            "plugin not installed - run vasudev plugins install @openclaw/feishu or vasudev doctor --fix",
         },
       ],
       details: [],
@@ -297,7 +297,7 @@ describe("buildChannelsTable", () => {
           label: "telegram",
           enabled: true,
           state: "warn",
-          detail: "plugin load failed: dependency tree corrupted; run openclaw doctor --fix",
+          detail: "plugin load failed: dependency tree corrupted; run vasudev doctor --fix",
         },
       ],
       details: [],

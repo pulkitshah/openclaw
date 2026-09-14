@@ -306,19 +306,19 @@ describe("agents add command", () => {
       name: "a missing workspace with automation flags",
       options: { name: "Work" },
       flags: { hasAutomationFlags: true },
-      message: `Non-interactive agent creation requires --workspace. Re-run ${formatCliCommand("openclaw agents add <id> --workspace <path>")} or omit flags to use the wizard.`,
+      message: `Non-interactive agent creation requires --workspace. Re-run ${formatCliCommand("vasudev agents add <id> --workspace <path>")} or omit flags to use the wizard.`,
     },
     {
       name: "a missing workspace with explicit non-interactive mode",
       options: { name: "Work", nonInteractive: true },
       flags: { hasAutomationFlags: false },
-      message: `Non-interactive agent creation requires --workspace. Re-run ${formatCliCommand("openclaw agents add <id> --workspace <path>")} or omit flags to use the wizard.`,
+      message: `Non-interactive agent creation requires --workspace. Re-run ${formatCliCommand("vasudev agents add <id> --workspace <path>")} or omit flags to use the wizard.`,
     },
     {
       name: "a missing name after a valid workspace",
       options: { workspace: "/tmp/work" },
       flags: { hasAutomationFlags: true },
-      message: `Agent name is required in non-interactive mode. Run ${formatCliCommand("openclaw agents add <id> --workspace <path>")}.`,
+      message: `Agent name is required in non-interactive mode. Run ${formatCliCommand("vasudev agents add <id> --workspace <path>")}.`,
     },
     {
       name: "an unrepresentable non-interactive name",
@@ -331,7 +331,7 @@ describe("agents add command", () => {
       name: `reserved system-agent id ${agentId}`,
       options: { name: agentId, workspace: "/tmp/reserved" },
       flags: { hasAutomationFlags: true },
-      message: `"${agentId}" is reserved. Choose another name, or run ${formatCliCommand("openclaw agents list")} to inspect configured agents.`,
+      message: `"${agentId}" is reserved. Choose another name, or run ${formatCliCommand("vasudev agents list")} to inspect configured agents.`,
     })),
   ])("rejects $name through the root failure owner before mutation", async (testCase) => {
     readConfigFileSnapshotMock.mockResolvedValue({ ...baseConfigSnapshot });
@@ -428,7 +428,7 @@ describe("agents add command", () => {
       });
 
       const message =
-        "Agent creation needs an interactive TTY. Use `openclaw agents add <id> --non-interactive --workspace <dir>` for automation.";
+        "Agent creation needs an interactive TTY. Use `vasudev agents add <id> --non-interactive --workspace <dir>` for automation.";
       await expect(agentsAddCommand({ json }, runtime)).rejects.toMatchObject({
         name: "ExpectedCliError",
         message,
@@ -463,7 +463,7 @@ describe("agents add command", () => {
     expect(terminalMocks.isTerminalInteractive).toHaveBeenCalledOnce();
     expect(terminalMocks.isTerminalInteractive).toHaveBeenCalledWith(process.stdout);
     expect(wizardMocks.createClackPrompter).toHaveBeenCalledWith(process.stdout);
-    expect(prompter.intro).toHaveBeenCalledWith("Add OpenClaw agent");
+    expect(prompter.intro).toHaveBeenCalledWith("Add Vasudev agent");
     expect(authChoiceMocks.warnIfModelConfigLooksOff).toHaveBeenCalledOnce();
     expect(authChoiceMocks.warnIfModelConfigLooksOff).toHaveBeenCalledWith(
       expect.objectContaining({ agents: expect.any(Object) }),
@@ -536,13 +536,13 @@ describe("agents add command", () => {
       status: "error",
       reason: "legacy-session-migration-required",
       agentId: "main",
-      message: "Run openclaw doctor --fix, then retry.",
+      message: "Run vasudev doctor --fix, then retry.",
     });
 
     await agentsAddCommand({ name: "main" }, runtime);
 
     expect(checkAgentCreationGateMock).toHaveBeenCalledWith("main");
-    expect(prompter.outro).toHaveBeenCalledWith("Run openclaw doctor --fix, then retry.");
+    expect(prompter.outro).toHaveBeenCalledWith("Run vasudev doctor --fix, then retry.");
     expect(prompter.text).not.toHaveBeenCalled();
     expect(authChoiceMocks.prepareAuthChoice).not.toHaveBeenCalled();
     expect(createAgentMock).not.toHaveBeenCalled();

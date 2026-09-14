@@ -205,12 +205,12 @@ function registerCodexHealthChecks(
     // A bundled-first lookup can inspect a different version or bypass the selected owner's trust.
     if (!owner) {
       throw new MissingPublicSurfaceError(
-        "The configured Codex plugin was not found. Install it with openclaw plugins install @openclaw/codex.",
+        "The configured Codex plugin was not found. Install it with vasudev plugins install @openclaw/codex.",
       );
     }
     if (owner.origin !== "bundled" && owner.trustedOfficialInstall !== true) {
       throw new MissingPublicSurfaceError(
-        "The selected Codex plugin is not a bundled or verified official installation. Run openclaw plugins inspect codex --runtime --json to inspect its source; install the official plugin with openclaw plugins install @openclaw/codex.",
+        "The selected Codex plugin is not a bundled or verified official installation. Run vasudev plugins inspect codex --runtime --json to inspect its source; install the official plugin with vasudev plugins install @openclaw/codex.",
       );
     }
     // Retained stable plugins can predate health APIs while an upgrade awaits capability consent.
@@ -225,13 +225,13 @@ function registerCodexHealthChecks(
         });
       } catch (cause) {
         throw new MissingPublicSurfaceError(
-          "The selected Codex plugin declares Doctor health checks but its health API could not be loaded. Run openclaw plugins inspect codex --runtime --json for details, or openclaw triage for repair help.",
+          "The selected Codex plugin declares Doctor health checks but its health API could not be loaded. Run vasudev plugins inspect codex --runtime --json for details, or vasudev triage for repair help.",
           { cause },
         );
       }
       if (typeof api.registerCodexManagedAppServerDoctorChecks !== "function") {
         throw new MissingPublicSurfaceError(
-          "The selected Codex plugin's Doctor health checks are incomplete. Run openclaw plugins inspect codex --runtime --json for details, or openclaw triage for repair help.",
+          "The selected Codex plugin's Doctor health checks are incomplete. Run vasudev plugins inspect codex --runtime --json for details, or vasudev triage for repair help.",
           {
             cause: new TypeError(
               "Codex health API must export registerCodexManagedAppServerDoctorChecks",

@@ -50,7 +50,7 @@ export type AgentModelEntryConfig = {
   params?: Record<string, unknown>;
   /** Optional agent execution runtime for this specific provider/model entry. */
   agentRuntime?: AgentRuntimePolicyConfig;
-  /** OpenClaw Code Mode override; omitted inherits the enclosing activation policy. */
+  /** Vasudev Code Mode override; omitted inherits the enclosing activation policy. */
   codeMode?: boolean;
   /** Enable streaming for this model (default: true, false for Ollama to avoid SDK issue #1205). */
   streaming?: boolean;
@@ -180,9 +180,9 @@ export type AgentCompactionConfig = {
   enabled?: boolean;
   /** Compaction summarization mode. */
   mode?: AgentCompactionMode;
-  /** Thinking level for embedded OpenClaw compaction summaries. Default: low. */
+  /** Thinking level for embedded Vasudev compaction summaries. Default: low. */
   thinkingLevel?: AgentThinkingLevel | "inherit";
-  /** Embedded OpenClaw keepRecentTokens budget used for cut-point selection. */
+  /** Embedded Vasudev keepRecentTokens budget used for cut-point selection. */
   keepRecentTokens?: number;
   /** Preserve this many most-recent user/assistant turns verbatim in compaction summary context. */
   recentTurnsPreserve?: number;

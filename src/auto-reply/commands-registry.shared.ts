@@ -269,7 +269,7 @@ export function buildBuiltinChatCommands(
     }),
     defineBuiltinCommand(
       "openclaw",
-      "Run the OpenClaw setup and repair helper.",
+      "Run the Vasudev setup and repair helper.",
       "management",
       "essential",
       {
@@ -473,7 +473,7 @@ export function buildBuiltinChatCommands(
       argsParsing: "none",
       formatArgs: COMMAND_ARG_FORMATTERS.config,
     }),
-    defineBuiltinCommand("mcp", "Show or set OpenClaw MCP servers.", "management", "power", {
+    defineBuiltinCommand("mcp", "Show or set Vasudev MCP servers.", "management", "power", {
       modelIndependent: "always",
       args: [
         defineCommandArgument("action", "show | get | set | unset", {
@@ -528,10 +528,10 @@ export function buildBuiltinChatCommands(
       activeRunSafe: true,
       modelIndependent: "no-args",
     }),
-    defineBuiltinCommand("restart", "Restart OpenClaw.", "tools", "power", {
+    defineBuiltinCommand("restart", "Restart Vasudev.", "tools", "power", {
       modelIndependent: "no-args",
     }),
-    defineBuiltinCommand("update", "Update OpenClaw and restart.", "tools", "power", {
+    defineBuiltinCommand("update", "Update Vasudev and restart.", "tools", "power", {
       modelIndependent: "no-args",
     }),
     defineBuiltinCommand("activation", "Set group activation mode.", "management", "power", {

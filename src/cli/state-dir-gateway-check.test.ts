@@ -66,7 +66,7 @@ describe("state-dir-gateway-check", () => {
         gatewayConfigPath,
         source: "live Gateway",
         mode: "refuse",
-        command: "openclaw configure",
+        command: "vasudev configure",
       }),
     ).toEqual({ kind: "allow" });
   });
@@ -84,7 +84,7 @@ describe("state-dir-gateway-check", () => {
     });
 
     await expect(
-      checkCliGatewayStateDir({ command: "openclaw channels add", config: {} }),
+      checkCliGatewayStateDir({ command: "vasudev channels add", config: {} }),
     ).resolves.toMatchObject({ kind: "refuse" });
     const inspectedEnv = mocks.readServiceCommand.mock.calls[0]?.[0];
     expect(inspectedEnv).not.toHaveProperty("OPENCLAW_STATE_DIR");
@@ -102,7 +102,7 @@ describe("state-dir-gateway-check", () => {
     });
 
     await expect(
-      checkCliGatewayStateDir({ command: "openclaw models auth", config: {} }),
+      checkCliGatewayStateDir({ command: "vasudev models auth", config: {} }),
     ).resolves.toEqual({ kind: "allow" });
     expect(mocks.probeGateway).not.toHaveBeenCalled();
   });
@@ -129,7 +129,7 @@ describe("state-dir-gateway-check", () => {
       });
 
       await expect(
-        checkCliGatewayStateDir({ command: "openclaw configure", config: {} }),
+        checkCliGatewayStateDir({ command: "vasudev configure", config: {} }),
       ).resolves.toMatchObject({
         kind: "refuse",
         message: expect.stringContaining(path.join(serviceRuntimeHome, ".openclaw")),
@@ -153,7 +153,7 @@ describe("state-dir-gateway-check", () => {
     );
 
     await expect(
-      checkCliGatewayStateDir({ command: "openclaw channels add", config: {} }),
+      checkCliGatewayStateDir({ command: "vasudev channels add", config: {} }),
     ).resolves.toMatchObject({ kind: "refuse" });
     expect(mocks.readServiceCommand).not.toHaveBeenCalled();
   });
@@ -166,7 +166,7 @@ describe("state-dir-gateway-check", () => {
 
     await expect(
       checkCliGatewayStateDir({
-        command: "openclaw models auth",
+        command: "vasudev models auth",
         config: { gateway: { auth: { mode: "token" } } },
       }),
     ).resolves.toMatchObject({ kind: "warn" });
@@ -181,7 +181,7 @@ describe("state-dir-gateway-check", () => {
 
   it("allows an offline command and does not probe an ordinary transport failure", async () => {
     await expect(
-      checkCliGatewayStateDir({ command: "openclaw configure", config: {} }),
+      checkCliGatewayStateDir({ command: "vasudev configure", config: {} }),
     ).resolves.toEqual({ kind: "allow" });
     expect(mocks.probeGateway).not.toHaveBeenCalled();
   });
@@ -189,7 +189,7 @@ describe("state-dir-gateway-check", () => {
   it("warns for a remote Gateway without local inspection", async () => {
     await expect(
       checkCliGatewayStateDir({
-        command: "openclaw configure",
+        command: "vasudev configure",
         config: { gateway: { mode: "remote", remote: { url: "wss://gateway.example" } } },
       }),
     ).resolves.toMatchObject({ kind: "warn" });
@@ -201,7 +201,7 @@ describe("state-dir-gateway-check", () => {
     const error = new Error("private-service-inspection-canary");
     mocks.readServiceCommand.mockRejectedValue(error);
 
-    const result = await checkCliGatewayStateDir({ command: "openclaw configure", config: {} });
+    const result = await checkCliGatewayStateDir({ command: "vasudev configure", config: {} });
     expect(result).toMatchObject({
       kind: "warn",
       message: expect.stringContaining("could not be verified"),
@@ -216,13 +216,13 @@ describe("state-dir-gateway-check", () => {
     });
 
     await expect(
-      checkCliGatewayStateDir({ command: "openclaw configure", config: {} }),
+      checkCliGatewayStateDir({ command: "vasudev configure", config: {} }),
     ).resolves.toMatchObject({ kind: "warn" });
   });
 
   it("redacts credentials in remote target warnings", async () => {
     const result = await checkCliGatewayStateDir({
-      command: "openclaw configure",
+      command: "vasudev configure",
       config: {
         gateway: {
           mode: "remote",

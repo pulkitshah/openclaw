@@ -148,7 +148,7 @@ export type OpenClawPluginCliRegistrar = (ctx: OpenClawPluginCliContext) => void
  * Top-level CLI metadata for plugin-owned commands.
  *
  * Descriptors are the parse-time contract for lazy plugin CLI registration.
- * If you want OpenClaw to keep a plugin command lazy-loaded while still
+ * If you want Vasudev to keep a plugin command lazy-loaded while still
  * advertising it at the root CLI level, provide descriptors that cover every
  * top-level command root registered by that plugin CLI surface.
  */

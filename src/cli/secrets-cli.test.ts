@@ -269,7 +269,7 @@ describe("secrets CLI", () => {
   it("explains Gateway reload failures without duplicate doctor noise", async () => {
     callGatewayFromCli.mockRejectedValue(
       new Error(
-        "gateway closed (1006 abnormal closure). Gateway target: ws://127.0.0.1:18789 Source: local loopback Config: /tmp/openclaw.json Bind: loopback Possible causes: - Gateway not yet ready. Run `openclaw doctor` for diagnostics.",
+        "gateway closed (1006 abnormal closure). Gateway target: ws://127.0.0.1:18789 Source: local loopback Config: /tmp/openclaw.json Bind: loopback Possible causes: - Gateway not yet ready. Run `vasudev doctor` for diagnostics.",
       ),
     );
 

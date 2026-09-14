@@ -6,7 +6,7 @@ read_when:
 title: "Remote control"
 ---
 
-This flow lets the macOS app act as a full remote control for an Vasudev Gateway running on another host (desktop/server). The app connects directly to trusted LAN/Tailnet Gateway URLs, or manages an SSH tunnel when the remote Gateway is loopback-only. Health checks, Voice Wake forwarding, and WebChat reuse the same remote configuration from the native **Connection** window.
+This flow lets the macOS app act as a full remote control for a Vasudev Gateway running on another host (desktop/server). The app connects directly to trusted LAN/Tailnet Gateway URLs, or manages an SSH tunnel when the remote Gateway is loopback-only. Health checks, Voice Wake forwarding, and WebChat reuse the same remote configuration from the native **Connection** window.
 
 ## Connect with your browser
 

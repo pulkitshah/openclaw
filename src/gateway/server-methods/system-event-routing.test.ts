@@ -45,7 +45,7 @@ describe("system-event routing", () => {
     mocks.loadGatewaySessionEntryReadOnly.mockReturnValue({ entry: { sessionId: "session" } });
     const request = {
       params: {
-        text: "OpenClaw updated. Welcome the user back.",
+        text: "Vasudev updated. Welcome the user back.",
         sessionKey,
         wake: true,
       },
@@ -63,7 +63,7 @@ describe("system-event routing", () => {
       'systemHandlers["system-event"] test invariant',
     )(request);
 
-    expect(peekSystemEvents(sessionKey)).toEqual(["OpenClaw updated. Welcome the user back."]);
+    expect(peekSystemEvents(sessionKey)).toEqual(["Vasudev updated. Welcome the user back."]);
     expect(mocks.requestHeartbeat).toHaveBeenCalledWith({
       source: "notifications-event",
       intent: "immediate",
@@ -153,7 +153,7 @@ describe("system-event routing", () => {
     const respond = vi.fn();
     const request = {
       params: {
-        text: "OpenClaw updated. Welcome the user back.",
+        text: "Vasudev updated. Welcome the user back.",
         sessionKey: "agent:bogus:main",
         wake: true,
       },
@@ -190,7 +190,7 @@ describe("system-event routing", () => {
       });
       const request = {
         params: {
-          text: "OpenClaw updated. Welcome the user back.",
+          text: "Vasudev updated. Welcome the user back.",
           sessionKey,
           wake: true,
         },

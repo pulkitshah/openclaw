@@ -249,7 +249,7 @@ describe("extractToolResultMediaArtifact", () => {
   it("falls back to details.path when image content exists", () => {
     // Embedded read image results omit structured media but include details.path,
     // so image content is the guard that makes that path media.
-    // Embedded read tool doesn't include structured media but OpenClaw
+    // Embedded read tool doesn't include structured media but Vasudev
     // imageResult sets details.path as fallback.
     const result = {
       content: [

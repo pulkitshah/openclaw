@@ -82,7 +82,7 @@ export function isBrowserCopilotClient(client?: GatewayClientInfoLike | null): b
   return normalizeGatewayClientName(client?.id) === GATEWAY_CLIENT_NAMES.BROWSER_COPILOT;
 }
 
-/** Return whether a raw channel id resolves to OpenClaw's internal channel. */
+/** Return whether a raw channel id resolves to Vasudev's internal channel. */
 export function isInternalMessageChannel(
   raw?: string | null,
 ): raw is typeof INTERNAL_MESSAGE_CHANNEL {

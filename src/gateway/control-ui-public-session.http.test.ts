@@ -199,7 +199,7 @@ describe("anonymous public session HTTP boundary", () => {
 
       const preview = await send(server, { path: "/share/dashboard/example/private-name" });
       expect(preview.res.statusCode).toBe(200);
-      expect(preview.getBody()).toContain("OpenClaw dashboard");
+      expect(preview.getBody()).toContain("Vasudev dashboard");
       expect(reader).not.toHaveBeenCalled();
     } finally {
       suspension?.release();

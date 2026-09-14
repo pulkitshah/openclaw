@@ -1575,7 +1575,7 @@ describe("/model chat UX", () => {
     expect(reply?.text).not.toContain("via codex runtime");
   });
 
-  it("does not borrow Codex auth when OpenAI model policy pins OpenClaw runtime", async () => {
+  it("does not borrow Codex auth when OpenAI model policy pins Vasudev runtime", async () => {
     setAuthProfiles({
       "openai:patrick@example.test": {
         type: "oauth",
@@ -1784,7 +1784,7 @@ describe("/model chat UX", () => {
       'Add "openai/gpt-5.5" or its provider wildcard to agents.defaults.modelPolicy.allow.',
     );
     expect(resolved.errorText).toContain("Then retry: /model openai/gpt-5.5 --runtime codex");
-    expect(resolved.errorText).toContain("openclaw plugins enable codex");
+    expect(resolved.errorText).toContain("vasudev plugins enable codex");
   });
 
   it("names the active per-agent allowlist in repair guidance", () => {

@@ -142,7 +142,7 @@ openclaw approvals set --stdin <<'EOF'
 EOF
 ```
 
-For nodes that expose an Vasudev approvals document, use the same body with `openclaw approvals set --node <id|name|ip> --stdin`. Host-native nodes require their owner-specific shape shown above.
+For nodes that expose a Vasudev approvals document, use the same body with `openclaw approvals set --node <id|name|ip> --stdin`. Host-native nodes require their owner-specific shape shown above.
 
 This changes the **host approvals document** only. To keep the requested Vasudev policy aligned, also set:
 

@@ -45,8 +45,8 @@ describe("renderGatewayServiceStartHints", () => {
     {
       name: "the default profile",
       profile: "default",
-      installCommand: "openclaw gateway install",
-      startCommand: "openclaw gateway start",
+      installCommand: "vasudev gateway install",
+      startCommand: "vasudev gateway start",
     },
     {
       name: "a named profile",
@@ -94,7 +94,7 @@ describe("filterContainerGenericHints", () => {
       filterContainerGenericHints(
         [
           "systemd user services are unavailable; install/enable systemd or run the gateway under your supervisor.",
-          "If you're in a container, run the gateway in the foreground instead of `openclaw gateway`.",
+          "If you're in a container, run the gateway in the foreground instead of `vasudev gateway`.",
         ],
         { OPENCLAW_CONTAINER: "openclaw-demo-container" } as NodeJS.ProcessEnv,
       ),
@@ -106,7 +106,7 @@ describe("filterContainerGenericHints", () => {
       filterContainerGenericHints(
         [
           "systemd user services are unavailable; install/enable systemd or run the gateway under your supervisor.",
-          "If you're in a container, run the gateway in the foreground instead of `openclaw gateway`.",
+          "If you're in a container, run the gateway in the foreground instead of `vasudev gateway`.",
         ],
         { OPENCLAW_CONTAINER_HINT: "openclaw-demo-container" } as NodeJS.ProcessEnv,
       ),

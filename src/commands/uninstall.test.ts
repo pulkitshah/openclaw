@@ -169,7 +169,7 @@ describe("uninstallCommand", () => {
 
     expect(
       cleanupCommandLogMessages(runtime).some((message) =>
-        message.includes("openclaw backup create"),
+        message.includes("vasudev backup create"),
       ),
     ).toBe(true);
   });
@@ -184,7 +184,7 @@ describe("uninstallCommand", () => {
 
     expect(
       cleanupCommandLogMessages(runtime).some((message) =>
-        message.includes("openclaw backup create"),
+        message.includes("vasudev backup create"),
       ),
     ).toBe(false);
   });

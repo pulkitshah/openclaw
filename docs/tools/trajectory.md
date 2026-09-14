@@ -1,8 +1,8 @@
 ---
-summary: "Export redacted trajectory bundles for debugging an Vasudev agent session"
+summary: "Export redacted trajectory bundles for debugging a Vasudev agent session"
 read_when:
   - Debugging why an agent answered, failed, or called tools a certain way
-  - Exporting a support bundle for an Vasudev session
+  - Exporting a support bundle for a Vasudev session
   - Investigating prompt context, tool calls, runtime errors, or usage metadata
   - Disabling trajectory capture
 title: "Trajectory bundles"

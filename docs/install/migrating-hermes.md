@@ -178,6 +178,6 @@ openclaw migrate apply hermes --json --yes
 
 - [`openclaw migrate`](/cli/migrate): full CLI reference, plugin contract, and JSON shapes.
 - [Onboarding](/cli/onboard): wizard flow and non-interactive flags.
-- [Migrating](/install/migrating): move an Vasudev install between machines.
+- [Migrating](/install/migrating): move a Vasudev install between machines.
 - [Doctor](/gateway/doctor): post-migration health check.
 - [Agent workspace](/concepts/agent-workspace): where `SOUL.md`, `AGENTS.md`, and memory files live.

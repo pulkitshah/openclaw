@@ -700,7 +700,7 @@ describe("channelsHandlers channels.status", () => {
       expect(JSON.stringify(payload)).not.toContain(credential);
       const lastError = firstChannelAccount(payload, "broken-channel").lastError;
       expect(String(lastError).length).toBeLessThan(1200);
-      expect(lastError).toContain("run openclaw doctor");
+      expect(lastError).toContain("run vasudev doctor");
       expect(firstChannelAccount(payload, "broken-channel")).toMatchObject({
         configured: true,
         running: false,

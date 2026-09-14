@@ -988,7 +988,7 @@ describe("openai transport stream", () => {
     }
   });
 
-  it("enforces the code mode responses tool surface before requests leave OpenClaw", () => {
+  it("enforces the code mode responses tool surface before requests leave Vasudev", () => {
     const visibleToolNames = new Set(["exec", "wait", "computer"]);
     const payload = {
       tools: [
@@ -1067,7 +1067,7 @@ describe("openai transport stream", () => {
     ).toThrow(/Code mode payload tool surface violation/);
   });
 
-  it("adds OpenClaw attribution to native OpenAI transport headers and protects it from provider overrides", () => {
+  it("adds Vasudev attribution to native OpenAI transport headers and protects it from provider overrides", () => {
     vi.stubEnv("OPENCLAW_VERSION", "2026.3.22");
     const headers = testing.buildOpenAIClientHeaders(
       makeResponsesModel({
@@ -1096,7 +1096,7 @@ describe("openai transport stream", () => {
     });
   });
 
-  it("adds OpenClaw attribution to native OpenAI Codex transport headers", () => {
+  it("adds Vasudev attribution to native OpenAI Codex transport headers", () => {
     vi.stubEnv("OPENCLAW_VERSION", "2026.3.22");
     const headers = testing.buildOpenAIClientHeaders(
       makeResponsesModel({

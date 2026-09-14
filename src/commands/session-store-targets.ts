@@ -78,7 +78,7 @@ export function resolveExplicitSessionStorePath(params: {
       applicationTables.length > 0 &&
       !applicationTables.some((row) => row.name === "schema_meta")
     ) {
-      throw new Error("the SQLite file has application tables but no OpenClaw schema metadata");
+      throw new Error("the SQLite file has application tables but no Vasudev schema metadata");
     }
   } catch (error) {
     databaseFailure = { error };
@@ -87,7 +87,7 @@ export function resolveExplicitSessionStorePath(params: {
   }
   if (databaseFailure) {
     throw new Error(
-      `Session store target is not a session store: ${displayTarget}. ${formatErrorMessage(databaseFailure.error)}. Pass a legacy store selector or SQLite target reported by openclaw sessions or openclaw status.`,
+      `Session store target is not a session store: ${displayTarget}. ${formatErrorMessage(databaseFailure.error)}. Pass a legacy store selector or SQLite target reported by vasudev sessions or vasudev status.`,
     );
   }
   return storePath;

@@ -46,7 +46,7 @@ function rejectUnsupportedLockPath(lockPath: string): void {
   }
   throw Object.assign(
     new Error(
-      `Legacy storage lock requires manual removal after verifying no older OpenClaw process is running: ${lockPath}`,
+      `Legacy storage lock requires manual removal after verifying no older Vasudev process is running: ${lockPath}`,
     ),
     { code: "file_lock_stale", lockPath },
   );

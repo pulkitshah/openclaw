@@ -69,7 +69,7 @@ explicitly unsupported even though the ACP spawn and child are observable.
 
 <AccordionGroup>
   <Accordion title="Non-blocking, push-based completion">
-    - `sessions_spawn` returns a run id after startup is accepted, without waiting for the child task to finish. Spawns from an Vasudev cloud worker can first wait for child provisioning and node enrollment.
+    - `sessions_spawn` returns a run id after startup is accepted, without waiting for the child task to finish. Spawns from a Vasudev cloud worker can first wait for child provisioning and node enrollment.
     - Announcing sub-agents report back to the parent/requester session on completion.
     - Agent turns that need those announced results should call `sessions_yield` when available. That ends the current turn and lets the completion event arrive as the next model-visible message. Collectors instead require explicit result collection.
     - Announced completion is push-based. Once spawned, do **not** poll `/subagents list`, `sessions_list`, or `sessions_history` in a loop just to wait for it to finish; check status on-demand only when debugging.

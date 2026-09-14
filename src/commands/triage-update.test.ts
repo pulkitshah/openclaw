@@ -112,7 +112,7 @@ describe("update failure triage diagnostics", () => {
         result: {
           status: "error",
           mode: "npm",
-          reason: "openclaw doctor",
+          reason: "vasudev doctor",
           before: { version: "2026.8.1" },
           after: { version: "2026.8.1" },
           steps: [],

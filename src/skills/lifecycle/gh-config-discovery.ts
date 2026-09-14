@@ -6,7 +6,7 @@ function pathFor(platform: NodeJS.Platform) {
 }
 
 // Detects the case where `gh` is authenticated under one HOME but the current
-// OpenClaw process is running with a different HOME (e.g. the per-agent
+// Vasudev process is running with a different HOME (e.g. the per-agent
 // codex-home, a systemd service home, or a sudo'd shell). Without GH_CONFIG_DIR
 // the gh CLI looks at $XDG_CONFIG_HOME/gh or $HOME/.config/gh and reports
 // "not logged in", even though the operator HOME has a valid hosts.yml.
@@ -41,7 +41,7 @@ type GhConfigDirMismatch = {
   alternateHostsFile: string;
   // The HOME-like path the alternate dir was derived from, if known.
   alternateHomeHint?: string;
-  // Suggested env value the operator should set on the OpenClaw service to
+  // Suggested env value the operator should set on the Vasudev service to
   // surface the alternate config to the agent shell.
   suggestedEnvValue: string;
 };
@@ -162,7 +162,7 @@ export function detectGhConfigDirMismatch(input: GhConfigDiscoveryInput): GhConf
 
 export function formatGhConfigDirMismatchHint(mismatch: GhConfigDirMismatch): string[] {
   const lines: string[] = [
-    "GitHub CLI auth was found at a different HOME than the one this OpenClaw process uses.",
+    "GitHub CLI auth was found at a different HOME than the one this Vasudev process uses.",
     `  Process gh config dir: ${mismatch.effectiveConfigDir}`,
     `  Authenticated config:  ${mismatch.alternateConfigDir} (contains ${HOSTS_FILE})`,
   ];
@@ -170,7 +170,7 @@ export function formatGhConfigDirMismatchHint(mismatch: GhConfigDirMismatch): st
     lines.push(`  Authenticated HOME:    ${mismatch.alternateHomeHint}`);
   }
   lines.push(
-    `  Fix: set GH_CONFIG_DIR=${mismatch.suggestedEnvValue} on the OpenClaw service environment, then restart the gateway.`,
+    `  Fix: set GH_CONFIG_DIR=${mismatch.suggestedEnvValue} on the Vasudev service environment, then restart the gateway.`,
   );
   return lines;
 }

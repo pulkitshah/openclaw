@@ -668,7 +668,7 @@ export async function gatherDaemonStatus(
       runtime: runtime?.inspectionFailure
         ? {
             ...runtime,
-            detail: `${runtime.detail}; retry with openclaw gateway status --deep`,
+            detail: `${runtime.detail}; retry with vasudev gateway status --deep`,
           }
         : runtime,
       configAudit,

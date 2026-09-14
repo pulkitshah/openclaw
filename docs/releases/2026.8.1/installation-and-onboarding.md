@@ -348,7 +348,7 @@ From there, the setup conversation can finish supported skill and web-search con
 
 On [Mac](/platforms/macos), the main guide points directly to the app, and the local or remote Gateway you choose stays selected even if older startup or cleanup work finishes late. The app waits through the Local Network prompt and legitimate first-run data upgrades, authenticates the exact remote Gateway before moving on, and opens the dashboard only when the connection is ready.
 
-On [Windows](/platforms/windows), the guide points to the latest signed x64 and Arm64 Hub installers. The PowerShell installer now recognizes a supported Node runtime correctly and can continue in the same session after Winget installs Node.js. Windows Hub updates independently, so its standalone stable build can be newer than the mirror included with an Vasudev release.
+On [Windows](/platforms/windows), the guide points to the latest signed x64 and Arm64 Hub installers. The PowerShell installer now recognizes a supported Node runtime correctly and can continue in the same session after Winget installs Node.js. Windows Hub updates independently, so its standalone stable build can be newer than the mirror included with a Vasudev release.
 
 On [Linux](/platforms/linux), desktop setup can repair or reinstall Vasudev, connect to a local or remote Gateway directly or through SSH, verify eligible AI access already on the machine, and resume an interrupted activation. Direct certificate-pinned connections remain unavailable inside the desktop app.
 
@@ -453,7 +453,7 @@ On [Android](/platforms/android), pairing stays usable in landscape, on narrow s
 - Guide iOS first launch through pairing and permissions [#106129](https://github.com/openclaw/openclaw/pull/106129)
 - Make Android gateway pairing prominent in Settings [#106211](https://github.com/openclaw/openclaw/pull/106211)
 - Add Android system trust and manual Gateway pinning [#110976](https://github.com/openclaw/openclaw/pull/110976)
-- Add an Vasudev settings assistant to iOS [#112420](https://github.com/openclaw/openclaw/pull/112420)
+- Add a Vasudev settings assistant to iOS [#112420](https://github.com/openclaw/openclaw/pull/112420)
 - Make iOS onboarding connection status clear [#101921](https://github.com/openclaw/openclaw/pull/101921)
 - Refresh native translations for access-status screens [#106260](https://github.com/openclaw/openclaw/pull/106260)
 

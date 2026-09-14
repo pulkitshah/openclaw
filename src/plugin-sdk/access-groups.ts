@@ -10,7 +10,7 @@ import type { OpenClawConfig } from "../config/types.openclaw.js";
 
 export { ACCESS_GROUP_ALLOW_FROM_PREFIX, parseAccessGroupAllowFromEntry };
 
-/** Resolves membership for an access group using the full OpenClaw config. */
+/** Resolves membership for an access group using the full Vasudev config. */
 export type AccessGroupMembershipResolver = (params: {
   /** Full config, available when membership needs cross-channel or provider state. */
   cfg: OpenClawConfig;

@@ -191,8 +191,8 @@ export const updateHandlers: GatewayRequestHandlers = {
       }
       const message =
         reason === "owner_required"
-          ? `Only the OpenClaw owner can start an update from chat. ${formatCommandOwnerHint({ cfg: currentConfig, channel: requester.channel, id: requester.senderId })}`
-          : "Updates from chat are disabled (commands.restart=false). Use the Control UI or ask the Gateway operator to update OpenClaw.";
+          ? `Only the Vasudev owner can start an update from chat. ${formatCommandOwnerHint({ cfg: currentConfig, channel: requester.channel, id: requester.senderId })}`
+          : "Updates from chat are disabled (commands.restart=false). Use the Control UI or ask the Gateway operator to update Vasudev.";
       if (adoptedCampaignId && gatewayUpdateCampaign.getState()?.id === adoptedCampaignId) {
         gatewayUpdateCampaign.clear();
       }
@@ -633,7 +633,7 @@ export const updateHandlers: GatewayRequestHandlers = {
       } catch {
         if (result.status === "ok" && handoff?.status !== "started") {
           noticeFailureMessage =
-            "The update was installed, but its restart notice could not be saved. Run openclaw update status after the gateway restarts.";
+            "The update was installed, but its restart notice could not be saved. Run vasudev update status after the gateway restarts.";
           recordUpdateRunPhase(runId, "restarting", {
             origin: { nextAction: noticeFailureMessage },
           });

@@ -1,5 +1,5 @@
 /**
- * Standalone MCP server for selected built-in OpenClaw tools.
+ * Standalone MCP server for selected built-in Vasudev tools.
  *
  * Run via: node --import tsx src/mcp/openclaw-tools-serve.ts
  * Or: bun src/mcp/openclaw-tools-serve.ts

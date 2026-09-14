@@ -597,14 +597,14 @@ export async function applyPluginNodeInvokePolicy(params: {
       coverageState: result.ok ? "unknown" : "enforced",
       reasonCode: result.ok ? "node_action_callback_missing" : "node_plugin_policy_denied",
       summary: result.ok
-        ? "The plugin policy returned without invoking the expected OpenClaw node callback."
+        ? "The plugin policy returned without invoking the expected Vasudev node callback."
         : "The registered plugin policy denied node transport dispatch.",
       missingEvidence: result.ok ? ["node.action_callback"] : [],
       remediation: result.ok
         ? [
             {
               code: "add_node_action_callback",
-              text: "Route the native action through the provided OpenClaw node callback.",
+              text: "Route the native action through the provided Vasudev node callback.",
             },
           ]
         : [],

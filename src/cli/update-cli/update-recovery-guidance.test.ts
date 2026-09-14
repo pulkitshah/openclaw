@@ -14,7 +14,7 @@ vi.mock("../../infra/container-environment.js", () => ({ isContainerEnvironment:
 
 const dirs = useAutoCleanupTempDirTracker(afterEach);
 const hostGuidance =
-  "Run `openclaw triage` on this machine to open a coding agent that can diagnose and repair the installation.";
+  "Run `vasudev triage` on this machine to open a coding agent that can diagnose and repair the installation.";
 const redeploy = "recreate or redeploy the container";
 function failure(overrides: Partial<UpdateRunResult> = {}): UpdateRunResult {
   return {
@@ -78,7 +78,7 @@ describe("container update recovery reporting", () => {
       const action = stored?.origin.nextAction;
       if (container) {
         expect(action).toContain("inside a container");
-        expect(action).toContain("Pull or build an Vasudev image");
+        expect(action).toContain("Pull or build a Vasudev image");
         expect(action).toContain(redeploy);
         expect(action).toContain("same state/config mounts");
         expect(action).not.toMatch(/sudo|npm config set prefix/);

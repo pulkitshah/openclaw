@@ -142,7 +142,7 @@ export async function initializeGitBackupRepository(params: {
     isPathInside(canonicalRepositoryPath, canonicalStateDir)
   ) {
     throw new Error(
-      `Git backup repository must be outside the OpenClaw state directory: ${stateDir}`,
+      `Git backup repository must be outside the Vasudev state directory: ${stateDir}`,
     );
   }
   try {
@@ -209,7 +209,7 @@ async function isBackupOwnedScope(scopePath: string): Promise<boolean> {
 async function assertBackupOwnedScope(scopePath: string): Promise<void> {
   if (!(await isBackupOwnedScope(scopePath))) {
     throw new Error(
-      `Refusing to replace non-backup-owned path ${scopePath}; the repository must be dedicated to OpenClaw backups.`,
+      `Refusing to replace non-backup-owned path ${scopePath}; the repository must be dedicated to Vasudev backups.`,
     );
   }
 }
@@ -256,7 +256,7 @@ async function commitGitBackup(params: {
   const identityArgs =
     email.code === 0 && email.stdout.trim()
       ? []
-      : ["-c", "user.name=OpenClaw", "-c", "user.email=backup@openclaw.local"];
+      : ["-c", "user.name=Vasudev", "-c", "user.email=backup@openclaw.local"];
   await requireGit(
     params.repositoryPath,
     [...identityArgs, "commit", "-m", params.message, "--", ...params.scopes],
@@ -349,7 +349,7 @@ export async function createGitBackup(params: {
     );
     commit = await commitGitBackup({
       repositoryPath,
-      message: `openclaw backup ${now.toISOString()}`,
+      message: `vasudev backup ${now.toISOString()}`,
       scopes: commitScopes,
       env: params.gitEnv,
     });
@@ -361,7 +361,7 @@ export async function createGitBackup(params: {
     // repository is the supported remote shape.
     const nonBackupCommitCount = await requireGit(
       repositoryPath,
-      ["rev-list", "HEAD", "--invert-grep", "--grep=^openclaw backup ", "--count"],
+      ["rev-list", "HEAD", "--invert-grep", "--grep=^vasudev backup ", "--count"],
       { env: params.gitEnv },
     );
     if (nonBackupCommitCount !== "0") {

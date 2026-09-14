@@ -31,7 +31,7 @@ describe("gateway stale install errors", () => {
     vi.unstubAllEnvs();
   });
 
-  it("turns a missing module from the OpenClaw install into restart guidance", async () => {
+  it("turns a missing module from the Vasudev install into restart guidance", async () => {
     vi.stubEnv("OPENCLAW_PROFILE", "sd1");
     const missingChunk = path.join(
       path.dirname(fileURLToPath(import.meta.url)),
@@ -54,7 +54,7 @@ describe("gateway stale install errors", () => {
     );
   });
 
-  it("does not rewrite a missing module outside the OpenClaw install", async () => {
+  it("does not rewrite a missing module outside the Vasudev install", async () => {
     const outsideInstall = path.join(
       path.parse(process.cwd()).root,
       "outside-openclaw",

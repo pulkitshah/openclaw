@@ -1,4 +1,4 @@
-// SQLite query-plan tests pin hot OpenClaw state indexes used by perf proof.
+// SQLite query-plan tests pin hot Vasudev state indexes used by perf proof.
 import type { DatabaseSync } from "node:sqlite";
 import { afterAll, afterEach, describe, expect, it } from "vitest";
 import { cleanupTempDirs, makeTempDir } from "../../test/helpers/temp-dir.js";

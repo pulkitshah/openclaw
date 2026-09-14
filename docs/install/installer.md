@@ -170,7 +170,7 @@ commands. Without nvm, the existing user-local npm prefix setup still applies.
 
 ### Source checkout detection
 
-If run inside an Vasudev checkout (`package.json` + `pnpm-workspace.yaml`), the script offers:
+If run inside a Vasudev checkout (`package.json` + `pnpm-workspace.yaml`), the script offers:
 
 - use checkout (`git`), or
 - use global install (`npm`)

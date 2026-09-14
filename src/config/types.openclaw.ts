@@ -1,4 +1,4 @@
-// Defines the top-level OpenClaw configuration type.
+// Defines the top-level Vasudev configuration type.
 import type { SilentReplyPolicyShape } from "../shared/silent-reply-policy.js";
 import type { TranscriptsConfig } from "../transcripts/config.js";
 import type { ConfigIncludeOwnership } from "./includes.js";
@@ -78,14 +78,14 @@ export type SurfaceConfigEntry = {
   silentReply?: SilentReplyPolicyShape;
 };
 
-/** Top-level OpenClaw config as read from user/project config files. */
+/** Top-level Vasudev config as read from user/project config files. */
 export type OpenClawConfig = {
   /** @deprecated Doctor-only legacy input. */
   audit?: AuditConfig;
   /** JSON schema URL used by editors and generated config files. */
   $schema?: string;
   meta?: {
-    /** Last OpenClaw version that wrote this config. */
+    /** Last Vasudev version that wrote this config. */
     lastTouchedVersion?: string;
     /** One-time doctor migrations already applied to this config. */
     migrations?: { modelPolicyAllowlist?: true };
@@ -146,7 +146,7 @@ export type OpenClawConfig = {
   /** Browser automation and browser plugin integration settings. */
   browser?: BrowserConfig;
   ui?: {
-    /** Accent color for OpenClaw UI chrome (hex). */
+    /** Accent color for Vasudev UI chrome (hex). */
     seamColor?: string;
     /**
      * Operator display preferences. Canonical config home so agents can

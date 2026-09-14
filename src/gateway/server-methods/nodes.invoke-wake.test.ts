@@ -1284,7 +1284,7 @@ describe("node.invoke APNs wake path", () => {
     const call = firstRespondCall(respond);
     expect(call[0]).toBe(false);
     expect(call[2]?.message).toBe(
-      "node command not allowed: the node's declared command surface is pending approval; run `openclaw nodes pending`, then `openclaw nodes approve <requestId>`",
+      "node command not allowed: the node's declared command surface is pending approval; run `vasudev nodes pending`, then `vasudev nodes approve <requestId>`",
     );
     expect(nodeRegistry.invoke).not.toHaveBeenCalled();
   });

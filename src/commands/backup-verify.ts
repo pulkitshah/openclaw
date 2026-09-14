@@ -547,7 +547,7 @@ async function verifyResolvedBackupArchive(archivePath: string): Promise<Prepare
   } catch (error) {
     if (hasErrnoCode(error, "ENOENT")) {
       throw new Error(
-        "Archive does not exist. Check the path and run `openclaw backup verify <archive>` again.",
+        "Archive does not exist. Check the path and run `vasudev backup verify <archive>` again.",
         { cause: error },
       );
     }
@@ -558,7 +558,7 @@ async function verifyResolvedBackupArchive(archivePath: string): Promise<Prepare
   }
   if (!archiveStat.isFile()) {
     throw new Error(
-      "Archive must be a regular file. Choose a backup archive created by `openclaw backup create` and try again.",
+      "Archive must be a regular file. Choose a backup archive created by `vasudev backup create` and try again.",
     );
   }
 
@@ -569,7 +569,7 @@ async function verifyResolvedBackupArchive(archivePath: string): Promise<Prepare
   });
   if (listing.invalidReason) {
     throw new Error(
-      `Archive is not a valid OpenClaw backup. ${listing.invalidReason.replace(/[.!?]*$/u, ".")} Choose another archive or create a new one with \`openclaw backup create\`.`,
+      `Archive is not a valid Vasudev backup. ${listing.invalidReason.replace(/[.!?]*$/u, ".")} Choose another archive or create a new one with \`vasudev backup create\`.`,
     );
   }
   const rawEntries = listing.entries;

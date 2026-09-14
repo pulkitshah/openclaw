@@ -27,7 +27,7 @@ export async function resolveGitRoot(
     }).catch(() => null);
     const root = result?.code === 0 ? result.stdout.trim() : "";
     // A launcher may live inside an unrelated checkout (for example nvm).
-    // Keep probing until the Git root owns the discovered OpenClaw package.
+    // Keep probing until the Git root owns the discovered Vasudev package.
     if (root && (!packageRoot || updateInstallRootsMatch(root, packageRoot))) {
       return root;
     }

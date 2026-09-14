@@ -373,7 +373,7 @@ export function getProviderEnvVars(
   return Array.isArray(envVars) ? [...envVars] : [];
 }
 
-// OPENCLAW_API_KEY authenticates the local OpenClaw bridge itself and must
+// OPENCLAW_API_KEY authenticates the local Vasudev bridge itself and must
 // remain available to child bridge/runtime processes.
 /** Lists known provider auth env vars without bridge-only env vars. */
 export function listKnownProviderAuthEnvVarNames(params?: ProviderEnvVarLookupParams): string[] {

@@ -132,9 +132,9 @@ describe("runDoctorConfigPreflight", () => {
       await writeOpenClawConfig(home, { gateway: { mode: "local" } });
       const run = createUpdateRun({ trigger: "cli" });
       const detail =
-        "Warning: Skipped derived cache cleanup: permission denied. Run openclaw doctor --fix.";
+        "Warning: Skipped derived cache cleanup: permission denied. Run vasudev doctor --fix.";
       recordUpdateRunStep(run.runId, {
-        step: "warning:openclaw doctor",
+        step: "warning:vasudev doctor",
         status: "completed",
         detail,
       });
@@ -154,7 +154,7 @@ describe("runDoctorConfigPreflight", () => {
       clock.mockReturnValue(now);
       await runDoctorConfigPreflight({ migrateState: false, migrateLegacyConfig: false });
       expect(noteMock).toHaveBeenCalledWith(
-        `Update ${run.runId}: no activity since ${new Date(inactiveAt).toISOString()}; if no update is running, run \`openclaw update repair\` or start a new \`openclaw update\``,
+        `Update ${run.runId}: no activity since ${new Date(inactiveAt).toISOString()}; if no update is running, run \`vasudev update repair\` or start a new \`vasudev update\``,
         "Update history",
       );
       expect(getUpdateRun(run.runId)).toEqual(run);
@@ -352,7 +352,7 @@ describe("runDoctorConfigPreflight", () => {
             ...startupCheckpointOptions,
             skipPristineStartupStateMigrations: true,
           }),
-        ).rejects.toThrow("openclaw doctor --fix");
+        ).rejects.toThrow("vasudev doctor --fix");
       });
       expect(await fs.readFile(configPath, "utf-8")).toBe(original);
       await expect(fs.access(`${configPath}.bak`)).rejects.toMatchObject({ code: "ENOENT" });

@@ -158,7 +158,7 @@ async function configureChannelAccount(
     const prompter = createClackPrompter();
     if (!isTerminalInteractive()) {
       runtime.error(
-        "Interactive channel setup requires a TTY. Use `openclaw channels add --channel <id> --use-env` or pass the channel's credential flags for non-interactive setup.",
+        "Interactive channel setup requires a TTY. Use `vasudev channels add --channel <id> --use-env` or pass the channel's credential flags for non-interactive setup.",
       );
       runtime.exit(1);
       return;
@@ -263,7 +263,7 @@ async function configureChannelAccount(
 
   if (!channel) {
     const hint = catalogEntry
-      ? `Plugin ${catalogEntry.meta.label} could not be loaded after install. Run openclaw doctor --fix, then retry openclaw channels add.`
+      ? `Plugin ${catalogEntry.meta.label} could not be loaded after install. Run vasudev doctor --fix, then retry vasudev channels add.`
       : formatUnknownChannelMessage({ channel: rawChannel });
     runtime.error(hint);
     runtime.exit(1);
@@ -280,7 +280,7 @@ async function configureChannelAccount(
           `${formatUnsupportedChannelActionMessage({
             channel: selectedChannel,
             action: "non-interactive add",
-          })} Run ${formatCliCommand("openclaw channels add")} with no flags for guided setup.`,
+          })} Run ${formatCliCommand("vasudev channels add")} with no flags for guided setup.`,
         );
         runtime.exit(1);
         return;
@@ -302,7 +302,7 @@ async function configureChannelAccount(
             ? `${formatUnsupportedChannelActionMessage({
                 channel: selectedChannel,
                 action: "non-interactive add",
-              })} Run ${formatCliCommand("openclaw channels add")} with no flags for guided setup.`
+              })} Run ${formatCliCommand("vasudev channels add")} with no flags for guided setup.`
             : prepared.error.message,
         );
         runtime.exit(1);

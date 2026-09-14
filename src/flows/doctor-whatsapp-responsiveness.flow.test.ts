@@ -96,7 +96,7 @@ describe("Doctor responsiveness contribution flow", () => {
           [
             "Gateway reports pressure, and local TUI clients were detected. This snapshot does not identify the source of the pressure.\n" +
               `Local TUI pids: ${fakePid}\n` +
-              "Inspect Gateway diagnostics with openclaw gateway diagnostics export before deciding whether to close clients.",
+              "Inspect Gateway diagnostics with vasudev gateway diagnostics export before deciding whether to close clients.",
             "WhatsApp responsiveness",
           ],
         ]);

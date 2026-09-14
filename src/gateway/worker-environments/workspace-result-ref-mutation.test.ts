@@ -33,7 +33,7 @@ async function repository() {
   await requireGit(root, ["init", "--quiet", "-b", "main"]);
   await requireGit(root, [
     "-c",
-    "user.name=OpenClaw Test",
+    "user.name=Vasudev Test",
     "-c",
     "user.email=test@localhost",
     "-c",

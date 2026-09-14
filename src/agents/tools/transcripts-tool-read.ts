@@ -108,7 +108,7 @@ export async function showPastTranscript(params: ReadParams) {
     summarySource,
     active,
   } = session;
-  const marker = `\n[truncated; run openclaw transcripts show ${selector} for the full notes]`;
+  const marker = `\n[truncated; run vasudev transcripts show ${selector} for the full notes]`;
   const markdown = notes?.markdown;
   const text =
     markdown === undefined

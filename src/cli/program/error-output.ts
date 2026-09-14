@@ -71,7 +71,7 @@ function formatCliUnknownCommandOutput(
     formatHelpHint(options.argv, { commandPath }),
     hasParentCommand
       ? undefined
-      : `${theme.muted("Plugin command?")} ${theme.command(formatCliCommand("openclaw plugins list"))}`,
+      : `${theme.muted("Plugin command?")} ${theme.command(formatCliCommand("vasudev plugins list"))}`,
     formatDocsHint(),
   );
 }

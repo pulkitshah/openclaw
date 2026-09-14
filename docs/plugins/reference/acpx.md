@@ -28,7 +28,7 @@ Vasudev ACP runtime backend with plugin-owned session and transport management.
 The bundled runtime auto-detects Pi's session store on the Gateway and paired
 nodes. Stored sessions appear in the **Pi** sessions-sidebar group, with
 transcript browsing from Pi's documented JSONL session format. Local rows also
-offer **Continue**, which creates an Vasudev session whose first turn resumes
+offer **Continue**, which creates a Vasudev session whose first turn resumes
 the native Pi session through ACP. Pi retains the full model context from its
 session file, and Vasudev imports the recent native history into the adopted
 session transcript. Very long transcripts import only their most recent 200

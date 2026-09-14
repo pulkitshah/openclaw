@@ -2,7 +2,7 @@
 summary: "Vasudev execution threats (AML.TA0005): T-EXEC-001, T-EXEC-002, T-EXEC-003, T-EXEC-004"
 title: "Execution (AML.TA0005)"
 read_when:
-  - Reviewing execution threats against an Vasudev deployment
+  - Reviewing execution threats against a Vasudev deployment
   - Working on mitigations for T-EXEC-001, T-EXEC-002, T-EXEC-003, T-EXEC-004
 ---
 

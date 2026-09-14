@@ -99,7 +99,7 @@ describe("resolveNonInteractiveApiKey", () => {
   ])("rejects command-shaped $source keys before returning them", async (testCase) => {
     const runtime = createRuntime();
     const malformedKey =
-      "openclaw onboard --non-interactive --auth-choice=zai-coding-global --zai-api-key $ZAI_API_KEY";
+      "vasudev onboard --non-interactive --auth-choice=zai-coding-global --zai-api-key $ZAI_API_KEY";
     if (testCase.resolvedEnv) {
       resolveEnvApiKey.mockReturnValue({
         apiKey: malformedKey,
@@ -125,8 +125,8 @@ describe("resolveNonInteractiveApiKey", () => {
     expect(resolveEnvApiKey).toHaveBeenCalledTimes(testCase.resolvedEnv ? 1 : 0);
     expect(runtime.error).toHaveBeenCalledWith(
       testCase.resolvedEnv
-        ? "Paste the API key value, not an OpenClaw onboarding command. Check ZAI_API_KEY."
-        : "Paste the API key value, not an OpenClaw onboarding command.",
+        ? "Paste the API key value, not a Vasudev onboarding command. Check ZAI_API_KEY."
+        : "Paste the API key value, not a Vasudev onboarding command.",
     );
     expect(runtime.exit).toHaveBeenCalledWith(1);
   });
@@ -134,7 +134,7 @@ describe("resolveNonInteractiveApiKey", () => {
   it("rejects a command-shaped explicit env key before a secret-ref flag", async () => {
     const runtime = createRuntime();
     const previousZaiApiKey = process.env.ZAI_API_KEY;
-    process.env.ZAI_API_KEY = "openclaw onboard --non-interactive --auth-choice zai-api-key"; // pragma: allowlist secret
+    process.env.ZAI_API_KEY = "vasudev onboard --non-interactive --auth-choice zai-api-key"; // pragma: allowlist secret
     resolveEnvApiKey.mockImplementation(() => {
       throw new Error("broad env lookup should not run for an explicit ref-mode flag");
     });
@@ -153,7 +153,7 @@ describe("resolveNonInteractiveApiKey", () => {
       expect(result).toBeNull();
       expect(resolveEnvApiKey).not.toHaveBeenCalled();
       expect(runtime.error).toHaveBeenCalledWith(
-        "Paste the API key value, not an OpenClaw onboarding command. Check ZAI_API_KEY.",
+        "Paste the API key value, not a Vasudev onboarding command. Check ZAI_API_KEY.",
       );
       expect(runtime.exit).toHaveBeenCalledWith(1);
     } finally {
@@ -349,7 +349,7 @@ describe("resolveNonInteractiveApiKey", () => {
     },
     {
       rejection: "a command-shaped key",
-      flagValue: "openclaw onboard --non-interactive --auth-choice fixture-api-key",
+      flagValue: "vasudev onboard --non-interactive --auth-choice fixture-api-key",
       expectedMessage: "Paste the API key value",
     },
     {

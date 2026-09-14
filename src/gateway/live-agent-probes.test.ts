@@ -68,7 +68,7 @@ describe("live-agent-probes", () => {
       "Preserve job.sessionTarget and job.sessionKey exactly as provided.",
     );
     expect(claudeRetryPrompt).toContain(
-      "search/load MCP tools for `openclaw automations` or `automations`",
+      "search/load MCP tools for `vasudev automations` or `automations`",
     );
     expect(claudeRetryPrompt).toContain("mcp__openclaw__automations");
     expect(claudeRetryPrompt).toContain("Do not use Claude native `CronCreate`");
@@ -88,7 +88,7 @@ describe("live-agent-probes", () => {
         attempt: 1,
         exactReply: spec.name,
       }),
-    ).toContain("previous OpenClaw automations MCP tool call was cancelled");
+    ).toContain("previous Vasudev automations MCP tool call was cancelled");
     const args = JSON.parse(spec.argsJson) as {
       job?: {
         sessionTarget?: string;

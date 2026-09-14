@@ -2397,7 +2397,7 @@ describe("installPluginFromNpmSpec", () => {
   });
 
   it.runIf(process.platform !== "win32")(
-    "does not let managed openclaw peer links poison later npm installs",
+    "does not let managed vasudev peer links poison later npm installs",
     async () => {
       const stateDir = suiteTempRootTracker.makeTempDir();
       const npmRoot = path.join(stateDir, "npm");
@@ -2497,7 +2497,7 @@ describe("installPluginFromNpmSpec", () => {
     },
   );
 
-  it("rejects managed npm plugins when their openclaw peer link cannot be repaired", async () => {
+  it("rejects managed npm plugins when their vasudev peer link cannot be repaired", async () => {
     const stateDir = suiteTempRootTracker.makeTempDir();
     const npmRoot = path.join(stateDir, "npm");
     const warnings: string[] = [];
@@ -2525,7 +2525,7 @@ describe("installPluginFromNpmSpec", () => {
     expect(result.error).toContain("@openclaw/codex");
     expect(result.error).toContain("plugin-local node_modules/openclaw link");
     expect(
-      warnings.some((warning) => warning.includes("Could not locate openclaw package root")),
+      warnings.some((warning) => warning.includes("Could not locate vasudev package root")),
     ).toBe(true);
     expect(fs.existsSync(resolveTestPluginPackageDir(npmRoot, "@openclaw/codex"))).toBe(false);
     const npmProjectRoot = resolvePluginNpmProjectDir({
@@ -3734,7 +3734,7 @@ describe("installPluginFromNpmSpec", () => {
       expect(fs.existsSync(resolveTestPluginPackageDir(npmRoot, spec))).toBe(true);
       expect(
         warnings.some((warning) =>
-          warning.includes("allowed because it is an official OpenClaw package"),
+          warning.includes("allowed because it is an official Vasudev package"),
         ),
       ).toBe(false);
     },

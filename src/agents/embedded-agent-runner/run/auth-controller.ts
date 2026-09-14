@@ -555,7 +555,7 @@ export function createEmbeddedRunAuthController(params: {
       // AWS SDK auth via IMDS / instance role / ECS task role: no explicit API
       // key is available but the SDK default credential chain can resolve
       // credentials at runtime.  We must still call setRuntimeApiKey so that
-      // OpenClaw runtime's authStorage considers the provider authenticated.  Try
+      // Vasudev runtime's authStorage considers the provider authenticated.  Try
       // prepareProviderRuntimeAuth first (it can sign requests and return a
       // short-lived token); fall back to a sentinel value when the provider
       // plugin does not implement runtime auth preparation.
@@ -591,7 +591,7 @@ export function createEmbeddedRunAuthController(params: {
         );
       }
       // No runtime auth plugin resolved a real credential.  Inject the
-      // sentinel so OpenClaw runtime's hasConfiguredAuth() passes and the AWS SDK default
+      // sentinel so Vasudev runtime's hasConfiguredAuth() passes and the AWS SDK default
       // credential chain handles actual request signing.
       clearRuntimeAuthRefreshTimer();
       params.authStorage.setRuntimeApiKey(runtimeModel.provider, AWS_SDK_AUTH_SENTINEL);

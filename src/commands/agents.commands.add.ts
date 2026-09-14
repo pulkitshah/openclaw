@@ -116,7 +116,7 @@ export async function agentsAddCommand(
   const wizardOutput = opts.json ? process.stderr : process.stdout;
   if (!nonInteractive && !isTerminalInteractive(wizardOutput)) {
     failAgentsAdd(
-      `Agent creation needs an interactive TTY. Use \`${formatCliCommand("openclaw agents add <id> --non-interactive --workspace <dir>")}\` for automation.`,
+      `Agent creation needs an interactive TTY. Use \`${formatCliCommand("vasudev agents add <id> --non-interactive --workspace <dir>")}\` for automation.`,
     );
   }
 
@@ -132,19 +132,19 @@ export async function agentsAddCommand(
   if (nonInteractive) {
     if (!workspaceFlag && !opts.role) {
       failAgentsAdd(
-        `Non-interactive agent creation requires --workspace. Re-run ${formatCliCommand("openclaw agents add <id> --workspace <path>")} or omit flags to use the wizard.`,
+        `Non-interactive agent creation requires --workspace. Re-run ${formatCliCommand("vasudev agents add <id> --workspace <path>")} or omit flags to use the wizard.`,
       );
     }
     if (!nameInput) {
       failAgentsAdd(
-        `Agent name is required in non-interactive mode. Run ${formatCliCommand("openclaw agents add <id> --workspace <path>")}.`,
+        `Agent name is required in non-interactive mode. Run ${formatCliCommand("vasudev agents add <id> --workspace <path>")}.`,
       );
     }
     const validation = validateAgentIdInput(nameInput);
     if (!validation.ok) {
       failAgentsAdd(
         validation.reason === "reserved-id"
-          ? `"${validation.agentId}" is reserved. Choose another name, or run ${formatCliCommand("openclaw agents list")} to inspect configured agents.`
+          ? `"${validation.agentId}" is reserved. Choose another name, or run ${formatCliCommand("vasudev agents list")} to inspect configured agents.`
           : validation.message,
       );
     }
@@ -167,7 +167,7 @@ export async function agentsAddCommand(
     if (created.status === "error") {
       failAgentsAdd(
         created.reason === "reserved-id"
-          ? `"${created.agentId}" is reserved. Choose another name, or run ${formatCliCommand("openclaw agents list")} to inspect configured agents.`
+          ? `"${created.agentId}" is reserved. Choose another name, or run ${formatCliCommand("vasudev agents list")} to inspect configured agents.`
           : created.reason === "already-exists"
             ? `Agent "${created.agentId}" already exists.`
             : created.message,
@@ -223,7 +223,7 @@ export async function agentsAddCommand(
     ? { ...runtime, log: (...args) => runtime.error(...args) }
     : runtime;
   try {
-    await prompter.intro("Add OpenClaw agent");
+    await prompter.intro("Add Vasudev agent");
     const name =
       nameInput ??
       (await prompter.text({

@@ -9,13 +9,13 @@ export function throwStartupMigrationRefusal(message: string, cause?: unknown): 
 
 export function throwStartupMigrationGuardRejected(): never {
   throw new Error(
-    "OpenClaw startup migrations were skipped because the selected config changed during startup; refusing to report the gateway ready. Retry startup so the new config can be validated.",
+    "Vasudev startup migrations were skipped because the selected config changed during startup; refusing to report the gateway ready. Retry startup so the new config can be validated.",
   );
 }
 
 export function throwStartupMigrationIdentityChanged(): never {
   throwStartupMigrationRefusal(
-    "OpenClaw migration inputs changed during startup; refusing to report the gateway ready. Restart OpenClaw so state migrations run against the final config and plugin inventory.",
+    "Vasudev migration inputs changed during startup; refusing to report the gateway ready. Restart Vasudev so state migrations run against the final config and plugin inventory.",
   );
 }
 
@@ -38,7 +38,7 @@ async function describeLiveGatewayOwnerStartupBlocker(
   if (!activeGateway) {
     return undefined;
   }
-  return `Another gateway (pid ${activeGateway.pid}) already owns this state directory; refusing to run automatic startup migrations or report the gateway ready. Stop it with "openclaw gateway stop" (or select a different OPENCLAW_STATE_DIR), then retry startup.`;
+  return `Another gateway (pid ${activeGateway.pid}) already owns this state directory; refusing to run automatic startup migrations or report the gateway ready. Stop it with "vasudev gateway stop" (or select a different OPENCLAW_STATE_DIR), then retry startup.`;
 }
 
 export async function refuseStartupMigrationsForLiveGatewayOwner(

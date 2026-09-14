@@ -17,7 +17,7 @@ export const CORE_CLI_COMMAND_DESCRIPTORS = [
   },
   {
     name: "crestodian", // hidden alias
-    description: "Deprecated: use openclaw setup",
+    description: "Deprecated: use vasudev setup",
     hasSubcommands: false,
     hidden: true,
   },

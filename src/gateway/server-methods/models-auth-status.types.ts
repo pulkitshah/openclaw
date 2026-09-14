@@ -24,7 +24,7 @@ export type ModelAuthStatusProfile = {
   expiry?: ModelAuthExpiry;
   /** True only for saved OAuth/token profiles this gateway can remove. */
   logoutSupported?: boolean;
-  /** Credential refresh is owned by an external CLI rather than OpenClaw. */
+  /** Credential refresh is owned by an external CLI rather than Vasudev. */
   externallyManaged?: boolean;
   /** Where the effective credential came from. */
   source?: "config" | "external" | "inherited" | "saved";

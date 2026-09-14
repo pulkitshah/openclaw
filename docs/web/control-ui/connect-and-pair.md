@@ -81,7 +81,7 @@ Inside the macOS app, the Notifications settings page shows the app's native not
 
 See [Notifications](/web/notifications) for the browser and macOS setup steps.
 
-If the page shows **Protocol mismatch** right after an Vasudev update, first reopen the dashboard with `openclaw dashboard` and hard-refresh. If it still fails, clear site data for the dashboard origin or test in a private browser window; an old tab or browser service-worker cache can keep running a pre-update Control UI bundle against the newer Gateway.
+If the page shows **Protocol mismatch** right after a Vasudev update, first reopen the dashboard with `openclaw dashboard` and hard-refresh. If it still fails, clear site data for the dashboard origin or test in a private browser window; an old tab or browser service-worker cache can keep running a pre-update Control UI bundle against the newer Gateway.
 
 | Surface                                                                | What it does                                                                |
 | ---------------------------------------------------------------------- | --------------------------------------------------------------------------- |

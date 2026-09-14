@@ -210,7 +210,7 @@ async function setHookEnabled(hookName: string, enabled: boolean, agentId?: stri
         const hook = resolveHookSelection(report, hookName);
         if (!hook) {
           throw new Error(
-            `Hook "${hookName}" not found. Run \`${formatCliCommand("openclaw hooks list")}\` to see available hooks.`,
+            `Hook "${hookName}" not found. Run \`${formatCliCommand("vasudev hooks list")}\` to see available hooks.`,
           );
         }
         if (hook.managedByPlugin) {
@@ -227,7 +227,7 @@ async function setHookEnabled(hookName: string, enabled: boolean, agentId?: stri
               })}.`
             : "";
           throw new Error(
-            `Hook "${hookName}" is not eligible; missing ${missing}.${installHint} Run \`${formatCliCommand(`openclaw hooks info ${hookName}`)}\` for details.`,
+            `Hook "${hookName}" is not eligible; missing ${missing}.${installHint} Run \`${formatCliCommand(`vasudev hooks info ${hookName}`)}\` for details.`,
           );
         }
         const entries = { ...config.hooks?.internal?.entries };
@@ -280,7 +280,7 @@ export function registerHooksCli(program: Command): void {
       !new Set(["list", "info", "check", "enable", "disable"]).has(actionCommand.name())
     ) {
       throw new Error(
-        `openclaw hooks ${actionCommand.name()} does not support --agent; the option only selects an owner for read-only hook reports.`,
+        `vasudev hooks ${actionCommand.name()} does not support --agent; the option only selects an owner for read-only hook reports.`,
       );
     }
   });
@@ -373,7 +373,7 @@ export function registerHooksCli(program: Command): void {
 
   hooks
     .command("install")
-    .description("Deprecated: install a hook pack via `openclaw plugins install`")
+    .description("Deprecated: install a hook pack via `vasudev plugins install`")
     .argument("<path-or-spec>", "Path to a hook pack or npm package spec")
     .option("-l, --link", "Link a local path instead of copying", false)
     .option("--pin", "Record npm installs as exact resolved <name>@<version>", false)
@@ -385,7 +385,7 @@ export function registerHooksCli(program: Command): void {
     )
     .action(async (raw: string, opts: HooksInstallOptions) => {
       defaultRuntime.log(
-        theme.warn("`openclaw hooks install` is deprecated; use `openclaw plugins install`."),
+        theme.warn("`vasudev hooks install` is deprecated; use `vasudev plugins install`."),
       );
       await runPluginInstallCommand({
         raw,
@@ -397,7 +397,7 @@ export function registerHooksCli(program: Command): void {
 
   hooks
     .command("update")
-    .description("Deprecated: update hook packs via `openclaw plugins update`")
+    .description("Deprecated: update hook packs via `vasudev plugins update`")
     .argument("[id]", "Hook pack id (omit with --all)")
     .option("--all", "Update all tracked hooks", false)
     .option("--dry-run", "Show what would change without writing", false)
@@ -408,7 +408,7 @@ export function registerHooksCli(program: Command): void {
     )
     .action(async (id: string | undefined, opts: HooksUpdateOptions) => {
       defaultRuntime.log(
-        theme.warn("`openclaw hooks update` is deprecated; use `openclaw plugins update`."),
+        theme.warn("`vasudev hooks update` is deprecated; use `vasudev plugins update`."),
       );
       await runPluginUpdateCommand({ id, opts });
     });

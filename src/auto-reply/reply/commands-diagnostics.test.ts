@@ -179,7 +179,7 @@ function registerCodexDiagnosticsCommandForTest(
         text: [
           "Codex runtime thread detected.",
           "Approving diagnostics will also send this thread's feedback bundle to OpenAI servers.",
-          "The completed diagnostics reply will list the OpenClaw session ids and Codex thread ids that were sent.",
+          "The completed diagnostics reply will list the Vasudev session ids and Codex thread ids that were sent.",
           "Included: Codex logs and spawned Codex subthreads when available.",
         ].join("\n"),
       };
@@ -190,7 +190,7 @@ function registerCodexDiagnosticsCommandForTest(
           "Codex diagnostics sent to OpenAI servers:",
           "Session 1",
           "Channel: whatsapp",
-          "OpenClaw session id: `session-1`",
+          "Vasudev session id: `session-1`",
           "Codex thread id: `codex-thread-1`",
           "Inspect locally: `codex resume codex-thread-1`",
           "Included Codex logs and spawned Codex subthreads when available.",
@@ -278,7 +278,7 @@ function createDiagnosticsHandlerForTest(
             expiresAtMs: Date.now() + 60_000,
             allowedDecisions: ["allow-once", "deny"] as const,
             host: "gateway" as const,
-            command: "openclaw gateway diagnostics export --json",
+            command: "vasudev gateway diagnostics export --json",
             cwd: "/tmp",
           },
         }
@@ -337,7 +337,7 @@ describe("diagnostics command", () => {
     expect(command).toContain("diagnostics");
     expect(command).toContain("export");
     expect(command).toContain("--json");
-    expect(command).not.toBe("openclaw gateway diagnostics export --json");
+    expect(command).not.toBe("vasudev gateway diagnostics export --json");
   });
 
   it("uses the originating Telegram route for native diagnostics followups", async () => {
@@ -553,7 +553,7 @@ describe("diagnostics command", () => {
       ownership: "reserved",
       handler: vi.fn(async () => ({
         text: [
-          "No Codex thread is attached to this OpenClaw session yet.",
+          "No Codex thread is attached to this Vasudev session yet.",
           "Use /codex threads to find a thread, then /codex resume <thread-id> before sending diagnostics.",
         ].join("\n"),
       })),
@@ -662,7 +662,7 @@ describe("diagnostics command", () => {
       const commandHandler = vi.fn(async () => ({
         text: [
           "Codex diagnostics sent to OpenAI servers:",
-          "- channel whatsapp, OpenClaw session session-1, Codex thread codex-thread-1",
+          "- channel whatsapp, Vasudev session session-1, Codex thread codex-thread-1",
         ].join("\n"),
       }));
       registerHostTrustedReservedCommandForTest({
@@ -739,7 +739,7 @@ describe("diagnostics command", () => {
     );
     expect(result?.reply?.text).not.toContain("sent the diagnostics");
     expect(result?.reply?.text).not.toContain("/private/diagnostics.zip");
-    expect(result?.reply?.text).not.toContain("openclaw gateway");
+    expect(result?.reply?.text).not.toContain("vasudev gateway");
     expect(privateReplies).toEqual([
       {
         targets: [{ channel: "telegram", to: "owner-dm" }],

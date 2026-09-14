@@ -1,5 +1,5 @@
 // Gateway legacy environment warning.
-// Emits a one-shot notice for ignored pre-OpenClaw environment prefixes.
+// Emits a one-shot notice for ignored pre-Vasudev environment prefixes.
 import { isVitestRuntimeEnv } from "../infra/env.js";
 
 // Legacy env warnings are process-wide and intentionally one-shot so normal
@@ -36,7 +36,7 @@ export function warnLegacyOpenClawEnvVars(env: NodeJS.ProcessEnv = process.env):
 
   process.emitWarning(
     [
-      `Legacy ${detectedPrefixes} environment variables were detected (${legacyVarCount} total), but OpenClaw only reads OPENCLAW_* names now.`,
+      `Legacy ${detectedPrefixes} environment variables were detected (${legacyVarCount} total), but Vasudev only reads OPENCLAW_* names now.`,
       "Rename them by replacing the legacy prefix with OPENCLAW_; the old names are ignored.",
     ].join("\n"),
     { code: "OPENCLAW_LEGACY_ENV_VARS", type: "DeprecationWarning" },

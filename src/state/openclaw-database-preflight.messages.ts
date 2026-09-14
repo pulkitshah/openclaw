@@ -26,10 +26,10 @@ export function formatIncompatibleDatabaseSchemas(
         : "Gateway refused startup";
   const doctorGuidance =
     operation === "doctor"
-      ? ` ${incompatibleDatabases.map(formatDoctorIncompatibleDatabase).join(" ")} Run Doctor with the OpenClaw install that wrote this state (typically the active Gateway install), or another build that supports these schemas.`
+      ? ` ${incompatibleDatabases.map(formatDoctorIncompatibleDatabase).join(" ")} Run Doctor with the Vasudev install that wrote this state (typically the active Gateway install), or another build that supports these schemas.`
       : "";
   return (
-    `${prefix} because ${incompatibleDatabases.length} OpenClaw database schema(s) are newer than this build. ` +
+    `${prefix} because ${incompatibleDatabases.length} Vasudev database schema(s) are newer than this build. ` +
     `Refused by ${describeRunningOpenClawBuild()}.${doctorGuidance} See ${OPENCLAW_DATABASE_SCHEMA_DOCS_URL}.`
   );
 }
@@ -48,7 +48,7 @@ export function formatIndeterminateDatabaseReadiness(
       : operation === "gateway-startup"
         ? "Gateway refused startup"
         : "Gateway refused restart";
-  return `${action} because persisted database readiness could not be verified: ${shown.join("; ")}${omitted > 0 ? `; +${omitted} more` : ""}. ${operation === "doctor" ? "Stop OpenClaw processes, then restore the affected database from a verified backup." : "Stop the Gateway and other OpenClaw processes, run openclaw doctor --fix, then retry."}`;
+  return `${action} because persisted database readiness could not be verified: ${shown.join("; ")}${omitted > 0 ? `; +${omitted} more` : ""}. ${operation === "doctor" ? "Stop Vasudev processes, then restore the affected database from a verified backup." : "Stop the Gateway and other Vasudev processes, run vasudev doctor --fix, then retry."}`;
 }
 
 export function describeDeferredStateSchemaPublication(

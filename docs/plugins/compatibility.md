@@ -2,7 +2,7 @@
 summary: "Plugin compatibility contracts, deprecation metadata, and migration expectations"
 title: "Plugin compatibility"
 read_when:
-  - You maintain an Vasudev plugin
+  - You maintain a Vasudev plugin
   - You see a plugin compatibility warning
   - You are planning a plugin SDK or manifest migration
 ---

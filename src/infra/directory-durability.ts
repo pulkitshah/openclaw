@@ -91,7 +91,7 @@ function postPublicationFailure(params: {
   );
 }
 
-/** Publish one file without replacement under OpenClaw's durability policy. */
+/** Publish one file without replacement under Vasudev's durability policy. */
 export async function publishFileNoClobber(
   sourcePath: string,
   targetPath: string,

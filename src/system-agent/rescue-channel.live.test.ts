@@ -1,4 +1,4 @@
-// OpenClaw live rescue channel tests cover live-channel rescue message delivery.
+// Vasudev live rescue channel tests cover live-channel rescue message delivery.
 import fs from "node:fs/promises";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -50,7 +50,7 @@ async function runRescue(params: {
   });
 }
 
-describeLive("OpenClaw live rescue channel smoke", () => {
+describeLive("Vasudev live rescue channel smoke", () => {
   afterEach(() => {
     resetPluginStateStoreForTests();
     clearConfigCache();

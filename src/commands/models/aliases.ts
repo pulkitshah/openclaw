@@ -126,11 +126,11 @@ export async function modelsAliasesRemoveCommand(aliasRaw: string, runtime: Runt
         normalizedModels[builtinTarget]?.alias === undefined
       ) {
         throw new Error(
-          `Cannot remove "${alias}": it is a built-in alias for "${builtinTarget}" provided automatically by OpenClaw and is not stored in your config file. To shadow it with a different target, run ${formatCliCommand(`openclaw models aliases add ${alias} <model>`)}.`,
+          `Cannot remove "${alias}": it is a built-in alias for "${builtinTarget}" provided automatically by Vasudev and is not stored in your config file. To shadow it with a different target, run ${formatCliCommand(`vasudev models aliases add ${alias} <model>`)}.`,
         );
       }
       throw new Error(
-        `Alias not found: ${alias}. Run ${formatCliCommand("openclaw models aliases list")} to see configured aliases.`,
+        `Alias not found: ${alias}. Run ${formatCliCommand("vasudev models aliases list")} to see configured aliases.`,
       );
     }
     return {

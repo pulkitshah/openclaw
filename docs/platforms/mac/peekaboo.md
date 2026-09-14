@@ -62,7 +62,7 @@ shasum -a 256 -c "$PREFIX-installer.sh.sha256"
 ```
 
 Transfer the complete artifact set: archive, receipt, portable installer, and both checksum files. The target Mac does
-not need an Vasudev source checkout. The authorized operator handoff must independently provide the installer and
+not need a Vasudev source checkout. The authorized operator handoff must independently provide the installer and
 receipt SHA-256 digests. Run `verify` with the authenticated receipt digest before planning a cutover. The receipt then
 selects the approved archive. `verify` revalidates the Foundation-signed app, notarization, staple, Gatekeeper result,
 architectures, entitlements, and both source revisions. The portable installer is not covered by the app's code

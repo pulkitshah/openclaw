@@ -241,7 +241,7 @@ function describeStateSchemaMigration(migration: OpenClawStateDatabaseSchemaMigr
     case "prepared-worker-ownership-v17":
       return "prepared workers → one-use capacity and fixed workspace ownership";
     case "operator-approvals-system-agent":
-      return "operator approvals → OpenClaw system changes";
+      return "operator approvals → Vasudev system changes";
     case "session-watch-cursor-provenance-v4":
       return "session watch cursors → provenance column";
     case "strict-tables-v3":

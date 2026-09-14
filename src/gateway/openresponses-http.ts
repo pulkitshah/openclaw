@@ -1,7 +1,7 @@
 /**
  * OpenResponses HTTP Handler
  *
- * Implements the OpenResponses `/v1/responses` endpoint for OpenClaw Gateway.
+ * Implements the OpenResponses `/v1/responses` endpoint for Vasudev Gateway.
  *
  * @see https://www.open-responses.com/
  */
@@ -812,7 +812,7 @@ export async function handleOpenResponsesHttpRequest(
         output: [
           createAssistantOutputItem({
             id: outputItemId,
-            text: assistantText || "No response from OpenClaw.",
+            text: assistantText || "No response from Vasudev.",
             phase: "final_answer",
             status,
           }),
@@ -899,7 +899,7 @@ export async function handleOpenResponsesHttpRequest(
         pending: pendingAssistantText,
         resultText: finalResultText,
         streamedText: streamedAssistantText.text,
-        fallbackText: finalToolCalls ? "" : "No response from OpenClaw.",
+        fallbackText: finalToolCalls ? "" : "No response from Vasudev.",
       });
       if (!finalText.startsWith(streamedAssistantText.text)) {
         finalizeUnrepresentableAssistantReplacement();

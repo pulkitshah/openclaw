@@ -19,7 +19,7 @@ describe("withInstallWorkspace private root", () => {
   const tempDirs = useAutoCleanupTempDirTracker(afterEach);
 
   it.runIf(process.platform !== "win32")(
-    "preserves parent temp root permissions when using private OpenClaw temp root",
+    "preserves parent temp root permissions when using private Vasudev temp root",
     async () => {
       const mockParentRoot = tempDirs.make("openclaw-chmod-test-");
       const mockOpenClawDir = path.join(mockParentRoot, "openclaw");

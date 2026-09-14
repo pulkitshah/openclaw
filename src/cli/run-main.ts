@@ -1400,7 +1400,7 @@ async function runCliWithPreparedOutputMode(
     if (bareSessionInvocation) {
       if (!process.stdin.isTTY || !process.stdout.isTTY) {
         console.error(
-          "Vasudev TUI needs an interactive TTY. Use `openclaw agent --local ...` for automation.",
+          "Vasudev TUI needs an interactive TTY. Use `vasudev agent --local ...` for automation.",
         );
         process.exitCode = 1;
         return;
@@ -1460,8 +1460,8 @@ async function runCliWithPreparedOutputMode(
         if (!process.stdin.isTTY || !process.stdout.isTTY) {
           console.error(
             bareRootLaunchTarget.classic
-              ? "Vasudev config is invalid. Run `openclaw doctor --fix` before onboarding."
-              : "Onboarding needs an interactive TTY. Use `openclaw onboard --non-interactive --accept-risk ...` for automation.",
+              ? "Vasudev config is invalid. Run `vasudev doctor --fix` before onboarding."
+              : "Onboarding needs an interactive TTY. Use `vasudev onboard --non-interactive --accept-risk ...` for automation.",
           );
           process.exitCode = 1;
           return;
@@ -1473,7 +1473,7 @@ async function runCliWithPreparedOutputMode(
       if (bareRootLaunchTarget.kind === "tui") {
         if (!process.stdin.isTTY || !process.stdout.isTTY) {
           console.error(
-            "Vasudev TUI needs an interactive TTY. Use `openclaw agent --local ...` for automation.",
+            "Vasudev TUI needs an interactive TTY. Use `vasudev agent --local ...` for automation.",
           );
           process.exitCode = 1;
           return;

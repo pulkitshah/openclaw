@@ -47,7 +47,7 @@ describe("system-agent inference fallback", () => {
     expect(result).toEqual({
       ok: false,
       status: "unknown",
-      error: "OpenClaw could not verify a usable inference route. Check model setup and try again.",
+      error: "Vasudev could not verify a usable inference route. Check model setup and try again.",
     });
   });
 

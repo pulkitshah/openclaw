@@ -50,7 +50,7 @@ it("keeps an old selection unresolved when its source ID is recreated", async ()
     const run = () =>
       runDoctorRepairSequence({
         state: { cfg, candidate: structuredClone(cfg), pendingChanges: false, fixHints: [] },
-        doctorFixCommand: "openclaw doctor --fix",
+        doctorFixCommand: "vasudev doctor --fix",
         env: fixture.env,
       });
     await run();
@@ -111,7 +111,7 @@ it.each([
         const run = () =>
           runDoctorRepairSequence({
             state: { cfg, candidate: structuredClone(cfg), pendingChanges: false, fixHints: [] },
-            doctorFixCommand: "openclaw doctor --fix",
+            doctorFixCommand: "vasudev doctor --fix",
             env: fixture.env,
           });
         await run();
@@ -188,7 +188,7 @@ it.each(["main", "worker"])(
               pendingChanges: false,
               fixHints: [],
             },
-            doctorFixCommand: "openclaw doctor --fix",
+            doctorFixCommand: "vasudev doctor --fix",
             env: fixture.env,
           });
         await run(cfg);
@@ -289,7 +289,7 @@ it("recovers independently verified imports of the same alias across two stores"
     const run = () =>
       runDoctorRepairSequence({
         state: { cfg, candidate: structuredClone(cfg), pendingChanges: false, fixHints: [] },
-        doctorFixCommand: "openclaw doctor --fix",
+        doctorFixCommand: "vasudev doctor --fix",
         env: fixture.env,
       });
     const first = await run();

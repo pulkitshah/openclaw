@@ -25,7 +25,7 @@ const mocks = vi.hoisted(() => ({
     changed: true,
     zonePath: "/tmp/openclaw.internal.db",
   })),
-  formatBonjourInstanceName: vi.fn((name: string) => `${name} (OpenClaw)`),
+  formatBonjourInstanceName: vi.fn((name: string) => `${name} (Vasudev)`),
   resolveBonjourCliPath: vi.fn(() => "/usr/local/bin/openclaw"),
   resolveTailnetDnsHint: vi.fn(async () => "gateway.tailnet.example.ts.net"),
 }));
@@ -380,7 +380,7 @@ describe("startGatewayDiscovery", () => {
     expect(zoneParams.domain).toBe("openclaw.internal.");
     expect(zoneParams.gatewayPort).toBe(18789);
     expect(zoneParams.gatewayDirectReachable).toBe(true);
-    expect(zoneParams.displayName).toBe("Lab Mac (OpenClaw)");
+    expect(zoneParams.displayName).toBe("Lab Mac (Vasudev)");
     expect(zoneParams.tailnetIPv4).toBe("100.64.0.10");
     expect(zoneParams.tailnetDns).toBe("gateway.tailnet.example.ts.net");
     expect(logs.info.mock.calls).toEqual([

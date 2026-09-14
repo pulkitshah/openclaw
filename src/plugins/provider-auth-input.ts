@@ -60,7 +60,7 @@ export const validateApiKeyInput = (value: string) => {
     return "Required";
   }
   if (isMalformedApiKeyInput(normalized)) {
-    return "Paste the API key value, not an OpenClaw onboarding command.";
+    return "Paste the API key value, not a Vasudev onboarding command.";
   }
   return undefined;
 };

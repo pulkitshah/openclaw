@@ -30,7 +30,7 @@ remain yours; the removed plugin did not store state in Vasudev's SQLite databas
    npx skills add openprose/prose --skill open-prose --agent codex --copy -y
    ```
 
-   `skills` is a third-party CLI from npm, not an Vasudev command. Keep
+   `skills` is a third-party CLI from npm, not a Vasudev command. Keep
    `--agent codex`: that value writes the shared `.agents/skills` layout, which
    Vasudev reads even though the flag names another agent.
 

@@ -8,7 +8,7 @@ title: "Native Codex state and features"
 sidebarTitle: "Native state and features"
 ---
 
-Opt-in features that connect an Vasudev agent to native Codex state and Codex-owned capabilities. Part of the [Codex harness](/plugins/codex-harness) guide; [Where each section moved](/plugins/codex-harness#where-each-section-moved) lists every section.
+Opt-in features that connect a Vasudev agent to native Codex state and Codex-owned capabilities. Part of the [Codex harness](/plugins/codex-harness) guide; [Where each section moved](/plugins/codex-harness#where-each-section-moved) lists every section.
 
 ## Share threads with Codex Desktop and CLI
 
@@ -37,7 +37,7 @@ user Codex home:
 User-home mode supports a local managed stdio process or the shared Unix-socket
 transport. It uses `$CODEX_HOME` when set and `~/.codex` otherwise, including
 that home's native Codex auth, config, plugins, and thread store. Vasudev does
-not inject an Vasudev auth profile into this app-server, even when the agent's
+not inject a Vasudev auth profile into this app-server, even when the agent's
 model route has a stored OpenAI profile. The native account is verified against
 the route instead, in both directions:
 

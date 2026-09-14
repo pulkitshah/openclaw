@@ -106,40 +106,40 @@ export function buildLiveCronProbeMessage(params: {
   const claudeLike = isClaudeLikeLiveAgent(params.agent);
   if (params.attempt === 0) {
     return (
-      "Use the OpenClaw MCP automations tool from server `openclaw`. " +
-      "If it is not already visible, search/load MCP tools for `openclaw automations` or `automations`, " +
-      "then call the matching OpenClaw MCP tool; Claude-style names may appear as `mcp__openclaw__automations`. " +
-      "Do not use Claude native `CronCreate`, `CronList`, or `CronDelete`; those are not OpenClaw proof. " +
+      "Use the Vasudev MCP automations tool from server `openclaw`. " +
+      "If it is not already visible, search/load MCP tools for `vasudev automations` or `automations`, " +
+      "then call the matching Vasudev MCP tool; Claude-style names may appear as `mcp__openclaw__automations`. " +
+      "Do not use Claude native `CronCreate`, `CronList`, or `CronDelete`; those are not Vasudev proof. " +
       `Call it with JSON arguments ${params.argsJson}. ` +
       "Preserve the JSON exactly, including job.sessionTarget and job.sessionKey; do not omit, rename, or flatten those fields. " +
-      "Do the actual tool call; I will verify externally with the OpenClaw cron CLI. " +
+      "Do the actual tool call; I will verify externally with the Vasudev cron CLI. " +
       `After the cron job is created, reply exactly: ${params.exactReply}`
     );
   }
   if (claudeLike) {
     return (
-      "Retry the OpenClaw MCP automations tool from server `openclaw` now. " +
-      "If it is not already visible, search/load MCP tools for `openclaw automations` or `automations`, " +
-      "then call the matching OpenClaw MCP tool; Claude-style names may appear as `mcp__openclaw__automations`. " +
-      "Do not use Claude native `CronCreate`, `CronList`, or `CronDelete`; those are not OpenClaw proof. " +
+      "Retry the Vasudev MCP automations tool from server `openclaw` now. " +
+      "If it is not already visible, search/load MCP tools for `vasudev automations` or `automations`, " +
+      "then call the matching Vasudev MCP tool; Claude-style names may appear as `mcp__openclaw__automations`. " +
+      "Do not use Claude native `CronCreate`, `CronList`, or `CronDelete`; those are not Vasudev proof. " +
       `Use these exact JSON arguments: ${params.argsJson}. ` +
       "Preserve job.sessionTarget and job.sessionKey exactly as provided. " +
       `If the cron job is created, reply exactly: ${params.exactReply}. ` +
       "If the tool call is cancelled, the job is not created, or you cannot confirm creation, " +
       "reply briefly saying that and ask me to retry. No markdown. " +
-      "I will verify externally with the OpenClaw cron CLI."
+      "I will verify externally with the Vasudev cron CLI."
     );
   }
   return (
-    "Your previous OpenClaw automations MCP tool call was cancelled before the job was created. " +
-    "Retry the OpenClaw MCP automations tool from server `openclaw` now. " +
+    "Your previous Vasudev automations MCP tool call was cancelled before the job was created. " +
+    "Retry the Vasudev MCP automations tool from server `openclaw` now. " +
     "If the harness shows Claude-style MCP names, use `mcp__openclaw__automations`. " +
     `Use these exact JSON arguments: ${params.argsJson}. ` +
     "Preserve job.sessionTarget and job.sessionKey exactly as provided. " +
     `If the cron job is created, reply exactly: ${params.exactReply}. ` +
     "If the tool call is cancelled, the job is not created, or you cannot confirm creation, " +
     "reply briefly saying that and ask me to retry. No markdown. " +
-    "I will verify externally with the OpenClaw cron CLI."
+    "I will verify externally with the Vasudev cron CLI."
   );
 }
 

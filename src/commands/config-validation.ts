@@ -82,13 +82,13 @@ function validateConfigFileSnapshot(
       snapshot.issues.length > 0
         ? renderConfigValidationIssueLines(snapshot).join("\n")
         : "Unknown validation issue.";
-    runtime.error(`OpenClaw config is invalid: ${snapshot.path}\n${issues}`);
+    runtime.error(`Vasudev config is invalid: ${snapshot.path}\n${issues}`);
     runtime.error(
       isPluginPackagingRuntimeOutputInvalidConfigSnapshot(snapshot)
         ? `Fix: ${formatPluginPackagingRuntimeOutputRecoveryHint()}`
-        : `Fix: ${formatCliCommand("openclaw doctor --fix")}`,
+        : `Fix: ${formatCliCommand("vasudev doctor --fix")}`,
     );
-    runtime.error(`Inspect: ${formatCliCommand("openclaw config validate")}`);
+    runtime.error(`Inspect: ${formatCliCommand("vasudev config validate")}`);
     runtime.exit(1);
     return null;
   }
@@ -104,14 +104,14 @@ function validateConfigFileSnapshot(
           .slice(0, 3)
           .map((notice) => `- ${formatPluginCompatibilityNotice(notice)}`),
         ...(compatibility.length > 3 ? [`- ... +${compatibility.length - 3} more`] : []),
-        `Review: ${formatCliCommand("openclaw doctor")}`,
+        `Review: ${formatCliCommand("vasudev doctor")}`,
       ].join("\n"),
     );
   }
   return snapshot;
 }
 
-/** Read and return a valid OpenClaw config, or null after reporting validation errors. */
+/** Read and return a valid Vasudev config, or null after reporting validation errors. */
 export async function requireValidConfig(
   runtime: RuntimeEnv,
   opts?: ConfigValidationOptions,

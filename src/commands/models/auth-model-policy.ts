@@ -179,8 +179,8 @@ export async function completeProviderModelAccess(params: {
     status === "applied"
       ? `All ${prepared.providerLabel} models are now visible.`
       : application.claimed
-        ? "Model access was saved, but OpenClaw has not confirmed it is active. Open Settings and select Apply changes, then send /models."
-        : "Model access saved. Application by the running Gateway is not confirmed. Run `openclaw gateway restart` to apply it.";
+        ? "Model access was saved, but Vasudev has not confirmed it is active. Open Settings and select Apply changes, then send /models."
+        : "Model access saved. Application by the running Gateway is not confirmed. Run `vasudev gateway restart` to apply it.";
   params.runtime.log(message);
   return { kind: "saved", application: status, message };
 }

@@ -487,7 +487,7 @@ function pollPortOnce(port: number): PollResult {
       return { free: null, permanent: false };
     }
     // status === 0: lsof found a listener. Occupancy does not depend on whether
-    // its PID field is present, valid, or attributable to an OpenClaw process.
+    // its PID field is present, valid, or attributable to a Vasudev process.
     return { free: false };
   } catch {
     return { free: null, permanent: false };

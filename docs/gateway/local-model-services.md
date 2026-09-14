@@ -88,7 +88,7 @@ During `memory_search`, managed embedding startup uses `readyTimeoutMs` instead 
 | `env`            | no       | Environment variables merged over the Vasudev process environment.                                                                   |
 | `healthUrl`      | no       | Readiness URL. Defaults to `baseUrl` with `/models` appended (`http://127.0.0.1:8000/v1` becomes `http://127.0.0.1:8000/v1/models`). |
 | `readyTimeoutMs` | no       | Startup readiness deadline. Default: `120000`.                                                                                       |
-| `idleStopMs`     | no       | Idle shutdown delay for an Vasudev-started process. `0` or omitted keeps it alive until Vasudev exits.                               |
+| `idleStopMs`     | no       | Idle shutdown delay for a Vasudev-started process. `0` or omitted keeps it alive until Vasudev exits.                               |
 
 ## llmman example
 

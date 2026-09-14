@@ -35,7 +35,7 @@ Noninteractive bare `openclaw` (no TTY) exits with a short message instead of pr
 
 ## What Vasudev shows
 
-Interactive Vasudev opens the same TUI shell as `openclaw tui`, with an Vasudev chat backend. The startup greeting covers:
+Interactive Vasudev opens the same TUI shell as `openclaw tui`, with a Vasudev chat backend. The startup greeting covers:
 
 - config validity and the default agent
 - the verified model Vasudev is using
@@ -180,7 +180,7 @@ Approval is given in your own words: unambiguous replies ("yes", "sure", "go ahe
 The Ask Vasudev page can show recent applied system-agent operations, Doctor
 migrations, Settings and CLI config writes, and manual edits to
 `openclaw.json`. The config journal detects external edits while the Gateway
-is watching, during an Vasudev-owned write, or at the next startup after an
+is watching, during a Vasudev-owned write, or at the next startup after an
 offline edit.
 
 History is stored in the `diagnostic_events` table of the shared
@@ -297,7 +297,7 @@ Message-channel rescue mode never uses the model-assisted planner. Remote rescue
 ### CLI harness trust model
 
 Embedded runtimes and the Codex app-server harness enforce the ring-zero
-restriction directly: the run carries an Vasudev tool allow-list with only
+restriction directly: the run carries a Vasudev tool allow-list with only
 the `openclaw` tool. For Codex, Vasudev also disables environments, native
 execution, multi-agent, goal, app/plugin, skill/MCP, web-search,
 `request_user_input`, and its native planning utility for that run. CLI
@@ -311,7 +311,7 @@ the same restriction:
 - Backends that declare no native tools receive the same dedicated Vasudev
   MCP server.
 - Always-on or unknown native-tool backends fail closed before inference; they
-  cannot host an Vasudev session.
+  cannot host a Vasudev session.
 
 Only Vasudev sessions get the openclaw MCP server; normal agent runs
 never see this tool. Selectable/no-native CLI backends and API-key models

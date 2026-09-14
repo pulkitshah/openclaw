@@ -22,7 +22,7 @@ route is an exact official HTTPS Platform Responses or ChatGPT Responses route,
 has no authored provider request override, and that the Codex plugin is installed
 and enabled. Affirmative reasoning support and native reasoning-effort metadata
 do not count as request overrides. Headers, request parameters, timeouts, and
-payload compatibility switches still do: Codex declares an Vasudev fallback
+payload compatibility switches still do: Codex declares a Vasudev fallback
 that preserves the exact request, including for explicit runtime selections.
 Other unsupported routes/authentication and missing explicit harnesses fail
 closed. The `openai/gpt-*` prefix and `agentRuntime.id: "codex"` alone are not

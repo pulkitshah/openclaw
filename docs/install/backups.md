@@ -1,7 +1,7 @@
 ---
 summary: "Back up Vasudev state: archives, per-database snapshots, scheduling, offsite copies, and continuous replication"
 read_when:
-  - You want a backup routine for an Vasudev install instead of a one-off archive
+  - You want a backup routine for a Vasudev install instead of a one-off archive
   - You want scheduled, offsite, or continuous backups without copying the whole database every time
   - You need to restore Vasudev state from a backup
 title: "Backups"
@@ -20,7 +20,7 @@ that should not re-upload whole databases on every backup.
 
 When [cold transcript storage](/reference/session-management-compaction/maintenance#cold-transcript-storage)
 is enabled, older transcript payloads also live in immutable compressed files.
-Use an Vasudev backup command to capture those payloads with the database.
+Use a Vasudev backup command to capture those payloads with the database.
 
 Never copy live `.sqlite`, `-wal`, `-shm`, or `-journal` files as a backup.
 The databases are written while the Gateway runs, and raw file copies of a

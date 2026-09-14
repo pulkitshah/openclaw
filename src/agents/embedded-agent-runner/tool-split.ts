@@ -1,5 +1,5 @@
 /**
- * Splits SDK tools from OpenClaw tool definitions for provider calls.
+ * Splits SDK tools from Vasudev tool definitions for provider calls.
  */
 import { toToolDefinitions } from "../agent-tool-definition-adapter.js";
 import type { HookContext } from "../agent-tools.before-tool-call.js";

@@ -16,7 +16,7 @@ function systemAgentView(state: Partial<SystemAgentView> = {}): SystemAgentView 
     approvalKind: "system-agent",
     approvalId: "system-agent:change",
     phase: "resolved",
-    title: "OpenClaw change",
+    title: "Vasudev change",
     metadata: [],
     commandText: "restart the Gateway",
     operationSummary: "restart the Gateway",
@@ -29,42 +29,42 @@ const cases: Array<{ state: Partial<SystemAgentView>; label: string; text: strin
   {
     state: {},
     label: "Allowed once",
-    text: "✅ OpenClaw change approved. Applying: restart the Gateway",
+    text: "✅ Vasudev change approved. Applying: restart the Gateway",
   },
   {
     state: { decision: "allow-always" },
     label: "Allowed always",
-    text: "✅ OpenClaw change approved. Applying: restart the Gateway",
+    text: "✅ Vasudev change approved. Applying: restart the Gateway",
   },
   {
     state: { decision: "deny" },
     label: "Denied",
-    text: "❌ OpenClaw change denied. No change was made.",
+    text: "❌ Vasudev change denied. No change was made.",
   },
   {
     state: { applicationStatus: "applied" },
     label: "Applied",
-    text: "✅ OpenClaw change approved and applied: restart the Gateway",
+    text: "✅ Vasudev change approved and applied: restart the Gateway",
   },
   {
     state: { applicationStatus: "not-applied" },
     label: "Not applied",
-    text: "⚠️ OpenClaw change approved, but it was not applied. Check the Gateway and retry.",
+    text: "⚠️ Vasudev change approved, but it was not applied. Check the Gateway and retry.",
   },
   {
     state: { decision: "deny", applicationStatus: "not-applied" },
     label: "Not applied",
-    text: "❌ OpenClaw change denied. No change was made.",
+    text: "❌ Vasudev change denied. No change was made.",
   },
   {
     state: { decision: "deny", applicationStatus: "applied" },
     label: "Applied",
-    text: "❌ OpenClaw change denied. No change was made.",
+    text: "❌ Vasudev change denied. No change was made.",
   },
   {
     state: { decision: "deny", applicationStatus: "applied", terminalStatus: "cancelled" },
     label: "Cancelled",
-    text: "⚠️ OpenClaw change was cancelled because its run ended. No change was made. Retry.",
+    text: "⚠️ Vasudev change was cancelled because its run ended. No change was made. Retry.",
   },
 ];
 
@@ -93,7 +93,7 @@ describe("approval terminal presentation", () => {
       approvalKind: "system-agent",
       id: "system-agent:change",
       request: {
-        title: "OpenClaw change",
+        title: "Vasudev change",
         description: "restart the Gateway",
         command: "restart the Gateway",
         proposalHash: "a".repeat(64),
@@ -109,6 +109,6 @@ describe("approval terminal presentation", () => {
         resolved: { id: request.id, decision: "deny", ts: 1 },
         view: systemAgentView({ applicationStatus: "applied" }),
       }),
-    ).toBe("❌ OpenClaw change denied. No change was made.");
+    ).toBe("❌ Vasudev change denied. No change was made.");
   });
 });

@@ -344,7 +344,7 @@ describe("doctor retired model references", () => {
     });
     expect(result.changes.join("\n")).toContain("inherit");
     expect(saved.enabled).toBe(false);
-    expect(result.changes.join("\n")).toContain("openclaw automations enable retired-cron");
+    expect(result.changes.join("\n")).toContain("vasudev automations enable retired-cron");
   });
 
   it.each([

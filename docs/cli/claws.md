@@ -158,7 +158,7 @@ The conventional profile is limited to 256 KiB, must be JSON-compatible YAML, ma
 not use aliases, anchors, tags, or merge keys, and must be a regular,
 non-symlinked, non-hardlinked file inside the package.
 
-An Vasudev profile may also declare harness-specific extension requirements:
+A Vasudev profile may also declare harness-specific extension requirements:
 
 ```yaml
 schemaVersion: 1

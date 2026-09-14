@@ -133,7 +133,7 @@ export type RunCliAgentParams = {
   outputTextPolicy?: AgentHarnessIsolatedCompletionParamsV2["outputTextPolicy"];
   /** Internal backend control command: reuse the native session without recording a conversation turn. */
   controlOperation?: "compact";
-  /** Persist the successful CLI assistant reply into the OpenClaw session transcript. */
+  /** Persist the successful CLI assistant reply into the Vasudev session transcript. */
   persistAssistantTranscript?: boolean;
   prepareAssistantTranscriptMessage?: PrepareAssistantTranscriptMessage;
   /** Session store path used when assistant transcript persistence is enabled. */
@@ -282,7 +282,7 @@ export type RunCliAgentParams = {
   scheduledToolPolicy?: ScheduledToolPolicyContext;
   /** Server-authored origin for fresh automation mutations from this CLI run. */
   cronCreatorCallerOrigin?: CronScheduledToolCallerOrigin;
-  /** Exact native plus canonical OpenClaw surface for a selectable CLI backend. */
+  /** Exact native plus canonical Vasudev surface for a selectable CLI backend. */
   cliToolAvailability?: {
     native: string[];
     openClaw: string[];

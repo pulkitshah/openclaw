@@ -39,7 +39,7 @@ requests. Use the desktop app for that connection.
 
 ## Install the bar plugin
 
-From an Vasudev source checkout containing `apps/linux/omarchy`, run:
+From a Vasudev source checkout containing `apps/linux/omarchy`, run:
 
 ```bash
 bash apps/linux/omarchy/install.sh

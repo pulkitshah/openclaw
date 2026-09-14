@@ -135,7 +135,7 @@ export async function buildOnboardingWelcome(params: {
   }
   if (!defaultModel) {
     throw new Error(
-      "OpenClaw onboarding requires working inference first. Run `openclaw onboard` on the machine running OpenClaw to configure and verify a default model.",
+      "Vasudev onboarding requires working inference first. Run `vasudev onboard` on the machine running Vasudev to configure and verify a default model.",
     );
   }
 
@@ -152,7 +152,7 @@ export async function buildOnboardingWelcome(params: {
     ...(params.agentName ? { agentName: params.agentName } : {}),
   });
   const welcome = [
-    "## Hi, I'm OpenClaw — let's hatch your agent.",
+    "## Hi, I'm Vasudev — let's hatch your agent.",
     "",
     "No menus here: tell me what you want and I'll do the configuring. I looked around this machine:",
     "",

@@ -2,7 +2,7 @@
 summary: "Shared-state compaction plus targeted session SQLite inspection, import, and recovery"
 title: "SQLite maintenance and session migration"
 read_when:
-  - You are compacting or verifying an Vasudev SQLite database
+  - You are compacting or verifying a Vasudev SQLite database
   - You are importing, validating, or recovering legacy session history
 ---
 

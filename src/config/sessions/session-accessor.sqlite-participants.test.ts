@@ -72,7 +72,7 @@ describe("SQLite session participants", () => {
           {
             ok: false,
             error: expect.objectContaining({
-              message: "Session participant identity is invalid; run openclaw doctor --fix.",
+              message: "Session participant identity is invalid; run vasudev doctor --fix.",
             }),
           },
           { ok: true, value: [] },

@@ -1,4 +1,4 @@
-// Computes git, dependency, and registry update status for OpenClaw installs.
+// Computes git, dependency, and registry update status for Vasudev installs.
 import fs from "node:fs/promises";
 import path from "node:path";
 import { runCommandWithTimeout } from "../process/exec.js";

@@ -1,4 +1,4 @@
-// Verifies chat-facing CLI snippets execute the OpenClaw CLI even from harness-hosted gateways.
+// Verifies chat-facing CLI snippets execute the Vasudev CLI even from harness-hosted gateways.
 import { expectDefined } from "@openclaw/normalization-core";
 import { describe, expect, it } from "vitest";
 import {

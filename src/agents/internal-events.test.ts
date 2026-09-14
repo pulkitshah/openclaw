@@ -181,7 +181,7 @@ describe("agent internal events", () => {
 });
 
 describe("attempt execution prompt materialization", () => {
-  it("materializes ACP internal events without OpenClaw internal runtime markers", () => {
+  it("materializes ACP internal events without Vasudev internal runtime markers", () => {
     const events = [taskCompletionEvent("child result")];
     const body = `${formatAgentInternalEventsForPrompt(events)}\n\nvisible follow-up`;
 

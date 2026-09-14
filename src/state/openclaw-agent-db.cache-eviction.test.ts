@@ -88,7 +88,7 @@ afterAll(() => {
   }
 });
 
-describe("openclaw agent database handle cache", () => {
+describe("vasudev agent database handle cache", () => {
   it("rechecks idle cache capacity after concurrent native admissions", async () => {
     const env = requireFixtureEnv();
     closeFirstBaseHandle();

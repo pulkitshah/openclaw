@@ -1,4 +1,4 @@
-// Re-exports fs-safe helpers with OpenClaw defaults and wrappers.
+// Re-exports fs-safe helpers with Vasudev defaults and wrappers.
 import "./fs-safe-defaults.js";
 import fs from "node:fs/promises";
 import path from "node:path";

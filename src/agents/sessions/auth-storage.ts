@@ -2,7 +2,7 @@
  * Credential storage facade for API keys and OAuth tokens.
  * Canonical persistence is the per-agent SQLite auth-profile store.
  *
- * The backend contract keeps the upstream session SDK shape while OpenClaw
+ * The backend contract keeps the upstream session SDK shape while Vasudev
  * projects provider-default profiles into it.
  */
 
@@ -102,7 +102,7 @@ class AuthStorageLegacyPathMigrationRequiredError extends Error {
 
   constructor() {
     super(
-      "Deprecated AuthStorage path contains unmigrated credentials; run openclaw doctor --fix for standard agent auth.json or migrate plugin storage to AuthStorage.forAgent(agentDir).",
+      "Deprecated AuthStorage path contains unmigrated credentials; run vasudev doctor --fix for standard agent auth.json or migrate plugin storage to AuthStorage.forAgent(agentDir).",
     );
     this.name = "AuthStorageLegacyPathMigrationRequiredError";
   }

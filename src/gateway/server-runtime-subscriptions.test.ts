@@ -838,7 +838,7 @@ describe("startGatewayEventSubscriptions", () => {
       ({ task }) => task.id === secondary.taskId,
     );
     expect(sanitizedActivity?.task).not.toHaveProperty("lastActivity");
-    expect(JSON.stringify(sanitizedActivity)).not.toContain("OpenClaw runtime context");
+    expect(JSON.stringify(sanitizedActivity)).not.toContain("Vasudev runtime context");
 
     broadcast.mockClear();
     emitAgentEvent({

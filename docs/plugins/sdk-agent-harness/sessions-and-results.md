@@ -8,7 +8,7 @@ title: "Agent harness sessions and results"
 sidebarTitle: "Sessions and results"
 ---
 
-How a native session binds to an Vasudev session and mirrors into its transcript, and how tool, media, terminal-outcome, and settled-turn results come back through the attempt result. Part of the [Agent harness plugins](/plugins/sdk-agent-harness) reference.
+How a native session binds to a Vasudev session and mirrors into its transcript, and how tool, media, terminal-outcome, and settled-turn results come back through the attempt result. Part of the [Agent harness plugins](/plugins/sdk-agent-harness) reference.
 
 ## Native sessions and transcript mirror
 
@@ -87,7 +87,7 @@ lifecycle, while rejecting resets and account or connection changes.
 Runtime task detail participates in the Gateway's cursor and
 after-await identity checks.
 
-Keep `childSessionKey` absent for native children: it describes an Vasudev
+Keep `childSessionKey` absent for native children: it describes a Vasudev
 session and also determines lifecycle ownership. Reading history must not adopt
 the child, create another transcript store, or change cancellation and recovery.
 `TaskSummary.hasTranscript` advertises readable history to the shared viewer.
@@ -130,7 +130,7 @@ Report facts from the execution boundary:
 - Report `outcome: "success"` or `outcome: "failure"`. Include the structured
   failure fields available from the runtime instead of inferring failure from
   display text.
-- Use `nativeMutation` only for native tools that do not use an Vasudev tool
+- Use `nativeMutation` only for native tools that do not use a Vasudev tool
   definition. Supply protocol-owned mutation and replay facts there; do not
   copy Vasudev's mutation classifier into the harness.
 

@@ -160,12 +160,12 @@ export function selectAgentHarnessForPreparedModelProviders(
   );
 }
 
-/** Returns whether a plugin harness constructs OpenClaw tools inside its runtime. */
+/** Returns whether a plugin harness constructs Vasudev tools inside its runtime. */
 export function agentHarnessBuildsOpenClawTools(harnessId: string): boolean {
   return harnessId === "codex" || harnessId === "copilot";
 }
 
-/** Returns whether the selected harness exposes OpenClaw's agent-tool surface. */
+/** Returns whether the selected harness exposes Vasudev's agent-tool surface. */
 export function agentHarnessExposesOpenClawTools(harnessId: string): boolean {
   return harnessId === "openclaw" || agentHarnessBuildsOpenClawTools(harnessId);
 }
@@ -194,7 +194,7 @@ export async function runAgentHarnessSettledTurnFinalization(
     throw new Error(`Agent harness ${harness.id} cannot safely finalize a settled tool turn.`);
   }
   if (internalParams.systemAgentTool && !isSystemAgentOnlyAllowlist(internalParams.toolsAllow)) {
-    throw new Error('OpenClaw host authority requires toolsAllow: ["openclaw"]');
+    throw new Error('Vasudev host authority requires toolsAllow: ["openclaw"]');
   }
   const attemptParams = prepareHarnessFinalizationParams(
     {
@@ -264,7 +264,7 @@ export async function runAgentHarnessAttempt(
     };
   }
   if (internalParams.systemAgentTool && !isSystemAgentOnlyAllowlist(internalParams.toolsAllow)) {
-    throw new Error('OpenClaw host authority requires toolsAllow: ["openclaw"]');
+    throw new Error('Vasudev host authority requires toolsAllow: ["openclaw"]');
   }
   const ringZeroTools = internalParams.systemAgentTool
     ? [
@@ -454,7 +454,7 @@ async function runAgentHarnessOperation<T>(
   try {
     return await runWithDiagnosticTraceContext(harnessTrace, execute);
   } catch (error) {
-    log.warn(`${harness.label} failed; not falling back to embedded OpenClaw backend`, {
+    log.warn(`${harness.label} failed; not falling back to embedded Vasudev backend`, {
       harnessId: harness.id,
       provider: params.provider,
       modelId: params.modelId,
@@ -785,7 +785,7 @@ export function resolvePluginHarnessToolPolicies(
       requestedToolPolicy,
     ],
     safeDeniedToolNames: collectHarnessSafeDeniedToolNames(explicitPolicies, safeDenyToolNameSet),
-    // Native tools bypass the collector's noninteractive OpenClaw wrappers.
+    // Native tools bypass the collector's noninteractive Vasudev wrappers.
     // Keep policy-allowed host replacements, without ambient input or approval surfaces.
     toolPolicyRestricted:
       params.swarmCollector === true ||

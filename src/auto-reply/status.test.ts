@@ -234,7 +234,7 @@ describe("buildStatusMessage", () => {
     });
     const normalized = normalizeTestText(text);
 
-    expect(normalized).toContain("OpenClaw");
+    expect(normalized).toContain("Vasudev");
     expect(normalized).toContain("Model: anthropic/test:opus");
     expect(normalized).toContain("api-key");
     expect(normalized).toContain("Plugins: OK");
@@ -246,7 +246,7 @@ describe("buildStatusMessage", () => {
     expect(normalized).toContain("duration 2h 14m");
     expect(normalized).toContain("updated 4h ago");
     expect(normalized).toContain("Execution: direct");
-    expect(normalized).toContain("Runtime: OpenClaw Default");
+    expect(normalized).toContain("Runtime: Vasudev Default");
     expect(normalized).not.toContain("Runner:");
     expect(normalized).toContain("think medium");
     expect(normalized).not.toContain("verbose");
@@ -768,10 +768,10 @@ describe("buildStatusMessage", () => {
       unexpectedSuffix: "· codex",
     },
     {
-      name: "shows the default OpenClaw harness as the model runtime",
+      name: "shows the default Vasudev harness as the model runtime",
       sessionId: "openclaw-harness",
       resolvedHarness: "openclaw" as const,
-      expectedRuntime: "Runtime: OpenClaw Default",
+      expectedRuntime: "Runtime: Vasudev Default",
       unexpectedSuffix: "· openclaw",
     },
   ])("$name", ({ sessionId, resolvedHarness, expectedRuntime, unexpectedSuffix }) => {

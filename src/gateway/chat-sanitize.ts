@@ -1,5 +1,5 @@
 // Gateway chat display sanitizer.
-// Removes OpenClaw-only envelopes before messages are shown in UI/RPC results.
+// Removes Vasudev-only envelopes before messages are shown in UI/RPC results.
 import { normalizeLowercaseStringOrEmpty } from "@openclaw/normalization-core/string-coerce";
 import { stripInternalMetadataForDisplay } from "../auto-reply/reply/display-text-sanitize.js";
 import { extractInboundSenderLabel } from "../auto-reply/reply/strip-inbound-meta.js";
@@ -74,7 +74,7 @@ function stripEnvelopeFromContentWithRole(content: unknown[], role: string): unk
   return next ?? content;
 }
 
-/** Strips OpenClaw envelope metadata from one display message without mutating it. */
+/** Strips Vasudev envelope metadata from one display message without mutating it. */
 export function stripEnvelopeFromMessage(message: unknown): unknown {
   if (!message || typeof message !== "object") {
     return message;

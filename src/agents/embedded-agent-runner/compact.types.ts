@@ -115,7 +115,7 @@ export type CompactEmbeddedAgentSessionParams = Pick<
   sessionEntry?: SessionEntry;
   /** Keep the concrete model fixed; native runtime ownership is a separate session fact. */
   modelSelectionLocked?: boolean;
-  /** OpenClaw-owned runtime policy prepared for this compaction path. */
+  /** Vasudev-owned runtime policy prepared for this compaction path. */
   runtimePlan?: AgentRuntimePlan;
   /** Host-prepared route and credential selection for native harness compaction. */
   runtimeAuthPlan?: AgentRuntimeAuthPlan;

@@ -11,7 +11,7 @@ describe("doctor finalize config flow", () => {
       snapshot: { path: "/config.json", hash: "source-hash", raw: null },
       pendingChanges: true,
       shouldRepair: false,
-      fixHints: ['Run "openclaw doctor --fix" to apply these changes.'],
+      fixHints: ['Run "vasudev doctor --fix" to apply these changes.'],
       confirm: async () => true,
       note,
     });
@@ -32,7 +32,7 @@ describe("doctor finalize config flow", () => {
       snapshot: { path: "/config.json", hash: "source-hash", raw: null },
       pendingChanges: true,
       shouldRepair: false,
-      fixHints: ['Run "openclaw doctor --fix" to apply these changes.'],
+      fixHints: ['Run "vasudev doctor --fix" to apply these changes.'],
       confirm: async () => false,
       note,
     });
@@ -42,7 +42,7 @@ describe("doctor finalize config flow", () => {
       shouldWriteConfig: false,
     });
     expect(note).toHaveBeenCalledWith(
-      'Run "openclaw doctor --fix" to apply these changes.',
+      'Run "vasudev doctor --fix" to apply these changes.',
       "Doctor",
     );
   });

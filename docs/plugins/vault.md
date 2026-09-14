@@ -187,7 +187,7 @@ openclaw secrets audit --check --allow-exec
 openclaw secrets reload
 ```
 
-Use `--allow-exec` because the Vault plugin resolves through an Vasudev-managed
+Use `--allow-exec` because the Vault plugin resolves through a Vasudev-managed
 exec SecretRef provider.
 
 If the Gateway is not running yet, start it normally after applying the plan

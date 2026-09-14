@@ -96,7 +96,7 @@ export async function maybeRepairStaleManagedNpmInstallGenerations(
           (generation) =>
             `- ${generation.pluginId}: ${shortenHomePath(generation.packageDir)}${generation.version ? ` (${generation.version})` : ""}`,
         ),
-        `Repair with ${formatCliCommand("openclaw doctor --fix")} to retire stale generations after the gateway restarts.`,
+        `Repair with ${formatCliCommand("vasudev doctor --fix")} to retire stale generations after the gateway restarts.`,
       ].join("\n"),
       "Plugin registry",
     );
@@ -142,7 +142,7 @@ export function staleManagedNpmInstallGenerationToHealthFinding(
     path: issue.packageDir,
     target: issue.pluginId,
     fixHint:
-      "Run `openclaw doctor --fix` to retire the stale generation for pruning after the gateway restarts.",
+      "Run `vasudev doctor --fix` to retire the stale generation for pruning after the gateway restarts.",
   };
 }
 

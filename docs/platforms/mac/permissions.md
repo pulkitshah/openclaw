@@ -87,7 +87,7 @@ During a Computer execution, Vasudev uses temporary keep-awake assertions for
 up to one hour from that execution's first action. This includes background
 window and browser actions. Completion, cancellation, disconnect, provider
 replacement, or local Stop releases the execution's keep-awake request. The web
-Desktop viewer does not create an Vasudev keep-awake execution.
+Desktop viewer does not create a Vasudev keep-awake execution.
 
 To keep a dedicated Mac awake between jobs, enable **Unattended desktop hosting**
 on the same settings page and accept the native confirmation. It is off by

@@ -1,4 +1,4 @@
-/** MCP SDK OAuth provider backed by canonical OpenClaw state. */
+/** MCP SDK OAuth provider backed by canonical Vasudev state. */
 import { randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import type { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.js";
@@ -38,7 +38,7 @@ function buildOAuthClientMetadata(
 ): OAuthClientMetadata {
   const redirectUrl = resolveOAuthRedirectUrl(config, store);
   return {
-    client_name: "OpenClaw MCP",
+    client_name: "Vasudev MCP",
     redirect_uris: [redirectUrl],
     grant_types: ["authorization_code", "refresh_token"],
     response_types: ["code"],
@@ -92,7 +92,7 @@ export function createMcpOAuthClientProvider(params: {
   const assertAuthorizationRedirectAllowed = () => {
     if (params.allowAuthorizationRedirect !== true) {
       throw new Error(
-        `MCP server "${params.identity.serverName}" requires OAuth authorization. Run openclaw mcp login ${params.identity.serverName}.`,
+        `MCP server "${params.identity.serverName}" requires OAuth authorization. Run vasudev mcp login ${params.identity.serverName}.`,
       );
     }
   };

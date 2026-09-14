@@ -202,7 +202,7 @@ function htmlResponse(
 function respondPortalUnauthorized(req: IncomingMessage, res: ServerResponse): void {
   const html =
     "<!doctype html><meta charset=utf-8><title>Private portal</title>" +
-    "<p>This portal is private. Open it from the OpenClaw Control UI.</p>";
+    "<p>This portal is private. Open it from the Vasudev Control UI.</p>";
   htmlResponse(res, 401, html, req.method === "HEAD");
 }
 

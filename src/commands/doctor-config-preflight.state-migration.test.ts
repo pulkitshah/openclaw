@@ -830,7 +830,7 @@ describe("runDoctorConfigPreflight state migration", () => {
             pluginId: "discord",
             reason: "missing-install-path: install path missing",
             message: 'Plugin "discord" has no install path.',
-            guidance: ["Run `openclaw update repair` to retry plugin repair."],
+            guidance: ["Run `vasudev update repair` to retry plugin repair."],
           },
         ],
         smokeFailures: [
@@ -954,7 +954,7 @@ describe("runDoctorConfigPreflight state migration", () => {
 
     expect(readStartupMigrationWarning()).toContain("Left legacy config health state in place.");
     expect(readStartupMigrationWarning()).toContain(
-      'Run "openclaw doctor --fix" against the same state/config, then restart the gateway.',
+      'Run "vasudev doctor --fix" against the same state/config, then restart the gateway.',
     );
     expect(note.mock.calls.filter(([, title]) => title === "Doctor warnings")).toHaveLength(0);
     expect(recordSuccessfulStateMigrations).not.toHaveBeenCalled();
@@ -979,7 +979,7 @@ describe("runDoctorConfigPreflight state migration", () => {
     expect(warning?.length).toBeLessThan(2200);
     expect(warning).toContain("… (see startup log)");
     expect(warning).toContain(
-      'Run "openclaw doctor --fix" against the same state/config, then restart the gateway.',
+      'Run "vasudev doctor --fix" against the same state/config, then restart the gateway.',
     );
   });
 
@@ -1081,7 +1081,7 @@ describe("runDoctorConfigPreflight state migration", () => {
       async () => snapshot,
       () =>
         expect(runDoctorConfigPreflight(startupCheckpointOptions)).rejects.toThrow(
-          "OpenClaw config is invalid",
+          "Vasudev config is invalid",
         ),
     );
 

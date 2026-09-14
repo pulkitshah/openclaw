@@ -1,4 +1,4 @@
-// OpenClaw state database tests cover state DB migrations and persistence.
+// Vasudev state database tests cover state DB migrations and persistence.
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
@@ -1776,7 +1776,7 @@ describe("openclaw state database", () => {
     defensiveProbe.close();
 
     expect(() => openOpenClawStateDatabase(options)).toThrow(
-      /legacy-workshop-review-index.*openclaw doctor --fix/u,
+      /legacy-workshop-review-index.*vasudev doctor --fix/u,
     );
     expect(readDanglingSkillWorkshopReviewIndex(databasePath)).toMatchObject({ rootpage });
 
@@ -5402,7 +5402,7 @@ INSERT INTO macos_port_guardian_records VALUES (4242, 18789, '/usr/bin/ssh', 're
       const metadataBefore = damaged.prepare("SELECT * FROM schema_meta ORDER BY meta_key").all();
       damaged.close();
 
-      const message = `SQLite schema is incomplete or noncanonical for ${databasePath}: missing table apns_registration_tombstones; run openclaw doctor --fix to repair it.`;
+      const message = `SQLite schema is incomplete or noncanonical for ${databasePath}: missing table apns_registration_tombstones; run vasudev doctor --fix to repair it.`;
       if (migrationPath === "runtime open") {
         expect(() => openOpenClawStateDatabase(options)).toThrow(new Error(message));
       } else if (migrationPath === "doctor repair") {
@@ -7080,7 +7080,7 @@ INSERT INTO macos_port_guardian_records VALUES (4242, 18789, '/usr/bin/ssh', 're
     });
     expect(repairOpenClawStateDatabaseSchema(options)).toEqual({
       changes: [
-        "Migrated shared state operator approvals → OpenClaw system changes",
+        "Migrated shared state operator approvals → Vasudev system changes",
         expect.stringMatching(/^Rebuilt canonical shared-state SQLite indexes \(\d+\)$/u),
       ],
       warnings: [],
@@ -7116,7 +7116,7 @@ INSERT INTO macos_port_guardian_records VALUES (4242, 18789, '/usr/bin/ssh', 're
     expect(result.warnings).toEqual([
       expect.stringContaining("automatic repair refused the unrecognized schema shape"),
     ]);
-    expect(result.warnings[0]).not.toContain("run openclaw doctor --fix");
+    expect(result.warnings[0]).not.toContain("run vasudev doctor --fix");
   });
 
   it.each([

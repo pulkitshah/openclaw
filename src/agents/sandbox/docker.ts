@@ -214,11 +214,11 @@ export async function ensureContainerImage(engine: SandboxContainerEngine, image
   if (image === DEFAULT_SANDBOX_IMAGE) {
     if (engine.id === "docker") {
       throw new Error(
-        `Sandbox image not found: ${image}. Build it with scripts/sandbox-setup.sh before enabling Docker sandboxing. The default image includes python3 for sandbox write/edit helpers; OpenClaw will not substitute plain debian:bookworm-slim.`,
+        `Sandbox image not found: ${image}. Build it with scripts/sandbox-setup.sh before enabling Docker sandboxing. The default image includes python3 for sandbox write/edit helpers; Vasudev will not substitute plain debian:bookworm-slim.`,
       );
     }
     throw new Error(
-      `Sandbox image not found in ${engine.displayName}: ${image}. Build it with podman build -t ${image} -f scripts/docker/sandbox/Dockerfile . before enabling container sandboxing. The default image includes python3 for sandbox write/edit helpers; OpenClaw will not substitute plain debian:bookworm-slim.`,
+      `Sandbox image not found in ${engine.displayName}: ${image}. Build it with podman build -t ${image} -f scripts/docker/sandbox/Dockerfile . before enabling container sandboxing. The default image includes python3 for sandbox write/edit helpers; Vasudev will not substitute plain debian:bookworm-slim.`,
     );
   }
   if (engine.id === "docker") {

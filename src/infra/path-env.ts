@@ -1,4 +1,4 @@
-// Builds PATH values for OpenClaw child processes.
+// Builds PATH values for Vasudev child processes.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -171,7 +171,7 @@ function candidateBinDirs(
   const append: string[] = [];
 
   // Keep the active runtime directory ahead of PATH hardening so shebang-based
-  // subprocesses keep using the same Node/Bun the current OpenClaw process is on.
+  // subprocesses keep using the same Node/Bun the current Vasudev process is on.
   try {
     const execDir = path.dirname(execPath);
     if (isExecutable(execPath)) {

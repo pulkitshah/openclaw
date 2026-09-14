@@ -1502,7 +1502,7 @@ Delivery observations are kept for 30 days and reflect the latest state reported
 
 <Accordion title="ClickClack">
 
-[ClickClack](/channels/clickclack) can place a team discussion beside an Vasudev session, giving people somewhere to coordinate around the work without turning the agent's main transcript into a meeting room. Guided and command-line setup, readable discussion names, native command menus, attachments, optional group mention rules, and opt-in progress make that room easier to use while keeping the final answer visible.
+[ClickClack](/channels/clickclack) can place a team discussion beside a Vasudev session, giving people somewhere to coordinate around the work without turning the agent's main transcript into a meeting room. Guided and command-line setup, readable discussion names, native command menus, attachments, optional group mention rules, and opt-in progress make that room easier to use while keeping the final answer visible.
 
 Opening a discussion still requires an authorized operator and a reachable ClickClack deployment. Generated names remain best effort, and mention-gated or bot-to-bot conversations have to be enabled deliberately.
 

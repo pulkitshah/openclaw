@@ -15,7 +15,7 @@ How Slack files reach the agent turn, and how Vasudev sends text and media back.
 To speak to Vasudev in Slack today, send a Slack audio clip to the Vasudev app. Slackbot's dictation microphone is a separate Slack-owned feature, not an app API.
 
 - **[Slackbot voice dictation](https://slack.com/help/articles/202026038-How-to-use-Slackbot)** lives inside the user's private Slackbot conversation. Slack turns the recording into a Slackbot prompt but does not emit an audio file, dictation event, prompt, or input-source marker to third-party Slack apps through the Events API. The Vasudev Slack plugin cannot enable or receive it.
-- **[Slack audio clips](https://slack.com/help/articles/4406235165587-Record-audio-and-video-clips-in-Slack)** are stored Slack files that can be posted in an Vasudev DM, channel, or thread. Vasudev downloads an accessible clip with the bot token, normalizes Slack's clip MIME metadata, and sends it through the shared [audio transcription pipeline](/nodes/audio). The recommended app manifest includes the required `files:read` scope.
+- **[Slack audio clips](https://slack.com/help/articles/4406235165587-Record-audio-and-video-clips-in-Slack)** are stored Slack files that can be posted in a Vasudev DM, channel, or thread. Vasudev downloads an accessible clip with the bot token, normalizes Slack's clip MIME metadata, and sends it through the shared [audio transcription pipeline](/nodes/audio). The recommended app manifest includes the required `files:read` scope.
 
 Audio clips and Slackbot dictation have different privacy semantics: clips follow Slack file-retention policy and Vasudev downloads them for transcription, while Slack says dictation audio is not stored.
 

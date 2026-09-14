@@ -1,4 +1,4 @@
-// OpenClaw assistant tests cover plan parsing and inference prompt construction.
+// Vasudev assistant tests cover plan parsing and inference prompt construction.
 import { describe, expect, it } from "vitest";
 import {
   SYSTEM_AGENT_ASSISTANT_SYSTEM_PROMPT,
@@ -38,7 +38,7 @@ function overview(overrides: Partial<SystemAgentOverview["tools"]> = {}): System
   };
 }
 
-describe("OpenClaw assistant", () => {
+describe("Vasudev assistant", () => {
   it("teaches both planner and agent-loop prompts about hosted setup flows", () => {
     expect(SYSTEM_AGENT_ASSISTANT_SYSTEM_PROMPT).toContain("- configure skills");
     expect(SYSTEM_AGENT_ASSISTANT_SYSTEM_PROMPT).toContain("- configure search");
@@ -62,8 +62,8 @@ describe("OpenClaw assistant", () => {
   it("keeps remote Gateway mode outside both hosted chat planners", () => {
     for (const prompt of [SYSTEM_AGENT_ASSISTANT_SYSTEM_PROMPT, SYSTEM_AGENT_SYSTEM_PROMPT]) {
       expect(prompt).toContain("running the Gateway on another machine");
-      expect(prompt).toContain("`openclaw onboard` for fresh setup");
-      expect(prompt).toContain("`openclaw configure` for the mode question");
+      expect(prompt).toContain("`vasudev onboard` for fresh setup");
+      expect(prompt).toContain("`vasudev configure` for the mode question");
       expect(prompt).toContain("LOCAL Gateway's port, bind, auth, and Tailscale exposure");
     }
   });
@@ -135,8 +135,8 @@ describe("OpenClaw assistant", () => {
     expect(prompt).toContain("Default model: openai/gpt-5.5");
     expect(prompt).toContain("id=main, name=Main, workspace=/tmp/main");
     expect(prompt).toContain("OpenAI API key: found");
-    expect(prompt).toContain("OpenClaw docs: /tmp/openclaw/docs");
-    expect(prompt).toContain("OpenClaw source: /tmp/openclaw");
+    expect(prompt).toContain("Vasudev docs: /tmp/openclaw/docs");
+    expect(prompt).toContain("Vasudev source: /tmp/openclaw");
   });
 
   it("keeps truncated conversation history valid at a UTF-16 boundary", () => {

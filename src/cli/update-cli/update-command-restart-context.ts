@@ -134,7 +134,7 @@ export async function prepareUpdateRestart(
       serviceMutationAllowed = false;
       serviceMutationSkipMessage =
         "Code update completed; gateway service management skipped because its current ownership could not be inspected. " +
-        "Run `openclaw gateway status --deep` before restarting it manually.";
+        "Run `vasudev gateway status --deep` before restarting it manually.";
     }
   }
   if (

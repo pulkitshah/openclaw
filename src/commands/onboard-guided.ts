@@ -50,7 +50,7 @@ export type GuidedOnboardingDeps = {
   /**
    * "hatch" (default) runs the local custodian flow: discovery consent,
    * explicit provider selection, deterministic setup apply, then the agent TUI.
-   * "chat" preserves the legacy handoff into the OpenClaw system-agent chat —
+   * "chat" preserves the legacy handoff into the Vasudev system-agent chat —
    * remote-gateway onboarding requires it because setup must apply remotely.
    */
   handoffMode?: "hatch" | "chat";
@@ -96,8 +96,8 @@ async function runGuidedOnboardingFlow(
     );
     await prompter.outro(
       t("wizard.guided.invalidConfigRepair", {
-        fixCommand: formatCliCommand("openclaw doctor --fix"),
-        inspectCommand: formatCliCommand("openclaw config validate"),
+        fixCommand: formatCliCommand("vasudev doctor --fix"),
+        inspectCommand: formatCliCommand("vasudev config validate"),
       }),
     );
     runtime.exit(1);
@@ -137,7 +137,7 @@ async function runGuidedOnboardingFlow(
   const hasAuthoredRoster = hasResolvedRosterBeforeMigrations(snapshot);
   if (opts.team && hasAuthoredRoster) {
     throw new Error(
-      "An agent roster already exists. Use `openclaw agents team create` to add a team.",
+      "An agent roster already exists. Use `vasudev agents team create` to add a team.",
     );
   }
   const firstAgent =
@@ -221,8 +221,8 @@ async function runGuidedOnboardingFlow(
     await (deps.persistAccessMode ?? persistGuidedAccessMode)(accessMode);
   }
 
-  // Inference is the only prerequisite for OpenClaw. Use the caller's or
-  // current default workspace as isolated probe context; OpenClaw owns any
+  // Inference is the only prerequisite for Vasudev. Use the caller's or
+  // current default workspace as isolated probe context; Vasudev owns any
   // workspace choice and persistence after the live completion succeeds.
   const workspace = resolveUserPath(
     opts.workspace?.trim() ||
@@ -247,7 +247,7 @@ async function runGuidedOnboardingFlow(
       !(await matchesLocalSetupWorkspace(existingConfig, workspace, localSetup.teamCoordinatorId))
     ) {
       throw new Error(
-        "The pending team no longer matches its approved roster and workspace. Inspect `openclaw agents list` and repair the team before retrying setup.",
+        "The pending team no longer matches its approved roster and workspace. Inspect `vasudev agents list` and repair the team before retrying setup.",
       );
     }
     if (
@@ -492,7 +492,7 @@ async function runGuidedOnboardingFlow(
     if (workspaceConflict) {
       await prompter.note(
         t("wizard.guided.workspaceConflictClassic", {
-          command: formatCliCommand("openclaw onboard --classic"),
+          command: formatCliCommand("vasudev onboard --classic"),
         }),
         t("wizard.setup.workspaceConflictTitle"),
       );
@@ -510,7 +510,7 @@ async function runGuidedOnboardingFlow(
     }
   } else {
     // Announced default: apply the same setup plan the conversational "yes"
-    // would, then hand off to the hatch instead of parking in the OpenClaw chat.
+    // would, then hand off to the hatch instead of parking in the Vasudev chat.
     const applyProgress = prompter.progress(t("wizard.guided.settingUp"));
     try {
       if (localSetup?.status === "pending") {
@@ -578,7 +578,7 @@ async function runGuidedOnboardingFlow(
             })
           : await readConfigFileSnapshot();
       if (!appliedSnapshot.valid) {
-        throw new Error("Setup wrote an invalid OpenClaw config.");
+        throw new Error("Setup wrote an invalid Vasudev config.");
       }
       persistedConfig = appliedSnapshot.sourceConfig ?? appliedSnapshot.config;
       applyProgress.stop(t("wizard.guided.setupDone"));
@@ -586,7 +586,7 @@ async function runGuidedOnboardingFlow(
       applyProgress.stop(t("wizard.guided.testFailed"));
       if (teamCoordinatorId) {
         throw new Error(
-          `Onboarding did not complete: ${error instanceof Error ? error.message : String(error)} Run \`openclaw agents list\` to inspect the roster, then retry with the same --workspace after resolving the error.`,
+          `Onboarding did not complete: ${error instanceof Error ? error.message : String(error)} Run \`vasudev agents list\` to inspect the roster, then retry with the same --workspace after resolving the error.`,
           { cause: error },
         );
       }

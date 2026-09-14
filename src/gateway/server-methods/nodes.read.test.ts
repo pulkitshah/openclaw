@@ -390,7 +390,7 @@ describe("node read projections", () => {
       false,
       undefined,
       expect.objectContaining({
-        message: expect.stringContaining("openclaw nodes approve surface-request-1"),
+        message: expect.stringContaining("vasudev nodes approve surface-request-1"),
       }),
     );
   });

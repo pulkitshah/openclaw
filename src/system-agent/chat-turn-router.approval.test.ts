@@ -354,14 +354,14 @@ describe("SystemAgentChatEngine approval", () => {
     expect(reply.handoff).toBeUndefined();
     expect(reply.sensitive).toBeUndefined();
     expect(reply.text).toContain("replace the inference route powering this session");
-    // A gateway reader is in a browser or the app and cannot "exit OpenClaw"
+    // A gateway reader is in a browser or the app and cannot "exit Vasudev"
     // into a shell; the copy must name where the command runs instead.
-    expect(reply.text).toContain("`openclaw onboard`");
-    expect(reply.text).toContain("machine running OpenClaw");
-    expect(reply.text).toContain("Stop the OpenClaw host");
+    expect(reply.text).toContain("`vasudev onboard`");
+    expect(reply.text).toContain("machine running Vasudev");
+    expect(reply.text).toContain("Stop the Vasudev host");
     expect(reply.text).toContain("restart the host");
-    expect(reply.text).toContain("return to OpenClaw");
-    expect(reply.text).not.toContain("Exit OpenClaw");
+    expect(reply.text).toContain("return to Vasudev");
+    expect(reply.text).not.toContain("Exit Vasudev");
   });
 
   it("drops the proposal when the user declines", async () => {
@@ -882,7 +882,7 @@ describe("SystemAgentChatEngine approval", () => {
     expect(runAgentTurn).toHaveBeenCalledOnce();
     expect(reply.text).toContain("requesting session's permission policy");
     expect(reply.text).toContain("returns the final outcome");
-    expect(reply.text).not.toContain("OpenClaw operator UI");
+    expect(reply.text).not.toContain("Vasudev operator UI");
     expect(reply.text).not.toContain("ask the user to reply yes");
     expect(reply.action).toBe("none");
     expect(engine.getPendingOperatorProposal()?.operation).toEqual({

@@ -36,7 +36,7 @@ Look for:
 
 <AccordionGroup>
   <Accordion title="What happened">
-    - The config did not validate during startup, hot reload, or an Vasudev-owned write.
+    - The config did not validate during startup, hot reload, or a Vasudev-owned write.
     - Gateway startup leaves `openclaw.json` unchanged and fails closed when safe legacy-key migration cannot produce a fully valid config.
     - Hot reload skips invalid external edits and keeps the current runtime config active.
     - Vasudev-owned writes reject invalid/destructive payloads before commit and save `.rejected.*`.
@@ -55,11 +55,11 @@ Look for:
   </Accordion>
   <Accordion title="Common signatures">
     - `.clobbered.*` exists → doctor preserved a broken external edit while repairing the active config.
-    - `.rejected.*` exists → an Vasudev-owned config write failed schema or clobber checks before commit.
+    - `.rejected.*` exists → a Vasudev-owned config write failed schema or clobber checks before commit.
     - `Config write rejected:` → the write tried to drop required shape, shrink the file sharply, or persist invalid config.
     - `config reload skipped (invalid config):` → a direct edit failed validation and was ignored by the running Gateway.
     - `Invalid config at ...` → startup failed before Gateway services booted.
-    - `missing-meta-vs-last-good`, `gateway-mode-missing-vs-last-good`, or `size-drop-vs-last-good:*` → an Vasudev-owned write was rejected because it lost fields or size compared with the last-known-good backup.
+    - `missing-meta-vs-last-good`, `gateway-mode-missing-vs-last-good`, or `size-drop-vs-last-good:*` → a Vasudev-owned write was rejected because it lost fields or size compared with the last-known-good backup.
     - `Config last-known-good promotion skipped` → the candidate contained redacted secret placeholders such as `***`.
 
   </Accordion>

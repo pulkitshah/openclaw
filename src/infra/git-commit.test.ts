@@ -292,7 +292,7 @@ describe("git commit resolution", () => {
     );
   });
 
-  it("does not walk out of the openclaw package into a host repo", async () => {
+  it("does not walk out of the vasudev package into a host repo", async () => {
     const temp = await makeTempDir("git-commit-package-boundary");
     const hostRepo = path.join(temp, "host");
     await makeFakeGitRepo(hostRepo, { head: "abcdef1234567890abcdef1234567890abcdef12" });

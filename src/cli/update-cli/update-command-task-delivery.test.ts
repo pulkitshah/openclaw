@@ -76,7 +76,7 @@ it("keeps repairable task-delivery state unchanged during update preview", async
   const f = seededOrphans();
   await expect(
     admitUpdateCommandRun({ opts: { dryRun: true }, root: f.root }).then(() => "admitted"),
-  ).rejects.toThrow(/repairable[\s\S]*openclaw doctor --fix/iu);
+  ).rejects.toThrow(/repairable[\s\S]*vasudev doctor --fix/iu);
   inspect(f.filename, (db) => {
     expect(db.prepare("PRAGMA foreign_key_check").all()).toHaveLength(18);
     expect(db.prepare("SELECT count(*) AS count FROM update_runs").get()).toEqual({ count: 0 });
@@ -216,7 +216,7 @@ it.each(["read-only", "foreign-gateway"] as const)(
     try {
       expect(() =>
         createUpdateRun({ trigger: "cli" }, { env: f.env, readOnly: blocker === "read-only" }),
-      ).toThrow(/repairable[\s\S]*openclaw doctor --fix/iu);
+      ).toThrow(/repairable[\s\S]*vasudev doctor --fix/iu);
       inspect(f.filename, (db) => {
         expect(db.prepare("PRAGMA foreign_key_check").all()).toHaveLength(18);
         expect(db.prepare("SELECT count(*) AS count FROM update_runs").get()).toEqual({ count: 0 });

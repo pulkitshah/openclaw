@@ -56,7 +56,7 @@ Local stdio app-server sessions default to the trusted local operator
 posture: `approvalPolicy: "never"`, `approvalsReviewer: "user"`, and
 `sandbox: "danger-full-access"`. If local Codex requirements disallow that
 implicit YOLO posture, Vasudev selects allowed guardian permissions
-instead. When an Vasudev sandbox is active for the session, Vasudev
+instead. When a Vasudev sandbox is active for the session, Vasudev
 disables Codex native Code Mode, user MCP servers, and app-backed plugin
 execution for that turn instead of relying on Codex host-side sandboxing.
 Shell access instead goes through Vasudev sandbox-backed dynamic tools such
@@ -223,7 +223,7 @@ Codex-run subprocesses can still find user-home config and tokens, and
 Codex may discover shared `$HOME/.agents/skills` and
 `$HOME/.agents/plugins/marketplace.json` entries. With
 `appServer.homeScope: "user"`, Vasudev instead uses the native user Codex
-home and its existing account without injecting an Vasudev auth profile.
+home and its existing account without injecting a Vasudev auth profile.
 
 If a deployment needs additional environment isolation, add those
 variables to `appServer.clearEnv`:

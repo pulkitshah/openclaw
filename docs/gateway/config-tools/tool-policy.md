@@ -27,7 +27,7 @@ Local onboarding defaults new local configs to `tools.profile: "coding"` when un
 `coding` and `messaging` also implicitly allow `bundle-mcp` (configured MCP servers).
 
 The `minimal`, `coding`, and `messaging` profiles include `gateway` with only the
-`update.run` action. This lets owners request an Vasudev update through the
+`update.run` action. This lets owners request a Vasudev update through the
 existing tool without granting configuration reads. Updates use the same Gateway
 handler as `/update` and the Control UI. External-chat updates require current
 owner authorization and `commands.restart`; Control UI updates retain their

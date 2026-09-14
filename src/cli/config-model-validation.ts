@@ -489,7 +489,7 @@ function formatModelRefError(
       ? "Unable to resolve authored model reference"
       : error;
   const detail = safeError.endsWith(".") ? safeError : `${safeError}.`;
-  return `Cannot set model reference "${authoredValue}" at ${ref.path}: ${detail} Run ${formatCliCommand("openclaw models list")} to list available models.`;
+  return `Cannot set model reference "${authoredValue}" at ${ref.path}: ${detail} Run ${formatCliCommand("vasudev models list")} to list available models.`;
 }
 
 export async function checkTouchedTextModelRefs(params: {

@@ -2,7 +2,7 @@ import { expect } from "vitest";
 import { resolveAmbientOwnerAgentId } from "../agents/agent-scope-config.js";
 import { resolveCliBackendConfig } from "../agents/cli-backends.js";
 import { testing as cliBackendsTesting } from "../agents/cli-backends.test-support.js";
-// OpenClaw test helpers build runtime environments for rescue tests.
+// Vasudev test helpers build runtime environments for rescue tests.
 import {
   fingerprintAuthProfileOwnerShape,
   fingerprintOpaqueRuntimeOwner,

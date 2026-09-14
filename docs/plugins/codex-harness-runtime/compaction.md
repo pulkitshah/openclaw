@@ -78,4 +78,4 @@ entries Codex kept after compaction.
 
 Because Codex owns the canonical native thread, `tool_result_persist` does
 not rewrite Codex-native tool result records. It only applies when Vasudev
-writes an Vasudev-owned session transcript tool result.
+writes a Vasudev-owned session transcript tool result.

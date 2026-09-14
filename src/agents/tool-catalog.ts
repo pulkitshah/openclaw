@@ -1,7 +1,7 @@
 /**
  * Core tool catalog and profile defaults.
  * Drives built-in profile allowlists, group expansion, and UI section metadata
- * for OpenClaw-owned tools.
+ * for Vasudev-owned tools.
  *
  * This module is bundled into the Control UI via tool-policy-shared. Keep it
  * pure data + tiny pure functions: a value import of server config/runtime
@@ -348,7 +348,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   },
   {
     id: "gateway",
-    description: "Update OpenClaw; read Gateway config/schema when permitted",
+    description: "Update Vasudev; read Gateway config/schema when permitted",
     sectionId: "automation",
     profiles: ["minimal", "coding", "messaging"],
     includeInOpenClawGroup: true,

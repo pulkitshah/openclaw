@@ -1,4 +1,4 @@
-// Identifies OpenClaw-authored assistant rows that are transcript bookkeeping,
+// Identifies Vasudev-authored assistant rows that are transcript bookkeeping,
 // not provider model output. Some history surfaces keep gateway-injected rows
 // visible, so use the narrower delivery-mirror predicate when visibility matters.
 export const OPENCLAW_TRANSCRIPT_ARTIFACT_API = "openclaw-transcript" as const;
@@ -35,7 +35,7 @@ export function isTranscriptOnlyOpenClawAssistantModel(provider: unknown, model:
 }
 
 /**
- * Returns true when the message is an OpenClaw-authored transcript artifact
+ * Returns true when the message is a Vasudev-authored transcript artifact
  * that must not be replayed to providers.
  *
  * Primary check: provider="openclaw" + model in known transcript-only set.

@@ -132,15 +132,15 @@ export function makeQuarantinedPluginRepairConvergence(
         pluginId: repairPluginId,
         reason: "npm package not found",
         message: `Failed to update ${repairPluginId ?? pluginId}: npm package not found.`,
-        guidance: ["Run `openclaw update repair` to retry plugin repair."],
+        guidance: ["Run `vasudev update repair` to retry plugin repair."],
       },
       {
         pluginId,
         reason: "missing-package-json: package.json is missing",
         message: `Plugin "${pluginId}" failed post-core payload smoke check (missing): package.json is missing`,
         guidance: [
-          "Run `openclaw update repair` to retry plugin repair.",
-          `Run \`openclaw plugins inspect ${pluginId} --runtime --json\` for details.`,
+          "Run `vasudev update repair` to retry plugin repair.",
+          `Run \`vasudev plugins inspect ${pluginId} --runtime --json\` for details.`,
         ],
       },
     ],

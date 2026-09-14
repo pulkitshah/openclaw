@@ -125,7 +125,7 @@ If migration or config repair cannot finish, Doctor leaves the stopped service
 stopped and reports an incomplete repair with exit code 1. When state requires
 manual recovery, the diagnosis names its path and the next action:
 
-- **Unsupported canonical workspace version:** use an Vasudev build that supports
+- **Unsupported canonical workspace version:** use a Vasudev build that supports
   that version. Preserve the shared database unchanged.
 - **Unreadable or conflicting exec policy:** stop the Gateway and node hosts,
   then reconcile the named legacy file or interrupted claim with a verified copy

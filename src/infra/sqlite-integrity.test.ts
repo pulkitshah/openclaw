@@ -130,7 +130,7 @@ describe("assertSqliteIntegrity", () => {
           parentTable: "task_runs",
           orphanCount: 6,
         },
-        message: expect.stringMatching(/foreign_key_check failed.*openclaw doctor --fix/u),
+        message: expect.stringMatching(/foreign_key_check failed.*vasudev doctor --fix/u),
       });
       if (!(failure instanceof Error)) {
         throw new Error("Expected integrity admission to refuse unrepaired rows");
@@ -599,7 +599,7 @@ describe("SQLite integrity child", () => {
           expect(closeSignal).toBe("SIGKILL");
         }),
       ).rejects.toThrow(
-        `SQLite integrity check timed out after 31 seconds (budget for 15 B) for ${source}. Stop the Gateway service and other OpenClaw processes using this database, then retry; if already stopped, check storage performance. (lastObservedPhase=checking)`,
+        `SQLite integrity check timed out after 31 seconds (budget for 15 B) for ${source}. Stop the Gateway service and other Vasudev processes using this database, then retry; if already stopped, check storage performance. (lastObservedPhase=checking)`,
       );
       expect(performance.now() - started).toBeLessThan(8_000);
       expect(fs.readFileSync(ready, "utf8")).toBe("ready");

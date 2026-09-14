@@ -744,7 +744,7 @@ describe("owned plugin inspections", () => {
     try {
       warnings = collectContextEngineHostCompatibilityWarnings({
         cfg: fixture.config,
-        doctorFixCommand: "openclaw doctor --fix",
+        doctorFixCommand: "vasudev doctor --fix",
       });
       await vi.waitFor(() => expect(fixture.state.connections).toHaveLength(1));
       let completed = false;

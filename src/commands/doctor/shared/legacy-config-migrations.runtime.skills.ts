@@ -13,7 +13,7 @@ export const LEGACY_CONFIG_MIGRATIONS_RUNTIME_SKILLS: LegacyConfigMigrationSpec[
       {
         path: ["skills", "workshop", "autonomous", "enabled"],
         message:
-          'skills.workshop.autonomous.enabled is retired; use skills.workshop.autonomous.mode. Run "openclaw doctor --fix".',
+          'skills.workshop.autonomous.enabled is retired; use skills.workshop.autonomous.mode. Run "vasudev doctor --fix".',
       },
     ],
     apply: (raw, changes) => {
@@ -40,7 +40,7 @@ export const LEGACY_CONFIG_MIGRATIONS_RUNTIME_SKILLS: LegacyConfigMigrationSpec[
       {
         path: ["skills", "workshop", "allowSymlinkTargetWrites"],
         message:
-          'skills.workshop.allowSymlinkTargetWrites is retired; Skill Workshop writes only inside its own directory. Run "openclaw doctor --fix".',
+          'skills.workshop.allowSymlinkTargetWrites is retired; Skill Workshop writes only inside its own directory. Run "vasudev doctor --fix".',
       },
     ],
     apply: (raw, changes) => {

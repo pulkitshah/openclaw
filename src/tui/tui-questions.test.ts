@@ -603,7 +603,7 @@ describe("TUI questions", () => {
       await settle();
       expect(harness.addSystem.mock.calls.map(([line]) => line)).toEqual([
         "Question: answered.",
-        "Secret stored, but runtime refresh failed. Run openclaw secrets reload; do not resubmit this answer.",
+        "Secret stored, but runtime refresh failed. Run vasudev secrets reload; do not resubmit this answer.",
       ]);
       expect(harness.addSystem.mock.calls.flat().join("\n")).not.toContain(secret);
       expect(harness.getQuestion).not.toHaveBeenCalled();

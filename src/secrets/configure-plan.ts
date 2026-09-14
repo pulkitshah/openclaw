@@ -73,7 +73,7 @@ function resolveAuthProfileProvider(
   return provider.length > 0 ? provider : undefined;
 }
 
-/** Builds configure candidates for OpenClaw config plus an optional auth-profile scope. */
+/** Builds configure candidates for Vasudev config plus an optional auth-profile scope. */
 export function buildConfigureCandidatesForScope(params: {
   config: OpenClawConfig;
   authoredOpenClawConfig?: OpenClawConfig;

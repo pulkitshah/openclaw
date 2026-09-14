@@ -1,4 +1,4 @@
-// Public library facade for consumers embedding OpenClaw reply runtime APIs.
+// Public library facade for consumers embedding Vasudev reply runtime APIs.
 import type { getReplyFromConfig as getReplyFromConfigRuntime } from "./auto-reply/reply.runtime.js";
 import { applyTemplate } from "./auto-reply/templating.js";
 import { createDefaultDeps } from "./cli/deps.js";

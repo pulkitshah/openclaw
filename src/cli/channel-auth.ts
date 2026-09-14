@@ -85,7 +85,7 @@ function resolveConfiguredAuthChannelInput(mode: ChannelAuthMode): string {
   }
   if (configured.length === 0) {
     throw new Error(
-      `No configured channel supports ${mode}. Run ${formatCliCommand("openclaw channels status")} to inspect channels or ${formatCliCommand("openclaw channels add --channel <channel>")} to add one.`,
+      `No configured channel supports ${mode}. Run ${formatCliCommand("vasudev channels status")} to inspect channels or ${formatCliCommand("vasudev channels add --channel <channel>")} to add one.`,
     );
   }
   const safeIds = configured.map(sanitizeForLog);
@@ -131,7 +131,7 @@ async function resolveChannelPluginForMode(
   const channelId = resolved.channelId ?? normalizedChannelId;
   if (!channelId) {
     throw new Error(
-      `Unsupported channel "${channelInput}". Run ${formatCliCommand("openclaw channels list")} to see available channels.`,
+      `Unsupported channel "${channelInput}". Run ${formatCliCommand("vasudev channels list")} to see available channels.`,
     );
   }
   const plugin = resolved.plugin;
@@ -140,7 +140,7 @@ async function resolveChannelPluginForMode(
       formatUnsupportedChannelActionMessage({
         channel: channelId,
         action: mode,
-        inspectCommand: "openclaw channels status --channel " + channelId,
+        inspectCommand: "vasudev channels status --channel " + channelId,
       }),
     );
   }
@@ -212,7 +212,7 @@ async function reconcileGatewayRuntimeAfterLocalLogin(params: {
     // Older Gateways return only the runtime snapshot, without a start decision.
     if (result.outcome && result.outcome.status !== "handed-off") {
       params.runtime.log(
-        `Local login saved auth for ${params.channelId}/${params.accountId}. Gateway start: ${result.outcome.reason}. Check ${formatCliCommand(`openclaw channels status --channel ${params.channelId} --probe`)}.`,
+        `Local login saved auth for ${params.channelId}/${params.accountId}. Gateway start: ${result.outcome.reason}. Check ${formatCliCommand(`vasudev channels status --channel ${params.channelId} --probe`)}.`,
       );
     }
   } catch (error) {
@@ -286,7 +286,7 @@ export async function runChannelLogin(
       formatUnsupportedChannelActionMessage({
         channel: channelInput,
         action: "login",
-        inspectCommand: "openclaw channels status --channel " + channelInput,
+        inspectCommand: "vasudev channels status --channel " + channelInput,
       }),
     );
   }
@@ -324,7 +324,7 @@ export async function runChannelLogout(
       formatUnsupportedChannelActionMessage({
         channel: channelInput,
         action: "logout",
-        inspectCommand: "openclaw channels status --channel " + channelInput,
+        inspectCommand: "vasudev channels status --channel " + channelInput,
       }),
     );
   }

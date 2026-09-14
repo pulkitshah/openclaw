@@ -1,14 +1,14 @@
 import type { Context, Model } from "@openclaw/ai";
 // Anthropic Cloudflare AI Gateway constructor guard-specific proof: the SSRF
 // guard blocks a private-IP request before the SDK's default global fetch is
-// ever reached. This proves the stream facade installs OpenClaw's guarded
+// ever reached. This proves the stream facade installs Vasudev's guarded
 // fetch through the AI transport host, not just that a fetch option exists.
 //
 // Unlike anthropic.test.ts (which mocks the Anthropic SDK to verify
 // constructor options), this test stubs `globalThis.fetch` to COUNT calls.
 // Behavior only the guarded model fetch can produce.
 import { afterEach, describe, expect, it, vi } from "vitest";
-// Importing the facade installs the OpenClaw AI transport host ports.
+// Importing the facade installs the Vasudev AI transport host ports.
 import "../stream.js";
 
 const CLOUDFLARE_ANTHROPIC_MODEL = {

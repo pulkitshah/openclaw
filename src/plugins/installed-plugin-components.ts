@@ -29,7 +29,7 @@ export function emptyInstalledPluginComponents(): PluginInstalledComponents {
   };
 }
 
-/** Projects only components that the installed OpenClaw runtime can actually use. */
+/** Projects only components that the installed Vasudev runtime can actually use. */
 export function projectInstalledPluginComponents(params: {
   manifest?: PluginManifestRecord;
   declared: PluginDeclaredSurface;

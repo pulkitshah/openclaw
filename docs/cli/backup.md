@@ -424,5 +424,5 @@ Large workspaces are usually the main driver of archive size. Use `--no-include-
 ## Related
 
 - [CLI reference](/cli)
-- [Migrating an Vasudev install](/install/migrating)
+- [Migrating a Vasudev install](/install/migrating)
 - [Restore a full archive](/install/backups#restore-a-full-archive)

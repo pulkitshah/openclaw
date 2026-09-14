@@ -255,7 +255,7 @@ export function patchCodexNativeWebSearchPayload(params: {
   return { status: "injected" };
 }
 
-/** Returns whether the managed OpenClaw web-search tool should be hidden. */
+/** Returns whether the managed Vasudev web-search tool should be hidden. */
 export function shouldSuppressManagedWebSearchTool(params: {
   webSearchEnabled?: boolean;
   config?: OpenClawConfig;

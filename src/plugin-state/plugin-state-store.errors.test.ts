@@ -276,7 +276,7 @@ describe("plugin state open errors", () => {
           code: "PLUGIN_STATE_OPEN_FAILED",
           path: databasePath,
           message:
-            "Failed to open the plugin state database.\nDatabase integrity verification failed. Restore or repair the state database, then run openclaw doctor --fix.",
+            "Failed to open the plugin state database.\nDatabase integrity verification failed. Restore or repair the state database, then run vasudev doctor --fix.",
         });
       }
     } finally {
@@ -307,7 +307,7 @@ describe("plugin state open errors", () => {
           code: "PLUGIN_STATE_OPEN_FAILED",
           path: databasePath,
           message:
-            "Failed to open the plugin state database.\nThe state database uses a newer schema. Run an OpenClaw build that supports it.",
+            "Failed to open the plugin state database.\nThe state database uses a newer schema. Run a Vasudev build that supports it.",
         });
       }
     } finally {

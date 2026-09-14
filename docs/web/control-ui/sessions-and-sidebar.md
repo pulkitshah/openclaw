@@ -213,7 +213,7 @@ New Gateway-local Codex sessions use the primary native Codex profile configured
 for its catalog, normally the Gateway user's `CODEX_HOME` or `~/.codex`. Selecting
 a folder lets Codex load that project's trusted configuration; it does not select
 another account or Codex home. Additional Codex homes remain available for browsing
-and resuming existing sessions with their original profile. An Vasudev agent's
+and resuming existing sessions with their original profile. A Vasudev agent's
 temporary app-server login is separate from a native CLI login.
 
 On the Gateway, the folder/worktree controls still provision the selected managed

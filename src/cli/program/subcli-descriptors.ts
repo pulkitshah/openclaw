@@ -103,7 +103,7 @@ const subCliCommandDescriptors = [
   },
   {
     name: "connect",
-    description: "Connect this machine to an Vasudev Gateway as a node",
+    description: "Connect this machine to a Vasudev Gateway as a node",
     hasSubcommands: false,
   },
   {

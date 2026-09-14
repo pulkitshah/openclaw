@@ -18,7 +18,7 @@ the node's updated pairing surface if needed. Before each exec-server launch,
 Vasudev also requires the normal node invocation approval; denying that
 request does not start a process.
 
-Codex launches its exec-server directly, so paired-device and cloud-node placement do not consume an Vasudev worker slot and remain eligible when those slots are full. Vasudev `worker-turn` placement still requires an available worker slot.
+Codex launches its exec-server directly, so paired-device and cloud-node placement do not consume a Vasudev worker slot and remain eligible when those slots are full. Vasudev `worker-turn` placement still requires an available worker slot.
 
 Approval permits process execution and filesystem access anywhere the node's
 operating system account allows. The exact placement workspace controls the
@@ -39,7 +39,7 @@ The Codex app-server, model connection, provider credentials, and transcript
 remain on the Gateway. The paired node runs the managed Codex exec-server in
 the transferred workspace and receives only sanitized process, filesystem,
 capability-discovery, and HTTP operations over the existing node channel. It
-does not launch an Vasudev worker child. Credential-bearing HTTP requests are
+does not launch a Vasudev worker child. Credential-bearing HTTP requests are
 rejected before they reach the paired device; run authenticated requests on the
 Gateway or use an intentionally credential-free endpoint. Normal Codex turns
 are supported, but `/btw` side questions are not yet placement-bound and fail
@@ -50,7 +50,7 @@ for the exact allowlist configuration and lifecycle.
 
 ## Codex or Vasudev on a cloud profile
 
-The same configured Crabbox profile can host either harness. Select its profile row under **Cloud** after choosing an Vasudev or Codex model; the selected runtime determines whether provisioning prepares a worker child or the managed Codex exec-server. Codex cloud-node execution requires the same explicit Gateway command allowlist and placement-scoped approval as paired-device execution. It never falls back to Gateway-local or SSH execution if the node command is missing, denied, or disconnected.
+The same configured Crabbox profile can host either harness. Select its profile row under **Cloud** after choosing a Vasudev or Codex model; the selected runtime determines whether provisioning prepares a worker child or the managed Codex exec-server. Codex cloud-node execution requires the same explicit Gateway command allowlist and placement-scoped approval as paired-device execution. It never falls back to Gateway-local or SSH execution if the node command is missing, denied, or disconnected.
 
 For cloud-profile placement, the equivalent RPC flow is:
 

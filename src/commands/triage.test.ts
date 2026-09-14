@@ -151,7 +151,7 @@ describe("triageCommand", () => {
       expect(runtime.exit).not.toHaveBeenCalled();
       const output = runtime.log.mock.calls.flat().join("\n");
       expect(output).toContain("No repair agent was started.");
-      expect(output).toContain(run ? "openclaw triage --run" : "claude -p");
+      expect(output).toContain(run ? "vasudev triage --run" : "claude -p");
       expect(runtime.log.mock.calls.filter(([line]) => String(line).startsWith("  "))).toHaveLength(
         1,
       );
@@ -229,7 +229,7 @@ describe("triageCommand", () => {
           await started.promise;
           expect(mocks.spawn).not.toHaveBeenCalled();
           expect(mocks.runUpdateRepairLoop).not.toHaveBeenCalled();
-          const agent = run ? "the embedded OpenClaw agent using your configured model" : "claude";
+          const agent = run ? "the embedded Vasudev agent using your configured model" : "claude";
           expect(runtime.log).toHaveBeenCalledWith(
             `Agent: ${agent}. This will use your own account/tokens.`,
           );
@@ -392,7 +392,7 @@ describe("triageCommand", () => {
       expect(output).toContain(
         configured ? "Authentication required" : "No configured embedded agent",
       );
-      expect(output).toContain(configured ? "openclaw triage --run" : "openclaw triage");
+      expect(output).toContain(configured ? "vasudev triage --run" : "vasudev triage");
       expect(output).not.toContain("codex exec --skip-git-repo-check - <");
       const promptFile = (await fs.readdir(path.join(stateDir, "logs/support"))).find((file) =>
         file.endsWith(".md"),
@@ -575,14 +575,14 @@ describe("triageCommand", () => {
               expect.stringContaining("| & codex exec --skip-git-repo-check -"),
               expect.stringContaining("| & opencode run"),
               expect.stringContaining("| & pi --print"),
-              expect.stringContaining("& openclaw triage --run"),
+              expect.stringContaining("& vasudev triage --run"),
             ]
           : [
               `${targetEnv} claude -p < '${promptPath}'`,
               `${targetEnv} codex exec --skip-git-repo-check - < '${promptPath}'`,
               `${targetEnv} opencode run < '${promptPath}'`,
               `${targetEnv} pi --print < '${promptPath}'`,
-              `${targetEnv} openclaw triage --run`,
+              `${targetEnv} vasudev triage --run`,
             ],
     });
     expect(await fs.readFile(promptPath, "utf8")).toContain("[error] core/error: broken");

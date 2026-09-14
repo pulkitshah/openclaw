@@ -265,7 +265,7 @@ describe("channel doctor compatibility mutations", () => {
 
     const result = await collectChannelDoctorPreviewWarnings({
       cfg: cfg as never,
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "vasudev doctor --fix",
     });
 
     expect(result).toEqual([

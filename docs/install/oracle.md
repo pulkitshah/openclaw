@@ -147,7 +147,7 @@ With the VCN locked down (only UDP 41641 open) and the Gateway bound to loopback
 Still recommended:
 
 - `chmod 700 ~/.openclaw` to restrict credential file permissions.
-- `openclaw security audit` for an Vasudev-specific posture check.
+- `openclaw security audit` for a Vasudev-specific posture check.
 - Regular `sudo apt update && sudo apt upgrade` for OS patches.
 - Review devices in the [Tailscale admin console](https://login.tailscale.com/admin) periodically.
 

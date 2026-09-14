@@ -76,7 +76,7 @@ vi.mock("../status/summary.runtime.js", () => ({
       provider: "openai",
       model: "gpt-5.5",
     })),
-    resolveSessionRuntime: vi.fn(() => ({ id: "openclaw", label: "OpenClaw Default" })),
+    resolveSessionRuntime: vi.fn(() => ({ id: "openclaw", label: "Vasudev Default" })),
     resolveStatusModelLookupRef: vi.fn(({ provider, model }) =>
       typeof model === "string" && model.length > 0
         ? {
@@ -283,7 +283,7 @@ describe("getStatusSummary", () => {
     vi.mocked(statusSummaryRuntime.resolveContextTokensForModel).mockReturnValue(200_000);
     vi.mocked(statusSummaryRuntime.resolveSessionRuntime).mockReturnValue({
       id: "openclaw",
-      label: "OpenClaw Default",
+      label: "Vasudev Default",
     });
     vi.mocked(resolveSessionStorePathCore).mockReturnValue("/tmp/sessions.json");
     vi.mocked(listGatewayAgentsBasic).mockReturnValue({
@@ -611,7 +611,7 @@ describe("getStatusSummary", () => {
 
     expect(summary.tasks.total).toBe(0);
     expect(summary.tasks.warning).toBe(
-      "Task history is unavailable until Gateway startup or openclaw doctor --fix repairs the state database.",
+      "Task history is unavailable until Gateway startup or vasudev doctor --fix repairs the state database.",
     );
   });
 

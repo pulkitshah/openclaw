@@ -126,7 +126,7 @@ describe("transcripts CLI", () => {
       const run = createUpdateRun({ trigger: "cli" });
       const warning = "Recorded update warning";
       const warningStep = {
-        step: "warning:openclaw doctor",
+        step: "warning:vasudev doctor",
         status: "completed",
         detail: warning,
       } as const;

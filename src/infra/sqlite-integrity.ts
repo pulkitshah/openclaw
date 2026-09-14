@@ -123,7 +123,7 @@ export class SqliteRepairableForeignKeyError extends Error {
 
   constructor(databaseLabel: string, orphanCount: number) {
     super(
-      `SQLite foreign_key_check failed for ${databaseLabel}: repairable task_delivery_state.task_id references task_runs.task_id cascade-owned orphans (${orphanCount} rows). Run openclaw doctor --fix to preserve and repair these rows before retrying.`,
+      `SQLite foreign_key_check failed for ${databaseLabel}: repairable task_delivery_state.task_id references task_runs.task_id cascade-owned orphans (${orphanCount} rows). Run vasudev doctor --fix to preserve and repair these rows before retrying.`,
     );
     this.name = "SqliteRepairableForeignKeyError";
     this.repair = {
@@ -313,7 +313,7 @@ function runSqliteForeignKeyCheck(database: DatabaseSync, databaseLabel: string)
     // table-valued pragma name and make a corrupt database appear clean.
     const statement = database.prepare("PRAGMA foreign_key_check;");
     statement.setReadBigInts(true);
-    // OpenClaw's Node >=24.16.0 floor includes iterate(), added in Node 22.13.
+    // Vasudev's Node >=24.16.0 floor includes iterate(), added in Node 22.13.
     for (const violation of statement.iterate() as Iterable<SqliteForeignKeyViolation>) {
       violationCount += 1;
       retainSortedForeignKeyViolation(violations, violation);

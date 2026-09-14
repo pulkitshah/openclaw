@@ -111,7 +111,7 @@ async function stopChild(child: ChildProcessWithoutNullStreams | undefined): Pro
   }
 }
 
-describe("openclaw acp abort causes", () => {
+describe("vasudev acp abort causes", () => {
   it(
     "shows the carried tool-validation cause before cancelled settlement",
     { timeout: 120_000 },
@@ -252,7 +252,7 @@ describe("openclaw acp abort causes", () => {
         const result = await prompt;
         timeline.push(result.stopReason);
 
-        expect(timeline).toContain(`[OpenClaw interruption] ${ABORT_CAUSE}`);
+        expect(timeline).toContain(`[Vasudev interruption] ${ABORT_CAUSE}`);
         expect(timeline.at(-1)).toBe("cancelled");
       } finally {
         for (const response of stalledResponses) {

@@ -28,7 +28,7 @@ describe("buildAuthProfileUnusableHint", () => {
           profileId: "openai:default",
         }),
       ).toContain(
-        "Re-authenticate with `openclaw models auth login --provider openai --profile-id 'openai:default'`.",
+        "Re-authenticate with `vasudev models auth login --provider openai --profile-id 'openai:default'`.",
       );
     },
   );
@@ -42,7 +42,7 @@ describe("buildAuthProfileUnusableHint", () => {
         profileId: "anthropic:claude-cli",
       }),
     ).toContain(
-      "claude auth login && openclaw models auth login --provider anthropic --method cli --profile-id 'anthropic:claude-cli'",
+      "claude auth login && vasudev models auth login --provider anthropic --method cli --profile-id 'anthropic:claude-cli'",
     );
     expect(
       buildAuthProfileUnusableHint({
@@ -51,7 +51,7 @@ describe("buildAuthProfileUnusableHint", () => {
         provider: "anthropic",
         profileId: "anthropic:api-key",
       }),
-    ).toContain("openclaw models auth login --provider anthropic --profile-id 'anthropic:api-key'");
+    ).toContain("vasudev models auth login --provider anthropic --profile-id 'anthropic:api-key'");
     expect(
       buildAuthProfileUnusableHint({
         kind: "cooldown",
@@ -71,7 +71,7 @@ describe("buildAuthProfileUnusableHint", () => {
     });
 
     expect(hint).toBe(
-      "Gemini CLI OAuth cannot be repaired by OpenClaw. Connect Google with an AI Studio API key using `openclaw models auth login --provider google`, then select that Google profile for the Gemini CLI runtime.",
+      "Gemini CLI OAuth cannot be repaired by Vasudev. Connect Google with an AI Studio API key using `vasudev models auth login --provider google`, then select that Google profile for the Gemini CLI runtime.",
     );
     expect(hint).not.toContain("--provider google-gemini-cli");
   });
@@ -86,7 +86,7 @@ describe("oauth refresh failure hints", () => {
       reason: "invalid_grant",
     });
     expect(buildOAuthRefreshFailureLoginCommand("openai")).toBe(
-      "openclaw models auth login --provider openai",
+      "vasudev models auth login --provider openai",
     );
   });
 
@@ -95,7 +95,7 @@ describe("oauth refresh failure hints", () => {
       buildOAuthRefreshFailureLoginCommand("openai", {
         profileId: "Work Profile",
       }),
-    ).toBe("openclaw models auth login --provider openai --profile-id 'Work Profile'");
+    ).toBe("vasudev models auth login --provider openai --profile-id 'Work Profile'");
   });
 
   it("renders login commands containing backticks as valid Markdown code spans", () => {
@@ -104,7 +104,7 @@ describe("oauth refresh failure hints", () => {
     });
 
     expect(formatOAuthRefreshFailureLoginCommandMarkdown(command)).toBe(
-      "``openclaw models auth login --provider openai --profile-id 'openai:work`slot'``",
+      "``vasudev models auth login --provider openai --profile-id 'openai:work`slot'``",
     );
   });
 
@@ -217,7 +217,7 @@ describe("oauth refresh failure hints", () => {
       reason: "revoked",
     });
     expect(buildOAuthRefreshFailureLoginCommand("claude-cli")).toBe(
-      "claude auth login && openclaw models auth login --provider anthropic --method cli",
+      "claude auth login && vasudev models auth login --provider anthropic --method cli",
     );
   });
 
@@ -327,7 +327,7 @@ describe("claude-cli oauth-expiry — real HTTP server (no fetch mock)", () => {
           (caught: unknown) => (caught instanceof Error ? caught : new Error(String(caught))),
         );
         expect(error?.message).toContain(
-          "Re-auth with `claude auth login && openclaw models auth login --provider anthropic --method cli`",
+          "Re-auth with `claude auth login && vasudev models auth login --provider anthropic --method cli`",
         );
         console.log(
           `[claude-cli-oauth-proof] server=401 → re-auth hint surfaced: ${error?.message}`,

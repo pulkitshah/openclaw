@@ -8,7 +8,7 @@ export const DEFAULT_LEARN_REQUEST =
 export function buildLearnPrompt(request: string): string {
   const normalizedRequest = request.trim() || DEFAULT_LEARN_REQUEST;
   return [
-    "Improve the OpenClaw skill collection from the learning request below.",
+    "Improve the Vasudev skill collection from the learning request below.",
     "",
     `Learning request (JSON string): ${JSON.stringify(normalizedRequest)}`,
     "",

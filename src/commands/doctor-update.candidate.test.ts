@@ -91,7 +91,7 @@ it.each([
     await fs.writeFile(env.OPENCLAW_CONFIG_PATH, JSON.stringify({ fixtureValid: valid }));
     await fs.writeFile(eventsPath, "");
     await git(remote, "init", "--initial-branch=main");
-    await git(remote, "config", "user.name", "OpenClaw Test");
+    await git(remote, "config", "user.name", "Vasudev Test");
     await git(remote, "config", "user.email", "openclaw@example.com");
     await fs.writeFile(
       path.join(remote, "package.json"),
@@ -124,7 +124,7 @@ it.each([
     await git(remote, "commit", "-m", "base fixture");
     const beforeSha = await git(remote, "rev-parse", "HEAD");
     await git(directory, "clone", "--quiet", remote, root);
-    await git(root, "config", "user.name", "OpenClaw Test");
+    await git(root, "config", "user.name", "Vasudev Test");
     await git(root, "config", "user.email", "openclaw@example.com");
     const writeRuntime = async (target: string, sha: string) => {
       await fs.mkdir(path.join(target, "dist", "control-ui"), { recursive: true });

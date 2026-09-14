@@ -828,7 +828,7 @@ describe("sessions_spawn tool", () => {
 
       expect(result.details).toMatchObject({
         status: "forbidden",
-        error: `Visible session cwd "${outside}" is outside configured agent workspaces and requires operator.admin. Omit cwd to use the target agent workspace, or ask the operator to start the session from a registered project. Do not substitute the synchronous \`openclaw agent\` CLI for a persistent visible session.`,
+        error: `Visible session cwd "${outside}" is outside configured agent workspaces and requires operator.admin. Omit cwd to use the target agent workspace, or ask the operator to start the session from a registered project. Do not substitute the synchronous \`vasudev agent\` CLI for a persistent visible session.`,
       });
       expect(callGateway).toHaveBeenCalledOnce();
     });
@@ -2184,7 +2184,7 @@ describe("sessions_spawn tool", () => {
     expect(hoisted.spawnAcpDirectMock).not.toHaveBeenCalled();
   });
 
-  it("accepts ACP spawns when inherited allows include OpenClaw command tools", async () => {
+  it("accepts ACP spawns when inherited allows include Vasudev command tools", async () => {
     registerAcpBackendForTest();
     const tool = createSessionsSpawnTool({
       agentSessionKey: "agent:main:main",

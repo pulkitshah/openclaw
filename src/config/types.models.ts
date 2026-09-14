@@ -152,7 +152,7 @@ export type ModelDefinitionConfig = {
   contextTokens?: number;
   /** Maximum completion/output token budget. */
   maxTokens: number;
-  /** Maps OpenClaw thinking levels to provider/model-specific values. */
+  /** Maps Vasudev thinking levels to provider/model-specific values. */
   thinkingLevelMap?: ThinkingLevelMap;
   /** Provider-specific request/runtime parameters passed through to provider plugins. */
   params?: Record<string, unknown>;
@@ -229,7 +229,7 @@ export type DiscoveryToggleConfig = {
 };
 
 export type ModelCatalogRefreshConfig = {
-  /** Fetch model catalog updates from the hosted OpenClaw catalog. Default: true. */
+  /** Fetch model catalog updates from the hosted Vasudev catalog. Default: true. */
   enabled?: boolean;
   /** Override the hosted catalog URL (HTTPS mirrors, or localhost HTTP for testing). */
   url?: string;

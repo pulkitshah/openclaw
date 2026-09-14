@@ -52,7 +52,7 @@ executable CLI invocation retains the backing resources until its actual work
 and cleanup finish. Finish calls using those providers before the host closes;
 keeping the array does not authorize use after host retirement. A released
 inspection stays retired, and a new lookup through that inspection is refused.
-Callers outside an Vasudev host retain the standalone process lifetime of this
+Callers outside a Vasudev host retain the standalone process lifetime of this
 SDK contract; process exit does not guarantee asynchronous plugin disposal.
 
 Inspection release relinquishes the inspection's own claim. If an SDK host
@@ -114,7 +114,7 @@ Provider plugins can publish native login presence through `prepareSyntheticAuth
 with `nativeAuth: { runtime, mode }`, where `mode` is `api-key`, `oauth`, or
 `token`. These facts apply only to the named runtime in the prepared generation.
 They do not supply a provider bearer credential or authorize importing one into
-an Vasudev profile. The optional `pluginRoot` context comes from the plugin
+a Vasudev profile. The optional `pluginRoot` context comes from the plugin
 loader; use it to resolve the declared dependency from that plugin's installation.
 
 ### Memory read missing results

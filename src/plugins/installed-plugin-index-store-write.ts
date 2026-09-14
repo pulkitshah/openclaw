@@ -111,7 +111,7 @@ function assertWritableInstalledPluginIndexStoreOptions(
 ): void {
   if (options.filePath?.endsWith(".json")) {
     throw new Error(
-      "Explicit JSON installed plugin index paths are retired. Use the shared SQLite state DB or run openclaw doctor --fix to migrate legacy plugins/installs.json.",
+      "Explicit JSON installed plugin index paths are retired. Use the shared SQLite state DB or run vasudev doctor --fix to migrate legacy plugins/installs.json.",
     );
   }
 }
@@ -422,7 +422,7 @@ function resolveRefreshedPersistedInstalledPluginIndex(
     );
     if (foreignPluginIds.length > 0) {
       throw new Error(
-        `Plugin registry refresh cannot verify npm install ownership outside the selected state directory: ${foreignPluginIds.join(", ")}. Reinstall copied plugins in this state directory, then run \`openclaw plugins registry --refresh\` again.`,
+        `Plugin registry refresh cannot verify npm install ownership outside the selected state directory: ${foreignPluginIds.join(", ")}. Reinstall copied plugins in this state directory, then run \`vasudev plugins registry --refresh\` again.`,
       );
     }
   }

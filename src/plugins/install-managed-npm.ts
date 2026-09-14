@@ -189,7 +189,7 @@ export async function installPluginFromManagedNpmRoot(
         logger,
       });
       if (repairedOpenClawPeer) {
-        logger.info?.(`Repaired stale openclaw peer dependency in ${npmRoot}`);
+        logger.info?.(`Repaired stale vasudev peer dependency in ${npmRoot}`);
       }
     }
     const managedOverrides = await readOpenClawManagedNpmRootOverrides();
@@ -202,7 +202,7 @@ export async function installPluginFromManagedNpmRoot(
       } catch (error) {
         return {
           ok: false,
-          error: `${cause.error}, but OpenClaw could not quarantine ${npmRoot} for rebuild: ${String(error)}`,
+          error: `${cause.error}, but Vasudev could not quarantine ${npmRoot} for rebuild: ${String(error)}`,
         };
       }
       logger.warn?.(
@@ -441,7 +441,7 @@ export async function installPluginFromManagedNpmRoot(
         logger,
       });
       if (repairedOpenClawPeer) {
-        logger.info?.(`Repaired stale openclaw peer dependency in ${npmRoot} after npm install`);
+        logger.info?.(`Repaired stale vasudev peer dependency in ${npmRoot} after npm install`);
       }
     }
     try {
@@ -452,7 +452,7 @@ export async function installPluginFromManagedNpmRoot(
     } catch (error) {
       return {
         ok: false,
-        error: `Failed to repair openclaw peer links after npm install: ${String(error)}`,
+        error: `Failed to repair vasudev peer links after npm install: ${String(error)}`,
       };
     }
     if (await auditDeclaredOpenClawHostDependency({ packageDir: installRoot })) {

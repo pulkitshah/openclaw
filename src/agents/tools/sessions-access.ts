@@ -1,7 +1,7 @@
 /**
  * Session visibility and access helpers for session tools.
  *
- * Adds OpenClaw session-key alias normalization and sandbox requester scoping over SDK visibility contracts.
+ * Adds Vasudev session-key alias normalization and sandbox requester scoping over SDK visibility contracts.
  */
 import { randomUUID } from "node:crypto";
 import { isRecord } from "@openclaw/normalization-core/record-coerce";

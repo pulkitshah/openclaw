@@ -253,7 +253,7 @@ Set `OPENCLAW_WEBHOOK_ONLY` to `true` only when every enabled channel receives t
 - **Rollback:** older database bytes are time travel. Ratcheting channel credentials, especially WhatsApp, can desynchronize; approvals and delivery/dedupe state also roll back. Relink affected channels and review pending approvals before resuming. See [Restore](/install/backups#restore).
 - **WebSockets:** Worker and Container proxying supports WebSockets. Cloudflare limits each received WebSocket message to 32 MiB.
 - **Egress:** outbound requests use shared Cloudflare IP space. This target does not provide a fixed egress address.
-- **Provider boundary:** this is a deployment template, not an Vasudev `cloudWorkers` provider. Its operator SSH access does not implement that provider's SSH execution contract.
+- **Provider boundary:** this is a deployment template, not a Vasudev `cloudWorkers` provider. Its operator SSH access does not implement that provider's SSH execution contract.
 
 ## Update
 

@@ -166,7 +166,7 @@ describe("legacy workspace reset cleanup", () => {
     );
 
     expect(() => assertNoUnmigratedWorkspaceState({ workspaceDir: context.workspaceDir })).toThrow(
-      /run openclaw doctor --fix/u,
+      /run vasudev doctor --fix/u,
     );
   });
 
@@ -184,7 +184,7 @@ describe("legacy workspace reset cleanup", () => {
         env: context.env,
         homedir: context.homedir,
       }),
-    ).toThrow(`${workspaceDirs.join(", ")}; run openclaw doctor --fix`);
+    ).toThrow(`${workspaceDirs.join(", ")}; run vasudev doctor --fix`);
     for (const workspaceDir of workspaceDirs) {
       await fs.unlink(path.join(workspaceDir, "openclaw-workspace-state.json"));
     }
@@ -223,7 +223,7 @@ describe("legacy workspace reset cleanup", () => {
       path.join(context.stateDir, "workspace-attestations", `${identity.workspaceKey}.attested`),
     );
     expect(() => assertNoUnmigratedWorkspaceState({ workspaceDir: context.workspaceDir })).toThrow(
-      /run openclaw doctor --fix/u,
+      /run vasudev doctor --fix/u,
     );
     const cleanup = await removeLegacyWorkspaceStateForReset(prepare(context));
     expect(cleanup.removedPaths).toContain(canonicalSiblingPath);

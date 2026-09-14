@@ -145,7 +145,7 @@ function formatUnavailableReason(params: {
 }): string {
   return [
     `This automation uses ${params.provider}/${params.model} but the local provider preflight failed at ${params.baseUrl}.`,
-    `The candidate is unavailable for this run; OpenClaw will retry its provider preflight on a later scheduled run.`,
+    `The candidate is unavailable for this run; Vasudev will retry its provider preflight on a later scheduled run.`,
     `Last error: ${formatPreflightError(params.error)}`,
   ].join(" ");
 }

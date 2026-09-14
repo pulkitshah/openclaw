@@ -1,5 +1,5 @@
 // Talk client methods create browser-owned realtime voice sessions and route
-// client tool calls back into OpenClaw agent consult/control flows.
+// client tool calls back into Vasudev agent consult/control flows.
 import { normalizeOptionalString } from "@openclaw/normalization-core/string-coerce";
 import {
   ErrorCodes,
@@ -62,7 +62,7 @@ import { assertValidParams } from "./validation.js";
  * Gateway methods for browser-owned realtime Talk sessions.
  *
  * These handlers create provider browser sessions and bridge client-owned tool
- * calls back into OpenClaw agent consult runs.
+ * calls back into Vasudev agent consult runs.
  */
 export const talkClientHandlers: GatewayRequestHandlers = {
   "talk.client.create": createTalkClient,

@@ -26,7 +26,7 @@ export type CliBackendConfig = {
   clearEnv?: string[];
   /** Flag used to pass model id (e.g. --model). */
   modelArg?: string;
-  /** Model aliases mapping (OpenClaw model id → CLI model id). */
+  /** Model aliases mapping (Vasudev model id → CLI model id). */
   modelAliases?: Record<string, string>;
   /** Args used to pass a session id (use {sessionId} placeholder). */
   sessionArgs?: string[];
@@ -103,7 +103,7 @@ export type PluginTextReplacement = {
 export type PluginTextTransforms = {
   /** Rewrites applied to outbound prompt text before provider/CLI transport. */
   input?: PluginTextReplacement[];
-  /** Rewrites applied to inbound assistant text before OpenClaw consumes it. */
+  /** Rewrites applied to inbound assistant text before Vasudev consumes it. */
   output?: PluginTextReplacement[];
 };
 
@@ -120,9 +120,9 @@ export type CliBackendPrepareExecutionContext = {
   modelId: string;
   /** Effective catalog context-window option selected for this run. */
   contextWindow?: string;
-  /** Effective OpenClaw context budget selected for this run. */
+  /** Effective Vasudev context budget selected for this run. */
   contextTokenBudget?: number;
-  /** Effective OpenClaw thinking level selected for this run. */
+  /** Effective Vasudev thinking level selected for this run. */
   thinkingLevel?: CliBackendThinkingLevel;
   authProfileId?: string;
   executionMode?: CliBackendExecutionMode;
@@ -159,10 +159,10 @@ export type CliBackendThinkingLevel =
 
 export type CliBackendExecutionMode = "agent" | "side-question";
 
-/** Exact backend-native plus canonical OpenClaw tool surface for one CLI run. */
+/** Exact backend-native plus canonical Vasudev tool surface for one CLI run. */
 export type CliBackendToolAvailability = {
   native: readonly string[];
-  /** Canonical OpenClaw tool names served through the host-isolated transport. */
+  /** Canonical Vasudev tool names served through the host-isolated transport. */
   openClaw: readonly string[];
 };
 
@@ -443,9 +443,9 @@ type CliBackendPluginBase = {
   /** Required whenever this backend can become a verified inference owner. */
   runtimeArtifact?: CliBackendRuntimeArtifactPolicy;
   /**
-   * Whether OpenClaw should inject bundle MCP config for this backend.
+   * Whether Vasudev should inject bundle MCP config for this backend.
    *
-   * Keep this opt-in. Only backends that explicitly consume OpenClaw's bundle
+   * Keep this opt-in. Only backends that explicitly consume Vasudev's bundle
    * MCP bridge should enable it.
    */
   bundleMcp?: boolean;
@@ -490,7 +490,7 @@ type CliBackendPluginBase = {
   /**
    * Preferred auth-profile id when the caller did not explicitly lock one.
    *
-   * Use this when the backend should consume a canonical OpenClaw auth profile
+   * Use this when the backend should consume a canonical Vasudev auth profile
    * rather than ambient host auth by default.
    */
   defaultAuthProfileId?: string;
@@ -498,7 +498,7 @@ type CliBackendPluginBase = {
    * Session/auth epoch source policy.
    *
    * `combined` keeps the legacy "host credential + auth profile" fingerprint.
-   * `profile-only` treats the selected OpenClaw auth profile as the sole auth
+   * `profile-only` treats the selected Vasudev auth profile as the sole auth
    * owner for session invalidation when one is present.
    */
   authEpochMode?: CliBackendAuthEpochMode;
@@ -506,7 +506,7 @@ type CliBackendPluginBase = {
    * Whether `prepareExecution` may auto-select a configured auth profile.
    *
    * Defaults to true for auth bridges. Set false for environment/config-only
-   * hooks that do not consume OpenClaw auth profiles.
+   * hooks that do not consume Vasudev auth profiles.
    */
   autoSelectAuthProfile?: boolean;
   /**
@@ -527,7 +527,7 @@ type CliBackendPluginBase = {
    * Backend-owned per-run argv rewrite.
    *
    * Use this for request-scoped CLI dialect flags that should not be modeled
-   * as static config, such as mapping OpenClaw thinking levels to a backend's
+   * as static config, such as mapping Vasudev thinking levels to a backend's
    * native effort flag.
    */
   resolveExecutionArgs?: CliBackendResolveExecutionArgs;
@@ -551,7 +551,7 @@ type CliBackendPluginBase = {
   /**
    * Backend-owned JSONL line parser for provider-specific stream formats.
    *
-   * Tool events report execution already performed by the backend. OpenClaw
+   * Tool events report execution already performed by the backend. Vasudev
    * renders them but does not treat them as host tool execution or delivery evidence.
    */
   parseJsonlEvent?: CliBackendParseJsonlEvent;
@@ -561,7 +561,7 @@ type CliBackendPluginBase = {
    */
   parseJsonlLifecycleEvent?: CliBackendParseJsonlLifecycleEvent;
   /**
-   * Whether this CLI backend can expose native tools outside OpenClaw's tool
+   * Whether this CLI backend can expose native tools outside Vasudev's tool
    * catalog. Exact restricted runs require `selectable` plus a declared
    * `toolAvailabilityEnforcement`; `always-on` backends fail closed.
    */

@@ -28,7 +28,7 @@ function getRecentSessionContentFromEvents(
   return getRecentSessionProjectionFromEvents(events, messageCount)?.content ?? null;
 }
 
-// Avoid calling the embedded OpenClaw agent (global command lane); keep this unit test deterministic.
+// Avoid calling the embedded Vasudev agent (global command lane); keep this unit test deterministic.
 vi.mock("../../llm-slug-generator.js", () => ({
   generateSlugViaLLM: vi.fn().mockResolvedValue("simple-math"),
 }));

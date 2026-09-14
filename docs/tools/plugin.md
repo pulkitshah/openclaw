@@ -21,7 +21,7 @@ bundled, official external, and source-only plugins, see
 
 ## Requirements
 
-- an Vasudev checkout or installation with the `openclaw` CLI available
+- a Vasudev checkout or installation with the `openclaw` CLI available
 - network access to the selected source (ClawHub, npm, or a git host)
 - any plugin-specific credentials, config keys, or OS tools named by that
   plugin's setup docs

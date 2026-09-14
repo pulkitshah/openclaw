@@ -146,7 +146,7 @@ function renderHistoryMessage(message: unknown): string | undefined {
   return `${timestamp ? `[${timestamp}] ` : ""}${role}: ${text}`;
 }
 
-/** Builds a reseed prompt that carries prior OpenClaw transcript context. */
+/** Builds a reseed prompt that carries prior Vasudev transcript context. */
 export function buildCliSessionHistoryPrompt(params: {
   messages: unknown[];
   prompt: string;
@@ -180,7 +180,7 @@ export function buildCliSessionHistoryPrompt(params: {
     .join("\n\n")
     .trim();
 
-  const truncationMarker = "[OpenClaw reseed history truncated; older turns dropped]";
+  const truncationMarker = "[Vasudev reseed history truncated; older turns dropped]";
   const renderTruncatedTail = (raw: string, budget: number): string => {
     if (budget <= truncationMarker.length + "\n".length) {
       return sliceUtf16Safe(raw, -budget).trimStart();
@@ -247,7 +247,7 @@ export function buildCliSessionHistoryPrompt(params: {
   }
 
   return [
-    "Continue this conversation using the OpenClaw transcript below as prior session history.",
+    "Continue this conversation using the Vasudev transcript below as prior session history.",
     "Treat it as authoritative context for this fresh CLI session.",
     "",
     "<conversation_history>",

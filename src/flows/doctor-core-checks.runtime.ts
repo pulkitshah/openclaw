@@ -148,7 +148,7 @@ export async function collectGatewayHealthFindings(
       return [
         warning(
           "Authenticated Gateway health inspection was intentionally skipped because an active credential uses an exec SecretRef.",
-          "Rerun `openclaw doctor --lint --only core/doctor/gateway-health --allow-exec` to permit configured secret execution.",
+          "Rerun `vasudev doctor --lint --only core/doctor/gateway-health --allow-exec` to permit configured secret execution.",
         ),
       ];
     }
@@ -175,7 +175,7 @@ export async function collectGatewayHealthFindings(
       return [
         warning(
           `Gateway health inspection could not be prepared: ${formatGatewayHealthDiagnostic(error)}`,
-          "Fix Gateway connection configuration, then rerun `openclaw doctor --lint --only core/doctor/gateway-health`.",
+          "Fix Gateway connection configuration, then rerun `vasudev doctor --lint --only core/doctor/gateway-health`.",
         ),
       ];
     }
@@ -196,7 +196,7 @@ export async function collectGatewayHealthFindings(
             fixHint:
               mode === "remote"
                 ? "Verify the remote Gateway URL, network path, TLS settings, and credentials."
-                : "Inspect the service with `openclaw gateway status --deep`, or run `openclaw doctor` for guided checks.",
+                : "Inspect the service with `vasudev gateway status --deep`, or run `vasudev doctor` for guided checks.",
           };
     return [warning(diagnostic.message, diagnostic.fixHint)];
   }
@@ -222,7 +222,7 @@ export async function collectGatewayDaemonFindings(
       message: `Gateway service status could not be determined: ${state.loadState.detail}`,
       path: state.command?.sourcePath,
       target: service.label,
-      fixHint: "Run `openclaw gateway status --deep`, restore service-manager access, and retry.",
+      fixHint: "Run `vasudev gateway status --deep`, restore service-manager access, and retry.",
     });
     return findings;
   }
@@ -233,7 +233,7 @@ export async function collectGatewayDaemonFindings(
       message: "Gateway service is not installed.",
       path: "gateway.mode",
       target: service.label,
-      fixHint: "Run `openclaw gateway install` to install the service.",
+      fixHint: "Run `vasudev gateway install` to install the service.",
     });
     return findings;
   }
@@ -257,7 +257,7 @@ export async function collectGatewayDaemonFindings(
                 ...(runtime.status === "unsupported"
                   ? [formatUnsupportedNodeVersionMessage(runtime.version)]
                   : []),
-                "Repair the Node runtime, then run `openclaw gateway install`.",
+                "Repair the Node runtime, then run `vasudev gateway install`.",
               ].join("\n"),
             }
           : {}),
@@ -271,7 +271,7 @@ export async function collectGatewayDaemonFindings(
       message: "Gateway service is installed but not loaded.",
       path: state.command?.sourcePath,
       target: service.label,
-      fixHint: "Start the installed service with `openclaw gateway start`.",
+      fixHint: "Start the installed service with `vasudev gateway start`.",
     });
   }
   const status = gatewayRuntimeStatus(state.runtime);
@@ -285,7 +285,7 @@ export async function collectGatewayDaemonFindings(
       path: state.command?.sourcePath,
       target: service.label,
       fixHint:
-        "Run `openclaw gateway status --deep` to inspect the service before choosing a recovery action.",
+        "Run `vasudev gateway status --deep` to inspect the service before choosing a recovery action.",
     });
   }
   if (state.runtime?.missingGuiSession) {

@@ -227,7 +227,7 @@ function widgetPresentationFailureText(
   }
   const nextStep =
     error.code === "no_eligible_node"
-      ? "Pair a canvas-capable device or open the OpenClaw app, then retry."
+      ? "Pair a canvas-capable device or open the Vasudev app, then retry."
       : "Retry the requested presentation destination when it is available.";
   return `${message} The widget is available inline here. ${nextStep}`;
 }
@@ -277,7 +277,7 @@ function assertPinnedWidgetDocumentSize(html: string): void {
   }
 }
 
-/** Creates a self-contained widget hosted by OpenClaw core. */
+/** Creates a self-contained widget hosted by Vasudev core. */
 export function createShowWidgetTool(options: ShowWidgetToolOptions = {}): AnyAgentTool {
   const gatewayCall = options.callGateway ?? callInProcessGatewayTool;
   const pinnedOnly = options.pinnedOnly === true;

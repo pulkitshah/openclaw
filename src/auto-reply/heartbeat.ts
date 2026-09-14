@@ -14,10 +14,10 @@ export const HEARTBEAT_RESPONSE_TOOL_INSTRUCTIONS =
   "Use heartbeat_respond to report the wake outcome. Set notify=false when nothing needs the user's attention. Set notify=true with notificationText only when the user should be interrupted.";
 export const HEARTBEAT_RESPONSE_TOOL_PROMPT = `${HEARTBEAT_CONTEXT_PROMPT} ${HEARTBEAT_RESPONSE_TOOL_INSTRUCTIONS}`;
 export const INTERNAL_WAKE_TRANSCRIPT_PROMPTS = {
-  heartbeat: "[OpenClaw heartbeat poll]",
-  exec: "[OpenClaw exec completion]",
-  cron: "[OpenClaw cron wake]",
-  event: "[OpenClaw session event]",
+  heartbeat: "[Vasudev heartbeat poll]",
+  exec: "[Vasudev exec completion]",
+  cron: "[Vasudev cron wake]",
+  event: "[Vasudev session event]",
 } as const;
 export const DEFAULT_HEARTBEAT_EVERY = "30m";
 export const DEFAULT_HEARTBEAT_ACK_MAX_CHARS = 300;

@@ -67,7 +67,7 @@ describe("status cache formatting", () => {
 
 describe("status config diagnostic formatting", () => {
   it.each([
-    ["default", undefined, undefined, "openclaw doctor --fix"],
+    ["default", undefined, undefined, "vasudev doctor --fix"],
     ["profile", "work", undefined, "openclaw --profile work doctor --fix"],
     ["container", undefined, "staging", "openclaw --container staging doctor --fix"],
     ["container over profile", "work", "staging", "openclaw --container staging doctor --fix"],

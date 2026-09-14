@@ -135,7 +135,7 @@ In Code Mode, the conversation tools reuse their exact Gateway output contracts.
 
 `sessions_send` runs another session on the same Gateway and optionally waits for the response. Its `sessionKey`, `label`, or `agentId` selects local model context, not an external destination. The resulting reply can still be announced through the established requester or target delivery context; that existing behavior is unchanged. For exact external delivery, use a conversation tool or `message` with an explicit channel and target.
 
-Sessions keep their addresses when execution moves between the Gateway, a paired device, and a cloud worker. An Vasudev worker can send to an authorized parent, child, or sibling using its exact session key, including a target running on the Gateway. The Gateway validates the current session identities and normal visibility policy before admitting the target turn; target placement does not grant messaging access. Targets outside the configured visibility scope, archived targets, and replaced targets remain denied.
+Sessions keep their addresses when execution moves between the Gateway, a paired device, and a cloud worker. A Vasudev worker can send to an authorized parent, child, or sibling using its exact session key, including a target running on the Gateway. The Gateway validates the current session identities and normal visibility policy before admitting the target turn; target placement does not grant messaging access. Targets outside the configured visibility scope, archived targets, and replaced targets remain denied.
 
 During healthy worker provisioning or workspace preparation, accepted input stays queued until the intended worker is ready. It starts once after Vasudev rechecks the session and placement. Cancellation, failed setup, or a replaced destination does not silently run that input locally or on another worker. Check the retained input and setup error before submitting another message.
 
@@ -193,7 +193,7 @@ See [Session state awareness](/concepts/session-state) for the full model: event
 
 ## Spawning sub-agents
 
-`sessions_spawn` creates a separate session for a background task. Non-thread spawns start with isolated context by default; thread-bound spawns follow the configured context policy described below. It returns a `runId` and `childSessionKey` when startup is accepted, without waiting for the child task to finish. Spawns from an Vasudev cloud worker can first wait for child provisioning and node enrollment. Native sub-agent runs receive their delegated task in a `[Subagent Task]` message appended after any forked history; inherited task envelopes are context, not the current child's assignment. The system prompt carries only sub-agent runtime rules and routing context.
+`sessions_spawn` creates a separate session for a background task. Non-thread spawns start with isolated context by default; thread-bound spawns follow the configured context policy described below. It returns a `runId` and `childSessionKey` when startup is accepted, without waiting for the child task to finish. Spawns from a Vasudev cloud worker can first wait for child provisioning and node enrollment. Native sub-agent runs receive their delegated task in a `[Subagent Task]` message appended after any forked history; inherited task envelopes are context, not the current child's assignment. The system prompt carries only sub-agent runtime rules and routing context.
 
 Key options:
 

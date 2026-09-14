@@ -488,8 +488,8 @@ describe("buildAgentSystemPrompt", () => {
         ...toolSurface,
       });
 
-      expect(prompt.includes("openclaw channels add <channel>")).toBe(terminalSetup);
-      expect(prompt.includes("openclaw configure")).toBe(terminalSetup);
+      expect(prompt.includes("vasudev channels add <channel>")).toBe(terminalSetup);
+      expect(prompt.includes("vasudev configure")).toBe(terminalSetup);
       expect(prompt).toContain(
         "deliver short-lived codes and verification URLs only to the requesting user in private",
       );
@@ -518,15 +518,15 @@ describe("buildAgentSystemPrompt", () => {
     expect(prompt).toContain("<final>...</final>");
   });
 
-  it("includes an OpenClaw control section", () => {
+  it("includes a Vasudev control section", () => {
     const prompt = buildAgentSystemPrompt({
       workspaceDir: "/tmp/openclaw",
       toolNames: ["gateway"],
     });
 
-    expect(prompt).toContain("## OpenClaw Control");
+    expect(prompt).toContain("## Vasudev Control");
     expect(prompt).toContain("Config read: `gateway`");
-    expect(prompt).not.toContain("openclaw gateway status|restart|start|stop");
+    expect(prompt).not.toContain("vasudev gateway status|restart|start|stop");
     expect(prompt).toContain("Do not invent commands");
   });
 
@@ -810,13 +810,13 @@ describe("buildAgentSystemPrompt", () => {
     expect(prompt).not.toContain("Brave API");
   });
 
-  it("keeps the OpenClaw empty-tool fallback capability-only", () => {
+  it("keeps the Vasudev empty-tool fallback capability-only", () => {
     const prompt = buildAgentSystemPrompt({
       workspaceDir: "/tmp/openclaw",
       toolNames: [],
     });
 
-    expect(prompt).toContain("active runtime provides the available OpenClaw tools directly");
+    expect(prompt).toContain("active runtime provides the available Vasudev tools directly");
     expect(prompt).not.toContain("sessions_spawn");
   });
 
@@ -1017,7 +1017,7 @@ describe("buildAgentSystemPrompt", () => {
     expect(prompt).toContain("Several: most specific");
     expect(prompt).toContain("Docs: /tmp/openclaw/docs");
     expect(prompt).toContain(
-      "OpenClaw behavior questions: docs first via `Read`/local search. AGENTS/project/workspace/profile/memory = instructions/user memory, not product design truth.",
+      "Vasudev behavior questions: docs first via `Read`/local search. AGENTS/project/workspace/profile/memory = instructions/user memory, not product design truth.",
     );
   });
 
@@ -1060,7 +1060,7 @@ describe("buildAgentSystemPrompt", () => {
     expect(prompt).toContain("Docs: /tmp/openclaw/docs");
     expect(prompt).toContain("Source: /tmp/openclaw");
     expect(prompt).toContain(
-      "OpenClaw behavior questions: docs first via `read`/local search. AGENTS/project/workspace/profile/memory = instructions/user memory, not product design truth.",
+      "Vasudev behavior questions: docs first via `read`/local search. AGENTS/project/workspace/profile/memory = instructions/user memory, not product design truth.",
     );
     expect(prompt).toContain("If docs are silent/stale, say so and inspect local source.");
   });
@@ -1077,7 +1077,7 @@ describe("buildAgentSystemPrompt", () => {
     const docsSection = prompt.slice(docsStart, nextSection);
 
     expect(prompt).toContain(
-      "OpenClaw behavior questions: docs first via `read`/local search. AGENTS/project/workspace/profile/memory = instructions/user memory, not product design truth.",
+      "Vasudev behavior questions: docs first via `read`/local search. AGENTS/project/workspace/profile/memory = instructions/user memory, not product design truth.",
     );
     expect(docsSection.length).toBeLessThan(840);
     expect(prompt).not.toContain("Self-knowledge rule: for questions about");
@@ -1093,7 +1093,7 @@ describe("buildAgentSystemPrompt", () => {
     expect(prompt).toContain("Docs: https://docs.openclaw.ai");
     expect(prompt).toContain("Source: https://github.com/openclaw/openclaw");
     expect(prompt).toContain(
-      "OpenClaw behavior questions: docs mirror first when web exists. AGENTS/project/workspace/profile/memory = instructions/user memory, not product design truth.",
+      "Vasudev behavior questions: docs mirror first when web exists. AGENTS/project/workspace/profile/memory = instructions/user memory, not product design truth.",
     );
     expect(prompt).toContain("If docs are silent/stale, say so and inspect GitHub source.");
   });
@@ -1282,7 +1282,7 @@ describe("buildAgentSystemPrompt", () => {
       expect(prompt).toContain("For the Gateway hosting this session:");
       expect(prompt).toContain("For a user-requested update on another host");
       expect(prompt).toContain("verify it is not this Gateway");
-      expect(prompt).toContain("exec/SSH with `openclaw update --yes`");
+      expect(prompt).toContain("exec/SSH with `vasudev update --yes`");
       expect(prompt).toContain("normal exec approvals still apply");
     },
   );
@@ -1300,10 +1300,10 @@ describe("buildAgentSystemPrompt", () => {
     expect(prompt).not.toContain("config.apply");
     expect(prompt).not.toContain("`config.schema.lookup|get|patch|apply`, `restart`");
     expect(prompt).toContain(
-      "Update OpenClaw: `gateway` action update.run, only on explicit user request; restart and completion notice are automatic.",
+      "Update Vasudev: `gateway` action update.run, only on explicit user request; restart and completion notice are automatic.",
     );
     expect(prompt).toContain(
-      "Never run openclaw update, npm install -g openclaw, or stop/restart the gateway service via exec.",
+      "Never run vasudev update, npm install -g openclaw, or stop/restart the gateway service via exec.",
     );
     expect(prompt).not.toContain("Use config.schema to");
     expect(prompt).not.toContain("config.schema, config.apply");
@@ -1324,7 +1324,7 @@ describe("buildAgentSystemPrompt", () => {
         "Gateway restart, config, channels, plugins, agents, models/providers: ask `openclaw`.",
       );
       expect(prompt).toContain(
-        "Never run openclaw update, npm install -g openclaw, or stop/restart the gateway service via exec.",
+        "Never run vasudev update, npm install -g openclaw, or stop/restart the gateway service via exec.",
       );
       expect(prompt).toContain("For a chat update request, direct the user to `/update`.");
       expect(prompt).not.toContain("System controls unavailable");
@@ -1345,7 +1345,7 @@ describe("buildAgentSystemPrompt", () => {
       expect(prompt).toContain("Outside chat, use the Control UI or ask the operator");
       expect(prompt).toContain("Missing chat ownership needs owner setup");
       expect(prompt).toContain(
-        "Never run openclaw update, npm install -g openclaw, or stop/restart the gateway service via exec.",
+        "Never run vasudev update, npm install -g openclaw, or stop/restart the gateway service via exec.",
       );
       expect(prompt).not.toContain("System controls unavailable");
       expect(prompt).not.toContain("update.run");
@@ -1360,7 +1360,7 @@ describe("buildAgentSystemPrompt", () => {
     expect(prompt).toContain(
       "Gateway restart, config, channels, plugins, agents, models/providers: ask `openclaw`.",
     );
-    expect(prompt).toContain("Update OpenClaw: `gateway` action update.run");
+    expect(prompt).toContain("Update Vasudev: `gateway` action update.run");
     expect(prompt).not.toContain("models/providers, updates: ask `openclaw`");
   });
 
@@ -1371,7 +1371,7 @@ describe("buildAgentSystemPrompt", () => {
     });
 
     expect(prompt).not.toContain("- openclaw:");
-    expect(prompt).not.toContain("exec/SSH with `openclaw update --yes`");
+    expect(prompt).not.toContain("exec/SSH with `vasudev update --yes`");
     expect(prompt).not.toContain("ask `openclaw`");
     expect(prompt).not.toContain("Gateway restart, config");
   });
@@ -1552,7 +1552,7 @@ describe("buildAgentSystemPrompt", () => {
     const heartbeatPrompts = [
       "Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.",
       "Follow the heartbeat monitor scratch context when provided. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.",
-      "Follow the heartbeat monitor scratch context when provided. Recurring tasks are cron jobs; create or change their schedules with cron tools or the openclaw cron CLI, not heartbeat scratch. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.",
+      "Follow the heartbeat monitor scratch context when provided. Recurring tasks are cron jobs; create or change their schedules with cron tools or the vasudev cron CLI, not heartbeat scratch. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.",
       "Follow the heartbeat monitor scratch context when provided. Recurring tasks are automations; create or change their schedules with the automations tool, not heartbeat scratch. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.",
     ];
 

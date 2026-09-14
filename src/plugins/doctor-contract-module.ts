@@ -136,7 +136,7 @@ export type PluginDoctorContractModule = {
   resolveSessionStoreAgentIds?: unknown;
   /**
    * @deprecated Declare static ownership in openclaw.plugin.json sessionRouteStateOwners.
-   * Removal plan: remove the module fallback in OpenClaw 2027.1 after external plugins migrate.
+   * Removal plan: remove the module fallback in Vasudev 2027.1 after external plugins migrate.
    */
   sessionRouteStateOwners?: unknown;
   stateMigrations?: unknown;

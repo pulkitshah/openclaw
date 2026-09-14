@@ -415,11 +415,11 @@ export async function ensureConfigReady(
         ? (await import("../../config/config-write-guard.js")).createConfigMutationError({
             configPath: snapshot.path,
           }).message
-        : commandText(formatCliCommand("openclaw doctor --fix"));
+        : commandText(formatCliCommand("vasudev doctor --fix"));
     params.runtime.error(`${muted("Fix:")} ${fixHint}`);
   }
   params.runtime.error(
-    `${muted("Inspect:")} ${commandText(formatCliCommand("openclaw config validate"))}`,
+    `${muted("Inspect:")} ${commandText(formatCliCommand("vasudev config validate"))}`,
   );
   params.runtime.error(
     muted(

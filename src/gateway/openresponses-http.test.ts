@@ -401,8 +401,8 @@ describe("OpenResponses HTTP API (e2e)", () => {
   it.each([
     [false, "SDK plain-text response", "SDK plain-text response"],
     [true, "SDK plain-text response", "SDK plain-text response"],
-    [false, "", "No response from OpenClaw."],
-    [true, "", "No response from OpenClaw."],
+    [false, "", "No response from Vasudev."],
+    [true, "", "No response from Vasudev."],
   ])(
     "returns visible official SDK response text (stream: %s, text: %s)",
     async (stream, text, expected) => {
@@ -3183,12 +3183,12 @@ describe("OpenResponses HTTP API (e2e)", () => {
       "final answer",
       "final answer",
     ],
-    ["an empty snapshot", { text: "", delta: "" }, "", "No response from OpenClaw."],
+    ["an empty snapshot", { text: "", delta: "" }, "", "No response from Vasudev."],
     [
       "an empty replacement snapshot",
       { text: "", delta: "", replace: true },
       "",
-      "No response from OpenClaw.",
+      "No response from Vasudev.",
     ],
     ["an empty delta without a snapshot", { delta: "" }, "", "coordination draft"],
   ])(

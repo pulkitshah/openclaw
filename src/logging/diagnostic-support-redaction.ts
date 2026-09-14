@@ -38,7 +38,7 @@ const EMAIL_RE = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/giu;
 const MATRIX_USER_ID_RE = /@[A-Za-z0-9._=-]+:[A-Za-z0-9.-]+/gu;
 const MATRIX_ROOM_ID_RE = /![A-Za-z0-9._=-]+:[A-Za-z0-9.-]+/gu;
 const MATRIX_EVENT_ID_RE = /\$[A-Za-z0-9_-]{16,}/gu;
-// Public OpenClaw package references must remain usable in repair commands.
+// Public Vasudev package references must remain usable in repair commands.
 const HANDLE_RE = /(^|[^\w:/])@(?!openclaw\/[a-z0-9])[A-Za-z0-9_]{5,}\b(?!\.)/gu;
 const LONG_DECIMAL_ID_RE = /\b\d{9,}\b/gu;
 const MAX_SUPPORT_STRING_LENGTH = 2000;

@@ -118,11 +118,11 @@ function formatRuntimeGatewayAuthTokenWarning(): string {
     return `${base} Set gateway.auth.token in your external config source and redeploy.`;
   }
   if (!isNixMode) {
-    return `${base} Persist one with \`openclaw config set gateway.auth.mode token\` and \`openclaw config set gateway.auth.token <token>\`.`;
+    return `${base} Persist one with \`vasudev config set gateway.auth.mode token\` and \`vasudev config set gateway.auth.token <token>\`.`;
   }
   return [
     base,
-    "In Nix mode, set gateway.auth.token in your Nix-managed OpenClaw config and rebuild.",
+    "In Nix mode, set gateway.auth.token in your Nix-managed Vasudev config and rebuild.",
     "For the first-party Nix flow, see https://github.com/openclaw/nix-openclaw#quick-start and https://docs.openclaw.ai/install/nix.",
   ].join(" ");
 }

@@ -629,8 +629,8 @@ export function formatPluginInstallConfigSetError(): string {
     "plugins.installs is managed by the plugin index and cannot be edited with config set.",
     "",
     "Use plugin commands instead:",
-    `  ${formatCliCommand("openclaw plugins install <spec>")}`,
-    `  ${formatCliCommand("openclaw plugins update <plugin-id>")}`,
-    `  ${formatCliCommand("openclaw plugins uninstall <plugin-id>")}`,
+    `  ${formatCliCommand("vasudev plugins install <spec>")}`,
+    `  ${formatCliCommand("vasudev plugins update <plugin-id>")}`,
+    `  ${formatCliCommand("vasudev plugins uninstall <plugin-id>")}`,
   ].join("\n");
 }

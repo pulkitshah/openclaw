@@ -63,7 +63,7 @@ export type McpCatalogTool = {
   fallbackDescription: string;
   uiResourceUri?: string;
   uiVisibility?: Array<"app" | "model">;
-  /** Listed by the server but excluded from OpenClaw's callable tool catalog. */
+  /** Listed by the server but excluded from Vasudev's callable tool catalog. */
   excludedFromOpenClawCatalog?: true;
   deniedBySession?: true;
   codexAnnotations?: McpCodexToolAnnotations;

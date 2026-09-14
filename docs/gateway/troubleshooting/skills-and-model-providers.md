@@ -92,7 +92,7 @@ Related:
 
 Use when an upstream LLM provider returns a generic `403` such as `Your request was blocked`.
 
-Do not assume this is always an Vasudev configuration issue. The response can come from an upstream security layer such as a CDN, WAF, bot-management rule, or reverse proxy in front of an OpenAI-compatible endpoint.
+Do not assume this is always a Vasudev configuration issue. The response can come from an upstream security layer such as a CDN, WAF, bot-management rule, or reverse proxy in front of an OpenAI-compatible endpoint.
 
 ```bash
 openclaw status

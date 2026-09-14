@@ -72,7 +72,7 @@ export async function updateCleanupCommand(options: {
     }
     if (report.status === "refused") {
       defaultRuntime.error(
-        "Nothing removed. Review with `openclaw update cleanup --dry-run`; use --yes to acknowledge permanent rollback loss.",
+        "Nothing removed. Review with `vasudev update cleanup --dry-run`; use --yes to acknowledge permanent rollback loss.",
       );
       defaultRuntime.exit(1);
     } else if (report.status === "blocked") {

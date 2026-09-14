@@ -280,7 +280,7 @@ const gatewayConfigCheck: HealthCheck = {
         message: "gateway.mode is unset; gateway start will be blocked.",
         path: "gateway.mode",
         fixHint:
-          "Run `openclaw configure` and set Gateway mode (local/remote), or `openclaw config set gateway.mode local`.",
+          "Run `vasudev configure` and set Gateway mode (local/remote), or `vasudev config set gateway.mode local`.",
       });
     }
     if (ctx.cfg.gateway?.mode !== "remote" && hasAmbiguousGatewayAuthModeConfig(ctx.cfg)) {
@@ -291,7 +291,7 @@ const gatewayConfigCheck: HealthCheck = {
           "gateway.auth.token and gateway.auth.password are both configured while gateway.auth.mode is unset; auth selection is ambiguous.",
         path: "gateway.auth.mode",
         fixHint:
-          "Set an explicit mode: `openclaw config set gateway.auth.mode token` or `... password`.",
+          "Set an explicit mode: `vasudev config set gateway.auth.mode token` or `... password`.",
       });
     }
     return findings;
@@ -315,7 +315,7 @@ const commandOwnerCheck: HealthCheck = {
           "No command owner is configured. Owner-only commands (/diagnostics, /export-trajectory, /config, exec approvals) have no allowed sender.",
         path: "commands.ownerAllowFrom",
         fixHint:
-          "Set commands.ownerAllowFrom to your channel user id, e.g. `openclaw config set commands.ownerAllowFrom '[\"telegram:123456789\"]'`.",
+          "Set commands.ownerAllowFrom to your channel user id, e.g. `vasudev config set commands.ownerAllowFrom '[\"telegram:123456789\"]'`.",
       },
     ];
   },
@@ -383,7 +383,7 @@ const skillWorkshopRelocationCheck: HealthCheck = {
       fixHints.push(
         ctx.mode === "doctor"
           ? "Review the remaining targets and migration warnings above. Resolve their ownership or recovery blockers before retrying Doctor; repeating the same repair alone will not resolve them."
-          : "Run `openclaw doctor --fix` to process eligible Workshop relocations and legacy collection backups.",
+          : "Run `vasudev doctor --fix` to process eligible Workshop relocations and legacy collection backups.",
       );
     }
     if (inspection.preservedLegacyBackupRootCount > 0) {
@@ -434,7 +434,7 @@ function buildGatewayTokenSecretRefUnavailableMessage(params: {
 
 function buildGatewayTokenSecretRefFixHint(ref: SecretRef): string {
   if (ref.source === "exec") {
-    return "Run `openclaw doctor --allow-exec` to verify exec SecretRefs during doctor, or `openclaw secrets audit --allow-exec` to audit all exec SecretRefs.";
+    return "Run `vasudev doctor --allow-exec` to verify exec SecretRefs during doctor, or `vasudev secrets audit --allow-exec` to audit all exec SecretRefs.";
   }
   return "Resolve or rotate the external secret source, then rerun doctor.";
 }
@@ -503,7 +503,7 @@ export async function detectGatewayAuthHealth(
         : "Gateway auth is off or missing a token.",
       path: "gateway.auth.token",
       fixHint:
-        "Run `openclaw doctor --fix --generate-gateway-token` to generate a token, then restart the Gateway.",
+        "Run `vasudev doctor --fix --generate-gateway-token` to generate a token, then restart the Gateway.",
     },
   ];
 }
@@ -605,14 +605,14 @@ const legacyStateCheck: HealthCheck & { readonly defaultEnabled: false } = {
         severity: "warning",
         message: line.replace(/^- /, ""),
         path: detected.stateDir,
-        fixHint: "Run `openclaw doctor --fix` to migrate legacy state.",
+        fixHint: "Run `vasudev doctor --fix` to migrate legacy state.",
       })),
       ...detected.warnings.map((warning): HealthFinding => ({
         checkId: "core/doctor/legacy-state",
         severity: "warning",
         message: warning,
         path: detected.stateDir,
-        fixHint: "Resolve the warning, then rerun `openclaw doctor --fix`.",
+        fixHint: "Resolve the warning, then rerun `vasudev doctor --fix`.",
       })),
     ];
   },
@@ -743,7 +743,7 @@ function createModelReferenceCheck(): HealthCheck {
           ? {
               message: `Configured model "${inspection.ref}" is a legacy reference. Doctor can migrate it to "${migrationTarget}".`,
               requirement: `canonical model reference "${migrationTarget}"`,
-              fixHint: `Run \`openclaw doctor --fix\` to migrate this model reference to "${migrationTarget}".`,
+              fixHint: `Run \`vasudev doctor --fix\` to migrate this model reference to "${migrationTarget}".`,
             }
           : undefined;
         if (inspection.status === "unknown-provider") {
@@ -1000,11 +1000,11 @@ const codexSessionRoutesCheck: HealthCheck = {
         fixHint: issue.repairBlocked
           ? [
               "Enable plugins.entries.codex and plugin loading, and remove codex from plugins.deny;",
-              "or set the affected OpenAI models to an Vasudev runtime policy.",
+              "or set the affected OpenAI models to a Vasudev runtime policy.",
             ].join(" ")
           : [
-              "Run `openclaw doctor --fix`: it enables plugins.entries.codex,",
-              "or set the affected OpenAI models to an Vasudev runtime policy.",
+              "Run `vasudev doctor --fix`: it enables plugins.entries.codex,",
+              "or set the affected OpenAI models to a Vasudev runtime policy.",
             ].join(" "),
       }),
     );
@@ -1038,7 +1038,7 @@ const telegramGeneralTopicConversationsCheck: HealthCheck = {
       message: `Agent ${repair.agentId} has a stale Telegram General-topic conversation identity.`,
       target: repair.agentId,
       requirement: "One canonical chat-scoped conversation binding for Telegram General topic.",
-      fixHint: "Run `openclaw doctor --fix` to merge the stale topic-qualified identity.",
+      fixHint: "Run `vasudev doctor --fix` to merge the stale topic-qualified identity.",
     }));
   },
   async repair(ctx) {
@@ -1256,7 +1256,7 @@ function unavailableSkillToFinding(skill: SkillStatusEntry): HealthFinding {
     message: `${skill.name} is allowed but unavailable: ${formatMissingSkillSummary(skill)}.`,
     path: skillReadinessPath(skill),
     fixHint:
-      "Install/configure the missing requirement, or run `openclaw doctor --fix` to disable unused unavailable skills.",
+      "Install/configure the missing requirement, or run `vasudev doctor --fix` to disable unused unavailable skills.",
   };
 }
 
@@ -1289,7 +1289,7 @@ function browserResidueFinding(residue: LegacyClawdBrowserProfileResidue): Healt
     path: residue.legacyProfileDir,
     ocPath: "oc://state/browser/clawd",
     fixHint:
-      "Run `openclaw doctor --fix` to archive the stale clawd profile safely instead of deleting it in place.",
+      "Run `vasudev doctor --fix` to archive the stale clawd profile safely instead of deleting it in place.",
   };
 }
 

@@ -720,7 +720,7 @@ describe("runSetupWizard", () => {
       agentId: "robby",
       bootstrapPending: true,
       createdAgent: true,
-      sessionMigrationWarnings: ["Run `openclaw doctor --fix` and retry setup."],
+      sessionMigrationWarnings: ["Run `vasudev doctor --fix` and retry setup."],
     }));
 
     await runWizard({ workspace: "/tmp/openclaw-workspace" }, createRuntime(), prompter);
@@ -739,7 +739,7 @@ describe("runSetupWizard", () => {
       }),
     );
     expect(prompter.note).toHaveBeenCalledWith(
-      "Run `openclaw doctor --fix` and retry setup.",
+      "Run `vasudev doctor --fix` and retry setup.",
       "Session history migration",
     );
   });

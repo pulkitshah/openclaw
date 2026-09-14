@@ -417,7 +417,7 @@ describe("update status abandoned-run reporting", () => {
 
       await updateStatusCommand({ json });
 
-      const guidance = `no activity since ${new Date(lastActivity).toISOString()}; if no update is running, run \`openclaw update repair\` or start a new \`openclaw update\``;
+      const guidance = `no activity since ${new Date(lastActivity).toISOString()}; if no update is running, run \`vasudev update repair\` or start a new \`vasudev update\``;
       expect(getUpdateRun(recorded.runId)).toEqual(recorded);
       if (json) {
         expect(runtime.writeJson).toHaveBeenCalledWith(

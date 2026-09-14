@@ -236,7 +236,7 @@ describe("Code Mode guest execution", () => {
       execTool: expectDefined(codeModeTools[0], "codeModeTools[0] test invariant"),
       waitTool: expectDefined(codeModeTools[1], "codeModeTools[1] test invariant"),
       code: `
-        const result = await web_search({ query: "OpenClaw" });
+        const result = await web_search({ query: "Vasudev" });
         const normalized = await llm_task({ prompt: "summarize" });
         return {
           result,
@@ -251,7 +251,7 @@ describe("Code Mode guest execution", () => {
     expect(details).toMatchObject({
       status: "completed",
       value: {
-        result: { name: "web_search", input: { query: "OpenClaw" } },
+        result: { name: "web_search", input: { query: "Vasudev" } },
         normalized: { name: "llm-task", input: { prompt: "summarize" } },
         tools: "undefined",
         allTools: "undefined",

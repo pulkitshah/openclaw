@@ -1,4 +1,4 @@
-// OpenClaw setup resolution tests cover terminal provider guidance.
+// Vasudev setup resolution tests cover terminal provider guidance.
 import { expectDefined } from "@openclaw/normalization-core";
 import { Compile } from "typebox/compile";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -521,7 +521,7 @@ describe("openclaw.setup provider resolution", () => {
       done: true,
       status: "error",
       error:
-        'Provider setup resolution failed for "ollama". Run `openclaw doctor --fix`, restart the Gateway, and try again.',
+        'Provider setup resolution failed for "ollama". Run `vasudev doctor --fix`, restart the Gateway, and try again.',
     });
     await whenAdmittedWizardSessionSettled(session);
     expect(authConfigMocks.writeProviderAuthConfig).not.toHaveBeenCalled();

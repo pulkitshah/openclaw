@@ -240,7 +240,7 @@ describe("doctor SQLite session transcript label migration", () => {
 
     expect(readTranscriptSnapshot(database, SESSION_ID).rows).toEqual(before.rows);
     expect(note).toHaveBeenCalledWith(
-      '- Found 1 session with legacy inbound-context labels.\n- Run "openclaw doctor --fix" to rewrite them.',
+      '- Found 1 session with legacy inbound-context labels.\n- Run "vasudev doctor --fix" to rewrite them.',
       "Session transcript labels",
     );
 
@@ -434,7 +434,7 @@ describe("doctor SQLite session transcript label migration", () => {
       await runTranscriptLabelHealth(state, false, cfg);
 
       expect(note).toHaveBeenCalledWith(
-        '- Found 1 session with legacy inbound-context labels.\n- Run "openclaw doctor --fix" to rewrite them.',
+        '- Found 1 session with legacy inbound-context labels.\n- Run "vasudev doctor --fix" to rewrite them.',
         "Session transcript labels",
       );
 
@@ -465,7 +465,7 @@ describe("doctor SQLite session transcript label migration", () => {
       "",
       // Fenced but NON-enumerated heading: the ```json fence does not prove provenance, so an
       // arbitrary user heading must NOT be marked (marking it would let the marker-only strippers
-      // hide the user's own JSON). Only the fixed OpenClaw labels in rule 1 are migrated.
+      // hide the user's own JSON). Only the fixed Vasudev labels in rule 1 are migrated.
       "Here is my own data:",
       "Notes (untrusted metadata):",
       "```json",

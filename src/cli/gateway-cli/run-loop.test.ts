@@ -2981,7 +2981,7 @@ describe("runGatewayLoop", () => {
       expect(gatewayLog.warn).toHaveBeenNthCalledWith(
         2,
         "An unauthorized SIGUSR1 restart signal was received and ignored. " +
-          "If a pending gateway restart needs to be applied, run `openclaw gateway restart` " +
+          "If a pending gateway restart needs to be applied, run `vasudev gateway restart` " +
           "or restart the gateway through your service manager.",
       );
     });

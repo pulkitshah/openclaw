@@ -2,7 +2,7 @@
 summary: "YOLO and guardian approval presets, and sandboxed native execution paths"
 read_when:
   - You are choosing between YOLO and guardian approval
-  - You are running Codex native execution inside an Vasudev sandbox
+  - You are running Codex native execution inside a Vasudev sandbox
   - You are placing Codex execution on a node or cloud worker
 title: "Codex approval and sandbox modes"
 sidebarTitle: "Approval and sandbox"
@@ -53,7 +53,7 @@ values are allowed. Individual policy fields override `mode`. The older
 `guardian_subagent` reviewer value is still accepted as a compatibility alias,
 but new configs should use `auto_review`.
 
-When an Vasudev sandbox is active, the local Codex app-server process still
+When a Vasudev sandbox is active, the local Codex app-server process still
 runs on the Gateway host. Vasudev therefore disables Codex native Code Mode,
 user MCP servers, and app-backed plugin execution for that turn instead of
 treating Codex host-side sandboxing as equivalent to the Vasudev sandbox

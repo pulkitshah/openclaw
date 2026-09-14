@@ -116,7 +116,7 @@ leave the capability unsupported.
 Audit evidence follows the same boundary. Vasudev can record registered plugin
 ownership and run admission, but it cannot claim an external native side effect
 from an ACP update or transcript. A side effect wholly inside that runtime is
-`unsupported` unless an adapter invokes an Vasudev-owned callback before the
+`unsupported` unless an adapter invokes a Vasudev-owned callback before the
 action. Do not reconstruct the callback from native tool status events.
 
 ### Delegated execution

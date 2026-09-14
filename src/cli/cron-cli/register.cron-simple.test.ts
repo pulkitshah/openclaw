@@ -274,7 +274,7 @@ describe("cron show pagination guard (regression for #83856)", () => {
     await expect(runCronShow("missing")).rejects.toThrow("exit 1");
     expect(defaultRuntime.error).toHaveBeenCalledWith(
       expect.stringContaining(
-        "Automation not found: missing. Run `openclaw cron list` to see recent automation ids.",
+        "Automation not found: missing. Run `vasudev cron list` to see recent automation ids.",
       ),
     );
   });
@@ -312,7 +312,7 @@ describe("cron disable hint", () => {
       patch: { enabled: params.command === "enable" },
     });
     if (params.expectedHint) {
-      expect(stderrWrite).toHaveBeenCalledWith(expect.stringContaining("openclaw cron list --all"));
+      expect(stderrWrite).toHaveBeenCalledWith(expect.stringContaining("vasudev cron list --all"));
     } else {
       expect(stderrWrite).not.toHaveBeenCalled();
     }

@@ -260,7 +260,7 @@ export function readWorkspaceStateSnapshotFromDatabase(params: {
     throw new Error(
       formatDoctorStateRepairFailure(
         `unsupported workspace setup version ${setupRow.version} in ${params.database.path} for ${identity.workspacePath}`,
-        "Use a compatible OpenClaw build that supports this workspace version; preserve the database unchanged.",
+        "Use a compatible Vasudev build that supports this workspace version; preserve the database unchanged.",
       ),
     );
   }

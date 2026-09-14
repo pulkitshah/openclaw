@@ -220,7 +220,7 @@ describe("status-overview-rows", () => {
 
   it.each(["default", "all"])("surfaces startup migration warnings in %s output", (mode) => {
     const params = createStatusCommandOverviewRowsParams();
-    params.summary.startupMigrationWarning = "Retained legacy state. Run openclaw doctor --fix.";
+    params.summary.startupMigrationWarning = "Retained legacy state. Run vasudev doctor --fix.";
     const rows =
       mode === "default"
         ? buildStatusCommandOverviewRows(params)
@@ -289,7 +289,7 @@ describe("status-overview-rows", () => {
     expect(findRowValue(rows, "Gateway self")).toBe("gateway app 1.2.3");
     expect(findRowValue(rows, "Update")).toContain("behind 2");
     expect(findRowValue(rows, "Update restart")).toBe("restart pending health verification");
-    expect(findRowValue(rows, "Security")).toBe("Run: openclaw security audit --deep");
+    expect(findRowValue(rows, "Security")).toBe("Run: vasudev security audit --deep");
     expect(findRowValue(rows, "Secret egress proxy")).toBe(
       "Check OpenSSL, then retry the request.",
     );
