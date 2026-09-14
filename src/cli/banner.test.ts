@@ -41,7 +41,7 @@ describe("formatCliBannerLine", () => {
       mode: "off",
     });
 
-    expect(line).toBe("🦞 Vasudev 2026.3.7 (abc1234)");
+    expect(line).toBe("◉ Vasudev 2026.3.7 (abc1234)");
   });
 
   it("uses the default tagline when explicitly requested", () => {
@@ -54,7 +54,7 @@ describe("formatCliBannerLine", () => {
       mode: "default",
     });
 
-    expect(line).toBe("🦞 Vasudev 2026.3.7 (abc1234) — All your chats, one Vasudev.");
+    expect(line).toBe("◉ Vasudev 2026.3.7 (abc1234) — All your chats, one Vasudev.");
   });
 
   it("drops decorative emoji for generic Linux terminals", () => {
@@ -104,51 +104,8 @@ describe("emitCliBanner", () => {
       richTty: false,
     });
 
-    expect(writeSpy).toHaveBeenCalledWith("\n🦞 Vasudev 2026.3.7 (abc1234)\n\n");
+    expect(writeSpy).toHaveBeenCalledWith("\n◉ Vasudev 2026.3.7 (abc1234)\n\n");
     expect(hasEmittedCliBanner()).toBe(true);
-  });
-
-  it("adds the ASCII lobster on lobster days for rich random-mode terminals", async () => {
-    const { emitCliBanner } = await importFreshBannerModule();
-    setStdoutIsTty(true);
-    const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-
-    emitCliBanner("2026.3.7", {
-      argv: ["node", "openclaw"],
-      commit: "abc1234",
-      env: { LANG: "en_US.UTF-8" },
-      isTty: true,
-      mode: "random",
-      now: () => new Date(2026, 1, 26),
-      platform: "darwin",
-      richTty: true,
-    });
-
-    const written = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
-    expect(written).toContain("( o.o )");
-  });
-
-  it.each([
-    { label: "plain terminals", mode: "random" as const, richTty: false },
-    { label: "pinned tagline modes", mode: "off" as const, richTty: true },
-  ])("keeps lobster day out of $label", async ({ mode, richTty }) => {
-    const { emitCliBanner } = await importFreshBannerModule();
-    setStdoutIsTty(true);
-    const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-
-    emitCliBanner("2026.3.7", {
-      argv: ["node", "openclaw"],
-      commit: "abc1234",
-      env: { LANG: "en_US.UTF-8" },
-      isTty: true,
-      mode,
-      now: () => new Date(2026, 1, 26),
-      platform: "darwin",
-      richTty,
-    });
-
-    const written = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
-    expect(written).not.toContain("( o.o )");
   });
 
   it("emits only once per module instance", async () => {

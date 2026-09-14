@@ -1,13 +1,6 @@
-import { expectDefined } from "@openclaw/normalization-core";
 import { html, nothing, type TemplateResult } from "lit";
 import type { ControlUiBuildInfo } from "../../build-info.ts";
 import { icons } from "../../components/icons.ts";
-import {
-  canonicalLobsterLook,
-  lobsterLookStyle,
-  renderLobsterSvg,
-} from "../../components/lobster-pet-look.ts";
-import { LOBSTER_PET_PALETTES } from "../../components/lobster-pet-palettes.ts";
 import {
   renderSettingsPage,
   renderSettingsRow,
@@ -15,6 +8,8 @@ import {
   renderSettingsValue,
 } from "../../components/settings-ui.ts";
 import "../../components/tooltip.ts";
+import "../../components/vasu-orb.ts";
+import "../../components/vasu-wordmark.ts";
 import { i18n, t } from "../../i18n/index.ts";
 import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "../../lib/external-link.ts";
 import { formatRelativeTimestamp } from "../../lib/format.ts";
@@ -152,25 +147,20 @@ function renderCommit(props: AboutProps) {
   `;
 }
 
-// The same canonical crimson Clawd as the chat welcome hero, rendered big.
-// The poke button replays the claw wave; ambient motion lives in about.css.
+// The brand lockup, rendered big: the orb above the wordmark. The poke button
+// replays the orb's breathe cycle; ambient motion lives in about.css.
 function renderHero(props: AboutProps) {
-  const palette =
-    LOBSTER_PET_PALETTES.find((entry) => entry.id === "crimson") ??
-    expectDefined(LOBSTER_PET_PALETTES[0], "about lobster palette");
-  const look = canonicalLobsterLook(palette);
   return html`
     <section class="about-hero">
       <button
         type="button"
         class="about-hero__clawd ${props.clawdWaving ? "about-hero__clawd--wave" : ""}"
-        style=${lobsterLookStyle(look)}
         aria-label=${t("aboutPage.waveHello")}
         @click=${props.onPokeClawd}
       >
-        ${renderLobsterSvg(look)}
+        <vasu-orb size="96"></vasu-orb>
       </button>
-      <h2 class="about-hero__name">${t("aboutPage.productName")}</h2>
+      <h2 class="about-hero__name"><vasu-wordmark size="lg"></vasu-wordmark></h2>
       <p class="about-hero__tagline">${t("aboutPage.tagline")}</p>
       ${
         props.buildInfo.version

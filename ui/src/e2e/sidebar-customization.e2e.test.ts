@@ -1027,13 +1027,13 @@ suite.define(() => {
         return target?.getAttribute("class") ?? "";
       });
       expect(startleClasses).toContain("lobster-pet--act-startle");
-      await captureUiProof(page, "08-lobster-invite-ledge-desktop.png");
+      await captureUiProof(page, "08-sidebar-invite-ledge-desktop.png");
 
       await page.setViewportSize({ height: 900, width: 900 });
       await visibleDrawerButton(page).click();
       await expect.poll(() => sidebar.isVisible()).toBe(true);
       await expectLobsterOnInviteLedge(sidebar);
-      await captureUiProof(page, "09-lobster-invite-ledge-drawer.png");
+      await captureUiProof(page, "09-sidebar-invite-ledge-drawer.png");
     } finally {
       await context.close();
     }

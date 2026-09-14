@@ -38,15 +38,15 @@ describe("renderAbout", () => {
     await i18n.setLocale("en");
   });
 
-  it("renders the hero with Clawd, identity, community links, and license", () => {
+  it("renders the hero with the brand lockup, identity, community links, and license", () => {
     const onPokeClawd = vi.fn();
     const container = document.createElement("div");
     render(renderAbout(createProps({ onPokeClawd })), container);
 
     const hero = container.querySelector(".about-hero");
-    expect(hero?.querySelector(".about-hero__name")?.textContent).toBe("Vasudev");
+    expect(hero?.querySelector(".about-hero__name vasu-wordmark")).not.toBeNull();
     expect(hero?.querySelector(".about-hero__version")?.textContent).toBe("v2026.7.10");
-    expect(hero?.querySelector(".about-hero__clawd svg")).not.toBeNull();
+    expect(hero?.querySelector(".about-hero__clawd vasu-orb")).not.toBeNull();
 
     const clawd = hero?.querySelector<HTMLButtonElement>(".about-hero__clawd");
     expect(clawd?.getAttribute("aria-label")).toBe("Wave hello to Clawd");

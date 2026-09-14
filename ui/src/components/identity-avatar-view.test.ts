@@ -36,7 +36,7 @@ afterEach(() => {
 });
 
 describe("shared identity avatar view", () => {
-  it.each(["/favicon.svg", "/control/assets/mascot.svg?v=build-1"])(
+  it.each(["/favicon.svg", "/control/assets/favicon.svg?v=build-1"])(
     "preserves the public image %s through reconnect without authenticated fetching",
     (url) => {
       setAvatarGatewayOrigin(globalThis.location.origin, ["avatar-token"], "/control");

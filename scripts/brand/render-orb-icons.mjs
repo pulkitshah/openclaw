@@ -16,6 +16,24 @@ import { writeIcoFromPngs } from "./make-ico.mjs";
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const masterPath = path.join(repoRoot, "assets/brand/orb.svg");
 const publicDir = path.join(repoRoot, "ui/public");
+const docsAssetsDir = path.join(repoRoot, "docs/assets");
+
+/** Vasudev light paper and ink, per the brand guide. */
+const PAPER_LIGHT = "#f7f7f9";
+const INK_LIGHT = "#14151a";
+const PAPER_DARK = "#0d0e12";
+const INK_DARK = "#f2f3f6";
+const SIGNATURE_GRADIENT =
+  "linear-gradient(95deg,#ffc24b 0%,#f97316 16%,#e0218a 38%,#8a2be2 58%,#3a6ff0 78%,#16c79a 100%)";
+
+/** The display face for the wordmark, in the guide's preference order. Khand is
+ * the standard; Space Grotesk is its documented fallback and the face this
+ * checkout self-hosts today. Both are embedded as data URIs so the render never
+ * reaches the network. */
+const DISPLAY_FACE_CANDIDATES = [
+  path.join(publicDir, "fonts/khand-600.woff2"),
+  path.join(publicDir, "fonts/space-grotesk-latin.woff2"),
+];
 
 /** Vasudev dark paper. iOS composites a transparent home-screen icon onto black,
  * so the touch icon gets the paper explicitly and the orb gets breathing room. */
@@ -33,6 +51,40 @@ const targets = [
   // ICO frames: rendered, packed, then dropped.
   { file: path.join(publicDir, "favicon-16.tmp.png"), size: 16, inset: 0, temporary: true },
   { file: path.join(publicDir, "favicon-48.tmp.png"), size: 48, inset: 0, temporary: true },
+];
+
+/** Docs hero and README banner: the orb with the wordmark on Vasudev paper.
+ * Pixel sizes match the lobster artwork these replaced, so every existing
+ * reference keeps its layout. */
+const compositions = [
+  {
+    file: path.join(docsAssetsDir, "openclaw-hero-light.png"),
+    width: 1192,
+    height: 423,
+    layout: "stack",
+    theme: "light",
+  },
+  {
+    file: path.join(docsAssetsDir, "openclaw-hero-dark.png"),
+    width: 1192,
+    height: 423,
+    layout: "stack",
+    theme: "dark",
+  },
+  {
+    file: path.join(docsAssetsDir, "openclaw-banner-light.png"),
+    width: 1280,
+    height: 358,
+    layout: "row",
+    theme: "light",
+  },
+  {
+    file: path.join(docsAssetsDir, "openclaw-banner-dark.png"),
+    width: 1280,
+    height: 358,
+    layout: "row",
+    theme: "dark",
+  },
 ];
 
 /** Playwright pins one Chromium revision per version; a checkout can carry a
@@ -83,6 +135,58 @@ function iconDocument(svg, { size, inset, paper }) {
   </style><div class="frame">${svg}</div>`;
 }
 
+/** Inline the first available display face so the composition renders the
+ * wordmark identically on every host, with no network fetch. */
+function displayFaceRule() {
+  const face = DISPLAY_FACE_CANDIDATES.find((candidate) => existsSync(candidate));
+  if (!face) {
+    throw new Error(
+      `No display face found for the wordmark. Looked for ${DISPLAY_FACE_CANDIDATES.join(", ")}.`,
+    );
+  }
+  const data = readFileSync(face).toString("base64");
+  return `@font-face { font-family: "Vasudev Display"; font-weight: 600; font-display: block;
+    src: url(data:font/woff2;base64,${data}) format("woff2"); }`;
+}
+
+function compositionDocument(svg, faceRule, { width, height, layout, theme }) {
+  const dark = theme === "dark";
+  const stacked = layout === "stack";
+  const orbSize = stacked ? 132 : 104;
+  const wordmarkSize = stacked ? 92 : 104;
+  return `<!doctype html><meta charset="utf-8"><style>
+    ${faceRule}
+    html, body { margin: 0; width: ${width}px; height: ${height}px; }
+    body { background: ${dark ? PAPER_DARK : PAPER_LIGHT}; }
+    .frame {
+      display: flex;
+      ${stacked ? "flex-direction: column;" : "flex-direction: row;"}
+      align-items: center;
+      justify-content: center;
+      gap: ${stacked ? 28 : 34}px;
+      width: ${width}px;
+      height: ${height}px;
+    }
+    svg { display: block; width: ${orbSize}px; height: ${orbSize}px; }
+    .wordmark {
+      font-family: "Vasudev Display", system-ui, sans-serif;
+      font-weight: 600;
+      font-size: ${wordmarkSize}px;
+      line-height: 1;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+    }
+    .wordmark__ink { color: ${dark ? INK_DARK : INK_LIGHT}; }
+    .wordmark__gradient {
+      background-image: ${SIGNATURE_GRADIENT};
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+  </style><div class="frame">${svg}<div class="wordmark"><span
+    class="wordmark__ink">Vasu</span><span class="wordmark__gradient">dev</span></div></div>`;
+}
+
 async function main() {
   const svg = readFileSync(masterPath, "utf8");
   const executablePath = resolveChromiumExecutable();
@@ -99,13 +203,31 @@ async function main() {
       await page.close();
       console.log(`rendered ${path.relative(repoRoot, target.file)} (${target.size}px)`);
     }
+
+    const faceRule = displayFaceRule();
+    for (const composition of compositions) {
+      const page = await browser.newPage({
+        viewport: { width: composition.width, height: composition.height },
+        deviceScaleFactor: 1,
+      });
+      await page.setContent(compositionDocument(svg, faceRule, composition), {
+        waitUntil: "load",
+      });
+      await page.evaluate(() => document.fonts.ready);
+      writeFileSync(composition.file, await page.screenshot({ type: "png" }));
+      await page.close();
+      console.log(
+        `rendered ${path.relative(repoRoot, composition.file)} (${composition.width}x${composition.height})`,
+      );
+    }
   } finally {
     await browser.close();
   }
 
-  const faviconSvg = path.join(publicDir, "favicon.svg");
-  writeFileSync(faviconSvg, svg);
-  console.log(`copied ${path.relative(repoRoot, faviconSvg)} from the orb master`);
+  for (const copy of [path.join(publicDir, "favicon.svg"), path.join(docsAssetsDir, "orb.svg")]) {
+    writeFileSync(copy, svg);
+    console.log(`copied ${path.relative(repoRoot, copy)} from the orb master`);
+  }
 
   const icoFrames = [
     path.join(publicDir, "favicon-16.tmp.png"),

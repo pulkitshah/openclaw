@@ -1,7 +1,6 @@
 // Control UI component renders the login gate.
 import { html, nothing, type TemplateResult } from "lit";
 import { property } from "lit/decorators.js";
-import { PRODUCT_NAME } from "../app/brand.ts";
 import { canReloadControlUiDocument } from "../app/document-reload-guard.ts";
 import { t } from "../i18n/index.ts";
 import "../lib/toast.ts";
@@ -20,6 +19,7 @@ import {
   resolveLoginFailureFeedback,
 } from "./login-gate-feedback.ts";
 import "./vasu-orb.ts";
+import "./vasu-wordmark.ts";
 
 registerLoginEnglish();
 
@@ -343,7 +343,7 @@ function renderLoginGate(props: LoginGateProps) {
       <div class="login-gate__card" data-mode=${feedback?.placement ?? "form"}>
         <header class="login-gate__brand">
           <vasu-orb class="login-gate__logo" size="27"></vasu-orb>
-          <span class="login-gate__brand-name">${PRODUCT_NAME}</span>
+          <vasu-wordmark class="login-gate__brand-name" size="lg"></vasu-wordmark>
         </header>
         ${body}
       </div>
