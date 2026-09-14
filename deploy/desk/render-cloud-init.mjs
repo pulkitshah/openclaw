@@ -136,12 +136,14 @@ function readPnpmPackageManager() {
 /** Renders `openclaw.json.tmpl` for one owner target and returns canonical (parsed + re-
  *  stringified) JSON text, so a malformed template — or a substitution that breaks JSON syntax —
  *  fails loudly here instead of shipping a Gateway that cannot parse its own config. */
-function renderOpenClawConfig(ownerTarget) {
+function renderOpenClawConfig(ownerTarget, hooksToken) {
   const template = readFileSync(join(SCRIPT_DIR, "openclaw.json.tmpl"), "utf8");
   // The placeholder sits inside a JSON string in the template; substitute the JSON-escaped form
   // of the value so a target containing a quote or backslash cannot break the surrounding config.
   const escapedOwnerTarget = JSON.stringify(ownerTarget).slice(1, -1);
-  const substituted = template.replaceAll("{{OWNER_TG_TARGET}}", escapedOwnerTarget);
+  const substituted = template
+    .replaceAll("{{OWNER_TG_TARGET}}", escapedOwnerTarget)
+    .replaceAll("{{HOOKS_TOKEN}}", JSON.stringify(hooksToken).slice(1, -1));
   if (ALL_CAPS_PLACEHOLDER_RE.test(substituted)) {
     const [placeholder] = substituted.match(ALL_CAPS_PLACEHOLDER_RE) ?? [];
     fail(`openclaw.json.tmpl still has an unresolved placeholder: ${placeholder}`);
@@ -157,7 +159,7 @@ function renderOpenClawConfig(ownerTarget) {
 
 function renderCloudInit(values) {
   const template = readFileSync(join(SCRIPT_DIR, "cloud-init.yaml.tmpl"), "utf8");
-  const configJson = renderOpenClawConfig(values.OWNER_TG_TARGET);
+  const configJson = renderOpenClawConfig(values.OWNER_TG_TARGET, values.HOOKS_TOKEN);
 
   const withIncludes = template
     .split("\n")
@@ -240,6 +242,9 @@ function main() {
     OWNER_TG_TARGET: values["owner-target"],
     TG_BOT_TOKEN: tgBotToken,
     GATEWAY_TOKEN: gatewayToken,
+    // hooks.enabled requires hooks.token (the Gmail push endpoint's bearer); minted per desk, it
+    // lives only inside the 0600 openclaw.json the service user owns.
+    HOOKS_TOKEN: randomBytes(32).toString("base64url"),
     PNPM_PACKAGE_MANAGER: readPnpmPackageManager(),
   });
 

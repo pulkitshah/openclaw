@@ -170,7 +170,7 @@ runcmd:
     curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors -o gogcli.tgz
     "https://github.com/openclaw/gogcli/releases/download/v0.40.0/gogcli_0.40.0_linux_$arch.tar.gz" &&
     echo "$sum  gogcli.tgz" | sha256sum -c - &&
-    tar -xzf gogcli.tgz gog && install -m 0755 gog /usr/local/bin/gog && rm -f gogcli.tgz gog &&
+    tar -xzf gogcli.tgz && install -m 0755 ./gog /usr/local/bin/gog && rm -f gogcli.tgz ./gog &&
     gog --version
 
   # Fork checkout - pinned to the roll ref the operator asked for.
