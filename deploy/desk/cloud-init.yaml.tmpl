@@ -80,18 +80,19 @@ write_files:
     content: |
       {{INCLUDE:chromium-policy.json}}
 
-  # Secrets: file-mode 0640, root:openclaw - readable only by root and the service user, never
+  # Secrets: file-mode 0600, owned by the service user - the Gateway's file secret provider refuses
+  # anything more open ("permissions are too open"); root can still read them. Never
   # inline in openclaw.json (SecretRef contract, docs/gateway/secrets/secretref-contract.md).
   - path: /etc/openclaw/secrets/telegram-bot-token
-    permissions: '0640'
-    owner: root:openclaw
+    permissions: '0600'
+    owner: openclaw:openclaw
     defer: true
     content: |
       {{TG_BOT_TOKEN}}
 
   - path: /etc/openclaw/secrets/gateway-token
-    permissions: '0640'
-    owner: root:openclaw
+    permissions: '0600'
+    owner: openclaw:openclaw
     defer: true
     content: |
       {{GATEWAY_TOKEN}}
