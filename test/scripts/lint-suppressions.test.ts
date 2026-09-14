@@ -276,8 +276,6 @@ describe("production lint suppressions", () => {
         "src/utils.ts|typescript/no-unnecessary-type-parameters|1",
         // The public runner preserves task and error-hook rejection values, including non-Errors.
         "src/utils/run-with-concurrency.ts|typescript/prefer-promise-reject-errors|1",
-        // oxlint misreads CanvasRenderingContext2D.fill(path) as Array.fill.
-        "ui/src/components/mascot-canvas.ts|unicorn/no-array-fill-with-reference-type|1",
       ]),
     );
   });
