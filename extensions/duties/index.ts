@@ -99,12 +99,11 @@ export default definePluginEntry({
     // so everything below that reads config — mail/render readiness, the render base url, delivery,
     // owner routing — reads it through here instead. Same shape other bundled plugins use
     // (extensions/discord/src/activities/register.ts:22, extensions/memory-lancedb/index.ts:165).
-    const currentConfig = (): OpenClawConfig =>
-      api.runtime.config?.current
-        ? // SAFETY: `config.current()` returns a DeepReadonly view of the very same OpenClawConfig
-          // shape `api.config` has; every consumer here only reads from it.
-          (api.runtime.config.current() as unknown as OpenClawConfig)
-        : api.config;
+    const currentConfig = (): OpenClawConfig => {
+      if (!api.runtime.config?.current) return api.config;
+      // SAFETY: `config.current()` returns a DeepReadonly view of the very same OpenClawConfig shape `api.config` already has, and every consumer here only reads from it.
+      return api.runtime.config.current() as unknown as OpenClawConfig;
+    };
     const store = DutyStore.open(api);
     const events = createDutiesEventService();
     api.registerService(events);
