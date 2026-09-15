@@ -756,6 +756,29 @@ describe("rewriteFileContent (test/fixture and cross-boundary exclusions)", () =
     expect(count).toBe(1);
   });
 
+  it("renames a wordmark that follows an escape sequence, and keeps shielded tokens shielded", () => {
+    // The script scans raw source text, so the character before the wordmark in
+    // `"\\n\\nOpenClaw ..."` is the `n` of the escape and a plain `\\b` finds no
+    // boundary. Production copy hidden that way stayed unmigrated and invisible
+    // to the guard; the protected-token rules have to follow the same widening
+    // or a shielded token in the same position would start being rewritten.
+    const content = [
+      String.raw`const note = "\n\nOpenClaw selected its Linux OOM-score wrapper";`,
+      String.raw`const article = "see\nan OpenClaw host";`,
+      String.raw`const trailer = "published\n\nOpenClaw-Publication: abc123\n";`,
+      String.raw`const internal = "Tool failed\nOpenClaw runtime context (internal): keep";`,
+    ].join("\n");
+    const { content: rewritten, count } = rewriteFileContent("src/agents/note.ts", content);
+
+    expect(rewritten).toContain(String.raw`"\n\nVasudev selected its Linux OOM-score wrapper"`);
+    expect(rewritten).toContain(String.raw`"see\na Vasudev host"`);
+    expect(rewritten).toContain(String.raw`"published\n\nOpenClaw-Publication: abc123\n"`);
+    expect(rewritten).toContain(
+      String.raw`"Tool failed\nOpenClaw runtime context (internal): keep"`,
+    );
+    expect(count).toBe(2);
+  });
+
   it("renames a node-update remediation expectation now that its producer formats the command", () => {
     // `NODE_RUNNER_UPDATE_REQUIRED_ISSUE` routes both shown commands through
     // `formatCliCommand`, so the assertions that read the payload back follow

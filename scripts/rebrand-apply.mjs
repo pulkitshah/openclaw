@@ -52,6 +52,29 @@ export const NEW_MASCOT_NAME = "Vasu";
 // moves with the rest of the prose. `.match()` and `.replace()` with a global
 // regex always scan from the start regardless of prior `lastIndex` state, so
 // these shared patterns are safe to reuse below.
+// This script scans raw source text, so an escape sequence inside a string
+// literal is two characters here and one character in the rendered string. In
+// `"\n\nOpenClaw selected its wrapper"` the character before the wordmark is
+// the `n` of the `\n` escape, which is a word character, so a leading `\b`
+// finds no boundary and the occurrence is invisible to both apply and check.
+// The rendered text does have a boundary there, so accept a preceding `\n`,
+// `\r` or `\t` escape as one. Applied to every rule whose pattern opens with
+// `\b` -- the protected-token rules included, because a shielded token that
+// follows an escape (`"...\n\nOpenClaw-Publication: <id>"`) has to keep its
+// shield or the widened name rule would rewrite it.
+const ESCAPE_AWARE_START = String.raw`(?:\b|(?<=\\[nrt]))`;
+
+/** Replaces a pattern's leading `\b` with a boundary an escape also satisfies. */
+function withEscapeAwareStart(pattern) {
+  const leadingWordBoundary = String.raw`\b`;
+  return pattern.source.startsWith(leadingWordBoundary)
+    ? new RegExp(
+        `${ESCAPE_AWARE_START}${pattern.source.slice(leadingWordBoundary.length)}`,
+        pattern.flags,
+      )
+    : pattern;
+}
+
 // "an OpenClaw" reads wrong once the name starts with a consonant, and a
 // mechanical rename would leave "an Vasudev" all over the product. The article
 // is fixed before the name itself is replaced, so the rule can still see which
@@ -59,12 +82,12 @@ export const NEW_MASCOT_NAME = "Vasu";
 const ARTICLE_RULES = [
   { pattern: /\ban (?=OpenClaw\b)/g, replacement: "a " },
   { pattern: /\bAn (?=OpenClaw\b)/g, replacement: "A " },
-];
+].map((rule) => Object.assign(rule, { pattern: withEscapeAwareStart(rule.pattern) }));
 
 export const NAME_RULES = [
   { name: "product-name", pattern: /\bOpenClaw\b/g, replacement: NEW_NAME },
   { name: "mascot-name", pattern: /\bClawd\b/g, replacement: NEW_MASCOT_NAME },
-];
+].map((rule) => Object.assign(rule, { pattern: withEscapeAwareStart(rule.pattern) }));
 
 // Top-level CLI commands, completed from the real registrations
 // (`core-command-descriptors.ts` + `subcli-descriptors.ts`) plus the bundled
@@ -351,7 +374,7 @@ const PROTECTED_TOKEN_RULES = [
     name: "persisted-context-header",
     pattern: /\bOpenClaw runtime context \(internal\):/g,
   },
-];
+].map((rule) => Object.assign(rule, { pattern: withEscapeAwareStart(rule.pattern) }));
 
 // Protected tokens that only apply inside one tree, where the same words mean
 // something different from the rest of the repo.
@@ -384,7 +407,7 @@ const TREE_SCOPED_PROTECTED_TOKEN_RULES = [
     pathPattern: /^src\/daemon\//,
     pattern: /\bopenclaw(?= (?:gateway|node)\b)/g,
   },
-];
+].map((rule) => Object.assign(rule, { pattern: withEscapeAwareStart(rule.pattern) }));
 
 function protectedTokenRulesFor(relativePath) {
   const scoped = TREE_SCOPED_PROTECTED_TOKEN_RULES.filter((rule) =>
