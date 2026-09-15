@@ -26,6 +26,7 @@
 ### Task 1: Theme tokens and type
 
 **Files:**
+
 - Modify: the token stylesheet(s) under `ui/src/styles/` that define the palette, radius, shadow and motion variables (find with `rg -n "--color|--radius|--shadow|--ease|--font" ui/src/styles | head`), light and dark blocks.
 - Create: `ui/public/fonts/khand-{400,500,600}.woff2`, `ui/public/fonts/space-mono-{400,700}.woff2` (Google Fonts, OFL; download the woff2 files; record the source URLs and licence file `ui/public/fonts/LICENSE-OFL.txt`).
 - Modify: the base/global stylesheet that declares fonts (add `@font-face` for Khand and Space Mono; body stays Inter/system).
@@ -43,6 +44,7 @@
 ### Task 2: Wordmark and marks
 
 **Files:**
+
 - Create: `ui/src/components/vasu-wordmark.ts` (+ test) — "Vasu" in ink, "dev" with the gradient via `background-clip: text`, Khand 600; sizes `sm|md|lg`; `aria-label="Vasudev"`.
 - Modify: login gate, sidebar header, About page to use `<vasu-wordmark>` beside `<vasu-orb>`.
 - Replace: About mascot, chat empty-state art, `identity-avatar` default (`mascot.svg`), invite-ledge art (`lobster-invite-ledge-*.png`), `ui/public/app-art/**` lobster files, `docs/assets/pixel-lobster.svg`, `docs/assets/openclaw-hero-*.png`, `docs/assets/openclaw-banner-*.png` → orb renders (extend `scripts/brand/render-orb-icons.mjs` with hero/banner compositions: orb + wordmark on paper `#f7f7f9`, sizes matching the replaced files).
@@ -60,6 +62,7 @@
 ### Task 3: Voice on product surfaces
 
 **Files:**
+
 - Modify: `ui/src/i18n/locales/en.ts` and the Duties/Board UI strings — status pills and banners use "Linked / Not linked / Needs a fix / Waiting on you / Runs alone / Ask me first"; sentence case; remove exclamation marks and emoji from product copy.
 - Test: `ui/src/i18n/locales/voice.test.ts` — forbidden phrases (`AI-powered`, `seamless`, `autonomous agentic`, `An error occurred`, `Pending user input required`) absent from `en.ts`; no `!` at the end of a UI string; no emoji code points in `en.ts` values (allowlist the identity emoji picker strings).
 
@@ -68,6 +71,7 @@
 ### Task 4: Remaining prose everywhere
 
 **Files:**
+
 - Modify: `scripts/rebrand-apply.mjs`, `scripts/check-brand.mjs`, `test/scripts/check-brand.test.ts` — allowlist becomes `src/**/*.ts(x)`, `extensions/**/src/**/*.ts(x)`, `ui/src/**/*.ts` (tests included in the guard, excluded from the apply), `packages/**/src/**`; add the exclusions from Global Constraints (wire tokens, installer labels, Windows task names, attributions) as tested rules; a `--only <glob>` flag for chunked runs.
 - Modify: `openclaw.mjs:435` and `src/entry.version-fast-path.ts:58` — the literal "Vasudev" (sanctioned exception) + `test/brand/version-fast-path.test.ts` asserting the literal equals `PRODUCT_NAME`.
 - Modify: `src/system-agent/inference-fallback.ts`, `src/gateway/server-methods/system-agent.ts` and siblings via the apply (user-facing inference messages).
