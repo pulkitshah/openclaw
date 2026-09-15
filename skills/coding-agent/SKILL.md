@@ -34,7 +34,7 @@ metadata:
 
 # Coding Agent
 
-Use for background feature builds, PR reviews, large refactors, and issue-to-PR loops. Do not use for simple edits, read-only lookup, ACP thread-bound work, or any run inside `~/.openclaw`, `$OPENCLAW_STATE_DIR`, or active OpenClaw state dirs.
+Use for background feature builds, PR reviews, large refactors, and issue-to-PR loops. Do not use for simple edits, read-only lookup, ACP thread-bound work, or any run inside `~/.openclaw`, `$OPENCLAW_STATE_DIR`, or active Vasudev state dirs.
 
 ## Hard rules
 
@@ -62,7 +62,7 @@ Before launching Codex, Claude Code, or OpenCode for work that modifies a Git-ba
 3. For trusted new work, run `git fetch --prune <canonical>` immediately before creating a new isolated worktree and branch from `<canonical>/<targetBaseBranch>`.
 4. For trusted new work, verify the worktree's initial `HEAD` equals the fetched target-base SHA. Record the canonical remote, canonical default branch, target base branch, base SHA, worktree path, and branch.
 5. For a trusted existing PR or shared branch, fetch the canonical target base and source branch immediately before creating an isolated worktree from the fetched source branch. Record that source ref and starting SHA, report its divergence from the refreshed target base, and do not automatically rebase, merge, reset, force-push, or otherwise rewrite shared history.
-6. Launch the worker in the isolated worktree, never the primary checkout. For OpenClaw, the primary checkout under `~/Projects/openclaw` remains forbidden.
+6. Launch the worker in the isolated worktree, never the primary checkout. For Vasudev, the primary checkout under `~/Projects/openclaw` remains forbidden.
 
 For tasks that modify a Git-backed project, append this block to the worker prompt with real values:
 
@@ -141,7 +141,7 @@ printf 'Codex worker home: %s\n' "$CODEX_WORKER_HOME"
 
 The login is an interactive foreground setup step, not a background worker.
 The launch command repeats the fixed, quoted home and removes ambient Codex and
-OpenAI auth overrides. Never export the worker home into the OpenClaw Gateway
+OpenAI auth overrides. Never export the worker home into the Vasudev Gateway
 environment.
 
 Codex:

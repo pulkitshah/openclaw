@@ -34,4 +34,4 @@ A control is complete only when its value is self-contained enough for the next 
 
 When the user is building a Slack app or explicitly requests raw Block Kit JSON, read [the adapted official Block Kit guide](references/official-block-kit.md) in full. For common message, modal, and App Home layouts, also read [the official patterns](references/official-common-patterns.md).
 
-Follow the adapted guide's live-documentation and `blocks.validate` workflow for native JSON. Do not pass native Slack blocks to OpenClaw's `presentation` field; the plugin owns that conversion.
+Follow the adapted guide's live-documentation and `blocks.validate` workflow for native JSON. Do not pass native Slack blocks to Vasudev's `presentation` field; the plugin owns that conversion.

@@ -16,7 +16,7 @@ access needs both:
 - the Gateway Control UI/WebSocket listener; and
 - the separate widget sandbox listener, normally the Gateway port plus one.
 
-When the browser reaches the Gateway host directly, OpenClaw can derive the
+When the browser reaches the Gateway host directly, Vasudev can derive the
 sandbox origin by substituting the sandbox port. A custom `mcp.apps.sandboxPort`
 changes that listener. The sandbox listener is shared by dashboard HTML frames
 and enabled MCP Apps, but it never serves the authenticated Control UI.
@@ -30,7 +30,7 @@ openclaw gateway --tailscale serve
 ```
 
 Serve keeps the Gateway on loopback and publishes the Control UI and WebSocket
-over HTTPS. With `gateway.auth.allowTailscale: true`, OpenClaw can accept a
+over HTTPS. With `gateway.auth.allowTailscale: true`, Vasudev can accept a
 verified Serve identity for Control UI authentication. The browser still needs
 device identity. Externally managed Serve routes are generic trusted-proxy
 ingress and do not inherit managed Serve authentication semantics.

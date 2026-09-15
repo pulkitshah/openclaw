@@ -16,8 +16,8 @@ Quick start
 - TypeScript: `node --inspect-brk --import tsx path/to/script.ts`
 - Existing PID: `kill -SIGUSR1 <pid>` then `node inspect -p <pid>`
 - Inspect target list: `curl -s http://127.0.0.1:9229/json/list | jq`
-- OpenClaw CLI path: `node --inspect-brk openclaw.mjs ...`
-- OpenClaw test path: `OPENCLAW_VITEST_MAX_WORKERS=1 node --inspect-brk scripts/run-vitest.mjs <file>`
+- Vasudev CLI path: `node --inspect-brk openclaw.mjs ...`
+- Vasudev test path: `OPENCLAW_VITEST_MAX_WORKERS=1 node --inspect-brk scripts/run-vitest.mjs <file>`
 
 Debugger REPL
 
@@ -27,7 +27,7 @@ Debugger REPL
 - Current scope: `repl`, then evaluate locals directly; `Ctrl+C` exits repl mode.
 - Exit safely: `cont` before quitting if the process should continue; otherwise `kill`.
 
-OpenClaw tips
+Vasudev tips
 
 - Prefer `127.0.0.1` inspector binds. Do not expose `--inspect=0.0.0.0` unless the network is isolated.
 - For Vitest, debug one file with one worker. Avoid worker pools while stepping.

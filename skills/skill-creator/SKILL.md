@@ -37,4 +37,4 @@ description: "Author or review AgentSkills: create, repair, validate, or restruc
 
 Required: `name`, `description`.
 
-OpenClaw also supports `metadata`, `homepage`, `license`, `allowed-tools`, `user-invocable`, `disable-model-invocation`, `command-dispatch`, `command-tool`, and `command-arg-mode`. Add optional fields only when they change runtime behavior or discovery.
+Vasudev also supports `metadata`, `homepage`, `license`, `allowed-tools`, `user-invocable`, `disable-model-invocation`, `command-dispatch`, `command-tool`, and `command-arg-mode`. Add optional fields only when they change runtime behavior or discovery.

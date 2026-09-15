@@ -289,7 +289,7 @@ async function renderLocal(template, texts, flags) {
       });
     } catch {
       // Keep this message free of package-install advice: agents follow it
-      // literally and can corrupt pnpm-managed OpenClaw installs (see #109405).
+      // literally and can corrupt pnpm-managed Vasudev installs (see #109405).
       throw new Error("PNG output needs Chromium or Chrome. Use --out meme.svg instead.");
     }
     try {

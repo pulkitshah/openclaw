@@ -1,6 +1,6 @@
 ---
 name: browser-automation
-description: Use when controlling web pages with the OpenClaw browser tool, especially multi-step flows, login checks, tab management, or recovery from stale refs/timeouts.
+description: Use when controlling web pages with the Vasudev browser tool, especially multi-step flows, login checks, tab management, or recovery from stale refs/timeouts.
 user-invocable: false
 ---
 

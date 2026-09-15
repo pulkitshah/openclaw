@@ -1,12 +1,12 @@
 ---
 name: control-ui
-description: "Operate and troubleshoot the OpenClaw Control UI: navigate connected clients, organize sessions, build session dashboards, and handle direct or Tailscale-hosted Gateways."
+description: "Operate and troubleshoot the Vasudev Control UI: navigate connected clients, organize sessions, build session dashboards, and handle direct or Tailscale-hosted Gateways."
 user-invocable: true
 ---
 
 # Control UI
 
-Use OpenClaw's typed UI tools for state and layout. Use browser automation only
+Use Vasudev's typed UI tools for state and layout. Use browser automation only
 to inspect or interact with rendered pixels.
 
 ## Mental model

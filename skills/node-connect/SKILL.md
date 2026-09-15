@@ -1,6 +1,6 @@
 ---
 name: node-connect
-description: "Diagnose OpenClaw Control UI browser and native Android, iOS, or macOS node connection failures across route, auth, pairing, QR/setup-code, and reconnect states."
+description: "Diagnose Vasudev Control UI browser and native Android, iOS, or macOS node connection failures across route, auth, pairing, QR/setup-code, and reconnect states."
 ---
 
 # Node Connect
@@ -9,7 +9,7 @@ Goal: fix one exact client against one exact Gateway, then prove that client's f
 
 ## 1. Lock the target
 
-Record the target environment/profile, OpenClaw binary, config/state root, Gateway URL/port, and service before changing anything.
+Record the target environment/profile, Vasudev binary, config/state root, Gateway URL/port, and service before changing anything.
 
 - Use the named deployment wrapper/profile for every config, log, service, device, and node command.
 - Never drift to a bare `openclaw`, proof environment, or similarly named deployment.
@@ -58,8 +58,8 @@ Interpret the first failed transition:
 Choose one topology: same machine, LAN, tailnet, or public reverse proxy. Do not mix them.
 
 - Browser Control UI needs HTTPS or localhost for browser device identity. A remote plain-HTTP Tailnet/LAN URL is not a valid substitute.
-- `gateway.tailscale.mode=off` means OpenClaw is not managing Serve/Funnel. It does not prove that Tailscale or an externally managed Serve route is absent.
-- When Tailscale is involved, inspect live state rather than inferring it from OpenClaw config:
+- `gateway.tailscale.mode=off` means Vasudev is not managing Serve/Funnel. It does not prove that Tailscale or an externally managed Serve route is absent.
+- When Tailscale is involved, inspect live state rather than inferring it from Vasudev config:
 
 ```bash
 tailscale status --json

@@ -5,7 +5,7 @@ description: "Search ClawHub for skills when a requested capability is not alrea
 
 # ClawHub
 
-Use `openclaw skills` to discover and manage skills for the current OpenClaw
+Use `openclaw skills` to discover and manage skills for the current Vasudev
 agent. Use the standalone `clawhub` CLI to uninstall installed ClawHub skills
 and for publishing, syncing, and publisher account workflows.
 
@@ -49,7 +49,7 @@ clawhub uninstall @owner/my-skill
 ```
 
 The CLI asks for confirmation before removing the skill and its lockfile entry.
-Use the original agent workspace for agent-specific skills or the OpenClaw
+Use the original agent workspace for agent-specific skills or the Vasudev
 state directory for skills installed with `--global`:
 
 ```bash

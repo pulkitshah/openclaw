@@ -10,7 +10,7 @@ Help the developer build a rich Block Kit layout. If `$0` is provided, it specif
 
 This skill walks through surface selection, layout planning, JSON generation, and validation. Block types, elements, and fields come from the live docs (see **Source of Truth** below) — discover them and read each component's schema there, never from memory.
 
-> **OpenClaw adaptation:** This copy keeps Slack's authoring guidance while using capabilities available in the current agent session. Native Block Kit JSON is developer output; ordinary Slack replies use OpenClaw's portable `presentation` field.
+> **Vasudev adaptation:** This copy keeps Slack's authoring guidance while using capabilities available in the current agent session. Native Block Kit JSON is developer output; ordinary Slack replies use Vasudev's portable `presentation` field.
 
 > **Common Block Kit mistakes (and why):** A few errors recur often enough to flag up front. Most others are caught by `blocks.validate` in Step 5, so lean on validation rather than memorizing rules.
 >
@@ -237,7 +237,7 @@ Present the validated payload, then help the developer put it to use.
 
 ### Send it
 
-Building the native payload is this skill's job. Return it for the developer's Slack app integration. Do not pass native Slack blocks to OpenClaw's `presentation` field; translate the result into the portable presentation schema when the user instead wants the current OpenClaw agent to post it.
+Building the native payload is this skill's job. Return it for the developer's Slack app integration. Do not pass native Slack blocks to Vasudev's `presentation` field; translate the result into the portable presentation schema when the user instead wants the current Vasudev agent to post it.
 
 ### Preview it
 
@@ -253,5 +253,5 @@ Ask whether the developer wants to add, modify, remove, or reorder blocks, or bu
 
 ## Notes
 
-- **Scope:** this skill owns building and validating native Block Kit payloads for a developer. OpenClaw conversation delivery uses portable `presentation` instead.
+- **Scope:** this skill owns building and validating native Block Kit payloads for a developer. Vasudev conversation delivery uses portable `presentation` instead.
 - **`blocks.validate` needs no auth** — it's a public method. Always validate before finalizing when the current session has an HTTP capability (Step 5).

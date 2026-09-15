@@ -18,7 +18,7 @@ Quick start
 
 Modes
 
-- `local` is default. It downloads template images from their source URL with a browser-like user agent, caches them under the user cache dir, embeds the image in an SVG, and writes SVG. If `--out` ends in `.png`, it renders through an isolated headless browser using OpenClaw's Playwright support. PNG output requires Playwright's Chromium or an installed Google Chrome; SVG output needs no browser.
+- `local` is default. It downloads template images from their source URL with a browser-like user agent, caches them under the user cache dir, embeds the image in an SVG, and writes SVG. If `--out` ends in `.png`, it renders through an isolated headless browser using Vasudev's Playwright support. PNG output requires Playwright's Chromium or an installed Google Chrome; SVG output needs no browser.
 - `imgflip` calls Imgflip `caption_image` and prints the hosted URL. It requires `IMGFLIP_USER` and `IMGFLIP_PASS` unless supplied via `--username` and `--password`.
 
 Commands
@@ -40,4 +40,4 @@ Hygiene
 - Do not ship template image files in the skill.
 - Do not use shared or hardcoded Imgflip credentials.
 - Keep Know Your Meme lookups out of the render hot path; use KYM links for explanation/provenance only.
-- If PNG output fails because the browser is unavailable, use `--out meme.svg` (or another `.svg` path). Do not `npm install` packages into the skill directory or the OpenClaw tree to enable PNG.
+- If PNG output fails because the browser is unavailable, use `--out meme.svg` (or another `.svg` path). Do not `npm install` packages into the skill directory or the Vasudev tree to enable PNG.

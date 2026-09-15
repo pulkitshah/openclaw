@@ -1,9 +1,9 @@
 ---
 name: healthcheck
-description: "Audit/harden OpenClaw hosts: SSH, firewall, updates, exposure, backups, disk encryption, gateway security."
+description: "Audit/harden Vasudev hosts: SSH, firewall, updates, exposure, backups, disk encryption, gateway security."
 ---
 
-# OpenClaw host healthcheck
+# Vasudev host healthcheck
 
 Goal: assess host risk, run read-only checks, then propose staged hardening without breaking access.
 
@@ -12,7 +12,7 @@ Goal: assess host risk, run read-only checks, then propose staged hardening with
 - Ask before state-changing actions.
 - Do not change SSH/firewall/remote access until access path is confirmed.
 - Prefer reversible steps and rollback notes.
-- Never claim OpenClaw manages OS firewall, SSH, or updates.
+- Never claim Vasudev manages OS firewall, SSH, or updates.
 - If identity/role unknown, recommend only.
 - User choices: numbered list.
 - Never print secrets.
@@ -23,7 +23,7 @@ Goal: assess host risk, run read-only checks, then propose staged hardening with
 - Privilege level.
 - Access path: local, SSH, RDP, tailnet.
 - Network exposure: public IP, reverse proxy, tunnel, LAN only.
-- OpenClaw gateway status, bind, auth.
+- Vasudev gateway status, bind, auth.
 - Backup status.
 - Disk encryption.
 - Automatic security updates.
