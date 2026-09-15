@@ -46,7 +46,6 @@ const IDENTITY_MENU_LINKS: ReadonlyArray<{
     icon: "messageSquare",
     label: () => t("agentChip.getHelp"),
   },
-  { href: "https://discord.gg/clawd", icon: "users", label: () => t("agentChip.discord") },
   {
     href: "https://docs.openclaw.ai/releases",
     icon: "scrollText",
