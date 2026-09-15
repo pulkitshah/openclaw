@@ -20,7 +20,9 @@ const DEFAULT_TIMEOUT_MS = 15 * 60 * 1000;
 const WAIT_POLL_TIMEOUT_MS = 60_000;
 
 async function sleep(ms: number): Promise<void> {
-  await new Promise<void>((resolve) => setTimeout(resolve, ms));
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 /**
@@ -48,7 +50,7 @@ function newQuestionRecordId(): string {
  * step with a raw schema error, so the owner was never asked at all. The answer map is keyed by the
  * id that was sent, so the same translation has to be used to read the answer back.
  */
-export function questionIdForStep(stepId: string): string {
+function questionIdForStep(stepId: string): string {
   const slug = stepId.toLowerCase().replaceAll(/[^a-z0-9_]/gu, "_");
   return /^[a-z]/u.test(slug) ? slug : `q_${slug}`;
 }
@@ -136,8 +138,12 @@ export function createAskAdapter(params: {
             ...(note ? { note } : {}),
           };
         }
-        if (state.status === "cancelled") return { status: "cancelled" };
-        if (state.status === "expired") return { status: "timeout" };
+        if (state.status === "cancelled") {
+          return { status: "cancelled" };
+        }
+        if (state.status === "expired") {
+          return { status: "timeout" };
+        }
         await sleep(params.pollMs ?? 500);
       }
       return { status: "timeout" };

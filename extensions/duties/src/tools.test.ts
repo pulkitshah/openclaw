@@ -32,7 +32,9 @@ function makeTools(params?: {
       const resolved = (typeof tool === "function" ? tool(params?.ctx ?? {}) : tool) as
         | (ExecutableTool & { name?: string })
         | null;
-      if (!resolved) return;
+      if (!resolved) {
+        return;
+      }
       tools.set(resolved.name ?? opts?.name ?? "", resolved);
     },
     runtime: {
@@ -59,11 +61,18 @@ describe("duty tools as gateway clients", () => {
   it("forwards each read and write to the method that owns it, with the narrowest scope", async () => {
     const { run, calls } = makeTools({
       respond: ({ method }) => {
-        if (method === "duties.list")
+        if (method === "duties.list") {
           return { duties: [{ id: "d1", name: "D", status: "building", summary: "s" }] };
-        if (method === "duties.get") return { duty: { id: "d1" }, runs: [] };
-        if (method === "duties.cred.has") return { stored: true };
-        if (method === "duties.template.list") return { templates: [{ id: "t1" }] };
+        }
+        if (method === "duties.get") {
+          return { duty: { id: "d1" }, runs: [] };
+        }
+        if (method === "duties.cred.has") {
+          return { stored: true };
+        }
+        if (method === "duties.template.list") {
+          return { templates: [{ id: "t1" }] };
+        }
         return { ok: true };
       },
     });
@@ -129,7 +138,9 @@ describe("duty tools as gateway clients", () => {
         messageChannel: "telegram",
       },
       respond: ({ method }) => {
-        if (method === "duties.run") return { runId: "r1", queued: false };
+        if (method === "duties.run") {
+          return { runId: "r1", queued: false };
+        }
         if (method === "duties.run.wait") {
           waits += 1;
           // Still going on the first poll, terminal on the second.
@@ -178,7 +189,9 @@ describe("duty tools as gateway clients", () => {
     const controller = new AbortController();
     const { run, calls } = makeTools({
       respond: ({ method }) => {
-        if (method === "duties.run") return { runId: "r1", queued: false };
+        if (method === "duties.run") {
+          return { runId: "r1", queued: false };
+        }
         if (method === "duties.run.wait") {
           // Never terminal: the run is parked, exactly as on a real owner question.
           controller.abort();
@@ -203,7 +216,7 @@ describe("duty tools as gateway clients", () => {
           method === "duties.run" ? { runId: "r1" } : { run: { id: "r1", status: "ok" } },
       });
       await run("duty_run", { id: "d1" });
-      return (calls[0]?.params as { origin: { kind: string } }).origin;
+      return (calls[0]?.params as { origin: { kind: string } } | undefined)?.origin;
     };
     expect(await origin({ agentId: "duties-mail", sessionKey: "hook:gmail:1" })).toMatchObject({
       kind: "mail",
@@ -214,7 +227,7 @@ describe("duty tools as gateway clients", () => {
 
   it("registers every declared tool", () => {
     const { tools } = makeTools();
-    expect([...tools.keys()].sort()).toEqual(
+    expect([...tools.keys()].toSorted()).toEqual(
       [
         "brand_get",
         "brand_set",
@@ -229,7 +242,7 @@ describe("duty tools as gateway clients", () => {
         "template_list",
         "template_preview",
         "template_set",
-      ].sort(),
+      ].toSorted(),
     );
   });
 });

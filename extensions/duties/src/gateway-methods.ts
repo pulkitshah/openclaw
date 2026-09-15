@@ -52,12 +52,16 @@ const MAX_RUN_FILE_BYTES = 4 * 1024 * 1024;
  */
 async function readCappedBase64(filePath: string): Promise<string> {
   const info = await stat(filePath).catch(() => undefined);
-  if (!info) throw new Error("that file is no longer stored");
+  if (!info) {
+    throw new Error("that file is no longer stored");
+  }
   if (info.size > MAX_RUN_FILE_BYTES) {
     throw new Error(`file too large to return (${info.size} bytes)`);
   }
   const bytes = await readFile(filePath).catch(() => undefined);
-  if (!bytes) throw new Error("that file is no longer stored");
+  if (!bytes) {
+    throw new Error("that file is no longer stored");
+  }
   return bytes.toString("base64");
 }
 
@@ -75,7 +79,7 @@ type EvidenceBlobs = {
   ): Promise<{ bytes: Uint8Array; metadata: { contentType: string } } | undefined>;
 };
 
-export function registerDutiesGatewayMethods(params: {
+export function registerDutiesGatewayMethods(deps: {
   api: OpenClawPluginApi;
   store: DutyStore;
   runs: Pick<RunManager, "start" | "cancel" | "waitFor" | "status" | "admit">;
@@ -101,9 +105,9 @@ export function registerDutiesGatewayMethods(params: {
   /** Test injection point for `duties.desk.status`; defaults to `desk.ts`'s file-backed reader. */
   deskHealth?: () => Promise<DeskHealth>;
 }): void {
-  const { api, store, runs, emit, creds, evidence, render, previewDir, notifyOwner } = params;
-  const currentConfig = (): OpenClawConfig => params.config?.() ?? api.config;
-  const readDesk = params.deskHealth ?? readDeskHealth;
+  const { api, store, runs, emit, creds, evidence, render, previewDir, notifyOwner } = deps;
+  const currentConfig = (): OpenClawConfig => deps.config?.() ?? api.config;
+  const readDesk = deps.deskHealth ?? readDeskHealth;
 
   // A committed write (save/delete/status) must still be reported as `ok: true` even if
   // best-effort event delivery fails after it; `createDutiesEventService`'s own `emit` never
@@ -138,15 +142,21 @@ export function registerDutiesGatewayMethods(params: {
     );
 
   const readId = (params: Record<string, unknown>): string => {
-    if (typeof params.id !== "string" || !params.id) throw new Error("id is required");
+    if (typeof params.id !== "string" || !params.id) {
+      throw new Error("id is required");
+    }
     return params.id;
   };
   const readRunId = (params: Record<string, unknown>): string => {
-    if (typeof params.runId !== "string" || !params.runId) throw new Error("runId is required");
+    if (typeof params.runId !== "string" || !params.runId) {
+      throw new Error("runId is required");
+    }
     return params.runId;
   };
   const readCredKey = (params: Record<string, unknown>): string => {
-    if (typeof params.key !== "string" || !params.key) throw new Error("key is required");
+    if (typeof params.key !== "string" || !params.key) {
+      throw new Error("key is required");
+    }
     return params.key;
   };
   /** Validates a caller-supplied run origin. The tools capture this from their trusted tool
@@ -156,8 +166,12 @@ export function registerDutiesGatewayMethods(params: {
   const readOrigin = (value: unknown): RunOrigin => {
     // A UI or CLI run records `kind: "manual"` rather than nothing, so `run.origin` is always
     // present and means what spec §3.5 says it means.
-    if (value === undefined || value === null) return { kind: "manual" };
-    if (!isRecord(value)) throw new Error("origin must be an object");
+    if (value === undefined || value === null) {
+      return { kind: "manual" };
+    }
+    if (!isRecord(value)) {
+      throw new Error("origin must be an object");
+    }
     const kind = value.kind;
     if (kind !== "chat" && kind !== "mail" && kind !== "manual") {
       throw new Error('origin.kind must be "chat", "mail" or "manual"');
@@ -175,7 +189,9 @@ export function registerDutiesGatewayMethods(params: {
 
   const requireDuty = async (dutyId: string) => {
     const duty = await store.getDuty(dutyId);
-    if (!duty) throw new Error(`no Duty "${dutyId}"`);
+    if (!duty) {
+      throw new Error(`no Duty "${dutyId}"`);
+    }
     return duty;
   };
 
@@ -248,9 +264,13 @@ export function registerDutiesGatewayMethods(params: {
       ? { ...params.duty, updatedAt: Date.now() }
       : params.duty;
     const result = validateDuty(candidate);
-    if (!result.ok) throw new Error(`invalid duty: ${result.errors.join("; ")}`);
+    if (!result.ok) {
+      throw new Error(`invalid duty: ${result.errors.join("; ")}`);
+    }
     const existing = await store.getDuty(result.duty.id);
-    if (await needsApproval(existing)) return parkChange(existing!, result.duty);
+    if (await needsApproval(existing)) {
+      return parkChange(existing!, result.duty);
+    }
     await store.saveDuty(result.duty);
     safeEmit("changed", { dutyId: result.duty.id });
     return { duty: result.duty };
@@ -286,7 +306,9 @@ export function registerDutiesGatewayMethods(params: {
       updatedAt: Date.now(),
       ...(existing?.lastRunAt !== undefined ? { lastRunAt: existing.lastRunAt } : {}),
     };
-    if (await needsApproval(existing)) return parkChange(existing!, draft);
+    if (await needsApproval(existing)) {
+      return parkChange(existing!, draft);
+    }
     await store.saveDuty(draft);
     safeEmit("changed", { dutyId: id });
     return { ok: true, duty: draft };
@@ -297,12 +319,18 @@ export function registerDutiesGatewayMethods(params: {
   register("duties.steps", "operator.write", async (params) => {
     const id = readId(params);
     const existing = await store.getDuty(id);
-    if (!existing) throw new Error(`no Duty "${id}"`);
+    if (!existing) {
+      throw new Error(`no Duty "${id}"`);
+    }
     // SAFETY: authored duty config passed straight to validateDuty, which structurally checks every node; an invalid shape is reported in `errors`.
     const steps = (params.steps as DutyNode[] | undefined) ?? [];
     const result = validateDuty({ ...existing, steps, updatedAt: Date.now() });
-    if (!result.ok) return { ok: false, errors: result.errors };
-    if (await needsApproval(existing)) return parkChange(existing, result.duty);
+    if (!result.ok) {
+      return { ok: false, errors: result.errors };
+    }
+    if (await needsApproval(existing)) {
+      return parkChange(existing, result.duty);
+    }
     await store.saveDuty(result.duty);
     safeEmit("changed", { dutyId: id });
     return { ok: true, duty: result.duty };
@@ -323,7 +351,9 @@ export function registerDutiesGatewayMethods(params: {
   register("duties.change.apply", "operator.admin", async (params) => {
     const duty = await requireDuty(readId(params));
     const change = duty.pendingChange;
-    if (!change) throw new Error("no change is waiting on that Duty");
+    if (!change) {
+      throw new Error("no change is waiting on that Duty");
+    }
     if (typeof params.changeId === "string" && params.changeId !== change.id) {
       throw new Error("that change has been superseded by a newer one");
     }
@@ -342,7 +372,9 @@ export function registerDutiesGatewayMethods(params: {
   /** Drops the waiting change; the live Duty is untouched. */
   register("duties.change.discard", "operator.admin", async (params) => {
     const duty = await requireDuty(readId(params));
-    if (!duty.pendingChange) return { ok: false };
+    if (!duty.pendingChange) {
+      return { ok: false };
+    }
     if (typeof params.changeId === "string" && params.changeId !== duty.pendingChange.id) {
       throw new Error("that change has been superseded by a newer one");
     }
@@ -355,7 +387,9 @@ export function registerDutiesGatewayMethods(params: {
   register("duties.delete", "operator.admin", async (params) => {
     const dutyId = readId(params);
     const deleted = await store.deleteDuty(dutyId);
-    if (deleted) safeEmit("changed", { dutyId });
+    if (deleted) {
+      safeEmit("changed", { dutyId });
+    }
     return { ok: deleted };
   });
 
@@ -366,7 +400,9 @@ export function registerDutiesGatewayMethods(params: {
     if (typeof status !== "string" || !DUTY_STATUSES.includes(status as DutyStatus)) {
       throw new Error("status must be active or paused");
     }
-    if (status === "building") throw new Error("status must be active or paused");
+    if (status === "building") {
+      throw new Error("status must be active or paused");
+    }
     // SAFETY: status was checked above against DUTY_STATUSES with "building" excluded, so it can only be "active" or "paused" here.
     const next = { ...duty, status: status as DutyStatus, updatedAt: Date.now() };
     await store.saveDuty(next);
@@ -381,7 +417,9 @@ export function registerDutiesGatewayMethods(params: {
     // as an unresolved placeholder, so the run is refused before it is even created. The tool used
     // to do this before starting a run; now that every caller comes through here, the check does.
     const errors = validateRunInputs(duty, inputs);
-    if (errors.length) return { ok: false, errors };
+    if (errors.length) {
+      return { ok: false, errors };
+    }
     const origin = readOrigin(params.origin);
     if (origin.kind === "mail") {
       await store.updateSettings({
@@ -412,13 +450,17 @@ export function registerDutiesGatewayMethods(params: {
     }
     const budget = Math.max(0, Math.min(MAX_RUN_WAIT_MS, requested ?? DEFAULT_RUN_WAIT_MS));
     const run = await runs.waitFor(runId, budget);
-    if (!run) throw new Error("no such run");
+    if (!run) {
+      throw new Error("no such run");
+    }
     return { run };
   });
 
   register("duties.run.get", "operator.read", async (params) => {
     const run = await store.getRun(readRunId(params));
-    if (!run) throw new Error("no such run");
+    if (!run) {
+      throw new Error("no such run");
+    }
     return { run };
   });
 
@@ -428,13 +470,21 @@ export function registerDutiesGatewayMethods(params: {
 
   register("duties.run.evidence", "operator.read", async (params) => {
     const runId = readRunId(params);
-    if (typeof params.stepId !== "string" || !params.stepId) throw new Error("stepId is required");
+    if (typeof params.stepId !== "string" || !params.stepId) {
+      throw new Error("stepId is required");
+    }
     const run = await store.getRun(runId);
-    if (!run) throw new Error("no such run");
+    if (!run) {
+      throw new Error("no such run");
+    }
     const blobId = run.steps.find((step) => step.stepId === params.stepId)?.screenshotBlobId;
-    if (!blobId) throw new Error("no screenshot for that step");
+    if (!blobId) {
+      throw new Error("no screenshot for that step");
+    }
     const entry = await evidence().lookup(blobId);
-    if (!entry) throw new Error("that screenshot is no longer stored");
+    if (!entry) {
+      throw new Error("that screenshot is no longer stored");
+    }
     return {
       contentType: entry.metadata.contentType,
       base64: Buffer.from(entry.bytes).toString("base64"),
@@ -470,18 +520,26 @@ export function registerDutiesGatewayMethods(params: {
 
   register("duties.run.file", "operator.read", async (params) => {
     const runId = readRunId(params);
-    if (typeof params.stepId !== "string" || !params.stepId) throw new Error("stepId is required");
+    if (typeof params.stepId !== "string" || !params.stepId) {
+      throw new Error("stepId is required");
+    }
     if (params.kind !== undefined && params.kind !== "document" && params.kind !== "preview") {
       throw new Error('kind must be "document" or "preview"');
     }
     const run = await store.getRun(runId);
-    if (!run) throw new Error("no such run");
+    if (!run) {
+      throw new Error("no such run");
+    }
     // Only a path this run itself recorded is ever read: the caller never names a path, so this
     // method cannot be turned into an arbitrary file read.
     const file = (run.files ?? []).find((f) => f.stepId === params.stepId);
-    if (!file) throw new Error("no document for that step");
+    if (!file) {
+      throw new Error("no document for that step");
+    }
     if (params.kind === "preview") {
-      if (!file.previewPath) throw new Error("no preview image for that step");
+      if (!file.previewPath) {
+        throw new Error("no preview image for that step");
+      }
       const preview = await readCappedBase64(file.previewPath);
       return {
         name: basename(file.previewPath),
@@ -503,21 +561,29 @@ export function registerDutiesGatewayMethods(params: {
   register("duties.template.get", "operator.read", async (params) => {
     const id = readId(params);
     const template = await store.getTemplate(id);
-    if (!template) throw new Error(`no template "${id}"`);
+    if (!template) {
+      throw new Error(`no template "${id}"`);
+    }
     return { template };
   });
 
   register("duties.template.delete", "operator.admin", async (params) => {
     const id = readId(params);
     const deleted = await store.deleteTemplate(id);
-    if (deleted) safeEmit("changed", { templateId: id });
+    if (deleted) {
+      safeEmit("changed", { templateId: id });
+    }
     return { ok: deleted };
   });
 
   register("duties.template.set", "operator.write", async (params) => {
-    if (!isRecord(params.template)) throw new Error("template is required");
+    if (!isRecord(params.template)) {
+      throw new Error("template is required");
+    }
     const result = validateTemplate({ ...params.template, updatedAt: Date.now() });
-    if (!result.ok) return { ok: false, errors: result.errors };
+    if (!result.ok) {
+      return { ok: false, errors: result.errors };
+    }
     await store.saveTemplate(result.template);
     safeEmit("changed", { templateId: result.template.id });
     return { ok: true, template: result.template };
@@ -579,7 +645,9 @@ export function registerDutiesGatewayMethods(params: {
       ? { ...params.brand, updatedAt: Date.now() }
       : params.brand;
     const result = validateBrand(candidate);
-    if (!result.ok) throw new Error(`invalid brand: ${result.errors.join("; ")}`);
+    if (!result.ok) {
+      throw new Error(`invalid brand: ${result.errors.join("; ")}`);
+    }
     await store.saveBrand(result.brand);
     safeEmit("changed", { brand: true });
     return { brand: result.brand };
@@ -610,23 +678,34 @@ export function registerDutiesGatewayMethods(params: {
     }
     const patch: Parameters<typeof store.updateSettings>[0] = {};
     if (owner !== undefined) {
-      if (!isRecord(owner)) throw new Error("owner is required");
+      if (!isRecord(owner)) {
+        throw new Error("owner is required");
+      }
       const channel = owner.channel;
       const target = owner.target;
-      if (typeof channel !== "string" || !channel.trim())
+      if (typeof channel !== "string" || !channel.trim()) {
         throw new Error("owner.channel is required");
-      if (typeof target !== "string" || !target.trim()) throw new Error("owner.target is required");
+      }
+      if (typeof target !== "string" || !target.trim()) {
+        throw new Error("owner.target is required");
+      }
       patch.owner = { channel: channel.trim(), target: target.trim() };
     }
-    if (approval !== undefined) patch.requireApprovalForEdits = approval;
-    if (maxParallelRuns !== undefined) patch.maxParallelRuns = maxParallelRuns;
+    if (approval !== undefined) {
+      patch.requireApprovalForEdits = approval;
+    }
+    if (maxParallelRuns !== undefined) {
+      patch.maxParallelRuns = maxParallelRuns;
+    }
     const settings = await store.updateSettings(patch);
     safeEmit("changed", { settings: true });
     // One owner of admission: rather than a second queue-draining path here, tell the RunManager
     // to re-evaluate right now. A lowered limit is a no-op (admitQueue never evicts an active
     // run); a raised limit starts an already-queued run immediately instead of leaving it to wait
     // for the next unrelated start()/finish().
-    if (maxParallelRuns !== undefined) runs.admit();
+    if (maxParallelRuns !== undefined) {
+      runs.admit();
+    }
     return { settings };
   });
 

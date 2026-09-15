@@ -37,7 +37,11 @@ export function createRenderServer(params: {
   const pending = new Map<string, { html: string; expiresAt: number }>();
   const sweep = () => {
     const t = now();
-    for (const [token, entry] of pending) if (entry.expiresAt <= t) pending.delete(token);
+    for (const [token, entry] of pending) {
+      if (entry.expiresAt <= t) {
+        pending.delete(token);
+      }
+    }
   };
   return {
     path: RENDER_ROUTE_PATH,
@@ -49,7 +53,9 @@ export function createRenderServer(params: {
     },
     handler(req, res) {
       const url = req.url ?? "";
-      if (!url.startsWith(RENDER_ROUTE_PATH)) return false;
+      if (!url.startsWith(RENDER_ROUTE_PATH)) {
+        return false;
+      }
       sweep();
       const token = url.slice(RENDER_ROUTE_PATH.length).split("?")[0] ?? "";
       const entry = pending.get(token);
@@ -72,7 +78,7 @@ export function createRenderServer(params: {
   };
 }
 
-export type RenderResult = {
+type RenderResult = {
   bytes: number;
   /** Where the captured preview image of the printed page landed, when one could be taken.
    *  Absent is normal (a profile with no screenshot route); it never fails the render. Its
@@ -186,7 +192,9 @@ export function createRenderAdapter(params: {
 
       async function copyPreview(tab: string): Promise<string | undefined> {
         const shot = await browser.screenshotPath(tab);
-        if (!shot) return undefined;
+        if (!shot) {
+          return undefined;
+        }
         // Named after what the capture actually is (`previewContentType`), not assumed PNG: the
         // browser adapter's screenshot route can hand back a JPEG-normalised capture.
         const shotExt = previewContentType(shot) === "image/jpeg" ? ".jpg" : ".png";

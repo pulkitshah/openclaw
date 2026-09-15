@@ -22,6 +22,7 @@ const base = {
       kind: "when",
       label: "If signed out, sign in",
       cond: { visible: { role: "textbox", name: "User Name" } },
+      // oxlint-disable-next-line unicorn/no-thenable -- the Duty when/then/else branch, not a Promise thenable.
       then: [
         {
           id: "s2",
@@ -96,6 +97,7 @@ describe("validateDuty", () => {
   it("rejects when with invalid cond (empty visible target)", () => {
     const bad = {
       ...base,
+      // oxlint-disable-next-line unicorn/no-thenable -- the Duty when/then/else branch, not a Promise thenable.
       steps: [{ kind: "when", label: "Bad cond", cond: { visible: {} }, then: [] }],
     };
     const result = validateDuty(bad);
@@ -196,6 +198,7 @@ describe("validateDuty", () => {
           kind: "when",
           label: "Already on the dashboard",
           cond: { url_matches: "/Home/Dashboard" },
+          // oxlint-disable-next-line unicorn/no-thenable -- the Duty when/then/else branch, not a Promise thenable.
           then: [],
         },
       ],
@@ -204,6 +207,7 @@ describe("validateDuty", () => {
 
     const bad = {
       ...base,
+      // oxlint-disable-next-line unicorn/no-thenable -- the Duty when/then/else branch, not a Promise thenable.
       steps: [{ kind: "when", label: "Typo cond", cond: { url_match: "/x" }, then: [] }],
     };
     const result = validateDuty(bad);
@@ -333,6 +337,7 @@ describe("validateDuty", () => {
             kind: "when",
             label: "Token already set",
             cond: { text_matches: "{{cred:acme-demo.token}}" },
+            // oxlint-disable-next-line unicorn/no-thenable -- the Duty when/then/else branch, not a Promise thenable.
             then: [],
           },
         ],
@@ -354,6 +359,7 @@ describe("validateDuty", () => {
           kind: "when",
           label: "Outer when",
           cond: { visible: { css: ".outer" } },
+          // oxlint-disable-next-line unicorn/no-thenable -- the Duty when/then/else branch, not a Promise thenable.
           then: [{ id: "s1", kind: "browser", label: "In then", params: {} }],
           else: [{ id: "s2", kind: "browser", label: "In else", params: {} }],
         },
@@ -369,6 +375,7 @@ describe("validateDuty", () => {
           kind: "when",
           label: "Outer when",
           cond: { visible: { css: ".outer" } },
+          // oxlint-disable-next-line unicorn/no-thenable -- the Duty when/then/else branch, not a Promise thenable.
           then: [{ id: "dup", kind: "browser", label: "In then", params: {} }],
           else: [{ id: "dup", kind: "browser", label: "In else", params: {} }],
         },
@@ -420,7 +427,7 @@ describe("resolvePlaceholders", () => {
 });
 
 describe("Part 2 model", () => {
-  const base = () => ({
+  const baseDuty = () => ({
     id: "t",
     name: "T",
     summary: "",
@@ -435,21 +442,23 @@ describe("Part 2 model", () => {
 
   it("accepts mail and chat triggers with a match and rejects them without one", () => {
     const ok = validateDuty({
-      ...base(),
+      ...baseDuty(),
       triggers: [
         { kind: "mail", match: "travel requests" },
         { kind: "chat", match: "a forwarded request" },
       ],
     });
     expect(ok.ok).toBe(true);
-    const bad = validateDuty({ ...base(), triggers: [{ kind: "mail" }] });
+    const bad = validateDuty({ ...baseDuty(), triggers: [{ kind: "mail" }] });
     expect(bad.ok).toBe(false);
-    if (!bad.ok) expect(bad.errors.join()).toMatch(/triggers\[0\]\.match/u);
+    if (!bad.ok) {
+      expect(bad.errors.join(",")).toMatch(/triggers\[0\]\.match/u);
+    }
   });
 
   it("validates template and deliver step params", () => {
     const good = validateDuty({
-      ...base(),
+      ...baseDuty(),
       steps: [
         {
           id: "t1",
@@ -470,7 +479,7 @@ describe("Part 2 model", () => {
     });
     expect(good.ok).toBe(true);
     const bad = validateDuty({
-      ...base(),
+      ...baseDuty(),
       steps: [
         { id: "t1", kind: "template", label: "Render", params: { fill: { x: { nope: 1 } } } },
         { id: "d1", kind: "deliver", label: "Send", params: { to: "someone" } },
@@ -492,7 +501,7 @@ describe("Part 2 model", () => {
   // mail and web content, so this is a real injection sink.
   it("rejects a deliver files entry that is not a {{file:<stepId>}} placeholder", () => {
     const rawPath = validateDuty({
-      ...base(),
+      ...baseDuty(),
       steps: [
         {
           id: "d1",
@@ -511,7 +520,7 @@ describe("Part 2 model", () => {
     // A placeholder with anything around it is not a placeholder either.
     expect(
       validateDuty({
-        ...base(),
+        ...baseDuty(),
         steps: [
           {
             id: "d1",
@@ -524,7 +533,7 @@ describe("Part 2 model", () => {
     ).toBe(false);
     expect(
       validateDuty({
-        ...base(),
+        ...baseDuty(),
         steps: [
           {
             id: "d1",
@@ -544,7 +553,7 @@ describe("Part 2 model", () => {
   it("rejects an ask whose options cannot make a tappable card", () => {
     const ask = (params: Record<string, unknown>) =>
       validateDuty({
-        ...base(),
+        ...baseDuty(),
         steps: [{ id: "a1", kind: "ask", label: "Approve?", params }],
       });
 
@@ -574,7 +583,7 @@ describe("Part 2 model", () => {
   // instruction sent "undefined" to the model.
   it("validates ask and ai params so an unset field never reaches a person or a model", () => {
     const bad = validateDuty({
-      ...base(),
+      ...baseDuty(),
       steps: [
         { id: "a1", kind: "ask", label: "Ask", params: { options: ["Yes", "No"], header: 7 } },
         { id: "x1", kind: "ai", label: "Extract", params: { schema: "not-an-object" } },
@@ -591,7 +600,7 @@ describe("Part 2 model", () => {
 
     expect(
       validateDuty({
-        ...base(),
+        ...baseDuty(),
         steps: [
           {
             id: "x1",
@@ -605,7 +614,7 @@ describe("Part 2 model", () => {
     // `schema` is optional; the runner defaults it to a plain object.
     expect(
       validateDuty({
-        ...base(),
+        ...baseDuty(),
         steps: [{ id: "x1", kind: "ai", label: "Extract", params: { instruction: "Pull it" } }],
       }).ok,
     ).toBe(true);
@@ -613,7 +622,7 @@ describe("Part 2 model", () => {
 
   it("rejects a cred placeholder inside template fill and deliver text", () => {
     const bad = validateDuty({
-      ...base(),
+      ...baseDuty(),
       steps: [
         {
           id: "d1",
@@ -643,7 +652,7 @@ describe("Part 2 model", () => {
 
   it("validateRunInputs requires declared mail/file inputs with the right shape", () => {
     const duty = {
-      ...base(),
+      ...baseDuty(),
       inputs: [
         { name: "mail", source: "mail" },
         { name: "sheet", source: "file", required: false },

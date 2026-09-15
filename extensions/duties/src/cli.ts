@@ -246,7 +246,9 @@ function printDutiesSetup(params: {
   }
   if (result.missing.length > 0) {
     console.log("Missing:");
-    for (const item of result.missing) console.log(`  - ${item}`);
+    for (const item of result.missing) {
+      console.log(`  - ${item}`);
+    }
     console.log("");
   }
   console.log(
@@ -263,7 +265,9 @@ function printDutiesSetup(params: {
   console.log(result.snippets.renderAllowlist);
   console.log("");
   console.log("Commands:");
-  for (const command of result.commands) console.log(`  ${command}`);
+  for (const command of result.commands) {
+    console.log(`  ${command}`);
+  }
   console.log("");
   console.log("Then restart the Gateway.");
 }

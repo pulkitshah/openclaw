@@ -105,6 +105,7 @@ describe("render", () => {
           kind: "when",
           label: "Check if already signed in",
           cond: { visible: { text: "My Account" } },
+          // oxlint-disable-next-line unicorn/no-thenable -- the Duty when/then/else branch, not a Promise thenable.
           then: [],
           else: [{ id: "s2", kind: "browser", label: "Sign in", params: {} }],
         },

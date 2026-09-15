@@ -28,8 +28,11 @@ const defaultExec: ExecFn = (file, args, opts) =>
       args,
       { env: opts?.env ?? process.env, maxBuffer: 1 << 20, timeout: EXEC_TIMEOUT_MS },
       (error, stdout) => {
-        if (error) reject(error);
-        else resolve({ stdout: String(stdout) });
+        if (error) {
+          reject(error instanceof Error ? error : new Error(error.message));
+        } else {
+          resolve({ stdout });
+        }
       },
     );
     if (opts?.input !== undefined) {
@@ -38,7 +41,9 @@ const defaultExec: ExecFn = (file, args, opts) =>
   });
 
 function assertKey(key: string): void {
-  if (!CRED_KEY_RE.test(key)) throw new Error("invalid credential key");
+  if (!CRED_KEY_RE.test(key)) {
+    throw new Error("invalid credential key");
+  }
 }
 
 export async function credGet(
@@ -47,7 +52,9 @@ export async function credGet(
   exec: ExecFn = defaultExec,
 ): Promise<string> {
   assertKey(key);
-  if (platform === "linux") return linux().get(key);
+  if (platform === "linux") {
+    return linux().get(key);
+  }
   if (platform === "darwin") {
     let stored: string;
     try {
@@ -101,8 +108,12 @@ export async function credSet(
   // "credential value must not be empty" everywhere else. On macOS it also matters mechanically:
   // an empty value would render as `-w \n` with no token, leaving `security -i` waiting for an
   // interactive password. There is no legitimate empty credential to store on either.
-  if (!value) throw new Error("credential value must not be empty");
-  if (platform === "linux") return linux().set(key, value);
+  if (!value) {
+    throw new Error("credential value must not be empty");
+  }
+  if (platform === "linux") {
+    return linux().set(key, value);
+  }
   if (platform === "darwin") {
     // `security -i` reads commands from stdin, so the secret never appears in argv. The value is
     // hex-encoded (not quoted/escaped into the command text) so it can never break out of the
@@ -143,7 +154,9 @@ export async function credDelete(
   exec: ExecFn = defaultExec,
 ): Promise<boolean> {
   assertKey(key);
-  if (platform === "linux") return linux().delete(key);
+  if (platform === "linux") {
+    return linux().delete(key);
+  }
   if (platform === "darwin") {
     try {
       await exec("security", ["delete-generic-password", "-s", SERVICE_PREFIX + key], undefined);
@@ -178,8 +191,10 @@ export async function credHas(
     await credGet(key, platform, exec);
     return true;
   } catch (error) {
-    if (error instanceof Error && error.message.startsWith("no credential stored")) return false;
-    throw error;
+    if (error instanceof Error && error.message.startsWith("no credential stored")) {
+      return false;
+    }
+    throw error instanceof Error ? error : new Error(String(error));
   }
 }
 

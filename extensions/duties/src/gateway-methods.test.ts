@@ -91,12 +91,12 @@ function harness(params?: {
   });
 
   const call = async (name: string, callParams: Record<string, unknown>) =>
-    new Promise<{ ok: boolean; result?: unknown; error?: unknown }>((resolve) =>
-      methods.get(name)!.handler({
+    new Promise<{ ok: boolean; result?: unknown; error?: unknown }>((resolve) => {
+      void methods.get(name)!.handler({
         params: callParams,
         respond: (ok, result, error) => resolve({ ok, result, error }),
-      }),
-    );
+      });
+    });
 
   return { methods, store, emit, runs, creds, call };
 }

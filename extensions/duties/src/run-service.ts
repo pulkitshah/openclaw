@@ -103,7 +103,9 @@ export class RunManager {
    *  unattended mail run used to report nowhere at all.
    *  Swallows both a synchronous throw and a rejection so `notify` can never break a run. */
   private announce(origin: RunOrigin | undefined, text: string): void {
-    if (!this.params.notify || !text) return;
+    if (!this.params.notify || !text) {
+      return;
+    }
     try {
       this.params.notify(origin, text).catch(() => {});
     } catch {
@@ -193,12 +195,14 @@ export class RunManager {
 
   wait(runId: string): Promise<DutyRun> {
     const active = this.active.get(runId);
-    if (active) return active;
+    if (active) {
+      return active;
+    }
     return new Promise((resolve, reject) => {
       const resolvers = this.waiters.get(runId) ?? [];
       resolvers.push(resolve);
       this.waiters.set(runId, resolvers);
-      this.params.store.getRun(runId).then((r) => {
+      void this.params.store.getRun(runId).then((r) => {
         if (r && !["queued", "running", "needs_input"].includes(r.status)) {
           this.waiters.delete(runId);
           resolve(r);
@@ -235,14 +239,18 @@ export class RunManager {
       const waitingOn = stored?.waitingOn?.questionId;
       // Best-effort: a question that is already terminal, or a Gateway that refuses the cancel,
       // still leaves the run flagged, which is the behaviour cancel had before.
-      if (waitingOn) await this.params.cancelQuestion?.(waitingOn).catch(() => {});
+      if (waitingOn) {
+        await this.params.cancelQuestion?.(waitingOn).catch(() => {});
+      }
       return true;
     }
     // Not in memory. A run still recorded as waiting or working was parked when this Gateway
     // last stopped; the runner that owned it is gone, so the terminal row is written here.
     if (stored && !isTerminalRunStatus(stored.status)) {
       const waitingOn = stored.waitingOn?.questionId;
-      if (waitingOn) await this.params.cancelQuestion?.(waitingOn).catch(() => {});
+      if (waitingOn) {
+        await this.params.cancelQuestion?.(waitingOn).catch(() => {});
+      }
       await this.finish(stored, { status: "cancelled" });
       return true;
     }
@@ -250,7 +258,9 @@ export class RunManager {
   }
 
   private canStart(duty: Duty, limit: number): boolean {
-    if (this.active.size >= limit) return false;
+    if (this.active.size >= limit) {
+      return false;
+    }
     return !(duty.exclusive && (this.activeByDuty.get(duty.id) ?? 0) > 0);
   }
 
@@ -263,7 +273,9 @@ export class RunManager {
   private admitQueue(limit: number): void {
     for (let i = 0; i < this.queue.length; i += 1) {
       const item = this.queue[i]!;
-      if (!this.canStart(item.duty, limit)) continue;
+      if (!this.canStart(item.duty, limit)) {
+        continue;
+      }
       this.queue.splice(i, 1);
       i -= 1;
       this.launch(item);
@@ -359,7 +371,9 @@ export class RunManager {
         });
         if (status === "ok") {
           const fresh = await this.params.store.getDuty(duty.id);
-          if (fresh) await this.params.store.saveDuty({ ...fresh, lastRunAt: Date.now() });
+          if (fresh) {
+            await this.params.store.saveDuty({ ...fresh, lastRunAt: Date.now() });
+          }
         }
         return final;
       } catch (error) {
@@ -435,7 +449,11 @@ export class RunManager {
     this.params.emit({ type: "run", runId: run.id, dutyId: run.dutyId, status: final.status });
     this.announce(run.origin, terminalStatusLine(final));
     const resolvers = this.waiters.get(run.id);
-    if (resolvers) for (const resolve of resolvers) resolve(final);
+    if (resolvers) {
+      for (const resolve of resolvers) {
+        resolve(final);
+      }
+    }
     this.waiters.delete(run.id);
     return final;
   }

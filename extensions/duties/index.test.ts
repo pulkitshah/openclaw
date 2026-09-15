@@ -21,10 +21,8 @@ vi.mock("./src/store.js", async (importOriginal) => ({
 
 const runManagerParams = vi.fn();
 vi.mock("./src/run-service.js", () => ({
-  RunManager: class {
-    constructor(params: unknown) {
-      runManagerParams(params);
-    }
+  RunManager: function RunManager(params: unknown) {
+    runManagerParams(params);
   },
 }));
 
@@ -256,7 +254,7 @@ function registerForDeps() {
       askAdapters.mockClear();
       await params.deps({ id: "d1" }, { id: "r1", ...(origin ? { origin } : {}) });
       return {
-        ai: (aiAdapters.mock.calls.at(-1)?.[0] as { sessionKey: string }).sessionKey,
+        ai: (aiAdapters.mock.calls.at(-1)?.[0] as { sessionKey: string } | undefined)?.sessionKey,
         ask: await askSessionKey(),
       };
     },

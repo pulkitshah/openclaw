@@ -28,6 +28,7 @@ export function safeFileName(raw: string, extension: string): string | undefined
   const ext = extension.startsWith(".") ? extension : `.${extension}`;
   const collapsed = raw
     // Control characters and path separators never belong in a basename.
+    // oxlint-disable-next-line eslint/no-control-regex -- Intentionally strips ASCII control characters from a filename.
     .replaceAll(/[\u0000-\u001f\u007f/\\]/gu, " ")
     // With the separators gone, a traversal reads as bare dot runs; drop them rather than keep
     // "`.. .. ..`" in a name the owner is meant to read.
@@ -37,7 +38,9 @@ export function safeFileName(raw: string, extension: string): string | undefined
     // A leading dot would hide the file, and a trailing dot is invalid on Windows.
     .replace(/^\.+/u, "")
     .replace(/\.+$/u, "");
-  if (!collapsed) return undefined;
+  if (!collapsed) {
+    return undefined;
+  }
   const withoutExt = collapsed.toLowerCase().endsWith(ext.toLowerCase())
     ? collapsed.slice(0, -ext.length)
     : collapsed;
@@ -58,7 +61,9 @@ export async function uniqueFileName(dir: string, name: string): Promise<string>
       () => true,
       () => false,
     );
-    if (!taken) return candidate;
+    if (!taken) {
+      return candidate;
+    }
   }
   return `${base} (${Date.now()})${ext}`;
 }
@@ -70,7 +75,9 @@ export function createRunFiles(rootDir: string) {
   const previewsDir = path.join(rootDir, "previews");
   return {
     async runDir(runId: string): Promise<string> {
-      if (!RUN_ID_RE.test(runId)) throw new Error(`invalid run id "${runId}"`);
+      if (!RUN_ID_RE.test(runId)) {
+        throw new Error(`invalid run id "${runId}"`);
+      }
       const dir = path.join(runsDir, runId);
       await mkdir(dir, { recursive: true });
       return dir;
@@ -98,13 +105,17 @@ export function createRunFiles(rootDir: string) {
       for (const name of await readdir(runsDir).catch(() => [])) {
         const dir = path.join(runsDir, name);
         const info = await stat(dir).catch(() => undefined);
-        if (!info?.isDirectory() || now - info.mtimeMs < olderThanMs) continue;
+        if (!info?.isDirectory() || now - info.mtimeMs < olderThanMs) {
+          continue;
+        }
         await drop(dir, true);
       }
       for (const name of await readdir(previewsDir).catch(() => [])) {
         const file = path.join(previewsDir, name);
         const info = await stat(file).catch(() => undefined);
-        if (!info?.isFile() || now - info.mtimeMs < PREVIEW_TTL_MS) continue;
+        if (!info?.isFile() || now - info.mtimeMs < PREVIEW_TTL_MS) {
+          continue;
+        }
         await drop(file, false);
       }
       return removed;

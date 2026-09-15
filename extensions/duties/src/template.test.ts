@@ -42,13 +42,14 @@ describe("validateTemplate", () => {
       slots: tpl.slots.map((s) => (s.kind === "rows" ? { ...s, columns: [] } : s)),
     });
     expect(r.ok).toBe(false);
-    if (!r.ok)
+    if (!r.ok) {
       expect(r.errors).toEqual(
         expect.arrayContaining([
           "id must be a kebab-case slug",
           'slot "flights": rows slots need at least one column',
         ]),
       );
+    }
   });
 });
 
@@ -138,7 +139,9 @@ describe("validateBrand", () => {
     const big = `data:image/png;base64,${"A".repeat(700_001)}`;
     const r = validateBrand({ name: "Amigos", logoDataUrl: big, updatedAt: 1 });
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.errors).toContain("logoDataUrl is too large (max 512 KB image)");
+    if (!r.ok) {
+      expect(r.errors).toContain("logoDataUrl is too large (max 512 KB image)");
+    }
   });
 
   it("accepts a logoDataUrl within the cap", () => {
@@ -158,10 +161,11 @@ describe("validateTemplate slot/rows kind and column checks", () => {
       ),
     });
     expect(r.ok).toBe(false);
-    if (!r.ok)
+    if (!r.ok) {
       expect(r.errors).toContain(
         'slot "flights" is a rows slot: use {{#rows:flights}}…{{/rows:flights}}',
       );
+    }
   });
 
   it("rejects a text/prose slot wrapped in {{#rows:name}}", () => {
@@ -170,13 +174,17 @@ describe("validateTemplate slot/rows kind and column checks", () => {
       html: tpl.html.replace("{{slot:route}}", "{{#rows:route}}{{/rows:route}}"),
     });
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.errors).toContain('slot "route" is not a rows slot: use {{slot:route}}');
+    if (!r.ok) {
+      expect(r.errors).toContain('slot "route" is not a rows slot: use {{slot:route}}');
+    }
   });
 
   it("rejects a {{col:x}} placeholder outside any rows block", () => {
     const r = validateTemplate({ ...tpl, html: tpl.html + "{{col:extra}}" });
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.errors).toContain("{{col:extra}} is only valid inside a rows block");
+    if (!r.ok) {
+      expect(r.errors).toContain("{{col:extra}} is only valid inside a rows block");
+    }
   });
 
   it("rejects a {{col:x}} inside a rows block that is not a declared column", () => {
@@ -185,6 +193,8 @@ describe("validateTemplate slot/rows kind and column checks", () => {
       html: tpl.html.replace("{{col:airline}}", "{{col:carrier}}"),
     });
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.errors).toContain('rows slot "flights" has no column "carrier"');
+    if (!r.ok) {
+      expect(r.errors).toContain('rows slot "flights" has no column "carrier"');
+    }
   });
 });

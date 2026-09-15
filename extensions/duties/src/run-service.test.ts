@@ -28,7 +28,10 @@ function memoryKeyed<T>() {
  *  concurrent write — the shape RunManager's evidence-append serialization must survive. */
 function memoryKeyedAsync<T>() {
   const m = new Map<string, T>();
-  const tick = () => new Promise<void>((r) => setTimeout(r, 0));
+  const tick = () =>
+    new Promise<void>((r) => {
+      setTimeout(r, 0);
+    });
   return {
     register: async (k: string, v: T) => {
       await tick();
@@ -61,7 +64,11 @@ function newStore(runs: unknown = memoryKeyed()): DutyStore {
 }
 
 async function flushMacrotasks(ticks = 20): Promise<void> {
-  for (let i = 0; i < ticks; i += 1) await new Promise((r) => setTimeout(r, 0));
+  for (let i = 0; i < ticks; i += 1) {
+    await new Promise((r) => {
+      setTimeout(r, 0);
+    });
+  }
 }
 
 const duty = (id: string, exclusive = false): Duty => ({
@@ -112,8 +119,12 @@ function deps(delayMs: number, openTracker?: { current: number; max: number }): 
           openTracker.current += 1;
           openTracker.max = Math.max(openTracker.max, openTracker.current);
         }
-        await new Promise((r) => setTimeout(r, delayMs));
-        if (openTracker) openTracker.current -= 1;
+        await new Promise((r) => {
+          setTimeout(r, delayMs);
+        });
+        if (openTracker) {
+          openTracker.current -= 1;
+        }
         return { targetId: "t" };
       },
       navigate: async () => {},
@@ -486,8 +497,13 @@ describe("RunManager", () => {
             open: async () => {
               for (let i = 0; i < 100 && !midRun; i += 1) {
                 const current = await store.getRun(run.id);
-                if (current?.files?.length) midRun = current;
-                else await new Promise((r) => setTimeout(r, 1));
+                if (current?.files?.length) {
+                  midRun = current;
+                } else {
+                  await new Promise((r) => {
+                    setTimeout(r, 1);
+                  });
+                }
               }
               return { targetId: "t" };
             },
@@ -581,9 +597,9 @@ describe("RunManager cancel of a parked run", () => {
     // hang the suite the way it hung the live run.
     const final = await Promise.race([
       mgr.wait(started.runId),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("cancel did not end the parked run")), 2_000),
-      ),
+      new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error("cancel did not end the parked run")), 2_000);
+      }),
     ]);
     expect(cancelQuestion).toHaveBeenCalledTimes(1);
     expect(final.status).toBe("cancelled");

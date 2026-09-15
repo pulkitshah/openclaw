@@ -46,8 +46,12 @@ function raceAbort<T>(
   promise: Promise<T>,
   signal: AbortSignal | undefined,
 ): Promise<{ aborted: true } | { aborted: false; value: T }> {
-  if (!signal) return promise.then((value) => ({ aborted: false, value }));
-  if (signal.aborted) return Promise.resolve({ aborted: true });
+  if (!signal) {
+    return promise.then((value) => ({ aborted: false, value }));
+  }
+  if (signal.aborted) {
+    return Promise.resolve({ aborted: true });
+  }
   return new Promise((resolve, reject) => {
     const onAbort = () => resolve({ aborted: true });
     signal.addEventListener("abort", onAbort, { once: true });
@@ -58,7 +62,7 @@ function raceAbort<T>(
       },
       (error: unknown) => {
         signal.removeEventListener("abort", onAbort);
-        reject(error);
+        reject(error instanceof Error ? error : new Error(String(error)));
       },
     );
   });
@@ -152,7 +156,9 @@ export function registerDutyTools(params: { api: OpenClawPluginApi }): void {
       triggers: Type.Optional(Type.Array(Type.Unknown(), { description: "Duty triggers." })),
     }),
     execute: async (_toolCallId, rawInput) => {
-      if (!isRecord(rawInput)) throw new Error("id is required");
+      if (!isRecord(rawInput)) {
+        throw new Error("id is required");
+      }
       return jsonResult(await call("duties.draft", rawInput, "operator.write"));
     },
   });
@@ -167,7 +173,9 @@ export function registerDutyTools(params: { api: OpenClawPluginApi }): void {
       steps: Type.Array(Type.Unknown(), { description: "The Duty's full new step tree." }),
     }),
     execute: async (_toolCallId, rawInput) => {
-      if (!isRecord(rawInput)) throw new Error("id is required");
+      if (!isRecord(rawInput)) {
+        throw new Error("id is required");
+      }
       return jsonResult(
         await call(
           "duties.steps",
@@ -199,7 +207,9 @@ export function registerDutyTools(params: { api: OpenClawPluginApi }): void {
       ),
     }),
     execute: async (_toolCallId, rawInput, signal) => {
-      if (!isRecord(rawInput)) throw new Error("id is required");
+      if (!isRecord(rawInput)) {
+        throw new Error("id is required");
+      }
       const started = await call<{ runId?: string; ok?: boolean; errors?: string[] }>(
         "duties.run",
         {
@@ -229,7 +239,9 @@ export function registerDutyTools(params: { api: OpenClawPluginApi }): void {
             { runId, timeoutMs: RUN_WAIT_POLL_MS },
             "operator.read",
           );
-          if (TERMINAL_RUN_STATUSES.has(String(run.status)) || signal?.aborted) return run;
+          if (TERMINAL_RUN_STATUSES.has(String(run.status)) || signal?.aborted) {
+            return run;
+          }
         }
       };
 
@@ -373,7 +385,9 @@ export function registerDutyTools(params: { api: OpenClawPluginApi }): void {
       }),
     }),
     execute: async (_toolCallId, rawInput) => {
-      if (!isRecord(rawInput) || !isRecord(rawInput.brand)) throw new Error("brand is required");
+      if (!isRecord(rawInput) || !isRecord(rawInput.brand)) {
+        throw new Error("brand is required");
+      }
       return jsonResult(
         await call("duties.brand.set", { brand: rawInput.brand }, "operator.write"),
       );

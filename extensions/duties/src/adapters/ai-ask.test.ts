@@ -81,7 +81,9 @@ describe("ask adapter", () => {
   it("requests a question and returns the first answer", async () => {
     let polls = 0;
     const request = vi.fn(async (method: string) => {
-      if (method === "question.request") return { id: "q1", expiresAtMs: 1 };
+      if (method === "question.request") {
+        return { id: "q1", expiresAtMs: 1 };
+      }
       polls += 1;
       return polls < 2
         ? { status: "pending" }
@@ -115,7 +117,7 @@ describe("ask adapter", () => {
   // which is how they are naturally named, `ask-hold` — failed with a raw schema error instead of
   // ever reaching the owner.
   it("sends a question id the Gateway accepts, and still reads back that answer", async () => {
-    const request = vi.fn(async (method: string, params: Record<string, unknown>) =>
+    const request = vi.fn(async (method: string, _params: Record<string, unknown>) =>
       method === "question.request"
         ? { id: "q1", expiresAtMs: 1 }
         : { status: "answered", answers: { answers: { ask_hold: ["Approve"] } } },
@@ -133,7 +135,9 @@ describe("ask adapter", () => {
     });
 
     const sent = request.mock.calls.find((c) => c[0] === "question.request")?.[1];
-    if (!sent) throw new Error("Expected question.request call");
+    if (!sent) {
+      throw new Error("Expected question.request call");
+    }
     expect((sent as { questions: [{ questionId: string }] }).questions[0].questionId).toMatch(
       /^[a-z][a-z0-9_]*$/u,
     );
@@ -143,7 +147,7 @@ describe("ask adapter", () => {
   });
 
   it("keeps a leading digit out of the question id", async () => {
-    const request = vi.fn(async (method: string, params: Record<string, unknown>) =>
+    const request = vi.fn(async (method: string, _params: Record<string, unknown>) =>
       method === "question.request"
         ? { id: "q1", expiresAtMs: 1 }
         : { status: "answered", answers: { answers: { q_2nd_leg: ["Yes"] } } },
@@ -157,7 +161,9 @@ describe("ask adapter", () => {
       note: "sent without buttons: an ask needs 2–4 distinct options",
     });
     const sent = request.mock.calls.find((c) => c[0] === "question.request")?.[1];
-    if (!sent) throw new Error("Expected question.request call");
+    if (!sent) {
+      throw new Error("Expected question.request call");
+    }
     expect((sent as { questions: [{ questionId: string }] }).questions[0].questionId).toMatch(
       /^[a-z][a-z0-9_]*$/u,
     );
@@ -232,7 +238,7 @@ describe("ask adapter", () => {
   // with no owner target failed every Duty — including ones with no `ask` — before step 1.
   it("resolves its session only when a question is actually raised", async () => {
     const resolved: string[] = [];
-    const request = vi.fn(async (method: string, params: Record<string, unknown>) =>
+    const request = vi.fn(async (method: string, _params: Record<string, unknown>) =>
       method === "question.request"
         ? { id: "q1", expiresAtMs: 1 }
         : { status: "answered", answers: { answers: { hold: ["Approve"] } } },
@@ -256,12 +262,14 @@ describe("ask adapter", () => {
 
     expect(resolved).toEqual(["resolved"]);
     const sent = request.mock.calls.find((c) => c[0] === "question.request")?.[1];
-    if (!sent) throw new Error("Expected question.request call");
+    if (!sent) {
+      throw new Error("Expected question.request call");
+    }
     expect((sent as { sessionKey?: string }).sessionKey).toBe("agent:krishna:main");
   });
 
   it("adds no note when the options do make a tappable card", async () => {
-    const request = vi.fn(async (method: string, params: Record<string, unknown>) =>
+    const request = vi.fn(async (method: string, _params: Record<string, unknown>) =>
       method === "question.request"
         ? { id: "q1", expiresAtMs: 1 }
         : { status: "answered", answers: { answers: { hold: ["Approve"] } } },
