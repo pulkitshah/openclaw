@@ -4,8 +4,8 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
-import type { BrowserAdapter } from "../runner.js";
 import { RENDER_ALLOWLIST_REMEDY } from "../setup.js";
+import type { BrowserAdapter } from "./browser-contract.js";
 
 export const RENDER_ROUTE_PATH = "/plugins/duties/render/";
 /** The `<meta name>` the served document carries, holding that document's own single-use token.

@@ -41,7 +41,8 @@
 import { readFile } from "node:fs/promises";
 import { extname } from "node:path";
 import type { Target } from "../duty.js";
-import { describeTarget, type BrowserAdapter } from "../runner.js";
+import { describeTarget } from "../runner.js";
+import type { BrowserAdapter } from "./browser-contract.js";
 
 type Request = <T = unknown>(method: string, params: Record<string, unknown>) => Promise<T>;
 type RefInfo = { role: string; name?: string; nth?: number };
