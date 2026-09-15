@@ -1,4 +1,4 @@
-// Policy plugin entrypoint registers its OpenClaw integration.
+// Policy plugin entrypoint registers its Vasudev integration.
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 import { POLICY_CLI_DESCRIPTOR } from "./src/cli-output-mode.js";
 import { registerPolicyDoctorChecks } from "./src/doctor/register.js";

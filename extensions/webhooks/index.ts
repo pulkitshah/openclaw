@@ -1,4 +1,4 @@
-// Webhooks plugin entrypoint registers its OpenClaw integration.
+// Webhooks plugin entrypoint registers its Vasudev integration.
 import { definePluginEntry, type OpenClawPluginApi } from "./api.js";
 import { resolveWebhooksPluginConfig } from "./src/config.js";
 import { createTaskFlowWebhookRequestHandler, type TaskFlowWebhookTarget } from "./src/http.js";
@@ -49,8 +49,7 @@ function registerWebhookRoutes(api: OpenClawPluginApi): void {
 export default definePluginEntry({
   id: "webhooks",
   name: "Webhooks",
-  description:
-    "Authenticated inbound webhooks that bind external automation to OpenClaw TaskFlows.",
+  description: "Authenticated inbound webhooks that bind external automation to Vasudev TaskFlows.",
   register(api: OpenClawPluginApi) {
     registerWebhookRoutes(api);
   },

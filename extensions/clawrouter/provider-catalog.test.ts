@@ -145,7 +145,7 @@ describe("ClawRouter provider catalog", () => {
     clearLiveCatalogCacheForTests();
   });
 
-  it("maps every supported catalog protocol to its OpenClaw transport", async () => {
+  it("maps every supported catalog protocol to its Vasudev transport", async () => {
     const { fetchGuard, fetchGuardMock } = buildFetchGuard();
     const provider = await buildClawRouterProviderConfig({
       apiKey: "clawrouter-test-key",

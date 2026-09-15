@@ -1,4 +1,4 @@
-// Tokenjuice plugin entrypoint registers its OpenClaw integration.
+// Tokenjuice plugin entrypoint registers its Vasudev integration.
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 import { createTokenjuiceAgentToolResultMiddleware } from "./tool-result-middleware.js";
 

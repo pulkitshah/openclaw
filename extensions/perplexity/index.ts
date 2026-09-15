@@ -1,4 +1,4 @@
-// Perplexity plugin entrypoint registers its OpenClaw integration.
+// Perplexity plugin entrypoint registers its Vasudev integration.
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 import { createPerplexityWebSearchProvider } from "./src/perplexity-web-search-provider.js";
 

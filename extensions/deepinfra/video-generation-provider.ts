@@ -162,7 +162,7 @@ function resolveDeepInfraVideoBaseUrl(req: VideoGenerationRequest): string {
   // carry credentials).
   if (baseUrl.includes("/v1/inference")) {
     throw new Error(
-      'DeepInfra video generation requires an OpenAI-compatible endpoint, but models.providers.deepinfra.baseUrl targets the retired native /v1/inference surface. Run "openclaw doctor --fix" (api.deepinfra.com migrates automatically; custom hosts must set baseUrl to an OpenAI-compatible videos endpoint).',
+      'DeepInfra video generation requires an OpenAI-compatible endpoint, but models.providers.deepinfra.baseUrl targets the retired native /v1/inference surface. Run "vasudev doctor --fix" (api.deepinfra.com migrates automatically; custom hosts must set baseUrl to an OpenAI-compatible videos endpoint).',
     );
   }
   return baseUrl;

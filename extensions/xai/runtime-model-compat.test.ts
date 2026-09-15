@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { applyXaiRuntimeModelCompat } from "./runtime-model-compat.js";
 
 describe("xai runtime model compat", () => {
-  it("maps OpenClaw thinking levels to xAI efforts for reasoning-capable models", () => {
+  it("maps Vasudev thinking levels to xAI efforts for reasoning-capable models", () => {
     const model = applyXaiRuntimeModelCompat({
       id: "grok-4.3",
       provider: "xai",

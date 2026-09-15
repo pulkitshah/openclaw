@@ -1320,7 +1320,7 @@ describe("voice-call plugin", () => {
         from: "user",
       });
       expect(runtimeStub.manager["initiateCall"]).toHaveBeenCalledWith("+15550009999", undefined, {
-        message: "OpenClaw voice call smoke test.",
+        message: "Vasudev voice call smoke test.",
         mode: "notify",
       });
       expect(stdout.output()).toContain("live-call: started call-1");

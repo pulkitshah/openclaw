@@ -1,4 +1,4 @@
-// Diffs plugin entrypoint registers its OpenClaw integration.
+// Diffs plugin entrypoint registers its Vasudev integration.
 import { definePluginEntry } from "./api.js";
 import { diffsPluginConfigSchema } from "./src/config.js";
 import { registerDiffsPlugin } from "./src/plugin.js";

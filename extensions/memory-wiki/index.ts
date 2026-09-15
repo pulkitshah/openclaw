@@ -1,4 +1,4 @@
-// Memory Wiki plugin entrypoint registers its OpenClaw integration.
+// Memory Wiki plugin entrypoint registers its Vasudev integration.
 import fs from "node:fs/promises";
 import path from "node:path";
 import { definePluginEntry, type OpenClawConfig } from "./api.js";
@@ -77,7 +77,7 @@ async function loadConfiguredVaultIdentity(vaultRoot: string): Promise<{
 export default definePluginEntry({
   id: "memory-wiki",
   name: "Memory Wiki",
-  description: "Persistent wiki compiler and Obsidian-friendly knowledge vault for OpenClaw.",
+  description: "Persistent wiki compiler and Obsidian-friendly knowledge vault for Vasudev.",
   configSchema: memoryWikiConfigSchema,
   register(api) {
     const config = resolveMemoryWikiConfig(api.pluginConfig);

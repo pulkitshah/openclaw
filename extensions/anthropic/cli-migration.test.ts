@@ -524,7 +524,7 @@ describe("anthropic cli migration", () => {
     });
   });
 
-  it("does not copy native Claude credentials into OpenClaw", () => {
+  it("does not copy native Claude credentials into Vasudev", () => {
     const result = buildAnthropicCliMigrationResult({});
     expect(result.profiles).toEqual([]);
   });

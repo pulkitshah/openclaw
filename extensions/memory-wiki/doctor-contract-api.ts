@@ -195,7 +195,7 @@ export const stateMigrations: PluginDoctorStateMigration[] = [
           } catch (error) {
             if (!isMissingPathError(error)) {
               warnings.push(
-                `Skipped rebuildable Memory Wiki compiled cache cleanup. Run openclaw doctor --fix to retry. ${filePath}: ${String(error)}`,
+                `Skipped rebuildable Memory Wiki compiled cache cleanup. Run vasudev doctor --fix to retry. ${filePath}: ${String(error)}`,
               );
             }
           }

@@ -1,4 +1,4 @@
-// Lobster plugin entrypoint registers its OpenClaw integration.
+// Lobster plugin entrypoint registers its Vasudev integration.
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 import type { AnyAgentTool, OpenClawPluginApi, OpenClawPluginToolFactory } from "./runtime-api.js";
 import { createLobsterTool } from "./src/lobster-tool.js";

@@ -247,7 +247,7 @@ describe("resolveClaudeCliExecutionArgs", () => {
     expect(argv).not.toContain("--disable-slash-commands");
   });
 
-  it("isolates OpenClaw from Claude user customizations while preserving exact MCP", () => {
+  it("isolates Vasudev from Claude user customizations while preserving exact MCP", () => {
     expect(
       resolveClaudeCliExecutionArgs({
         workspaceDir: "/tmp",
@@ -562,7 +562,7 @@ describe("normalizeClaudeBackendConfig", () => {
     expect(normalized.input).toBe("stdin");
   });
 
-  it("derives Claude bypass from OpenClaw YOLO policy and disables it for safer policy", () => {
+  it("derives Claude bypass from Vasudev YOLO policy and disables it for safer policy", () => {
     expect(normalizeClaudeArgs(["-p"], { backendId: "claude-cli" })).toContain("bypassPermissions");
     expect(
       normalizeClaudeArgs(["-p"], {
@@ -578,7 +578,7 @@ describe("normalizeClaudeBackendConfig", () => {
     ).not.toContain("bypassPermissions");
   });
 
-  it("derives Claude bypass from per-agent OpenClaw exec policy", () => {
+  it("derives Claude bypass from per-agent Vasudev exec policy", () => {
     expect(
       normalizeClaudeArgs(["-p"], {
         backendId: "claude-cli",
@@ -666,7 +666,7 @@ describe("normalizeClaudeBackendConfig", () => {
 
   it("passes system prompt on every turn (issue #80374 — systemPromptWhen must be 'always')", () => {
     // Before fix this was hardcoded to "first", which silently dropped updated
-    // OpenClaw system prompt context on resumed / compacted claude-cli sessions.
+    // Vasudev system prompt context on resumed / compacted claude-cli sessions.
     const backend = buildAnthropicCliBackend();
     expect(backend.config.systemPromptWhen).toBe("always");
   });

@@ -64,7 +64,7 @@ describe.skipIf(!LIVE || !VYDRA_API_KEY)("vydra live", () => {
     expect(voices?.some((voice) => voice.id === "21m00Tcm4TlvDq8ikWAM")).toBe(true);
 
     const result = await provider.synthesize({
-      text: "OpenClaw integration test OK.",
+      text: "Vasudev integration test OK.",
       cfg: { plugins: { enabled: true } } as never,
       providerConfig: { apiKey: VYDRA_API_KEY },
       target: "audio-file",

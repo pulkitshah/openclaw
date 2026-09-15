@@ -1,4 +1,4 @@
-// Lmstudio plugin entrypoint registers its OpenClaw integration.
+// Lmstudio plugin entrypoint registers its Vasudev integration.
 import {
   definePluginEntry,
   type OpenClawConfig,

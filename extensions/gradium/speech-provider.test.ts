@@ -54,7 +54,7 @@ describe("gradium speech provider", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const result = await provider.synthesize({
-      text: "OpenClaw test",
+      text: "Vasudev test",
       cfg: {} as never,
       providerConfig: { apiKey: "gsk_test123" },
       target: "audio-file",
@@ -67,7 +67,7 @@ describe("gradium speech provider", () => {
     const headers = new Headers(init.headers);
     expect(headers.get("x-api-key")).toBe("gsk_test123");
     expect(JSON.parse(init.body as string)).toEqual({
-      text: "OpenClaw test",
+      text: "Vasudev test",
       voice_id: "YTpq7expH9539ERJ",
       only_audio: true,
       output_format: "wav",
@@ -87,7 +87,7 @@ describe("gradium speech provider", () => {
 
     await expect(
       provider.synthesize({
-        text: "OpenClaw test",
+        text: "Vasudev test",
         cfg: {} as never,
         providerConfig: { apiKey: "gsk_test123", baseUrl: "https://example.com" },
         target: "audio-file",
@@ -127,7 +127,7 @@ describe("gradium speech provider", () => {
 
     await expect(
       provider.synthesize({
-        text: "OpenClaw test",
+        text: "Vasudev test",
         cfg: {
           agents: {
             defaults: {

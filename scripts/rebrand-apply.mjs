@@ -6,7 +6,8 @@
 // Vasudev rebrand's user-visible prose allowlist:
 // docs, README, docs.json's `name` field, the two bundled-plugin manifest
 // fields that feed the Control UI channel picker, and every TypeScript source
-// under `src/**`, `extensions/*/src/**`, `packages/*/src/**` and `ui/src/**`
+// under `src/**`, `extensions/*/**`, `packages/*/**` (one segment deep, at the
+// plugin root or under its `src/`) and `ui/src/**`
 // (a TypeScript-aware pass — see `rewriteTypeScriptContent` below).
 //
 // Internal identifiers are never touched, because none of them is spelled
@@ -23,8 +24,9 @@
 // transcript markers, shipped bundle/artifact filenames), the structural
 // literal exclusions in `isStructuralStringLiteral` (module specifiers,
 // property keys, enum members, `path.join` segments, HTTP header values,
-// process-spawn arguments), and the two cited per-file exclusion lists
-// (`CROSS_BOUNDARY_EXCLUDED_FILES`, `EXCLUDED_LITERALS_BY_FILE`).
+// process-spawn arguments, `headers.set("X-…", …)` values), and the two cited
+// per-file exclusion lists (`CROSS_BOUNDARY_EXCLUDED_FILES`,
+// `EXCLUDED_LITERALS_BY_FILE`).
 //
 // Idempotent and safe to re-run after an `upstream/main` merge reintroduces
 // the literal name in these same files/fields — a second run finds nothing
@@ -256,6 +258,17 @@ const PROTECTED_TOKEN_RULES = [
     pattern: /(?<=\b[A-Za-z][A-Za-z0-9]*-)OpenClaw(?=-[A-Za-z0-9])/g,
   },
   {
+    // The canonical upstream GitHub owner/repo slug. `openclaw/openclaw` is
+    // lowercase and never matched, but the capitalized slug appears in clone
+    // URLs and derived project keys (`github.com/OpenClaw/OpenClaw`), which
+    // `src/projects`'s registry normalizes and compares. It has to be shielded
+    // as one token: `repository-path-segment` below only protects a segment
+    // followed by `/`, so the trailing half would rename on its own and leave
+    // a slug that identifies no repository.
+    name: "repository-slug",
+    pattern: /\bOpenClaw\/OpenClaw\b/g,
+  },
+  {
     // A real path segment inside this repository or a shipped bundle
     // (`apps/macos/Sources/OpenClaw/AppProfile.swift`,
     // `apps/shared/OpenClawKit/...`). Requires a preceding path segment so a
@@ -468,6 +481,27 @@ const SPAWN_CALLEES = new Set([
 // src/infra/startup-maintenance-required.ts) than a header.
 const HTTP_HEADER_NAME_RE = /^[A-Z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)+$/;
 
+// The Headers/Map call form of the same rule: `headers.set("X-OpenRouter-Title",
+// "OpenClaw")`. The property-key path above only sees an object literal, so the
+// setter call needs its own check — the remote service reads the value either
+// way. Matched by the canonical header casing of the *first* argument, so an
+// ordinary `map.set("some-key", "OpenClaw prose")` is untouched.
+const HEADER_SETTER_METHODS = new Set(["set", "append"]);
+
+function isHeaderSetterValueArgument(call, valueNode) {
+  if (call.arguments[1] !== valueNode) {
+    return false;
+  }
+  const callee = call.expression;
+  if (!ts.isPropertyAccessExpression(callee) || !HEADER_SETTER_METHODS.has(callee.name.text)) {
+    return false;
+  }
+  const headerName = call.arguments[0];
+  return Boolean(
+    headerName && ts.isStringLiteral(headerName) && HTTP_HEADER_NAME_RE.test(headerName.text),
+  );
+}
+
 // A SCREAMING_SNAKE property key means the value is an environment variable's
 // value, not display copy: `{ OPENCLAW_WINDOWS_TASK_NAME: "OpenClaw Gateway" }`
 // is the name of a service already installed on the machine (see
@@ -589,6 +623,13 @@ function isStructuralStringLiteral(node) {
   ) {
     valueNode = valueParent;
     valueParent = valueNode.parent;
+  }
+  if (
+    valueParent &&
+    ts.isCallExpression(valueParent) &&
+    isHeaderSetterValueArgument(valueParent, valueNode)
+  ) {
+    return true;
   }
   if (
     valueParent &&
@@ -922,6 +963,69 @@ const EXCLUDED_LITERALS_BY_FILE = new Map([
     "src/system-agent/operations.test.ts",
     new Set(['"OpenClaw"']),
   ],
+  ...[
+    // The `X-OpenRouter-Title` value this client sends to OpenRouter, asserted
+    // against the real request headers. The producer's own literal is
+    // protected by the header-setter rule; a lowercase `x-openrouter-title`
+    // expectation key and a `toBe` argument are not reachable by it.
+    "extensions/openrouter/index.test.ts",
+    "extensions/openrouter/image-generation-provider.test.ts",
+    "extensions/openrouter/media-understanding-provider.test.ts",
+    "extensions/openrouter/speech-provider.test.ts",
+  ].map((file) => [file, new Set(['"OpenClaw"'])]),
+  [
+    // The `path` a policy health finding reports. Its producer
+    // (extensions/policy/src/doctor/policy-evidence-finding.ts) holds the bare
+    // command literal `"openclaw config"`, which the bare-command rule keeps
+    // as a value, so the expectation has to match it.
+    "extensions/policy/src/doctor/register.base.test-utils.ts",
+    new Set(['"openclaw config"']),
+  ],
+  [
+    // The pairing guidance printed by the Chrome extension's own
+    // `relay-core.js`. That module is plain JavaScript inside the packed
+    // extension and is not in the allowlist, so its command example still
+    // spells the real binary and the expectation has to match it.
+    "extensions/browser/chrome-extension/modules/relay-core.test.ts",
+    new Set(['"openclaw browser extension pair"']),
+  ],
+  [
+    // `${configuredRuntimeId}` is an agent-runtime id, and the reserved system
+    // runtime is spelled `openclaw`. The displayed-alias rule reads
+    // "openclaw agent ..." as a command example because `agent` is a real
+    // subcommand, so these expectations of the producer's interpolated message
+    // (extensions/reef/src/setup.ts) have to be pinned.
+    "extensions/reef/src/setup.test.ts",
+    new Set([
+      '"left openai/gpt-5.6-terra on the openclaw agent runtime"',
+      '"openai/gpt-5.6-terra currently uses the openclaw agent runtime. Reef OAuth requires codex; change this shared model runtime?"',
+    ]),
+  ],
+  [
+    // The `serviceName` Codex scopes credentials by, asserted against the real
+    // request these cases build. Its producer
+    // (extensions/codex/src/app-server/bounded-turn.ts) is excluded above, so
+    // the expectation has to keep spelling it.
+    "extensions/codex/media-understanding-provider.test.ts",
+    new Set(['"OpenClaw"']),
+  ],
+  [
+    // The ACP bridge command line. `isOpenClawBridgeCommand` in
+    // extensions/acpx/src/runtime.ts matches the real executable
+    // (`OPENCLAW_BRIDGE_EXECUTABLE = "openclaw"`, subcommand `acp`), so a
+    // fixture command that spells anything else stops routing through the
+    // bridge-safe delegate these cases exercise.
+    "extensions/acpx/src/runtime.test.ts",
+    new Set([
+      // Test input, not copy: the probed agent name normalizes to the
+      // `openclaw` agent id the fixture registry resolves to the bridge
+      // command, the same reserved lowercase namespace as
+      // src/system-agent/setup-apply.test.ts's input.
+      '"  OpenClaw  "',
+      '"openclaw acp"',
+      '"env OPENCLAW_HIDE_BANNER=1 OPENCLAW_SUPPRESS_NOTES=1 openclaw acp --url ws://127.0.0.1:18789 --token-file ~/.openclaw/gateway.token --session agent:main:main"',
+    ]),
+  ],
 ]);
 
 function isUnderTypeScriptAwarePrefix(relativePath) {
@@ -1107,22 +1211,33 @@ const LOCALE_GLOB = "ui/src/i18n/locales/*.ts";
 // `:(glob)`) pathspec matching runs `*` through `fnmatch(3)` without
 // `FNM_PATHNAME`, so a single `*` already crosses `/` — `src/*.ts` matches
 // `src/cli/program/help.ts`. The `extensions/`/`packages/` patterns are
-// re-filtered below to exactly one path segment before `src/`, which keeps
-// the sweep off nested qa-lab test-fixture packages.
+// re-filtered below to exactly one path segment before the source file, which
+// keeps the sweep off nested qa-lab test-fixture packages.
 const TYPESCRIPT_AWARE_GLOBS = [
   "src/*.ts",
   "src/*.tsx",
   "extensions/*/src/*.ts",
   "extensions/*/src/*.tsx",
+  "extensions/*/*.ts",
+  "extensions/*/*.tsx",
   "packages/*/src/*.ts",
   "packages/*/src/*.tsx",
+  "packages/*/*.ts",
+  "packages/*/*.tsx",
   "ui/src/*.ts",
 ];
 const NESTED_SOURCE_TREE_RE = /^(?:extensions|packages)\/[^/]+\/src\//;
+// Many bundled plugins and workspace packages keep their sources at the
+// plugin root instead of under `src/` (`extensions/anthropic/auth.runtime.ts`,
+// `extensions/migrate-hermes/config-mcp.ts`), and their user-facing strings
+// are in scope exactly as they are one directory down. Exactly one segment
+// before the filename, for the same reason as NESTED_SOURCE_TREE_RE: a nested
+// fixture package's root sources are not this repo's product copy.
+const NESTED_ROOT_SOURCE_RE = /^(?:extensions|packages)\/[^/]+\/[^/]+\.tsx?$/;
 
 function isInScopeTypeScriptPath(file) {
   if (file.startsWith("extensions/") || file.startsWith("packages/")) {
-    return NESTED_SOURCE_TREE_RE.test(file);
+    return NESTED_SOURCE_TREE_RE.test(file) || NESTED_ROOT_SOURCE_RE.test(file);
   }
   return true;
 }

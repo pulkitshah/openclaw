@@ -105,7 +105,7 @@ async function resolveLiveOAuthProfile(): Promise<
       throw error;
     }
   }
-  // The live probe may run while an older local OpenClaw profile awaits Doctor.
+  // The live probe may run while an older local Vasudev profile awaits Doctor.
   // Codex CLI OAuth proves the same bearer/account wire without changing runtime fallback rules.
   const credential = readCodexCliCredentialsCached({ allowKeychainPrompt: false, ttlMs: 0 });
   if (!credential) {
@@ -197,7 +197,7 @@ describeLive("OpenAI GA Gateway-controlled WebRTC", () => {
       const server = createServer((req, res) => {
         if (req.url === "/") {
           res.statusCode = 200;
-          res.end("<!doctype html><title>OpenClaw GA sideband proof</title>");
+          res.end("<!doctype html><title>Vasudev GA sideband proof</title>");
           return;
         }
         if (req.url === OPENAI_QUICKSILVER_OFFER_PATH) {
@@ -260,7 +260,7 @@ describeLive("OpenAI GA Gateway-controlled WebRTC", () => {
               try {
                 void Promise.resolve(
                   controlBridge?.submitToolResult(event.callId, {
-                    result: "OpenClaw GA sideband live proof passed.",
+                    result: "Vasudev GA sideband live proof passed.",
                   }),
                 ).catch((error: unknown) =>
                   rejectFunctionOutputAdded(
@@ -333,7 +333,7 @@ describeLive("OpenAI GA Gateway-controlled WebRTC", () => {
         expect(brokerResponse.status).toBe(201);
         await applyBrowserAnswer(page, brokerResponse.answerSdp);
         expect(sessionPolicyReady).toBe(true);
-        controlBridge?.sendUserMessage?.("Run the requested OpenClaw verification.", {
+        controlBridge?.sendUserMessage?.("Run the requested Vasudev verification.", {
           toolChoice: { type: "function", name: "openclaw_agent_consult" },
         });
         await waitForLiveMilestone(toolObserved, "tool call", eventClasses);
@@ -370,7 +370,7 @@ describeLive("OpenAI OAuth WebRTC", () => {
     async ({ skip }) => {
       const auth = await resolveLiveOAuthProfile();
       if (!auth) {
-        skip("No OpenClaw ChatGPT OAuth profile is available");
+        skip("No Vasudev ChatGPT OAuth profile is available");
         return;
       }
 
@@ -385,7 +385,7 @@ describeLive("OpenAI OAuth WebRTC", () => {
         if (req.url === "/") {
           res.statusCode = 200;
           res.setHeader("content-type", "text/html; charset=utf-8");
-          res.end("<!doctype html><title>OpenClaw realtime live proof</title>");
+          res.end("<!doctype html><title>Vasudev realtime live proof</title>");
           return;
         }
         if (req.url === OPENAI_QUICKSILVER_OFFER_PATH) {

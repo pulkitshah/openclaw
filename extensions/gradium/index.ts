@@ -1,4 +1,4 @@
-// Gradium plugin entrypoint registers its OpenClaw integration.
+// Gradium plugin entrypoint registers its Vasudev integration.
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 import { buildGradiumSpeechProvider } from "./speech-provider.js";
 

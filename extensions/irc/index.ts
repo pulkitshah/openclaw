@@ -1,4 +1,4 @@
-// Irc plugin entrypoint registers its OpenClaw integration.
+// Irc plugin entrypoint registers its Vasudev integration.
 import { defineBundledChannelEntry } from "openclaw/plugin-sdk/channel-entry-contract";
 
 export default defineBundledChannelEntry({

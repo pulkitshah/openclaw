@@ -62,7 +62,7 @@ type OpenCodeQueryCacheOptions = {
 };
 
 const openCodeConfigIdentities = new WeakMap<object, number>();
-// Query results are valid for one immutable OpenClaw config identity, CLI environment, and SQL text.
+// Query results are valid for one immutable Vasudev config identity, CLI environment, and SQL text.
 // Config/env changes or 32s expiry invalidate them; failures are removed so recovery retries at once.
 // The bounded map prevents pagination variants from growing while avoiding a subprocess every poll.
 const openCodeQueryCache = new Map<string, OpenCodeQueryCacheEntry>();

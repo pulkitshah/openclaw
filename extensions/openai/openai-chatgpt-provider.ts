@@ -165,7 +165,7 @@ function matchesOpenAICodexImageCapableModel(modelId: string, modelName?: string
  * Restore native `["text", "image"]` input capability on resolved Codex rows
  * for known image-capable modern model IDs (GPT-5.4 through GPT-5.6).
  * Persisted/configured model rows can omit the `input` field
- * entirely when they were written by older OpenClaw versions. When that row wins
+ * entirely when they were written by older Vasudev versions. When that row wins
  * the catalog merge, `modelSupportsInput(entry, "image")` returns false and the
  * gateway's `chat.send` handler offloads inbound images as `media://inbound/<id>`
  * claim-check URIs instead of inlining them.
@@ -627,7 +627,7 @@ function buildOpenAICodexAuthDoctorHint(ctx: { profileId?: string }) {
   if (ctx.profileId !== CODEX_CLI_PROFILE_ID) {
     return undefined;
   }
-  return "Deprecated profile. Run `openclaw models auth login --provider openai` or `openclaw configure`.";
+  return "Deprecated profile. Run `vasudev models auth login --provider openai` or `vasudev configure`.";
 }
 
 export function buildOpenAIChatGPTAuthMethodRuns(): Readonly<

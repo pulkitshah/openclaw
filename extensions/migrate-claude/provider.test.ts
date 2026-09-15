@@ -440,7 +440,7 @@ describe("Claude migration provider", () => {
           itemKinds: ["memory"],
         }),
       ),
-    ).rejects.toThrow("source and OpenClaw import destination must be separate");
+    ).rejects.toThrow("source and Vasudev import destination must be separate");
   });
 
   it.runIf(process.platform !== "win32")(

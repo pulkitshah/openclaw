@@ -95,7 +95,7 @@ export async function buildClaudePlan(ctx: MigrationProviderContext): Promise<Mi
       : []),
     ...(items.some((item) => item.kind === "archive")
       ? [
-          "Some Claude files are archive-only. They will be copied into the migration report for manual review, not loaded into OpenClaw.",
+          "Some Claude files are archive-only. They will be copied into the migration report for manual review, not loaded into Vasudev.",
         ]
       : []),
     ...(items.some((item) => item.kind === "manual")
@@ -109,7 +109,7 @@ export async function buildClaudePlan(ctx: MigrationProviderContext): Promise<Mi
     summary: summarizeMigrationItems(items),
     items,
     warnings,
-    nextSteps: memoryOnly ? [] : ["Run openclaw doctor after applying the migration."],
+    nextSteps: memoryOnly ? [] : ["Run vasudev doctor after applying the migration."],
     metadata: { agentDir: targets.agentDir },
   };
 }

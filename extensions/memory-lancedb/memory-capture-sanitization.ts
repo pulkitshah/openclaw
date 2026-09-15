@@ -19,7 +19,7 @@ export function dropMediaNoteLines(text: string): string {
 }
 
 /**
- * Provenance marker appended to every OpenClaw-injected inbound context header
+ * Provenance marker appended to every Vasudev-injected inbound context header
  * by `buildInboundUserContextPrefix`. `sanitizeForMemoryCapture` and
  * `looksLikeEnvelopeSludge` key on this marker rather than on label text, so
  * detection is label-agnostic (arbitrary plugin `ChannelStructuredContext`
@@ -70,7 +70,7 @@ const LEADING_CURRENT_MESSAGE_ID_SENDER_RE = /^#\d+\s+[^\n:]{1,100}:\s*/;
 const CONTEXT_HEADER_RE = /^Context:[ \t]*⟦openclaw:ctx⟧[ \t]*$/m;
 
 /**
- * Matches JSON blobs that look like OpenClaw transport envelope metadata.
+ * Matches JSON blobs that look like Vasudev transport envelope metadata.
  * Orthogonal to the header marker: it catches a bare envelope payload by its
  * compound keys even when no marker header precedes it (e.g. a fragment that
  * leaked outside its ```json fence). Core's `formatContextJsonBlock` emits
@@ -187,7 +187,7 @@ function matchKnownChannelMarkerFreeEnvelopePrefix(
 }
 
 /**
- * Returns true if `text` looks like it contains OpenClaw-injected envelope or
+ * Returns true if `text` looks like it contains Vasudev-injected envelope or
  * transport metadata that should never be persisted as a long-term memory.
  */
 export function looksLikeEnvelopeSludge(text: string): boolean {
@@ -459,7 +459,7 @@ function stripLeadingChronologicalContextBlocks(text: string): string {
 }
 
 /**
- * Strips OpenClaw-injected envelope metadata from a user message so that only
+ * Strips Vasudev-injected envelope metadata from a user message so that only
  * the user's actual intent text remains. Returns empty string if nothing
  * meaningful survives.
  */

@@ -290,7 +290,7 @@ describe("memory index", () => {
   );
 
   it("round-trips mixed-case project keys through indexed recall consumers", async () => {
-    const projectKey = "github.com/OpenClaw/Vasudev";
+    const projectKey = "github.com/OpenClaw/OpenClaw";
     await fs.writeFile(
       path.join(fixture.paths.workspace, "MEMORY.md"),
       `- Follow the kraken deploy ritual. <!-- trigger: kraken deploy ritual --> <!-- importance: 8 --> <!-- project: ${projectKey} -->\n`,

@@ -771,7 +771,7 @@ describe("wrapCopilotAnthropicStream", () => {
     });
   });
 
-  it("does not claim provider transport before OpenClaw chooses one", () => {
+  it("does not claim provider transport before Vasudev chooses one", () => {
     expect(
       wrapCopilotProviderStream({
         streamFn: undefined,

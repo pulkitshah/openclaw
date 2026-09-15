@@ -1,5 +1,5 @@
 /**
- * Standalone extension relay daemon. Hosts the loopback relay the OpenClaw
+ * Standalone extension relay daemon. Hosts the loopback relay the Vasudev
  * Chrome extension dials, with no Gateway required — CDP clients (mcporter,
  * Playwright, chrome-devtools-mcp) attach through the same relay port. Spawned
  * on demand by the native messaging host, or run manually.

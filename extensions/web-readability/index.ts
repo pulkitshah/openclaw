@@ -1,4 +1,4 @@
-// Web Readability plugin entrypoint registers its OpenClaw integration.
+// Web Readability plugin entrypoint registers its Vasudev integration.
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 
 export default definePluginEntry({

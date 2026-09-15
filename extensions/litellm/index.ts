@@ -1,4 +1,4 @@
-// Litellm plugin entrypoint registers its OpenClaw integration.
+// Litellm plugin entrypoint registers its Vasudev integration.
 import type { OpenClawConfig } from "openclaw/plugin-sdk/config-contracts";
 import {
   definePluginEntry,

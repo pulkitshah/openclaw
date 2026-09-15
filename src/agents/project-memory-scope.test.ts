@@ -32,8 +32,8 @@ async function makeRepo(remote?: string): Promise<string> {
 
 describe("project memory scope", () => {
   it.each([
-    ["https://GitHub.COM/OpenClaw/Vasudev.git", "github.com/OpenClaw/Vasudev"],
-    ["git@GITHUB.com:Vasudev/Vasudev.git", "github.com/OpenClaw/Vasudev"],
+    ["https://GitHub.COM/OpenClaw/OpenClaw.git", "github.com/OpenClaw/OpenClaw"],
+    ["git@GITHUB.com:OpenClaw/OpenClaw.git", "github.com/OpenClaw/OpenClaw"],
     ["https://github.com/OpenClaw/Repo;Prod.git", "github.com/OpenClaw/Repo%3bProd"],
   ])("normalizes origin %s", async (remote, expected) => {
     await expect(resolveProjectKey(await makeRepo(remote))).resolves.toBe(expected);
@@ -82,7 +82,7 @@ describe("project memory scope", () => {
   });
 
   it("converges a linked worktree and its source repository", async () => {
-    const repo = await makeRepo("https://github.com/OpenClaw/Vasudev.git");
+    const repo = await makeRepo("https://github.com/OpenClaw/OpenClaw.git");
     await git(repo, "config", "user.email", "test@example.com");
     await git(repo, "config", "user.name", "Test");
     await fs.writeFile(path.join(repo, "README.md"), "test\n");
@@ -93,7 +93,7 @@ describe("project memory scope", () => {
     await git(repo, "worktree", "add", worktree, "-b", "test-worktree");
     await expect(
       Promise.all([resolveProjectKey(repo), resolveProjectKey(worktree)]),
-    ).resolves.toEqual(["github.com/OpenClaw/Vasudev", "github.com/OpenClaw/Vasudev"]);
+    ).resolves.toEqual(["github.com/OpenClaw/OpenClaw", "github.com/OpenClaw/OpenClaw"]);
   });
 
   it.runIf(process.platform !== "win32")(
@@ -113,7 +113,7 @@ describe("project memory scope", () => {
       const repo = path.join(parent, "repo");
       await fs.mkdir(repo);
       await git(repo, "init");
-      await git(repo, "remote", "add", "origin", "https://github.com/OpenClaw/Vasudev.git");
+      await git(repo, "remote", "add", "origin", "https://github.com/OpenClaw/OpenClaw.git");
 
       const started = Date.now();
       const key = await withEnvAsync(

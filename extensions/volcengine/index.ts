@@ -1,4 +1,4 @@
-// Volcengine plugin entrypoint registers its OpenClaw integration.
+// Volcengine plugin entrypoint registers its Vasudev integration.
 import { buildOpenAICompatibleProviderFamilyCatalog } from "openclaw/plugin-sdk/provider-catalog-live-runtime";
 import { readManifestProviderDefaultModelRef } from "openclaw/plugin-sdk/provider-catalog-shared";
 import { defineSingleProviderPluginEntry } from "openclaw/plugin-sdk/provider-entry";

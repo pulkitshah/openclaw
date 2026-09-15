@@ -1,4 +1,4 @@
-// Device Pair plugin entrypoint registers its OpenClaw integration.
+// Device Pair plugin entrypoint registers its Vasudev integration.
 import { rm } from "node:fs/promises";
 import { isIP } from "node:net";
 import os from "node:os";
@@ -699,7 +699,7 @@ async function sendQrPngToSupportedChannel(params: {
 export default definePluginEntry({
   id: "device-pair",
   name: "Device Pair",
-  description: "QR/bootstrap pairing helpers for OpenClaw devices",
+  description: "QR/bootstrap pairing helpers for Vasudev devices",
   register(api: OpenClawPluginApi) {
     let notifierService: ReturnType<NotifyModule["createPairingNotifierService"]> | undefined;
     api.registerService({
@@ -866,7 +866,7 @@ export default definePluginEntry({
                 ctx,
                 sender: qrChannelSender,
                 target,
-                caption: ["Scan this QR code with the OpenClaw iOS app:", "", ...infoLines].join(
+                caption: ["Scan this QR code with the Vasudev iOS app:", "", ...infoLines].join(
                   "\n",
                 ),
                 qrFilePath,
@@ -924,7 +924,7 @@ export default definePluginEntry({
             }
             return {
               text: [
-                "Scan this QR code with the OpenClaw iOS app:",
+                "Scan this QR code with the Vasudev iOS app:",
                 "",
                 formatQrInfoMarkdown({
                   payload,

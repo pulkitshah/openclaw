@@ -10,7 +10,7 @@ const PROVIDER_PATH = "models.providers.deepinfra";
 const NATIVE_INFERENCE_PATH = "/v1/inference";
 const OPENAI_COMPAT_PATH = "/v1/openai";
 const CANONICAL_BASE_URL: string = manifest.modelCatalog.providers.deepinfra.baseUrl;
-const FIX_HINT = `Run "openclaw doctor --fix" (api.deepinfra.com endpoints migrate automatically; custom hosts must set ${PROVIDER_PATH}.baseUrl to an OpenAI-compatible videos endpoint manually).`;
+const FIX_HINT = `Run "vasudev doctor --fix" (api.deepinfra.com endpoints migrate automatically; custom hosts must set ${PROVIDER_PATH}.baseUrl to an OpenAI-compatible videos endpoint manually).`;
 
 export const legacyConfigRules = [
   {

@@ -124,7 +124,7 @@ function buildOpenAIThinkingProfile(params: {
   const supportsMax =
     modelId.startsWith("gpt-5.6") && (agentRuntime !== "codex" || codexSupportsMax);
   const codexSupportsUltra = (resolvedCodexEfforts ?? knownCodexEfforts)?.includes("ultra");
-  // OpenClaw owns its logical Ultra orchestration. Native Codex capabilities
+  // Vasudev owns its logical Ultra orchestration. Native Codex capabilities
   // come from native discovery or the selected ChatGPT route's catalog metadata.
   const supportsUltra =
     (modelId === OPENAI_GPT_56_MODEL_ID || isGpt56Variant) &&

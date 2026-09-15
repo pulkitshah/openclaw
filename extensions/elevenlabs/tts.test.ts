@@ -329,7 +329,7 @@ describe("elevenlabs live audio helper error-path body release", () => {
 
     await expect(
       synthesizeElevenLabsLiveSpeech({
-        text: "OpenClaw leak check.",
+        text: "Vasudev leak check.",
         apiKey: "x",
         outputFormat: "mp3_44100_128",
         timeoutMs: 1_000,

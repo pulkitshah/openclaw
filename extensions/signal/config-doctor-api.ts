@@ -48,7 +48,7 @@ export const legacyConfigRules: ChannelDoctorLegacyConfigRule[] = [
   {
     path: ["channels", "signal"],
     message:
-      'Signal transport config is now account-owned; run "openclaw doctor --fix" to migrate retired channels.signal transport fields.',
+      'Signal transport config is now account-owned; run "vasudev doctor --fix" to migrate retired channels.signal transport fields.',
     match: (value) =>
       isRecord(value) &&
       (Object.hasOwn(value, "apiMode") || hasRetiredSignalAccountTransportFields(value)),
@@ -56,7 +56,7 @@ export const legacyConfigRules: ChannelDoctorLegacyConfigRule[] = [
   {
     path: ["channels", "signal", "accounts"],
     message:
-      'Signal transport config is now account-owned; run "openclaw doctor --fix" to migrate retired per-account transport fields.',
+      'Signal transport config is now account-owned; run "vasudev doctor --fix" to migrate retired per-account transport fields.',
     match: hasRetiredSignalAccountMapTransportFields,
   },
 ];

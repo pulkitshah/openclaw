@@ -1,4 +1,4 @@
-// Minimax plugin entrypoint registers its OpenClaw integration.
+// Minimax plugin entrypoint registers its Vasudev integration.
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 import {
   buildMinimaxImageGenerationProvider,

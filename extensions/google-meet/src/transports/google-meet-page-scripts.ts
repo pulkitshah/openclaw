@@ -48,7 +48,13 @@ export function meetStatusScript(params: {
     });
   const audioDeviceFamily = (value) => {
     const label = String(value || '');
-    if (/\\bOpenClaw Meeting Audio\\b/i.test(label)) return 'openclaw-meeting-audio';
+    // The virtual device src/meeting-bot/audio-backend.ts creates is described as
+    // "Vasudev Meeting Audio"; a device installed by an older build still reports
+    // the previous description, so both spellings resolve to the same family id.
+    // Spelled lowercase against the case-insensitive match on purpose: a
+    // capitalized legacy spelling here would be rewritten by scripts/rebrand-apply.mjs
+    // into a duplicate alternative on the next run.
+    if (/\\b(?:openclaw|vasudev) meeting audio\\b/i.test(label)) return 'openclaw-meeting-audio';
     if (/\\bBlackHole\\s+2ch\\b/i.test(label)) return 'blackhole-2ch';
     return undefined;
   };

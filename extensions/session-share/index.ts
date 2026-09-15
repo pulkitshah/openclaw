@@ -8,7 +8,7 @@ import { createSessionShareCatalog } from "./src/session-catalog.js";
 export default definePluginEntry({
   id: "session-share",
   name: "Session Share",
-  description: "Read-only OpenClaw sessions on paired gateways",
+  description: "Read-only Vasudev sessions on paired gateways",
   register(api) {
     api.registerSessionCatalog(createSessionShareCatalog(api));
     for (const command of createSessionShareNodeCommands(api)) {

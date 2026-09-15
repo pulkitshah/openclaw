@@ -412,6 +412,38 @@ describe("collectTargetFiles", () => {
 
     expect(collectLocaleFiles(rootDir)).toEqual(["ui/src/i18n/locales/de.ts"]);
   });
+
+  it("resolves bundled-plugin and package sources that live at the plugin root, with the same one-segment filter", () => {
+    const rootDir = createFixtureRepo({
+      "README.md": "# OpenClaw\n",
+      // Many bundled plugins keep their sources at the plugin root rather
+      // than under `src/`, and every user-facing string in them is in scope
+      // exactly as it is one directory down.
+      "extensions/anthropic/auth.runtime.ts": 'const m = "OpenClaw needs a key";\n',
+      "extensions/migrate-hermes/config-mcp.ts": 'const m = "OpenClaw config";\n',
+      "extensions/telegram/pairing-prompt.tsx": "const m = <p>Pair with OpenClaw</p>;\n",
+      "packages/sdk/client.ts": 'const m = "OpenClaw Gateway";\n',
+      // One segment only: a nested fixture package's root sources are no
+      // more in scope than its `src/` tree.
+      "extensions/qa-lab/test-fixtures/demo/index.ts": 'const m = "OpenClaw";\n',
+      // Test files at a plugin root follow the same rule as everywhere else:
+      // out of the default apply, inside the guard's scan.
+      "extensions/anthropic/auth.runtime.test.ts": 'expect(m).toBe("OpenClaw");\n',
+    });
+
+    const files = collectTargetFiles(rootDir);
+
+    expect(files).toContain("extensions/anthropic/auth.runtime.ts");
+    expect(files).toContain("extensions/migrate-hermes/config-mcp.ts");
+    expect(files).toContain("extensions/telegram/pairing-prompt.tsx");
+    expect(files).toContain("packages/sdk/client.ts");
+    expect(files).not.toContain("extensions/qa-lab/test-fixtures/demo/index.ts");
+    expect(files).not.toContain("extensions/anthropic/auth.runtime.test.ts");
+
+    const guarded = collectTargetFiles(rootDir, { includeTests: true });
+    expect(guarded).toContain("extensions/anthropic/auth.runtime.test.ts");
+    expect(guarded).not.toContain("extensions/qa-lab/test-fixtures/demo/index.ts");
+  });
 });
 
 describe("self-referential docs and the licence exemption", () => {
@@ -720,6 +752,25 @@ describe("protected tokens (values that cross a boundary this rebrand does not o
     expect(count).toBe(1);
   });
 
+  it("never rewrites the capitalized upstream repository slug, in either half", () => {
+    // `src/projects`'s registry normalizes a clone URL into a project key and
+    // compares it; renaming only the trailing half leaves a slug that
+    // identifies no repository.
+    const content = [
+      'const clone = "https://github.com/OpenClaw/OpenClaw.git";',
+      'const key = "github.com/OpenClaw/OpenClaw";',
+      'const note = "Clone OpenClaw before running it.";',
+    ].join("\n");
+    const { content: rewritten, count } = rewriteTypeScriptContent(
+      content,
+      "src/projects/project-registry.test.ts",
+    );
+    expect(rewritten).toContain('"https://github.com/OpenClaw/OpenClaw.git"');
+    expect(rewritten).toContain('"github.com/OpenClaw/OpenClaw"');
+    expect(rewritten).toContain("Clone Vasudev before running it.");
+    expect(count).toBe(1);
+  });
+
   it("never rewrites the OpenClaw-Publication git commit trailer", () => {
     // Written into commits in the user's own repository and read back to
     // recognise an already-published commit; commits made by earlier builds
@@ -932,6 +983,21 @@ describe("structural literal exclusions", () => {
     expect(rewritten).toContain('"X-OpenRouter-Title": "OpenClaw"');
     expect(rewritten).toContain('"MM-API-Source": "OpenClaw"');
     expect(rewritten).toContain("Run `vasudev doctor --fix` to repair Vasudev.");
+  });
+
+  it("never rewrites a header value passed through headers.set/append, but still rewrites an ordinary map value", () => {
+    const content = [
+      'headers.set("X-OpenRouter-Title", "OpenClaw");',
+      'init.headers.append("MM-API-Source", "OpenClaw");',
+      'labels.set("newer-schema", "a newer OpenClaw build");',
+    ].join("\n");
+    const { content: rewritten } = rewriteTypeScriptContent(
+      content,
+      "extensions/openrouter/stream.ts",
+    );
+    expect(rewritten).toContain('headers.set("X-OpenRouter-Title", "OpenClaw")');
+    expect(rewritten).toContain('init.headers.append("MM-API-Source", "OpenClaw")');
+    expect(rewritten).toContain('labels.set("newer-schema", "a newer Vasudev build")');
   });
 });
 

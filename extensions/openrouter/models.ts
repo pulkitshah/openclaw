@@ -14,7 +14,7 @@ const OPENROUTER_MISTRAL_MODEL_PREFIXES = [
 ] as const;
 const OPENROUTER_MODEL_PREFIX = "openrouter/";
 
-// Short OpenRouter model refs surfaced by OpenClaw (e.g. `models list`) that are
+// Short OpenRouter model refs surfaced by Vasudev (e.g. `models list`) that are
 // not native OpenRouter routes. The upstream API expects the namespaced slug.
 const OPENROUTER_SHORT_TO_API_MODEL_ID = new Map([
   ["deepseek-v4-flash", "deepseek/deepseek-v4-flash"],

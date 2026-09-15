@@ -1,4 +1,4 @@
-// ClawRouter provider catalog maps credential-scoped routes to OpenClaw transports.
+// ClawRouter provider catalog maps credential-scoped routes to Vasudev transports.
 import type { ProviderRuntimeModel } from "openclaw/plugin-sdk/plugin-entry";
 import {
   getCachedLiveProviderModelRows,

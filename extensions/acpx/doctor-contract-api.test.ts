@@ -34,7 +34,7 @@ vi.mock("./runtime-api.js", () => {
 });
 
 describe("acpx doctor config repair", () => {
-  it("flags both retired config keys for openclaw doctor --fix", () => {
+  it("flags both retired config keys for vasudev doctor --fix", () => {
     expect(legacyConfigRules).toEqual([
       expect.objectContaining({
         path: ["plugins", "entries", "acpx", "config", "strictWindowsCmdWrapper"],

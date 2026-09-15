@@ -177,7 +177,7 @@ export function resolveHermesImplicitBaseUrl(providerId: string | undefined): st
   if (provider && ["alibaba", "alibaba-cloud", "aliyun", "dashscope"].includes(provider)) {
     return HERMES_ALIBABA_BASE_URL;
   }
-  // OpenClaw's qwen default is already Hermes' coding-plan endpoint; no override needed.
+  // Vasudev's qwen default is already Hermes' coding-plan endpoint; no override needed.
   if (provider && ["kimi-coding-cn", "kimi-cn", "moonshot-cn"].includes(provider)) {
     return HERMES_MOONSHOT_CN_BASE_URL;
   }

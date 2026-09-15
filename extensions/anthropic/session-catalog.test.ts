@@ -813,7 +813,7 @@ describe("Claude session catalog", () => {
     expect(createSessionEntry).toHaveBeenCalledWith(
       expect.objectContaining({
         // Adoption shows the user's /rename via displayName; labels stay unseeded
-        // because OpenClaw labels are unique and duplicate CLI titles must adopt.
+        // because Vasudev labels are unique and duplicate CLI titles must adopt.
         displayName: "Renamed source",
         spawnedCwd: "/work/source",
         initialEntry: expect.objectContaining({
@@ -1023,7 +1023,7 @@ describe("Claude session catalog", () => {
         pluginExtensions: { anthropic: { sessionCatalog: { sourceThreadId: sessionId } } },
       }),
     },
-  ])("links a catalog row to an existing OpenClaw session via $label", async ({ entry }) => {
+  ])("links a catalog row to an existing Vasudev session via $label", async ({ entry }) => {
     const home = await createHome();
     process.env.HOME = home;
     const sessionId = "claude-bound-session";

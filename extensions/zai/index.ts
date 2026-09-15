@@ -1,4 +1,4 @@
-// Zai plugin entrypoint registers its OpenClaw integration.
+// Zai plugin entrypoint registers its Vasudev integration.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";

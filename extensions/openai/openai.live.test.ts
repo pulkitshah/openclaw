@@ -244,7 +244,7 @@ describeLive("openai plugin live", () => {
     const ttsConfig = createLiveTtsConfig();
 
     const audioFile = await speechProvider.synthesize({
-      text: "OpenClaw integration test OK.",
+      text: "Vasudev integration test OK.",
       cfg,
       providerConfig: ttsConfig.providerConfigs.openai ?? {},
       target: "audio-file",
@@ -328,7 +328,7 @@ describeLive("openai plugin live", () => {
     const speechProvider = requireRegisteredProvider(speechProviders, "openai");
     const cfg = createLiveConfig();
     const ttsConfig = createLiveTtsConfig();
-    const phrase = "Testing OpenClaw OpenAI realtime transcription integration test OK.";
+    const phrase = "Testing Vasudev OpenAI realtime transcription integration test OK.";
 
     const telephony = await speechProvider.synthesizeTelephony?.({
       text: phrase,

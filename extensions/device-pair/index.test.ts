@@ -331,7 +331,7 @@ describe("device-pair /pair qr", () => {
 
     expect(pluginApiMocks.renderQrPngDataUrl).toHaveBeenCalledTimes(1);
     expect(pluginApiMocks.issueDeviceBootstrapToken).toHaveBeenCalledWith(FULL_SETUP_REQUEST);
-    expect(text).toContain("Scan this QR code with the OpenClaw iOS app:");
+    expect(text).toContain("Scan this QR code with the Vasudev iOS app:");
     expect(payload.mediaUrl).toBeUndefined();
     expect(payload.channelData?.openclawPairingQr).toEqual({
       setupCode: expect.any(String),
@@ -341,7 +341,7 @@ describe("device-pair /pair qr", () => {
     expect(text).toContain("- Security: single-use bootstrap token");
     expect(text).toContain("**Important:** Run `/pair cleanup` after pairing finishes.");
     expect(text).toContain("If this QR code leaks, run `/pair cleanup` immediately.");
-    expect(text).not.toContain("![OpenClaw pairing QR]");
+    expect(text).not.toContain("![Vasudev pairing QR]");
   });
 
   it.each`
@@ -408,7 +408,7 @@ describe("device-pair /pair qr", () => {
       >,
     ];
     expect(actualTarget).toBe(target);
-    expect(caption).toContain("Scan this QR code with the OpenClaw iOS app:");
+    expect(caption).toContain("Scan this QR code with the Vasudev iOS app:");
     expect(caption).toContain("IMPORTANT: After pairing finishes, run /pair cleanup.");
     expect(caption).toContain("If this QR code leaks, run /pair cleanup immediately.");
     const mediaUrl = requireMediaUrl(sendOpts);
