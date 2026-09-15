@@ -94,7 +94,10 @@ export function createMeetingStatusPreludeSource(
   // Keep these names scoped: older plugin lifecycle fragments declare their own helpers.
   const meetingAudioInput = (() => {
     const isVirtualAudioDevice = (value) =>
-      /^(?:blackhole 2ch(?: \\(virtual\\))?|openclaw meeting audio)$/i.test(
+      // Both spellings of the meeting-audio description: the current one from
+      // src/meeting-bot/audio-backend.ts and the one a device installed by an
+      // older build still reports.
+      /^(?:blackhole 2ch(?: \\(virtual\\))?|(?:openclaw|vasudev) meeting audio)$/i.test(
         String(value || "").replace(/\\s+/g, " ").trim()
       );
     const isVirtualAudioDeviceNode = (node) => [

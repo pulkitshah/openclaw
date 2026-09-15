@@ -83,20 +83,20 @@ export function registerMemoryCli(program: Command, hostOptions?: MemoryCoreRunt
       "after",
       () =>
         `\n${theme.heading("Examples:")}\n${formatHelpExamples([
-          ["openclaw memory status", "Show index and provider status."],
+          ["vasudev memory status", "Show index and provider status."],
           [
-            "openclaw memory status --fix",
+            "vasudev memory status --fix",
             "Repair stale recall locks and normalize promotion metadata.",
           ],
-          ["openclaw memory status --deep", "Probe embedding provider readiness."],
-          ["openclaw memory index --force", "Force a full reindex."],
+          ["vasudev memory status --deep", "Probe embedding provider readiness."],
+          ["vasudev memory index --force", "Force a full reindex."],
           ['vasudev memory search "meeting notes"', "Quick search using positional query."],
           [
             'vasudev memory search --query "deployment" --max-results 20',
             "Limit results for focused troubleshooting.",
           ],
           [
-            "openclaw memory forget --hook-source gmail --dry-run",
+            "vasudev memory forget --hook-source gmail --dry-run",
             "Preview deletion of memories derived from matching sessions.",
           ],
           [
@@ -104,7 +104,7 @@ export function registerMemoryCli(program: Command, hostOptions?: MemoryCoreRunt
             "Review weighted short-term candidates for long-term memory.",
           ],
           [
-            "openclaw memory promote --apply",
+            "vasudev memory promote --apply",
             "Append top-ranked short-term candidates into MEMORY.md.",
           ],
           [
@@ -112,7 +112,7 @@ export function registerMemoryCli(program: Command, hostOptions?: MemoryCoreRunt
             "Explain why a specific candidate would or would not promote.",
           ],
           [
-            "openclaw memory rem-harness --json",
+            "vasudev memory rem-harness --json",
             "Preview REM reflections, candidate truths, and deep promotion output.",
           ],
           [
@@ -127,7 +127,7 @@ export function registerMemoryCli(program: Command, hostOptions?: MemoryCoreRunt
             "vasudev memory session-backfill --agent main --from 2026-01-01",
             "Preview trusted candidates from retained session history.",
           ],
-          ["openclaw memory status --json", "Output machine-readable JSON (good for scripts)."],
+          ["vasudev memory status --json", "Output machine-readable JSON (good for scripts)."],
         ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/memory", "docs.openclaw.ai/cli/memory")}\n`,
     );
 

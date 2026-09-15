@@ -429,13 +429,13 @@ describe("Reef setup wizard identity binding", () => {
         expect(result.cfg.models).toEqual(original.models);
       } else {
         await expect(configuring).rejects.toThrow(
-          "left openai/gpt-5.6-terra on the vasudev agent runtime",
+          "left openai/gpt-5.6-terra on the openclaw agent runtime",
         );
       }
       expect(cfg).toEqual(original);
       expect(prompter.confirm).toHaveBeenCalledExactlyOnceWith({
         message:
-          "openai/gpt-5.6-terra currently uses the vasudev agent runtime. Reef OAuth requires codex; change this shared model runtime?",
+          "openai/gpt-5.6-terra currently uses the openclaw agent runtime. Reef OAuth requires codex; change this shared model runtime?",
         initialValue: false,
       });
     },

@@ -728,7 +728,7 @@ describe("googlechat monitor inbound space classification", () => {
     expect(apiMocks.sendGoogleChatMessage).toHaveBeenCalledWith({
       account,
       space: "spaces/CLASSIFY",
-      text: "_OpenClaw is typing..._",
+      text: "_Vasudev is typing..._",
       thread: expectedThread,
     });
   });
@@ -756,7 +756,7 @@ describe("googlechat monitor inbound space classification", () => {
       name: "the generic fallback when names are empty",
       accountName: " ",
       agent: { name: " ", identity: { name: " " } },
-      expectedText: "_OpenClaw is typing..._",
+      expectedText: "_Vasudev is typing..._",
     },
   ])("uses $name in the typing message", async ({ accountName, agent, expectedText }) => {
     const { core } = createInboundClassificationHarness();
@@ -878,7 +878,7 @@ describe("googlechat monitor inbound space classification", () => {
     expect(apiMocks.sendGoogleChatMessage).toHaveBeenNthCalledWith(1, {
       account,
       space: "spaces/CLASSIFY",
-      text: "_OpenClaw is typing..._",
+      text: "_Vasudev is typing..._",
       thread: requestedThread,
     });
     expect(apiMocks.updateGoogleChatMessage).toHaveBeenCalledWith({
@@ -1016,7 +1016,7 @@ describe("googlechat monitor direct messages", () => {
     expect(apiMocks.sendGoogleChatMessage).toHaveBeenCalledWith({
       account,
       space: "spaces/DM",
-      text: "_OpenClaw is typing..._",
+      text: "_Vasudev is typing..._",
       thread: undefined,
     });
     expect(runTurn).toHaveBeenCalledOnce();

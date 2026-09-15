@@ -147,7 +147,7 @@ describe("openrouter image generation provider", () => {
     expect(Object.fromEntries(headers.entries())).toEqual({
       authorization: "Bearer openrouter-key",
       "http-referer": "https://openclaw.ai",
-      "x-openrouter-title": "Vasudev",
+      "x-openrouter-title": "OpenClaw",
     });
     expect(request).toEqual({
       url: "https://custom.openrouter.test/api/v1/chat/completions",

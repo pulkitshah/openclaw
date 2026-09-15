@@ -752,6 +752,25 @@ describe("protected tokens (values that cross a boundary this rebrand does not o
     expect(count).toBe(1);
   });
 
+  it("never rewrites the capitalized upstream repository slug, in either half", () => {
+    // `src/projects`'s registry normalizes a clone URL into a project key and
+    // compares it; renaming only the trailing half leaves a slug that
+    // identifies no repository.
+    const content = [
+      'const clone = "https://github.com/OpenClaw/OpenClaw.git";',
+      'const key = "github.com/OpenClaw/OpenClaw";',
+      'const note = "Clone OpenClaw before running it.";',
+    ].join("\n");
+    const { content: rewritten, count } = rewriteTypeScriptContent(
+      content,
+      "src/projects/project-registry.test.ts",
+    );
+    expect(rewritten).toContain('"https://github.com/OpenClaw/OpenClaw.git"');
+    expect(rewritten).toContain('"github.com/OpenClaw/OpenClaw"');
+    expect(rewritten).toContain("Clone Vasudev before running it.");
+    expect(count).toBe(1);
+  });
+
   it("never rewrites the OpenClaw-Publication git commit trailer", () => {
     // Written into commits in the user's own repository and read back to
     // recognise an already-published commit; commits made by earlier builds

@@ -336,7 +336,7 @@ describe("irc inbound behavior", () => {
 
   it.each([
     { label: "ordinary nick", nick: "Vasudev", text: "Vasudev: hello", mentioned: true },
-    { label: "ASCII case folding", nick: "Vasudev", text: "openclaw: hello", mentioned: true },
+    { label: "ASCII case folding", nick: "Vasudev", text: "vasudev: hello", mentioned: true },
     { label: "leading bracket", nick: "[Claw]", text: "[Claw]: hello", mentioned: true },
     { label: "trailing bracket", nick: "Claw]", text: "hello Claw],", mentioned: true },
     { label: "leading caret", nick: "^Claw", text: "^Claw, hello", mentioned: true },

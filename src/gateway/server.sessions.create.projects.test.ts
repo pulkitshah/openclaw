@@ -119,7 +119,7 @@ test.each([
           agentId: "main",
           message: "Inspect the remote project",
           ...(attachments ? { attachments } : {}),
-          projectGitUrl: "git@github.com:Vasudev/Vasudev.git",
+          projectGitUrl: "git@github.com:OpenClaw/OpenClaw.git",
           ...(worktree
             ? { worktree: true, worktreeName: "remote-startup", worktreeBaseRef: baseRef }
             : {}),

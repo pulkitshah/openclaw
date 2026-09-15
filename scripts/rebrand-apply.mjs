@@ -258,6 +258,17 @@ const PROTECTED_TOKEN_RULES = [
     pattern: /(?<=\b[A-Za-z][A-Za-z0-9]*-)OpenClaw(?=-[A-Za-z0-9])/g,
   },
   {
+    // The canonical upstream GitHub owner/repo slug. `openclaw/openclaw` is
+    // lowercase and never matched, but the capitalized slug appears in clone
+    // URLs and derived project keys (`github.com/OpenClaw/OpenClaw`), which
+    // `src/projects`'s registry normalizes and compares. It has to be shielded
+    // as one token: `repository-path-segment` below only protects a segment
+    // followed by `/`, so the trailing half would rename on its own and leave
+    // a slug that identifies no repository.
+    name: "repository-slug",
+    pattern: /\bOpenClaw\/OpenClaw\b/g,
+  },
+  {
     // A real path segment inside this repository or a shipped bundle
     // (`apps/macos/Sources/OpenClaw/AppProfile.swift`,
     // `apps/shared/OpenClawKit/...`). Requires a preceding path segment so a
@@ -950,6 +961,69 @@ const EXCLUDED_LITERALS_BY_FILE = new Map([
     // Same reserved-id input as setup-apply.test.ts.
     "src/system-agent/operations.test.ts",
     new Set(['"OpenClaw"']),
+  ],
+  ...[
+    // The `X-OpenRouter-Title` value this client sends to OpenRouter, asserted
+    // against the real request headers. The producer's own literal is
+    // protected by the header-setter rule; a lowercase `x-openrouter-title`
+    // expectation key and a `toBe` argument are not reachable by it.
+    "extensions/openrouter/index.test.ts",
+    "extensions/openrouter/image-generation-provider.test.ts",
+    "extensions/openrouter/media-understanding-provider.test.ts",
+    "extensions/openrouter/speech-provider.test.ts",
+  ].map((file) => [file, new Set(['"OpenClaw"'])]),
+  [
+    // The `path` a policy health finding reports. Its producer
+    // (extensions/policy/src/doctor/policy-evidence-finding.ts) holds the bare
+    // command literal `"openclaw config"`, which the bare-command rule keeps
+    // as a value, so the expectation has to match it.
+    "extensions/policy/src/doctor/register.base.test-utils.ts",
+    new Set(['"openclaw config"']),
+  ],
+  [
+    // The pairing guidance printed by the Chrome extension's own
+    // `relay-core.js`. That module is plain JavaScript inside the packed
+    // extension and is not in the allowlist, so its command example still
+    // spells the real binary and the expectation has to match it.
+    "extensions/browser/chrome-extension/modules/relay-core.test.ts",
+    new Set(['"openclaw browser extension pair"']),
+  ],
+  [
+    // `${configuredRuntimeId}` is an agent-runtime id, and the reserved system
+    // runtime is spelled `openclaw`. The displayed-alias rule reads
+    // "openclaw agent ..." as a command example because `agent` is a real
+    // subcommand, so these expectations of the producer's interpolated message
+    // (extensions/reef/src/setup.ts) have to be pinned.
+    "extensions/reef/src/setup.test.ts",
+    new Set([
+      '"left openai/gpt-5.6-terra on the openclaw agent runtime"',
+      '"openai/gpt-5.6-terra currently uses the openclaw agent runtime. Reef OAuth requires codex; change this shared model runtime?"',
+    ]),
+  ],
+  [
+    // The `serviceName` Codex scopes credentials by, asserted against the real
+    // request these cases build. Its producer
+    // (extensions/codex/src/app-server/bounded-turn.ts) is excluded above, so
+    // the expectation has to keep spelling it.
+    "extensions/codex/media-understanding-provider.test.ts",
+    new Set(['"OpenClaw"']),
+  ],
+  [
+    // The ACP bridge command line. `isOpenClawBridgeCommand` in
+    // extensions/acpx/src/runtime.ts matches the real executable
+    // (`OPENCLAW_BRIDGE_EXECUTABLE = "openclaw"`, subcommand `acp`), so a
+    // fixture command that spells anything else stops routing through the
+    // bridge-safe delegate these cases exercise.
+    "extensions/acpx/src/runtime.test.ts",
+    new Set([
+      // Test input, not copy: the probed agent name normalizes to the
+      // `openclaw` agent id the fixture registry resolves to the bridge
+      // command, the same reserved lowercase namespace as
+      // src/system-agent/setup-apply.test.ts's input.
+      '"  OpenClaw  "',
+      '"openclaw acp"',
+      '"env OPENCLAW_HIDE_BANNER=1 OPENCLAW_SUPPRESS_NOTES=1 openclaw acp --url ws://127.0.0.1:18789 --token-file ~/.openclaw/gateway.token --session agent:main:main"',
+    ]),
   ],
 ]);
 

@@ -138,7 +138,7 @@ describe("openrouter speech provider", () => {
       authorization: "Bearer sk-openrouter",
       "content-type": "application/json",
       "http-referer": "https://openclaw.ai",
-      "x-openrouter-title": "Vasudev",
+      "x-openrouter-title": "OpenClaw",
     });
     expect(request).toEqual({
       url: "https://openrouter.ai/api/v1/audio/speech",

@@ -30,9 +30,9 @@ describe("project memory bootstrap", () => {
       endLine: 2,
       score: 0.8,
       snippet:
-        "Use the release helper. <!-- trigger: release helper --> <!-- importance: 8 --> <!-- project: github.com/OpenClaw/Vasudev -->",
+        "Use the release helper. <!-- trigger: release helper --> <!-- importance: 8 --> <!-- project: github.com/OpenClaw/OpenClaw -->",
       source: "memory" as const,
-      projectKey: "github.com/OpenClaw/Vasudev",
+      projectKey: "github.com/OpenClaw/OpenClaw",
       importance: 8,
       provenance: {
         originClass: "owner" as const,
@@ -59,7 +59,7 @@ describe("project memory bootstrap", () => {
 
   async function prepareEntries(
     candidates: typeof entries,
-    activeProjectKeys: string[] = ["github.com/OpenClaw/Vasudev"],
+    activeProjectKeys: string[] = ["github.com/OpenClaw/OpenClaw"],
   ): Promise<string[]> {
     runtimeMocks.listCurated.mockResolvedValue(candidates);
     runtimeMocks.getManager.mockResolvedValue({
@@ -99,7 +99,7 @@ describe("project memory bootstrap", () => {
 
   it("includes entries from every project retained in the session active set", async () => {
     const rendered = (
-      await prepareEntries(entries, ["github.com/example/other", "github.com/OpenClaw/Vasudev"])
+      await prepareEntries(entries, ["github.com/example/other", "github.com/OpenClaw/OpenClaw"])
     ).join("\n");
     expect(rendered).toContain("Use the release helper.");
     expect(rendered).toContain("Foreign fact.");
@@ -217,20 +217,20 @@ describe("project memory bootstrap", () => {
       await prepareProjectMemoryBootstrap({
         cfg: {},
         agentId: "main",
-        activeProjectKeys: ["github.com/OpenClaw/Vasudev"],
+        activeProjectKeys: ["github.com/OpenClaw/OpenClaw"],
       })
     ).join("\n");
     expect(rendered).toContain("Use the release helper.");
     expect(runtimeMocks.search).not.toHaveBeenCalled();
     expect(runtimeMocks.listCurated).toHaveBeenCalledWith({
-      activeProjectKeys: ["github.com/OpenClaw/Vasudev"],
+      activeProjectKeys: ["github.com/OpenClaw/OpenClaw"],
       limit: 48,
     });
   });
 
   it("builds scoped write guidance without capturing global memory", () => {
-    const instruction = buildProjectMemoryWriteInstruction("github.com/OpenClaw/Vasudev");
-    expect(instruction).toContain("<!-- project: github.com/OpenClaw/Vasudev -->");
+    const instruction = buildProjectMemoryWriteInstruction("github.com/OpenClaw/OpenClaw");
+    expect(instruction).toContain("<!-- project: github.com/OpenClaw/OpenClaw -->");
     expect(instruction).toContain("Do not project-scope user-level preferences");
     expect(buildProjectMemoryWriteInstruction("path:/tmp/unsafe-->note")).toBe("");
   });
