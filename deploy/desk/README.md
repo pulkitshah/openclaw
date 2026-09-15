@@ -351,6 +351,35 @@ on the restored desk. It also carries that desk's `openclaw.json`; cloud-init re
 template with the new desk's own tokens, so the Telegram bot token and Gateway token you pass are
 the ones in force.
 
+> **A snapshot carries the source desk's live secrets. Never provision a client from another
+> client's snapshot.** `--image <snapshot-id>` is only ever the *same* desk's snapshot, restored
+> for that same client. `snapshot.sh` names snapshots `desk-<desk-name>-<timestamp>` precisely so
+> you can tell whose they are; nothing enforces the match, so this is on you.
+
+What a restored desk still holds from the source desk, after cloud-init has run:
+
+- `/etc/openclaw/keyfile` and the encrypted credential store it unlocks — every stored login the
+  source desk had, working, on the new box (that is the point of restoring, and the problem when
+  the new box is somebody else's).
+- `/var/lib/cloud/instances/<old-instance-id>/user-data.txt` — the **source** desk's rendered
+  cloud-init, with its Tailscale auth key, Telegram bot token, Gateway token and hooks token in
+  plain text. cloud-init writes the new instance's own directory beside it and never removes the
+  old one, and `/etc/openclaw/secrets/*` is rewritten for the new instance — so this stale copy
+  is the one place those credentials survive. Root-readable.
+- Any log, transcript, Duty artifact, browser profile and `~/.openclaw` state the source desk
+  wrote.
+
+Checklist before a restored desk serves anyone:
+
+1. Confirm the snapshot is this same desk's. If it is not, stop — build a fresh desk instead.
+2. `ssh root@<desk-name> 'ls /var/lib/cloud/instances'` and remove every directory that is not
+   the current instance id (`cat /var/lib/cloud/data/instance-id`).
+3. Rotate the source desk's Tailscale auth key if it was reusable, and its Telegram bot token if
+   the restored desk is not the same client's.
+4. `ssh root@<desk-name> 'systemctl status desk-metadata-guard'` — the guard must be active
+   before the desk takes traffic; it is what keeps the service user off the live metadata
+   endpoint, and it does not cover the stale on-disk copy above.
+
 ## Secrets on the box
 
 DigitalOcean keeps a droplet's user-data — the rendered cloud-init, including the Tailscale auth

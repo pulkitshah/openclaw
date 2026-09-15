@@ -26,7 +26,10 @@ Required:
 Optional:
   --size <slug>              doctl Droplet size slug (default: s-2vcpu-4gb).
   --git-ref <ref>            Fork ref to check out on first boot (default: main).
-  --image <slug-or-id>       Base image or a prior desk's snapshot id (default: ubuntu-24-04-x64).
+  --image <slug-or-id>       Base image, or THIS SAME desk's snapshot id (default:
+                             ubuntu-24-04-x64). A snapshot carries the source desk's live
+                             secrets - never seed one client's desk from another's; see
+                             deploy/desk/README.md (Snapshot / restore).
   --gateway-token-file <f>   Pre-chosen Gateway auth token; a random one is generated if omitted.
 
 Waits in two phases before printing anything: up to DESK_POLL_SECONDS for the desk to join
