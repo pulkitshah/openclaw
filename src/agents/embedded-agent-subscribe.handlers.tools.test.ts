@@ -1219,6 +1219,9 @@ describe("handleToolExecutionEnd cron mutation tracking", () => {
   });
 
   it.each([
+    // Both published bin names reach the same launcher; the detector has to
+    // count either, so this table keeps one case per spelling.
+    ["exec", "openclaw cron add --at +1h --message 'follow up'"],
     ["exec", "vasudev cron add --at +1h --message 'follow up' --name reminder"],
     ["exec", "npx vasudev cron add --at=+1h --message 'follow up'"],
     ["exec", "bunx vasudev cron add --at +1h --message 'follow up'"],
