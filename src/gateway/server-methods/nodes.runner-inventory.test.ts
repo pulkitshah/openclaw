@@ -537,7 +537,7 @@ describe("nodeHandlers node.runnerInventory.update", () => {
       undefined,
       expect.objectContaining({
         code: "INVALID_REQUEST",
-        message: expect.stringContaining("vasudev update"),
+        message: expect.stringContaining("openclaw update"),
       }),
     );
     expect(inventoryChanged).toHaveBeenLastCalledWith("node-1", {
@@ -644,7 +644,7 @@ describe("nodeHandlers node.runnerInventory.update", () => {
     expect(opts.respond).toHaveBeenCalledWith(
       false,
       undefined,
-      expect.objectContaining({ message: expect.stringContaining("vasudev update") }),
+      expect.objectContaining({ message: expect.stringContaining("openclaw update") }),
     );
     expect(runtime.nodeWorkerSupervisorTransport.getIssue?.("node-1")).toEqual(
       NODE_RUNNER_UPDATE_REQUIRED_ISSUE,
