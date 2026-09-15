@@ -523,4 +523,232 @@ describe("render-cloud-init.mjs", () => {
     expect(pkg.packageManager).toMatch(/^pnpm@\d.*\+sha512\./);
     expect(output).toContain(`corepack prepare ${pkg.packageManager} --activate`);
   });
+
+  describe("--profile client", () => {
+    /** A client desk needs neither the bot token nor the owner target, so this helper passes
+     *  exactly what the profile requires — anything more would hide that they are optional. */
+    function renderClient(extraArgs: string[] = []): string {
+      return execFileSync(
+        process.execPath,
+        [
+          RENDER_SCRIPT,
+          "--profile",
+          "client",
+          "--name",
+          deskName,
+          "--ts-authkey-file",
+          tsAuthKeyFile,
+          "--git-ref",
+          gitRef,
+          ...extraArgs,
+        ],
+        { encoding: "utf8" },
+      );
+    }
+
+    function clientConfig(output: string): Record<string, unknown> {
+      const doc = parseYaml(output) as CloudInitDoc;
+      const entry = doc.write_files.find(
+        (item) => item.path === "/home/openclaw/.openclaw/openclaw.json",
+      );
+      return JSON.parse(entry?.content ?? "") as Record<string, unknown>;
+    }
+
+    it("renders a complete, ASCII-clean cloud-init without --tg-token-file or --owner-target", () => {
+      const output = renderClient();
+      expect(output).not.toMatch(UNRESOLVED_PLACEHOLDER_RE);
+      expect(output).not.toContain("{{INCLUDE:");
+      expect(output).toMatch(/^[\x00-\x7F]*$/);
+      expect(output.trimStart().startsWith("#cloud-config")).toBe(true);
+
+      const doc = parseYaml(output) as CloudInitDoc;
+      expect(doc.power_state.mode).toBe("reboot");
+      // Everything that makes the box a desk is still there.
+      const paths = doc.write_files.map((entry) => entry.path);
+      expect(paths).toContain("/etc/systemd/system/openclaw-gateway.service");
+      expect(paths).toContain("/etc/openclaw/secrets/gateway-token");
+      expect(paths).toContain("/home/openclaw/.openclaw/openclaw.json");
+    });
+
+    it("configures only desk plumbing: no channels, agents, bindings or hooks", () => {
+      const config = clientConfig(renderClient());
+      // The owner requirement this profile exists for: a client's desk starts where a fresh
+      // install starts, so the Control UI's own onboarding (Model Setup, the first-conversation
+      // naming ritual, adding Telegram from Settings) is what configures it — not this template.
+      expect(Object.keys(config).sort()).toEqual([
+        "browser",
+        "gateway",
+        "plugins",
+        "secrets",
+        "tools",
+      ]);
+      expect(config.channels).toBeUndefined();
+      expect(config.agents).toBeUndefined();
+      expect(config.bindings).toBeUndefined();
+      expect(config.hooks).toBeUndefined();
+
+      const gateway = config.gateway as Record<string, unknown>;
+      expect(gateway.mode).toBe("local");
+      expect(gateway.bind).toBe("loopback");
+      expect(gateway.controlUi).toEqual({ communityInvite: false });
+      expect(gateway.auth).toEqual({
+        mode: "token",
+        token: { source: "file", provider: "gateway-token-file", id: "value" },
+      });
+      expect((gateway.tailscale as { mode: string }).mode).toBe("serve");
+
+      // The plugins a desk ships stay available but unconfigured — the client turns them on from
+      // the Control UI rather than finding someone else's accounts already connected.
+      expect(config.plugins).toEqual({
+        entries: {
+          anthropic: { enabled: true },
+          duties: { enabled: true },
+          telegram: { enabled: true },
+          "llm-task": { enabled: true },
+        },
+      });
+      expect(config.tools).toEqual({ alsoAllow: ["llm-task"] });
+      expect(config.browser).toEqual({ ssrfPolicy: { allowedHostnames: ["127.0.0.1"] } });
+
+      // Only the Gateway token provider: a telegram-bot-token-file provider pointing at a file
+      // that is never written would fail the Gateway's own secret resolution if anything read it.
+      expect(config.secrets).toEqual({
+        providers: {
+          "gateway-token-file": {
+            source: "file",
+            path: "/etc/openclaw/secrets/gateway-token",
+            mode: "singleValue",
+          },
+        },
+      });
+    });
+
+    it("drops the Telegram secret file and the Gmail webhook Funnel, not just their contents", () => {
+      const output = renderClient();
+      const doc = parseYaml(output) as CloudInitDoc;
+      // Skipped, never rendered empty: an empty 0600 file at this path would look configured to
+      // anyone inspecting the desk, and to any later code that tests for its presence.
+      expect(doc.write_files.map((entry) => entry.path)).not.toContain(
+        "/etc/openclaw/secrets/telegram-bot-token",
+      );
+      expect(output).not.toContain("telegram-bot-token");
+      // No hooks config means nothing listens on 8788; a public Funnel route to it would be an
+      // exposed path with no backend.
+      expect(output).not.toContain("tailscale funnel --bg");
+      expect(output).not.toContain("gmail-pubsub");
+      // Tailscale itself is desk plumbing and stays.
+      expect(output).toContain('tailscale up --authkey "$(cat /root/ts-authkey)"');
+      expect(output).toContain("tailscale set --operator=openclaw");
+    });
+
+    it("renders under --preflight too, with gateway.tailscale.mode off", () => {
+      const output = renderClient(["--preflight"]);
+      expect(clientConfig(output)).toMatchObject({ gateway: { tailscale: { mode: "off" } } });
+      const skippedCount = output.split("# preflight: tailscale skipped").length - 1;
+      // Two, not the owner profile's three: the Funnel line is not rendered at all here.
+      expect(skippedCount).toBe(2);
+    });
+
+    it("says so rather than silently ignoring a bot token or owner target it cannot use", () => {
+      const result = execFileSync(
+        process.execPath,
+        [
+          RENDER_SCRIPT,
+          "--profile",
+          "client",
+          "--name",
+          deskName,
+          "--ts-authkey-file",
+          tsAuthKeyFile,
+          "--tg-token-file",
+          tgTokenFile,
+          "--owner-target",
+          ownerTarget,
+          "--git-ref",
+          gitRef,
+        ],
+        { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+      );
+      expect(clientConfig(result)).not.toHaveProperty("channels");
+      expect(result).not.toContain(tgTokenValue);
+    });
+
+    it("refuses an unknown profile", () => {
+      try {
+        execFileSync(
+          process.execPath,
+          [
+            RENDER_SCRIPT,
+            "--profile",
+            "customer",
+            "--name",
+            deskName,
+            "--ts-authkey-file",
+            tsAuthKeyFile,
+            "--git-ref",
+            gitRef,
+          ],
+          { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+        );
+        expect.unreachable("render should have thrown for an unknown --profile");
+      } catch (error) {
+        expect(String((error as { stderr?: string }).stderr ?? "")).toMatch(/--profile/);
+      }
+    });
+
+    it("still requires the bot token and owner target under the owner profile", () => {
+      // Dropping them from the owner profile would quietly ship the operator's own desk without
+      // the channel it is reached on.
+      for (const missing of ["--tg-token-file", "--owner-target"]) {
+        const args = [
+          RENDER_SCRIPT,
+          "--profile",
+          "owner",
+          "--name",
+          deskName,
+          "--ts-authkey-file",
+          tsAuthKeyFile,
+          "--git-ref",
+          gitRef,
+          ...(missing === "--tg-token-file" ? ["--owner-target", ownerTarget] : []),
+          ...(missing === "--owner-target" ? ["--tg-token-file", tgTokenFile] : []),
+        ];
+        try {
+          execFileSync(process.execPath, args, {
+            encoding: "utf8",
+            stdio: ["ignore", "pipe", "pipe"],
+          });
+          expect.unreachable(`render should have thrown without ${missing}`);
+        } catch (error) {
+          expect(String((error as { stderr?: string }).stderr ?? "")).toContain(
+            `missing required ${missing}`,
+          );
+        }
+      }
+    });
+  });
+
+  it("leaves the owner profile byte-for-byte identical to the default render", () => {
+    // The conditional sections exist for the client profile; the owner profile must render as if
+    // they were never introduced, marker lines and all.
+    const gatewayTokenFile = join(dir, "gateway-token");
+    writeFileSync(gatewayTokenFile, "fixed-gateway-token-fixture\n");
+    const fixedArgs = [
+      "--gateway-token-file",
+      gatewayTokenFile,
+      "--repo-url",
+      "https://github.com/example-org/example-fork",
+    ];
+    // The per-desk hooks token is minted randomly on every render, so it is the one value that
+    // legitimately differs between two runs.
+    const maskHooksToken = (text: string) => text.replace(/"token": "[^"]*"/, '"token": "MASKED"');
+
+    const explicit = maskHooksToken(render([...fixedArgs, "--profile", "owner"]));
+    const byDefault = maskHooksToken(render(fixedArgs));
+    expect(explicit).toBe(byDefault);
+    expect(byDefault).not.toContain("{{#IF:");
+    expect(byDefault).not.toContain("{{/IF}}");
+    expect(byDefault).toContain("/etc/openclaw/secrets/telegram-bot-token");
+    expect(byDefault).toContain("tailscale funnel --bg --https=8443");
+  });
 });
