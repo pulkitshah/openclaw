@@ -927,7 +927,7 @@ describe("update.run restart scheduling", () => {
     expect(payload?.result?.reason).toBe("managed-service-handoff-unavailable");
     expect(payload?.handoff).toEqual({
       status: "unavailable",
-      command: "openclaw update --yes --timeout 1800",
+      command: "vasudev update --yes --timeout 1800",
       message:
         "Vasudev updates cannot safely run inside the live gateway process without a managed-service handoff.\n" +
         "Stop the foreground Gateway, run `vasudev update --yes --timeout 1800` from a shell, then launch the Gateway again. For a managed deployment, use its host's stop, update, and restart workflow.",

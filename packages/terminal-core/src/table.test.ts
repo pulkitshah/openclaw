@@ -532,10 +532,13 @@ console.log(JSON.stringify({
         { key: "K", header: "K", minWidth: 3 },
         { key: "V", header: "V", flex: true, minWidth: 10 },
       ],
-      rows: [{ K: "X", V: `${open}${"Vasudev".repeat(5)}${close} after` }],
+      // Eight-character filler, repeated: the assertions below depend on where
+      // the cell wraps, so the payload must not be a word whose length can
+      // move under a rename.
+      rows: [{ K: "X", V: `${open}${"Linkbody".repeat(5)}${close} after` }],
     });
 
-    const linkLines = out.split("\n").filter((line) => line.includes("Vasudev"));
+    const linkLines = out.split("\n").filter((line) => line.includes("Linkbody"));
     expect(linkLines.length).toBeGreaterThan(1);
     for (const line of linkLines) {
       expect(line).toContain(open);
