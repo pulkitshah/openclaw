@@ -9,6 +9,32 @@ import type { Duty } from "./duty.js";
 import { registerDutiesGatewayMethods } from "./gateway-methods.js";
 import type { RunManager } from "./run-service.js";
 import { DutyStore } from "./store.js";
+import type { TeamMember } from "./team.js";
+
+/** The tests in Tasks 2 and 3 call `writeTeamProjection`, which reads and writes the real config
+ *  file. Stub it here so no test in this suite touches `~/.openclaw/openclaw.json`; the projection
+ *  itself is proved directly, without mocks, in `team.test.ts` (and its own test file once added). */
+vi.mock("./team-write.js", () => ({
+  writeTeamProjection: vi.fn(async () => ({ warnings: [], config: {} })),
+  revokePairingEntries: vi.fn(async () => undefined),
+}));
+
+/** The smallest config that satisfies `assertTeamProjectionSafe`: explicit ownership, one agent, a
+ *  channel-wide binding per channel, and a non-empty allowlist on each channel Team will touch. */
+function deskFixtureConfig(): OpenClawConfig {
+  return {
+    agents: { ownership: "explicit", entries: { krishna: { name: "Krishna" } } },
+    channels: {
+      telegram: { enabled: true, dmPolicy: "allowlist", allowFrom: ["111"] },
+      whatsapp: { enabled: true, dmPolicy: "allowlist", allowFrom: ["+919800000000"] },
+    },
+    bindings: [
+      { agentId: "krishna", match: { channel: "telegram", accountId: "*" } },
+      { agentId: "krishna", match: { channel: "whatsapp", accountId: "*" } },
+    ],
+    // SAFETY: a hand-built config fixture is a partial OpenClawConfig by construction.
+  } as OpenClawConfig;
+}
 
 function memoryKeyed<T>() {
   const m = new Map<string, T>();
@@ -59,6 +85,7 @@ function harness(params?: {
     templates: memoryKeyed() as never,
     brands: memoryKeyed() as never,
     settings: memoryKeyed() as never,
+    team: memoryKeyed() as never,
   });
   const emit = params?.emit ?? vi.fn<EmitFn>();
   const runs = params?.runs ?? {
@@ -896,5 +923,53 @@ describe("duties gateway methods", () => {
     expect(start.mock.calls[0]?.[0]?.origin).not.toHaveProperty("extra");
     // A mail dispatch is recorded for the mail health readout.
     expect((await store.getSettings()).lastMailDispatchDutyId).toBe("d8");
+  });
+});
+
+describe("duties.team.get", () => {
+  it("registers at operator.read", async () => {
+    const { methods } = harness();
+    expect(methods.get("duties.team.get")?.scope).toBe("operator.read");
+  });
+
+  it("returns an empty roster until the owner target is set", async () => {
+    const { call } = harness();
+    const result = await call("duties.team.get", {});
+    expect(result.ok).toBe(true);
+    expect(result.result).toEqual({ members: [] });
+  });
+
+  it("seeds one owner row from DutiesSettings.owner and is idempotent", async () => {
+    const { call } = harness({ config: deskFixtureConfig() });
+    await call("duties.settings.set", { owner: { channel: "telegram", target: "111" } });
+
+    const first = await call("duties.team.get", {});
+    expect(first.ok).toBe(true);
+    const firstMembers = (first.result as { members: TeamMember[] }).members;
+    expect(firstMembers).toHaveLength(1);
+    expect(firstMembers[0]).toMatchObject({
+      id: "owner",
+      role: "owner",
+      agentId: "krishna",
+      channels: [{ channel: "telegram", senderId: "111" }],
+    });
+
+    const second = await call("duties.team.get", {});
+    const secondMembers = (second.result as { members: TeamMember[] }).members;
+    expect(secondMembers).toHaveLength(1);
+    expect(secondMembers[0]?.addedAt).toBe(firstMembers[0]?.addedAt);
+  });
+
+  it("duties.settings.set { owner } moves the owner row's first identity", async () => {
+    const { call, store } = harness({ config: deskFixtureConfig() });
+    await call("duties.settings.set", { owner: { channel: "telegram", target: "111" } });
+    await call("duties.team.get", {});
+
+    await call("duties.settings.set", {
+      owner: { channel: "whatsapp", target: "+919800000000" },
+    });
+    const owner = await store.ownerMember();
+    expect(owner?.channels[0]).toMatchObject({ channel: "whatsapp", senderId: "+919800000000" });
+    expect(owner?.role).toBe("owner");
   });
 });

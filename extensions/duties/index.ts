@@ -160,7 +160,16 @@ export default definePluginEntry({
       }),
     });
     const deliver = createDeliverAdapter({ cfg: currentConfig });
-    const ownerTarget = async () => (await store.getSettings()).owner;
+    // The owner row is the one owner of "who the desk reports to"; `DutiesSettings.owner` stays as
+    // the seed input only. `ownerTarget`'s signature is unchanged, so `createRouteResolver`,
+    // `createOwnerRouteResolver` and `createAskSessionResolver` are untouched and NO_OWNER_TARGET
+    // still fires when the roster is empty.
+    const ownerTarget = async () => {
+      const owner = await store.ownerMember();
+      const identity = owner?.channels[0];
+      if (identity) return { channel: identity.channel, target: identity.senderId };
+      return (await store.getSettings()).owner;
+    };
     const resolveRoute = createRouteResolver({
       ownerTarget,
       sessionRoute: sessionRouteFromStore,

@@ -3,6 +3,7 @@ import { readFile, stat } from "node:fs/promises";
 import { basename } from "node:path";
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
 import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { OpenClawPluginApi } from "../api.js";
 import { previewContentType, type RenderAdapter } from "./adapters/render.js";
@@ -124,13 +125,13 @@ export function registerDutiesGatewayMethods(deps: {
   const register = (
     method: string,
     scope: Scope,
-    handler: (params: Record<string, unknown>) => Promise<unknown>,
+    handler: (params: Record<string, unknown>, ctx: Ctx) => Promise<unknown>,
   ) =>
     api.registerGatewayMethod(
       method,
       async (ctx: Ctx) => {
         try {
-          ctx.respond(true, await handler(isRecord(ctx.params) ? ctx.params : {}));
+          ctx.respond(true, await handler(isRecord(ctx.params) ? ctx.params : {}, ctx));
         } catch (error) {
           ctx.respond(false, undefined, {
             code: "duties_error",
@@ -140,6 +141,17 @@ export function registerDutiesGatewayMethods(deps: {
       },
       { scope },
     );
+
+  /** Re-asserts that the admin connection that dispatched this request still holds its authority,
+   *  synchronously, immediately before a durable effect. `authorizeGatewayMethod` checked the scope
+   *  before the handler body ran, but the roster read, the `agents.create` dispatch and the
+   *  projection all await in between — and `src/gateway/AGENTS.md` is explicit that a token or a
+   *  matching id is not live authority. Absent on in-process callers, which is not a revocation. */
+  const assertStillAuthorized = (ctx: Ctx): void => {
+    if (ctx.hasCurrentClientAuthority?.() === false) {
+      throw new Error("your session is no longer authorized — reconnect and try again");
+    }
+  };
 
   const readId = (params: Record<string, unknown>): string => {
     if (typeof params.id !== "string" || !params.id) {
@@ -689,7 +701,20 @@ export function registerDutiesGatewayMethods(deps: {
       if (typeof target !== "string" || !target.trim()) {
         throw new Error("owner.target is required");
       }
-      patch.owner = { channel: channel.trim(), target: target.trim() };
+      const ownerPatch = { channel: channel.trim(), target: target.trim() };
+      patch.owner = ownerPatch;
+      // The owner row is the one owner of "who the desk reports to". Keep writing
+      // `settings.owner` so an empty roster can still seed from it, and mirror the change onto the
+      // owner's first channel identity when a roster already exists — otherwise this method would
+      // silently write a field `ownerTarget` no longer reads.
+      const ownerRow = await store.ownerMember();
+      if (ownerRow) {
+        const rest = ownerRow.channels.filter((c) => c.channel !== ownerPatch.channel);
+        await store.setMemberChannels(ownerRow.id, [
+          { channel: ownerPatch.channel, senderId: ownerPatch.target, addedAt: Date.now() },
+          ...rest,
+        ]);
+      }
     }
     if (approval !== undefined) {
       patch.requireApprovalForEdits = approval;
@@ -707,6 +732,34 @@ export function registerDutiesGatewayMethods(deps: {
       runs.admit();
     }
     return { settings };
+  });
+
+  /** The roster, seeding the one owner row on first read. The owner is a Team member from the
+   *  start: the Duties Owner card already names a channel and a target, and that IS an owner
+   *  identity, so it is promoted rather than asked for twice. */
+  register("duties.team.get", "operator.read", async (_params, ctx) => {
+    const existing = await store.listMembers();
+    if (existing.length > 0) return { members: existing };
+    const settings = await store.getSettings();
+    if (!settings.owner) return { members: [] };
+    const agentId = resolveAgentRoute({
+      cfg: currentConfig(),
+      channel: settings.owner.channel,
+      peer: { kind: "direct", id: settings.owner.target },
+    }).agentId;
+    // A seed is a durable effect: re-check live authority immediately before it, the same as any
+    // other write this module performs.
+    assertStillAuthorized(ctx);
+    const seeded = await store.seedOwner({
+      id: "owner",
+      name: "Owner",
+      agentId,
+      addedBy: "owner",
+      channels: [
+        { channel: settings.owner.channel, senderId: settings.owner.target, addedAt: Date.now() },
+      ],
+    });
+    return { members: [seeded] };
   });
 
   /** Setup readiness for both of Part 2's outward-facing paths: the Gmail dispatch chain and
