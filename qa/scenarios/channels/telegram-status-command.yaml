@@ -21,7 +21,7 @@ scenario:
     channel: telegram
     summary: Run Telegram status and verify representative status fields.
     config:
-      expectedAny: [OpenClaw, "Model:", "Session:", "Activation:"]
+      expectedAny: [Vasudev, "Model:", "Session:", "Activation:"]
 
 flow:
   steps:
@@ -40,7 +40,7 @@ flow:
         - waitForOutbound:
             conversation: { id: telegram-command-room, kind: channel }
             sinceIndex: { ref: startIndex }
-            textIncludes: OpenClaw
+            textIncludes: Vasudev
             timeoutMs: 60000
           saveAs: reply
         - assert:

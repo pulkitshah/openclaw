@@ -31,7 +31,7 @@ flow:
             text: /status
         - waitForOutbound:
             conversation: { id: whatsapp-command-dm, kind: direct }
-            textIncludes: OpenClaw
+            textIncludes: Vasudev
             timeoutMs: 60000
           saveAs: reply
         - assert:
