@@ -1,3 +1,4 @@
+import { PRODUCT_NAME } from "../brand.js";
 import { extractShellWrapperInlineCommand } from "../infra/shell-wrapper-resolution.js";
 import { splitShellArgs } from "../utils/shell-argv.js";
 
@@ -355,10 +356,21 @@ export const EXPECTED_CODEX_STATUS_COMMAND_TEXT = [
   "Ready.",
 ] as const;
 
+const PRODUCT_STATUS_NAME = PRODUCT_NAME.toLowerCase();
+const PRODUCT_STATUS_RUNNING_RE = new RegExp(
+  `${PRODUCT_STATUS_NAME}\\s+\\S+\\s+is running on`,
+  "u",
+);
+
 /** Returns true when text matches a known healthy Codex status response shape. */
 export function isExpectedCodexStatusCommandText(text: string): boolean {
   const normalized = text.toLowerCase();
+  // The harness reads back prose the model wrote about the running product, so
+  // the current name has to match. The pre-rename spelling stays alongside it:
+  // sessions recorded by an older build still carry it.
   const mentionsOpenClawStatus =
+    normalized.includes(`${PRODUCT_STATUS_NAME} is running on`) ||
+    PRODUCT_STATUS_RUNNING_RE.test(normalized) ||
     normalized.includes("openclaw is running on") ||
     /openclaw\s+\S+\s+is running on/u.test(normalized) ||
     normalized.includes("vasudev status:") ||
