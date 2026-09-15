@@ -6,7 +6,8 @@
 // Vasudev rebrand's user-visible prose allowlist:
 // docs, README, docs.json's `name` field, the two bundled-plugin manifest
 // fields that feed the Control UI channel picker, and every TypeScript source
-// under `src/**`, `extensions/*/src/**`, `packages/*/src/**` and `ui/src/**`
+// under `src/**`, `extensions/*/**`, `packages/*/**` (one segment deep, at the
+// plugin root or under its `src/`) and `ui/src/**`
 // (a TypeScript-aware pass — see `rewriteTypeScriptContent` below).
 //
 // Internal identifiers are never touched, because none of them is spelled
@@ -23,8 +24,9 @@
 // transcript markers, shipped bundle/artifact filenames), the structural
 // literal exclusions in `isStructuralStringLiteral` (module specifiers,
 // property keys, enum members, `path.join` segments, HTTP header values,
-// process-spawn arguments), and the two cited per-file exclusion lists
-// (`CROSS_BOUNDARY_EXCLUDED_FILES`, `EXCLUDED_LITERALS_BY_FILE`).
+// process-spawn arguments, `headers.set("X-…", …)` values), and the two cited
+// per-file exclusion lists (`CROSS_BOUNDARY_EXCLUDED_FILES`,
+// `EXCLUDED_LITERALS_BY_FILE`).
 //
 // Idempotent and safe to re-run after an `upstream/main` merge reintroduces
 // the literal name in these same files/fields — a second run finds nothing
@@ -468,6 +470,27 @@ const SPAWN_CALLEES = new Set([
 // src/infra/startup-maintenance-required.ts) than a header.
 const HTTP_HEADER_NAME_RE = /^[A-Z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)+$/;
 
+// The Headers/Map call form of the same rule: `headers.set("X-OpenRouter-Title",
+// "OpenClaw")`. The property-key path above only sees an object literal, so the
+// setter call needs its own check — the remote service reads the value either
+// way. Matched by the canonical header casing of the *first* argument, so an
+// ordinary `map.set("some-key", "OpenClaw prose")` is untouched.
+const HEADER_SETTER_METHODS = new Set(["set", "append"]);
+
+function isHeaderSetterValueArgument(call, valueNode) {
+  if (call.arguments[1] !== valueNode) {
+    return false;
+  }
+  const callee = call.expression;
+  if (!ts.isPropertyAccessExpression(callee) || !HEADER_SETTER_METHODS.has(callee.name.text)) {
+    return false;
+  }
+  const headerName = call.arguments[0];
+  return Boolean(
+    headerName && ts.isStringLiteral(headerName) && HTTP_HEADER_NAME_RE.test(headerName.text),
+  );
+}
+
 // A SCREAMING_SNAKE property key means the value is an environment variable's
 // value, not display copy: `{ OPENCLAW_WINDOWS_TASK_NAME: "OpenClaw Gateway" }`
 // is the name of a service already installed on the machine (see
@@ -589,6 +612,13 @@ function isStructuralStringLiteral(node) {
   ) {
     valueNode = valueParent;
     valueParent = valueNode.parent;
+  }
+  if (
+    valueParent &&
+    ts.isCallExpression(valueParent) &&
+    isHeaderSetterValueArgument(valueParent, valueNode)
+  ) {
+    return true;
   }
   if (
     valueParent &&
@@ -1106,22 +1136,33 @@ const LOCALE_GLOB = "ui/src/i18n/locales/*.ts";
 // `:(glob)`) pathspec matching runs `*` through `fnmatch(3)` without
 // `FNM_PATHNAME`, so a single `*` already crosses `/` — `src/*.ts` matches
 // `src/cli/program/help.ts`. The `extensions/`/`packages/` patterns are
-// re-filtered below to exactly one path segment before `src/`, which keeps
-// the sweep off nested qa-lab test-fixture packages.
+// re-filtered below to exactly one path segment before the source file, which
+// keeps the sweep off nested qa-lab test-fixture packages.
 const TYPESCRIPT_AWARE_GLOBS = [
   "src/*.ts",
   "src/*.tsx",
   "extensions/*/src/*.ts",
   "extensions/*/src/*.tsx",
+  "extensions/*/*.ts",
+  "extensions/*/*.tsx",
   "packages/*/src/*.ts",
   "packages/*/src/*.tsx",
+  "packages/*/*.ts",
+  "packages/*/*.tsx",
   "ui/src/*.ts",
 ];
 const NESTED_SOURCE_TREE_RE = /^(?:extensions|packages)\/[^/]+\/src\//;
+// Many bundled plugins and workspace packages keep their sources at the
+// plugin root instead of under `src/` (`extensions/anthropic/auth.runtime.ts`,
+// `extensions/migrate-hermes/config-mcp.ts`), and their user-facing strings
+// are in scope exactly as they are one directory down. Exactly one segment
+// before the filename, for the same reason as NESTED_SOURCE_TREE_RE: a nested
+// fixture package's root sources are not this repo's product copy.
+const NESTED_ROOT_SOURCE_RE = /^(?:extensions|packages)\/[^/]+\/[^/]+\.tsx?$/;
 
 function isInScopeTypeScriptPath(file) {
   if (file.startsWith("extensions/") || file.startsWith("packages/")) {
-    return NESTED_SOURCE_TREE_RE.test(file);
+    return NESTED_SOURCE_TREE_RE.test(file) || NESTED_ROOT_SOURCE_RE.test(file);
   }
   return true;
 }
