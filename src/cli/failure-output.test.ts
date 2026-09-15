@@ -196,7 +196,7 @@ describe("formatCliFailureLines", () => {
       "[openclaw] Reason: config file is invalid",
       "[openclaw] Debug: set OPENCLAW_DEBUG=1 to include the stack trace.",
       "[openclaw] Try: vasudev doctor",
-      "[openclaw] Help: openclaw --help",
+      "[openclaw] Help: vasudev --help",
     ]);
   });
 

@@ -85,7 +85,7 @@ const subCliCommandDescriptors = [
   {
     name: "devices",
     description:
-      "Device pairing and auth tokens (for mobile app setup codes, use `openclaw qr` instead)",
+      "Device pairing and auth tokens (for mobile app setup codes, use `vasudev qr` instead)",
     hasSubcommands: true,
     machineOutput: ({ argv }) => isDevicesMachineOutput(argv),
     parentDefaultHelp: true,

@@ -29,7 +29,7 @@ export function registerDevicesCli(program: Command) {
   const devices = program
     .command("devices")
     .description(
-      "Device pairing and auth tokens (for mobile app setup codes, use `openclaw qr` instead)",
+      "Device pairing and auth tokens (for mobile app setup codes, use `vasudev qr` instead)",
     );
 
   devicesCallOpts(
@@ -46,7 +46,7 @@ export function registerDevicesCli(program: Command) {
     devices
       .command("join-code")
       .description(
-        "Mint a single-use node onboarding URL (not a mobile app setup code; use `openclaw qr` for that)",
+        "Mint a single-use node onboarding URL (not a mobile app setup code; use `vasudev qr` for that)",
       )
       .action(async (opts: DevicesRpcOpts) => {
         const { runDevicesJoinCodeCommand } = await loadDevicesRuntime();
