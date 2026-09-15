@@ -6,19 +6,25 @@ import { toolingIsolatedTestFiles } from "./vitest.tooling-isolated-paths.mjs";
 import { boundaryTestFiles } from "./vitest.unit-paths.mjs";
 
 export function createToolingVitestConfig(env?: Record<string, string | undefined>) {
-  return createScopedVitestConfig(["test/**/*.test.ts", "src/scripts/**/*.test.ts"], {
-    env,
-    exclude: [
-      ...boundaryTestFiles,
-      ...toolingDockerTestFiles,
-      ...toolingIsolatedTestFiles,
-      ...gatewayPluginTestFiles,
-    ],
-    fileParallelism: false,
-    includeOpenClawRuntimeSetup: false,
-    name: "tooling",
-    passWithNoTests: true,
-  });
+  // deploy/** holds the hosted-desk provisioning scripts and their tests. They
+  // are script-shaped like the rest of this shard, and no other project claims
+  // them, so the full-suite ownership audit fails without this entry.
+  return createScopedVitestConfig(
+    ["test/**/*.test.ts", "src/scripts/**/*.test.ts", "deploy/**/*.test.ts"],
+    {
+      env,
+      exclude: [
+        ...boundaryTestFiles,
+        ...toolingDockerTestFiles,
+        ...toolingIsolatedTestFiles,
+        ...gatewayPluginTestFiles,
+      ],
+      fileParallelism: false,
+      includeOpenClawRuntimeSetup: false,
+      name: "tooling",
+      passWithNoTests: true,
+    },
+  );
 }
 
 export default createToolingVitestConfig();

@@ -486,6 +486,11 @@
   - changed-files:
       - any-glob-to-any-file:
           - "extensions/duckduckgo/**"
+"extensions: duties":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "extensions/duties/**"
+          - "docs/plugins/reference/duties.md"
 "extensions: acpx":
   - changed-files:
       - any-glob-to-any-file:
