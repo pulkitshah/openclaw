@@ -1,5 +1,6 @@
 import path from "node:path";
 import { theme } from "../../../packages/terminal-core/src/theme.js";
+import { CLI_DISPLAY_NAME } from "../../brand.js";
 import { hashConfigRaw } from "../../config/io.read-helpers.js";
 import { resolveConfigPath } from "../../config/paths.js";
 import { resolveGatewayInstallEntrypoint } from "../../daemon/gateway-entrypoint.js";
@@ -40,7 +41,6 @@ import {
 import { runCommandWithTimeout, runUtf8CommandWithTimeout } from "../../process/exec.js";
 import { defaultRuntime } from "../../runtime.js";
 import { createDeferredCore } from "../../shared/deferred.js";
-import { CLI_NAME } from "../cli-name.js";
 import { createUpdateProgress } from "./progress.js";
 import {
   DEFAULT_PACKAGE_NAME,
@@ -151,7 +151,7 @@ export async function runPackageUpdateDoctor(params: PackageDoctorOptions) {
       : [entryPath, "doctor", "--non-interactive", ...(doctorPolicy.fix ? ["--fix"] : [])]),
   ];
   const doctorProgressInfo = {
-    name: `${CLI_NAME} doctor`,
+    name: `${CLI_DISPLAY_NAME} doctor`,
     command: doctorArgv.join(" "),
     index: 0,
     total: 0,
@@ -174,7 +174,7 @@ export async function runPackageUpdateDoctor(params: PackageDoctorOptions) {
           }
         : undefined;
     return runUpdateStep({
-      name: `${CLI_NAME} doctor`,
+      name: `${CLI_DISPLAY_NAME} doctor`,
       argv: doctorArgv,
       cwd: params.root,
       env: {

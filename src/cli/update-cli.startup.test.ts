@@ -1,5 +1,5 @@
-import { Command } from "commander";
 import { expect, it, vi } from "vitest";
+import { OpenClawCommand } from "./program/openclaw-command.js";
 
 const unavailableRuntime = vi.hoisted(() => () => {
   throw new Error("Update execution dependencies are unavailable");
@@ -14,7 +14,7 @@ it("keeps update help available without loading execution dependencies", async (
   const { registerUpdateCli } = await import("./update-cli.js");
   for (const leaf of [undefined, "status", "repair", "finalize", "wizard"]) {
     let output = "";
-    const program = new Command()
+    const program = new OpenClawCommand()
       .name("openclaw")
       .exitOverride()
       .configureOutput({ writeOut: (text) => (output += text) });
