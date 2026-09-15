@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { CLI_DISPLAY_NAME } from "../brand.js";
 import { CLI_NAME } from "../cli/cli-name.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 import type { GatewayEventLoopHealth } from "../gateway/server/event-loop-health.js";
@@ -36,11 +37,36 @@ describe("doctor WhatsApp responsiveness", () => {
     vi.clearAllMocks();
   });
 
+  it("detects a local TUI started through the displayed alias", () => {
+    // Every shown command spells `CLI_DISPLAY_NAME`, and package.json ships it
+    // as a real bin, so an operator who copies one back runs a TUI the advisory
+    // has to see.
+    spawnSyncMock.mockReturnValue({
+      status: 0,
+      stdout: [
+        ` 201 ${CLI_DISPLAY_NAME}-tui`,
+        ` 202 ${CLI_DISPLAY_NAME} chat`,
+        ` 203 ${CLI_DISPLAY_NAME} channels`,
+      ].join("\n"),
+    });
+    const findings = collectWhatsappResponsivenessHealthFindings({
+      cfg,
+      status: { eventLoop: cpuPressure },
+    });
+
+    if (process.platform === "win32") {
+      expect(findings).toEqual([]);
+    } else {
+      expect(findings).toEqual([expect.objectContaining({ target: "201, 202" })]);
+    }
+  });
+
   it("detects local TUI commands through the advisory finding", () => {
     spawnSyncMock.mockReturnValue({
       status: 0,
-      // Real `ps` lines: the detector matches the executable basename, so every
-      // spelling here is the installed binary (`CLI_NAME`), never the alias.
+      // Real `ps` lines: the detector matches the executable basename. This case
+      // covers the canonical binary (`CLI_NAME`); the alias has its own case
+      // below, because both names reach the same launcher.
       stdout: [
         ` 101 ${CLI_NAME}-tui`,
         ` 102 /usr/bin/node /usr/lib/node_modules/${CLI_NAME}/dist/index.js gateway --port 18789`,

@@ -2,6 +2,7 @@
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { note } from "../../packages/terminal-core/src/note.js";
+import { CLI_ALIASES } from "../brand.js";
 import { formatCliCommand } from "../cli/command-format.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 import type { HealthFinding } from "../flows/health-checks.js";
@@ -27,10 +28,15 @@ function normalizeExecutableName(value: string | undefined): string {
 function isLocalTuiCommand(command: string): boolean {
   const argv = tokenizeCommandLine(command);
   const executable = normalizeExecutableName(argv[0]);
-  if (executable === "openclaw-tui") {
+  // package.json ships both bin names for the same launcher and every displayed
+  // command spells the alias, so a TUI started through either one has to be
+  // seen or the advisory silently stops reporting local clients.
+  if (CLI_ALIASES.some((alias) => executable === `${alias}-tui`)) {
     return true;
   }
-  return executable === "openclaw" && LOCAL_TUI_SUBCOMMANDS.has(argv[1] ?? "");
+  return (
+    CLI_ALIASES.some((alias) => executable === alias) && LOCAL_TUI_SUBCOMMANDS.has(argv[1] ?? "")
+  );
 }
 
 function parsePsPidLine(line: string): LocalTuiProcess | null {
