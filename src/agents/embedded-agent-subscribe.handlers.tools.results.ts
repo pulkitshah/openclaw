@@ -6,7 +6,7 @@ import {
   normalizeOptionalLowercaseString,
   readStringValue,
 } from "@openclaw/normalization-core/string-coerce";
-import { CLI_ALIASES } from "../brand.js";
+import { isCliBinaryName } from "../brand.js";
 import { consumeRootOptionToken } from "../infra/cli-root-options.js";
 import type { ExecApprovalDecision } from "../infra/exec-approvals.js";
 import {
@@ -244,7 +244,7 @@ function isOpenClawExecutable(token: string | undefined): boolean {
   // package.json ships both bin names for the same launcher and every displayed
   // command now spells `vasudev`, so an agent that copies one back into the exec
   // tool has to be recognised or its committed reminder is silently untracked.
-  return CLI_ALIASES.some((alias) => alias === executable);
+  return isCliBinaryName(executable);
 }
 
 function isOpenClawPackageSpec(token: string | undefined): boolean {

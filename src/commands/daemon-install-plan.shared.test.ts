@@ -68,6 +68,18 @@ describe("resolveDaemonServicePathDirs openclaw discovery", () => {
     ).toEqual(["/Users/testuser/.npm-global/bin"]);
   });
 
+  // npm writes a shim per published bin name, so the operator who typed the
+  // alias arrives with that basename in argv.
+  it("uses the active command directory under either published bin name", () => {
+    expect(
+      resolveDaemonServicePathDirs({
+        argv: ["node", "/Users/testuser/.npm-global/bin/vasudev", "gateway", "install"],
+        env: { PATH: "" },
+        platform: "darwin",
+      }),
+    ).toEqual(["/Users/testuser/.npm-global/bin"]);
+  });
+
   it.skipIf(process.platform === "win32")(
     "finds the PATH shim that resolves to the active package entrypoint",
     () => {

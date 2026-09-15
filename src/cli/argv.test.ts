@@ -576,6 +576,16 @@ describe("argv helpers", () => {
       ["bun", "src/entry.ts", "status"],
       ["bun", "src/entry.ts", "status"],
     ],
+    [
+      "drops the alias bin name the reader invoked",
+      ["vasudev", "status"],
+      ["node", "openclaw", "status"],
+    ],
+    [
+      "drops an absolute alias bin path",
+      ["/usr/local/bin/vasudev", "status"],
+      ["node", "openclaw", "status"],
+    ],
   ] as const)("builds parse argv from raw args: %s", (_name, rawArgs, expected) => {
     const parsed = buildParseArgv([...rawArgs]);
     expect(parsed).toEqual([...expected]);

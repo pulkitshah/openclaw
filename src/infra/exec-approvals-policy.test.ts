@@ -26,6 +26,7 @@ let normalizeExecMode: typeof import("./exec-approvals.js").normalizeExecMode;
 let normalizeExecTarget: typeof import("./exec-approvals.js").normalizeExecTarget;
 let normalizeExecSecurity: typeof import("./exec-approvals.js").normalizeExecSecurity;
 let requiresExecApproval: typeof import("./exec-approvals.js").requiresExecApproval;
+let commandRequiresSecurityAuditSuppressionApproval: typeof import("./exec-approvals.js").commandRequiresSecurityAuditSuppressionApproval;
 let normalizeExecApprovalUnavailableDecisions: typeof import("./exec-approvals.js").normalizeExecApprovalUnavailableDecisions;
 let resolveExecApprovalUnavailableDecisions: typeof import("./exec-approvals.js").resolveExecApprovalUnavailableDecisions;
 let resolveExecApprovalRequestAllowedDecisions: typeof import("./exec-approvals.js").resolveExecApprovalRequestAllowedDecisions;
@@ -54,6 +55,8 @@ async function loadActualExecApprovalModules(): Promise<void> {
   normalizeExecTarget = execApprovals.normalizeExecTarget;
   normalizeExecSecurity = execApprovals.normalizeExecSecurity;
   requiresExecApproval = execApprovals.requiresExecApproval;
+  commandRequiresSecurityAuditSuppressionApproval =
+    execApprovals.commandRequiresSecurityAuditSuppressionApproval;
   normalizeExecApprovalUnavailableDecisions =
     execApprovals.normalizeExecApprovalUnavailableDecisions;
   resolveExecApprovalUnavailableDecisions = execApprovals.resolveExecApprovalUnavailableDecisions;
@@ -138,6 +141,32 @@ describe("exec approvals policy helpers", () => {
   ])("normalizes exec target value %j", ({ raw, expected }) => {
     expect(normalizeExecTarget(raw)).toBe(expected);
   });
+
+  // Both published bin names launch the same CLI, so the read-only carve-out for
+  // inspecting suppressions has to recognise the command under either spelling.
+  it.each(["openclaw", "vasudev", "/usr/local/bin/vasudev"])(
+    "treats a suppressions config read as read-only when run as %s",
+    (binary) => {
+      expect(
+        commandRequiresSecurityAuditSuppressionApproval({
+          command: `${binary} config get security.audit.suppressions`,
+          segments: [{ argv: [binary, "config", "get", "security.audit.suppressions"] }],
+        }),
+      ).toBe(false);
+      expect(
+        commandRequiresSecurityAuditSuppressionApproval({
+          command: `pnpm ${binary} config get security.audit.suppressions`,
+          segments: [{ argv: ["pnpm", binary, "config", "get", "security.audit.suppressions"] }],
+        }),
+      ).toBe(false);
+      expect(
+        commandRequiresSecurityAuditSuppressionApproval({
+          command: `${binary} config set security.audit.suppressions '[]'`,
+          segments: [{ argv: [binary, "config", "set", "security.audit.suppressions", "[]"] }],
+        }),
+      ).toBe(true);
+    },
+  );
 
   it("requires direct exec target requests to use the closed host set", () => {
     expect(requireValidExecTarget(" gateway ")).toBe("gateway");

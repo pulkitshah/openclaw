@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { expectDefined } from "@openclaw/normalization-core";
 import { normalizeLowercaseStringOrEmpty } from "@openclaw/normalization-core/string-coerce";
 import { normalizeStringEntries } from "@openclaw/normalization-core/string-normalization";
-import { CLI_ALIASES } from "../brand.js";
+import { isCliBinaryName } from "../brand.js";
 import { splitShellArgs } from "../utils/shell-argv.js";
 import { resolvePathViaExistingAncestorSync } from "./boundary-path.js";
 import {
@@ -86,8 +86,7 @@ function normalizeCommandBaseName(token: string | undefined): string {
 // every displayed command spells `vasudev`, so the guard has to recognise a
 // command the reader copied back under either name or it stops guarding.
 function isOpenClawCommandName(token: string | undefined): boolean {
-  const base = normalizeCommandBaseName(token);
-  return CLI_ALIASES.some((alias) => alias === base);
+  return isCliBinaryName(normalizeCommandBaseName(token));
 }
 
 function stripOpenClawPackageRunner(argv: string[]): string[] {

@@ -1,5 +1,6 @@
 import { parseStrictPositiveInteger } from "@openclaw/normalization-core/number-coercion";
 // Low-level CLI argv helpers for root options, help/version detection, and command paths.
+import { isCliBinaryName } from "../brand.js";
 import { isExperimentalClawsEnabled } from "../claws/experimental.js";
 import { isBunRuntime, isNodeRuntime } from "../daemon/runtime-binary.js";
 import {
@@ -462,10 +463,13 @@ export function getPrimaryCommand(argv: string[]): string | null {
 export { getCommandPositionalsWithRootOptions } from "../infra/cli-root-options.js";
 
 export function buildParseArgv(rawArgs: string[], programName = "openclaw"): string[] {
+  // A reparse re-reads the argv the shell handed us, which carries whichever
+  // published bin the reader invoked; dropping only `CLI_NAME` leaves the other
+  // launcher path in place, where Commander reads it as the first subcommand.
   const normalizedArgv =
     rawArgs[0] === programName
       ? rawArgs.slice(1)
-      : rawArgs[0]?.endsWith("openclaw")
+      : isCliBinaryName(rawArgs[0]?.split(/[\\/]/u).at(-1))
         ? rawArgs.slice(1)
         : rawArgs;
   const looksLikeNode =

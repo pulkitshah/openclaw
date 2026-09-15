@@ -53,6 +53,16 @@ describe("isGatewayArgv", () => {
     expect(isGatewayArgv(["openclaw-gateway"], { allowGatewayBinary: true })).toBe(true);
   });
 
+  // Both published bin names launch the same Gateway, so a process started
+  // through the alias has to be discoverable or the lock reports it dead.
+  it("matches a gateway started through either published bin name", () => {
+    expect(isGatewayArgv(["vasudev", "gateway", "run"])).toBe(true);
+    expect(isGatewayArgv(["/usr/local/bin/vasudev", "gateway"])).toBe(true);
+    expect(isGatewayArgv(["C:\\bin\\vasudev.cmd", "gateway"])).toBe(true);
+    expect(isOpenClawArgv(["/usr/local/bin/vasudev", "status"])).toBe(true);
+    expect(isOpenClawCommandArgv(["vasudev", "doctor", "--fix"], "doctor")).toBe(true);
+  });
+
   it("rejects unknown gateway argv even when the token is present", () => {
     expect(isGatewayArgv(["node", "/srv/openclaw/custom.js", "gateway"])).toBe(false);
     expect(isGatewayArgv(["python", "gateway", "script.py"])).toBe(false);

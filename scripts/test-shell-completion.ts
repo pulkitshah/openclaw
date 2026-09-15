@@ -190,8 +190,10 @@ async function main() {
   // Both profile and cache exist - nothing to do
   if (status.profileInstalled && status.cacheExists && !options.force) {
     console.log(theme.muted("Shell completion is fully configured. To test the prompt:"));
+    // The installer writes the current marker and only recognises the
+    // pre-rename one to replace it, so the block to remove carries this name.
     console.log(
-      theme.muted("  1. Remove the '# OpenClaw Completion' block from your shell profile"),
+      theme.muted("  1. Remove the '# Vasudev Completion' block from your shell profile"),
     );
     console.log(theme.muted("  2. Re-run this script"));
     console.log(theme.muted("  Or use --force to prompt anyway"));

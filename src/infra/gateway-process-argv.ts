@@ -1,6 +1,7 @@
 // Parses gateway process command lines for process discovery.
 import { normalizeLowercaseStringOrEmpty } from "@openclaw/normalization-core/string-coerce";
 import { normalizeStringEntries } from "@openclaw/normalization-core/string-normalization";
+import { isCliBinaryName } from "../brand.js";
 
 function normalizeProcArg(arg: string): string {
   return normalizeLowercaseStringOrEmpty(arg.replaceAll("\\", "/"));
@@ -25,7 +26,10 @@ export function isOpenClawArgv(args: string[]): boolean {
   if (normalized.some((arg) => ENTRY_CANDIDATES.some((entry) => arg.endsWith(entry)))) {
     return true;
   }
-  return exe.endsWith("/openclaw") || exe === "openclaw";
+  // The command line belongs to some other process on this host, so the launcher
+  // can legitimately appear under either published bin name; matching only
+  // `CLI_NAME` reports a live Gateway started through the alias as dead.
+  return isCliBinaryName(exe.slice(exe.lastIndexOf("/") + 1));
 }
 
 export function isOpenClawCommandArgv(args: string[], command: string): boolean {

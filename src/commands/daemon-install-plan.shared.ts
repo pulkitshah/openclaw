@@ -1,6 +1,7 @@
 // Shared daemon install runtime/path helpers for service plan generation.
 import fs from "node:fs";
 import path from "node:path";
+import { CLI_ALIASES, isCliBinaryName } from "../brand.js";
 import { resolvePreferredBunPath, resolvePreferredNodePath } from "../daemon/runtime-paths.js";
 import {
   emitNodeRuntimeWarning,
@@ -65,13 +66,16 @@ export function resolveDaemonRuntimeBinDir(runtimePath?: string): string[] | und
   return [path.dirname(trimmed)];
 }
 
+// npm installs a shim per published bin name, so the operator who ran
+// `vasudev gateway install` arrives here with that basename in argv; matching
+// only `CLI_NAME` drops their bin directory from the daemon PATH.
 function isOpenClawCommandBasename(basename: string, platform: NodeJS.Platform): boolean {
-  if (basename === "openclaw") {
+  if (isCliBinaryName(basename)) {
     return true;
   }
   if (platform === "win32") {
-    return (
-      basename === "openclaw.cmd" || basename === "openclaw.ps1" || basename === "openclaw.exe"
+    return CLI_ALIASES.some((alias) =>
+      [`${alias}.cmd`, `${alias}.ps1`, `${alias}.exe`].includes(basename),
     );
   }
   return false;

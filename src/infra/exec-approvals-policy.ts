@@ -1,3 +1,4 @@
+import { isCliBinaryName } from "../brand.js";
 import type { AllowAlwaysPersistenceDecision } from "./exec-approvals-contracts.js";
 // Resolves exec approval requirements and approval-decision availability.
 import {
@@ -44,8 +45,11 @@ function textMentionsSecurityAuditSuppressions(value: string): boolean {
 
 function isReadOnlySecurityAuditSuppressionInspection(argv: string[]): boolean {
   const command = normalizeCommandName(argv[0]);
-  let offset = command === "pnpm" && argv[1] === "openclaw" ? 1 : 0;
-  if (normalizeCommandName(argv[offset]) !== "openclaw") {
+  // The argv here is whatever the reader typed, and every displayed command
+  // spells the alias, so the read-only carve-out has to recognise either
+  // published bin or the same `config get` is treated as an unreviewed command.
+  let offset = command === "pnpm" && isCliBinaryName(normalizeCommandName(argv[1])) ? 1 : 0;
+  if (!isCliBinaryName(normalizeCommandName(argv[offset]))) {
     return false;
   }
   offset += 1;
