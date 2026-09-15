@@ -471,6 +471,7 @@ describe("render", () => {
     const html = renderBoard([duty as unknown as Duty], [], {
       settings: { owner: { channel: "telegram", target: "12345" } },
       mailStatus: {
+        configured: true,
         hooksEnabled: true,
         gmailAccountSet: true,
         mappingPresent: false,
@@ -486,6 +487,7 @@ describe("render", () => {
   it("board's mail setup instruction disappears once every check passes", () => {
     const html = renderBoard([duty as unknown as Duty], [], {
       mailStatus: {
+        configured: true,
         hooksEnabled: true,
         gmailAccountSet: true,
         mappingPresent: true,

@@ -233,6 +233,9 @@ function mailHealthLine(status: MailStatus | undefined): string {
   if (!status) {
     return `<p class="muted small">Loading…</p>`;
   }
+  if (!status.configured) {
+    return `<p class="muted small">Mail isn't connected on this desk.</p>`;
+  }
   const marks = MAIL_CHECKS.map(
     ({ key, label }) =>
       `<span class="mcheck ${status[key] ? "ok" : "bad"}">${status[key] ? "✓" : "✗"} ${esc(label)}</span>`,
@@ -341,11 +344,17 @@ function deskCard(
     typeof desk.at !== "number" || !Number.isFinite(desk.at)
       ? true
       : nowMs - desk.at > DESK_STALE_AFTER_MS;
-  const marks = DESK_CHECKS.map(({ key, label }) => {
-    const ok = desk[key] === true;
-    const tone = stale ? "stale" : ok ? "ok" : "bad";
-    return `<span class="mcheck ${tone}">${ok ? "✓" : "✗"} ${esc(label)}</span>`;
-  }).join("");
+  // Some checks are only meaningful on a desk that offers the capability at all (mail watcher
+  // needs hooks.gmail, which a client-profile desk never renders) — an absent field is a fact
+  // worth carrying (extensions/duties/src/desk.ts already drops it from DeskHealth), not a
+  // permanent red chip nothing on that desk can ever turn green.
+  const marks = DESK_CHECKS.filter(({ key }) => desk[key] !== undefined)
+    .map(({ key, label }) => {
+      const ok = desk[key] === true;
+      const tone = stale ? "stale" : ok ? "ok" : "bad";
+      return `<span class="mcheck ${tone}">${ok ? "✓" : "✗"} ${esc(label)}</span>`;
+    })
+    .join("");
   const load = deskLoadLine(desk);
   const activity = `${desk.active}/${desk.maxParallelRuns} running${desk.queued ? `, ${desk.queued} queued` : ""}`;
   const staleNote = stale

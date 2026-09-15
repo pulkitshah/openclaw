@@ -22,7 +22,16 @@ disp=$(DISPLAY=:99 xdpyinfo >/dev/null 2>&1; echo $?)
 # ~openclaw/.cache/ms-playwright/chromium-<rev>/; its presence is a fixed installation fact.
 chrome=$(ls -d /home/openclaw/.cache/ms-playwright/chromium-* >/dev/null 2>&1; echo $?)
 ts=$(tailscale status --json 2>/dev/null | grep -q '"BackendState": *"Running"'; echo $?)
-mail=$(pgrep -f "gog gmail watch serve" >/dev/null 2>&1; echo $?)
+# Gmail hooks are owner-profile only (see the {{#IF:GMAIL_HOOKS}} section in cloud-init.yaml.tmpl);
+# a client desk never renders /etc/openclaw/secrets/hooks-token.env, so `mailWatcher` would
+# otherwise report `false` forever for a check nothing on that desk is meant to satisfy. Omit the
+# field entirely rather than publish a permanent, unactionable failure.
+if [ -f /etc/openclaw/secrets/hooks-token.env ]; then
+  mail=$(pgrep -f "gog gmail watch serve" >/dev/null 2>&1; echo $?)
+  mail_field="\"mailWatcher\":$(ok "$mail"),"
+else
+  mail_field=""
+fi
 # First boot left a marker behind (the fork checkout, the Claude CLI install, or the managed
 # Chromium install failed). Such a desk still answers /healthz, so without this the failure only
 # surfaced later as a browser step dying mid-Duty. Inverted here: 0 = marker present = NOT
@@ -30,8 +39,8 @@ mail=$(pgrep -f "gog gmail watch serve" >/dev/null 2>&1; echo $?)
 prov=$(test ! -f /var/lib/openclaw/provision-failed; echo $?)
 load1=$(cut -d' ' -f1 /proc/loadavg)
 memfree=$(awk '/MemAvailable/ {printf "%d", $2/1024}' /proc/meminfo)
-printf '{"hosted":true,"at":%s,"provisioned":%s,"gateway":%s,"display":%s,"chromium":%s,"tailscale":%s,"mailWatcher":%s,"load1":%s,"memFreeMb":%s}\n' \
-  "$(date +%s)000" "$(ok "$prov")" "$(ok "$gw")" "$(ok "$disp")" "$(ok "$chrome")" "$(ok "$ts")" "$(ok "$mail")" "$load1" "$memfree" > "$OUT.tmp"
+printf '{"hosted":true,"at":%s,"provisioned":%s,"gateway":%s,"display":%s,"chromium":%s,"tailscale":%s,%s"load1":%s,"memFreeMb":%s}\n' \
+  "$(date +%s)000" "$(ok "$prov")" "$(ok "$gw")" "$(ok "$disp")" "$(ok "$chrome")" "$(ok "$ts")" "$mail_field" "$load1" "$memfree" > "$OUT.tmp"
 chmod 644 "$OUT.tmp"; mv "$OUT.tmp" "$OUT"
 
 # Repair last, and never fatal: the reading above is already published, so a failing restart

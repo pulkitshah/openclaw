@@ -5,6 +5,7 @@ import { MAIL_AGENT_ID, mailStatusFromConfig } from "./mail.js";
 describe("mailStatusFromConfig", () => {
   it("reports nothing ready for an install with no hooks at all", () => {
     expect(mailStatusFromConfig({}, {})).toEqual({
+      configured: false,
       hooksEnabled: false,
       gmailAccountSet: false,
       mappingPresent: false,
@@ -22,6 +23,7 @@ describe("mailStatusFromConfig", () => {
       agents: { entries: { main: {} } },
     };
     expect(mailStatusFromConfig(config, {})).toEqual({
+      configured: true,
       hooksEnabled: true,
       // An empty account string is not a configured mailbox.
       gmailAccountSet: false,
@@ -45,6 +47,7 @@ describe("mailStatusFromConfig", () => {
       lastMailDispatchDutyId: "book-by-mail",
     });
     expect(status).toEqual({
+      configured: true,
       hooksEnabled: true,
       gmailAccountSet: true,
       mappingPresent: true,
