@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { expectDefined } from "@openclaw/normalization-core";
 import { normalizeLowercaseStringOrEmpty } from "@openclaw/normalization-core/string-coerce";
 import { normalizeStringEntries } from "@openclaw/normalization-core/string-normalization";
+import { CLI_ALIASES } from "../brand.js";
 import { splitShellArgs } from "../utils/shell-argv.js";
 import { resolvePathViaExistingAncestorSync } from "./boundary-path.js";
 import {
@@ -81,21 +82,29 @@ function normalizeCommandBaseName(token: string | undefined): string {
   return base.replace(/\.(?:cmd|exe)$/u, "");
 }
 
+// package.json ships `openclaw` and `vasudev` pointing at the same launcher, and
+// every displayed command spells `vasudev`, so the guard has to recognise a
+// command the reader copied back under either name or it stops guarding.
+function isOpenClawCommandName(token: string | undefined): boolean {
+  const base = normalizeCommandBaseName(token);
+  return CLI_ALIASES.some((alias) => alias === base);
+}
+
 function stripOpenClawPackageRunner(argv: string[]): string[] {
   const commandName = normalizeCommandBaseName(argv[0]);
-  if (commandName === "openclaw") {
+  if (isOpenClawCommandName(argv[0])) {
     return argv;
   }
   if (
     (commandName === "pnpm" || commandName === "npm" || commandName === "yarn") &&
-    normalizeCommandBaseName(argv[1]) === "openclaw"
+    isOpenClawCommandName(argv[1])
   ) {
     return argv.slice(1);
   }
   if (
     (commandName === "pnpm" || commandName === "npm" || commandName === "yarn") &&
     (argv[1] === "exec" || argv[1] === "dlx" || argv[1] === "run") &&
-    normalizeCommandBaseName(argv[2]) === "openclaw"
+    isOpenClawCommandName(argv[2])
   ) {
     return argv.slice(2);
   }
@@ -115,7 +124,7 @@ function stripOpenClawPackageRunner(argv: string[]): string[] {
         idx += 1;
       }
     }
-    if (normalizeCommandBaseName(argv[idx]) === "openclaw") {
+    if (isOpenClawCommandName(argv[idx])) {
       return argv.slice(idx);
     }
   }
@@ -129,7 +138,7 @@ function parseOpenClawChannelsLoginShellCommand(raw: string): boolean {
   }
   const openclawArgv = stripOpenClawPackageRunner(argv);
   return (
-    normalizeCommandBaseName(openclawArgv[0]) === "openclaw" &&
+    isOpenClawCommandName(openclawArgv[0]) &&
     (openclawArgv[1] === "channels" || openclawArgv[1] === "channel") &&
     openclawArgv[2] === "login"
   );

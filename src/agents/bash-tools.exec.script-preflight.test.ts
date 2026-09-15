@@ -96,6 +96,11 @@ async function expectSymlinkSwapDuringPreflightToAvoidErrors(params: {
 
 describe("exec interactive Vasudev channel login guard", () => {
   it("recognizes direct and package-runner channel login commands before execution", async () => {
+    // Both published bin names reach the same launcher, so the guard has to
+    // catch either spelling.
+    await expect(
+      detectUnsafeExecControlShellCommand("openclaw channels login --channel whatsapp"),
+    ).resolves.toBe("channel-login");
     await expect(
       detectUnsafeExecControlShellCommand("vasudev channels login --channel whatsapp"),
     ).resolves.toBe("channel-login");
