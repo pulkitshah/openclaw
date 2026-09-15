@@ -1,4 +1,5 @@
 /** Auth execution stays deferred until a setup or doctor hook is invoked. */
+import { spawn } from "node:child_process";
 import { formatCliCommand, parseDurationMs } from "openclaw/plugin-sdk/cli-runtime";
 import { resolveExpiresAtMsFromDurationMs } from "openclaw/plugin-sdk/number-runtime";
 import type {
@@ -20,6 +21,7 @@ import { upsertAuthProfileWithLockOrThrow } from "openclaw/plugin-sdk/provider-a
 import * as claudeCliAuth from "./cli-auth-seam.js";
 import { buildAnthropicCliBackend } from "./cli-backend.js";
 import { buildAnthropicCliMigrationResult } from "./cli-migration.js";
+import { resolveClaudeTerminalExecutable } from "./session-catalog-executable.js";
 
 const PROVIDER_ID = "anthropic";
 
@@ -219,12 +221,91 @@ export function buildAnthropicAuthDoctorHint(params: {
   ].join("\n");
 }
 
+type ClaudeCliAuthStatus = Awaited<ReturnType<typeof claudeCliAuth.probeClaudeCliAuthStatus>>;
+
+type AnthropicCliAuthProbe = { command: string; env: NodeJS.ProcessEnv };
+
+/**
+ * Hand this terminal to `claude auth login` and resolve once it exits.
+ *
+ * The child inherits stdio so Claude Code prints its own sign-in URL and reads
+ * the operator's keypresses directly. `ctx.signal` owns cancellation: an abort
+ * while the child runs must terminate it, or the login process outlives the
+ * wizard and keeps the terminal.
+ */
+async function runClaudeCliLoginInTerminal(params: {
+  executable: string;
+  env: NodeJS.ProcessEnv;
+  signal?: AbortSignal;
+}): Promise<void> {
+  await new Promise<void>((resolve) => {
+    const child = spawn(params.executable, ["auth", "login"], {
+      stdio: "inherit",
+      env: params.env,
+    });
+    const abort = () => child.kill("SIGTERM");
+    const finish = () => {
+      params.signal?.removeEventListener("abort", abort);
+      resolve();
+    };
+    child.once("error", finish);
+    child.once("exit", finish);
+    params.signal?.addEventListener("abort", abort, { once: true });
+    if (params.signal?.aborted) {
+      abort();
+    }
+  });
+}
+
+/**
+ * Offer the sign-in inside the wizard's own terminal.
+ *
+ * Only the interactive `run` path reaches this; the non-interactive onboarding
+ * entry point has no prompter and no terminal to lend. Returns the re-probed
+ * status when the operator accepted, and `undefined` when there is nothing to
+ * offer so the caller keeps its original error.
+ */
+async function offerInteractiveClaudeCliLogin(
+  ctx: ProviderAuthContext,
+  probe: AnthropicCliAuthProbe,
+): Promise<ClaudeCliAuthStatus | undefined> {
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    return undefined;
+  }
+  const resolution = resolveClaudeTerminalExecutable(probe.env);
+  if (!resolution) {
+    return undefined;
+  }
+  const accepted = await ctx.prompter.confirm({
+    message: "Claude Code is not signed in on this computer. Sign in here now?",
+    initialValue: true,
+  });
+  if (!accepted) {
+    return undefined;
+  }
+  await ctx.prompter.note(
+    [
+      `Vasudev is starting ${formatCliCommand("claude auth login")} in this terminal.`,
+      "Follow Claude Code's prompts, then Vasudev continues the setup.",
+    ].join("\n"),
+    "Claude Code sign-in",
+  );
+  await runClaudeCliLoginInTerminal({
+    executable: resolution.executable,
+    env: { ...probe.env, ...(resolution.pathEnv ? { PATH: resolution.pathEnv } : {}) },
+    ...(ctx.signal ? { signal: ctx.signal } : {}),
+  });
+  return await claudeCliAuth.probeClaudeCliAuthStatus(probe);
+}
+
 export async function runAnthropicCliMigration(
   ctx: ProviderAuthContext,
 ): Promise<ProviderAuthResult> {
-  const authStatus = await claudeCliAuth.probeClaudeCliAuthStatus(
-    resolveAnthropicCliAuthProbe(ctx.env ?? process.env),
-  );
+  const probe = resolveAnthropicCliAuthProbe(ctx.env ?? process.env);
+  let authStatus = await claudeCliAuth.probeClaudeCliAuthStatus(probe);
+  if (authStatus.status !== "available") {
+    authStatus = (await offerInteractiveClaudeCliLogin(ctx, probe)) ?? authStatus;
+  }
   if (authStatus.status !== "available") {
     throw new Error(
       [
@@ -292,10 +373,7 @@ export async function runAnthropicCliMigrationNonInteractive(ctx: {
   };
 }
 
-function resolveAnthropicCliAuthProbe(env: NodeJS.ProcessEnv): {
-  command: string;
-  env: NodeJS.ProcessEnv;
-} {
+function resolveAnthropicCliAuthProbe(env: NodeJS.ProcessEnv): AnthropicCliAuthProbe {
   const backend = buildAnthropicCliBackend().config;
   const probeEnv = { ...env, ...backend.env };
   for (const name of backend.clearEnv ?? []) {
