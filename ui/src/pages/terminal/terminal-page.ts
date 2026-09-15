@@ -7,12 +7,14 @@ import { applicationContext, type ApplicationContext } from "../../app/context.t
 import { icons } from "../../components/icons.ts";
 import { renderPanelEmptyState } from "../../components/panel-empty-state.ts";
 import "../../components/terminal/terminal-panel-registration.ts";
+import { TERMINAL_AUTO_RUN_SENT_EVENT } from "../../components/terminal/terminal-panel-session-types.ts";
 import { t } from "../../i18n/index.ts";
 import { buildCatalogSessionKey } from "../../lib/sessions/catalog-key.ts";
 import { normalizeAgentId } from "../../lib/sessions/session-key.ts";
 import { isTerminalAvailable } from "../../lib/terminal-availability.ts";
 import { OpenClawLightDomElement } from "../../lit/openclaw-element.ts";
 import { SubscriptionsController } from "../../lit/subscriptions-controller.ts";
+import { isTerminalFirstRunLocation, TERMINAL_FIRST_RUN_COMMAND } from "./first-run-command.ts";
 import { resolveTerminalRouteLocation } from "./route-location.ts";
 import "./terminal-page.css";
 
@@ -24,6 +26,7 @@ class TerminalPage extends OpenClawLightDomElement {
 
   constructor() {
     super();
+    this.addEventListener(TERMINAL_AUTO_RUN_SENT_EVENT, () => this.clearFirstRunMarker());
     new SubscriptionsController(this)
       .watch(
         () => this.context?.gateway,
@@ -43,6 +46,16 @@ class TerminalPage extends OpenClawLightDomElement {
       );
   }
 
+  /**
+   * Drops the first-run marker as soon as the guided command has been typed, so
+   * a reload, a re-render, or a later session never types it again.
+   */
+  private clearFirstRunMarker(): void {
+    if (this.location && isTerminalFirstRunLocation(this.location)) {
+      this.context.replace("terminal");
+    }
+  }
+
   override render() {
     const context = this.context;
     const snapshot = context.gateway.snapshot;
@@ -59,6 +72,12 @@ class TerminalPage extends OpenClawLightDomElement {
         ? target.sessionId
         : buildCatalogSessionKey(target.catalog)
       : "";
+    // Only a plain fresh session carries the guided setup: an attached or
+    // catalog-prepared terminal is someone else's session, never ours to type
+    // into.
+    const firstRun = this.location !== null && isTerminalFirstRunLocation(this.location);
+    const autoRunCommand =
+      available && target === null && firstRun ? TERMINAL_FIRST_RUN_COMMAND : null;
     return keyed(
       key,
       html`<openclaw-terminal-panel
@@ -67,6 +86,7 @@ class TerminalPage extends OpenClawLightDomElement {
           fullscreen
           .page=${true}
           .routeTarget=${target}
+          .autoRunCommand=${autoRunCommand}
           .client=${snapshot.phase === "connected" ? snapshot.client : null}
           .available=${available}
           .agentId=${owner ? normalizeAgentId(owner) : null}

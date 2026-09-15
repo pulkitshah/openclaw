@@ -4,6 +4,35 @@ import { sameRouteLocation, type RouteId } from "../../app-routes.ts";
 import type { ApplicationContext } from "../../app/context.ts";
 import { canCallGatewayMethod } from "../../lib/gateway-methods.ts";
 import { readSessionDefaults } from "../../lib/sessions/session-key.ts";
+import { isTerminalAvailable } from "../../lib/terminal-availability.ts";
+import { TERMINAL_FIRST_RUN_SEARCH } from "../terminal/first-run-command.ts";
+
+export type FirstRunSetupDestination = { routeId: RouteId; search: string };
+
+/** Onboarding for a connection that cannot open a terminal. */
+export const MODEL_SETUP_FIRST_RUN_DESTINATION: FirstRunSetupDestination = {
+  routeId: "model-setup",
+  search: "?firstRun=1",
+};
+
+/**
+ * Where an install with no configured model lands. The CLI's guided `onboard`
+ * run inside the operator terminal is the product's onboarding, so it wins
+ * whenever this connection can actually open a terminal. The Model Setup page
+ * stays the fallback for a disabled terminal surface, a Gateway that does not
+ * advertise it, or a connection without operator.admin — a fresh install is
+ * never left stranded on the default Chat landing.
+ */
+export function firstRunSetupDestination(
+  context: Pick<ApplicationContext<RouteId>, "gateway" | "config">,
+): FirstRunSetupDestination {
+  return isTerminalAvailable(
+    context.gateway.snapshot,
+    context.config.current.terminalEnabled ?? false,
+  )
+    ? { routeId: "terminal", search: TERMINAL_FIRST_RUN_SEARCH }
+    : MODEL_SETUP_FIRST_RUN_DESTINATION;
+}
 
 export function isDefaultChatLanding(
   location: RouteLocation,
@@ -25,7 +54,7 @@ export async function startModelSetupFirstRunRedirectAfterLocation(params: {
   initialLocationReady: Promise<RouteLocation>;
   installLocation?: (location: RouteLocation) => void | Promise<void>;
   shouldInstallLocation?: () => boolean;
-  redirect?: () => void;
+  redirect?: (destination: FirstRunSetupDestination) => void;
   onInitialDecision?: () => void;
 }): Promise<() => void> {
   const initialLocation = await params.initialLocationReady;
@@ -46,7 +75,9 @@ export async function startModelSetupFirstRunRedirectAfterLocation(params: {
   const { context } = params;
   const isStillDefaultLanding = () => sameRouteLocation(params.history.location(), initialLocation);
   const redirect =
-    params.redirect ?? (() => context.replace("model-setup", { search: "?firstRun=1" }));
+    params.redirect ??
+    ((destination: FirstRunSetupDestination) =>
+      context.replace(destination.routeId, { search: destination.search }));
   let initialDecisionSettled = false;
   const settleInitialDecision = () => {
     if (!initialDecisionSettled) {
@@ -77,7 +108,7 @@ export async function startModelSetupFirstRunRedirectAfterLocation(params: {
       isStillDefaultLanding()
     ) {
       if (defaults?.modelConfigured === false) {
-        redirect();
+        redirect(firstRunSetupDestination(context));
       } else if (defaults?.modelConfigured) {
         try {
           if (localStorage.getItem("openclaw.modelSetup.pendingActivation.v1")) {
@@ -86,7 +117,13 @@ export async function startModelSetupFirstRunRedirectAfterLocation(params: {
             void import("./model-setup-page.ts")
               .then(({ resumeFirstRunActivation }) =>
                 resumeFirstRunActivation(
-                  { context, isStillDefaultLanding, redirect },
+                  {
+                    context,
+                    isStillDefaultLanding,
+                    // An unfinished activation was started on the Model Setup
+                    // page; recovery returns to the surface that owns it.
+                    redirect: () => redirect(MODEL_SETUP_FIRST_RUN_DESTINATION),
+                  },
                   snapshot,
                   ownerRevision,
                   selectedAgentId,

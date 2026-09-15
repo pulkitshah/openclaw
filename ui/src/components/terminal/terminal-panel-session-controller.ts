@@ -57,6 +57,10 @@ export class TerminalPanelSessionController implements TerminalPanelSessionContr
   private lifecycleSyncToken = 0;
   private tabSequence = 0;
   private pendingRestore: TerminalRestoreBatch | null = null;
+  // First-run onboarding types its command into the one session this panel
+  // opens for it. The latch survives re-renders, reconnects, and later tabs;
+  // the route owner drops its marker on the send so a reload cannot retype it.
+  private autoRunCommandSent = false;
   private intentQueue = terminalIntentQueue;
   private readonly bootQueue = new TerminalTaskQueue();
   private readonly intentHost: TerminalIntentHost;
@@ -484,6 +488,9 @@ export class TerminalPanelSessionController implements TerminalPanelSessionContr
       }
       this.adoptSession(boot.tab, result, ownerSessionKey !== undefined);
       boot.tab.controller.terminal.focus();
+      // Only a session this panel just opened, and only once the open RPC
+      // resolved, so the PTY exists before the keystrokes reach it.
+      this.sendAutoRunCommand(boot.connection, result.sessionId);
       return true;
     } catch (error) {
       // A failed open (e.g. terminal disabled or a sandboxed agent is refused)
@@ -510,6 +517,17 @@ export class TerminalPanelSessionController implements TerminalPanelSessionContr
         this.updateControllerState({ booting: false });
       }
     }
+  }
+
+  /** Types the route's one-shot command into a freshly opened session. */
+  private sendAutoRunCommand(connection: TerminalConnection, sessionId: string): void {
+    const command = this.host.autoRunCommand?.trim();
+    if (!command || this.autoRunCommandSent) {
+      return;
+    }
+    this.autoRunCommandSent = true;
+    void connection.input(sessionId, `${command}\n`);
+    this.host.terminalAutoRunCommandSent();
   }
 
   /** Reattaches one session and reports whether adoption succeeded. */

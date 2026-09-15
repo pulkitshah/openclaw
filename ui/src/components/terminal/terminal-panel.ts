@@ -41,6 +41,7 @@ import {
   reattachTerminalSessionHosts,
   updateTerminalSessionTheme,
 } from "./terminal-panel-session-rendering.ts";
+import { TERMINAL_AUTO_RUN_SENT_EVENT } from "./terminal-panel-session-types.ts";
 import type {
   TerminalPanelSessionTab,
   TerminalRouteTarget,
@@ -87,6 +88,12 @@ export class OpenClawTerminalPanel extends OpenClawLitElement implements PanelHo
   /** Main-route terminal owns its queue and restore state independently of docks. */
   @property({ type: Boolean }) page = false;
   @property({ attribute: false }) routeTarget: TerminalRouteTarget = null;
+  /**
+   * One shell command the route asks this panel to type into the session it
+   * opens next (first-run onboarding). Sent once, after that session's PTY
+   * exists; the route clears its marker when the panel reports the send.
+   */
+  @property({ attribute: false }) autoRunCommand: string | null = null;
 
   @state() private sessionPickerOpen = false;
   @state() private pickerSessions: TerminalSessionInfo[] = [];
@@ -335,6 +342,12 @@ export class OpenClawTerminalPanel extends OpenClawLitElement implements PanelHo
     this.closeSessionPicker(false);
     this.terminalSessions.cancelPendingActions();
     this.dockLayout.setOpen(false);
+  }
+
+  terminalAutoRunCommandSent(): void {
+    this.dispatchEvent(
+      new CustomEvent(TERMINAL_AUTO_RUN_SENT_EVENT, { bubbles: true, composed: true }),
+    );
   }
 
   get terminalPanelOpen(): boolean {

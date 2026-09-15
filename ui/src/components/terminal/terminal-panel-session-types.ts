@@ -26,6 +26,9 @@ export type TerminalPanelSessionTab = TerminalPanelTab &
     cancelled?: "close" | "lifecycle";
   };
 
+/** Bubbles once the panel has typed `autoRunCommand` into a session it opened. */
+export const TERMINAL_AUTO_RUN_SENT_EVENT = "openclaw:terminal-auto-run-sent";
+
 export type TerminalRouteTarget =
   | { sessionId: string }
   | { catalog: TerminalPanelCatalogReference }
@@ -80,6 +83,8 @@ export interface TerminalPanelSessionControllerHost extends ReactiveControllerHo
   readonly fullscreen: boolean;
   readonly page: boolean;
   readonly routeTarget: TerminalRouteTarget;
+  /** Command the route asks this panel to type into the session it opens next. */
+  readonly autoRunCommand: string | null;
   readonly terminalPanelOpen: boolean;
   readonly catalogReadyTimeoutMs: number;
   readonly terminalPanelUploadController: TerminalPanelUploadController;
@@ -87,6 +92,7 @@ export interface TerminalPanelSessionControllerHost extends ReactiveControllerHo
     options: CreateGhosttyTerminalOptions,
   ): Promise<GhosttyTerminalController>;
   closeTerminalPanel(): void;
+  terminalAutoRunCommandSent(): void;
   findTerminalPanelViewport(): Element | null;
   hideTerminalPanelForUnavailableSurface(): void;
   resetTerminalSessionPicker(): void;
