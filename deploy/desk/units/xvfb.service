@@ -1,5 +1,5 @@
 [Unit]
-Description=Virtual display for the OpenClaw desk
+Description=Virtual display for the Vasudev desk
 After=network.target
 [Service]
 ExecStart=/usr/bin/Xvfb :99 -screen 0 1920x1080x24 -nolisten tcp

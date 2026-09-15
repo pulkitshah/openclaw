@@ -1,5 +1,5 @@
 [Unit]
-Description=Run the OpenClaw desk health probe every 2 minutes
+Description=Run the Vasudev desk health probe every 2 minutes
 
 [Timer]
 OnBootSec=1min
