@@ -64,7 +64,7 @@ Chrome on a paired node:
       "teams-meetings": {
         config: {
           defaultMode: "agent",
-          chrome: { guestName: "OpenClaw Agent" },
+          chrome: { guestName: "Vasudev Agent" },
           chromeNode: { node: "meeting-node" },
         },
       },

@@ -36,7 +36,7 @@ The common Chrome agent path only needs the plugin enabled, BlackHole, SoX, a re
 | `chromeNode.node`                 | unset                                    | Node id/name/IP for `chrome-node`; required when more than one capable node may be connected                                                                                                                      |
 | `chrome.launch`                   | `true`                                   | Launch Chrome for the join; set `false` only when reusing an already-open session                                                                                                                                 |
 | `chrome.audioBackend`             | `"auto"`                                 | Selects `blackhole-2ch` on macOS or `pipewire-pulse` on Linux; set an explicit backend when a paired Chrome node uses a different OS than the Gateway                                                             |
-| `chrome.guestName`                | `"OpenClaw Agent"`                       | Shown on the signed-out Meet guest screen                                                                                                                                                                         |
+| `chrome.guestName`                | `"Vasudev Agent"`                        | Shown on the signed-out Meet guest screen                                                                                                                                                                         |
 | `chrome.autoJoin`                 | `true`                                   | Best-effort guest-name fill and Join Now click on `chrome-node`                                                                                                                                                   |
 | `chrome.reuseExistingTab`         | `true`                                   | Activates an existing Meet tab instead of opening duplicates                                                                                                                                                      |
 | `chrome.waitForInCallMs`          | `20000`                                  | Wait for the Meet tab to report in-call before the talk-back intro fires                                                                                                                                          |
@@ -75,7 +75,7 @@ An `openclaw doctor --fix` migration exists for the legacy `realtime.provider: "
     defaultProfile: "openclaw",
   },
   chrome: {
-    guestName: "OpenClaw Agent",
+    guestName: "Vasudev Agent",
     waitForInCallMs: 30000,
     bargeInInputCommand: [
       "sox",

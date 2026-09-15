@@ -75,7 +75,7 @@ Route Meet through that node:
         config: {
           defaultTransport: "chrome-node",
           chrome: {
-            guestName: "OpenClaw Agent",
+            guestName: "Vasudev Agent",
             autoJoin: true,
             reuseExistingTab: true,
           },
