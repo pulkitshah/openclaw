@@ -275,7 +275,7 @@ describe("agent selection", () => {
   it("restores a persisted selection before the Gateway default arrives", () => {
     const harness = createGateway(null);
     const persistence = {
-      load: () => "Vasudev",
+      load: () => "OpenClaw",
       save: vi.fn(),
     };
     const selection = createAgentSelectionCapability(
@@ -308,7 +308,7 @@ describe("agent selection", () => {
     const persistence = { load: () => null, save: vi.fn() };
     const selection = createAgentSelectionCapability(harness.gateway, roster.roster, persistence);
 
-    selection.set("Vasudev");
+    selection.set("OpenClaw");
     expect(persistence.save).toHaveBeenLastCalledWith("ws://gateway-a.test", "openclaw");
 
     roster.publish({
@@ -325,7 +325,7 @@ describe("agent selection", () => {
     const harness = createGateway("Dummy");
     const persistence = {
       load: (gatewayUrl: string) =>
-        gatewayUrl === "wss://gateway-b.test" ? "Research" : "Vasudev",
+        gatewayUrl === "wss://gateway-b.test" ? "Research" : "OpenClaw",
       save: vi.fn(),
     };
     const selection = createAgentSelectionCapability(
@@ -364,7 +364,7 @@ describe("agent selection", () => {
   });
 
   it("clears system page scopes when the typed roster becomes known", () => {
-    const gateway = createGateway("Vasudev");
+    const gateway = createGateway("OpenClaw");
     const roster = createRoster();
     const selection = createAgentSelectionCapability(gateway.gateway, roster.roster);
 
