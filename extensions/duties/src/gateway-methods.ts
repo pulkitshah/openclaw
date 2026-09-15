@@ -28,6 +28,8 @@ import { renderTemplatePreview } from "./preview.js";
 import type { RunManager } from "./run-service.js";
 import { renderStatusFromConfig } from "./setup.js";
 import type { DutyStore, RunOrigin } from "./store.js";
+import { revokePairingEntries, writeTeamProjection } from "./team-write.js";
+import { normalizeTeamMemberId, type TeamChannelIdentity } from "./team.js";
 import { validateBrand, validateTemplate } from "./template.js";
 
 /** How long `duties.run.wait` blocks before answering with the run as it stands. Short enough that
@@ -170,6 +172,31 @@ export function registerDutiesGatewayMethods(deps: {
       throw new Error("key is required");
     }
     return params.key;
+  };
+  const readMemberId = (params: Record<string, unknown>): string => {
+    if (typeof params.memberId !== "string" || !params.memberId) {
+      throw new Error("memberId is required");
+    }
+    return normalizeTeamMemberId(params.memberId);
+  };
+
+  /** Channel identities arrive as ordinary params, so only the known fields in the known shapes are
+   *  kept. An identity with no channel or no sender id is rejected rather than stored half-formed —
+   *  it would become an allowlist entry and a routing key. */
+  const readIdentities = (value: unknown): TeamChannelIdentity[] => {
+    if (!Array.isArray(value) || value.length === 0) {
+      throw new Error("channels is required: at least one { channel, senderId }");
+    }
+    const now = Date.now();
+    return value.map((raw, index) => {
+      if (!isRecord(raw)) throw new Error(`channels[${index}]: must be an object`);
+      const channel = typeof raw.channel === "string" ? raw.channel.trim() : "";
+      const senderId = typeof raw.senderId === "string" ? raw.senderId.trim() : "";
+      if (!channel) throw new Error(`channels[${index}].channel is required`);
+      if (!senderId) throw new Error(`channels[${index}].senderId is required`);
+      const accountId = typeof raw.accountId === "string" ? raw.accountId.trim() : "";
+      return { channel, senderId, ...(accountId ? { accountId } : {}), addedAt: now };
+    });
   };
   /** Validates a caller-supplied run origin. The tools capture this from their trusted tool
    *  context, but it arrives here as ordinary params, so only the known fields in the known shapes
@@ -669,7 +696,7 @@ export function registerDutiesGatewayMethods(deps: {
     settings: await store.getSettings(),
   }));
 
-  register("duties.settings.set", "operator.admin", async (params) => {
+  register("duties.settings.set", "operator.admin", async (params, ctx) => {
     const owner = params.owner;
     const approval = params.requireApprovalForEdits;
     const maxParallelRuns = params.maxParallelRuns;
@@ -710,6 +737,9 @@ export function registerDutiesGatewayMethods(deps: {
       const ownerRow = await store.ownerMember();
       if (ownerRow) {
         const rest = ownerRow.channels.filter((c) => c.channel !== ownerPatch.channel);
+        // A durable effect: re-check live authority immediately before it, same as every other
+        // write this module performs (`assertStillAuthorized`'s own contract).
+        assertStillAuthorized(ctx);
         await store.setMemberChannels(ownerRow.id, [
           { channel: ownerPatch.channel, senderId: ownerPatch.target, addedAt: Date.now() },
           ...rest,
@@ -760,6 +790,63 @@ export function registerDutiesGatewayMethods(deps: {
       ],
     });
     return { members: [seeded] };
+  });
+
+  /** `duties.team.add` is completed in Task 3 — it needs the agent-provisioning step, which this
+   *  task does not add. */
+
+  register("duties.team.setChannels", "operator.admin", async (params, ctx) => {
+    const memberId = readMemberId(params);
+    const identities = readIdentities(params.channels);
+    const before = await store.getMember(memberId);
+    if (!before) throw new Error(`no Team member "${memberId}"`);
+    const member = await store.setMemberChannels(memberId, identities);
+    const members = await store.listMembers();
+    const { warnings } = await writeTeamProjection({
+      members,
+      assertStillAuthorized: () => assertStillAuthorized(ctx),
+    });
+    // An identity the member no longer has must lose its pairing-store approval too, or the
+    // channel would keep admitting it independently of the allowlist.
+    const dropped = before.channels.filter(
+      (old) =>
+        !identities.some((next) => next.channel === old.channel && next.senderId === old.senderId),
+    );
+    await revokePairingEntries({ runtime: api.runtime, identities: dropped });
+    safeEmit("changed", { team: true });
+    return { ok: true, member, warnings };
+  });
+
+  register("duties.team.remove", "operator.admin", async (params, ctx) => {
+    const memberId = readMemberId(params);
+    const member = await store.getMember(memberId);
+    if (!member) throw new Error(`no Team member "${memberId}"`);
+    // GC1: the row, the access-group entries, the links and the bindings go now. The agent and its
+    // workspace stay — removal revokes access, it does not destroy a conversation.
+    await store.removeMember(memberId);
+    const members = await store.listMembers();
+    const { warnings } = await writeTeamProjection({
+      members,
+      assertStillAuthorized: () => assertStillAuthorized(ctx),
+    });
+    await revokePairingEntries({ runtime: api.runtime, identities: member.channels });
+    safeEmit("changed", { team: true });
+    return { ok: true, removed: member, warnings };
+  });
+
+  register("duties.team.transferOwnership", "operator.admin", async (params, ctx) => {
+    const memberId = readMemberId(params);
+    const { from, to } = await store.transferOwnership(memberId);
+    const members = await store.listMembers();
+    const { warnings } = await writeTeamProjection({
+      members,
+      assertStillAuthorized: () => assertStillAuthorized(ctx),
+    });
+    // Approvals, questions and `to: "owner"` now resolve to the new owner, because `ownerTarget`
+    // reads the owner row. Nothing else moves: the outgoing owner keeps their identities, their
+    // access-group entries, their agent and their sessions.
+    safeEmit("changed", { team: true, settings: true });
+    return { ok: true, from, to, warnings };
   });
 
   /** Setup readiness for both of Part 2's outward-facing paths: the Gmail dispatch chain and

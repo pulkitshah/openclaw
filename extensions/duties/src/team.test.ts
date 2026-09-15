@@ -1,6 +1,16 @@
+import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { describe, expect, it } from "vitest";
 import { DutyStore } from "./store.js";
-import { normalizeTeamMemberId, TEAM_MEMBER_ID_RE, type TeamMember } from "./team.js";
+import {
+  applyTeamProjection,
+  assertTeamProjectionSafe,
+  normalizeTeamMemberId,
+  teamAccessGroup,
+  teamIdentityLinks,
+  TEAM_ACCESS_GROUP_ENTRY,
+  TEAM_MEMBER_ID_RE,
+  type TeamMember,
+} from "./team.js";
 
 function memoryKeyed<T>() {
   const m = new Map<string, T>();
@@ -136,5 +146,200 @@ describe("team roster invariants", () => {
     ]);
     expect(next?.channels.map((c) => c.channel)).toEqual(["telegram", "whatsapp"]);
     expect(next?.updatedAt).toBeGreaterThanOrEqual(before?.updatedAt ?? 0);
+  });
+});
+
+const OWNER: TeamMember = {
+  id: "owner",
+  name: "Pulkit",
+  role: "owner",
+  agentId: "krishna",
+  addedBy: "owner",
+  addedAt: 1,
+  updatedAt: 1,
+  channels: [{ channel: "telegram", senderId: "111", addedAt: 1 }],
+};
+
+const RAMESH: TeamMember = {
+  id: "ramesh",
+  name: "Ramesh",
+  role: "member",
+  agentId: "ramesh",
+  addedBy: "owner",
+  addedAt: 2,
+  updatedAt: 2,
+  channels: [
+    { channel: "telegram", senderId: "5551234", addedAt: 2 },
+    { channel: "whatsapp", senderId: "+919812345678", addedAt: 3 },
+  ],
+};
+
+function deskConfig(): OpenClawConfig {
+  return {
+    agents: {
+      ownership: "explicit",
+      entries: { krishna: { name: "Krishna" }, ramesh: { name: "Ramesh" } },
+    },
+    channels: {
+      telegram: { enabled: true, dmPolicy: "allowlist", allowFrom: ["111"] },
+      whatsapp: { enabled: true, dmPolicy: "allowlist", allowFrom: ["+919800000000"] },
+    },
+    bindings: [
+      { agentId: "krishna", match: { channel: "telegram", accountId: "*" } },
+      { agentId: "krishna", match: { channel: "whatsapp", accountId: "*" } },
+    ],
+    // SAFETY: a hand-built config fixture is a partial OpenClawConfig by construction.
+  } as OpenClawConfig;
+}
+
+describe("teamAccessGroup", () => {
+  it("buckets sender ids by channel and never emits a wildcard", () => {
+    const group = teamAccessGroup([OWNER, RAMESH]);
+    expect(group).toEqual({
+      type: "message.senders",
+      members: { telegram: ["111", "5551234"], whatsapp: ["+919812345678"] },
+    });
+    expect(Object.keys(group.members)).not.toContain("*");
+  });
+
+  it("an empty roster authorizes nobody", () => {
+    expect(teamAccessGroup([])).toEqual({ type: "message.senders", members: {} });
+  });
+});
+
+describe("teamIdentityLinks", () => {
+  it("lists every identity as <channel>:<senderId> under the member id", () => {
+    expect(teamIdentityLinks([OWNER, RAMESH])).toEqual({
+      owner: ["telegram:111"],
+      ramesh: ["telegram:5551234", "whatsapp:+919812345678"],
+    });
+  });
+});
+
+describe("applyTeamProjection", () => {
+  it("merges accessGroup:team into an existing allowFrom instead of replacing it", () => {
+    const next = applyTeamProjection(deskConfig(), [OWNER, RAMESH]);
+    expect(next.channels?.telegram?.allowFrom).toEqual(["111", TEAM_ACCESS_GROUP_ENTRY]);
+    expect(next.channels?.whatsapp?.allowFrom).toEqual(["+919800000000", TEAM_ACCESS_GROUP_ENTRY]);
+  });
+
+  it("is idempotent — a second run adds no duplicate entry and no duplicate binding", () => {
+    const once = applyTeamProjection(deskConfig(), [OWNER, RAMESH]);
+    const twice = applyTeamProjection(once, [OWNER, RAMESH]);
+    expect(twice.channels?.telegram?.allowFrom).toEqual(["111", TEAM_ACCESS_GROUP_ENTRY]);
+    expect(twice.bindings).toEqual(once.bindings);
+  });
+
+  it("never writes dmPolicy", () => {
+    const next = applyTeamProjection(deskConfig(), [OWNER, RAMESH]);
+    expect(next.channels?.telegram?.dmPolicy).toBe("allowlist");
+    expect(next.channels?.whatsapp?.dmPolicy).toBe("allowlist");
+  });
+
+  it("removing a member drops their access-group entries, links and bindings in one write", () => {
+    const withBoth = applyTeamProjection(deskConfig(), [OWNER, RAMESH]);
+    const afterRemoval = applyTeamProjection(withBoth, [OWNER]);
+    expect(afterRemoval.accessGroups?.team).toEqual({
+      type: "message.senders",
+      members: { telegram: ["111"] },
+    });
+    expect(afterRemoval.session?.identityLinks).toEqual({ owner: ["telegram:111"] });
+    expect(afterRemoval.bindings?.some((b) => b.agentId === "ramesh")).toBe(false);
+    // GC1: the agent entry and its workspace stay.
+    expect(afterRemoval.agents?.entries?.ramesh).toBeDefined();
+  });
+
+  it("leaves an operator-authored binding untouched and replaces only its own marked entries", () => {
+    const cfg = deskConfig();
+    cfg.bindings = [
+      ...(cfg.bindings ?? []),
+      { agentId: "krishna", comment: "operator wrote this", match: { channel: "signal" } },
+    ];
+    const next = applyTeamProjection(cfg, [OWNER, RAMESH]);
+    expect(next.bindings?.filter((b) => b.comment === "operator wrote this")).toHaveLength(1);
+  });
+});
+
+describe("assertTeamProjectionSafe", () => {
+  it("refuses a channel with no channel-wide binding under explicit ownership", () => {
+    const cfg = deskConfig();
+    cfg.bindings = [{ agentId: "krishna", match: { channel: "telegram", accountId: "*" } }];
+    expect(() => assertTeamProjectionSafe(cfg, [OWNER, RAMESH])).toThrow(
+      /whatsapp has no channel-wide binding/,
+    );
+  });
+
+  it("refuses to narrow a channel whose allowFrom is empty and whose dmPolicy is not allowlist", () => {
+    const cfg = deskConfig();
+    cfg.channels = {
+      ...cfg.channels,
+      whatsapp: { enabled: true, dmPolicy: "pairing" },
+      // SAFETY: fixture narrowing; only the two keys this assertion reads are set.
+    } as OpenClawConfig["channels"];
+    expect(() => assertTeamProjectionSafe(cfg, [OWNER, RAMESH])).toThrow(
+      /whatsapp currently admits every sender/,
+    );
+  });
+
+  it("keeps pairing-approved senders: a pairing channel with an explicit allowFrom is fine", () => {
+    const cfg = deskConfig();
+    cfg.channels = {
+      ...cfg.channels,
+      whatsapp: { enabled: true, dmPolicy: "pairing", allowFrom: ["+919800000000"] },
+      // SAFETY: fixture narrowing; only the keys this assertion reads are set.
+    } as OpenClawConfig["channels"];
+    expect(assertTeamProjectionSafe(cfg, [OWNER, RAMESH])).toEqual([]);
+  });
+
+  it("warns, but does not throw, when a touched channel is dmPolicy open", () => {
+    const cfg = deskConfig();
+    cfg.channels = {
+      ...cfg.channels,
+      whatsapp: { enabled: true, dmPolicy: "open", allowFrom: ["*"] },
+      // SAFETY: fixture narrowing; only the keys this assertion reads are set.
+    } as OpenClawConfig["channels"];
+    expect(assertTeamProjectionSafe(cfg, [OWNER, RAMESH])).toEqual([
+      'whatsapp is set to dmPolicy "open", so anyone can instruct Vasu there — Team does not restrict it.',
+    ]);
+  });
+});
+
+describe("one roster change admits a member on two channels", () => {
+  /** What every channel's ingress resolver ends up comparing a sender against: the channel's
+   *  `allowFrom` with each `accessGroup:<name>` entry replaced by that group's members for THIS
+   *  channel (`src/channels/message-access/runtime-access-groups.ts:32-58` partitions the symbolic
+   *  entries; `src/channels/message-access/state.ts:155,362` expands message.senders). */
+  function effectiveAllowFrom(cfg: OpenClawConfig, channel: string): string[] {
+    const entries = cfg.channels?.[channel]?.allowFrom ?? [];
+    return entries.flatMap((entry) => {
+      if (typeof entry !== "string" || !entry.startsWith("accessGroup:")) return [String(entry)];
+      const group = cfg.accessGroups?.[entry.slice("accessGroup:".length)];
+      if (!group || group.type !== "message.senders") return [];
+      return [...(group.members[channel] ?? []), ...(group.members["*"] ?? [])];
+    });
+  }
+
+  it("promotes one member onto telegram and whatsapp from a single projection", () => {
+    const before = deskConfig();
+    expect(effectiveAllowFrom(before, "telegram")).not.toContain("5551234");
+    expect(effectiveAllowFrom(before, "whatsapp")).not.toContain("+919812345678");
+
+    const after = applyTeamProjection(before, [OWNER, RAMESH]);
+
+    expect(effectiveAllowFrom(after, "telegram")).toContain("5551234");
+    expect(effectiveAllowFrom(after, "whatsapp")).toContain("+919812345678");
+    // The owner's original entries survive on both channels.
+    expect(effectiveAllowFrom(after, "telegram")).toContain("111");
+    expect(effectiveAllowFrom(after, "whatsapp")).toContain("+919800000000");
+    // A non-member is on neither.
+    expect(effectiveAllowFrom(after, "telegram")).not.toContain("9999999");
+    expect(effectiveAllowFrom(after, "whatsapp")).not.toContain("+919700000000");
+  });
+
+  it("removing the member revokes both channels in the same single projection", () => {
+    const after = applyTeamProjection(applyTeamProjection(deskConfig(), [OWNER, RAMESH]), [OWNER]);
+    expect(effectiveAllowFrom(after, "telegram")).not.toContain("5551234");
+    expect(effectiveAllowFrom(after, "whatsapp")).not.toContain("+919812345678");
+    expect(effectiveAllowFrom(after, "telegram")).toContain("111");
   });
 });

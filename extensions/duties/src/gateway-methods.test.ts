@@ -9,13 +9,23 @@ import type { Duty } from "./duty.js";
 import { registerDutiesGatewayMethods } from "./gateway-methods.js";
 import type { RunManager } from "./run-service.js";
 import { DutyStore } from "./store.js";
+import { revokePairingEntries, writeTeamProjection } from "./team-write.js";
 import type { TeamMember } from "./team.js";
 
 /** The tests in Tasks 2 and 3 call `writeTeamProjection`, which reads and writes the real config
  *  file. Stub it here so no test in this suite touches `~/.openclaw/openclaw.json`; the projection
- *  itself is proved directly, without mocks, in `team.test.ts` (and its own test file once added). */
+ *  itself is proved directly, without mocks, in `team.test.ts` (and its own test file once added).
+ *  The stub still invokes the caller's `assertStillAuthorized`, exactly where the real
+ *  implementation calls it (synchronously, immediately before its config write) — so a test can
+ *  prove the live-authority guard is wired into each `duties.team.*` handler without this suite
+ *  ever touching a real config file. */
 vi.mock("./team-write.js", () => ({
-  writeTeamProjection: vi.fn(async () => ({ warnings: [], config: {} })),
+  writeTeamProjection: vi.fn(
+    async (params: { members: unknown; assertStillAuthorized: () => void }) => {
+      params.assertStillAuthorized();
+      return { warnings: [], config: {} };
+    },
+  ),
   revokePairingEntries: vi.fn(async () => undefined),
 }));
 
@@ -51,6 +61,7 @@ function memoryKeyed<T>() {
 type Handler = (ctx: {
   params: Record<string, unknown>;
   respond: (ok: boolean, result?: unknown, error?: unknown) => void;
+  hasCurrentClientAuthority?: () => boolean;
 }) => Promise<void>;
 
 type EmitFn = (name: "changed" | "run", payload: Record<string, unknown>) => void;
@@ -117,11 +128,18 @@ function harness(params?: {
     ...(params?.deskHealth ? { deskHealth: params.deskHealth } : {}),
   });
 
-  const call = async (name: string, callParams: Record<string, unknown>) =>
+  const call = async (
+    name: string,
+    callParams: Record<string, unknown>,
+    callOpts?: { hasCurrentClientAuthority?: () => boolean },
+  ) =>
     new Promise<{ ok: boolean; result?: unknown; error?: unknown }>((resolve) => {
       void methods.get(name)!.handler({
         params: callParams,
         respond: (ok, result, error) => resolve({ ok, result, error }),
+        ...(callOpts?.hasCurrentClientAuthority
+          ? { hasCurrentClientAuthority: callOpts.hasCurrentClientAuthority }
+          : {}),
       });
     });
 
@@ -971,5 +989,172 @@ describe("duties.team.get", () => {
     const owner = await store.ownerMember();
     expect(owner?.channels[0]).toMatchObject({ channel: "whatsapp", senderId: "+919800000000" });
     expect(owner?.role).toBe("owner");
+  });
+});
+
+describe("duties.team.setChannels", () => {
+  it("replaces a member's identities, projects the roster and revokes the dropped pairing entry", async () => {
+    const { call, store } = harness();
+    await store.seedOwner({
+      id: "owner",
+      name: "Owner",
+      agentId: "krishna",
+      addedBy: "owner",
+      channels: [],
+    });
+    await store.addMember({
+      id: "ramesh",
+      name: "Ramesh",
+      agentId: "ramesh",
+      addedBy: "owner",
+      channels: [{ channel: "telegram", senderId: "5551234", addedAt: 1 }],
+    });
+    (writeTeamProjection as Mock).mockClear();
+    (revokePairingEntries as Mock).mockClear();
+
+    const result = await call("duties.team.setChannels", {
+      memberId: "ramesh",
+      channels: [{ channel: "whatsapp", senderId: "+919812345678" }],
+    });
+
+    expect(result.ok).toBe(true);
+    const member = (await store.getMember("ramesh"))!;
+    expect(member.channels).toEqual([
+      expect.objectContaining({ channel: "whatsapp", senderId: "+919812345678" }),
+    ]);
+    expect(writeTeamProjection).toHaveBeenCalledOnce();
+    expect(revokePairingEntries).toHaveBeenCalledWith(
+      expect.objectContaining({
+        identities: [expect.objectContaining({ channel: "telegram", senderId: "5551234" })],
+      }),
+    );
+  });
+
+  it("rejects an unknown member and a missing channels array", async () => {
+    const { call } = harness();
+    expect((await call("duties.team.setChannels", { memberId: "nobody", channels: [] })).ok).toBe(
+      false,
+    );
+    const missing = await call("duties.team.setChannels", { memberId: "owner" });
+    expect(missing.ok).toBe(false);
+    expect(missing.error).toMatchObject({
+      message: "channels is required: at least one { channel, senderId }",
+    });
+  });
+});
+
+describe("duties.team.remove", () => {
+  it("removes a member, projects the roster, revokes their pairing entries and emits changed", async () => {
+    const { call, store, emit } = harness();
+    await store.seedOwner({
+      id: "owner",
+      name: "Owner",
+      agentId: "krishna",
+      addedBy: "owner",
+      channels: [],
+    });
+    await store.addMember({
+      id: "ramesh",
+      name: "Ramesh",
+      agentId: "ramesh",
+      addedBy: "owner",
+      channels: [{ channel: "telegram", senderId: "5551234", addedAt: 1 }],
+    });
+    (writeTeamProjection as Mock).mockClear();
+    (revokePairingEntries as Mock).mockClear();
+    emit.mockClear();
+
+    const result = await call("duties.team.remove", { memberId: "ramesh" });
+
+    expect(result.ok).toBe(true);
+    expect(await store.getMember("ramesh")).toBeUndefined();
+    expect(writeTeamProjection).toHaveBeenCalledOnce();
+    expect(revokePairingEntries).toHaveBeenCalledWith(
+      expect.objectContaining({
+        identities: [expect.objectContaining({ channel: "telegram", senderId: "5551234" })],
+      }),
+    );
+    expect(emit).toHaveBeenCalledWith("changed", { team: true });
+  });
+
+  it("refuses to remove an unknown member", async () => {
+    const { call } = harness();
+    const result = await call("duties.team.remove", { memberId: "nobody" });
+    expect(result.ok).toBe(false);
+    expect(result.error).toMatchObject({ message: 'no Team member "nobody"' });
+  });
+});
+
+describe("duties.team.transferOwnership", () => {
+  it("swaps the owner role, projects the roster and emits changed + settings", async () => {
+    const { call, store, emit } = harness();
+    await store.seedOwner({
+      id: "owner",
+      name: "Owner",
+      agentId: "krishna",
+      addedBy: "owner",
+      channels: [],
+    });
+    await store.addMember({
+      id: "ramesh",
+      name: "Ramesh",
+      agentId: "ramesh",
+      addedBy: "owner",
+      channels: [],
+    });
+    emit.mockClear();
+
+    const result = await call("duties.team.transferOwnership", { memberId: "ramesh" });
+
+    expect(result.ok).toBe(true);
+    expect((await store.ownerMember())?.id).toBe("ramesh");
+    expect(emit).toHaveBeenCalledWith("changed", { team: true, settings: true });
+  });
+});
+
+describe("duties.team.* authority", () => {
+  it("registers every mutating method at operator.admin, and the read method at operator.read", () => {
+    const { methods } = harness();
+    for (const method of [
+      "duties.team.setChannels",
+      "duties.team.remove",
+      "duties.team.transferOwnership",
+    ]) {
+      expect(methods.get(method)?.scope).toBe("operator.admin");
+    }
+    expect(methods.get("duties.team.get")?.scope).toBe("operator.read");
+  });
+
+  // `duties.team.add` is registered in Task 3; its own authority test (guarding before the agent
+  // is provisioned, not just before the config write) belongs there.
+  it.todo("duties.team.add registers at operator.admin and refuses before provisioning an agent");
+
+  it("refuses the durable projection write when the admin connection lost authority mid-request", async () => {
+    const { call, store } = harness();
+    await store.seedOwner({
+      id: "owner",
+      name: "Owner",
+      agentId: "krishna",
+      addedBy: "owner",
+      channels: [],
+    });
+    await store.addMember({
+      id: "ramesh",
+      name: "Ramesh",
+      agentId: "ramesh",
+      addedBy: "owner",
+      channels: [],
+    });
+
+    const result = await call(
+      "duties.team.transferOwnership",
+      { memberId: "ramesh" },
+      { hasCurrentClientAuthority: () => false },
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.error).toMatchObject({
+      message: "your session is no longer authorized — reconnect and try again",
+    });
   });
 });
