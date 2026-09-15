@@ -114,7 +114,7 @@ export async function runCollectedChannelOnboardingPostWriteHooks(params: {
               ? formatConfigIssueSummary(snapshot.issues)
               : "file not found";
             throw new Error(
-              `Saved config is unavailable: ${reason}. Run openclaw doctor --fix, then retry setup.`,
+              `Saved config is unavailable: ${reason}. Run vasudev doctor --fix, then retry setup.`,
             );
           }
           await hook.run({ cfg: snapshot.runtimeConfig, runtime: params.runtime });
@@ -466,7 +466,7 @@ export async function setupChannels(
         t("wizard.channels.disabledDuringSetup", {
           channel,
           hint: disabledHint,
-          command: formatCliCommand("openclaw channels add"),
+          command: formatCliCommand("vasudev channels add"),
         }),
         t("wizard.channels.setupTitle"),
       );
@@ -478,7 +478,7 @@ export async function setupChannels(
         t("wizard.channels.pluginEnableFailed", {
           channel,
           reason: result.reason ?? "plugin disabled",
-          command: formatCliCommand("openclaw plugins list"),
+          command: formatCliCommand("vasudev plugins list"),
         }),
         t("wizard.channels.setupTitle"),
       );
@@ -491,8 +491,8 @@ export async function setupChannels(
         await prompter.note(
           t("wizard.channels.pluginMissingRecoverable", {
             channel,
-            listCommand: formatCliCommand("openclaw plugins list"),
-            enableCommand: formatCliCommand("openclaw plugins enable " + channel),
+            listCommand: formatCliCommand("vasudev plugins list"),
+            enableCommand: formatCliCommand("vasudev plugins enable " + channel),
           }),
           t("wizard.channels.setupTitle"),
         );
@@ -555,7 +555,7 @@ export async function setupChannels(
         selectionHint: "status unavailable",
       });
       await prompter.note(
-        `Status unavailable (${detail}).\nRetry: ${formatCliCommand(`openclaw channels status --channel ${channel}`)}`,
+        `Status unavailable (${detail}).\nRetry: ${formatCliCommand(`vasudev channels status --channel ${channel}`)}`,
         t("wizard.channels.statusTitle"),
       );
     }
@@ -601,7 +601,7 @@ export async function setupChannels(
       await prompter.note(
         t("wizard.channels.noInteractiveSetup", {
           channel,
-          command: formatCliCommand(`openclaw channels add --channel ${channel} --help`),
+          command: formatCliCommand(`vasudev channels add --channel ${channel} --help`),
         }),
         t("wizard.channels.setupTitle"),
       );
@@ -797,7 +797,7 @@ export async function setupChannels(
             t("wizard.channels.pluginEnableFailed", {
               channel,
               reason: result.reason ?? "plugin disabled",
-              command: formatCliCommand("openclaw plugins list"),
+              command: formatCliCommand("vasudev plugins list"),
             }),
             t("wizard.channels.setupTitle"),
           );
@@ -1030,7 +1030,7 @@ export async function setupChannels(
             value: skipValue,
             label: t("common.skipForNow"),
             hint: t("wizard.channels.skipLaterHint", {
-              command: formatCliCommand("openclaw channels add"),
+              command: formatCliCommand("vasudev channels add"),
             }),
           },
           ...contributions.map((contribution) => contribution.option),
@@ -1120,7 +1120,7 @@ export async function setupChannels(
           }
         } catch (error) {
           await prompter.note(
-            `Status unavailable (${sanitizeTerminalText(formatErrorMessage(error))}).\nRetry: ${formatCliCommand(`openclaw channels status --channel ${id}`)}`,
+            `Status unavailable (${sanitizeTerminalText(formatErrorMessage(error))}).\nRetry: ${formatCliCommand(`vasudev channels status --channel ${id}`)}`,
             t("wizard.channels.statusTitle"),
           );
         }

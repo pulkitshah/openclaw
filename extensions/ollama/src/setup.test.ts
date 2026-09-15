@@ -381,7 +381,7 @@ describe("ollama setup", () => {
         "Start or restart the Ollama server for this address.",
         "If Ollama is not installed on that machine, download it at https://ollama.com/download",
         "",
-        "Continue when it is running. OpenClaw will retry this address.",
+        "Continue when it is running. Vasudev will retry this address.",
       ].join("\n"),
       "Ollama",
     );

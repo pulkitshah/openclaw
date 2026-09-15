@@ -8,11 +8,11 @@ title: "Discord threads and sessions"
 sidebarTitle: "Threads and sessions"
 ---
 
-How Discord threads, forums, and channels map onto OpenClaw sessions.
+How Discord threads, forums, and channels map onto Vasudev sessions.
 
 ## Forum channels
 
-Discord forum and media channels only accept thread posts. OpenClaw supports two ways to create them:
+Discord forum and media channels only accept thread posts. Vasudev supports two ways to create them:
 
 - Send a message to the forum parent (`channel:<forumId>`) to auto-create a thread. The thread title is the first non-empty line of the message (truncated to Discord's 100-character thread-name limit).
 - Use `openclaw message thread create` to create a thread directly. Do not pass `--message-id` for forum channels.

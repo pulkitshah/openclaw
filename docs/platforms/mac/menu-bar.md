@@ -16,7 +16,7 @@ title: "Menu bar"
 - **Quick Chat** opens the floating main-session composer. Its current global shortcut appears beside the item.
 - **Settings…** (Cmd-,) opens Dashboard settings. App and device preferences live under **This Mac**, voice controls under **Talk**, and app update preferences under **Updates**.
 - **Connection…** opens the native Connection window. This is a standard macOS settings window with **Connection** and **Gateways** toolbar tabs. **Debug** also appears while the developer toggle is enabled. The window remains available when the Gateway is unreachable.
-- **About OpenClaw** opens the standard macOS About panel with version, build information, and credits.
+- **About Vasudev** opens the standard macOS About panel with version, build information, and credits.
 
 The app's main **Gateways** menu is always present. It lists the primary Gateway, when configured, followed by saved Gateways, with Command-1 through Command-9 assigned in that order. Each card shows health, version and shortened build ID, endpoint, latency, and the number of open dashboard windows when available. Browser-authenticated profiles also show **Access** and their session expiry. A **Primary** badge identifies the primary Gateway. A front-window marker follows the frontmost dashboard window. Selecting a card opens that Gateway's dashboard window or brings its existing window to the front. Hold Option to reveal **New … Window**, or press Option-Command with the same digit. Both open another independent window for that Gateway. **Manage Gateways…** opens **Connection → Gateways** and remains available when no Gateways are configured.
 

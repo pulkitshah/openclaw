@@ -15,11 +15,11 @@ export async function handleGatewayStartupMaintenance(error: unknown): Promise<b
   if (!reason) {
     return false;
   }
-  const stop = `Stop the service with ${formatCliCommand("openclaw gateway stop")} (or its service owner), then`;
+  const stop = `Stop the service with ${formatCliCommand("vasudev gateway stop")} (or its service owner), then`;
   const guidance =
-    reason === "a newer OpenClaw build"
-      ? `${stop} restore your pre-update backup created with ${formatCliCommand("openclaw backup")}, then start it again with ${formatCliCommand("openclaw gateway start")}. See https://docs.openclaw.ai/install/updating#rollback.`
-      : `${stop} run ${formatCliCommand("openclaw doctor --fix")}, then start it again with ${formatCliCommand("openclaw gateway start")}.`;
+    reason === "a newer Vasudev build"
+      ? `${stop} restore your pre-update backup created with ${formatCliCommand("vasudev backup")}, then start it again with ${formatCliCommand("vasudev gateway start")}. See https://docs.openclaw.ai/install/updating#rollback.`
+      : `${stop} run ${formatCliCommand("vasudev doctor --fix")}, then start it again with ${formatCliCommand("vasudev gateway start")}.`;
   let parked = false;
   try {
     // launchd ignores exit 78 under KeepAlive. Park without opening the database,

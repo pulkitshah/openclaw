@@ -47,7 +47,7 @@ function resolveChildInvocation(params: {
   const candidate = resolveWindowsSpawnProgramCandidate({
     command,
     env: params.env,
-    // npm shims invoke `node` from PATH; process.execPath may be a packaged OpenClaw executable.
+    // npm shims invoke `node` from PATH; process.execPath may be a packaged Vasudev executable.
     execPath:
       process.platform === "win32"
         ? resolveWindowsExecutablePath("node", params.env ?? process.env)

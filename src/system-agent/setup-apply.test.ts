@@ -898,7 +898,7 @@ describe("applySystemAgentSetup transaction boundaries", () => {
     expect(result.lines).toEqual(
       expect.arrayContaining([
         "Workspace files: workspace exploded",
-        "OpenClaw exec approval: approval exploded; local model harnesses may ask again.",
+        "Vasudev exec approval: approval exploded; local model harnesses may ask again.",
         "Gateway service: service exploded",
       ]),
     );
@@ -922,12 +922,12 @@ describe("applySystemAgentSetup transaction boundaries", () => {
     {
       reason: "explicit",
       installDaemon: false,
-      line: "Gateway: service installation skipped. Run `openclaw gateway run` to start it in the foreground.",
+      line: "Gateway: service installation skipped. Run `vasudev gateway run` to start it in the foreground.",
     },
     {
       reason: "systemd-unavailable",
       installDaemon: false,
-      line: "Gateway: service installation skipped. Run `openclaw gateway run` to start it in the foreground.",
+      line: "Gateway: service installation skipped. Run `vasudev gateway run` to start it in the foreground.",
     },
     {
       reason: "explicit",

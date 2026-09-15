@@ -636,7 +636,7 @@ describe("auth profile batch persistence", () => {
       }).catch((error: unknown) => error);
 
       expect(String(failure)).toContain("requires legacy credential migration");
-      expect(String(failure)).toContain("openclaw doctor --fix");
+      expect(String(failure)).toContain("vasudev doctor --fix");
       expect(String(failure)).not.toContain("lock may be busy");
     });
   });

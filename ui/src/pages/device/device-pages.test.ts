@@ -148,7 +148,7 @@ describe("native device settings pages", () => {
     "shows an app-only state without a bridge and waits for the initial snapshot on %s",
     async (tag) => {
       const browserPage = await mount(tag, null);
-      expect(browserPage.textContent).toContain("only available inside the OpenClaw app");
+      expect(browserPage.textContent).toContain("only available inside the Vasudev app");
       expect(browserPage.querySelector("wa-switch")).toBeNull();
       const { capability } = createCapability(null);
       const waitingPage = await mount(tag, capability);

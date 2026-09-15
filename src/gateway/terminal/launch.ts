@@ -261,7 +261,7 @@ export function buildTerminalEnv(baseEnv: NodeJS.ProcessEnv): Record<string, str
     }
   }
   env.TERM = env.TERM ?? "xterm-256color";
-  // Lets shells and prompts detect that they are inside an OpenClaw terminal.
+  // Lets shells and prompts detect that they are inside a Vasudev terminal.
   env.OPENCLAW_TERMINAL = "1";
   return env;
 }

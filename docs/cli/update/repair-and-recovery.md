@@ -12,7 +12,7 @@ What happens when an update fails, and the subcommands that finish the job. Part
 
 ## Recover a failed update
 
-After a failed interactive update or repair, OpenClaw finishes cleanup and offers
+After a failed interactive update or repair, Vasudev finishes cleanup and offers
 **Diagnose update failure**, **Report update failure**, or **Exit**. Reporting
 previews the sanitized issue body and requires separate confirmation.
 
@@ -55,7 +55,7 @@ Use `openclaw triage --non-interactive` to collect diagnostics without starting
 an agent. Add `--update-result <path>` to include a saved update-failure artifact.
 
 Validation failures leave the serving Gateway untouched. If stopping the managed
-service unloads it and then fails before activation, OpenClaw attempts to restore
+service unloads it and then fails before activation, Vasudev attempts to restore
 the verified original runtime after rechecking service ownership. After activation, a
 failed verification can [restore the previous package](/cli/update/how-updates-run#validation-and-activation)
 when database schemas are unchanged and the config file still matches the
@@ -137,7 +137,7 @@ For full finalization, `update repair` runs `openclaw doctor --fix`, reloads the
 install records, syncs tracked plugins for the active update channel, updates
 managed npm plugin installs, repairs missing configured plugin payloads,
 refreshes the plugin registry, and writes converged install-record metadata.
-Configured runtime plugins whose versions follow OpenClaw are checked against
+Configured runtime plugins whose versions follow Vasudev are checked against
 the newly installed core during post-update repair, even when the updater process
 started on the previous version.
 It does not install a new core package and does not restart the Gateway.

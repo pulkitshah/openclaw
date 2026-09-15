@@ -128,7 +128,7 @@ suite.define(() => {
           });
           const dialog = page.locator("openclaw-modal-dialog");
           await dialog
-            .getByText("⬆️ OpenClaw update in progress: restarting.", { exact: true })
+            .getByText("⬆️ Vasudev update in progress: restarting.", { exact: true })
             .waitFor();
           await gateway.setOnline(false);
           await dialog.getByText("Gateway restarting…", { exact: true }).waitFor();
@@ -159,7 +159,7 @@ suite.define(() => {
             (await gateway.waitForRequest("update.runs.get", { after: reads })).params,
           ).toEqual({ runId: run.runId });
           await dialog
-            .getByText("✅ OpenClaw updated to 9f3c21a0 (from 11111111).", { exact: true })
+            .getByText("✅ Vasudev updated to 9f3c21a0 (from 11111111).", { exact: true })
             .first()
             .waitFor();
           await page.screenshot({ path: path.join(artifactDir, "4-success-report.png") });
@@ -235,13 +235,13 @@ suite.define(() => {
 
           const dialog = page.locator("openclaw-modal-dialog");
           await dialog
-            .getByText("⚠️ OpenClaw update failed: deps-install-failed.", { exact: true })
+            .getByText("⚠️ Vasudev update failed: deps-install-failed.", { exact: true })
             .first()
             .waitFor();
           const failureText = await dialog.textContent();
           expect(failureText).toContain("Failed: install — ENOSPC: no space left on device, write");
           expect(failureText).toContain(
-            "Run openclaw triage to diagnose and repair the failed update.",
+            "Run vasudev triage to diagnose and repair the failed update.",
           );
           expect(await gateway.getRequests("update.run")).toHaveLength(1);
           await page.waitForTimeout(300);

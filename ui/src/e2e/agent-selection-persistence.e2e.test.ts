@@ -32,7 +32,7 @@ beforeEach(() => {
 const agentsList = {
   agents: [
     { id: "dummy", identity: { name: "Dummy" }, kind: "agent", name: "Dummy" },
-    { id: "openclaw", identity: { name: "OpenClaw" }, kind: "agent", name: "OpenClaw" },
+    { id: "openclaw", identity: { name: "Vasudev" }, kind: "agent", name: "Vasudev" },
   ],
   defaultId: "dummy",
   mainKey: "main",
@@ -54,7 +54,7 @@ const scenario: ControlUiMockGatewayScenario = {
         },
         {
           match: { agentId: "openclaw" },
-          response: { agentId: "openclaw", avatar: "", emoji: "O", name: "OpenClaw" },
+          response: { agentId: "openclaw", avatar: "", emoji: "O", name: "Vasudev" },
         },
       ],
     },
@@ -160,12 +160,12 @@ suite.define(() => {
       await sidebar.getByRole("button", { name: /Switch agent/ }).click();
       await sidebar
         .locator("wa-dropdown.sidebar-agent-menu")
-        .getByRole("menuitemradio", { name: "OpenClaw" })
+        .getByRole("menuitemradio", { name: "Vasudev" })
         .click();
       await waitForControlUiRoute(firstPage, { pathname: "/chat/openclaw", routeId: "chat" });
-      await expect.poll(() => selectedAgentName(firstPage)).toBe("OpenClaw");
+      await expect.poll(() => selectedAgentName(firstPage)).toBe("Vasudev");
       await expect
-        .poll(() => firstPage.getByRole("heading", { name: "OpenClaw" }).isVisible())
+        .poll(() => firstPage.getByRole("heading", { name: "Vasudev" }).isVisible())
         .toBe(true);
       await screenshot(firstPage, "02-selected-openclaw.png");
 
@@ -183,9 +183,9 @@ suite.define(() => {
       });
       await screenshot(reopenedPage, "03-reopened-agent.png");
       await expect.poll(() => hasOpenClawStartup(reopened.gateway)).toBe(true);
-      await expect.poll(() => selectedAgentName(reopenedPage)).toBe("OpenClaw");
+      await expect.poll(() => selectedAgentName(reopenedPage)).toBe("Vasudev");
       await expect
-        .poll(() => reopenedPage.getByRole("heading", { name: "OpenClaw" }).isVisible())
+        .poll(() => reopenedPage.getByRole("heading", { name: "Vasudev" }).isVisible())
         .toBe(true);
       await screenshot(reopenedPage, "04-verified-reopened-agent.png");
     } finally {

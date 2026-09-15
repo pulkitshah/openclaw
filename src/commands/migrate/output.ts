@@ -134,8 +134,8 @@ const REASON_CODE_MESSAGES: Record<string, string> = {
   disabled: "Plugin is disabled in Codex",
   refresh_failed: "Failed to refresh the Codex plugin marketplace",
   auth_required: "Plugin requires additional authentication",
-  already_active: "Plugin is already active in OpenClaw",
-  installed: "Plugin is already installed in OpenClaw",
+  already_active: "Plugin is already active in Vasudev",
+  installed: "Plugin is already installed in Vasudev",
   plugin_install_failed: "Plugin installation failed",
   codex_subscription_required: "Plugin requires an active Codex subscription",
   "not selected for migration": "Skipped because it was not selected for migration",
@@ -176,10 +176,10 @@ function formatItemMessage(item: MigrationItem, mode: FormatMode): string | unde
       return humanizeReason(item.reason) ?? item.message;
     }
     if (item.kind === "skill" && item.action === "copy") {
-      return "Copy Codex skill into OpenClaw";
+      return "Copy Codex skill into Vasudev";
     }
     if (item.kind === "plugin" && item.action === "install") {
-      return "Install Codex plugin into OpenClaw";
+      return "Install Codex plugin into Vasudev";
     }
     return item.message ?? humanizeReason(item.reason);
   }
@@ -242,7 +242,7 @@ function formatMigrationItem(item: MigrationItem, mode: FormatMode): string {
 export function assertConflictFreePlan(plan: MigrationPlan, providerId: string): void {
   if (plan.summary.conflicts > 0) {
     throw new Error(
-      `Migration has ${formatCount(plan.summary.conflicts, "conflict")}. Re-run with --overwrite after reviewing openclaw migrate plan ${providerId}.`,
+      `Migration has ${formatCount(plan.summary.conflicts, "conflict")}. Re-run with --overwrite after reviewing vasudev migrate plan ${providerId}.`,
     );
   }
 }
@@ -261,7 +261,7 @@ export function writeApplyResult(
   if (result.backupPath) {
     runtime.log(`Backup: ${result.backupPath}`);
   } else if (!opts.noBackup) {
-    runtime.log("Backup: skipped (no existing OpenClaw state found)");
+    runtime.log("Backup: skipped (no existing Vasudev state found)");
   }
   if (result.reportDir) {
     runtime.log(`Report: ${result.reportDir}`);

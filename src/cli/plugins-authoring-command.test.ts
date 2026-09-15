@@ -422,7 +422,7 @@ describe("plugin authoring commands", () => {
         manifest,
         packageManifest,
       }),
-    ).toEqual(["openclaw.plugin.json generated metadata is stale. Run openclaw plugins build."]);
+    ).toEqual(["openclaw.plugin.json generated metadata is stale. Run vasudev plugins build."]);
   });
 
   it("projects undefined TypeBox options into the persisted manifest shape", () => {
@@ -508,9 +508,7 @@ describe("plugin authoring commands", () => {
         packageManifest,
       }),
     ).toEqual(
-      stale
-        ? ["openclaw.plugin.json generated metadata is stale. Run openclaw plugins build."]
-        : [],
+      stale ? ["openclaw.plugin.json generated metadata is stale. Run vasudev plugins build."] : [],
     );
   });
 
@@ -533,7 +531,7 @@ describe("plugin authoring commands", () => {
         manifest,
         packageManifest,
       }),
-    ).toEqual(["openclaw.plugin.json generated metadata is stale. Run openclaw plugins build."]);
+    ).toEqual(["openclaw.plugin.json generated metadata is stale. Run vasudev plugins build."]);
   });
 
   it("rejects a missing generated manifest without changing package metadata", async () => {
@@ -556,7 +554,7 @@ describe("plugin authoring commands", () => {
         runPluginsBuildCommand({ root: tmpDir, entry: entryPath, check: true }),
       ).rejects.toThrow("runtime exit 1");
       expect(error).toHaveBeenCalledWith(
-        "Generated plugin metadata is out of date. Run openclaw plugins build.",
+        "Generated plugin metadata is out of date. Run vasudev plugins build.",
       );
       expect(fs.readFileSync(packagePath, "utf8")).toBe(packageBefore);
       expect(fs.existsSync(path.join(tmpDir, "openclaw.plugin.json"))).toBe(false);
@@ -581,7 +579,7 @@ describe("plugin authoring commands", () => {
         packageManifest: { openclaw: { extensions: ["./src/index.ts"] } },
       }),
     ).toEqual([
-      "openclaw.plugin.json generated metadata is stale. Run openclaw plugins build.",
+      "openclaw.plugin.json generated metadata is stale. Run vasudev plugins build.",
       "openclaw.plugin.json contracts.tools is missing: demo_echo",
       "openclaw.plugin.json contracts.tools has no matching defineToolPlugin tool: other_tool",
     ]);
@@ -611,7 +609,7 @@ describe("plugin authoring commands", () => {
     );
   });
 
-  it("loads source entries that import the OpenClaw plugin SDK package subpath", async () => {
+  it("loads source entries that import the Vasudev plugin SDK package subpath", async () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-plugin-source-"));
     const entryPath = writeSourceToolPluginProject({
       tmpDir,
@@ -824,8 +822,8 @@ describe("plugin authoring commands", () => {
         vitest: "^3.2.0",
       },
       scripts: {
-        "plugin:build": "npm run build && openclaw plugins build --entry ./dist/index.js",
-        "plugin:validate": "npm run build && openclaw plugins validate --entry ./dist/index.js",
+        "plugin:build": "npm run build && vasudev plugins build --entry ./dist/index.js",
+        "plugin:validate": "npm run build && vasudev plugins validate --entry ./dist/index.js",
         test: "vitest run --config ./vitest.config.ts",
       },
       openclaw: {

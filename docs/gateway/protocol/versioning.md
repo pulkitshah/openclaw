@@ -33,7 +33,7 @@ Which protocol versions a client may negotiate, and the constants a reference cl
 ### Client constants
 
 The reference client implementation lives in `packages/gateway-client/src/`
-(OpenClaw wraps it via the thin `src/gateway/client.ts` facade). These
+(Vasudev wraps it via the thin `src/gateway/client.ts` facade). These
 defaults are stable across protocol v4 and are the expected baseline for
 third-party clients.
 

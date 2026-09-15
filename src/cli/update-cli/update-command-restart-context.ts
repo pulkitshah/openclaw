@@ -79,7 +79,7 @@ export async function prepareUpdateRestart(
       } else if (serviceUpdateVerdict.kind === "foreign") {
         serviceMutationAllowed = false;
         serviceMutationSkipMessage =
-          "Gateway service management skipped: the service belongs to a different OpenClaw installation and was left untouched.";
+          "Gateway service management skipped: the service belongs to a different Vasudev installation and was left untouched.";
       } else if (
         !skipLegacyServiceRestart &&
         shouldPrepareUpdatedInstallRestart({
@@ -134,7 +134,7 @@ export async function prepareUpdateRestart(
       serviceMutationAllowed = false;
       serviceMutationSkipMessage =
         "Code update completed; gateway service management skipped because its current ownership could not be inspected. " +
-        "Run `openclaw gateway status --deep` before restarting it manually.";
+        "Run `vasudev gateway status --deep` before restarting it manually.";
     }
   }
   if (

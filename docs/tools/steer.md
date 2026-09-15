@@ -10,7 +10,7 @@ sidebarTitle: "Steer"
 
 `/steer` first tries to send guidance to an already-active run. It is for
 "adjust this run while it is still working" moments. If the current runtime
-cannot accept steering, OpenClaw sends the message as a normal prompt instead
+cannot accept steering, Vasudev sends the message as a normal prompt instead
 of dropping it.
 
 `/tell` is an alias of `/steer`. The two names are interchangeable everywhere

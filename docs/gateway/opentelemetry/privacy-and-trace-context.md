@@ -3,7 +3,7 @@ summary: "Continue an upstream W3C trace through the Gateway WebSocket, and cont
 title: "Privacy and trace context"
 sidebarTitle: "Privacy and trace context"
 read_when:
-  - You want one OpenTelemetry trace per dataset item to cover the matching OpenClaw execution
+  - You want one OpenTelemetry trace per dataset item to cover the matching Vasudev execution
   - You need to know exactly what prompt, response, or tool content is exported
   - You are approving `captureContent` against a retention policy
 ---
@@ -28,7 +28,7 @@ ID and sampling flags. Agent, harness, model-call, provider, tool-execution, and
 exec spans created inside the request remain on that trace, including spans
 recorded after their parent run has already finished. This allows a local
 experiment runner to create one Langfuse/OpenTelemetry trace per dataset item and
-correlate the corresponding OpenClaw execution.
+correlate the corresponding Vasudev execution.
 
 Trace context is request-scoped, not connection-scoped. On a long-lived
 WebSocket, generate or inject the appropriate `traceparent` independently for
@@ -61,7 +61,7 @@ When `diagnostics-otel` tracing is active, outbound model requests may include
 a W3C `traceparent` header from the actual exporter-owned model-call span.
 Diagnostic trace IDs and span IDs only correlate events to that span; they are
 not used as outbound OTel identities. If the exporter cannot resolve a real
-span context, OpenClaw omits the header instead of naming an unexported parent.
+span context, Vasudev omits the header instead of naming an unexported parent.
 Existing caller-supplied `traceparent` headers are removed or replaced, so
 plugins or custom provider options cannot spoof cross-service trace ancestry.
 
@@ -77,7 +77,7 @@ marker, while GenAI message attributes omit those parts.
 runtime's tool executions (`openclaw.content.tool_input` and
 `gen_ai.tool.call.arguments` on completed/error spans;
 `openclaw.content.tool_output` and `gen_ai.tool.call.result` on completed
-spans). The `openclaw.content.*` names remain the stable OpenClaw attribute
+spans). The `openclaw.content.*` names remain the stable Vasudev attribute
 names; the `gen_ai.tool.call.*` copies mirror them for semconv-native viewers.
 External harness tool calls (Codex, Claude CLI) emit
 `tool.execution.*` spans without content payloads. Captured content travels on a

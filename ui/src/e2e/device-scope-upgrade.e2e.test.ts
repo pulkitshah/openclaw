@@ -39,7 +39,7 @@ const SCOPE_UPGRADE_METHODS = [
   "device.scopes.waitUpgrade",
 ] as const;
 const MANUAL_UPGRADE_GUIDANCE =
-  "This browser has limited access. Manage it with openclaw devices on the Gateway or from Devices on an admin browser.";
+  "This browser has limited access. Manage it with vasudev devices on the Gateway or from Devices on an admin browser.";
 
 function requireRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -115,7 +115,7 @@ async function closeInbox(page: Page) {
 async function waitForPendingUpgradeItem(item: Locator) {
   await item
     .locator(".sidebar-issues-panel__body")
-    .getByText(/Approve this browser by running openclaw devices on the Gateway/u)
+    .getByText(/Approve this browser by running vasudev devices on the Gateway/u)
     .waitFor();
   await item.getByRole("button", { name: "Retry", exact: true }).waitFor();
   await item.getByRole("button", { name: "Cancel", exact: true }).waitFor();
@@ -442,9 +442,9 @@ suite.define(() => {
     });
     await page.goto(`${suite.server.baseUrl}custodian?onboarding=1`);
 
-    expect(
-      await page.getByText("Update the Gateway to continue setup with OpenClaw.").count(),
-    ).toBe(0);
+    expect(await page.getByText("Update the Gateway to continue setup with Vasudev.").count()).toBe(
+      0,
+    );
     const onboardingInbox = page.locator(
       ".custodian__header-actions > openclaw-sidebar-attention:not(.sidebar-attention--floating)",
     );

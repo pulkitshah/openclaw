@@ -16,7 +16,7 @@ Verify the upgrade and your session history before retiring recovery originals
 with `openclaw update cleanup`. Downgrading the package does not reverse config
 or database migrations. Once state has migrated beyond the older release's
 supported format, the supported recovery is to restore a verified pre-update
-backup with its matching OpenClaw release.
+backup with its matching Vasudev release.
 
 Prefer `openclaw update` for upgrades and recovery. It validates the target,
 runs required Doctor migrations, and verifies the activated Gateway. A raw
@@ -58,7 +58,7 @@ installation's package manager; a backup archive does not contain the package.
 
 A complete recovery point must cover these together:
 
-- The matching OpenClaw package version or source revision and built runtime.
+- The matching Vasudev package version or source revision and built runtime.
 - `openclaw.json`, including `meta.lastTouchedVersion`.
 - `state/openclaw.sqlite` and every `agents/<id>/agent/openclaw-agent.sqlite`,
   including databases at configured paths outside the default layout.
@@ -195,7 +195,7 @@ mkdir -p ~/Backups/openclaw
 openclaw backup create --output ~/Backups/openclaw --verify
 ```
 
-The archive manifest records the OpenClaw version and the source paths included
+The archive manifest records the Vasudev version and the source paths included
 in the backup. The archive can contain credentials, auth profiles, and channel
 state, so store it with owner-only permissions and the same protection as the
 live state directory. See [Backup](/cli/backup) for included and intentionally
@@ -226,7 +226,7 @@ Use `openclaw triage --agent codex` to select a particular agent.
 
 Failed interactive updates offer triage after updater cleanup and
 pass the captured failure to the agent before fresh diagnostics can delay the
-handoff. Before launch, OpenClaw shows the agent, saved prompt path when available,
+handoff. Before launch, Vasudev shows the agent, saved prompt path when available,
 and use of your own account/tokens; Enter or `y` proceeds, while `n` prints handoff
 commands and preserves diagnostics and the failed update's exit status.
 After 30 seconds without an answer, it announces that it is continuing and
@@ -327,7 +327,7 @@ reported as unrepaired. The model's `REPAIR_RESULT` summary does not replace
 these checks.
 
 The agent may diagnose and repair the target install or staged candidate and
-its OpenClaw state, including running Doctor lint, `doctor --fix`, and health
+its Vasudev state, including running Doctor lint, `doctor --fix`, and health
 checks. Its repair contract forbids changing credentials or auth stores,
 deleting state or databases, package-manager writes outside the target root,
 and service or Gateway lifecycle commands. The orchestrator retains control of

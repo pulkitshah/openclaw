@@ -260,7 +260,7 @@ describe("exec foreground failures", () => {
     const text = requireTextContent(result);
     for (const fragment of [
       `Command aborted by signal ${exitSignal}`,
-      "OpenClaw selected its Linux OOM-score wrapper",
+      "Vasudev selected its Linux OOM-score wrapper",
       "attempts to set this child's oom_score_adj to 1000",
       "SIGKILL alone does not identify whether the Linux OOM killer",
       "Check cgroup memory events or kernel logs",

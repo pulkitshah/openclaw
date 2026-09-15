@@ -45,7 +45,7 @@ declare module "qrcode" {
   /** Render a QR code to a PNG buffer. */
   export function toBuffer(text: string, options?: QrCodeRenderOptions): Promise<Buffer>;
 
-  /** Default qrcode export with the functions OpenClaw uses. */
+  /** Default qrcode export with the functions Vasudev uses. */
   const qrcode: {
     create: typeof create;
     toString: typeof toString;

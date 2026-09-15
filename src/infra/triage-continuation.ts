@@ -112,7 +112,7 @@ export async function resolveTriageEntrypoint(root: string): Promise<[string, st
   const entry = await resolveGatewayInstallEntrypoint(root);
   if (!entry) {
     throw new Error(
-      "installed CLI entry is unavailable; repair the installation and run openclaw triage manually",
+      "installed CLI entry is unavailable; repair the installation and run vasudev triage manually",
     );
   }
   return [resolveNodeRunner(), entry, "triage"];
@@ -130,7 +130,7 @@ export async function queueManagedUpdateTriage(
   signal?.throwIfAborted();
   const claim = root ? ownsChildLease(root, "update") : null;
   if (!root || !claim || !process.connected) {
-    throw new Error("managed update triage lost its live owner; run openclaw triage manually");
+    throw new Error("managed update triage lost its live owner; run vasudev triage manually");
   }
   const request = {
     type: "triage-request",
@@ -195,7 +195,7 @@ export async function continueTriageInFreshProcess(params: {
   });
   if (acquired.kind === "busy") {
     params.output(
-      "Automatic triage already owned for this installation; wait for its cleanup or inspect the saved diagnostics and run openclaw triage manually.\n",
+      "Automatic triage already owned for this installation; wait for its cleanup or inspect the saved diagnostics and run vasudev triage manually.\n",
     );
     return;
   }
@@ -379,13 +379,13 @@ export async function continueTriageInFreshProcess(params: {
     if (forced || (!store.release(lease) && admitted)) {
       store.settle(lease, "uncertain");
       throw new Error(
-        "automatic triage cleanup is uncertain; automatic admission remains blocked for this OS boot. Inspect saved diagnostics and run openclaw triage manually; do not delete the claim while work may remain. A verified different OS boot allows a fresh automatic attempt",
+        "automatic triage cleanup is uncertain; automatic admission remains blocked for this OS boot. Inspect saved diagnostics and run vasudev triage manually; do not delete the claim while work may remain. A verified different OS boot allows a fresh automatic attempt",
       );
     }
     params.signal.throwIfAborted();
     if (!admitted || exit.code !== 0 || exit.signal) {
       throw new Error(
-        `automatic triage candidate ${admitted ? `failed (exit ${exit.code ?? "signal"})` : "is incompatible"}; run openclaw triage manually`,
+        `automatic triage candidate ${admitted ? `failed (exit ${exit.code ?? "signal"})` : "is incompatible"}; run vasudev triage manually`,
       );
     }
   } finally {
@@ -419,7 +419,7 @@ export async function acceptTriageContinuation(): Promise<
   }
   if (!process.send || !process.connected) {
     throw new Error(
-      "automatic triage requires its original connected owner; run openclaw triage manually",
+      "automatic triage requires its original connected owner; run vasudev triage manually",
     );
   }
   const store = createManagedHandoffLeaseStore();

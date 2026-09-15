@@ -320,8 +320,8 @@ describe("gateway sessions patch", () => {
 
   test("keeps manual renames independent of automatic device-label writes and clears", async () => {
     const key = "agent:main:node-1234567890ab";
-    const autoLabel = "OpenClaw App · Pixel · 1234567890ab";
-    const label = "OpenClaw App · Release planning · 1234567890ab";
+    const autoLabel = "Vasudev App · Pixel · 1234567890ab";
+    const label = "Vasudev App · Release planning · 1234567890ab";
     const store: Record<string, SessionEntry> = {};
     const patch = async (fields: { label?: string | null; autoLabel?: string | null }) =>
       expectPatchOk(await runPatch({ store, storeKey: key, patch: { key, ...fields } }));
@@ -1696,7 +1696,7 @@ describe("gateway sessions patch", () => {
     expect(entry.thinkingLevel).toBe("xhigh");
   });
 
-  test("persists OpenClaw Luna Ultra through the runtime-aware provider profile", async () => {
+  test("persists Vasudev Luna Ultra through the runtime-aware provider profile", async () => {
     const entry = expectPatchOk(
       await runPatch({
         cfg: {
@@ -1739,7 +1739,7 @@ describe("gateway sessions patch", () => {
     expect(entry.thinkingLevel).toBe("max");
   });
 
-  test("honors an explicit OpenClaw session runtime override for Luna Ultra", async () => {
+  test("honors an explicit Vasudev session runtime override for Luna Ultra", async () => {
     const entry = expectPatchOk(
       await runPatch({
         cfg: {

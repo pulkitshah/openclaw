@@ -14,7 +14,7 @@ How the Codex model catalog is discovered, and what happens when discovery fails
 
 By default, the Codex plugin asks the app-server for available models. Model
 availability is owned by Codex app-server, so the list can change when
-OpenClaw upgrades the bundled `@openai/codex` version or when a deployment
+Vasudev upgrades the bundled `@openai/codex` version or when a deployment
 points `appServer.command` at a different Codex binary. Availability can also
 be account-scoped. Use `/codex models` on a running gateway to see the live
 catalog for that harness and account.
@@ -35,16 +35,16 @@ client leaves native models unavailable until discovery succeeds again.
 
 Use the Models page **Refresh** action (`models.list` with `view: "all"` and
 `refresh: true`) to publish the full catalog for the selected agent. Prepared-only
-reads do not start discovery. Native configuration changes outside OpenClaw
+reads do not start discovery. Native configuration changes outside Vasudev
 require the native owner's supported reload/restart and a catalog refresh;
-OpenClaw does not poll native home files for readiness. Authored host routes and
+Vasudev does not poll native home files for readiness. Authored host routes and
 explicit profile selections retain their existing auth and compatibility checks.
 
 Native catalog identifiers are runtime identifiers, not privacy labels. A
 deployment using a broker-owned alias must supply an alias-safe native catalog
 before starting app-server: both `id` and `model` in `model/list` must be the
 alias, with the desired `displayName`. Different native runtime identifiers are
-preserved in OpenClaw model parameters. Renaming the picker label does not hide
+preserved in Vasudev model parameters. Renaming the picker label does not hide
 those identifiers from requests or session state.
 
 Codex's startup `model_catalog_json` setting can supply a native catalog; a
@@ -96,7 +96,7 @@ prove account entitlement. Available model IDs, input modalities, and reasoning
 efforts remain account-scoped. Run `/codex models` after starting or upgrading
 the gateway to inspect the actual public picker for your account.
 
-OpenClaw reasoning controls preserve supported native levels, including `ultra`.
+Vasudev reasoning controls preserve supported native levels, including `ultra`.
 Codex owns Ultra's proactive delegation and model-specific inference effort;
 Platform API effort metadata does not downgrade the selected runtime mode.
 Hidden models can also appear in the app-server catalog for internal or

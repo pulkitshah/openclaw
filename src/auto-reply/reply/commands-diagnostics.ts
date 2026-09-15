@@ -32,7 +32,7 @@ import type { CommandHandler, HandleCommandsParams } from "./commands-types.js";
 const DIAGNOSTICS_COMMAND = "/diagnostics";
 const CODEX_DIAGNOSTICS_COMMAND = "/codex diagnostics";
 const DIAGNOSTICS_DOCS_URL = "https://docs.openclaw.ai/gateway/diagnostics";
-const GATEWAY_DIAGNOSTICS_EXPORT_JSON_LABEL = "openclaw gateway diagnostics export --json";
+const GATEWAY_DIAGNOSTICS_EXPORT_JSON_LABEL = "vasudev gateway diagnostics export --json";
 const DIAGNOSTICS_EXEC_SCOPE_KEY = "chat:diagnostics";
 const DIAGNOSTICS_PRIVATE_ROUTE_UNAVAILABLE =
   "I couldn't find a private owner approval route for diagnostics. Run /diagnostics from an owner DM so the sensitive diagnostics details are not posted in this chat.";
@@ -370,9 +370,9 @@ function hasCodexHarnessMetadata(params: HandleCommandsParams): boolean {
 
 function isCodexDiagnosticsUnavailableText(text: string | undefined): boolean {
   return (
-    text?.startsWith("No Codex thread is attached to this OpenClaw session yet.") === true ||
+    text?.startsWith("No Codex thread is attached to this Vasudev session yet.") === true ||
     text?.startsWith(
-      "Cannot send Codex diagnostics because this command did not include an OpenClaw session file.",
+      "Cannot send Codex diagnostics because this command did not include a Vasudev session file.",
     ) === true
   );
 }

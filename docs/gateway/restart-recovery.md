@@ -151,7 +151,7 @@ the gateway.
 
 ## Recovery after a failed update
 
-After a failed interactive update or repair, OpenClaw finishes cleanup and any
+After a failed interactive update or repair, Vasudev finishes cleanup and any
 service recovery, then opens [`openclaw triage`](/cli/triage). Triage immediately
 starts the first directly launchable coding agent in this order: Claude Code,
 Codex, OpenCode, then Pi. It passes the captured failure before fresh Doctor
@@ -160,7 +160,7 @@ the installation. The agent receives the captured installation paths and keeps
 its normal authentication, sandbox, and approval settings.
 
 For a failed Control UI or unattended update, use the installation-specific
-command printed on the Gateway host, or run triage there with the same OpenClaw
+command printed on the Gateway host, or run triage there with the same Vasudev
 profile and state/config paths. Use `--agent` to select a particular coding agent:
 
 ```bash
@@ -337,7 +337,7 @@ so the agent can deliver it instead of redoing the work.
 Startup reconciliation retries transient failures up to three times with
 exponential backoff. Separately, each interrupted main-session cycle has a
 durable budget of three charged automatic dispatch attempts, retained across
-gateway restarts. OpenClaw charges an attempt before dispatch, refunds it when
+gateway restarts. Vasudev charges an attempt before dispatch, refunds it when
 the gateway explicitly rejects the request before acceptance, and retains the
 charge when a post-dispatch result is uncertain to avoid replaying work.
 Foreground work that already owns the session keeps automatic recovery out
@@ -348,7 +348,7 @@ looping forever. Inspect the failed session and use `/new` or `/reset` to start 
 replacement. `openclaw doctor --fix` can repair a stale aborted flag that
 conflicts with a tombstone, but it does not re-enable that recovery cycle.
 
-If you message the failed session again in a channel, OpenClaw sends a short
+If you message the failed session again in a channel, Vasudev sends a short
 recovery reminder through that channel and logs each rejected message at warn
 level with the session key, recovery reason, and recovery command. Repeated
 reminders are suppressed in a bounded memory cache. Resetting or deleting the
@@ -378,7 +378,7 @@ run keeps the original source-delivery mode and source correlation, including
 requester identity and any same-channel/thread restriction, so the same receipt
 remains authoritative even if another restart happens during recovery. A
 message-tool-only turn without reconstructable channel authority is tombstoned
-because OpenClaw cannot safely mint message-action authority without the
+because Vasudev cannot safely mint message-action authority without the
 original channel-ingress claim. The terminal notice directs the user to start a
 replacement with `/new` or `/reset`.
 
@@ -402,7 +402,7 @@ success. Existing tool restrictions and current permissions still apply.
 Pending reply delivery, ambiguous reply-hook outcomes, and explicitly replay-safe
 Code Mode reconstruction retain their narrower recovery restrictions.
 
-OpenClaw can also reconstruct interrupted read-only [Code Mode](/tools/code-mode)
+Vasudev can also reconstruct interrupted read-only [Code Mode](/tools/code-mode)
 work. Code Mode marks these runs as restart-safe and rejects side-effecting
 catalog or namespace tool calls before they execute. If a restart lands on
 the `wait` control, the new gateway reconstructs the turn from its transcript

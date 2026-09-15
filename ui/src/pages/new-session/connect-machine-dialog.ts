@@ -128,7 +128,7 @@ export function renderConnectMachineDialog(props: ConnectMachineDialogProps) {
   }
   const title = t("newSession.connectMachineTitle");
   const joinUrl = props.setup?.joinUrl?.trim();
-  const command = joinUrl ? `npx openclaw connect ${quoteCliArg(joinUrl)}` : null;
+  const command = joinUrl ? `npx vasudev connect ${quoteCliArg(joinUrl)}` : null;
   const expiresAt = props.setup?.expiresAtMs
     ? formatTimeMs(props.setup.expiresAtMs, { hour: "numeric", minute: "2-digit" }, "")
     : "";

@@ -143,7 +143,7 @@ it.each(["overlap", "cancel-drain", "route-drift"] as const)(
             route.runner !== "embedded" ||
             route.agentHarnessRuntimeOverride !== "openclaw"
           ) {
-            throw new Error("Approval fixture did not select the embedded OpenClaw route");
+            throw new Error("Approval fixture did not select the embedded Vasudev route");
           }
           const probe = await acquireSimpleCompletionModelForAgent({
             cfg: route.runConfig,

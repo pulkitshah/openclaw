@@ -496,7 +496,7 @@ describe("custodian page nudges", () => {
       question: {
         id: "access",
         header: "Access",
-        question: "How should OpenClaw work?",
+        question: "How should Vasudev work?",
         options: [{ label: "Full access" }, { label: "Ask first" }],
         isOther: false,
       },
@@ -558,7 +558,7 @@ describe("custodian page nudges", () => {
         question: {
           id: "access",
           header: "Access",
-          question: "How should OpenClaw work?",
+          question: "How should Vasudev work?",
           options: [{ label: "Full access" }, { label: "Ask first" }],
           isOther: false,
         },
@@ -614,7 +614,7 @@ describe("custodian page nudges", () => {
         question: {
           id: "access",
           header: "Access",
-          question: "How should OpenClaw work?",
+          question: "How should Vasudev work?",
           options: [{ label: "Full access" }, { label: "Ask first" }],
           isOther: false,
         },
@@ -651,7 +651,7 @@ describe("custodian page nudges", () => {
         question: {
           id: "access",
           header: "Access",
-          question: "How should OpenClaw work?",
+          question: "How should Vasudev work?",
           options: [{ label: "Full access" }, { label: "Ask first" }],
           isOther: true,
         },
@@ -706,7 +706,7 @@ describe("custodian page nudges", () => {
           question: {
             id: "access",
             header: "Access",
-            question: "How should OpenClaw work?",
+            question: "How should Vasudev work?",
             options: [{ label: "Full access" }, { label: "Ask first" }],
             isOther: false,
           },

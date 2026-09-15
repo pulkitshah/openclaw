@@ -15,7 +15,8 @@ const SESSION_ROUTE_ENTER_KEYFRAMES: Keyframe[] = [
 ];
 const SESSION_ROUTE_ENTER_OPTIONS: KeyframeAnimationOptions = {
   duration: 180,
-  easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+  // Mirrors base.css --ease-out; the Web Animations API cannot read a token.
+  easing: "cubic-bezier(0.22, 0.68, 0.28, 1)",
 };
 
 function waitForChatRouteReady(document: Document) {

@@ -1,5 +1,5 @@
 ---
-summary: "Scaffold, build, validate, and pack an OpenClaw plugin with `openclaw plugins init`"
+summary: "Scaffold, build, validate, and pack a Vasudev plugin with `openclaw plugins init`"
 title: "Author plugins"
 read_when:
   - You want to scaffold a tool, feature, or provider plugin
@@ -20,7 +20,7 @@ npm run plugin:validate
 ```
 
 `plugins init` creates a minimal TypeScript tool plugin by default. The first
-argument is the plugin id; `--name` sets the display name. OpenClaw uses the
+argument is the plugin id; `--name` sets the display name. Vasudev uses the
 id for the default output directory and package naming. Tool scaffolds use
 `defineToolPlugin` and generate `package.json` scripts `plugin:build` and
 `plugin:validate` that build then call `openclaw plugins build`/`validate`.

@@ -83,7 +83,7 @@ type MSTeamsAppOn = {
     cb: (ctx: FileConsentCtx) => void | Promise<void>,
   ): MSTeamsApp;
   // SSO sign-in invokes. The monitor registers guarded replacement routes and
-  // delegates back into the SDK handlers after OpenClaw sender policy passes.
+  // delegates back into the SDK handlers after Vasudev sender policy passes.
   (name: "signin.token-exchange", cb: (ctx: SigninTokenExchangeCtx) => unknown): MSTeamsApp;
   (name: "signin.verify-state", cb: (ctx: SigninVerifyStateCtx) => unknown): MSTeamsApp;
   // Feedback (thumbs up/down) on AI-generated messages — Teams delivers
@@ -265,7 +265,7 @@ async function createMSTeamsApp(
   const { App, cloudFromName } = await loadSdkModules();
   const privateQaRuntime = resolveMSTeamsPrivateQaRuntime();
   // Tag outbound SDK HTTP calls with a User-Agent fragment so the Teams
-  // backend can identify OpenClaw traffic for usage telemetry. Teams SDK
+  // backend can identify Vasudev traffic for usage telemetry. Teams SDK
   // 2.0.11+ preserves both its own `teams.ts[apps]/<sdk-version>` identifier
   // and caller-provided User-Agent fragments when plain client headers are used.
   const cloud = options?.cloud ?? "Public";

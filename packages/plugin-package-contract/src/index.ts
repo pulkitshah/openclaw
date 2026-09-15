@@ -34,7 +34,7 @@ export const EXTERNAL_CODE_PLUGIN_REQUIRED_FIELD_PATHS = [
 export { PLUGIN_CATEGORY_SLUGS, validatePluginCategories } from "./categories.js";
 export type { PluginCategorySlug, PluginCategoriesValidationResult } from "./categories.js";
 
-/** Read OpenClaw package.json blocks without trusting caller input shape. */
+/** Read Vasudev package.json blocks without trusting caller input shape. */
 function readOpenClawBlock(packageJson: unknown) {
   const root = isRecord(packageJson) ? packageJson : undefined;
   const openclaw = isRecord(root?.openclaw) ? root.openclaw : undefined;

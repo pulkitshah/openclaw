@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/buzz",
   "version": "2026.9.4",
-  "description": "Connect OpenClaw agents to Buzz rooms",
+  "description": "Connect Vasudev agents to Buzz rooms",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"
@@ -45,7 +45,7 @@
       "selectionLabel": "Buzz",
       "docsPath": "/channels/buzz",
       "docsLabel": "buzz",
-      "blurb": "Connect OpenClaw agents to Buzz team rooms.",
+      "blurb": "Connect Vasudev agents to Buzz team rooms.",
       "markdownCapable": true,
       "order": 56,
       "setup": {

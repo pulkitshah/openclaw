@@ -164,7 +164,7 @@ describe("buildAuthHealthSummary", () => {
     );
   });
 
-  it("does not replace missing OpenClaw auth with a native Codex login", () => {
+  it("does not replace missing Vasudev auth with a native Codex login", () => {
     vi.spyOn(Date, "now").mockReturnValue(now);
     mockFreshCodexCliCredentials();
     const store = {
@@ -321,7 +321,7 @@ describe("buildAuthHealthSummary", () => {
         "zai:default": {
           type: "api_key" as const,
           provider: "zai",
-          key: "openclaw onboard --auth-choice zai-coding-global",
+          key: "vasudev onboard --auth-choice zai-coding-global",
         },
       },
     };

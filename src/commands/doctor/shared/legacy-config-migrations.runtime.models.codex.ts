@@ -313,7 +313,7 @@ function buildBlockedLegacyOpenAICodexProviderPlan(
           warning: [
             "Legacy Codex provider routes require manual reconciliation before matching refs can migrate.",
             ...warningLines,
-            "- Doctor retained matching legacy refs in config, sessions, and cron. These refs will not execute until reconciled: fix the model route/auth metadata, remove the legacy provider entry, then rerun `openclaw doctor --fix`.",
+            "- Doctor retained matching legacy refs in config, sessions, and cron. These refs will not execute until reconciled: fix the model route/auth metadata, remove the legacy provider entry, then rerun `vasudev doctor --fix`.",
           ].join("\n"),
         }
       : {}),

@@ -27,7 +27,7 @@ type ChannelCatalogEntryLike = {
 const OFFICIAL_CHANNEL_CATALOG_RELATIVE_PATH = path.join("dist", "channel-catalog.json");
 
 function listPackageRoots(): string[] {
-  // Source checkouts and packaged installs can resolve OpenClaw from different roots; scan both
+  // Source checkouts and packaged installs can resolve Vasudev from different roots; scan both
   // once so channel metadata works in dev, linked packages, and published CLI layouts.
   return uniqueStrings(
     [

@@ -1,6 +1,6 @@
 /**
- * Bridges Codex native hook callbacks into OpenClaw's native hook relay so
- * app-server tool events can still run OpenClaw policy and diagnostics.
+ * Bridges Codex native hook callbacks into Vasudev's native hook relay so
+ * app-server tool events can still run Vasudev policy and diagnostics.
  */
 import { createHash } from "node:crypto";
 import type {
@@ -24,7 +24,7 @@ import { resolveCodexToolAbortTerminalReason } from "./dynamic-tool-execution.js
 import { nativeHookRelayUnregisterQueue } from "./native-hook-relay-state.js";
 import { isJsonObject, type JsonObject, type JsonValue } from "./protocol.js";
 
-/** Codex hook events that can be registered through OpenClaw's native relay. */
+/** Codex hook events that can be registered through Vasudev's native relay. */
 export const CODEX_NATIVE_HOOK_RELAY_EVENTS: readonly NativeHookRelayEvent[] = [
   "pre_tool_use",
   "post_tool_use",
@@ -69,7 +69,7 @@ export type CodexNativeHookRelay = ReturnType<typeof registerNativeHookRelayForB
   rejectPendingDirectChild: (threadId: string, reason: string) => void;
 };
 
-/** Enterprise managed-only policy silently drops the session-layer hooks that enforce OpenClaw. */
+/** Enterprise managed-only policy silently drops the session-layer hooks that enforce Vasudev. */
 export async function assertCodexNativeHookRelayAllowed(
   client: Pick<CodexAppServerClient, "request">,
   signal?: AbortSignal,
@@ -99,7 +99,7 @@ export async function assertCodexNativeHookRelayAllowed(
         }
         if (managedOnly === true) {
           throw new Error(
-            "Codex managed-only hooks disable the OpenClaw native hook relay; refusing unenforced execution",
+            "Codex managed-only hooks disable the Vasudev native hook relay; refusing unenforced execution",
           );
         }
       });
@@ -182,7 +182,7 @@ export function emitCodexNativePreToolUseFailureDiagnostic(params: {
   });
 }
 
-/** Registers an OpenClaw native hook relay for a Codex app-server turn. */
+/** Registers a Vasudev native hook relay for a Codex app-server turn. */
 export function createCodexNativeHookRelay(params: {
   options:
     | {
@@ -388,7 +388,7 @@ export function resolveCodexNativeHookRelayEvents(params: {
   // Codex emits PermissionRequest before the app-server approval reviewer has
   // resolved the command. In native approval modes, let Codex's app-server
   // approval bridge own the real escalation instead of surfacing a stale
-  // pre-guardian OpenClaw plugin approval prompt.
+  // pre-guardian Vasudev plugin approval prompt.
   return params.appServer.approvalPolicy === "never"
     ? CODEX_NATIVE_HOOK_RELAY_EVENTS
     : CODEX_NATIVE_HOOK_RELAY_EVENTS_WITH_APP_SERVER_APPROVALS;
@@ -490,7 +490,7 @@ export function buildCodexNativeHookRelayConfig(params: {
             command,
             timeout,
             async: false,
-            statusMessage: "OpenClaw native hook relay",
+            statusMessage: "Vasudev native hook relay",
           },
         ],
       },
@@ -502,7 +502,7 @@ export function buildCodexNativeHookRelayConfig(params: {
         command,
         matcher,
         timeout,
-        statusMessage: "OpenClaw native hook relay",
+        statusMessage: "Vasudev native hook relay",
       }),
     };
     for (const sourcePath of CODEX_SESSION_FLAGS_HOOK_SOURCE_PATHS) {
@@ -553,7 +553,7 @@ function buildCodexNativeToolMatcher(toolNames: readonly string[] | undefined): 
   for (const toolName of toolNames) {
     const canonicalToolName = toolName.trim();
     if (!canonicalToolName || canonicalToolName === "*") {
-      throw new TypeError("Codex native hook matcher requires canonical OpenClaw tool ids");
+      throw new TypeError("Codex native hook matcher requires canonical Vasudev tool ids");
     }
     const nativeAliases = CODEX_HOOK_MATCHER_NAMES_BY_TOOL_ID[canonicalToolName];
     if (!nativeAliases) {

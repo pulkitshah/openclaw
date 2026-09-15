@@ -170,10 +170,10 @@ async function maybeRepairLaunchAgentBootstrap(params: {
 
 function renderBlockingSystemGatewayServices(services: ExtraGatewayService[]): string {
   return [
-    "System-level OpenClaw gateway service detected while the user gateway service is not installed.",
+    "System-level Vasudev gateway service detected while the user gateway service is not installed.",
     ...services.map((svc) => `- ${svc.label} (${svc.detail})`),
-    "OpenClaw will not install a second user-level gateway service automatically.",
-    "Run `openclaw gateway status --deep` or `openclaw doctor --deep` to inspect duplicate services.",
+    "Vasudev will not install a second user-level gateway service automatically.",
+    "Run `vasudev gateway status --deep` or `vasudev doctor --deep` to inspect duplicate services.",
     `Set ${SERVICE_REPAIR_POLICY_ENV}=external if a system supervisor owns the gateway lifecycle.`,
   ].join("\n");
 }
@@ -190,7 +190,7 @@ function renderEstablishedGatewayConnections(connections: PortConnection[]): str
       return `- ${pid} ${direction}${command}${address}${commandLine}`;
     }),
     ...(connections.length > 8 ? [`- ... ${connections.length - 8} more connection(s)`] : []),
-    "If logs show protocol mismatch after rollback, stop stale OpenClaw client processes listed here and rerun doctor.",
+    "If logs show protocol mismatch after rollback, stop stale Vasudev client processes listed here and rerun doctor.",
   ].join("\n");
 }
 
@@ -237,7 +237,7 @@ async function noteGatewayServiceInspectionFailure(
   if (kind) {
     lines.push(...renderSystemdUnavailableHints({ wsl: await isWSL(), kind }));
   }
-  lines.push(`Run ${formatCliCommand("openclaw gateway status --deep")} and retry doctor.`);
+  lines.push(`Run ${formatCliCommand("vasudev gateway status --deep")} and retry doctor.`);
   note(lines.join("\n"), "Gateway");
 }
 
@@ -395,7 +395,7 @@ export async function maybeRepairGatewayDaemon(params: {
     );
     if (!install) {
       note(
-        `Run ${formatCliCommand("openclaw gateway install")} when you want to install the gateway service.`,
+        `Run ${formatCliCommand("vasudev gateway install")} when you want to install the gateway service.`,
         "Gateway",
       );
     }
@@ -488,7 +488,7 @@ export async function maybeRepairGatewayDaemon(params: {
   if (process.platform === "darwin") {
     const label = resolveGatewayLaunchAgentLabel(process.env.OPENCLAW_PROFILE);
     note(
-      `LaunchAgent loaded; stopping requires "${formatCliCommand("openclaw gateway stop")}" or launchctl bootout gui/$UID/${label}.`,
+      `LaunchAgent loaded; stopping requires "${formatCliCommand("vasudev gateway stop")}" or launchctl bootout gui/$UID/${label}.`,
       "Gateway",
     );
   }

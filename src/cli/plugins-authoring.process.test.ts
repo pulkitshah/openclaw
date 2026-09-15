@@ -106,7 +106,7 @@ describe("plugin authoring with invalid host config", () => {
     const root = tempDirs.make("openclaw-plugin-enable-process-");
     const result = await runPlugins(root, ["enable", pluginId]);
     expect(result.code, result.stderr).toBe(1);
-    expect(result.stderr).toContain("OpenClaw config is invalid");
+    expect(result.stderr).toContain("Vasudev config is invalid");
     expect(await fs.readFile(path.join(root, "openclaw.json"), "utf8")).toBe(invalidConfig);
   });
 });

@@ -13,7 +13,7 @@ Which effective routes select the Codex runtime, and the deployment shapes built
 ## Routing and model selection
 
 `openai/gpt-6-astra` defaults to `medium` reasoning effort through the shared
-OpenAI provider policy when the account supports it. For OpenClaw-managed turns,
+OpenAI provider policy when the account supports it. For Vasudev-managed turns,
 the resolved effort is sent in Codex `turn/start` requests,
 including `collaborationMode.settings.reasoning_effort`, so the native thread
 uses the same default as Control UI. Explicit thinking settings still win;
@@ -33,7 +33,7 @@ Keep provider refs and runtime policy separate:
 - `agentRuntime.id: "codex"` makes Codex a fail-closed requirement for a
   compatible route. It does not make an incompatible effective route compatible.
 - `agentRuntime.id: "openclaw"` opts a provider or model into the embedded
-  OpenClaw runtime when that is intentional.
+  Vasudev runtime when that is intentional.
 - `/codex ...` controls native Codex app-server conversations from chat.
 - ACP/acpx is a separate external harness path. Use it only when the user
   asks for ACP/acpx or an external harness adapter.
@@ -61,7 +61,7 @@ Keep provider refs and runtime policy separate:
 | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ---------------------------------------------------------- |
 | Eligible OpenAI route with native Codex runtime | Exact official HTTPS Responses/ChatGPT route with no authored provider request override, plus enabled `codex` plugin | `/status` shows `Runtime: OpenAI Codex` | Valid Fast runtime controls do not disqualify this path    |
 | Fail closed if Codex is unavailable             | Provider or model `agentRuntime.id: "codex"`                                                                         | Missing harness fails the turn          | Authored request overrides may still use declared fallback |
-| Direct OpenAI API-key traffic through OpenClaw  | Provider or model `agentRuntime.id: "openclaw"` and normal OpenAI auth                                               | `/status` shows OpenClaw runtime        | Use only when OpenClaw is intentional                      |
+| Direct OpenAI API-key traffic through Vasudev   | Provider or model `agentRuntime.id: "openclaw"` and normal OpenAI auth                                               | `/status` shows Vasudev runtime         | Use only when Vasudev is intentional                       |
 | Legacy config                                   | legacy Codex GPT refs                                                                                                | `openclaw doctor --fix` rewrites it     | Do not write new config this way                           |
 | ACP/acpx Codex adapter                          | ACP `sessions_spawn({ runtime: "acp" })`                                                                             | ACP task/session status                 | Separate from native Codex harness                         |
 
@@ -159,9 +159,9 @@ fail-closed rule:
 }
 ```
 
-With Codex forced, OpenClaw fails early if the plugin is disabled, the app-server
+With Codex forced, Vasudev fails early if the plugin is disabled, the app-server
 is too old or cannot start, or route/auth support is rejected without a declared
 fallback. Authored request overrides may instead use the
-[selection-time OpenClaw fallback](/concepts/agent-runtimes#runtime-selection)
+[selection-time Vasudev fallback](/concepts/agent-runtimes#runtime-selection)
 that preserves the exact request. Once Codex starts, its failures are not replayed
-through OpenClaw.
+through Vasudev.

@@ -35,7 +35,7 @@ export function resolveQaChannelAccount(params: {
   const enabled = baseEnabled && merged.enabled !== false;
   const baseUrl = merged.baseUrl?.trim() ?? "";
   const botUserId = merged.botUserId?.trim() || "openclaw";
-  const botDisplayName = merged.botDisplayName?.trim() || "OpenClaw QA";
+  const botDisplayName = merged.botDisplayName?.trim() || "Vasudev QA";
   return {
     accountId,
     enabled,

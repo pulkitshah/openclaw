@@ -10,7 +10,7 @@ import {
 } from "../../internal-runtime-context.js";
 import type { CurrentInboundPromptContext } from "./params.js";
 
-const OPENCLAW_RUNTIME_EVENT_USER_PROMPT = "Continue the OpenClaw runtime event.";
+const OPENCLAW_RUNTIME_EVENT_USER_PROMPT = "Continue the Vasudev runtime event.";
 
 /** Hidden custom transcript message that carries runtime context into model conversion. */
 export type RuntimeContextCustomMessage = {

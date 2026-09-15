@@ -78,7 +78,7 @@ function resolveLifecycleAgentId(rawAgent: string | undefined): string | undefin
 
 function listHint(agent?: string): string {
   const agentFlag = agent ? ` --agent ${agent}` : "";
-  return formatCliCommand(`openclaw sessions list${agentFlag} --json`);
+  return formatCliCommand(`vasudev sessions list${agentFlag} --json`);
 }
 
 function notFoundResult(key: string, agent?: string): SessionsLifecycleResult {
@@ -93,8 +93,8 @@ function notFoundResult(key: string, agent?: string): SessionsLifecycleResult {
 const WORKTREE_PRESERVATION_REASON_COPY = {
   "owner-mismatch": "registered to another owner",
   busy: "still in use by a live run or another cleanup",
-  "foreign-lock": "Git reports a lock owned outside OpenClaw",
-  "snapshot-failed": "OpenClaw could not create a safety snapshot",
+  "foreign-lock": "Git reports a lock owned outside Vasudev",
+  "snapshot-failed": "Vasudev could not create a safety snapshot",
   "cleanup-failed": "cleanup did not finish normally",
 } as const satisfies Record<WorktreePreservationReason, string>;
 
@@ -186,8 +186,8 @@ function outputLifecycleResults(
             runtime.log("Archived transcripts can remain eligible for memory search.");
             runtime.log(
               agentId
-                ? `To remove indexed memories for this session, run openclaw memory forget --agent ${quoteCliArg(agentId)} --session ${quoteCliArg(result.key)} on the Gateway host or container using its state and configuration.`
-                : "Run openclaw memory forget on the Gateway host or container using its state and configuration; select the owning agent with --agent and this session with --session.",
+                ? `To remove indexed memories for this session, run vasudev memory forget --agent ${quoteCliArg(agentId)} --session ${quoteCliArg(result.key)} on the Gateway host or container using its state and configuration.`
+                : "Run vasudev memory forget on the Gateway host or container using its state and configuration; select the owning agent with --agent and this session with --session.",
             );
           }
           if (result.worktreePreserved) {

@@ -1,12 +1,12 @@
 ---
-summary: "Use Qianfan's unified API to access many models in OpenClaw"
+summary: "Use Qianfan's unified API to access many models in Vasudev"
 read_when:
   - You want a single API key for many LLMs
   - You need Baidu Qianfan setup guidance
 title: "Qianfan"
 ---
 
-Qianfan is Baidu's MaaS platform: a unified, OpenAI-compatible API that routes requests to many models behind a single endpoint and API key. OpenClaw ships it as the official external plugin `@openclaw/qianfan-provider`.
+Qianfan is Baidu's MaaS platform: a unified, OpenAI-compatible API that routes requests to many models behind a single endpoint and API key. Vasudev ships it as the official external plugin `@openclaw/qianfan-provider`.
 
 | Property      | Value                                    |
 | ------------- | ---------------------------------------- |
@@ -137,7 +137,7 @@ Model refs use the `qianfan/` prefix (for example `qianfan/deepseek-v4-pro`).
     Choosing providers, model refs, and failover behavior.
   </Card>
   <Card title="Configuration reference" href="/gateway/configuration-reference" icon="gear">
-    Full OpenClaw configuration reference.
+    Full Vasudev configuration reference.
   </Card>
   <Card title="Agent setup" href="/concepts/agent" icon="robot">
     Configuring agent defaults and model assignments.

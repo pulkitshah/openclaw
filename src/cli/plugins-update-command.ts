@@ -253,7 +253,7 @@ export async function runPluginUpdateCommand(params: RunPluginUpdateCommandParam
         );
       } catch (error) {
         const failure = new Error(
-          "Plugin updates were saved but runtime application failed. Inspect the error, repair the plugin, then run openclaw plugins reload <id>.",
+          "Plugin updates were saved but runtime application failed. Inspect the error, repair the plugin, then run vasudev plugins reload <id>.",
           { cause: error },
         );
         if (updateFailure) {
@@ -400,7 +400,7 @@ async function runPluginUpdateCommandUnlocked(
     }
     defaultRuntime.error(
       params.id
-        ? `No tracked plugin or hook pack found for "${params.id}". Run "${formatCliCommand("openclaw plugins list")}" or "${formatCliCommand("openclaw hooks list")}" to inspect installed packages.`
+        ? `No tracked plugin or hook pack found for "${params.id}". Run "${formatCliCommand("vasudev plugins list")}" or "${formatCliCommand("vasudev hooks list")}" to inspect installed packages.`
         : "Provide a plugin or hook-pack id, or use --all.",
     );
     return 1;
@@ -654,7 +654,7 @@ async function runPluginUpdateCommandUnlocked(
       packageUpdatePersisted = true;
       onMetadataChanged?.();
       await settlePluginInstallTransactions(deferredInstallTransactions, "commit").catch(() =>
-        logger.warn("Plugin update committed, but cleanup failed. Run openclaw plugins doctor."),
+        logger.warn("Plugin update committed, but cleanup failed. Run vasudev plugins doctor."),
       );
       if (pluginResult.changed) {
         await refreshPluginRegistryAfterConfigMutation({

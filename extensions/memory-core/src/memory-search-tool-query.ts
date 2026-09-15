@@ -31,7 +31,7 @@ export function buildPausedMemoryIndexUnavailableResult(
       ? `the current memory configuration no longer matches the index (${diagnostic.reason})`
       : diagnostic.code === "metadata_missing"
         ? `the memory index metadata is missing (${diagnostic.reason}); no configuration change is needed`
-        : `this OpenClaw version changed the memory index format (${diagnostic.reason}); no configuration change is needed`;
+        : `this Vasudev version changed the memory index format (${diagnostic.reason}); no configuration change is needed`;
   return buildMemorySearchUnavailableResult(diagnostic.reason, {
     warning: `Tell the user: memory search is paused because ${cause}.`,
     action: `Tell the user to run: ${formatMemoryIndexRebuildGuidance(params.status, params.agentId)}`,

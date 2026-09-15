@@ -17,7 +17,7 @@ import { ManagedPluginLifecycleError } from "./management-lifecycle-error.js";
 function readValidSourceConfig(snapshot: ConfigFileSnapshot) {
   if (!snapshot.valid) {
     throw new ManagedPluginLifecycleError(
-      "Config invalid; run `openclaw doctor --fix` before managing plugins.",
+      "Config invalid; run `vasudev doctor --fix` before managing plugins.",
     );
   }
   return snapshot.sourceConfig;

@@ -2,6 +2,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import type { CiaoService } from "@homebridge/ciao";
+import { PRODUCT_NAME } from "openclaw/plugin-sdk/brand";
 import type { PluginLogger } from "openclaw/plugin-sdk/plugin-entry";
 import { isTruthyEnvValue } from "openclaw/plugin-sdk/runtime-env";
 import { classifyCiaoProcessError } from "./ciao.js";
@@ -11,7 +12,7 @@ type GatewayBonjourAdvertiser = {
   stop: () => Promise<void>;
 };
 
-/** Input data used to publish OpenClaw gateway Bonjour records. */
+/** Input data used to publish Vasudev gateway Bonjour records. */
 type GatewayBonjourAdvertiseOpts = {
   instanceName?: string;
   gatewayPort: number;
@@ -138,7 +139,7 @@ function resolveSystemMdnsHostname(): string | null {
 const MAX_DNS_LABEL_BYTES = 63;
 const utf8Encoder = new TextEncoder();
 
-function truncateToDnsLabel(name: string, fallback = "OpenClaw"): string {
+function truncateToDnsLabel(name: string, fallback = PRODUCT_NAME): string {
   const encoded = utf8Encoder.encode(name);
   if (encoded.byteLength <= MAX_DNS_LABEL_BYTES) {
     return name;
@@ -156,12 +157,14 @@ function truncateToDnsLabel(name: string, fallback = "OpenClaw"): string {
 
 function safeServiceName(name: string) {
   const trimmed = name.trim();
-  return trimmed.length > 0 ? truncateToDnsLabel(trimmed) : "OpenClaw";
+  return trimmed.length > 0 ? truncateToDnsLabel(trimmed) : PRODUCT_NAME;
 }
+
+const PRODUCT_NAME_SUFFIX_PATTERN = new RegExp(`\\s+\\(${PRODUCT_NAME}\\)\\s*$`, "i");
 
 function prettifyInstanceName(name: string) {
   const normalized = name.trim().replace(/\s+/g, " ");
-  return normalized.replace(/\s+\(OpenClaw\)\s*$/i, "").trim() || normalized;
+  return normalized.replace(PRODUCT_NAME_SUFFIX_PATTERN, "").trim() || normalized;
 }
 
 function serviceSummary(label: string, svc: CiaoService): string {
@@ -272,7 +275,7 @@ export async function startGatewayBonjourAdvertiser(
     const instanceName =
       typeof opts.instanceName === "string" && opts.instanceName.trim()
         ? opts.instanceName.trim()
-        : `${hostname} (OpenClaw)`;
+        : `${hostname} (${PRODUCT_NAME})`;
     const displayName = prettifyInstanceName(instanceName);
 
     const txtBase: Record<string, string> = {

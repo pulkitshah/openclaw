@@ -2,7 +2,7 @@
   "name": "@openclaw/webhooks",
   "version": "2026.9.4",
   "private": true,
-  "description": "OpenClaw webhook bridge plugin",
+  "description": "Vasudev webhook bridge plugin",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

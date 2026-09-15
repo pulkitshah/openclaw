@@ -1,12 +1,12 @@
 ---
-summary: "Developer workflow for OpenClaw agent runtime: build, test, and live validation"
-title: "OpenClaw agent runtime workflow"
+summary: "Developer workflow for Vasudev agent runtime: build, test, and live validation"
+title: "Vasudev agent runtime workflow"
 read_when:
-  - Working on OpenClaw agent runtime code or tests
+  - Working on Vasudev agent runtime code or tests
   - Running agent-runtime lint, typecheck, and live test flows
 ---
 
-Developer workflow for the agent runtime (`src/agents/`) in the OpenClaw repo.
+Developer workflow for the agent runtime (`src/agents/`) in the Vasudev repo.
 
 ## Type checking and linting
 
@@ -46,7 +46,7 @@ tool streaming and payload handling.
 
 ## Clean slate reset
 
-State lives in the OpenClaw state directory: `~/.openclaw` by default, or
+State lives in the Vasudev state directory: `~/.openclaw` by default, or
 `$OPENCLAW_STATE_DIR` when set. Paths relative to that directory:
 
 | Path                                           | Holds                                                              |
@@ -71,6 +71,6 @@ Legacy `auth-profiles.json` files are no longer read at runtime;
 
 ## Related
 
-- [OpenClaw agent runtime architecture](/agent-runtime-architecture)
+- [Vasudev agent runtime architecture](/agent-runtime-architecture)
 - [Testing](/help/testing)
 - [Getting Started](/start/getting-started)

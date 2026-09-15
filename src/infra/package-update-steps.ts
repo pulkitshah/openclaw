@@ -194,7 +194,7 @@ async function validatePnpmIsolatedUpdate(params: {
         durationMs: 0,
         exitCode: 1,
         stdoutTail: null,
-        stderrTail: `OpenClaw shares a pnpm ${owner.layoutVersion} global install group with ${siblingPackages.join(", ")}. Automatic update stopped before mutation; update the group manually to preserve its sibling packages.`,
+        stderrTail: `Vasudev shares a pnpm ${owner.layoutVersion} global install group with ${siblingPackages.join(", ")}. Automatic update stopped before mutation; update the group manually to preserve its sibling packages.`,
       },
     };
   }
@@ -217,7 +217,7 @@ async function validatePnpmIsolatedUpdate(params: {
         durationMs: 0,
         exitCode: 1,
         stdoutTail: null,
-        stderrTail: `Expected exactly one active pnpm ${owner.layoutVersion} OpenClaw install owned by the invoking project; found ${activePackageRoots.length} active installs and ${ownerMatchCount} owner matches. Automatic update stopped before mutation.`,
+        stderrTail: `Expected exactly one active pnpm ${owner.layoutVersion} Vasudev install owned by the invoking project; found ${activePackageRoots.length} active installs and ${ownerMatchCount} owner matches. Automatic update stopped before mutation.`,
       },
     };
   }
@@ -246,7 +246,7 @@ async function validatePnpmIsolatedUpdate(params: {
         durationMs: 0,
         exitCode: 1,
         stdoutTail: rootProbe.result.stdout || null,
-        stderrTail: `The active pnpm command owns ${reportedGlobalRoot || "an unknown global root"}, not the invoking OpenClaw install at ${expectedGlobalRoot ?? "an unknown root"}. Automatic update stopped before mutation.`,
+        stderrTail: `The active pnpm command owns ${reportedGlobalRoot || "an unknown global root"}, not the invoking Vasudev install at ${expectedGlobalRoot ?? "an unknown root"}. Automatic update stopped before mutation.`,
       },
     };
   }
@@ -323,7 +323,7 @@ export function markPackagePostInstallDoctorAdvisory<
   ) {
     return step;
   }
-  const repairGuidance = "Run openclaw doctor --fix to finish deferred repairs.";
+  const repairGuidance = "Run vasudev doctor --fix to finish deferred repairs.";
   const deferredWarnings =
     result.status === "advisory"
       ? normalizeUpdatePostInstallDoctorWarnings(result.advisory.details).map(

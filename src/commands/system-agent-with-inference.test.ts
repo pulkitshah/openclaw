@@ -37,7 +37,7 @@ describe("runSystemAgentWithInference", () => {
     exitMocks.requestExitAfterOneShotOutput.mockReturnValue(false);
   });
 
-  it("starts OpenClaw only after live inference succeeds", async () => {
+  it("starts Vasudev only after live inference succeeds", async () => {
     const runSystemAgent = vi.fn(async () => {});
     const verifyInference = vi.fn(async () => workingInference());
     const currentRuntime = runtime();
@@ -161,7 +161,7 @@ describe("runSystemAgentWithInference", () => {
     expect(currentRuntime.exit).not.toHaveBeenCalled();
   });
 
-  it("lets interactive OpenClaw execution errors propagate", async () => {
+  it("lets interactive Vasudev execution errors propagate", async () => {
     const currentRuntime = runtime();
 
     await expect(
@@ -222,7 +222,7 @@ describe("runSystemAgentWithInference", () => {
     );
 
     expect(currentRuntime.error).toHaveBeenCalledWith(
-      "OpenClaw needs an interactive TTY. Use --message for one command.",
+      "Vasudev needs an interactive TTY. Use --message for one command.",
     );
     expect(currentRuntime.exit).toHaveBeenCalledWith(1);
     expect(verifyInference).not.toHaveBeenCalled();
@@ -240,7 +240,7 @@ describe("runSystemAgentWithInference", () => {
     );
 
     expect(currentRuntime.error).toHaveBeenCalledWith(
-      "OpenClaw --yes requires --message so approval is limited to one request.",
+      "Vasudev --yes requires --message so approval is limited to one request.",
     );
     expect(currentRuntime.exit).toHaveBeenCalledWith(1);
     expect(verifyInference).not.toHaveBeenCalled();
@@ -252,7 +252,7 @@ describe("runSystemAgentWithInference", () => {
     await runSystemAgentWithInference({ json: true, yes: true }, currentRuntime);
 
     expect(currentRuntime.log).toHaveBeenCalledWith(
-      expect.stringContaining('"error": "OpenClaw --yes requires --message'),
+      expect.stringContaining('"error": "Vasudev --yes requires --message'),
     );
     expect(currentRuntime.error).not.toHaveBeenCalled();
     expect(exitMocks.requestExitAfterOneShotOutput).toHaveBeenCalledWith(currentRuntime, 1);
@@ -282,9 +282,7 @@ describe("runSystemAgentWithInference", () => {
         },
       );
 
-      expect(currentRuntime.error).toHaveBeenCalledWith(
-        expect.stringContaining("openclaw onboard"),
-      );
+      expect(currentRuntime.error).toHaveBeenCalledWith(expect.stringContaining("vasudev onboard"));
       expect(currentRuntime.exit).toHaveBeenCalledWith(1);
       expect(exitMocks.requestExitAfterOneShotOutput).toHaveBeenCalledWith(currentRuntime, 1);
       expect(runGuidedOnboarding).not.toHaveBeenCalled();
@@ -309,7 +307,7 @@ describe("runSystemAgentWithInference", () => {
 
     expect(currentRuntime.log).toHaveBeenCalledWith(expect.stringContaining('"status": "auth"'));
     expect(currentRuntime.log).toHaveBeenCalledWith(
-      expect.stringContaining('"guidance": "Run `openclaw onboard`'),
+      expect.stringContaining('"guidance": "Run `vasudev onboard`'),
     );
     expect(currentRuntime.error).not.toHaveBeenCalled();
     expect(currentRuntime.exit).toHaveBeenCalledWith(1);

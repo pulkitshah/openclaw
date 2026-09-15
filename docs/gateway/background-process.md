@@ -6,7 +6,7 @@ read_when:
 title: "Background exec and process tool"
 ---
 
-OpenClaw runs shell commands through the `exec` tool and keeps long-running tasks in memory. The `process` tool manages those background sessions.
+Vasudev runs shell commands through the `exec` tool and keeps long-running tasks in memory. The `process` tool manages those background sessions.
 
 ## exec tool
 
@@ -74,7 +74,7 @@ the environment, replacing its ownership, or stopping the node also stops its
 processes. Process handles do not survive a worker or node restart.
 
 If the node's pairing is revoked or its provider no longer recognizes the lease,
-the session placement fails. Physical cleanup can remain pending until OpenClaw
+the session placement fails. Physical cleanup can remain pending until Vasudev
 confirms that the exact worker has stopped; an unconfirmed stop does not release
 its ownership record.
 

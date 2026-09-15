@@ -1,12 +1,12 @@
 ---
 summary: "Hugging Face Inference setup (auth + model selection)"
 read_when:
-  - You want to use Hugging Face Inference with OpenClaw
+  - You want to use Hugging Face Inference with Vasudev
   - You need the HF token env var or CLI auth choice
 title: "Hugging Face (inference)"
 ---
 
-[Hugging Face Inference Providers](https://huggingface.co/docs/inference-providers) exposes an OpenAI-compatible chat completions router in front of many hosted models (DeepSeek, Llama, and more) under one token. OpenClaw talks to the **chat completions endpoint only**; for text-to-image, embeddings, or speech use the [HF inference clients](https://huggingface.co/docs/api-inference/quicktour) directly.
+[Hugging Face Inference Providers](https://huggingface.co/docs/inference-providers) exposes an OpenAI-compatible chat completions router in front of many hosted models (DeepSeek, Llama, and more) under one token. Vasudev talks to the **chat completions endpoint only**; for text-to-image, embeddings, or speech use the [HF inference clients](https://huggingface.co/docs/api-inference/quicktour) directly.
 
 | Property     | Value                                                                                                                       |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------- |
@@ -36,7 +36,7 @@ title: "Hugging Face (inference)"
 
   </Step>
   <Step title="Select a default model">
-    In the **Default Hugging Face model** dropdown, pick a model. The list loads from the Inference API when your token is valid; otherwise OpenClaw shows the built-in catalog below. Your choice is saved as `agents.defaults.model.primary`:
+    In the **Default Hugging Face model** dropdown, pick a model. The list loads from the Inference API when your token is valid; otherwise Vasudev shows the built-in catalog below. Your choice is saved as `agents.defaults.model.primary`:
 
     ```json5
     {
@@ -69,7 +69,7 @@ Sets `huggingface/deepseek-ai/DeepSeek-R1` as the default model.
 
 ## Model IDs
 
-Model refs use the form `huggingface/<org>/<model>` (Hub-style IDs). OpenClaw's built-in catalog:
+Model refs use the form `huggingface/<org>/<model>` (Hub-style IDs). Vasudev's built-in catalog:
 
 | Model         | Ref (prefix with `huggingface/`) |
 | ------------- | -------------------------------- |
@@ -78,14 +78,14 @@ Model refs use the form `huggingface/<org>/<model>` (Hub-style IDs). OpenClaw's 
 | GPT-OSS 120B  | `openai/gpt-oss-120b`            |
 
 <Tip>
-When your token is valid, OpenClaw also discovers any other model from **GET** `https://router.huggingface.co/v1/models` at onboarding time and Gateway startup, so your catalog can include far more than the three models above. You can append `:fastest` or `:cheapest` to any model id; HF's router routes to the matching inference provider. Set your default provider order in [Inference Provider settings](https://hf.co/settings/inference-providers).
+When your token is valid, Vasudev also discovers any other model from **GET** `https://router.huggingface.co/v1/models` at onboarding time and Gateway startup, so your catalog can include far more than the three models above. You can append `:fastest` or `:cheapest` to any model id; HF's router routes to the matching inference provider. Set your default provider order in [Inference Provider settings](https://hf.co/settings/inference-providers).
 </Tip>
 
 ## Advanced configuration
 
 <AccordionGroup>
   <Accordion title="Model discovery and onboarding dropdown">
-    OpenClaw discovers models with:
+    Vasudev discovers models with:
 
     ```http
     GET https://router.huggingface.co/v1/models
@@ -105,7 +105,7 @@ When your token is valid, OpenClaw also discovers any other model from **GET** `
   </Accordion>
 
   <Accordion title="Model names, aliases, and policy suffixes">
-    - **Name from API:** discovered models use the API's `name`, `title`, or `display_name` when present; otherwise OpenClaw derives a name from the model id (e.g. `deepseek-ai/DeepSeek-R1` becomes "DeepSeek R1").
+    - **Name from API:** discovered models use the API's `name`, `title`, or `display_name` when present; otherwise Vasudev derives a name from the model id (e.g. `deepseek-ai/DeepSeek-R1` becomes "DeepSeek R1").
     - **Override display name:** set a custom label per model in config:
 
     ```json5
@@ -121,7 +121,7 @@ When your token is valid, OpenClaw also discovers any other model from **GET** `
     }
     ```
 
-    - **Policy suffixes:** `:fastest` and `:cheapest` are HF router conventions, not something OpenClaw rewrites: the suffix is sent verbatim as part of the model id and HF's router picks the matching inference provider. Add each variant as its own entry under `models.providers.huggingface.models` (or in `model.primary`) if you want a distinct alias per suffix.
+    - **Policy suffixes:** `:fastest` and `:cheapest` are HF router conventions, not something Vasudev rewrites: the suffix is sent verbatim as part of the model id and HF's router picks the matching inference provider. Add each variant as its own entry under `models.providers.huggingface.models` (or in `model.primary`) if you want a distinct alias per suffix.
     - **Config merge:** existing entries in `models.providers.huggingface.models` (e.g. in `models.json`) are kept on config merge, so any custom `name`, `alias`, or model options you set there persist across restarts.
 
   </Accordion>
@@ -130,7 +130,7 @@ When your token is valid, OpenClaw also discovers any other model from **GET** `
     If the Gateway runs as a daemon (launchd/systemd), make sure `HUGGINGFACE_HUB_TOKEN` or `HF_TOKEN` is available to that process (for example, in `~/.openclaw/.env` or via `env.shellEnv`).
 
     <Note>
-    OpenClaw accepts both `HUGGINGFACE_HUB_TOKEN` and `HF_TOKEN`. If both are set, `HUGGINGFACE_HUB_TOKEN` takes precedence.
+    Vasudev accepts both `HUGGINGFACE_HUB_TOKEN` and `HF_TOKEN`. If both are set, `HUGGINGFACE_HUB_TOKEN` takes precedence.
     </Note>
 
   </Accordion>

@@ -20,8 +20,8 @@ describe("CUA Driver doctor check", () => {
     mocks.verify.mockReturnValue({
       ok: false,
       code: "COMPUTER_DRIVER_VERSION_MISMATCH",
-      diagnostic: "COMPUTER_DRIVER_VERSION_MISMATCH: expected 0.20.0. Fix: reinstall OpenClaw.",
-      fixHint: "Reinstall OpenClaw.",
+      diagnostic: "COMPUTER_DRIVER_VERSION_MISMATCH: expected 0.20.0. Fix: reinstall Vasudev.",
+      fixHint: "Reinstall Vasudev.",
     });
     let check: HealthCheck | undefined;
     registerCuaDriverDoctorChecks({
@@ -36,7 +36,7 @@ describe("CUA Driver doctor check", () => {
         checkId: CUA_DRIVER_ARTIFACT_CHECK_ID,
         severity: "error",
         message: expect.stringContaining("COMPUTER_DRIVER_VERSION_MISMATCH"),
-        fixHint: "Reinstall OpenClaw.",
+        fixHint: "Reinstall Vasudev.",
       }),
     ]);
   });

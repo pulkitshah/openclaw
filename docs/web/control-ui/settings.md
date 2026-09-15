@@ -52,11 +52,11 @@ Profile photos load through authenticated Gateway routes in the online roster, p
 
 On a single-user Gateway, unidentified operators share one durable owner profile across devices, including device-token reconnects. Its unset display name is seeded from the Gateway host account's full name, never its login name; saved names are never overwritten. Without a full name, the sidebar shows **Owner**. With `gateway.roles` configured, only token/password connections receive this owner profile; other unidentified connections see an explanation in Identity instead of editing controls. The owner profile has no email and grants no additional permissions.
 
-On macOS, the owner's avatar defaults to the Gateway host account's user picture when no OpenClaw avatar is saved. This uses the Mac running the Gateway, including when you connect from another device. A saved avatar always takes priority. OpenClaw reads the picture locally and serves a resized copy through the authenticated avatar route; other people's profiles never inherit it. Restart the Gateway to pick up a changed macOS picture. If the picture cannot be read, initials remain visible.
+On macOS, the owner's avatar defaults to the Gateway host account's user picture when no Vasudev avatar is saved. This uses the Mac running the Gateway, including when you connect from another device. A saved avatar always takes priority. Vasudev reads the picture locally and serves a resized copy through the authenticated avatar route; other people's profiles never inherit it. Restart the Gateway to pick up a changed macOS picture. If the picture cannot be read, initials remain visible.
 
 **Settings → Profile → Connected accounts** shows the selected **Gateway**, saved **Person**, and **Scope: Personal**. Choose **Add account**, then a provider and sign-in method from the Gateway's catalog. Browser/device sign-in, protected credential inputs, progress, and cancellation use one guided flow. These are the same personal accounts managed by `openclaw models accounts login`, not the machine-local system/agent credentials managed by `models auth`. Account controls follow the Gateway-assigned profile, including the shared owner profile on a single-user Gateway. If the connection has no profile, the section explains the missing identity and offers **Connection settings** without showing provider credential inputs. Shared Gateway tokens and device pairing alone do not distinguish people on a multi-user Gateway. See [Per-person model accounts](/concepts/multi-user#per-person-model-accounts).
 
-GitHub-backed sign-in through Cloudflare Access or Tailscale Serve fills the read-only **GitHub account** row with the verified public avatar and account link without replacing a custom OpenClaw avatar. **Git co-author credit** is a separate toggle, on by default for verified accounts, that controls future commits from shared sessions. See [User model](/concepts/user-model#gateway-profile-and-github-credit) for verification, retry, account-change, noreply privacy, and eligibility rules.
+GitHub-backed sign-in through Cloudflare Access or Tailscale Serve fills the read-only **GitHub account** row with the verified public avatar and account link without replacing a custom Vasudev avatar. **Git co-author credit** is a separate toggle, on by default for verified accounts, that controls future commits from shared sessions. See [User model](/concepts/user-model#gateway-profile-and-github-credit) for verification, retry, account-change, noreply privacy, and eligibility rules.
 
 **Settings → Profile → GitHub connections** separately shows **My GitHub** and **System GitHub**. Identified people, including read-scoped operators, can connect and disconnect only their own account; administrators can also change the shared System account. Connecting defaults to **For me** for identified users and never changes their sign-in identity, co-author preference, or shared execution defaults. Personal credentials support explicit Gateway-brokered **Publish PR** actions, not ordinary agent shell commands. See [GitHub connections](/concepts/user-model#github-connections).
 
@@ -140,7 +140,7 @@ or disables the plugin and offers **Remove** for externally installed plugins.
 It also lists configured [MCP servers](/cli/mcp) and supports adding, disabling,
 and removing them inline. The same server controls live on **Settings → MCP**.
 Your selected detail tab stays open as additional plugin information loads.
-The **Discover** tab is the store: featured plugins included with OpenClaw,
+The **Discover** tab is the store: featured plugins included with Vasudev,
 official external plugins, and one-click MCP connectors for popular services.
 Typing in the search box queries
 [ClawHub](https://clawhub.ai/plugins) inline and appends a **From ClawHub**
@@ -157,7 +157,7 @@ Workshop mode. Chat shows progress, results, and normal stop and follow-up contr
 
 Included plugins are already present on the Gateway and show **Enable** or
 **Disable** instead of **Install**. For example, Workboard is included with
-OpenClaw but disabled by default, so its action is **Enable**. Bundled plugins
+Vasudev but disabled by default, so its action is **Enable**. Bundled plugins
 cannot be removed, only disabled.
 
 Reading the catalog and searching ClawHub require `operator.read`. Installing,
@@ -205,7 +205,7 @@ local Gateway still uses **Update Mac app + Gateway** and the native update flow
 Open **Apps** from the sidebar **More** menu, the command palette, or the
 sidebar agent menu (**Get the apps**), or use `/apps` relative to the
 configured Control UI base path. The page collects install links for every
-OpenClaw companion surface: the [iOS](/platforms/ios) and
+Vasudev companion surface: the [iOS](/platforms/ios) and
 [Android](/platforms/android) apps, the Apple Watch and Wear OS companions
 bundled with them, the [macOS](/platforms/macos), [Windows](/platforms/windows),
 and [Linux](/platforms/linux) desktop apps, the
@@ -214,7 +214,7 @@ and [Linux](/platforms/linux) desktop apps, the
 
 ## Settings
 
-Inside **Settings**, the dedicated sidebar includes **Ask OpenClaw** and starts with a **Search settings** field for quickly finding settings sections.
+Inside **Settings**, the dedicated sidebar includes **Ask Vasudev** and starts with a **Search settings** field for quickly finding settings sections.
 
 **Native embed mode.** Native hosts can inject `window.__OPENCLAW_NATIVE_EMBED__ = { platform: "ios", formFactor: "phone" }` at document start to show settings without Dashboard navigation chrome. Supported platforms are `ios`, `macos`, and `android`; form factors are `phone`, `pad`, and `desktop`. In this mode, `/settings` lists the same visible groups and destinations as the settings sidebar. Every embedded route outside the settings root provides a Back button and title, including pages reached through links or tabs such as Memory import, Plugins, and Skill Workshop. Back follows app navigation history; direct links fall back to the nearest settings parent (Memory for Memory import) or `/settings`. Layouts respect device safe areas and use touch controls at phone widths. The flag changes presentation only: Gateway scopes and the existing native device-settings capability still determine which settings are available. Ordinary browser loads keep their existing navigation.
 
@@ -263,7 +263,7 @@ and is omitted in compact panes. Conversation has no shortcut.
 Command+Option chords accept Option symbols through the physical key; Ctrl+Alt chords require the matching ASCII letter to preserve non-ASCII AltGr text. Dead keys and composition are ignored.
 
 The new panel chords include Option/Alt to avoid browser actions such as developer
-tools, Read Aloud, and find previous, and OpenClaw's existing debug-overlay shortcut.
+tools, Read Aloud, and find previous, and Vasudev's existing debug-overlay shortcut.
 The existing Terminal, Files, and Side chat bindings are unchanged.
 
 <a id="this-mac-macos-app" />
@@ -279,7 +279,7 @@ and actions, location preferences, and active computer presence.
 **Talk** adds a **This Mac** section for Voice Wake, push-to-talk, sounds,
 microphone, and languages. **Updates** adds the app version, automatic update
 preference, and **Check for Updates**. These device settings appear only inside
-the OpenClaw app; ordinary browsers keep the Gateway settings. Talk trigger words
+the Vasudev app; ordinary browsers keep the Gateway settings. Talk trigger words
 are Gateway settings and remain available in every browser.
 
 On iOS, the group is **This iPhone** or **This iPad**. The device page shows
@@ -314,7 +314,7 @@ dashboard pairing and backend plugin operations remain available.
 ## Import assistant memory
 
 Open **Settings** → **Import Memory** to bring local Codex, Claude Code, or Hermes memory
-into an OpenClaw agent. The Gateway discovers supported local memory on its own
+into a Vasudev agent. The Gateway discovers supported local memory on its own
 host, so a remote Control UI imports from the Gateway computer rather than the
 browser computer.
 
@@ -336,7 +336,7 @@ credentials through this page. Files are copied below `memory/imports/` in the
 selected workspace, where the active memory plugin can index them. Sources are
 never changed.
 
-For a narrower conversational path, open **Settings → Ask OpenClaw** and say
+For a narrower conversational path, open **Settings → Ask Vasudev** and say
 `import memory`. The chat wizard copies only new detected memory into the
 existing default agent workspace; it does not choose another destination agent
 or replace conflicts. It reports each source's confirmed copy count and warns
@@ -349,14 +349,14 @@ import. Retrying the same pending request reuses its recorded outcome while
 the Gateway retains it. A plugin cleanup warning does not undo completed copies.
 
 Planning and applying require `operator.admin`. Every apply creates a verified
-OpenClaw backup when state exists, writes a redacted migration report, and keeps
+Vasudev backup when state exists, writes a redacted migration report, and keeps
 item-level backups before replacing existing destination files. See
 [Memory overview](/concepts/memory#import-from-coding-assistants) for paths and
 recall behavior.
 
 ## MCP page
 
-The dedicated MCP page is an operator view for OpenClaw-managed MCP servers under `mcp.servers`. It does not start MCP transports by itself; use it to inspect and edit saved config, then use `openclaw mcp doctor --probe` when you need live server proof.
+The dedicated MCP page is an operator view for Vasudev-managed MCP servers under `mcp.servers`. It does not start MCP transports by itself; use it to inspect and edit saved config, then use `openclaw mcp doctor --probe` when you need live server proof.
 
 Typical workflow:
 

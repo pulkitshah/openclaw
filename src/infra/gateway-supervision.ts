@@ -13,14 +13,14 @@ export function isGatewayExternallySupervised(env: NodeJS.ProcessEnv = process.e
 
 export function formatExternalSupervisorActionRequired(action: string): string {
   return [
-    `OpenClaw gateway lifecycle is managed by an external supervisor (${GATEWAY_SUPERVISOR_MODE_ENV}=external).`,
+    `Vasudev gateway lifecycle is managed by an external supervisor (${GATEWAY_SUPERVISOR_MODE_ENV}=external).`,
     `Use that supervisor to ${action}.`,
   ].join(" ");
 }
 
 export function formatExternalSupervisorUpdateRequired(): string {
   return [
-    `OpenClaw self-update is disabled while gateway lifecycle is managed by an external supervisor (${GATEWAY_SUPERVISOR_MODE_ENV}=external).`,
+    `Vasudev self-update is disabled while gateway lifecycle is managed by an external supervisor (${GATEWAY_SUPERVISOR_MODE_ENV}=external).`,
     "Use the external supervisor's update workflow so it can stop the gateway, update and finalize the runtime, then restart it safely.",
   ].join(" ");
 }
@@ -49,7 +49,7 @@ export function assertGatewayServiceMutationAllowed(
     const platformName =
       process.platform === "darwin" ? "macOS" : process.platform === "win32" ? "Windows" : "Linux";
     throw new Error(
-      `service management skipped: named profiles cannot override ${serviceIdentityConflict.envKey} for ${platformName} service management. Unset ${serviceIdentityConflict.envKey} so OpenClaw derives the native service identity from OPENCLAW_PROFILE to ${action}, or keep this profile runtime-only without a native service.`,
+      `service management skipped: named profiles cannot override ${serviceIdentityConflict.envKey} for ${platformName} service management. Unset ${serviceIdentityConflict.envKey} so Vasudev derives the native service identity from OPENCLAW_PROFILE to ${action}, or keep this profile runtime-only without a native service.`,
     );
   }
   if (!isDefaultInstallIdentity(env)) {

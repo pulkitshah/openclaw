@@ -104,8 +104,8 @@ async function collectWebFetchProxyDiagnostic(params: {
     "- web_fetch still uses direct connections because tools.web.fetch.useTrustedEnvProxy is not enabled.",
     directProbe,
     "- If direct web_fetch requests time out and the proxy is operator-controlled, enable the explicit opt-in:",
-    `  ${formatCliCommand("openclaw config set tools.web.fetch.useTrustedEnvProxy true")}`,
-    "- Keep the opt-in disabled for untrusted proxies; enabling it lets the proxy resolve DNS after OpenClaw's hostname checks.",
+    `  ${formatCliCommand("vasudev config set tools.web.fetch.useTrustedEnvProxy true")}`,
+    "- Keep the opt-in disabled for untrusted proxies; enabling it lets the proxy resolve DNS after Vasudev's hostname checks.",
   ].join("\n");
 }
 

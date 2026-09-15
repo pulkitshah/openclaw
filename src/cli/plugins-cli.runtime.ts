@@ -171,7 +171,7 @@ function collectConfiguredRuntimePluginWarnings(params: {
     }
     const installSpec = formatConfiguredRuntimePluginInstallSpec(candidate);
     return [
-      `- Configured runtime "${runtimeId}" requires the ${candidate.label} plugin, but no enabled "${runtimeId}" plugin was found. Run "openclaw doctor --fix" to install ${installSpec}, or install it manually with "openclaw plugins install ${installSpec}".`,
+      `- Configured runtime "${runtimeId}" requires the ${candidate.label} plugin, but no enabled "${runtimeId}" plugin was found. Run "vasudev doctor --fix" to install ${installSpec}, or install it manually with "vasudev plugins install ${installSpec}".`,
     ];
   });
 }
@@ -333,7 +333,7 @@ export async function runPluginsRegistryCommand(opts: PluginRegistryOptions): Pr
         const message = [
           "Plugin registry refresh could not verify the persisted replacement.",
           ...differenceLines.map((difference) => `- ${difference}`),
-          "Stop plugin package changes, then run `openclaw plugins registry --refresh` again.",
+          "Stop plugin package changes, then run `vasudev plugins registry --refresh` again.",
         ].join("\n");
         if (opts.json) {
           defaultRuntime.writeJson({
@@ -389,7 +389,7 @@ export async function runPluginsRegistryCommand(opts: PluginRegistryOptions): Pr
   if (inspection.refreshReasons.length > 0) {
     lines.push(`${theme.muted("Refresh reasons:")} ${inspection.refreshReasons.join(", ")}`);
     lines.push(...formatDifferences(inspection.differences).map((difference) => `- ${difference}`));
-    lines.push(`${theme.muted("Repair:")} ${theme.command("openclaw plugins registry --refresh")}`);
+    lines.push(`${theme.muted("Repair:")} ${theme.command("vasudev plugins registry --refresh")}`);
   }
   defaultRuntime.log(lines.join("\n"));
 }
@@ -427,7 +427,7 @@ export async function runPluginsDoctorCommand(opts: PluginDoctorOptions = {}): P
         ),
         ...collectStalePluginConfigWarnings({
           hits: scanStalePluginConfig(sourceCfg, process.env),
-          doctorFixCommand: "openclaw doctor --fix",
+          doctorFixCommand: "vasudev doctor --fix",
           autoRepairBlocked: isStalePluginAutoRepairBlocked(sourceCfg, process.env),
         }),
         ...collectConfiguredRuntimePluginWarnings({ cfg: sourceCfg, plugins: report.plugins }),
@@ -471,10 +471,10 @@ export async function runPluginsDoctorCommand(opts: PluginDoctorOptions = {}): P
                   : {}),
                 ...(entry.source ? { shadowedSource: shortenHomeInString(entry.source) } : {}),
                 repair: [
-                  `openclaw plugins inspect ${entry.pluginId ?? "<plugin-id>"}`,
+                  `vasudev plugins inspect ${entry.pluginId ?? "<plugin-id>"}`,
                   "edit or remove the config-selected plugin source",
-                  "openclaw plugins registry --refresh",
-                  `openclaw plugins reload ${entry.pluginId ?? "<plugin-id>"}`,
+                  "vasudev plugins registry --refresh",
+                  `vasudev plugins reload ${entry.pluginId ?? "<plugin-id>"}`,
                 ],
               };
             }),
@@ -491,7 +491,7 @@ export async function runPluginsDoctorCommand(opts: PluginDoctorOptions = {}): P
 
       const healthyMessage =
         "Plugin discovery, module loading, compatibility, and configuration checks passed. " +
-        'Run "openclaw health" to check the running Gateway, including runtime quarantines and fallbacks.';
+        'Run "vasudev health" to check the running Gateway, including runtime quarantines and fallbacks.';
       if (!hasInstallTreeIssues && pluginConfigWarnings.size === 0 && compatibility.length === 0) {
         return healthyMessage;
       }
@@ -533,10 +533,10 @@ export async function runPluginsDoctorCommand(opts: PluginDoctorOptions = {}): P
             lines.push(`  shadowed: ${shortenHomeInString(diag.source)}`);
           }
           lines.push("  repair:");
-          lines.push("    openclaw plugins inspect " + (diag.pluginId ?? "<plugin-id>"));
+          lines.push("    vasudev plugins inspect " + (diag.pluginId ?? "<plugin-id>"));
           lines.push("    edit or remove the config-selected plugin source");
-          lines.push("    openclaw plugins registry --refresh");
-          lines.push("    openclaw plugins reload " + (diag.pluginId ?? "<plugin-id>"));
+          lines.push("    vasudev plugins registry --refresh");
+          lines.push("    vasudev plugins reload " + (diag.pluginId ?? "<plugin-id>"));
         }
       }
       if (compatibility.length > 0) {
@@ -880,7 +880,7 @@ function formatPinnedMarketplaceRefreshFailure(payload: MarketplaceRefreshPayloa
   return `Pinned marketplace feed refresh did not accept a fresh hosted payload (source: ${payload.source}).`;
 }
 
-/** List entries from the configured OpenClaw marketplace feed. */
+/** List entries from the configured Vasudev marketplace feed. */
 export async function runPluginMarketplaceEntriesCommand(
   opts: PluginMarketplaceEntriesOptions,
 ): Promise<void> {
@@ -938,7 +938,7 @@ export async function runPluginMarketplaceEntriesCommand(
   defaultRuntime.log(lines.join("\n"));
 }
 
-/** Refresh the configured OpenClaw marketplace feed snapshot. */
+/** Refresh the configured Vasudev marketplace feed snapshot. */
 export async function runPluginMarketplaceRefreshCommand(
   opts: PluginMarketplaceRefreshOptions,
 ): Promise<void> {

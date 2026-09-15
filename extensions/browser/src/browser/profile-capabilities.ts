@@ -15,7 +15,7 @@ type BrowserProfileMode =
 export type BrowserProfileCapabilities = {
   mode: BrowserProfileMode;
   isRemote: boolean;
-  /** Browser process reads paths from the same filesystem as OpenClaw. */
+  /** Browser process reads paths from the same filesystem as Vasudev. */
   browserFilesystemLocal: boolean;
   /** Profile uses the Chrome DevTools MCP server (existing-session driver). */
   usesChromeMcp: boolean;
@@ -101,7 +101,7 @@ export function getBrowserProfileCapabilities(
     mode: "local-managed",
     isRemote: false,
     // A loopback attach-only endpoint can terminate in Docker or a tunnel.
-    // Only an OpenClaw-owned browser is known to share this filesystem.
+    // Only a Vasudev-owned browser is known to share this filesystem.
     browserFilesystemLocal: !profile.attachOnly,
     usesChromeMcp: false,
     usesPersistentPlaywright: false,

@@ -681,7 +681,7 @@ describe("Codex app-server thread lifecycle bindings", () => {
     ).toMatchObject({ config: { project_doc_max_bytes: 200_000 } });
   });
 
-  it("preserves the OpenClaw project-document budget for Codex's unauthored default", async () => {
+  it("preserves the Vasudev project-document budget for Codex's unauthored default", async () => {
     const sessionFile = path.join(tempDir, "session.jsonl");
     const workspaceDir = path.join(tempDir, "workspace");
     const fixture = await createSequentialLifecycleHarness(() => threadStartResult("thread-1"), {
@@ -1091,9 +1091,9 @@ describe("Codex app-server thread lifecycle bindings", () => {
         ]);
         const policy = JSON.stringify(requests.at(-1)?.params);
         expect(policy).toContain(
-          developerInstructions || "earlier OpenClaw generic policy is withdrawn",
+          developerInstructions || "earlier Vasudev generic policy is withdrawn",
         );
-        expect(policy).toContain("It replaces earlier OpenClaw-supplied generic policy");
+        expect(policy).toContain("It replaces earlier Vasudev-supplied generic policy");
         expect((await readCodexAppServerBinding(sessionFile))?.threadId).toBe(threadId);
       } finally {
         releaseLeasedSharedCodexAppServerClient(wire.client);
@@ -1622,7 +1622,7 @@ describe("Codex app-server thread lifecycle bindings", () => {
     expect(resumeConfig).toMatchObject({
       config: { "features.hooks": true, "hooks.PreToolUse": [] },
     });
-    expect(JSON.stringify(resumeConfig)).not.toContain("openclaw hooks relay");
+    expect(JSON.stringify(resumeConfig)).not.toContain("vasudev hooks relay");
   });
 
   it("cold-resumes a warm thread when final config adds an image-generation deny", async () => {
@@ -2933,7 +2933,7 @@ describe("Codex app-server thread lifecycle bindings", () => {
     },
   );
 
-  it("resumes the same restricted OpenClaw thread so turn two retains native memory", async () => {
+  it("resumes the same restricted Vasudev thread so turn two retains native memory", async () => {
     const sessionFile = path.join(tempDir, "session.jsonl");
     const workspaceDir = path.join(tempDir, "workspace");
     await writeCodexAppServerBinding(sessionFile, {
@@ -3285,7 +3285,7 @@ describe("Codex app-server thread lifecycle bindings", () => {
     });
   });
 
-  it("starts a fresh restricted OpenClaw thread for a new app-server client", async () => {
+  it("starts a fresh restricted Vasudev thread for a new app-server client", async () => {
     const sessionFile = path.join(tempDir, "session.jsonl");
     const workspaceDir = path.join(tempDir, "workspace");
     const params = createParams(sessionFile, workspaceDir);
@@ -3437,7 +3437,7 @@ describe("Codex app-server thread lifecycle bindings", () => {
     },
   );
 
-  it("fails closed before starting OpenClaw when inherited MCP enumeration fails", async () => {
+  it("fails closed before starting Vasudev when inherited MCP enumeration fails", async () => {
     const sessionFile = path.join(tempDir, "session.jsonl");
     const workspaceDir = path.join(tempDir, "workspace");
     await writeCodexAppServerBinding(sessionFile, {
@@ -3497,7 +3497,7 @@ describe("Codex app-server thread lifecycle bindings", () => {
     },
     { expectedError: /config layers/u, name: "malformed", layer: { name: {} } },
   ])(
-    "fails closed on $name config layers before OpenClaw thread/start",
+    "fails closed on $name config layers before Vasudev thread/start",
     async ({ expectedError, layer }) => {
       const sessionFile = path.join(tempDir, "session.jsonl");
       const workspaceDir = path.join(tempDir, "workspace");
@@ -3527,7 +3527,7 @@ describe("Codex app-server thread lifecycle bindings", () => {
   );
 
   it.each(["hooks", "managed_hooks"] as const)(
-    "fails closed on non-empty %s requirements before OpenClaw thread/start",
+    "fails closed on non-empty %s requirements before Vasudev thread/start",
     async (requirementsKey) => {
       const sessionFile = path.join(tempDir, "session.jsonl");
       const workspaceDir = path.join(tempDir, "workspace");

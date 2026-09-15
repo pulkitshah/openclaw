@@ -24,7 +24,7 @@
     "vault": {
       "providerAlias": "vault",
       "displayName": "HashiCorp Vault",
-      "description": "Resolve OpenClaw exec SecretRefs from HashiCorp Vault KV secrets.",
+      "description": "Resolve Vasudev exec SecretRefs from HashiCorp Vault KV secrets.",
       "source": "exec",
       "command": "${node}",
       "args": ["./vault-secret-ref-resolver.js"],

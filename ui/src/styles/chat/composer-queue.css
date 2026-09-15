@@ -65,7 +65,7 @@
 }
 
 .chat-queue__global-state[data-chat-queue-global-state="warn"] {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .chat-queue__scroll[data-scrollable="true"] {
@@ -301,7 +301,7 @@
 }
 
 .chat-queue__item--failed .chat-queue__leading {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .chat-queue__item--steered .chat-queue__leading {
@@ -345,7 +345,7 @@
 
 .chat-queue__item--failed .chat-queue__badge {
   background: color-mix(in srgb, var(--danger) 12%, transparent);
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .chat-queue__copy {
@@ -403,7 +403,7 @@
   grid-column: 3 / -1;
   min-width: 0;
   padding: 0 0 2px;
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: 11.5px;
   line-height: 1.35;
 }

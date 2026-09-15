@@ -1,6 +1,6 @@
 /**
  * Codex's enabled native surface includes its stable view_image loader. Keep
- * OpenClaw's view_image tool only when that surface or model vision is unavailable.
+ * Vasudev's view_image tool only when that surface or model vision is unavailable.
  */
 export function filterCodexVisionTools<T extends { name?: string }>(
   tools: T[],

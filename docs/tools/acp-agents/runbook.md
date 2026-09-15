@@ -38,15 +38,15 @@ Quick `/acp` flow from chat:
 
 <AccordionGroup>
   <Accordion title="Lifecycle details">
-    - Spawn creates or resumes an ACP runtime session, records ACP metadata in the OpenClaw session store, and may create a background task when the run is parent-owned.
+    - Spawn creates or resumes an ACP runtime session, records ACP metadata in the Vasudev session store, and may create a background task when the run is parent-owned.
     - Parent-owned ACP sessions are treated as background work even when the runtime session is persistent; completion and cross-surface delivery go through the parent task notifier rather than acting like a normal user-facing chat session.
     - Task maintenance closes terminal or orphaned parent-owned one-shot ACP sessions. Persistent ACP sessions are preserved while an active conversation binding remains; stale persistent sessions without an active binding are closed so they cannot be silently resumed after the owning task is done or its task record is gone.
     - Bound follow-up messages go directly to the ACP session until the binding is closed, detached, reset, or expired.
     - Gateway commands stay local. `/acp ...`, `/status`, and `/session` are never sent as normal prompt text to a bound ACP harness.
     - `cancel` aborts the active turn when the backend supports cancellation; it does not delete the binding or session metadata.
-    - Turn completion waits for queued output delivery. If delivery fails, OpenClaw cancels the active turn and waits for backend cleanup before starting the next queued turn, within the configured turn timeout.
-    - `close` ends the ACP session from OpenClaw's point of view and removes the binding. A harness may still keep its own upstream history if it supports resume.
-    - The acpx plugin cleans up OpenClaw-owned wrapper and adapter process trees after `close`, and reaps stale OpenClaw-owned ACPX orphans during Gateway startup.
+    - Turn completion waits for queued output delivery. If delivery fails, Vasudev cancels the active turn and waits for backend cleanup before starting the next queued turn, within the configured turn timeout.
+    - `close` ends the ACP session from Vasudev's point of view and removes the binding. A harness may still keep its own upstream history if it supports resume.
+    - The acpx plugin cleans up Vasudev-owned wrapper and adapter process trees after `close`, and reaps stale Vasudev-owned ACPX orphans during Gateway startup.
     - Idle runtime workers are eligible for cleanup after the built-in idle period; stored session metadata remains available for `/acp sessions`.
 
   </Accordion>
@@ -59,12 +59,12 @@ Quick `/acp` flow from chat:
     - "Show Codex threads, then bind this one."
 
     Native Codex conversation binding is the default chat-control path.
-    OpenClaw dynamic tools still execute through OpenClaw, while Codex-native
+    Vasudev dynamic tools still execute through Vasudev, while Codex-native
     tools such as shell/apply-patch execute inside Codex. For Codex-native
-    tool events, OpenClaw injects a per-turn native hook relay so plugin hooks
+    tool events, Vasudev injects a per-turn native hook relay so plugin hooks
     can block `before_tool_call`, observe `after_tool_call`, and route Codex
-    `PermissionRequest` events through OpenClaw approvals. Codex `Stop` hooks
-    are relayed to OpenClaw `before_agent_finalize`, where plugins can request
+    `PermissionRequest` events through Vasudev approvals. Codex `Stop` hooks
+    are relayed to Vasudev `before_agent_finalize`, where plugins can request
     one more model pass before Codex finalizes its answer. The relay stays
     deliberately conservative: it does not mutate Codex-native tool arguments
     or rewrite Codex thread records. Use explicit ACP only when you want the
@@ -87,7 +87,7 @@ Quick `/acp` flow from chat:
     - "Use Gemini CLI for this task in a thread, then keep follow-ups in that same thread."
     - "Run Codex through ACP in a background thread."
 
-    OpenClaw picks `runtime: "acp"`, resolves the harness `agentId`, binds to
+    Vasudev picks `runtime: "acp"`, resolves the harness `agentId`, binds to
     the current conversation or thread when supported, and routes follow-ups
     to that session until close/expiry. Codex only follows this path when
     ACP/acpx is explicit or the native Codex plugin is unavailable for the
@@ -98,11 +98,11 @@ Quick `/acp` flow from chat:
     loaded. `acp.dispatch.enabled=false` pauses automatic ACP thread dispatch
     but does not hide or block explicit `sessions_spawn({ runtime: "acp" })`
     calls. It targets ACP harness ids such as `codex`, `claude`, `droid`,
-    `gemini`, or `opencode`. Do not pass a normal OpenClaw config agent id
+    `gemini`, or `opencode`. Do not pass a normal Vasudev config agent id
     from `agents_list` unless that entry is explicitly configured with
     `agents.entries.*.runtime.type="acp"`; otherwise use the default sub-agent
-    runtime. When an OpenClaw agent is configured with
-    `runtime.type="acp"`, OpenClaw uses `runtime.acp.agent` as the underlying
+    runtime. When a Vasudev agent is configured with
+    `runtime.type="acp"`, Vasudev uses `runtime.acp.agent` as the underlying
     harness id.
 
   </Accordion>

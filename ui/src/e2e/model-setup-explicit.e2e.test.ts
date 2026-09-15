@@ -315,7 +315,7 @@ suite.define(() => {
                       done: true,
                       status: "error",
                       error:
-                        "Run openclaw onboard on the Gateway host to configure this custom endpoint.",
+                        "Run vasudev onboard on the Gateway host to configure this custom endpoint.",
                       activationRejection: {
                         disposition: "rejected-before-promotion",
                         status: "unavailable",
@@ -344,7 +344,7 @@ suite.define(() => {
           if (outcome === "remote") {
             await dialog
               .getByText(
-                "Run openclaw onboard on the Gateway host to configure this custom endpoint.",
+                "Run vasudev onboard on the Gateway host to configure this custom endpoint.",
                 { exact: false },
               )
               .waitFor();

@@ -12,7 +12,7 @@ const ANTHROPIC_SUPPORTED_IMAGE_MIMES = [
   "image/gif",
   "image/webp",
 ] as const;
-// Match OpenClaw's decoded inbound-image hard cap before any copy or native decode.
+// Match Vasudev's decoded inbound-image hard cap before any copy or native decode.
 const ANTHROPIC_INLINE_IMAGE_DECODE_SAFETY_BYTES = 10 * 1024 * 1024;
 const ANTHROPIC_MIME_PREFIX_BASE64_CHARS = 4 * Math.ceil(FILE_TYPE_SNIFF_MAX_BYTES / 3);
 

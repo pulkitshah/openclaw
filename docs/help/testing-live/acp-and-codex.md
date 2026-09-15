@@ -72,7 +72,7 @@ Docker notes:
 - It stages the matching CLI auth material into the container, then installs the requested live CLI (`@anthropic-ai/claude-code`, `@openai/codex`, Factory Droid via `https://app.factory.ai/cli`, `@google/gemini-cli`, or `opencode-ai`) if missing. The ACP backend itself is the embedded `acpx/runtime` package from the official `acpx` plugin.
 - The Droid Docker variant stages `~/.factory` for settings, forwards `FACTORY_API_KEY`, and requires that API key because local Factory OAuth/keyring auth is not portable into the container. It uses ACPX's built-in `droid exec --output-format acp` registry entry.
 - The OpenCode Docker variant is a strict single-agent regression lane. It writes a temporary `OPENCODE_CONFIG_CONTENT` default model from `OPENCLAW_LIVE_ACP_BIND_OPENCODE_MODEL` (default `opencode/kimi-k2.6`).
-- Direct `acpx` CLI calls are only a manual/workaround path for comparing behavior outside the Gateway. The Docker ACP bind smoke exercises OpenClaw's embedded `acpx` runtime backend.
+- Direct `acpx` CLI calls are only a manual/workaround path for comparing behavior outside the Gateway. The Docker ACP bind smoke exercises Vasudev's embedded `acpx` runtime backend.
 
 ## Live: Codex app-server harness smoke
 
@@ -81,7 +81,7 @@ Docker notes:
   - load the bundled `codex` plugin
   - select an OpenAI model through `/model <ref> --runtime codex`
   - send a first gateway agent turn with the requested thinking level
-  - send a second turn to the same OpenClaw session and verify the app-server
+  - send a second turn to the same Vasudev session and verify the app-server
     thread can resume
   - run `/codex status` and `/codex models` through the same gateway command
     path
@@ -139,7 +139,7 @@ Docker notes:
 - Known Codex catalog models derive that exact native effort automatically.
   Unknown model overrides must state the expected mapped effort.
 - The smoke forces provider/model `agentRuntime.id: "codex"` so a broken Codex
-  harness cannot pass by silently falling back to OpenClaw.
+  harness cannot pass by silently falling back to Vasudev.
 - Auth: Codex app-server auth from the local Codex subscription login, or
   `OPENAI_API_KEY` when `OPENCLAW_LIVE_CODEX_HARNESS_AUTH=api-key`. Docker can
   copy `~/.codex/auth.json` and `~/.codex/config.toml` for subscription runs.

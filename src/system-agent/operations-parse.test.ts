@@ -1,4 +1,4 @@
-// OpenClaw operation parser tests protect direct command routing before model fallback.
+// Vasudev operation parser tests protect direct command routing before model fallback.
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   clearRuntimeConfigSnapshot,
@@ -327,7 +327,7 @@ describe("parseSystemAgentOperation", () => {
     expect(parseSystemAgentOperation("plugin install npm:@example/plugin")).toEqual({
       kind: "none",
       message:
-        "OpenClaw installs only ClawHub, bundled, or official-catalog plugins. Use `openclaw plugins install <spec>` in a trusted shell to review an arbitrary executable source.",
+        "Vasudev installs only ClawHub, bundled, or official-catalog plugins. Use `vasudev plugins install <spec>` in a trusted shell to review an arbitrary executable source.",
     });
   });
 

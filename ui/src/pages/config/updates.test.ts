@@ -652,7 +652,7 @@ describe("renderUpdates", () => {
         )!;
         await view.updateComplete;
         expect(view.querySelector(".update-run-view__report")?.textContent).toContain(
-          status === "succeeded" ? "OpenClaw updated to 2026.9.2" : `OpenClaw update ${status}`,
+          status === "succeeded" ? "Vasudev updated to 2026.9.2" : `Vasudev update ${status}`,
         );
         if (status !== "succeeded") {
           const recovery = row("Recovery");
@@ -660,7 +660,7 @@ describe("renderUpdates", () => {
           recovery.querySelectorAll<HTMLButtonElement>("button")[1]?.click();
           expect(onCheckStatus).toHaveBeenCalledOnce();
           expect(onUpdateNow).toHaveBeenCalledOnce();
-          expect(row("CLI fallback").querySelector("code")?.textContent).toBe("openclaw triage");
+          expect(row("CLI fallback").querySelector("code")?.textContent).toBe("vasudev triage");
         } else {
           expect(container.textContent).not.toContain("Retry update");
         }

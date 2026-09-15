@@ -145,7 +145,7 @@ function readTelegramLifecycleEvent(params: {
       kind: chatId.startsWith("-") ? "group" : "direct",
     },
     senderId: "openclaw",
-    senderName: "OpenClaw QA",
+    senderName: "Vasudev QA",
     text,
     timestamp: Date.now(),
     ...(threadId ? { threadId } : {}),
@@ -411,7 +411,7 @@ class QaCrablineTransport extends QaStateBackedTransportAdapter {
   };
 
   createReportNotes = (_params: QaTransportReportParams) => [
-    `Runs OpenClaw's ${this.#selection.channel} channel plugin against a Crabline local provider server.`,
+    `Runs Vasudev's ${this.#selection.channel} channel plugin against a Crabline local provider server.`,
     "No live channel service or external credential lease is required.",
   ];
 

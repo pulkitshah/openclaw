@@ -2,7 +2,7 @@
   "name": "@openclaw/canvas-plugin",
   "version": "2026.9.4",
   "private": true,
-  "description": "OpenClaw Canvas plugin",
+  "description": "Vasudev Canvas plugin",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

@@ -108,7 +108,7 @@ describe("web logout", () => {
     expect(fs.existsSync(path.join(credsDir, "session-abc.json"))).toBe(false);
   });
 
-  it("does not delete custom auth directories outside the OpenClaw auth root", async () => {
+  it("does not delete custom auth directories outside the Vasudev auth root", async () => {
     const authDir = await makeExternalCaseDir();
     await fsPromises.mkdir(path.join(authDir, "nested"));
     await fsPromises.writeFile(path.join(authDir, "creds.json"), "{}", "utf-8");
@@ -125,7 +125,7 @@ describe("web logout", () => {
     expect(fs.existsSync(path.join(authDir, "nested", "session-abc.json"))).toBe(true);
   });
 
-  it("does not delete through symlinked auth dirs inside the OpenClaw auth root", async () => {
+  it("does not delete through symlinked auth dirs inside the Vasudev auth root", async () => {
     const externalDir = await makeExternalCaseDir();
     const authDir = path.join(fixtureRoot, "oauth", "whatsapp", `case-${caseId++}`);
     await fsPromises.mkdir(path.dirname(authDir), { recursive: true });
@@ -140,7 +140,7 @@ describe("web logout", () => {
     expect(fs.existsSync(path.join(externalDir, "notes.txt"))).toBe(true);
   });
 
-  it("does not delete through intermediate symlinks inside the OpenClaw auth root", async () => {
+  it("does not delete through intermediate symlinks inside the Vasudev auth root", async () => {
     const externalRoot = path.join(fixtureRoot, "external", `case-${caseId++}`);
     const externalAuthDir = path.join(externalRoot, "default");
     const linkedParent = path.join(fixtureRoot, "oauth", "whatsapp", `linked-${caseId++}`);

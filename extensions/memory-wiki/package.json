@@ -2,7 +2,7 @@
   "name": "@openclaw/memory-wiki",
   "version": "2026.9.4",
   "private": true,
-  "description": "OpenClaw persistent wiki plugin",
+  "description": "Vasudev persistent wiki plugin",
   "type": "module",
   "dependencies": {
     "mdast-util-from-markdown": "2.0.3",

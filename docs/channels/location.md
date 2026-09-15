@@ -6,7 +6,7 @@ read_when:
 title: "Channel location parsing"
 ---
 
-OpenClaw normalizes shared locations from chat channels into:
+Vasudev normalizes shared locations from chat channels into:
 
 - terse coordinate text appended to the inbound body, and
 - structured fields in the auto-reply context payload. Channel-provided labels, addresses, and captions/comments are rendered into the prompt by the shared untrusted metadata JSON block, not inline in the user body.
@@ -59,7 +59,7 @@ When a location is present, these fields are added to `ctx`:
 - `LocationIsLive` (boolean)
 - `LocationCaption` (string; optional)
 
-When the channel does not set an explicit source, OpenClaw infers it: live shares become `live`, locations with a name or address become `place`, everything else is `pin`.
+When the channel does not set an explicit source, Vasudev infers it: live shares become `live`, locations with a name or address become `place`, everything else is `pin`.
 
 The prompt renderer treats `LocationName`, `LocationAddress`, and `LocationCaption` as untrusted metadata and serializes them through the same bounded JSON path used for other channel context.
 

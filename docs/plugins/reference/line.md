@@ -1,5 +1,5 @@
 ---
-summary: "OpenClaw LINE channel plugin for LINE Bot API chats."
+summary: "Vasudev LINE channel plugin for LINE Bot API chats."
 read_when:
   - You are installing, configuring, or auditing the line plugin
 title: "LINE plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-OpenClaw LINE channel plugin for LINE Bot API chats.
+Vasudev LINE channel plugin for LINE Bot API chats.
 
 ## Distribution
 

@@ -3,28 +3,28 @@ import { describe, expect, it } from "vitest";
 import { isOpenClawManagedMatrixDevice, summarizeMatrixDeviceHealth } from "./device-health.js";
 
 describe("matrix device health", () => {
-  it("detects OpenClaw-managed device names", () => {
-    expect(isOpenClawManagedMatrixDevice("OpenClaw Gateway")).toBe(true);
-    expect(isOpenClawManagedMatrixDevice("OpenClaw Debug")).toBe(true);
+  it("detects Vasudev-managed device names", () => {
+    expect(isOpenClawManagedMatrixDevice("Vasudev Gateway")).toBe(true);
+    expect(isOpenClawManagedMatrixDevice("Vasudev Debug")).toBe(true);
     expect(isOpenClawManagedMatrixDevice("Element iPhone")).toBe(false);
     expect(isOpenClawManagedMatrixDevice(null)).toBe(false);
   });
 
-  it("summarizes stale OpenClaw-managed devices separately from the current device", () => {
+  it("summarizes stale Vasudev-managed devices separately from the current device", () => {
     const summary = summarizeMatrixDeviceHealth([
       {
         deviceId: "du314Zpw3A",
-        displayName: "OpenClaw Gateway",
+        displayName: "Vasudev Gateway",
         current: true,
       },
       {
         deviceId: "BritdXC6iL",
-        displayName: "OpenClaw Gateway",
+        displayName: "Vasudev Gateway",
         current: false,
       },
       {
         deviceId: "G6NJU9cTgs",
-        displayName: "OpenClaw Debug",
+        displayName: "Vasudev Debug",
         current: false,
       },
       {
@@ -39,19 +39,19 @@ describe("matrix device health", () => {
       currentOpenClawDevices: [
         {
           deviceId: "du314Zpw3A",
-          displayName: "OpenClaw Gateway",
+          displayName: "Vasudev Gateway",
           current: true,
         },
       ],
       staleOpenClawDevices: [
         {
           deviceId: "BritdXC6iL",
-          displayName: "OpenClaw Gateway",
+          displayName: "Vasudev Gateway",
           current: false,
         },
         {
           deviceId: "G6NJU9cTgs",
-          displayName: "OpenClaw Debug",
+          displayName: "Vasudev Debug",
           current: false,
         },
       ],

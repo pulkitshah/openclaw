@@ -58,7 +58,7 @@ describe("Codex app-server attempt results", () => {
     {
       kind: "settlement" as const,
       message:
-        "Codex finished its turn, but OpenClaw could not finish processing the result. Some work may already have been performed; verify the current state before continuing.",
+        "Codex finished its turn, but Vasudev could not finish processing the result. Some work may already have been performed; verify the current state before continuing.",
     },
   ])("reports the $kind owner and prevents automatic replay", ({ kind, message }) => {
     expect(

@@ -97,7 +97,7 @@ Older external harnesses may ignore the policy; a final title filter cannot
 restore provenance that a harness already discarded, so this is not a universal
 reasoning-privacy guarantee. If the harness cannot enforce isolation, omit the capability.
 Callers that require isolated completion then fail closed before invoking that
-harness; OpenClaw does not replay the request through another runtime.
+harness; Vasudev does not replay the request through another runtime.
 Plugin callers request isolated execution through
 `api.runtime.llm.complete({ execution: { mode: "isolated-agent-runtime" } })`;
 the harness callback is the provider-side enforcement SPI, not a second caller
@@ -105,18 +105,18 @@ API.
 
 The legacy `runIsolatedCompletion(params)` host-auth-only capability is
 deprecated and remains available for external plugins through 2026-10-12.
-Implement V2 for harness-owned or native authentication; OpenClaw never invents
+Implement V2 for harness-owned or native authentication; Vasudev never invents
 a host credential when only the legacy capability is present.
 
-Native agent servers often have ambient built-in tools even when OpenClaw sends
+Native agent servers often have ambient built-in tools even when Vasudev sends
 an empty tool list. Disable and attest those native capabilities for the fresh
 turn, use a separate transport that can serialize a true zero-tool request, or
 leave the capability unsupported.
 
-Audit evidence follows the same boundary. OpenClaw can record registered plugin
+Audit evidence follows the same boundary. Vasudev can record registered plugin
 ownership and run admission, but it cannot claim an external native side effect
 from an ACP update or transcript. A side effect wholly inside that runtime is
-`unsupported` unless an adapter invokes an OpenClaw-owned callback before the
+`unsupported` unless an adapter invokes a Vasudev-owned callback before the
 action. Do not reconstruct the callback from native tool status events.
 
 ### Delegated execution
@@ -126,7 +126,7 @@ plugins that need to execute an existing model-locked session, such as a voice
 transport continuing a Codex-backed conversation. This is static owner consent,
 not a core allowlist. Keep it narrow.
 
-Delegates receive only work admission and embedded execution. OpenClaw requires
+Delegates receive only work admission and embedded execution. Vasudev requires
 the exact stored session key, store path, and session id; `modelSelectionLocked:
 true`; and matching `agentHarnessId` and `agentHarnessRuntimeOverride` values.
 The run is then scoped through the harness owner. Session creation, patching,

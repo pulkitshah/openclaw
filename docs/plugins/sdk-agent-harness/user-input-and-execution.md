@@ -14,12 +14,12 @@ How a harness asks a person a question, binds its tool surface to host capabilit
 
 Native harnesses that expose a runtime-level user-input request should use the
 user-input helpers from `openclaw/plugin-sdk/agent-harness-runtime` to format
-the prompt, deliver it through OpenClaw's blocking reply path, and normalize
+the prompt, deliver it through Vasudev's blocking reply path, and normalize
 choice/free-form answers back into the runtime's native response shape. The
 helper keeps channel/TUI presentation consistent while each harness keeps its
 own protocol parsing and pending-request lifecycle.
 
-OpenClaw's own blocking question tools — `ask_user`, and a `secrets` request —
+Vasudev's own blocking question tools — `ask_user`, and a `secrets` request —
 are a separate case. They register a Gateway question and then wait, and the
 prompt that lets a person answer it is published by whatever runs the tool. A
 harness whose tools go through the embedded tool lifecycle gets that publication
@@ -117,7 +117,7 @@ The same bag accepts `kind: "run"` for run-only assertions. These are local code
 contracts, not Gateway wire fields, operator settings, or new SDK exports.
 
 Each prepared attempt also receives a versioned `params.hostCapabilities`
-object. Use `bindToolSurface(...)` before exposing plugin-built OpenClaw tools,
+object. Use `bindToolSurface(...)` before exposing plugin-built Vasudev tools,
 and use its policy and approval operations for native actions. A native action
 whose working directory differs from the attempt may pass
 `nativeOperation: { cwd }` to `runBeforeToolCall(...)`; the host normalizes that
@@ -191,7 +191,7 @@ Finalization does not update declarations already registered in a native runtime
 Preserve native-owned catalog bytes and fingerprints; current executor guards
 still reject unavailable modes. New host-owned declarations use the harness's
 existing catalog-registration lifecycle.
-OpenClaw Code Mode's joined `agents.run()` path retains internal waiting; this
+Vasudev Code Mode's joined `agents.run()` path retains internal waiting; this
 helper does not make raw collector calls available without a native result reader.
 
 ## Exec reviewer outcomes

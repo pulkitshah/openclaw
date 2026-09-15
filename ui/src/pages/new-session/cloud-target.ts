@@ -64,13 +64,13 @@ function formatUnavailableReason(
 ) {
   if (remediation === "enable-session-hosting") {
     return html`<div>${t("newSession.sessionHostingAction")}</div>
-      <code class="new-session-page__command">openclaw connect --service --session-host</code>`;
+      <code class="new-session-page__command">vasudev connect --service --session-host</code>`;
   }
   if (remediation === "update-device") {
     return html`<div>${t("newSession.updateAction")}</div>
-      <code class="new-session-page__command">openclaw update</code>
+      <code class="new-session-page__command">vasudev update</code>
       <div>${t("newSession.reconnectAction")}</div>
-      <code class="new-session-page__command">openclaw node restart</code>`;
+      <code class="new-session-page__command">vasudev node restart</code>`;
   }
   return reason;
 }

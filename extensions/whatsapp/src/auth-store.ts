@@ -493,7 +493,7 @@ export async function pickWebChannel(
   }
   if (!auth.exists) {
     throw new Error(
-      `No WhatsApp Web session found. Run \`${formatCliCommand("openclaw channels login --channel whatsapp --verbose")}\` to link.`,
+      `No WhatsApp Web session found. Run \`${formatCliCommand("vasudev channels login --channel whatsapp --verbose")}\` to link.`,
     );
   }
   return choice;

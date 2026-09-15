@@ -296,7 +296,7 @@ describe("buildToolSearchRunPlan", () => {
     expect(plan.hasCallableTools).toBe(true);
   });
 
-  it("keeps client names out of OpenClaw capability guidance", () => {
+  it("keeps client names out of Vasudev capability guidance", () => {
     const plan = buildToolSearchRunPlan({
       visibleTools: [{ name: "fake_plugin_tool" }] as never,
       uncompactedTools: [{ name: "fake_plugin_tool" }] as never,
@@ -319,7 +319,7 @@ describe("buildToolSearchRunPlan", () => {
     expect([...plan.capabilityToolNames]).toEqual(["fake_plugin_tool"]);
   });
 
-  it("keeps MCP names out of OpenClaw capability guidance", () => {
+  it("keeps MCP names out of Vasudev capability guidance", () => {
     const mcpTool = { name: "sessions_spawn" };
     setPluginToolMeta(mcpTool as never, {
       pluginId: "bundle-mcp",

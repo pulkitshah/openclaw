@@ -183,7 +183,7 @@ function assertStartupMigrationLeaseOwnedInTransaction(params: {
   );
   if (!activeLease) {
     throw new Error(
-      "OpenClaw startup migration lease was lost before startup migrations completed; retry so migrations can run under a fresh lease.",
+      "Vasudev startup migration lease was lost before startup migrations completed; retry so migrations can run under a fresh lease.",
     );
   }
 }
@@ -365,7 +365,7 @@ export function acquireStartupMigrationLease(
     } else if (existing) {
       const ownerHint = existingOwner ? ` (held by pid ${existingOwner.pid})` : "";
       throw new StartupMigrationLeaseConflictError(
-        `OpenClaw startup migrations are already running for this state directory; retry after the other OpenClaw process finishes or after ${new Date(existing.expiresAt ?? expiresAt).toISOString()}.${ownerHint}`,
+        `Vasudev startup migrations are already running for this state directory; retry after the other Vasudev process finishes or after ${new Date(existing.expiresAt ?? expiresAt).toISOString()}.${ownerHint}`,
         existingOwner?.host === hostname(),
       );
     }
@@ -414,7 +414,7 @@ export function acquireStartupMigrationLease(
         );
         if (result.numAffectedRows !== 1n) {
           throw new Error(
-            "OpenClaw startup migration lease was lost before startup migrations completed; retry so migrations can run under a fresh lease.",
+            "Vasudev startup migration lease was lost before startup migrations completed; retry so migrations can run under a fresh lease.",
           );
         }
       });

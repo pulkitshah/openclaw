@@ -7,7 +7,7 @@ read_when:
 title: "Network"
 ---
 
-This hub links the core docs for how OpenClaw connects, pairs, and secures
+This hub links the core docs for how Vasudev connects, pairs, and secures
 devices across localhost, LAN, and tailnet.
 
 ## Core model
@@ -40,7 +40,7 @@ Local trust:
 
 - Direct local loopback connects (no forwarded/proxy headers) can be
   auto-approved for pairing to keep same-host UX smooth.
-- OpenClaw also has a narrow backend/container-local self-connect path for
+- Vasudev also has a narrow backend/container-local self-connect path for
   trusted shared-secret helper flows.
 - Tailnet and LAN clients, including same-host tailnet binds, still require
   explicit pairing approval.

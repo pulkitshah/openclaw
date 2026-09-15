@@ -7,7 +7,7 @@ export { parseRetryAfterHeadersSeconds as parseRetryAfterSeconds } from "../inte
 export { parsePositiveInteger } from "./positive-integer.js";
 
 export const MALFORMED_STREAMING_FRAGMENT_ERROR_MESSAGE =
-  "OpenClaw transport error: malformed_streaming_fragment";
+  "Vasudev transport error: malformed_streaming_fragment";
 export const CHARS_PER_TOKEN_ESTIMATE = 4;
 const NON_LATIN_RE =
   /[\u2E80-\u9FFF\uA000-\uA4FF\uAC00-\uD7AF\uF900-\uFAFF\uFF01-\uFF60\uFFE0-\uFFE6\u{20000}-\u{2FA1F}]/gu;

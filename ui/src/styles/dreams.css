@@ -174,7 +174,7 @@
   left: calc(50% - 200px);
   padding: 16px 20px;
   background: var(--accent-subtle);
-  border: 1px solid rgba(255, 92, 92, 0.12);
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
   border-radius: 20px;
   display: flex;
   flex-direction: column;
@@ -210,7 +210,7 @@
   position: absolute;
   border-radius: 50%;
   background: var(--accent-subtle);
-  border: 1px solid rgba(255, 92, 92, 0.1);
+  border: 1px solid color-mix(in srgb, var(--accent) 10%, transparent);
   animation: dreams-bubble-float 6s ease-in-out infinite;
 }
 
@@ -376,7 +376,7 @@
 
 .dreams__controls-error {
   font-size: 12px;
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 /* ---- Status line ---- */
@@ -1079,7 +1079,7 @@
 
 .dreams-diary__error {
   font-size: 12px;
-  color: var(--danger);
+  color: var(--danger-text);
   text-align: center;
   padding: 20px 0;
   z-index: 1;

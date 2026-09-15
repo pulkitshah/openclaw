@@ -2,7 +2,7 @@
   "id": "baseten",
   "categories": ["models"],
   "name": "Baseten",
-  "description": "OpenClaw Baseten provider plugin.",
+  "description": "Vasudev Baseten provider plugin.",
   "activation": {
     "onStartup": false
   },

@@ -1,19 +1,19 @@
 ---
-summary: "Install and use Agent Plugins, Codex, Claude, and Cursor bundles as OpenClaw plugins"
+summary: "Install and use Agent Plugins, Codex, Claude, and Cursor bundles as Vasudev plugins"
 read_when:
   - You want to install an Agent Plugins, Codex, Claude, or Cursor-compatible bundle
-  - You need to understand how OpenClaw maps bundle content into native features
+  - You need to understand how Vasudev maps bundle content into native features
   - You are debugging bundle detection or missing capabilities
 title: "Plugin bundles"
 ---
 
-OpenClaw can install plugins from four external ecosystems: the vendor-neutral
+Vasudev can install plugins from four external ecosystems: the vendor-neutral
 [**Agent Plugins**](https://agent-plugins.org) standard, plus **Codex**,
 **Claude**, and **Cursor**. These are called **bundles** - content and metadata
-packs that OpenClaw maps into native features like skills, hooks, and MCP tools.
+packs that Vasudev maps into native features like skills, hooks, and MCP tools.
 
 <Info>
-  Bundles are **not** the same as native OpenClaw plugins. Native plugins run
+  Bundles are **not** the same as native Vasudev plugins. Native plugins run
   in-process and can register any capability. Bundles are content packs with
   selective feature mapping and a narrower trust boundary.
 </Info>
@@ -21,8 +21,8 @@ packs that OpenClaw maps into native features like skills, hooks, and MCP tools.
 ## Why bundles exist
 
 Many useful plugins are published in the Agent Plugins, Codex, Claude, or
-Cursor format. Instead of requiring authors to rewrite them as native OpenClaw
-plugins, OpenClaw detects these formats and maps their supported content into
+Cursor format. Instead of requiring authors to rewrite them as native Vasudev
+plugins, Vasudev detects these formats and maps their supported content into
 the native feature set. You can install an Agent Plugins package, a Claude
 command pack, or a Codex skill bundle and use it immediately.
 
@@ -67,33 +67,33 @@ command pack, or a Codex skill bundle and use it immediately.
   </Step>
 </Steps>
 
-## What OpenClaw maps from bundles
+## What Vasudev maps from bundles
 
-Not every bundle feature runs in OpenClaw. Here is what works and what is
+Not every bundle feature runs in Vasudev. Here is what works and what is
 detected but not wired.
 
 ### Supported now
 
-| Feature                  | How it maps                                                                                       | Applies to     |
-| ------------------------ | ------------------------------------------------------------------------------------------------- | -------------- |
-| Skill content            | Bundle skill roots load as normal OpenClaw skills                                                 | All formats    |
-| Commands                 | `commands/` and `.cursor/commands/` treated as skill roots                                        | Claude, Cursor |
-| Agents and output styles | Claude `agents/` and `output-styles/` treated as skill roots                                      | Claude         |
-| Hook packs               | OpenClaw-style `HOOK.md` + `handler.ts` layouts                                                   | Claude, Codex  |
-| MCP tools                | Bundle MCP config merged into embedded OpenClaw settings; supported stdio and HTTP servers loaded | All formats    |
-| Env contract             | `PLUGIN_ROOT` and `PLUGIN_DATA` env vars plus placeholder expansion for stdio MCP servers         | Agent Plugins  |
-| LSP servers              | Claude `.lsp.json` and manifest-declared `lspServers` merged into embedded OpenClaw LSP defaults  | Claude         |
-| Settings                 | Claude `settings.json` imported as embedded OpenClaw defaults                                     | Claude         |
+| Feature                  | How it maps                                                                                      | Applies to     |
+| ------------------------ | ------------------------------------------------------------------------------------------------ | -------------- |
+| Skill content            | Bundle skill roots load as normal Vasudev skills                                                 | All formats    |
+| Commands                 | `commands/` and `.cursor/commands/` treated as skill roots                                       | Claude, Cursor |
+| Agents and output styles | Claude `agents/` and `output-styles/` treated as skill roots                                     | Claude         |
+| Hook packs               | Vasudev-style `HOOK.md` + `handler.ts` layouts                                                   | Claude, Codex  |
+| MCP tools                | Bundle MCP config merged into embedded Vasudev settings; supported stdio and HTTP servers loaded | All formats    |
+| Env contract             | `PLUGIN_ROOT` and `PLUGIN_DATA` env vars plus placeholder expansion for stdio MCP servers        | Agent Plugins  |
+| LSP servers              | Claude `.lsp.json` and manifest-declared `lspServers` merged into embedded Vasudev LSP defaults  | Claude         |
+| Settings                 | Claude `settings.json` imported as embedded Vasudev defaults                                     | Claude         |
 
 #### Skill content
 
-- Bundle skill roots load as normal OpenClaw skill roots.
+- Bundle skill roots load as normal Vasudev skill roots.
 - Claude `commands/`, `agents/`, and `output-styles/` roots are treated as
   additional skill roots.
 - Cursor `.cursor/commands/` roots are treated as additional skill roots.
 
 Claude markdown command files and Cursor command markdown both work through the
-normal OpenClaw skill loader.
+normal Vasudev skill loader.
 
 #### Hook packs
 
@@ -104,41 +104,41 @@ not load it.
 
 Plugin inspection lists these hook packs separately from detected JSON automation.
 Claude `hooks/hooks.json` remains in the declared capabilities, but does not appear
-as a supported hook. A bundle containing both layouts keeps its OpenClaw hook packs.
+as a supported hook. A bundle containing both layouts keeps its Vasudev hook packs.
 Inspection does not execute handlers or prove that the running Gateway loaded them.
 
-#### Embedded OpenClaw settings
+#### Embedded Vasudev settings
 
-Claude `settings.json` is imported as default embedded OpenClaw settings when
-the bundle is enabled. OpenClaw sanitizes shell override keys before applying
+Claude `settings.json` is imported as default embedded Vasudev settings when
+the bundle is enabled. Vasudev sanitizes shell override keys before applying
 them:
 
 - `shellPath`
 - `shellCommandPrefix`
 
-#### Embedded OpenClaw LSP
+#### Embedded Vasudev LSP
 
 - Enabled Claude bundles can contribute LSP server config.
-- OpenClaw loads `.lsp.json` plus any manifest-declared `lspServers` paths.
-- Bundle LSP config is merged into the effective embedded OpenClaw LSP
+- Vasudev loads `.lsp.json` plus any manifest-declared `lspServers` paths.
+- Bundle LSP config is merged into the effective embedded Vasudev LSP
   defaults.
 - Only supported stdio-backed LSP servers are runnable; unsupported
   transports still show up in `openclaw plugins inspect <id>`.
 
 ### Detected but not executed
 
-These are recognized and shown in diagnostics, but OpenClaw does not run them:
+These are recognized and shown in diagnostics, but Vasudev does not run them:
 
 - Claude `hooks/hooks.json` automation
 - Cursor `.cursor/agents`, `.cursor/hooks.json`, `.cursor/rules`
 - Codex `.app.json` metadata beyond capability reporting
 
-## MCP for embedded OpenClaw
+## MCP for embedded Vasudev
 
 - Enabled bundles can contribute MCP server config.
-- OpenClaw merges bundle MCP config into the effective embedded OpenClaw
+- Vasudev merges bundle MCP config into the effective embedded Vasudev
   settings as `mcpServers`.
-- OpenClaw exposes supported bundle MCP tools during embedded OpenClaw agent
+- Vasudev exposes supported bundle MCP tools during embedded Vasudev agent
   turns by launching stdio servers or connecting to HTTP servers.
 - The `coding` and `messaging` tool profiles include bundle MCP tools by
   default; use `tools.deny: ["bundle-mcp"]` to opt out for an agent or gateway.
@@ -188,7 +188,7 @@ MCP servers can use stdio or HTTP transport.
 ```
 
 - `transport` accepts `"streamable-http"` or `"sse"`; omitted defaults to `sse`.
-- `type: "http"` is a CLI-native downstream shape; use `transport: "streamable-http"` in OpenClaw config. `openclaw mcp set` and `openclaw doctor --fix` normalize the common alias.
+- `type: "http"` is a CLI-native downstream shape; use `transport: "streamable-http"` in Vasudev config. `openclaw mcp set` and `openclaw doctor --fix` normalize the common alias.
 - Only `http:` and `https:` URL schemes are allowed.
 - `headers` values support `${ENV_VAR}` interpolation.
 - A server entry with both `command` and `url` is rejected.
@@ -200,7 +200,7 @@ MCP servers can use stdio or HTTP transport.
 
 ### Tool naming
 
-OpenClaw registers bundle MCP tools with provider-safe names in the form
+Vasudev registers bundle MCP tools with provider-safe names in the form
 `serverName__toolName`. For example, a server keyed `"vigil-harbor"` exposing a
 `memory_search` tool registers as `vigil-harbor__memory_search`.
 
@@ -228,7 +228,7 @@ OpenClaw registers bundle MCP tools with provider-safe names in the form
 
     Format behavior:
 
-    - The manifest is strict JSON (not JSON5). OpenClaw requires a non-empty
+    - The manifest is strict JSON (not JSON5). Vasudev requires a non-empty
       `name`; other manifest fields are optional and unknown fields are ignored
     - Immediate child directories of `skills/` that contain a `SKILL.md` load as
       skills; children without one are skipped with a warning, and deeper
@@ -237,7 +237,7 @@ OpenClaw registers bundle MCP tools with provider-safe names in the form
       only; `stdio`, `streamable-http`, and legacy `sse` transports are
       supported
     - stdio servers launch with `PLUGIN_ROOT` (the plugin root) and
-      `PLUGIN_DATA` (a persistent per-plugin data directory OpenClaw creates
+      `PLUGIN_DATA` (a persistent per-plugin data directory Vasudev creates
       under its state dir) in their environment; `${PLUGIN_ROOT}` and
       `${PLUGIN_DATA}` placeholders expand in `args`, `env` values, and `cwd`
       in a single pass
@@ -247,7 +247,7 @@ OpenClaw registers bundle MCP tools with provider-safe names in the form
       skills keep loading; invalid individual server entries are skipped
     - `.mcp.json` (dot-prefixed) and inline manifest `mcpServers` are **not**
       read for this format; the standard's closed schema wins
-    - OpenClaw reads `extensions["ai.openclaw"]`; it supports only
+    - Vasudev reads `extensions["ai.openclaw"]`; it supports only
       `activation` with the same semantics as other bundle manifests
     - Other manifest extension namespaces are ignored and reserved for their
       clients
@@ -260,7 +260,7 @@ OpenClaw registers bundle MCP tools with provider-safe names in the form
 
     Optional content: `skills/`, `hooks/`, `.mcp.json`, `.app.json`
 
-    Codex bundles fit OpenClaw best when they use skill roots and OpenClaw-style
+    Codex bundles fit Vasudev best when they use skill roots and Vasudev-style
     hook-pack directories (`HOOK.md` + `handler.ts`).
 
   </Accordion>
@@ -280,9 +280,9 @@ OpenClaw registers bundle MCP tools with provider-safe names in the form
     Claude-specific behavior:
 
     - `commands/`, `agents/`, and `output-styles/` are treated as skill content
-    - `settings.json` is imported into embedded OpenClaw settings (shell override keys are sanitized)
-    - `.mcp.json` exposes supported stdio tools to embedded OpenClaw
-    - `.lsp.json` plus manifest-declared `lspServers` paths load into embedded OpenClaw LSP defaults
+    - `settings.json` is imported into embedded Vasudev settings (shell override keys are sanitized)
+    - `.mcp.json` exposes supported stdio tools to embedded Vasudev
+    - `.lsp.json` plus manifest-declared `lspServers` paths load into embedded Vasudev LSP defaults
     - `hooks/hooks.json` is detected but not executed
     - Custom component paths in the manifest are additive; they extend defaults, not replace them
 
@@ -301,7 +301,7 @@ OpenClaw registers bundle MCP tools with provider-safe names in the form
 
 ## Detection precedence
 
-OpenClaw checks for native plugin format first:
+Vasudev checks for native plugin format first:
 
 1. `openclaw.plugin.json` or a valid `package.json` with `openclaw.extensions` - treated as a **native plugin**
 2. Client-specific bundle markers (`.codex-plugin/`, `.cursor-plugin/`, `.claude-plugin/`) - treated as a **bundle** in that format
@@ -311,7 +311,7 @@ OpenClaw checks for native plugin format first:
 If a package carries both a client-specific marker and a root `plugin.json`,
 the client-specific format wins so its richer mappings (commands, hooks,
 settings) are preserved. If a directory contains both a native manifest and
-bundle markers, OpenClaw uses the native path. This prevents dual-format
+bundle markers, Vasudev uses the native path. This prevents dual-format
 packages from being partially installed as bundles.
 
 ## Runtime dependencies and cleanup
@@ -319,7 +319,7 @@ packages from being partially installed as bundles.
 - Third-party compatible bundles do not get startup `npm install` repair. They
   should be installed through `openclaw plugins install` and ship everything
   they need in the installed plugin directory.
-- OpenClaw-owned bundled plugins are either shipped lightweight in core or
+- Vasudev-owned bundled plugins are either shipped lightweight in core or
   downloadable through the plugin installer. Gateway startup never runs a
   package manager for them.
 - `openclaw doctor --fix` removes stale local bundled-plugin install records
@@ -330,7 +330,7 @@ packages from being partially installed as bundles.
 
 Bundles have a narrower trust boundary than native plugins:
 
-- OpenClaw does **not** load arbitrary bundle runtime modules in-process.
+- Vasudev does **not** load arbitrary bundle runtime modules in-process.
 - Skills and hook-pack paths must stay inside the plugin root (boundary-checked).
 - Settings files are read with the same boundary checks.
 - Supported stdio MCP servers may be launched as subprocesses.
@@ -353,13 +353,13 @@ bundles as trusted content for the features they do expose.
   </Accordion>
 
   <Accordion title="Claude settings do not apply">
-    Only embedded OpenClaw settings from `settings.json` are supported. OpenClaw does
+    Only embedded Vasudev settings from `settings.json` are supported. Vasudev does
     not treat bundle settings as raw config patches.
   </Accordion>
 
   <Accordion title="Claude hooks do not execute">
     `hooks/hooks.json` is detect-only. If you need runnable hooks, use the
-    OpenClaw hook-pack layout or ship a native plugin.
+    Vasudev hook-pack layout or ship a native plugin.
   </Accordion>
 </AccordionGroup>
 

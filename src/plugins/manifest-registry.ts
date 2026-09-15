@@ -848,7 +848,7 @@ export function loadPluginManifestRegistryCore(
         level: "error",
         pluginId: candidate.idHint,
         source: candidate.source,
-        message: `plugin manifest id "${candidate.idHint}" is reserved by OpenClaw core`,
+        message: `plugin manifest id "${candidate.idHint}" is reserved by Vasudev core`,
       });
       continue;
     }
@@ -920,8 +920,8 @@ export function loadPluginManifestRegistryCore(
             minHostVersionCheck.kind === "invalid"
               ? `plugin manifest invalid | ${minHostVersionCheck.error}`
               : minHostVersionCheck.kind === "unknown_host_version"
-                ? `plugin requires OpenClaw >=${minHostVersionCheck.requirement.minimumLabel}, but this host version could not be determined; skipping load`
-                : `plugin requires OpenClaw >=${minHostVersionCheck.requirement.minimumLabel}, but this host is ${minHostVersionCheck.currentVersion}; skipping load`,
+                ? `plugin requires Vasudev >=${minHostVersionCheck.requirement.minimumLabel}, but this host version could not be determined; skipping load`
+                : `plugin requires Vasudev >=${minHostVersionCheck.requirement.minimumLabel}, but this host is ${minHostVersionCheck.currentVersion}; skipping load`,
         });
         continue;
       }
@@ -944,7 +944,7 @@ export function loadPluginManifestRegistryCore(
           level: "warn",
           pluginId: effectivePluginId,
           source: packageManifestSource,
-          message: `plugin requires plugin API ${packagePluginApiRange}, but this host is ${currentHostVersion}; skipping load (check "openclaw --version", OPENCLAW_COMPATIBILITY_HOST_VERSION, or run "openclaw doctor")`,
+          message: `plugin requires plugin API ${packagePluginApiRange}, but this host is ${currentHostVersion}; skipping load (check "openclaw --version", OPENCLAW_COMPATIBILITY_HOST_VERSION, or run "vasudev doctor")`,
         });
         continue;
       }

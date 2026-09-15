@@ -415,7 +415,7 @@ async function migrateLegacyMemorySidecarSource(params: {
     await import("openclaw/plugin-sdk/memory-core-host-engine-schema");
   const { ensureOpenClawAgentDatabaseSchema, openNodeSqliteDatabase } =
     await import("openclaw/plugin-sdk/sqlite-runtime");
-  // OpenClaw itself can leave a zero-byte placeholder at the legacy sidecar
+  // Vasudev itself can leave a zero-byte placeholder at the legacy sidecar
   // path while the live index is the per-agent SQLite database. An empty file
   // holds no legacy rows, so remove it quietly instead of emitting a permanent
   // self-inflicted "not a legacy memory index" warning.
@@ -677,7 +677,7 @@ export const qmdWorkspaceStateMigration: PluginDoctorStateMigration = {
         changes.push(`Removed retired Memory Core QMD workspace: ${home}`);
       } catch (err) {
         warnings.push(
-          `Skipped retired Memory Core QMD workspace cleanup. Run openclaw doctor --fix to retry. ${home}: ${String(err)}`,
+          `Skipped retired Memory Core QMD workspace cleanup. Run vasudev doctor --fix to retry. ${home}: ${String(err)}`,
         );
       }
     }

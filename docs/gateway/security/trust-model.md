@@ -1,9 +1,9 @@
 ---
-summary: "The trust boundary OpenClaw supports, the controls it does and does not provide, and how to report a vulnerability"
+summary: "The trust boundary Vasudev supports, the controls it does and does not provide, and how to report a vulnerability"
 read_when:
   - Deciding whether one Gateway can serve a set of users
   - Triaging a security report against the documented trust boundary
-  - Reporting a suspected vulnerability in OpenClaw
+  - Reporting a suspected vulnerability in Vasudev
 title: "Security trust model"
 sidebarTitle: "Trust model"
 ---
@@ -73,7 +73,7 @@ For hostile-user isolation, split trust boundaries by OS user/host and run separ
 
 Your AI assistant can execute arbitrary shell commands, read/write files, access network services, and send messages to anyone (if given channel access). People who message it can try to trick it into doing bad things, social-engineer access to your data, or probe for infrastructure details.
 
-Most failures here are not exotic exploits - they are "someone messaged the bot and the bot did what they asked." OpenClaw's stance, in order:
+Most failures here are not exotic exploits - they are "someone messaged the bot and the bot did what they asked." Vasudev's stance, in order:
 
 1. **Identity first** - decide who can talk to the bot (DM pairing / allowlists / explicit "open").
 2. **Scope next** - decide where the bot can act (group allowlists + mention gating, tools, sandboxing, device permissions).
@@ -81,7 +81,7 @@ Most failures here are not exotic exploits - they are "someone messaged the bot 
 
 ## Reporting security issues
 
-Found a vulnerability in OpenClaw? Report responsibly:
+Found a vulnerability in Vasudev? Report responsibly:
 
 1. Email: [security@openclaw.ai](mailto:security@openclaw.ai)
 2. Do not post publicly until fixed.

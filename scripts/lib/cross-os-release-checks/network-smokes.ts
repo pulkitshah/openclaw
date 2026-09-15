@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import { truncateUtf16Safe } from "../../../packages/normalization-core/src/utf16-slice.ts";
+import { PRODUCT_NAME } from "../../../src/brand.ts";
 import type { GatewayHandle, LaneState } from "./config.ts";
 import {
   CROSS_OS_DASHBOARD_FETCH_TIMEOUT_MS,
@@ -243,7 +244,7 @@ export function dashboardHtmlMarkerStatus(html: string): {
   ready: boolean;
   title: boolean;
 } {
-  const title = html.includes("<title>OpenClaw Control</title>");
+  const title = html.includes(`<title>${PRODUCT_NAME} Control</title>`);
   const app = html.includes("<openclaw-app></openclaw-app>");
   return { app, ready: title && app, title };
 }

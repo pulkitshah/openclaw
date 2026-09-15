@@ -122,7 +122,7 @@ async function runGatewayHealthCheck(params: {
             ? ["Continuing with the other configured remote credential."]
             : [
                 "Health check skipped to avoid falling back to ambient credentials.",
-                `Fix the SecretRef, then run \`${formatCliCommand("openclaw health")}\` again.`,
+                `Fix the SecretRef, then run \`${formatCliCommand("vasudev health")}\` again.`,
               ]),
         ].join("\n"),
         "Gateway auth",
@@ -147,7 +147,7 @@ async function runGatewayHealthCheck(params: {
           "Could not resolve local gateway SecretRef for health check.",
           localProbeAuth.warning,
           "Health check skipped to avoid falling back to ambient credentials.",
-          `Fix the SecretRef, then run \`${formatCliCommand("openclaw health")}\` again.`,
+          `Fix the SecretRef, then run \`${formatCliCommand("vasudev health")}\` again.`,
         ].join("\n"),
         "Gateway auth",
       );
@@ -295,7 +295,7 @@ async function promptWebToolsConfig(
         [
           "Codex-capable models can use native Codex web search instead of a separate provider.",
           "Other models need a separate web search provider.",
-          "If you do not choose one, OpenClaw can select a provider from available credentials; otherwise other models may not have web search.",
+          "If you do not choose one, Vasudev can select a provider from available credentials; otherwise other models may not have web search.",
           ...(describeCodexNativeWebSearch(nextConfig)
             ? [describeCodexNativeWebSearch(nextConfig)!]
             : []),
@@ -441,7 +441,7 @@ export async function runConfigureWizard(
   runtime: RuntimeEnv = defaultRuntime,
 ) {
   try {
-    intro(opts.command === "update" ? "OpenClaw update wizard" : "OpenClaw configure");
+    intro(opts.command === "update" ? "Vasudev update wizard" : "Vasudev configure");
     const prompter = createClackPrompter();
 
     const prepared = await readConfigFileSnapshotForWrite();
@@ -475,7 +475,7 @@ export async function runConfigureWizard(
       }
       if (!snapshot.valid) {
         outro(
-          `Config invalid. Run \`${formatCliCommand("openclaw doctor")}\` to repair it, then re-run configure.`,
+          `Config invalid. Run \`${formatCliCommand("vasudev doctor")}\` to repair it, then re-run configure.`,
         );
         runtime.exit(1);
         return;

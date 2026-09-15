@@ -57,7 +57,7 @@ directive warnings.
 
 ## Slash commands
 
-Single command `/tts`. On Discord, OpenClaw also registers `/voice` because
+Single command `/tts`. On Discord, Vasudev also registers `/voice` because
 `/tts` is a built-in Discord command — text `/tts ...` still works.
 
 ```text

@@ -468,7 +468,7 @@ describe("worker npm installation artifact", () => {
 
   it("rejects dev and packages that fail release verification", async () => {
     const verifyRelease = vi.fn(async (): Promise<string> => {
-      throw new Error("OpenClaw 1.2.3 is not published; use the worker bundle install");
+      throw new Error("Vasudev 1.2.3 is not published; use the worker bundle install");
     });
     await expect(
       resolveWorkerNpmInstallationArtifact({

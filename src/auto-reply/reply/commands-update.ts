@@ -49,7 +49,7 @@ export const handleUpdateCommand: CommandHandler = defineGatewayControlCommand(
         throw new Error(
           summary.message ??
             summary.reason ??
-            "Update run unavailable; run openclaw update status to inspect the outcome.",
+            "Update run unavailable; run vasudev update status to inspect the outcome.",
         );
       }
       const command = summary.handoff?.command;

@@ -2,7 +2,7 @@
 summary: "Google Gemini setup (AI Studio API key, Vertex AI, optional CLI runtime, and multimodal tools)"
 title: "Google (Gemini)"
 read_when:
-  - You want to use Google Gemini models with OpenClaw
+  - You want to use Google Gemini models with Vasudev
   - You need Google AI Studio, Vertex AI, or Gemini CLI runtime guidance
 ---
 
@@ -63,10 +63,10 @@ the Gateway already runs inside a managed Google Cloud environment.
     `GEMINI_API_KEY` and `GOOGLE_API_KEY` are both accepted. Use whichever you already have configured.
     </Tip>
 
-    With a configured API key, OpenClaw refreshes Google AI Studio's text-model
+    With a configured API key, Vasudev refreshes Google AI Studio's text-model
     catalog from the Gemini `models.list` API. Newly released Gemini 3 Pro, Flash,
     and Flash-Lite variants therefore appear in
-    `openclaw models list --provider google` without waiting for an OpenClaw
+    `openclaw models list --provider google` without waiting for a Vasudev
     release. Failed refreshes report the failure and retain the last successful
     inventory, or bundled models before the first success. A successful empty
     response clears discovered models. Vertex uses its separate static catalog.
@@ -78,7 +78,7 @@ the Gateway already runs inside a managed Google Cloud environment.
     Gemini CLI while keeping authentication on the supported AI Studio API-key
     path.
 
-    OpenClaw does not offer new Gemini CLI OAuth or Antigravity OAuth setup.
+    Vasudev does not offer new Gemini CLI OAuth or Antigravity OAuth setup.
     [Google ended consumer Gemini CLI Login with Google access on June 18, 2026](https://developers.google.com/gemini-code-assist/docs/deprecations/code-assist-individuals),
     and the [Antigravity terms](https://antigravity.google/terms) prohibit
     third-party tools from accessing the service through Antigravity OAuth. Use
@@ -86,7 +86,7 @@ the Gateway already runs inside a managed Google Cloud environment.
 
     <Steps>
       <Step title="Configure Google AI Studio">
-        Complete the API-key setup in the first tab. OpenClaw must have a usable
+        Complete the API-key setup in the first tab. Vasudev must have a usable
         `google` API-key profile before the CLI runtime can be selected.
       </Step>
       <Step title="Install Gemini CLI">
@@ -100,7 +100,7 @@ the Gateway already runs inside a managed Google Cloud environment.
         npm install -g @google/gemini-cli
         ```
 
-        OpenClaw supports both Homebrew installs and global npm installs, including
+        Vasudev supports both Homebrew installs and global npm installs, including
         common Windows/npm layouts.
       </Step>
       <Step title="Select the CLI runtime">
@@ -134,7 +134,7 @@ the Gateway already runs inside a managed Google Cloud environment.
     registered backend.
 
     Existing valid Gemini CLI OAuth profiles remain executable for compatibility,
-    but OpenClaw cannot create or repair them. If one breaks, replace it with a
+    but Vasudev cannot create or repair them. If one breaks, replace it with a
     Google AI Studio API-key profile.
 
     `google-gemini-cli/*` refs remain legacy compatibility aliases. New configs
@@ -194,23 +194,23 @@ Gemini web search reuses `models.providers.google.baseUrl`. See
 [Gemini search](/tools/gemini-search) for the provider-specific tool behavior.
 
 <Tip>
-Gemini 3 models use `thinkingLevel` rather than `thinkingBudget`. OpenClaw maps
+Gemini 3 models use `thinkingLevel` rather than `thinkingBudget`. Vasudev maps
 Gemini 3, Gemini 3.1, and `gemini-*-latest` alias reasoning controls to
 `thinkingLevel` so default/low-latency runs do not send disabled
 `thinkingBudget` values.
 
 `/think adaptive` keeps Google's dynamic thinking semantics instead of choosing
-a fixed OpenClaw level. Gemini 3 and Gemini 3.1 omit a fixed `thinkingLevel` so
+a fixed Vasudev level. Gemini 3 and Gemini 3.1 omit a fixed `thinkingLevel` so
 Google can choose the level; Gemini 2.5 sends Google's dynamic sentinel
 `thinkingBudget: -1`.
 
-Gemma 4 models (for example `gemma-4-26b-a4b-it`) support thinking mode. OpenClaw
+Gemma 4 models (for example `gemma-4-26b-a4b-it`) support thinking mode. Vasudev
 rewrites `thinkingBudget` to a supported Google `thinkingLevel` for Gemma 4.
 Setting thinking to `off` preserves thinking disabled instead of mapping to
 `MINIMAL`.
 
 Gemini 2.5 Pro only works in thinking mode and rejects an explicit
-`thinkingBudget: 0`; OpenClaw strips that value for Gemini 2.5 Pro requests
+`thinkingBudget: 0`; Vasudev strips that value for Gemini 2.5 Pro requests
 instead of sending it.
 </Tip>
 
@@ -409,9 +409,9 @@ Example Voice Call realtime config:
 
 <Note>
 Google Live API uses bidirectional audio and function calling over a WebSocket.
-OpenClaw adapts telephony/Meet bridge audio to Gemini's PCM Live API stream and
+Vasudev adapts telephony/Meet bridge audio to Gemini's PCM Live API stream and
 keeps tool calls on the shared realtime voice contract. Leave `temperature`
-unset unless you need sampling changes; OpenClaw omits non-positive values
+unset unless you need sampling changes; Vasudev omits non-positive values
 because Google Live can return transcripts without audio for `temperature: 0`.
 Gemini API transcription is enabled without `languageCodes`; the current Google
 SDK rejects language-code hints on this API path.
@@ -419,7 +419,7 @@ SDK rejects language-code hints on this API path.
 
 <Note>
 Gemini 3.1 Live accepts conversational text through realtime input and uses
-sequential function calling. OpenClaw omits the older `NON_BLOCKING`, function
+sequential function calling. Vasudev omits the older `NON_BLOCKING`, function
 response scheduling, and affective-dialog fields for this model. Prefer
 `thinkingLevel`; configured positive `thinkingBudget` values are mapped to the
 nearest supported level, while `-1` leaves Google's default in place. See the
@@ -449,7 +449,7 @@ roundtrip; pass `--openai-audio-cycles 3` for a short repeated lifecycle soak.
 
 <AccordionGroup>
   <Accordion title="Direct Gemini cache reuse">
-    For direct Gemini API runs (`api: "google-generative-ai"`), OpenClaw
+    For direct Gemini API runs (`api: "google-generative-ai"`), Vasudev
     passes a configured `cachedContent` handle through to Gemini requests.
 
     - Configure per-model or global params with either
@@ -458,7 +458,7 @@ roundtrip; pass `--openai-audio-cycles 3` for a short repeated lifecycle soak.
       Within the same scope, if both keys are set, `cached_content` wins.
       Use only one key per scope to avoid surprises.
     - Example value: `cachedContents/prebuilt-context`
-    - Gemini cache-hit usage is normalized into OpenClaw `cacheRead` from
+    - Gemini cache-hit usage is normalized into Vasudev `cacheRead` from
       upstream `cachedContentTokenCount`
 
     ```json5
@@ -487,8 +487,8 @@ roundtrip; pass `--openai-audio-cycles 3` for a short repeated lifecycle soak.
     - Streamed reply text comes from assistant `message` events.
     - For legacy JSON output, reply text comes from the CLI JSON `response` field.
     - Usage falls back to `stats` when the CLI leaves `usage` empty.
-    - `stats.cached` is normalized into OpenClaw `cacheRead`.
-    - If `stats.input` is missing, OpenClaw derives input tokens from
+    - `stats.cached` is normalized into Vasudev `cacheRead`.
+    - If `stats.input` is missing, Vasudev derives input tokens from
       `stats.input_tokens - stats.cached`.
 
   </Accordion>

@@ -62,7 +62,7 @@ export const TeamsMeetingsRuntime = MeetingPlatformAdapter.createRuntimeFacade<
       speech: {
         audioBridgeUnavailable: "Realtime speech requires an active Chrome audio bridge.",
         browserUnverified: "Microsoft Teams browser state has not been verified yet.",
-        microphoneMuted: "Turn on the OpenClaw Teams microphone before asking OpenClaw to speak.",
+        microphoneMuted: "Turn on the Vasudev Teams microphone before asking Vasudev to speak.",
         microphoneMutedReason: "teams-microphone-muted",
         notInCall: "Microsoft Teams has not reported that the browser guest is in the call.",
         notInCallReason: "not-in-call",

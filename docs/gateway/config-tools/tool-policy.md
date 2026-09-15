@@ -27,7 +27,7 @@ Local onboarding defaults new local configs to `tools.profile: "coding"` when un
 `coding` and `messaging` also implicitly allow `bundle-mcp` (configured MCP servers).
 
 The `minimal`, `coding`, and `messaging` profiles include `gateway` with only the
-`update.run` action. This lets owners request an OpenClaw update through the
+`update.run` action. This lets owners request a Vasudev update through the
 existing tool without granting configuration reads. Updates use the same Gateway
 handler as `/update` and the Control UI. External-chat updates require current
 owner authorization and `commands.restart`; Control UI updates retain their
@@ -66,7 +66,7 @@ The tools are offered only when the initiating operator surface can receive and 
 
 Configured MCP servers are exposed as plugin-owned tools under the `bundle-mcp` plugin id. Normal tool profiles can allow them, but `tools.sandbox.tools` is an additional gate for sandboxed sessions. If sandbox mode is `"all"` or `"non-main"`, include one of these entries in the sandbox tool allowlist when MCP/plugin tools should be visible:
 
-- `bundle-mcp` for OpenClaw-managed MCP servers from `mcp.servers`
+- `bundle-mcp` for Vasudev-managed MCP servers from `mcp.servers`
 - the plugin id for a specific native plugin
 - `group:plugins` for all loaded plugin-owned tools
 - exact MCP server tool names or server globs such as `outlook__send_mail` or `outlook__*` when you only want one server
@@ -93,12 +93,12 @@ Per-run `toolsAllow` caps also accept globs such as `outlook*` or `out*graph*` f
 }
 ```
 
-Without that sandbox-layer entry, the MCP server can still load successfully while its tools are filtered before the provider request. Use `openclaw doctor` to catch this shape for OpenClaw-managed servers in `mcp.servers`. MCP servers loaded from bundled plugin manifests or Claude `.mcp.json` use the same sandbox gate, but this diagnostic does not enumerate those sources yet; use the same allowlist entries if their tools disappear in sandboxed turns.
+Without that sandbox-layer entry, the MCP server can still load successfully while its tools are filtered before the provider request. Use `openclaw doctor` to catch this shape for Vasudev-managed servers in `mcp.servers`. MCP servers loaded from bundled plugin manifests or Claude `.mcp.json` use the same sandbox gate, but this diagnostic does not enumerate those sources yet; use the same allowlist entries if their tools disappear in sandboxed turns.
 
 ## `tools.codeMode`
 
-`tools.codeMode` gates the generic OpenClaw code-mode surface. When engaged
-for a run with tools, normal OpenClaw tools move behind the in-sandbox `tools.*`
+`tools.codeMode` gates the generic Vasudev code-mode surface. When engaged
+for a run with tools, normal Vasudev tools move behind the in-sandbox `tools.*`
 catalog bridge, and MCP tools are available through the generated `MCP`
 namespace. The model normally sees `exec` and `wait`; tools such as `computer`
 whose structured results cannot cross the JSON-only bridge stay direct.
@@ -197,7 +197,7 @@ Restricts tools for the current turn's originating requester. This is defense-in
 }
 ```
 
-Keys use explicit prefixes: `channel:<channelId>:<senderId>`, `id:<senderId>`, `e164:<phone>`, `username:<handle>`, `name:<displayName>`, or `"*"`. Channel ids are canonical OpenClaw ids; aliases such as `teams` normalize to `msteams`. Legacy unprefixed keys are accepted as `id:` only. Matching order is channel+id, id, e164, username, name, then wildcard.
+Keys use explicit prefixes: `channel:<channelId>:<senderId>`, `id:<senderId>`, `e164:<phone>`, `username:<handle>`, `name:<displayName>`, or `"*"`. Channel ids are canonical Vasudev ids; aliases such as `teams` normalize to `msteams`. Legacy unprefixed keys are accepted as `id:` only. Matching order is channel+id, id, e164, username, name, then wildcard.
 
 Per-agent `agents.entries.*.tools.toolsBySender` overrides the global sender match when it matches, even with an empty `{}` policy.
 

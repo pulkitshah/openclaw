@@ -1,7 +1,7 @@
 ---
 summary: "Install the plugin, configure a homeserver account, and control which invites the bot accepts"
 read_when:
-  - Setting up Matrix in OpenClaw for the first time
+  - Setting up Matrix in Vasudev for the first time
   - Choosing token or password auth for a Matrix account
   - Restricting which Matrix invites the bot accepts
 title: "Matrix setup"
@@ -73,7 +73,7 @@ Token and password SecretRefs follow the shared [source-specific provider-alias 
 
 ### Auto-join
 
-`channels.matrix.autoJoin` defaults to `"off"`: the bot will not appear in new rooms or DMs from fresh invites until you join manually. OpenClaw cannot tell at invite time whether an invite is a DM or a group, so every invite goes through `autoJoin` first; `dm.policy` only applies later, after the bot has joined and the room is classified.
+`channels.matrix.autoJoin` defaults to `"off"`: the bot will not appear in new rooms or DMs from fresh invites until you join manually. Vasudev cannot tell at invite time whether an invite is a DM or a group, so every invite goes through `autoJoin` first; `dm.policy` only applies later, after the bot has joined and the room is classified.
 
 <Warning>
 Set `autoJoin: "allowlist"` plus `autoJoinAllowlist` to restrict accepted invites, or `autoJoin: "always"` to accept every invite.
@@ -115,7 +115,7 @@ as untrusted.
 
 ### Allowlist target formats
 
-Matrix user IDs are case-sensitive. Copy the exact `@user:server` value Matrix reports for every allowlist, approver, and approval-target field. If an existing config used different casing, update it manually; OpenClaw cannot safely infer or rewrite the intended account because case-distinct IDs can identify different users.
+Matrix user IDs are case-sensitive. Copy the exact `@user:server` value Matrix reports for every allowlist, approver, and approval-target field. If an existing config used different casing, update it manually; Vasudev cannot safely infer or rewrite the intended account because case-distinct IDs can identify different users.
 
 - DMs (`dm.allowFrom`, `groupAllowFrom`, `groups.<room>.users`): use `@user:server`. Display names are ignored by default (mutable); set `dangerouslyAllowNameMatching: true` only for explicit display-name compatibility.
 - Approval forwarding (`approvals.exec.targets[].to` with `channel: "matrix"`): use `user:@user:server` with the exact Matrix casing.
@@ -128,7 +128,7 @@ The wizard converts a friendly name into a normalized account ID (`Ops Bot` -> `
 
 ### Cached credentials
 
-Matrix caches account credentials in the shared `state/openclaw.sqlite` plugin state. When cached credentials exist, OpenClaw treats Matrix as configured even without an `accessToken` in the config file - this covers setup, `openclaw doctor`, and channel-status probes. Upgrades import the retired `~/.openclaw/credentials/matrix/credentials*.json` files through `openclaw doctor --fix`, verify the SQLite rows, then archive the files.
+Matrix caches account credentials in the shared `state/openclaw.sqlite` plugin state. When cached credentials exist, Vasudev treats Matrix as configured even without an `accessToken` in the config file - this covers setup, `openclaw doctor`, and channel-status probes. Upgrades import the retired `~/.openclaw/credentials/matrix/credentials*.json` files through `openclaw doctor --fix`, verify the SQLite rows, then archive the files.
 
 ### Environment variables
 
@@ -146,7 +146,7 @@ Config-key-backed env vars, used when the equivalent config key is unset. The de
 For account `ops`, names become `MATRIX_OPS_HOMESERVER`, `MATRIX_OPS_ACCESS_TOKEN`, and so on. `MATRIX_HOMESERVER` (and any `*_HOMESERVER` scoped variant) cannot be set from a workspace `.env`; see [Workspace `.env` files](/gateway/security).
 
 <Note>
-The recovery key is not a config-backed env var: OpenClaw never reads it from the environment itself. CLI guidance text suggests piping it through a shell variable named `MATRIX_RECOVERY_KEY` for the default account, or `MATRIX_RECOVERY_KEY_<ID>` (plain uppercased account ID, no hex-escaping) for a named account - see [Verify this device with a recovery key](/channels/matrix/encryption#verify-this-device-with-a-recovery-key).
+The recovery key is not a config-backed env var: Vasudev never reads it from the environment itself. CLI guidance text suggests piping it through a shell variable named `MATRIX_RECOVERY_KEY` for the default account, or `MATRIX_RECOVERY_KEY_<ID>` (plain uppercased account ID, no hex-escaping) for a named account - see [Verify this device with a recovery key](/channels/matrix/encryption#verify-this-device-with-a-recovery-key).
 </Note>
 
 ## Configuration example

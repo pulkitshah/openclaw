@@ -127,7 +127,7 @@ describe("agent database open timings", () => {
     const { options, pathname, advance } = createTimedOpen(690);
     const database = openOpenClawAgentDatabase(options);
     expect(database.db.isOpen).toBe(true);
-    expect(logger.warn).toHaveBeenCalledExactlyOnceWith("slow OpenClaw agent database open", {
+    expect(logger.warn).toHaveBeenCalledExactlyOnceWith("slow Vasudev agent database open", {
       agentId: options.agentId,
       elapsedMs: 1_000,
       path: pathname,
@@ -162,7 +162,7 @@ describe("agent database open timings", () => {
     closeOpenClawAgentDatabaseByPath(pathname);
     logger.warn.mockClear();
     expect(openOpenClawAgentDatabase(options).db.isOpen).toBe(true);
-    expect(logger.warn).toHaveBeenCalledExactlyOnceWith("slow OpenClaw agent database open", {
+    expect(logger.warn).toHaveBeenCalledExactlyOnceWith("slow Vasudev agent database open", {
       agentId: options.agentId,
       elapsedMs: 1_150,
       path: pathname,
@@ -231,7 +231,7 @@ describe("agent database open timings", () => {
         integrity_check: "ok",
       });
       expect(logger.warn).toHaveBeenCalledExactlyOnceWith(
-        "slow OpenClaw agent database open",
+        "slow Vasudev agent database open",
         expect.objectContaining({
           elapsedMs: 1_150,
           integrityGateMs: 0,
@@ -273,7 +273,7 @@ describe("agent database open timings", () => {
 
     expect(isOpen).toBe(true);
     expect(admissions).toBe(2);
-    expect(logger.warn).toHaveBeenCalledExactlyOnceWith("slow OpenClaw agent database open", {
+    expect(logger.warn).toHaveBeenCalledExactlyOnceWith("slow Vasudev agent database open", {
       agentId: options.agentId,
       elapsedMs: 1_270,
       path: pathname,
@@ -340,7 +340,7 @@ describe("agent database open timings", () => {
       expect(databases).toHaveLength(2);
       expect(databases[1]).toBe(databases[0]);
       expect(databases[0]?.db.isOpen).toBe(true);
-      expect(logger.warn).toHaveBeenCalledExactlyOnceWith("slow OpenClaw agent database open", {
+      expect(logger.warn).toHaveBeenCalledExactlyOnceWith("slow Vasudev agent database open", {
         agentId: options.agentId,
         elapsedMs: 1_310,
         path: pathname,

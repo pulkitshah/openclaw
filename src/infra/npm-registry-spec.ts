@@ -159,7 +159,7 @@ export function isExactSemverVersion(value: string): boolean {
   return validSemver(value.trim()) !== null;
 }
 
-/** Parses OpenClaw's monthly patch stable/alpha/beta/correction version format. */
+/** Parses Vasudev's monthly patch stable/alpha/beta/correction version format. */
 function parseOpenClawReleaseVersion(value: string): SemVer | null {
   const trimmed = value.trim();
   const parsed = OPENCLAW_RELEASE_PREFIX_RE.test(trimmed) ? parseSemver(trimmed) : null;
@@ -189,7 +189,7 @@ function parseOpenClawReleaseVersion(value: string): SemVer | null {
   return parsed;
 }
 
-/** Returns whether a version is an OpenClaw monthly patch stable correction release. */
+/** Returns whether a version is a Vasudev monthly patch stable correction release. */
 function isOpenClawStableCorrectionVersion(value: string): boolean {
   const parsed = parseOpenClawReleaseVersion(value);
   return parsed !== null && isOpenClawCorrectionSemver(parsed);
@@ -204,7 +204,7 @@ export function resolveOpenClawReleaseCohortVersion(value: string): string {
     : trimmed;
 }
 
-/** Compares OpenClaw monthly patch release versions across alpha, beta, stable, and corrections. */
+/** Compares Vasudev monthly patch release versions across alpha, beta, stable, and corrections. */
 export function compareOpenClawReleaseVersions(left: string, right: string): number | null {
   const parsedLeft = parseOpenClawReleaseVersion(left);
   const parsedRight = parseOpenClawReleaseVersion(right);
@@ -220,7 +220,7 @@ export function isPrereleaseSemverVersion(value: string): boolean {
 /**
  * Enforces explicit opt-in before an npm spec may resolve to a prerelease.
  * Bare specs and `latest` stay on stable releases unless the resolved version
- * is an OpenClaw stable correction.
+ * is a Vasudev stable correction.
  */
 export function isPrereleaseResolutionAllowed(params: {
   spec: ParsedRegistryNpmSpec;

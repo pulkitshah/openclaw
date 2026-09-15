@@ -2336,7 +2336,7 @@ describe("Codex plugin thread config", () => {
     ]);
   });
 
-  it("does not expose apps for plugins that OpenClaw policy leaves disabled", async () => {
+  it("does not expose apps for plugins that Vasudev policy leaves disabled", async () => {
     const appCache = new CodexAppInventoryCache();
     await appCache.refreshNow({
       key: "runtime",
@@ -3022,7 +3022,7 @@ describe("Codex plugin thread config", () => {
     expect(third).not.toBe(second);
   });
 
-  it("uses app-level destructive policy for plugins without OpenClaw tool-name knowledge", async () => {
+  it("uses app-level destructive policy for plugins without Vasudev tool-name knowledge", async () => {
     const appCache = new CodexAppInventoryCache();
     await appCache.refreshNow({
       key: "runtime",

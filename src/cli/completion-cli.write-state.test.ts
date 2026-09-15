@@ -343,7 +343,7 @@ describe("completion-cli write-state", () => {
             from: "user",
           }),
         ).rejects.toThrow(
-          `Completion cache not found at ${cachePath}. Run \`openclaw completion --write-state\` first.`,
+          `Completion cache not found at ${cachePath}. Run \`vasudev completion --write-state\` first.`,
         );
 
         await expect(fs.access(profilePath)).rejects.toThrow();

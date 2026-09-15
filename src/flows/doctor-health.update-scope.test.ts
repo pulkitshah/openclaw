@@ -137,7 +137,7 @@ describe("update Doctor diagnostic scope", () => {
       } else {
         expect(obs.note).toHaveBeenCalledExactlyOnceWith(
           expect.stringMatching(
-            /Omitted during update:.*Project clones.*SQLite database size.*Workspace suggestions.*\nRun `openclaw doctor`/,
+            /Omitted during update:.*Project clones.*SQLite database size.*Workspace suggestions.*\nRun `vasudev doctor`/,
           ),
           "Update Doctor scope",
         );

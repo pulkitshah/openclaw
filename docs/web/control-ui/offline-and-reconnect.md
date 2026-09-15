@@ -14,7 +14,7 @@ What survives a dropped connection, and how the Control UI recovers when it retu
 Warm reload applies only after token or device-token authentication. The browser
 must still hold the Gateway token that authenticated the previous connection, or
 the paired device token retained from that connection, and present that same
-credential again. After that connection, OpenClaw keeps a small agent roster, the
+credential again. After that connection, Vasudev keeps a small agent roster, the
 session list without live run state, and custom groups in browser storage. Recent
 transcripts use the existing chat cache. On reload, the shell, sidebar, and cached
 conversation can appear while the Gateway is still connecting. Live state replaces
@@ -139,7 +139,7 @@ appears as **Saved messages could not be loaded**; it does not mean that message
 have lost their destinations or that browser storage is full. Reload to retry if
 the error persists, keeping site data intact.
 
-First opens and reloads without usable warm state show a small animated OpenClaw mark while the Gateway resolves the initial
+First opens and reloads without usable warm state show a small animated Vasudev mark while the Gateway resolves the initial
 connection, including when authentication comes from a trusted proxy or Tailscale instead of a
 browser-stored credential. The login gate appears only after the initial connection fails or the
 Gateway actively rejects authentication (bad token/password, missing trusted identity, revoked

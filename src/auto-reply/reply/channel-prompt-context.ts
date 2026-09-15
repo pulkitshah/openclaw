@@ -4,7 +4,7 @@ import { markInboundContextLabel } from "./inbound-context-marker.js";
 import { normalizeInboundTextNewlines } from "./inbound-text.js";
 
 /**
- * The fixed marker lets strippers recognize OpenClaw-injected context; it is not
+ * The fixed marker lets strippers recognize Vasudev-injected context; it is not
  * a trust guardrail. Trust guidance travels with each entry instead
  * (`buildChannelMetadata` wraps entries in `wrapExternalContent`, whose SECURITY
  * NOTICE carries the do-not-obey clause).

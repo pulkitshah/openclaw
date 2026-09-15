@@ -42,6 +42,6 @@ export function rejectAgentScopedModelCommand(
     return;
   }
   throw new Error(
-    `openclaw models ${commandName} does not support --agent; it is global and never agent-scoped. Remove --agent, or run ${formatCliCommand("openclaw agents list")} and set the per-agent model in agent config.`,
+    `vasudev models ${commandName} does not support --agent; it is global and never agent-scoped. Remove --agent, or run ${formatCliCommand("vasudev agents list")} and set the per-agent model in agent config.`,
   );
 }

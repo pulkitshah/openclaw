@@ -9,7 +9,7 @@ type DispatchChannelInboundTurn =
 export const telegramBotInfoForTest = {
   id: 9_876_543_210,
   is_bot: true,
-  first_name: "OpenClaw",
+  first_name: "Vasudev",
   username: "openclaw_bot",
   can_join_groups: true,
   can_read_all_group_messages: false,

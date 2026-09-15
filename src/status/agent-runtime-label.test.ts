@@ -67,7 +67,7 @@ describe("resolveAgentRuntimeLabel", () => {
     {
       name: "a non-CLI provider resolves to the built-in runtime",
       args: { fallbackProvider: "anthropic", classifyCliProvider: () => false },
-      expected: "OpenClaw Default",
+      expected: "Vasudev Default",
     },
   ])("$name", ({ args, expected }) => {
     expect(resolveAgentRuntimeLabel(args)).toBe(expected);
@@ -122,7 +122,7 @@ describe("resolveAgentRuntimeLabel", () => {
         },
         resolvedHarness: "codex",
       },
-      expected: "OpenAI Codex (previous runtime: OpenClaw Default)",
+      expected: "OpenAI Codex (previous runtime: Vasudev Default)",
     },
     {
       name: "a retired codex-cli pin still reports a real transition",
@@ -149,7 +149,7 @@ describe("resolveAgentRuntimeLabel", () => {
         fallbackProvider: "anthropic",
         classifyCliProvider: () => false,
       },
-      expected: "OpenClaw Default (previous runtime: OpenAI Codex)",
+      expected: "Vasudev Default (previous runtime: OpenAI Codex)",
     },
     {
       name: "an unmapped pin is reported by its sanitized id",

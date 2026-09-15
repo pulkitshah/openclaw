@@ -1,5 +1,5 @@
 /**
- * Runtime adapter for realtime voice control of active OpenClaw agent runs.
+ * Runtime adapter for realtime voice control of active Vasudev agent runs.
  *
  * The shared module owns classification and message contracts; this adapter
  * binds those contracts to embedded-run abort, status, and steering primitives.
@@ -166,7 +166,7 @@ export async function controlRealtimeVoiceAgentRun(
     active: false,
     ...(mode === "cancel" ? { aborted: false } : { queued: false }),
     reason: "no_active_run",
-    message: `There is no active OpenClaw run to ${mode === "cancel" ? "cancel" : "steer"}.`,
+    message: `There is no active Vasudev run to ${mode === "cancel" ? "cancel" : "steer"}.`,
     ...controlResultPresentation,
   });
   if (!current.sessionId) {
@@ -188,8 +188,8 @@ export async function controlRealtimeVoiceAgentRun(
         ? commands.abortEmbeddedAgentRun(sessionId)
         : exactOwner?.abort() === true;
     const message = aborted
-      ? "Cancelled the active OpenClaw run."
-      : "OpenClaw could not cancel the active run.";
+      ? "Cancelled the active Vasudev run."
+      : "Vasudev could not cancel the active run.";
     return {
       ok: aborted,
       ...controlResultContext,
@@ -253,9 +253,9 @@ export async function controlRealtimeVoiceAgentRun(
 
   const unconfirmed = outcome.transcriptCommit === "unconfirmed";
   const message = unconfirmed
-    ? "OpenClaw could not confirm that input. It was not sent again; check the conversation before retrying."
+    ? "Vasudev could not confirm that input. It was not sent again; check the conversation before retrying."
     : mode === "followup"
-      ? "Queued that follow-up for the active OpenClaw run."
+      ? "Queued that follow-up for the active Vasudev run."
       : "Got it. I steered the active run.";
   return {
     ok: !unconfirmed,

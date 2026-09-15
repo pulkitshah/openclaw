@@ -546,7 +546,7 @@ function renderSkillDetail(skill: SkillStatusEntry, props: SkillsProps) {
               ? html`
                   <div
                     class="callout"
-                    style="border-color: var(--warn-subtle); background: var(--warn-subtle); color: var(--warn);"
+                    style="border-color: var(--warn-subtle); background: var(--warn-subtle); color: var(--warn-text);"
                   >
                     <div style="font-weight: 600; margin-bottom: 4px;">
                       ${t("skillsPage.missingRequirements")}

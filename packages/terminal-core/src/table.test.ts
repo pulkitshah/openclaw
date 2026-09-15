@@ -476,7 +476,7 @@ console.log(JSON.stringify({
         { key: "K", header: "K", minWidth: 3 },
         { key: "V", header: "V", flex: true, minWidth: 10 },
       ],
-      rows: [{ K: "X", V: `${open}OpenClaw${close}` }],
+      rows: [{ K: "X", V: `${open}Vasudev${close}` }],
     });
 
     expectIntroducersToStartCompleteSequences(out, "\x1b", [open, close]);
@@ -516,7 +516,7 @@ console.log(JSON.stringify({
         { key: "K", header: "K", minWidth: 3 },
         { key: "V", header: "V", flex: true, minWidth: 10 },
       ],
-      rows: [{ K: "X", V: `${open}OpenClaw${close}` }],
+      rows: [{ K: "X", V: `${open}Vasudev${close}` }],
     });
 
     expectIntroducersToStartCompleteSequences(out, "\x9d", [open, close]);
@@ -532,10 +532,10 @@ console.log(JSON.stringify({
         { key: "K", header: "K", minWidth: 3 },
         { key: "V", header: "V", flex: true, minWidth: 10 },
       ],
-      rows: [{ K: "X", V: `${open}${"OpenClaw".repeat(5)}${close} after` }],
+      rows: [{ K: "X", V: `${open}${"Vasudev".repeat(5)}${close} after` }],
     });
 
-    const linkLines = out.split("\n").filter((line) => line.includes("OpenClaw"));
+    const linkLines = out.split("\n").filter((line) => line.includes("Vasudev"));
     expect(linkLines.length).toBeGreaterThan(1);
     for (const line of linkLines) {
       expect(line).toContain(open);
@@ -560,7 +560,7 @@ console.log(JSON.stringify({
   ])(
     "closes and reopens embedded OSC-8 links at wrap boundaries (%s)",
     (_label, openSeq, closeSeq) => {
-      const link = `${openSeq}OpenClaw${closeSeq}`;
+      const link = `${openSeq}Vasudev${closeSeq}`;
       const out = renderTable({
         width: 20,
         border: "unicode",
@@ -591,7 +591,7 @@ console.log(JSON.stringify({
   ])(
     "does not reopen a leading OSC-8 link onto wrapped suffix lines (%s)",
     (_label, openSeq, closeSeq) => {
-      const link = `${openSeq}OpenClaw${closeSeq}`;
+      const link = `${openSeq}Vasudev${closeSeq}`;
       const out = renderTable({
         width: 20,
         columns: [
@@ -610,8 +610,8 @@ console.log(JSON.stringify({
       for (const line of afterLines) {
         expect(line.includes(openSeq)).toBe(false);
       }
-      // The link itself stays intact on the OpenClaw line: open + close present.
-      const linkLine = lines.find((line) => line.includes("OpenClaw"));
+      // The link itself stays intact on the Vasudev line: open + close present.
+      const linkLine = lines.find((line) => line.includes("Vasudev"));
       expect(linkLine).toBeDefined();
       expect(linkLine?.includes(openSeq)).toBe(true);
       expect(linkLine?.includes(closeSeq)).toBe(true);
@@ -1026,7 +1026,7 @@ describe("wrapNoteMessage", () => {
 
   it("preserves long Windows paths without inserting spaces/newlines", () => {
     // No spaces: wrapNoteMessage splits on whitespace, so a "Program Files" style path would wrap.
-    const input = "C:\\\\State\\\\OpenClaw\\\\bin\\\\openclaw.exe";
+    const input = "C:\\\\State\\\\Vasudev\\\\bin\\\\openclaw.exe";
     const wrapped = wrapNoteMessage(input, { maxWidth: 10, columns: 80 });
     expect(wrapped).toBe(input);
   });

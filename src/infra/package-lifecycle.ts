@@ -104,7 +104,7 @@ async function acquireLifecycleLock(
         }
       }
       if (Date.now() >= waitDeadline) {
-        throw new Error("timed out waiting for another OpenClaw package lifecycle", {
+        throw new Error("timed out waiting for another Vasudev package lifecycle", {
           cause: error,
         });
       }
@@ -133,7 +133,7 @@ function runPackageLifecycleScript(
   }
   if (result.status !== 0) {
     throw new Error(
-      `OpenClaw package ${script.name} failed${result.signal ? ` with ${result.signal}` : ` with exit code ${result.status ?? "unknown"}`}`,
+      `Vasudev package ${script.name} failed${result.signal ? ` with ${result.signal}` : ` with exit code ${result.status ?? "unknown"}`}`,
     );
   }
 }
@@ -176,7 +176,7 @@ export async function completePendingPackageLifecycle(params: {
       await fs.rm(paths.pending, { force: true });
     }
     if (await isPackageLifecyclePending(paths)) {
-      throw new Error("OpenClaw package postinstall did not complete its lifecycle marker");
+      throw new Error("Vasudev package postinstall did not complete its lifecycle marker");
     }
     return true;
   } catch (error) {

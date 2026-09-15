@@ -47,7 +47,7 @@ export async function assertSecureExecCommandPath(params: {
     // A plain Error would lose the Windows recovery diagnostic.
     throw new FsSafeError(
       "permission-unverified",
-      `${params.label} ACL verification unavailable on Windows for ${commandPath}. Move the command to a path whose ACLs OpenClaw can verify; there is no provider-level bypass.`,
+      `${params.label} ACL verification unavailable on Windows for ${commandPath}. Move the command to a path whose ACLs Vasudev can verify; there is no provider-level bypass.`,
     );
   }
 

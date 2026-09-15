@@ -1,8 +1,8 @@
 ---
-summary: "Use OpenRouter's unified API to access many models in OpenClaw"
+summary: "Use OpenRouter's unified API to access many models in Vasudev"
 read_when:
   - You want a single API key for many LLMs
-  - You want to run models via OpenRouter in OpenClaw
+  - You want to run models via OpenRouter in Vasudev
   - You want to use OpenRouter for image generation
   - You want to use OpenRouter for music generation
   - You want to use OpenRouter for video generation
@@ -10,14 +10,14 @@ title: "OpenRouter"
 ---
 
 OpenRouter routes requests to many models behind one API and one key. It is
-OpenAI-compatible, so OpenClaw talks to it over the same
+OpenAI-compatible, so Vasudev talks to it over the same
 `openai-completions`-style transport used for other proxy providers.
 
 ## Getting started
 
 In a private chat, send `/login openrouter` or select OpenRouter from `/login`.
 Choose **Sign in with OpenRouter**, approve access in your browser, and return
-to chat. OpenClaw receives the browser callback and saves the credential before
+to chat. Vasudev receives the browser callback and saves the credential before
 reporting success. Use `/login cancel` to cancel a pending sign-in.
 
 Login saves access without choosing a starter model. If current model restrictions
@@ -43,9 +43,9 @@ completion so browsers outside the tailnet can still finish setup.
         openclaw onboard --auth-choice openrouter-oauth
         ```
 
-        OpenClaw opens OpenRouter's browser sign-in flow (PKCE), exchanges the
+        Vasudev opens OpenRouter's browser sign-in flow (PKCE), exchanges the
         code for an OpenRouter API key, and stores it in the default
-        OpenRouter auth profile. On remote/headless hosts, OpenClaw prints the
+        OpenRouter auth profile. On remote/headless hosts, Vasudev prints the
         sign-in URL and asks you to paste the redirect URL after signing in.
       </Step>
       <Step title="(Optional) Switch to a specific model">
@@ -100,7 +100,7 @@ completion so browsers outside the tailnet can still finish setup.
 <Note>
 Model refs follow the pattern `openrouter/<provider>/<model>`. For the full list of
 providers and models OpenRouter routes to, see [OpenRouter's model catalog](https://openrouter.ai/models).
-For how OpenClaw resolves model refs and failover, see [Model selection](/concepts/model-providers).
+For how Vasudev resolves model refs and failover, see [Model selection](/concepts/model-providers).
 </Note>
 
 Bundled starter models enrich a nonempty public catalog. A failed live request
@@ -138,11 +138,11 @@ under `agents.defaults.mediaModels.image`:
 }
 ```
 
-OpenClaw sends canonical OpenRouter image requests to the dedicated image API
+Vasudev sends canonical OpenRouter image requests to the dedicated image API
 (`POST /api/v1/images`). Gemini image models additionally receive
 `aspect_ratio` and `resolution` hints, and image edits pass source images as
 `input_references`. Generated images come back as base64 (`b64_json`) with an
-optional `media_type`; when `media_type` is absent, OpenClaw sniffs the image
+optional `media_type`; when `media_type` is absent, Vasudev sniffs the image
 format from the bytes.
 
 Configured custom OpenRouter `baseUrl` destinations retain the existing
@@ -171,7 +171,7 @@ OpenRouter can back the `video_generate` tool through its asynchronous
 }
 ```
 
-OpenClaw submits text-to-video and image-to-video jobs, polls the returned
+Vasudev submits text-to-video and image-to-video jobs, polls the returned
 `polling_url`, and downloads the finished video from OpenRouter's
 `unsigned_urls` or the job content endpoint. Reference images default to
 first/last-frame images; images tagged `reference_image` are sent as input
@@ -203,7 +203,7 @@ output. Set an OpenRouter audio model under
 ```
 
 The bundled OpenRouter music provider defaults to `google/lyria-3-pro-preview`
-and also exposes `google/lyria-3-clip-preview`. OpenClaw sends `modalities:
+and also exposes `google/lyria-3-clip-preview`. Vasudev sends `modalities:
 ["text", "audio"]`, streams the response, collects the audio chunks, and saves
 the result as generated media for channel delivery. Lyria models accept one
 reference image through the shared `music_generate image=...` parameter.
@@ -258,16 +258,16 @@ media understanding preflight.
 }
 ```
 
-OpenClaw sends OpenRouter STT requests as JSON with base64 audio under
+Vasudev sends OpenRouter STT requests as JSON with base64 audio under
 `input_audio` (OpenRouter's STT contract), not as multipart OpenAI form
 uploads.
 
 ## Fusion router
 
-OpenRouter Fusion sends one OpenClaw model ref to several OpenRouter models in
+OpenRouter Fusion sends one Vasudev model ref to several OpenRouter models in
 parallel, has OpenRouter judge their answers, and returns one final response
 through the normal OpenRouter endpoint. The upstream model slug is
-`openrouter/fusion`, so the OpenClaw model ref carries both the OpenClaw
+`openrouter/fusion`, so the Vasudev model ref carries both the Vasudev
 provider prefix and the upstream OpenRouter namespace:
 
 ```bash
@@ -311,10 +311,10 @@ omit the `env.vars.OPENROUTER_API_KEY` line below.
 
 `analysis_models` is the parallel panel; `model` inside the Fusion plugin
 config is the judge model. Do not set top-level `tool_choice` to `"required"`
-in normal agent/chat turns to try to force Fusion: OpenClaw turns can include
+in normal agent/chat turns to try to force Fusion: Vasudev turns can include
 its own tool definitions, and a top-level required tool choice may pick one of
 those instead of the Fusion router. When this Fusion plugin config is present,
-OpenClaw adds a sanitized system-prompt note listing the configured analysis
+Vasudev adds a sanitized system-prompt note listing the configured analysis
 models and judge model, so the agent can answer questions about its own Fusion
 panel. Other `extraBody` fields are not copied into the prompt.
 
@@ -336,7 +336,7 @@ openclaw infer model run --local \
 ## Authentication and headers
 
 OpenRouter uses a Bearer token from your API key. OpenRouter OAuth is a PKCE
-login flow that issues an OpenRouter API key, so OpenClaw stores the result in
+login flow that issues an OpenRouter API key, so Vasudev stores the result in
 the same `openrouter:default` API-key auth profile used by manual API-key
 setup.
 
@@ -348,7 +348,7 @@ openclaw models auth login --provider openrouter --method oauth
 openclaw models auth login --provider openrouter --method api-key
 ```
 
-On verified OpenRouter requests (`https://openrouter.ai/api/v1`), OpenClaw adds
+On verified OpenRouter requests (`https://openrouter.ai/api/v1`), Vasudev adds
 OpenRouter's documented app-attribution headers:
 
 | Header                    | Value                                                                                                  |
@@ -358,7 +358,7 @@ OpenRouter's documented app-attribution headers:
 | `X-OpenRouter-Categories` | `cli-agent,cloud-agent,programming-app,creative-writing,writing-assistant,general-chat,personal-agent` |
 
 <Warning>
-If you repoint the OpenRouter provider at some other proxy or base URL, OpenClaw
+If you repoint the OpenRouter provider at some other proxy or base URL, Vasudev
 does **not** inject those OpenRouter-specific headers or Anthropic cache markers.
 </Warning>
 
@@ -385,7 +385,7 @@ does **not** inject those OpenRouter-specific headers or Anthropic cache markers
     }
     ```
 
-    OpenClaw sends `X-OpenRouter-Cache: true` and, when configured,
+    Vasudev sends `X-OpenRouter-Cache: true` and, when configured,
     `X-OpenRouter-Cache-TTL`. `responseCacheClear: true` forces a refresh for
     the current request and stores the replacement response. Snake_case
     aliases (`response_cache`, `response_cache_ttl_seconds`,
@@ -412,7 +412,7 @@ does **not** inject those OpenRouter-specific headers or Anthropic cache markers
   </Accordion>
 
   <Accordion title="Thinking / reasoning injection">
-    On supported non-`auto` routes, OpenClaw maps the selected thinking level
+    On supported non-`auto` routes, Vasudev maps the selected thinking level
     to OpenRouter proxy reasoning payloads. `openrouter/auto` and unsupported
     model hints skip that injection. Stale `openrouter/hunter-alpha` refs also
     skip it, because OpenRouter could return final answer text in reasoning
@@ -423,7 +423,7 @@ does **not** inject those OpenRouter-specific headers or Anthropic cache markers
     On verified OpenRouter routes, `openrouter/deepseek/deepseek-v4-flash` and
     `openrouter/deepseek/deepseek-v4-pro` fill missing `reasoning_content` on
     replayed assistant turns, keeping thinking/tool conversations in DeepSeek
-    V4's required follow-up shape. OpenClaw sends OpenRouter-supported
+    V4's required follow-up shape. Vasudev sends OpenRouter-supported
     `reasoning.effort` values for these routes: `xhigh`/`max` map to `xhigh`,
     every other non-off level maps to `high`.
   </Accordion>
@@ -435,7 +435,7 @@ does **not** inject those OpenRouter-specific headers or Anthropic cache markers
   </Accordion>
 
   <Accordion title="Gemini-backed routes">
-    Gemini-backed OpenRouter refs stay on the proxy-Gemini path: OpenClaw keeps
+    Gemini-backed OpenRouter refs stay on the proxy-Gemini path: Vasudev keeps
     Gemini thought-signature sanitation there, but does not enable native
     Gemini replay validation or bootstrap rewrites.
   </Accordion>
@@ -463,7 +463,7 @@ does **not** inject those OpenRouter-specific headers or Anthropic cache markers
     }
     ```
 
-    OpenClaw forwards that object to OpenRouter as the request `provider`
+    Vasudev forwards that object to OpenRouter as the request `provider`
     payload. Use OpenRouter's documented snake_case fields, including `sort`,
     `only`, `ignore`, `order`, `allow_fallbacks`, `require_parameters`,
     `data_collection`, `quantizations`, `max_price`, `preferred_max_latency`,

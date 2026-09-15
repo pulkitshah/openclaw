@@ -540,7 +540,7 @@ describe("runGatewayUpdate", () => {
     const sourceRoot = await fixtureRootTracker.make("tracked-source");
     const localRoot = await fixtureRootTracker.make("tracked-local");
     await runRealGit(sourceRoot, "init", "--initial-branch=main");
-    await runRealGit(sourceRoot, "config", "user.name", "OpenClaw Test");
+    await runRealGit(sourceRoot, "config", "user.name", "Vasudev Test");
     await runRealGit(sourceRoot, "config", "user.email", "openclaw@example.com");
     await fs.writeFile(
       path.join(sourceRoot, "package.json"),
@@ -556,7 +556,7 @@ describe("runGatewayUpdate", () => {
     await runRealGit(sourceRoot, "commit", "-m", "base");
     const baseSha = await runRealGit(sourceRoot, "rev-parse", "HEAD");
     await runRealGit(path.dirname(localRoot), "clone", "--quiet", sourceRoot, localRoot);
-    await runRealGit(localRoot, "config", "user.name", "OpenClaw Test");
+    await runRealGit(localRoot, "config", "user.name", "Vasudev Test");
     await runRealGit(localRoot, "config", "user.email", "openclaw@example.com");
     if (detached) {
       await runRealGit(localRoot, "checkout", "--detach", baseSha);
@@ -1908,7 +1908,7 @@ describe("runGatewayUpdate", () => {
       await writePreflightPackageManagerFixture(checkout);
       await fs.copyFile(path.join(tempDir, "openclaw.mjs"), path.join(checkout, "openclaw.mjs"));
       await runRealGit(checkout, "init", "--initial-branch=main");
-      await runRealGit(checkout, "config", "user.name", "OpenClaw Test");
+      await runRealGit(checkout, "config", "user.name", "Vasudev Test");
       await runRealGit(checkout, "config", "user.email", "openclaw@example.com");
       await fs.symlink(checkout, alias, "dir");
       await fs.mkdir(artifacts);
@@ -3142,7 +3142,7 @@ describe("runGatewayUpdate", () => {
 
     expect(result.status).toBe("error");
     expect(result.reason).toBe("doctor-entry-missing");
-    expect(result.steps.some((step) => step.name === "openclaw doctor entry")).toBe(true);
+    expect(result.steps.some((step) => step.name === "vasudev doctor entry")).toBe(true);
     expect(result.steps.at(-1)?.name).toMatch(/^git rollback/);
   });
 

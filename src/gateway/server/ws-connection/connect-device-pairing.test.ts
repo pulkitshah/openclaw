@@ -270,7 +270,7 @@ describe("gateway connect pairing exemptions", () => {
       await loggerTest.flushFileLogQueueForTests();
       const log = await fs.readFile(logPath, "utf8");
       expect(log).toContain("user profile resolution failed");
-      expect(log).toContain("openclaw doctor --fix");
+      expect(log).toContain("vasudev doctor --fix");
       expect(
         db
           .prepare("SELECT merged_into, updated_at FROM user_profiles WHERE id = 'gateway-owner'")

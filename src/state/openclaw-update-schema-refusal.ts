@@ -21,17 +21,17 @@ export class UpdateSchemaRefusalError extends Error {
   ) {
     const { targetVersion } = options;
     const commands = [
-      "openclaw gateway stop",
+      "vasudev gateway stop",
       `npm install -g openclaw@${targetVersion} --allow-scripts=openclaw`,
-      "openclaw doctor --fix",
-      "openclaw gateway start",
+      "vasudev doctor --fix",
+      "vasudev gateway start",
     ];
     const reason =
       options.cause === undefined
         ? ""
         : ` Deferral failed: ${formatErrorMessage(options.cause).slice(0, 600)}.`;
     super(
-      `Doctor refused update-time schema repair driven by OpenClaw ${updaterVersion}: this updater reopens the ledger with old code after migration, and version publication could not be deferred safely. ` +
+      `Doctor refused update-time schema repair driven by Vasudev ${updaterVersion}: this updater reopens the ledger with old code after migration, and version publication could not be deferred safely. ` +
         databases
           .map(
             (database) =>

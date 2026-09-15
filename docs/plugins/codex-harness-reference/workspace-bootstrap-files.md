@@ -15,7 +15,7 @@ How `AGENTS.md`, persona, skills, and memory files reach a native Codex turn. Pa
 The full generic developer policy, including a `before_prompt_build.systemPrompt`
 replacement, remains native session configuration for compaction and native-child
 inheritance. Ordinary persistent cold or changed-configuration resumes require an
-uninterrupted managed local stdio process owner and observed native unload before OpenClaw injects the full
+uninterrupted managed local stdio process owner and observed native unload before Vasudev injects the full
 current policy. Merely sending `developerInstructions` on `thread/resume` does not
 refresh the model-visible policy on stock Codex. Explicit `systemPrompt: ""` sends
 a withdrawal, not a fallback to older instructions.
@@ -26,15 +26,15 @@ conversation. Parent-local model-request instructions remain a separate surface.
 See [Hook boundaries](/plugins/codex-harness-runtime#hook-boundaries) for recovery.
 
 Codex normally handles `AGENTS.md` itself through native project-doc discovery.
-OpenClaw does not write synthetic Codex project-doc files or depend on Codex
+Vasudev does not write synthetic Codex project-doc files or depend on Codex
 fallback filenames for persona files, because Codex fallbacks only apply when
 `AGENTS.md` is missing. Ordinary policy-restricted turns have no native
-filesystem environment, so OpenClaw instead sends the bounded workspace
+filesystem environment, so Vasudev instead sends the bounded workspace
 `AGENTS.md` snapshot as thread-level developer instructions. Ring-zero,
 lightweight, message-only, and tool-disabled internal turns suppress that
 carrier.
 
-For OpenClaw workspace parity, local tool notes live in the `## Tools` section
+For Vasudev workspace parity, local tool notes live in the `## Tools` section
 of `AGENTS.md` and normally ride Codex's native project-doc discovery. The
 Codex harness forwards the other bootstrap files as developer instructions:
 
@@ -43,7 +43,7 @@ Codex harness forwards the other bootstrap files as developer instructions:
   private relay leaves native base/catalog instructions and history intact,
   so newly delivered persona and user-profile context are not automatically
   inherited by native Codex subagents.
-- The compact loaded OpenClaw skills list uses the same parent-local layer.
+- The compact loaded Vasudev skills list uses the same parent-local layer.
 - Heartbeat turns receive generic initiative guidance through collaboration
   mode. Monitor cron scratch is appended to the heartbeat prompt instead of
   injected as workspace context.
@@ -77,6 +77,6 @@ non-OpenAI native providers, custom upstream endpoints, unsupported native accou
 modes, locked upstream configuration, and native `features.respect_system_proxy` profiles keep the legacy
 collaboration carrier, which model-owned catalog instructions
 can replace. A warning and unverified persona accounting identify that the
-workaround is not active. OpenClaw does not reroute or shut down those sessions.
+workaround is not active. Vasudev does not reroute or shut down those sessions.
 Previously embedded persona, conversation text, and explicit task handoffs are
 not removed from existing histories or full-history forks.

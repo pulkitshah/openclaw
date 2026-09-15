@@ -100,8 +100,8 @@ export async function runPluginsListCommand(
             cfg.plugins?.enabled === false
               ? "No enabled plugins found. Plugins are globally disabled."
               : "No enabled plugins found."
-          } Run ${formatCliCommand("openclaw plugins list")} to inspect installed plugins.`
-        : `No plugins found. Run ${formatCliCommand("openclaw plugins install <plugin>")} to add one, or ${formatCliCommand("openclaw plugins list --json")} to inspect raw discovery state.`;
+          } Run ${formatCliCommand("vasudev plugins list")} to inspect installed plugins.`
+        : `No plugins found. Run ${formatCliCommand("vasudev plugins install <plugin>")} to add one, or ${formatCliCommand("vasudev plugins list --json")} to inspect raw discovery state.`;
     runtime.log(theme.muted(message));
     return;
   }

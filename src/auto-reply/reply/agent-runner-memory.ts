@@ -280,7 +280,7 @@ function resolveFollowupAgentRuntimeId(params: FollowupRuntimeParams): string {
 
 function followupOwnsNativeCompaction(params: FollowupRuntimeParams, runtimeId: string): boolean {
   // Backends that persist resumable native transcripts must remain the sole
-  // compaction owner; OpenClaw maintenance would corrupt that runtime state.
+  // compaction owner; Vasudev maintenance would corrupt that runtime state.
   return (
     resolveCliBackendConfig(runtimeId, params.cfg, {
       agentId: params.followupRun.run.agentId,
@@ -904,7 +904,7 @@ export async function runSessionCompactionIfNeeded(params: {
   const shouldCompactByTranscriptBytes =
     exceedsTranscriptByteThreshold && !transcriptByteCompactionLatched;
   if (isCodexRuntime && !shouldCompactByTranscriptBytes) {
-    // Codex owns native-thread token pressure; OpenClaw owns the host transcript byte fuse
+    // Codex owns native-thread token pressure; Vasudev owns the host transcript byte fuse
     // that bounds fresh-thread bootstrap seeds.
     logVerbose(
       `preflightCompaction skipped: sessionKey=${params.sessionKey} runtime=codex ` +

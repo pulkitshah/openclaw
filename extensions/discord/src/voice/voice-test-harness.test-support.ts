@@ -153,7 +153,7 @@ function buildVoiceTestHarness() {
       active: false,
       queued: false,
       reason: "no_active_run",
-      message: "There is no active OpenClaw run to steer.",
+      message: "There is no active Vasudev run to steer.",
       speak: true,
       show: true,
       suppress: false,

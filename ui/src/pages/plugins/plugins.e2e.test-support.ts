@@ -273,11 +273,11 @@ const matrixDetail = {
   detail: {
     origin: "clawhub",
     packageName: "matrix",
-    author: { handle: "openclaw", displayName: "OpenClaw" },
+    author: { handle: "openclaw", displayName: "Vasudev" },
     topics: ["Matrix", "Messaging"],
     createdAt: 1_760_000_000_000,
     updatedAt: 1_780_000_000_000,
-    readme: "# Matrix\n\nConnect OpenClaw to Matrix rooms and direct messages.",
+    readme: "# Matrix\n\nConnect Vasudev to Matrix rooms and direct messages.",
     compatibility: {
       minGatewayVersion: ">=2026.5.1",
       pluginApiRange: ">=2026.5.1",
@@ -354,7 +354,7 @@ const matrixNeedsSetup = {
   id: "matrix",
   name: "Matrix",
   packageName: "matrix",
-  description: "Connect OpenClaw to Matrix rooms and direct messages.",
+  description: "Connect Vasudev to Matrix rooms and direct messages.",
   version: "2.1.0",
   kind: ["channel"],
   origin: "global",

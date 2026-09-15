@@ -75,7 +75,7 @@ Example config:
 ## Defaults
 
 - Interval: `30m`. Applying Anthropic provider defaults bumps this to `1h` when the resolved auth mode is OAuth/token (including Claude CLI reuse), but only while `heartbeat.every` is unset. Set `agents.defaults.heartbeat.every` or per-agent `agents.entries.*.heartbeat.every`. Use `0m` to disable recurring cadence.
-- Delivery target: `owner`. OpenClaw uses the first concrete `commands.ownerAllowFrom` entry, then channel `allowFrom`, and never sends this route to a group. Without a resolvable owner DM, ambient polls skip with `reason=no-route`. Set `target: "last"` to follow the most recent conversation, including groups, or `target: "none"` for internal-only runs.
+- Delivery target: `owner`. Vasudev uses the first concrete `commands.ownerAllowFrom` entry, then channel `allowFrom`, and never sends this route to a group. Without a resolvable owner DM, ambient polls skip with `reason=no-route`. Set `target: "last"` to follow the most recent conversation, including groups, or `target: "none"` for internal-only runs.
 - Prompt body (configurable via `agents.defaults.heartbeat.prompt`): `Follow the heartbeat monitor scratch context when provided. Recurring tasks are automations; create or change their schedules with the automations tool, not heartbeat scratch. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply NO_REPLY.`
 - Timeout: unset heartbeat turns use `agents.defaults.timeoutSeconds` when set. Otherwise, they use the heartbeat cadence capped at 600 seconds. Set `agents.defaults.heartbeat.timeoutSeconds` or per-agent `agents.entries.*.heartbeat.timeoutSeconds` for longer heartbeat work.
 - The heartbeat prompt is sent **verbatim** as the scheduled user message. Heartbeat runs use the same system prompt as ordinary agent turns. There is no heartbeat-specific system-prompt section.
@@ -112,7 +112,7 @@ If you want a heartbeat to do something very specific (e.g. "check Gmail PubSub 
 - If nothing needs attention, reply with **`NO_REPLY`**.
 - Heartbeat runs may instead call `heartbeat_respond` with `notify: false` for no visible update, or `notify: true` plus `notificationText` for an alert. When present, the structured tool response takes precedence over the text fallback.
 - A meaningful `heartbeat_respond` result with `notify: false` remains silent but is remembered as bounded internal context for the next user turn in that session. A generated `notify: true` alert whose delivery is blocked or unconfirmed is also recorded, including its alert text and delivery reason. This is the latest outcome for the session, not an alert history or exact-delivery replay queue. `no_change` acknowledgments and confirmed visible notifications are not stored this way.
-- Existing custom prompts may still return the legacy `HEARTBEAT_OK` acknowledgment. OpenClaw accepts it at the **start or end** of a reply and drops the reply when its remaining content is at most 300 characters. The suppression budget is fixed.
+- Existing custom prompts may still return the legacy `HEARTBEAT_OK` acknowledgment. Vasudev accepts it at the **start or end** of a reply and drops the reply when its remaining content is at most 300 characters. The suppression budget is fixed.
 - A legacy `HEARTBEAT_OK` in the **middle** of a reply is not treated specially.
 - For alerts, return only the alert text. Do not include a silent acknowledgment.
 - Delivery selects the last outbound-capable non-reasoning payload. Separate reasoning or thinking payloads remain internal. A reasoning-only result produces no alert.
@@ -326,11 +326,11 @@ Heartbeat configuration is strict: only the fields listed above are accepted. Ac
 
   </Accordion>
   <Accordion title="Visibility and skip behavior">
-    - If the heartbeat turn fails before the model can reply, the failure notice names the reason whenever OpenClaw itself refused the run. One example is a session runtime that is still busy in another runner. Raw provider or runtime errors stay behind the verbose failure-detail setting (`/verbose on` or `/verbose full`), as in normal chats.
+    - If the heartbeat turn fails before the model can reply, the failure notice names the reason whenever Vasudev itself refused the run. One example is a session runtime that is still busy in another runner. Raw provider or runtime errors stay behind the verbose failure-detail setting (`/verbose on` or `/verbose full`), as in normal chats.
     - If `showOk`, `showAlerts`, and `useIndicator` are all disabled, the run is skipped up front as `reason=alerts-disabled`.
-    - If only alert delivery is disabled, OpenClaw can still run the heartbeat, update due-task timestamps, restore the session idle timestamp, and suppress the outward alert payload.
-    - If the channel readiness check blocks an alert, OpenClaw records the non-delivery. It retries the heartbeat after a one-minute grace period, without consuming its cadence slot. This retry runs the heartbeat again. It does not replay the exact earlier alert. Once a send enters the durable delivery queue, that queue owns transport retries.
-    - If the resolved heartbeat target supports typing, OpenClaw shows typing while the heartbeat run is active. This uses the same target the heartbeat would send chat output to, and it is disabled by `typingMode: "never"`.
+    - If only alert delivery is disabled, Vasudev can still run the heartbeat, update due-task timestamps, restore the session idle timestamp, and suppress the outward alert payload.
+    - If the channel readiness check blocks an alert, Vasudev records the non-delivery. It retries the heartbeat after a one-minute grace period, without consuming its cadence slot. This retry runs the heartbeat again. It does not replay the exact earlier alert. Once a send enters the durable delivery queue, that queue owns transport retries.
+    - If the resolved heartbeat target supports typing, Vasudev shows typing while the heartbeat run is active. This uses the same target the heartbeat would send chat output to, and it is disabled by `typingMode: "never"`.
 
   </Accordion>
   <Accordion title="Session lifecycle and audit">
@@ -381,7 +381,7 @@ Precedence: per-account → per-channel → channel defaults → built-in defaul
 - `showAlerts`: sends the alert content when the model returns a non-OK reply.
 - `useIndicator`: emits indicator events for UI status surfaces.
 
-If **all three** are false, OpenClaw skips the heartbeat run entirely (no model call).
+If **all three** are false, Vasudev skips the heartbeat run entirely (no model call).
 
 ### Per-channel vs per-account examples
 
@@ -448,7 +448,7 @@ The agent can also update its own scratch: during a heartbeat turn, `heartbeat_r
 If the workspace and state directory are on different filesystems, Doctor keeps the original file in a private `HEARTBEAT.md.doctor-archived.*` directory beside its former location. The state-directory backup remains an immutable snapshot. Later writes through an already-open file descriptor remain recoverable in the workspace archive.
 </Note>
 
-OpenClaw skips the heartbeat run to save API calls when scratch exists but is effectively empty. Effectively empty means only blank lines, Markdown or HTML comments, Markdown headings like `# Heading`, fence markers, or empty checklist stubs. That skip is reported as `reason=empty-heartbeat-file`. Scheduled interval monitors without due tasks resolve this skip before deferring behind busy execution queues. If no scratch exists, the heartbeat still runs and the model decides what to do.
+Vasudev skips the heartbeat run to save API calls when scratch exists but is effectively empty. Effectively empty means only blank lines, Markdown or HTML comments, Markdown headings like `# Heading`, fence markers, or empty checklist stubs. That skip is reported as `reason=empty-heartbeat-file`. Scheduled interval monitors without due tasks resolve this skip before deferring behind busy execution queues. If no scratch exists, the heartbeat still runs and the model decides what to do.
 
 Keep it tiny (short checklist or reminders) to avoid prompt bloat.
 
@@ -515,7 +515,7 @@ Heartbeats run full agent turns. Shorter intervals burn more tokens. To reduce c
 
 ## Context overflow after heartbeat
 
-Heartbeats preserve the shared session's existing runtime model after the run completes. A heartbeat that switched a session to a smaller local model can therefore leave that model in place for the next main-session turn. An Ollama model with a 32k window is one example. That next turn may report context overflow. If the session's last runtime model also matches configured `heartbeat.model`, OpenClaw's recovery message calls out heartbeat model bleed as the likely cause. The message also suggests a fix.
+Heartbeats preserve the shared session's existing runtime model after the run completes. A heartbeat that switched a session to a smaller local model can therefore leave that model in place for the next main-session turn. An Ollama model with a 32k window is one example. That next turn may report context overflow. If the session's last runtime model also matches configured `heartbeat.model`, Vasudev's recovery message calls out heartbeat model bleed as the likely cause. The message also suggests a fix.
 
 To avoid this, use `isolatedSession: true` to run heartbeats in a fresh session. You can combine it with `lightContext: true` for the smallest prompt. Otherwise choose a heartbeat model with a context window large enough for the shared session.
 

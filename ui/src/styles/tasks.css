@@ -52,7 +52,7 @@
   display: grid;
   gap: var(--space-1);
   margin-top: var(--space-1);
-  color: var(--warn);
+  color: var(--warn-text);
   font-size: var(--control-ui-text-sm);
 }
 

@@ -16,7 +16,7 @@ import {
 } from "./failure-output.js";
 
 const PLUGIN_POLICY_MESSAGE =
-  'The `openclaw workboard` command is provided by the "workboard" plugin, but that bundled plugin is disabled by default. Run `openclaw plugins enable workboard` to enable that CLI surface.';
+  'The `openclaw workboard` command is provided by the "workboard" plugin, but that bundled plugin is disabled by default. Run `vasudev plugins enable workboard` to enable that CLI surface.';
 
 // Mirrors the producer in ensureExplicitGatewayAuth: the message already carries the remedy.
 const EXPLICIT_GATEWAY_AUTH_MESSAGE = [
@@ -48,7 +48,7 @@ describe("formatCliJsonFailure", () => {
         updaterVersion: "2026.9.2",
         message: expect.stringContaining("Deferral failed: content migration failed"),
         databases,
-        commands: expect.arrayContaining(["openclaw gateway stop", "openclaw doctor --fix"]),
+        commands: expect.arrayContaining(["vasudev gateway stop", "vasudev doctor --fix"]),
       },
     });
   });
@@ -85,11 +85,11 @@ describe("formatCliJsonFailure", () => {
   ])("keeps the full parse guidance unchanged in $label", ({ env }) => {
     const error = Object.assign(
       new ExpectedCliError({
-        message: 'OpenClaw sessions has no command "lst".',
+        message: 'Vasudev sessions has no command "lst".',
         humanOutput:
-          '\u001B[31mOpenClaw sessions has no command "lst".\u001B[39m\nDid you mean this?\n  openclaw sessions list\nTry: openclaw sessions --help\nDocs: \u001B]8;;https://docs.openclaw.ai/cli\u0007docs.openclaw.ai/cli\u001B]8;;\u0007\n',
+          '\u001B[31mOpenClaw sessions has no command "lst".\u001B[39m\nDid you mean this?\n  vasudev sessions list\nTry: vasudev sessions --help\nDocs: \u001B]8;;https://docs.openclaw.ai/cli\u0007docs.openclaw.ai/cli\u001B]8;;\u0007\n',
         machineOutput:
-          'OpenClaw sessions has no command "lst".\nDid you mean this?\n  openclaw sessions list\nTry: openclaw sessions --help\nDocs: https://docs.openclaw.ai/cli\n',
+          'Vasudev sessions has no command "lst".\nDid you mean this?\n  vasudev sessions list\nTry: vasudev sessions --help\nDocs: https://docs.openclaw.ai/cli\n',
       }),
       { cause: new Error("internal parse cause") },
     );
@@ -100,7 +100,7 @@ describe("formatCliJsonFailure", () => {
       error: {
         type: "cli_error",
         message:
-          'OpenClaw sessions has no command "lst".\nDid you mean this?\n  openclaw sessions list\nTry: openclaw sessions --help\nDocs: https://docs.openclaw.ai/cli',
+          'Vasudev sessions has no command "lst".\nDid you mean this?\n  vasudev sessions list\nTry: vasudev sessions --help\nDocs: https://docs.openclaw.ai/cli',
       },
     });
     expect(payload.error.message).not.toContain("internal parse cause");
@@ -195,7 +195,7 @@ describe("formatCliFailureLines", () => {
       "[openclaw] Could not start the CLI.",
       "[openclaw] Reason: config file is invalid",
       "[openclaw] Debug: set OPENCLAW_DEBUG=1 to include the stack trace.",
-      "[openclaw] Try: openclaw doctor",
+      "[openclaw] Try: vasudev doctor",
       "[openclaw] Help: openclaw --help",
     ]);
   });
@@ -244,7 +244,7 @@ describe("formatCliFailureLines", () => {
         new GatewayTransportError({
           kind: "closed",
           message:
-            "Gateway not reachable at ws://127.0.0.1:51078 (ECONNREFUSED).\nStart it with `openclaw gateway run` or check `openclaw gateway status`.",
+            "Gateway not reachable at ws://127.0.0.1:51078 (ECONNREFUSED).\nStart it with `vasudev gateway run` or check `vasudev gateway status`.",
           connectionDetails: {
             url: "ws://127.0.0.1:51078",
             urlSource: "local loopback",
@@ -270,7 +270,7 @@ describe("formatCliFailureLines", () => {
       expect(output).not.toContain("[openclaw] Reason:");
       expect(output).not.toContain("OPENCLAW_DEBUG");
       expect(output).not.toContain("Stack:");
-      expect(output).not.toContain("openclaw doctor");
+      expect(output).not.toContain("vasudev doctor");
     },
   );
 

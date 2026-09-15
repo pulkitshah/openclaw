@@ -1,5 +1,5 @@
 ---
-summary: "Use SOUL.md to give your OpenClaw agent an actual voice instead of generic assistant sludge"
+summary: "Use SOUL.md to give your Vasudev agent an actual voice instead of generic assistant sludge"
 read_when:
   - You want your agent to sound less generic
   - You are editing SOUL.md
@@ -7,7 +7,7 @@ read_when:
 title: "SOUL.md personality guide"
 ---
 
-`SOUL.md` is where your agent's voice lives. OpenClaw injects it into normal
+`SOUL.md` is where your agent's voice lives. Vasudev injects it into normal
 sessions, so it carries real weight: if your agent sounds bland, hedgy, or
 corporate, this is usually the file to fix.
 
@@ -24,7 +24,7 @@ wall of vibes with no behavioral effect. Short beats long. Sharp beats vague.
 This lines up with OpenAI's prompt guidance: high-level behavior, tone, goals,
 and examples belong in the high-priority instruction layer, not buried in the
 user turn, and prompts should be iterated on, pinned, and evaluated rather than
-written once and forgotten. For OpenClaw, `SOUL.md` is that layer: write
+written once and forgotten. For Vasudev, `SOUL.md` is that layer: write
 stronger instructions for better personality, keep them concise and versioned
 for stable personality.
 
@@ -72,10 +72,10 @@ fits the room. Sharp is good. Annoying is not.
 
 <CardGroup cols={2}>
   <Card title="Agent workspace" href="/concepts/agent-workspace" icon="folder-open">
-    Workspace files OpenClaw injects into model context.
+    Workspace files Vasudev injects into model context.
   </Card>
   <Card title="System prompt" href="/concepts/system-prompt" icon="message-lines">
-    How `SOUL.md` is composed into OpenClaw and Codex runtime context.
+    How `SOUL.md` is composed into Vasudev and Codex runtime context.
   </Card>
   <Card title="SOUL.md template" href="/reference/templates/SOUL" icon="file-lines">
     Starter template for a personality file.

@@ -371,8 +371,8 @@ describe("SystemAgentChatEngine runtime", () => {
     const reply = await engine.handle("configure gateway");
 
     expect(reply.text).toContain("manages only a local Gateway");
-    expect(reply.text).toContain("`openclaw onboard` for fresh setup");
-    expect(reply.text).toContain("`openclaw configure` for the mode question");
+    expect(reply.text).toContain("`vasudev onboard` for fresh setup");
+    expect(reply.text).toContain("`vasudev configure` for the mode question");
     expect(reply.text).not.toContain("Gateway port");
     expect(mocks.writeWizardConfigFile).not.toHaveBeenCalled();
   });
@@ -390,7 +390,7 @@ describe("SystemAgentChatEngine runtime", () => {
     const stopped = await engine.handle("configure gateway");
     expect(stopped.text).toContain("Sensitive input is not accepted");
     expect(stopped.text).toContain("open gateway wizard");
-    expect(stopped.text).toContain("openclaw configure --section gateway");
+    expect(stopped.text).toContain("vasudev configure --section gateway");
     expect(stopped.sensitive).toBeUndefined();
 
     const handoff = await engine.handle("open gateway wizard");
@@ -468,8 +468,8 @@ describe("SystemAgentChatEngine runtime", () => {
 
     const reply = await engine.handle("connect telegram");
 
-    expect(reply.text).toContain("machine running OpenClaw");
-    expect(reply.text).toContain("openclaw doctor --fix");
+    expect(reply.text).toContain("machine running Vasudev");
+    expect(reply.text).toContain("vasudev doctor --fix");
     expect(reply.text).toContain("remaining validation errors");
     expect(reply.text).not.toContain("repairs it");
   });

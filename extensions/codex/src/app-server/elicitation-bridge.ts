@@ -565,7 +565,7 @@ function readBridgeableApprovalElicitation(
       meta: requestParams["_meta"],
       requestedSchema,
       serverName: sanitizeOptionalDisplayText(serverName),
-      // Only OpenClaw-configured servers have a `mcp configure` remedy; plugin
+      // Only Vasudev-configured servers have a `mcp configure` remedy; plugin
       // and computer-use prompts are governed by their own policies.
       remedy: serverName ? formatMcpCodexApprovalRemedy(serverName) : undefined,
     }),

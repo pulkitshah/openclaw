@@ -23,15 +23,15 @@ Most `/acp` actions accept an optional session target (`session-key`,
 
 Current-conversation bindings and thread bindings both participate in step 2.
 
-If no target resolves, OpenClaw returns a clear error
+If no target resolves, Vasudev returns a clear error
 (`Unable to resolve session target: ...`).
 
 ### Session owner and harness
 
-The OpenClaw agent that owns a session is separate from the external harness
+The Vasudev agent that owns a session is separate from the external harness
 selected by ACP. For example, a session owned by `work` can run the `claude`
 harness. Owner-aware manager calls carry `agentId`; `agent` remains the harness
-name. Configured bindings use their OpenClaw agent owner and their configured
+name. Configured bindings use their Vasudev agent owner and their configured
 ACP harness independently. Free ACP spawns keep their existing harness namespace.
 
 Bare keys such as `global` require an explicit owner when ownership is explicit.
@@ -80,21 +80,21 @@ does not accept a target token.
 
 `/acp` has convenience commands and a generic setter. Equivalent operations:
 
-| Command                      | Maps to                              | Notes                                                                                                                                                                                                      |
-| ---------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/acp model <id>`            | runtime config key `model`           | For Codex ACP, OpenClaw normalizes `openai/<model>` to the adapter model id and maps slash reasoning suffixes such as `openai/gpt-5.4/high` to `reasoning_effort`.                                         |
-| `/acp set thinking <level>`  | canonical option `thinking`          | OpenClaw sends the backend-advertised equivalent when present, preferring `thinking`, then `effort`, `reasoning_effort`, or `thought_level`. For Codex ACP, the adapter maps values to `reasoning_effort`. |
-| `/acp permissions <profile>` | canonical option `permissionProfile` | OpenClaw sends the backend-advertised equivalent when present, such as `approval_policy`, `permission_profile`, `permissions`, or `permission_mode`.                                                       |
-| `/acp timeout <seconds>`     | canonical option `timeoutSeconds`    | OpenClaw sends the backend-advertised equivalent when present, such as `timeout` or `timeout_seconds`.                                                                                                     |
-| `/acp cwd <path>`            | runtime cwd override                 | Applied on the next runtime operation, which closes the previous handle before replacing it.                                                                                                               |
-| `/acp set <key> <value>`     | generic                              | `key=cwd` uses the cwd override path.                                                                                                                                                                      |
-| `/acp reset-options`         | clears all runtime overrides         | Closes a retained runtime without starting a new backend.                                                                                                                                                  |
+| Command                      | Maps to                              | Notes                                                                                                                                                                                                     |
+| ---------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/acp model <id>`            | runtime config key `model`           | For Codex ACP, Vasudev normalizes `openai/<model>` to the adapter model id and maps slash reasoning suffixes such as `openai/gpt-5.4/high` to `reasoning_effort`.                                         |
+| `/acp set thinking <level>`  | canonical option `thinking`          | Vasudev sends the backend-advertised equivalent when present, preferring `thinking`, then `effort`, `reasoning_effort`, or `thought_level`. For Codex ACP, the adapter maps values to `reasoning_effort`. |
+| `/acp permissions <profile>` | canonical option `permissionProfile` | Vasudev sends the backend-advertised equivalent when present, such as `approval_policy`, `permission_profile`, `permissions`, or `permission_mode`.                                                       |
+| `/acp timeout <seconds>`     | canonical option `timeoutSeconds`    | Vasudev sends the backend-advertised equivalent when present, such as `timeout` or `timeout_seconds`.                                                                                                     |
+| `/acp cwd <path>`            | runtime cwd override                 | Applied on the next runtime operation, which closes the previous handle before replacing it.                                                                                                              |
+| `/acp set <key> <value>`     | generic                              | `key=cwd` uses the cwd override path.                                                                                                                                                                     |
+| `/acp reset-options`         | clears all runtime overrides         | Closes a retained runtime without starting a new backend.                                                                                                                                                 |
 
-When a backend returns its accepted controls, OpenClaw keeps an already-selected
+When a backend returns its accepted controls, Vasudev keeps an already-selected
 thinking level in sync with that response. A model switch may lower the level or
 remove thinking support; subsequent turns and reconnects use the accepted
 selection instead of replaying the old level. Backend defaults do not become new
-session overrides, and the model reference keeps its OpenClaw provider prefix.
+session overrides, and the model reference keeps its Vasudev provider prefix.
 Model overrides are validated before prompt submission, including after reconnect.
 Unsupported inherited defaults dropped during new session initialization are not
 saved as overrides.

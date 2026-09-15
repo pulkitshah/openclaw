@@ -115,7 +115,7 @@ function resolveIMessageNonMacHostError(
   if (platform === "darwin" || !isDefaultLocalIMessageCliPath(cliPath)) {
     return undefined;
   }
-  return "iMessage via the default imsg CLI must run on macOS. Run OpenClaw on the signed-in Messages Mac, or set channels.imessage.cliPath to an SSH wrapper that runs imsg on that Mac.";
+  return "iMessage via the default imsg CLI must run on macOS. Run Vasudev on the signed-in Messages Mac, or set channels.imessage.cliPath to an SSH wrapper that runs imsg on that Mac.";
 }
 
 async function probeRpcSupport(cliPath: string, timeoutMs: number): Promise<RpcSupportResult> {
@@ -284,7 +284,7 @@ export async function probeIMessagePrivateApi(
     // the threaded send path. Treat any failure as "not supported" so
     // callers fall back to the legacy throw rather than silently dropping.
     const sendRichSupportsAttachment = await probeSendRichSupportsAttachment(key, timeoutMs);
-    // Caption suppression is required for approval polls because OpenClaw
+    // Caption suppression is required for approval polls because Vasudev
     // renders the details first. Published imsg 0.13.1 lacks --no-comment, so
     // probe the exact CLI contract instead of inferring it from poll selectors.
     const pollSendSupportsNoComment = await probePollSendSupportsNoComment(key, timeoutMs);

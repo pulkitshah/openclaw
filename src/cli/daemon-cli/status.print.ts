@@ -78,8 +78,8 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean; d
   const spacer = () => defaultRuntime.log("");
   // Advice belongs to this shell, not the stored service environment or probe target.
   const installBlock = resolveDaemonInstallBlockMessage("gateway");
-  const installCommand = formatCliCommand("openclaw gateway install");
-  const reinstallCommand = formatCliCommand("openclaw gateway install --force");
+  const installCommand = formatCliCommand("vasudev gateway install");
+  const reinstallCommand = formatCliCommand("vasudev gateway install --force");
 
   const { service, rpc, extraServices } = status;
   const serviceTargetsProbe = service.targetRole !== "diagnostic-only";
@@ -135,7 +135,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean; d
     }
     const recommendation =
       installBlock ??
-      `Recommendation: run "${formatCliCommand("openclaw doctor")}" interactively for guided checks, or reinstall with "${reinstallCommand}".`;
+      `Recommendation: run "${formatCliCommand("vasudev doctor")}" interactively for guided checks, or reinstall with "${reinstallCommand}".`;
     defaultRuntime.error(warnText(recommendation));
   }
 
@@ -237,12 +237,12 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean; d
     if (status.cli?.version && status.cli.version !== gatewayVersion) {
       defaultRuntime.error(
         warnText(
-          `Warning: this OpenClaw command is version ${status.cli.version}, but the running Gateway is version ${gatewayVersion}.`,
+          `Warning: this Vasudev command is version ${status.cli.version}, but the running Gateway is version ${gatewayVersion}.`,
         ),
       );
       defaultRuntime.error(
         warnText(
-          "Check `openclaw --version`, `which openclaw`, and `openclaw gateway status --deep`; if this mismatch is unexpected, update PATH so `openclaw` points to the version you want, or reinstall the Gateway service from that same OpenClaw install.",
+          "Check `openclaw --version`, `which openclaw`, and `vasudev gateway status --deep`; if this mismatch is unexpected, update PATH so `openclaw` points to the version you want, or reinstall the Gateway service from that same Vasudev install.",
         ),
       );
     }
@@ -334,7 +334,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean; d
     );
     defaultRuntime.error(
       errorText(
-        `Fix: run ${formatCliCommand("openclaw gateway restart")} and re-check with ${formatCliCommand("openclaw gateway status --deep")}.`,
+        `Fix: run ${formatCliCommand("vasudev gateway restart")} and re-check with ${formatCliCommand("vasudev gateway status --deep")}.`,
       ),
     );
     spacer();
@@ -354,7 +354,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean; d
     }
     defaultRuntime.log(
       warnText(
-        "If logs show protocol mismatch after rollback, stop stale OpenClaw client processes listed here and re-run gateway status.",
+        "If logs show protocol mismatch after rollback, stop stale Vasudev client processes listed here and re-run gateway status.",
       ),
     );
     spacer();
@@ -367,7 +367,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean; d
       : undefined;
   if (serviceInspectionDetail) {
     defaultRuntime.error(errorText(`Service inspection failed: ${serviceInspectionDetail}`));
-    defaultRuntime.error(errorText(`Retry: ${formatCliCommand("openclaw gateway status --deep")}`));
+    defaultRuntime.error(errorText(`Retry: ${formatCliCommand("vasudev gateway status --deep")}`));
     spacer();
   }
   const systemdUnavailableDetail =
@@ -410,7 +410,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean; d
             ? // systemd gave up restarting after repeated crashes; sending the operator
               // to restart (which now clears the failed latch) beats "exited immediately".
               `systemd stopped restarting the gateway after repeated crashes; run ${formatCliCommand(
-                "openclaw gateway restart",
+                "vasudev gateway restart",
               )} or inspect logs.`
             : "Service is loaded but not running (likely exited immediately).",
       ),
@@ -418,7 +418,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean; d
     const env = service.command?.environment ?? process.env;
     for (const hint of buildGatewayRuntimeRecoveryHints({
       kind: missingGuiSession ? "gui-session" : "stopped",
-      restartCommand: formatCliCommand("openclaw gateway restart", env),
+      restartCommand: formatCliCommand("vasudev gateway restart", env),
       env,
       logFile: status.logFile,
     })) {
@@ -455,7 +455,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean; d
       defaultRuntime.error(warnText("Foreign launchd jobs detected (macOS)."));
       defaultRuntime.error(warnText(formatForeignLaunchdJobs(service.foreignLaunchdJobs)));
     } else {
-      defaultRuntime.log(infoText("Other OpenClaw launchd jobs (macOS)"));
+      defaultRuntime.log(infoText("Other Vasudev launchd jobs (macOS)"));
       defaultRuntime.log(infoText(formatForeignLaunchdJobs(service.foreignLaunchdJobs)));
     }
     const restarts = service.forcedRestartSummary;
@@ -469,7 +469,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean; d
     if (shouldWarn && service.foreignLaunchdJobs.some((job) => job.safeToRemove)) {
       defaultRuntime.error(
         warnText(
-          `Remove confirmed stray Gateway lifecycle jobs with ${formatCliCommand("openclaw doctor --fix")}.`,
+          `Remove confirmed stray Gateway lifecycle jobs with ${formatCliCommand("vasudev doctor --fix")}.`,
         ),
       );
     }
@@ -480,7 +480,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean; d
     (job) => !service.foreignLaunchdJobs?.some((foreign) => foreign.label === job.label),
   );
   if (staleUpdateLaunchdJobs?.length) {
-    defaultRuntime.error(errorText("Stale OpenClaw updater launchd job(s) detected."));
+    defaultRuntime.error(errorText("Stale Vasudev updater launchd job(s) detected."));
     for (const job of staleUpdateLaunchdJobs) {
       const exitStatus =
         job.lastExitStatus !== undefined ? `, last exit ${job.lastExitStatus}` : "";
@@ -489,7 +489,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean; d
     }
     defaultRuntime.error(
       errorText(
-        `Fix after confirming no update is running: launchctl remove <label>, then run ${formatCliCommand("openclaw gateway restart")}.`,
+        `Fix after confirming no update is running: launchctl remove <label>, then run ${formatCliCommand("vasudev gateway restart")}.`,
       ),
     );
     spacer();
@@ -603,7 +603,7 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean; d
       }
       if (updateCommands.length === 1 && unresolvedRepairs.length === 0) {
         defaultRuntime.log(
-          `${label("Fix:")} ${updateCommands[0]} && ${formatCliCommand("openclaw gateway restart")}.`,
+          `${label("Fix:")} ${updateCommands[0]} && ${formatCliCommand("vasudev gateway restart")}.`,
         );
       } else if (updateCommands.length > 0) {
         defaultRuntime.log(`${label("Fix:")} update each drifted plugin:`);
@@ -611,13 +611,13 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean; d
           defaultRuntime.log(`- ${command}`);
         }
         if (unresolvedRepairs.length === 0) {
-          defaultRuntime.log(`Then run ${formatCliCommand("openclaw gateway restart")}.`);
+          defaultRuntime.log(`Then run ${formatCliCommand("vasudev gateway restart")}.`);
         }
       }
     } else {
       defaultRuntime.log(
         infoText(
-          `Run ${formatCliCommand("openclaw gateway status --deep")} for affected plugin ids and fix commands.`,
+          `Run ${formatCliCommand("vasudev gateway status --deep")} for affected plugin ids and fix commands.`,
         ),
       );
     }
@@ -638,6 +638,6 @@ export function printDaemonStatus(status: DaemonStatus, opts: { json: boolean; d
     spacer();
   }
 
-  defaultRuntime.log(`${label("Troubles:")} run ${formatCliCommand("openclaw status")}`);
+  defaultRuntime.log(`${label("Troubles:")} run ${formatCliCommand("vasudev status")}`);
   defaultRuntime.log(`${label("Troubleshooting:")} https://docs.openclaw.ai/troubleshooting`);
 }

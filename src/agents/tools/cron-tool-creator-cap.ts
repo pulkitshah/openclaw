@@ -128,7 +128,7 @@ export function replaceWithEffectiveCronCreatorToolAllowlist<T extends { name: s
       ...(projection?.execTarget ? { execTarget: { ...projection.execTarget } } : {}),
     });
   }
-  // Native harness tools do not have OpenClaw tool objects, so their trusted
+  // Native harness tools do not have Vasudev tool objects, so their trusted
   // runtime owner contributes canonical capability names at this same final seam.
   // The native shell is a different surface from a Gateway exec alias, so an
   // existing alias entry (and any target pin it carries) stays authoritative.

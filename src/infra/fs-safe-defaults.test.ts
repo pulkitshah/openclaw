@@ -1,4 +1,4 @@
-// Covers OpenClaw's default fs-safe native helper configuration.
+// Covers Vasudev's default fs-safe native helper configuration.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { withEnvAsync } from "../test-utils/env.js";
 
@@ -34,7 +34,7 @@ describe("fs-safe defaults", () => {
     configureFsSafeNative.mockReset();
   });
 
-  it("disables the native helper by default in OpenClaw", async () => {
+  it("disables the native helper by default in Vasudev", async () => {
     await importDefaults();
 
     expect(configureFsSafeNative).toHaveBeenCalledWith({ mode: "off" });
@@ -46,7 +46,7 @@ describe("fs-safe defaults", () => {
     expect(configureFsSafeNative).not.toHaveBeenCalled();
   });
 
-  it("honors the OpenClaw-specific env mode override", async () => {
+  it("honors the Vasudev-specific env mode override", async () => {
     await importDefaults({ OPENCLAW_FS_SAFE_NATIVE_MODE: "auto" });
 
     expect(configureFsSafeNative).not.toHaveBeenCalled();

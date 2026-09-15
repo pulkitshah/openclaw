@@ -14,7 +14,7 @@ Key ideas:
   configured gateway password.
 - Tailscale Serve identity headers and `gateway.auth.mode: "trusted-proxy"` do
   **not** authenticate this standalone loopback browser API.
-- If browser control is enabled and no shared-secret auth is configured, OpenClaw
+- If browser control is enabled and no shared-secret auth is configured, Vasudev
   auto-generates and persists a browser-control credential at startup:
   a token when `gateway.auth.mode` is `none`, or a password when it is
   `trusted-proxy` (persisted through `gateway.auth.password` so out-of-process

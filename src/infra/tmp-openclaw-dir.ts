@@ -1,7 +1,7 @@
-// Creates temporary OpenClaw directories for runtime scratch work.
+// Creates temporary Vasudev directories for runtime scratch work.
 import { getSealedRuntimeSecureTempRoot } from "./sealed-runtime-registry.js";
 
-/** Preferred shared OpenClaw temp root on POSIX systems when ownership and permissions are safe. */
+/** Preferred shared Vasudev temp root on POSIX systems when ownership and permissions are safe. */
 export const DEFAULT_POSIX_TMP_ROOT = "/tmp/openclaw";
 
 type SecureDirStat = {
@@ -63,7 +63,7 @@ function loadResolveSecureTempRoot(): ResolveSecureTempRoot {
   return resolveSecureTempRootRuntime;
 }
 
-/** Resolves a safe OpenClaw temp root, falling back to user-scoped os.tmpdir paths when needed. */
+/** Resolves a safe Vasudev temp root, falling back to user-scoped os.tmpdir paths when needed. */
 export function resolvePreferredOpenClawTmpDir(
   options: ResolvePreferredOpenClawTmpDirOptions = {},
 ): string {
@@ -72,7 +72,7 @@ export function resolvePreferredOpenClawTmpDir(
     preferredDir: options.preferredDir ?? DEFAULT_POSIX_TMP_ROOT,
     fallbackPrefix: "openclaw",
     warningPrefix: "[openclaw]",
-    unsafeFallbackLabel: "OpenClaw temp dir",
+    unsafeFallbackLabel: "Vasudev temp dir",
     skipPreferredOnWindows: true,
   });
 }

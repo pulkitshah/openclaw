@@ -1,8 +1,8 @@
 ---
-summary: "OpenClaw reconnaissance threats (AML.TA0002): T-RECON-001, T-RECON-002"
+summary: "Vasudev reconnaissance threats (AML.TA0002): T-RECON-001, T-RECON-002"
 title: "Reconnaissance (AML.TA0002)"
 read_when:
-  - Reviewing reconnaissance threats against an OpenClaw deployment
+  - Reviewing reconnaissance threats against a Vasudev deployment
   - Working on mitigations for T-RECON-001, T-RECON-002
 ---
 
@@ -15,7 +15,7 @@ The trust boundaries and data flows these threats cross are defined in the [thre
 | Attribute               | Value                                                                |
 | ----------------------- | -------------------------------------------------------------------- |
 | **ATLAS ID**            | AML.T0006 - Active Scanning                                          |
-| **Description**         | Attacker scans for exposed OpenClaw gateway endpoints                |
+| **Description**         | Attacker scans for exposed Vasudev gateway endpoints                 |
 | **Attack vector**       | Network scanning, Shodan queries, DNS enumeration                    |
 | **Affected components** | Gateway, exposed API endpoints                                       |
 | **Current mitigations** | Tailscale auth option, bind to loopback by default                   |

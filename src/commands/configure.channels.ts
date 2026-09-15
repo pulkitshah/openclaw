@@ -80,7 +80,7 @@ export async function removeChannelConfigWizard(
       note(
         [
           "No channel config found in openclaw.json.",
-          `Tip: \`${formatCliCommand("openclaw channels status")}\` shows what is configured and enabled.`,
+          `Tip: \`${formatCliCommand("vasudev channels status")}\` shows what is configured and enabled.`,
         ].join("\n"),
         "Remove channel",
       );

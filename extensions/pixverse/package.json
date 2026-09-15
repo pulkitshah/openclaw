@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/pixverse-provider",
   "version": "2026.9.4",
-  "description": "OpenClaw PixVerse video generation provider plugin.",
+  "description": "Vasudev PixVerse video generation provider plugin.",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

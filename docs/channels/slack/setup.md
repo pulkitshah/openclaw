@@ -8,7 +8,7 @@ title: "Slack setup"
 sidebarTitle: "Setup"
 ---
 
-Install the plugin, create the Slack app, and give OpenClaw the tokens it needs.
+Install the plugin, create the Slack app, and give Vasudev the tokens it needs.
 
 ## Install
 
@@ -200,7 +200,7 @@ Enterprise Grid organization installation, use the dedicated
 
       </Step>
 
-      <Step title="Configure OpenClaw">
+      <Step title="Configure Vasudev">
 
         Recommended SecretRef setup:
 
@@ -426,7 +426,7 @@ openclaw gateway
         </Note>
 
         <Info>
-          The three URL fields (`slash_commands[].url`, `event_subscriptions.request_url`, and `interactivity.request_url` / `message_menu_options_url`) all point at the same OpenClaw endpoint. Slack's manifest schema requires them named separately, but OpenClaw routes by payload type so a single `webhookPath` (default `/slack/events`) is enough. Slash commands without `slash_commands[].url` silently no-op in HTTP mode.
+          The three URL fields (`slash_commands[].url`, `event_subscriptions.request_url`, and `interactivity.request_url` / `message_menu_options_url`) all point at the same Vasudev endpoint. Slack's manifest schema requires them named separately, but Vasudev routes by payload type so a single `webhookPath` (default `/slack/events`) is enough. Slash commands without `slash_commands[].url` silently no-op in HTTP mode.
         </Info>
 
         After Slack creates the app:
@@ -436,7 +436,7 @@ openclaw gateway
 
       </Step>
 
-      <Step title="Configure OpenClaw">
+      <Step title="Configure Vasudev">
 
         Recommended SecretRef setup:
 
@@ -482,7 +482,7 @@ openclaw gateway
 
 ## User identity (post as a real person)
 
-User identity lets OpenClaw read and post as the human who authorizes the Slack app. The `userToken` is the acting identity; a companion Slack app carries Events API traffic over Socket Mode or an HTTP Request URL. The companion app does not need a bot user or bot token.
+User identity lets Vasudev read and post as the human who authorizes the Slack app. The `userToken` is the acting identity; a companion Slack app carries Events API traffic over Socket Mode or an HTTP Request URL. The companion app does not need a bot user or bot token.
 
 Set up the companion app as follows:
 
@@ -504,7 +504,7 @@ Set up the companion app as follows:
 3. Choose one event transport:
 
    - **Socket Mode:** enable Socket Mode and create an app-level token with `connections:write`. Configure it as `appToken`.
-   - **HTTP Request URL:** point Event Subscriptions at the public OpenClaw Slack endpoint and copy **Basic Information -> App Credentials -> Signing Secret**. Configure it as `signingSecret`.
+   - **HTTP Request URL:** point Event Subscriptions at the public Vasudev Slack endpoint and copy **Basic Information -> App Credentials -> Signing Secret**. Configure it as `signingSecret`.
 
 4. Install or reinstall the app, authorize it as the intended human, and copy the resulting user OAuth token into `userToken`.
 
@@ -539,10 +539,10 @@ HTTP Request URL configuration:
 ```
 
 <Warning>
-  DMs and group DMs work only through the user-scope event subscription above. A bot cannot join a human 1:1 DM or be inserted into an existing group DM. The companion app is invisible plumbing: other Slack members see messages from the authorizing human, not from an OpenClaw bot.
+  DMs and group DMs work only through the user-scope event subscription above. A bot cannot join a human 1:1 DM or be inserted into an existing group DM. The companion app is invisible plumbing: other Slack members see messages from the authorizing human, not from a Vasudev bot.
 </Warning>
 
-OpenClaw automatically drops user-scope message events authored by the resolved human identity, so messages it sends do not trigger self-replies.
+Vasudev automatically drops user-scope message events authored by the resolved human identity, so messages it sends do not trigger self-replies.
 
 ## Token model
 

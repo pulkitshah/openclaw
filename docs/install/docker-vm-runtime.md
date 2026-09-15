@@ -1,8 +1,8 @@
 ---
-summary: "Shared Docker VM runtime steps for long-lived OpenClaw Gateway hosts"
+summary: "Shared Docker VM runtime steps for long-lived Vasudev Gateway hosts"
 doc-schema-version: 1
 read_when:
-  - You are deploying OpenClaw on a cloud VM with Docker
+  - You are deploying Vasudev on a cloud VM with Docker
   - You need the shared setup, binary bake, persistence, and update flow
 title: "Docker VM runtime"
 ---
@@ -19,7 +19,7 @@ You need:
 - A Debian or Ubuntu VM with Docker Engine and Docker Compose v2
 - At least 6 GB RAM for a source image build; smaller hosts should use the
   official pre-built image below
-- The OpenClaw source checkout on the VM
+- The Vasudev source checkout on the VM
 - Provider and model credentials for onboarding
 - An SSH-only or otherwise restricted provider firewall; do not expose the
   Gateway port directly to the public Internet
@@ -159,7 +159,7 @@ docker compose run --rm openclaw-cli devices approve <requestId>
 
 ## What persists where
 
-OpenClaw runs in Docker, but the container filesystem is not the source of
+Vasudev runs in Docker, but the container filesystem is not the source of
 truth. Long-lived state must survive restarts, rebuilds, and reboots.
 
 | Component            | Container location                  | Persistence mechanism       | Notes                                                                                      |
@@ -189,7 +189,7 @@ Mount the gateway state **as a directory**, never as a single file. The repo
 # - "./openclaw.json:/home/node/.openclaw/openclaw.json"
 ```
 
-A single-file bind remains attached to the mounted file. Normal OpenClaw
+A single-file bind remains attached to the mounted file. Normal Vasudev
 configuration saves replace `openclaw.json`. If a host-side save replaces the
 source of a single-file bind after the container starts, the container can keep
 reading the old file while the host path points to the new one. The host-side
@@ -201,7 +201,7 @@ inside that directory.
 
 <a id="updates" />
 
-## Update OpenClaw
+## Update Vasudev
 
 For a source-built image:
 

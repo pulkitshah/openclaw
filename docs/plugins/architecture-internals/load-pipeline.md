@@ -1,8 +1,8 @@
 ---
-summary: "How OpenClaw discovers, gates, loads, and registers plugins, and what the plugin cache holds"
+summary: "How Vasudev discovers, gates, loads, and registers plugins, and what the plugin cache holds"
 read_when:
   - Debugging plugin load order or registry state
-  - You need to know when OpenClaw reads manifests instead of loading plugin runtime
+  - You need to know when Vasudev reads manifests instead of loading plugin runtime
   - You are reasoning about plugin cache generations and what they retain
 title: "Plugin load pipeline and registry"
 sidebarTitle: "Load pipeline and registry"
@@ -14,7 +14,7 @@ internals](/plugins/architecture-internals) guide.
 
 ## Load pipeline
 
-At startup, OpenClaw does roughly this:
+At startup, Vasudev does roughly this:
 
 1. discover candidate plugin roots
 2. read native or compatible bundle manifests and package metadata
@@ -51,7 +51,7 @@ error.
 
 ### Manifest-first behavior
 
-The manifest is the control-plane source of truth. OpenClaw uses it to:
+The manifest is the control-plane source of truth. Vasudev uses it to:
 
 - identify the plugin
 - discover declared channels/skills/config schema or bundle capabilities
@@ -104,7 +104,7 @@ Request-time runtime preloads that ask for the broad `all` scope still derive
 an explicit effective plugin id set from config, startup planning, configured
 channels, slots, and auto-enable rules
 (`resolveEffectivePluginIds` in `src/plugins/effective-plugin-ids.ts`). If that
-derived set is empty, OpenClaw keeps the scope empty instead of widening to
+derived set is empty, Vasudev keeps the scope empty instead of widening to
 every discoverable plugin.
 
 Setup discovery prefers descriptor-owned ids such as `setup.providers` and

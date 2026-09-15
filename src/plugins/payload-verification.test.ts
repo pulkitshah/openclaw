@@ -359,7 +359,7 @@ describe("runPluginPayloadSmokeCheck", () => {
     ]);
   });
 
-  it("accepts a manifest with no main field (OpenClaw plugins commonly use `exports` or `openclaw.extensions`)", async () => {
+  it("accepts a manifest with no main field (Vasudev plugins commonly use `exports` or `openclaw.extensions`)", async () => {
     const dir = path.join(tmpRoot, "matrix");
     await writePackage(dir, { name: "@openclaw/plugin-matrix" });
     const result = await runPluginPayloadSmokeCheck({
@@ -499,7 +499,7 @@ describe("runPluginPayloadSmokeCheck", () => {
     expect(result.failures).toEqual([]);
   });
 
-  it("reports a failure when an openclaw peer link is missing", async () => {
+  it("reports a failure when an vasudev peer link is missing", async () => {
     const dir = path.join(tmpRoot, "codex");
     await writePackage(
       dir,
@@ -530,7 +530,7 @@ describe("runPluginPayloadSmokeCheck", () => {
     ]);
   });
 
-  it("reports a failure when an openclaw peer link is a stale real directory", async () => {
+  it("reports a failure when an vasudev peer link is a stale real directory", async () => {
     const dir = path.join(tmpRoot, "codex");
     await writePackage(
       dir,
@@ -624,7 +624,7 @@ describe("runPluginPayloadSmokeCheck", () => {
     },
   );
 
-  it("reports a failure when an openclaw peer link points at the wrong package root", async () => {
+  it("reports a failure when an vasudev peer link points at the wrong package root", async () => {
     const dir = path.join(tmpRoot, "codex");
     await writePackage(
       dir,
@@ -662,7 +662,7 @@ describe("runPluginPayloadSmokeCheck", () => {
     );
   });
 
-  it("accepts an openclaw peer link when it resolves to the host package root", async () => {
+  it("accepts an vasudev peer link when it resolves to the host package root", async () => {
     const dir = path.join(tmpRoot, "codex");
     await writePackage(
       dir,

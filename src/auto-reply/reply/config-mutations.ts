@@ -1,5 +1,5 @@
 import { expectDefined } from "@openclaw/normalization-core";
-/** Config mutation helpers used by chat commands that edit OpenClaw config. */
+/** Config mutation helpers used by chat commands that edit Vasudev config. */
 import { setConfigValueAtPath, unsetConfigValueAtPath } from "../../config/config-paths.js";
 import {
   mutateConfigFileWithRetry,

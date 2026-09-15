@@ -210,7 +210,7 @@ describe("installScheduledTask", () => {
           OC_CARET: "a^b",
           OC_PERCENT: "%TEMP%",
           OC_BANG: "!token!",
-          OC_SOURCE_PATH: "C:\\OpenClaw source & ^ %USERPROFILE%!",
+          OC_SOURCE_PATH: "C:\\Vasudev source & ^ %USERPROFILE%!",
           OC_QUOTE: 'he said "hi"',
           OC_EMPTY: "",
           NODE_OPTIONS: "",
@@ -226,7 +226,7 @@ describe("installScheduledTask", () => {
       expect(script).toContain('set "OC_CARET=a^^b"');
       expect(script).toContain('set "OC_PERCENT=%%TEMP%%"');
       expect(script).toContain('set "OC_BANG=^!token^!"');
-      expect(script).toContain('set "OC_SOURCE_PATH=C:\\OpenClaw source & ^^ %%USERPROFILE%%^!"');
+      expect(script).toContain('set "OC_SOURCE_PATH=C:\\Vasudev source & ^^ %%USERPROFILE%%^!"');
       expect(script).toContain('set "OC_QUOTE=he said ^"hi^""');
       expect(script).not.toContain('set "OC_EMPTY=');
       expect(script).toContain('set "NODE_OPTIONS="');
@@ -250,7 +250,7 @@ describe("installScheduledTask", () => {
           OC_CARET: "a^b",
           OC_PERCENT: "%TEMP%",
           OC_BANG: "!token!",
-          OC_SOURCE_PATH: "C:\\OpenClaw source & ^ %USERPROFILE%!",
+          OC_SOURCE_PATH: "C:\\Vasudev source & ^ %USERPROFILE%!",
           OC_QUOTE: 'he said "hi"',
           NODE_OPTIONS: "",
         },
@@ -417,7 +417,7 @@ describe("installScheduledTask", () => {
         HOME: env.USERPROFILE,
         USERDOMAIN: "WORKSTATION",
         USERNAME: "alice",
-        OPENCLAW_WINDOWS_TASK_NAME: "OpenClaw Custom Gateway",
+        OPENCLAW_WINDOWS_TASK_NAME: "Vasudev Custom Gateway",
       };
       const gatewayEnv = buildServiceEnvironment({
         env: callerEnv,
@@ -447,7 +447,7 @@ describe("installScheduledTask", () => {
         "/Create",
         "/F",
         "/TN",
-        "OpenClaw Custom Gateway",
+        "Vasudev Custom Gateway",
         "/XML",
       ]);
       expect(schtasksCalls[1]).not.toContain("/RU");
@@ -456,14 +456,14 @@ describe("installScheduledTask", () => {
       expect(captured?.xml).toContain("gateway.vbs</Command>");
       expect(captured?.xml).toContain("<UserId>WORKSTATION\\alice</UserId>");
       expect(captured?.xml).toContain("<LogonType>InteractiveToken</LogonType>");
-      expect(script).toContain('set "OPENCLAW_WINDOWS_TASK_NAME=OpenClaw Custom Gateway"');
+      expect(script).toContain('set "OPENCLAW_WINDOWS_TASK_NAME=Vasudev Custom Gateway"');
       expect(script).not.toContain('set "OPENCLAW_WINDOWS_TASK_HIDDEN_LAUNCHER=');
       expect(launcher).toContain(
         'shell.Environment("Process")("OPENCLAW_WINDOWS_TASK_HIDDEN_LAUNCHER") = "wscript"',
       );
       expect(launcher).toContain("WScript.Shell");
       expect(launcher).toContain(`WScript.Quit shell.Run("""${scriptPath}""", 0, True)`);
-      expectTaskRunCall(2, "OpenClaw Custom Gateway");
+      expectTaskRunCall(2, "Vasudev Custom Gateway");
     });
   });
 

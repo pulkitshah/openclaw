@@ -1059,7 +1059,7 @@ describe("session accessor seam", () => {
         },
         () => ({ label: "patched" }),
       ),
-    ).rejects.toThrow("openclaw doctor --fix");
+    ).rejects.toThrow("vasudev doctor --fix");
     await expect(
       patchSessionEntryTarget(
         {
@@ -1071,7 +1071,7 @@ describe("session accessor seam", () => {
         },
         () => ({ label: "patched alias" }),
       ),
-    ).rejects.toThrow("openclaw doctor --fix");
+    ).rejects.toThrow("vasudev doctor --fix");
     await deleteSessionEntryLifecycle({
       archiveTranscript: false,
       storePath,
@@ -1121,7 +1121,7 @@ describe("session accessor seam", () => {
           { agentId: "main", sessionKey, storePath },
           { ...entry, sessionId: "child", updatedAt: 10 },
         ),
-      ).rejects.toThrow("openclaw doctor --fix");
+      ).rejects.toThrow("vasudev doctor --fix");
     }
     expect(loadSessionEntry({ agentId: "main", sessionKey, storePath })).toBeUndefined();
 
@@ -2096,7 +2096,7 @@ describe("session accessor seam", () => {
       }),
     ).rejects.toMatchObject({
       code: "SESSION_CANONICAL_KEY_MIGRATION_REQUIRED",
-      message: expect.stringContaining("openclaw doctor --fix"),
+      message: expect.stringContaining("vasudev doctor --fix"),
     });
   });
 
@@ -2169,7 +2169,7 @@ describe("session accessor seam", () => {
       insertRawEntry(canonicalKey, canonicalSessionId, 6);
       expect(() =>
         loadSessionEntry({ agentId: "ops", sessionKey: canonicalKey, storePath }),
-      ).toThrow("openclaw doctor --fix");
+      ).toThrow("vasudev doctor --fix");
       closeOpenClawAgentDatabasesForTest();
     }
   });

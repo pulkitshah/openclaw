@@ -254,7 +254,7 @@ describe("acp setSessionConfigOption bridge behavior", () => {
     );
   });
 
-  it("accepts forwarded timeout config options without failing OpenClaw ACP bridge turns", async () => {
+  it("accepts forwarded timeout config options without failing Vasudev ACP bridge turns", async () => {
     const sessionStore = createInMemorySessionStore();
     const connection = createAcpConnection();
     const requestMock = vi.fn(async (method: string) => {

@@ -10,7 +10,7 @@ title: "Authentication"
 This page covers **model provider** authentication (API keys, OAuth, Claude CLI reuse, Anthropic setup-token). For **gateway connection** authentication (token, password, trusted-proxy), see [Configuration](/gateway/configuration) and [Trusted Proxy Auth](/gateway/trusted-proxy-auth).
 </Note>
 
-OpenClaw supports OAuth and API keys for model providers. For an always-on gateway host, an API key is the most predictable option; subscription/OAuth flows work too when they match your provider account model.
+Vasudev supports OAuth and API keys for model providers. For an always-on gateway host, an API key is the most predictable option; subscription/OAuth flows work too when they match your provider account model.
 
 - Full OAuth flow and storage layout: [/concepts/oauth](/concepts/oauth)
 - SecretRef-based auth (`env`/`file`/`exec`/`store` providers): [Secrets Management](/gateway/secrets)
@@ -56,9 +56,9 @@ claude auth status --text
 openclaw models auth login --provider anthropic --method cli --set-default
 ```
 
-This is two steps: log Claude Code into Anthropic on the host, then tell OpenClaw to route Anthropic models through the local `claude-cli` backend.
+This is two steps: log Claude Code into Anthropic on the host, then tell Vasudev to route Anthropic models through the local `claude-cli` backend.
 
-OpenClaw never reads, stores, refreshes, or forwards the native login tokens. The installed `claude` process reads and refreshes its own login. `CLAUDE_CONFIG_DIR` selects a separate Claude login when set on the Gateway process. OpenClaw-managed setup tokens and API keys remain separate credentials.
+Vasudev never reads, stores, refreshes, or forwards the native login tokens. The installed `claude` process reads and refreshes its own login. `CLAUDE_CONFIG_DIR` selects a separate Claude login when set on the Gateway process. Vasudev-managed setup tokens and API keys remain separate credentials.
 
 The gateway service must resolve `claude` on `PATH`. If a deployment needs a
 nonstandard executable path, register a wrapper through a
@@ -82,7 +82,7 @@ Works for any provider; writes the per-agent SQLite auth store and updates confi
 openclaw models auth paste-token --provider openrouter
 ```
 
-OpenClaw reads auth profiles from each agent's `openclaw-agent.sqlite`. Endpoint details (`baseUrl`, `api`, model ids, headers, timeouts) belong under `models.providers.<id>` in `openclaw.json` or `models.json`, not in auth profiles.
+Vasudev reads auth profiles from each agent's `openclaw-agent.sqlite`. Endpoint details (`baseUrl`, `api`, model ids, headers, timeouts) belong under `models.providers.<id>` in `openclaw.json` or `models.json`, not in auth profiles.
 
 If an older install still has `auth-profiles.json`, `auth-state.json`, or a flat shape like `{ "openrouter": { "apiKey": "..." } }`, run `openclaw doctor --fix` to import it into SQLite; doctor keeps timestamped backups beside the original JSON files.
 
@@ -117,7 +117,7 @@ Notes:
 
 - Probe rows can come from auth profiles, env credentials, or `models.json`.
 - If `auth.order.<provider>` omits a stored profile, probe reports `excluded_by_auth_order` for that profile instead of trying it.
-- If auth exists but OpenClaw can't resolve a probeable model for that provider, probe reports `status: no_model`.
+- If auth exists but Vasudev can't resolve a probeable model for that provider, probe reports `status: no_model`.
 - Rate-limit cooldowns can be model-scoped: a profile cooling down for one model can still serve a sibling model on the same provider.
 
 Optional ops scripts (systemd/Termux): [Auth monitoring scripts](/help/scripts#auth-monitoring-scripts).
@@ -135,7 +135,7 @@ Key priority order per provider:
 
 Google providers (`google`, `google-vertex`) additionally fall back to `GOOGLE_API_KEY`. The combined list is deduplicated before use.
 
-OpenClaw rotates to the next key only when the error message matches: `rate_limit`, `rate limit`, `429`, `quota exceeded`/`quota_exceeded`, `resource exhausted`/`resource_exhausted`, or `too many requests`. Other errors are not retried with alternate keys. If all keys fail, the final error from the last attempt is returned.
+Vasudev rotates to the next key only when the error message matches: `rate_limit`, `rate limit`, `429`, `quota exceeded`/`quota_exceeded`, `resource exhausted`/`resource_exhausted`, or `too many requests`. Other errors are not retried with alternate keys. If all keys fail, the final error from the last attempt is returned.
 
 <Note>
 Provider-specific phrases like `ThrottlingException`, `concurrency limit reached`, or `workers_ai ... quota limit exceeded` drive **failover/retry classification** (switching models or providers on repeated failure), a separate mechanism from API-key rotation above.
@@ -145,7 +145,7 @@ Removing saved auth does not revoke the key at the provider — rotate or revoke
 
 ## Removing provider auth while the gateway is running
 
-When you remove provider auth through the gateway control plane, OpenClaw deletes the saved auth profiles for that provider and aborts active chat/agent runs whose selected model provider matches the removed one. Aborted runs emit the normal cancellation/lifecycle events with `stopReason: "auth-revoked"`, so connected clients can show the run stopped because credentials were removed.
+When you remove provider auth through the gateway control plane, Vasudev deletes the saved auth profiles for that provider and aborts active chat/agent runs whose selected model provider matches the removed one. Aborted runs emit the normal cancellation/lifecycle events with `stopReason: "auth-revoked"`, so connected clients can show the run stopped because credentials were removed.
 
 ## Controlling which credential is used
 

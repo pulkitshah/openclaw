@@ -930,7 +930,7 @@ describe("registerSlackInteractionEvents", () => {
     });
   });
 
-  it("registers a matcher that accepts plugin action ids beyond the OpenClaw prefix", () => {
+  it("registers a matcher that accepts plugin action ids beyond the Vasudev prefix", () => {
     const { ctx, getActionMatcher } = createContext();
     registerSlackInteractionEvents({ ctx: ctx as never });
 

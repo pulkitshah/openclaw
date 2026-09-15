@@ -118,9 +118,9 @@ export function uiProtocolFreshnessIssueToHealthFinding(
     path: issue.uiIndexPath,
     fixHint: issue.canBuild
       ? issue.kind === "missing-assets"
-        ? "Run `openclaw doctor --fix` to build Control UI assets."
-        : `Run \`openclaw doctor --fix --force\` to rebuild Control UI assets, or run \`${formatControlUiSourceCommand(issue.root, "build")}\`.`
-      : "Reinstall OpenClaw to restore bundled Control UI assets.",
+        ? "Run `vasudev doctor --fix` to build Control UI assets."
+        : `Run \`vasudev doctor --fix --force\` to rebuild Control UI assets, or run \`${formatControlUiSourceCommand(issue.root, "build")}\`.`
+      : "Reinstall Vasudev to restore bundled Control UI assets.",
   };
 }
 
@@ -153,7 +153,7 @@ function formatUiProtocolFreshnessIssue(issue: UiProtocolFreshnessIssue): string
     message,
     issue.canBuild
       ? `- Run: ${formatControlUiSourceCommand(issue.root, "build")}`
-      : "- Reinstall OpenClaw to restore bundled Control UI assets.",
+      : "- Reinstall Vasudev to restore bundled Control UI assets.",
   ].join("\n");
 }
 

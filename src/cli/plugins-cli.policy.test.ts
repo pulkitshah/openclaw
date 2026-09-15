@@ -621,7 +621,7 @@ describe("plugins cli policy mutations", () => {
     await expect(runPluginsCommand(["plugins", command, id])).rejects.toThrow("__exit__:1");
 
     expect(runtimeErrors).toContain(
-      `Plugin not found: ${id}. Run \`openclaw plugins list\` to see installed plugins, or \`openclaw plugins search ${id}\` to look for installable plugins.`,
+      `Plugin not found: ${id}. Run \`vasudev plugins list\` to see installed plugins, or \`vasudev plugins search ${id}\` to look for installable plugins.`,
     );
     expect(configWriteMock).not.toHaveBeenCalled();
     expect(writePersistedInstalledPluginIndexInstallRecordsWithLeaseMock).not.toHaveBeenCalled();

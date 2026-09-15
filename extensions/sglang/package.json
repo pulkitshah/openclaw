@@ -2,7 +2,7 @@
   "name": "@openclaw/sglang-provider",
   "version": "2026.9.4",
   "private": true,
-  "description": "OpenClaw SGLang provider plugin",
+  "description": "Vasudev SGLang provider plugin",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

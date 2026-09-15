@@ -47,7 +47,7 @@ export function validateOpenAICodexApiKeyInput(value: string): string | undefine
   if (looksLikeJwtToken(trimmed) || looksLikeStructuredCredential(trimmed)) {
     // OAuth/token material belongs in token profiles; storing it as an API key
     // would make provider auth fail later with misleading model errors.
-    return `That looks like token or OAuth material, not an OpenAI API key. Use ${formatCliCommand("openclaw models auth paste-token --provider openai")} for token auth material.`;
+    return `That looks like token or OAuth material, not an OpenAI API key. Use ${formatCliCommand("vasudev models auth paste-token --provider openai")} for token auth material.`;
   }
   return "That does not look like an OpenAI API key.";
 }

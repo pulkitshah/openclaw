@@ -68,7 +68,7 @@ The test toolchain pins stable Vitest `5.0.0`, including its browser and coverag
 packages. Use `describe(name, { concurrent: false }, callback)` for ordered
 suites. Await asynchronous assertions, keep `vi.mock`/`vi.hoisted` at module
 scope, and perform actions whose mock calls you assert inside the test.
-OpenClaw sets `clearMocks: false`, so setup and `beforeAll` calls are preserved.
+Vasudev sets `clearMocks: false`, so setup and `beforeAll` calls are preserved.
 Clear or reset each assertion's owned mock actions explicitly as needed.
 Name patterns spanning suites use `suite > test`; native JSON retains its
 space-joined `fullName`, so evidence readers match `ancestorTitles` plus `title`.
@@ -181,7 +181,7 @@ Every preparation compiles current source; checkout `dist/` is neither an input
 nor a fallback. Build errors, missing artifacts, and changes to recorded build
 inputs fail the run. Compilation includes the native subprocess fixtures before
 they impose resource limits. Third-party dependencies remain external except for
-the always-bundled OpenClaw packages. fs-safe remains external so its native loader
+the always-bundled Vasudev packages. fs-safe remains external so its native loader
 resolves the optional platform package from fs-safe's own dependency scope, including
 nested pnpm installs. Compiled workers use that same installed package; they do not
 copy native binaries. The default stays off, and the existing `off`/`auto`/`require`
@@ -206,7 +206,7 @@ trailer.
 | `pnpm test`                                       | Explicit file/directory targets route through scoped Vitest lanes. Untargeted runs are full-suite proof: fixed shard groups expand to leaf configs for local parallel execution, with the expected shard fanout printed before starting. The extension group always expands to per-extension shard configs instead of one giant root-project process. |
 | `pnpm test:changed`                               | Cheap smart changed-test run: precise targets from direct test edits, sibling `*.test.ts` files, explicit source mappings, and the local import graph. Broad/config/package changes are skipped unless they map to precise tests.                                                                                                                     |
 | `OPENCLAW_TEST_CHANGED_BROAD=1 pnpm test:changed` | Explicit broad changed-test run; use when a test harness/config/package edit should fall back to Vitest's broader changed-test behavior.                                                                                                                                                                                                              |
-| `pnpm test:force`                                 | Frees the configured OpenClaw gateway port (default `18789`), then runs the full suite with an isolated gateway port so server tests do not collide with a running instance.                                                                                                                                                                          |
+| `pnpm test:force`                                 | Frees the configured Vasudev gateway port (default `18789`), then runs the full suite with an isolated gateway port so server tests do not collide with a running instance.                                                                                                                                                                           |
 | `pnpm test:coverage`                              | Emits an informational V8 coverage report for the default unit lane (`vitest.unit.config.ts`); no coverage thresholds are enforced.                                                                                                                                                                                                                   |
 | `pnpm test:coverage:changed`                      | Unit coverage only for files changed since `origin/main`.                                                                                                                                                                                                                                                                                             |
 | `pnpm changed:lanes`                              | Shows the architectural lanes triggered by the diff against `origin/main`.                                                                                                                                                                                                                                                                            |

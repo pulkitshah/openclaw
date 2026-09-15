@@ -119,7 +119,7 @@ it.each([true, false])(
     ]);
     const savedProfileId = Object.keys(store.profiles).find((id) => id !== "openai:default");
     expect(runtime.error.mock.calls.flat().join("\n")).toContain(
-      `openclaw models auth activate ${savedProfileId} --agent main`,
+      `vasudev models auth activate ${savedProfileId} --agent main`,
     );
   },
 );

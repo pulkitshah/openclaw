@@ -1,5 +1,5 @@
 // Gateway OpenAI-compatible chat completions endpoint.
-// Translates OpenAI chat requests to OpenClaw agent runs and SSE/JSON responses.
+// Translates OpenAI chat requests to Vasudev agent runs and SSE/JSON responses.
 import { randomUUID } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { STREAM_ERROR_FALLBACK_TEXT } from "@openclaw/ai/internal/shared";
@@ -1089,7 +1089,7 @@ export async function handleOpenAiHttpRequest(
         });
         return true;
       }
-      const content = resolveAssistantResultText(result) || "No response from OpenClaw.";
+      const content = resolveAssistantResultText(result) || "No response from Vasudev.";
 
       sendJson(res, 200, {
         id: runId,
@@ -1170,7 +1170,7 @@ export async function handleOpenAiHttpRequest(
         pending: pendingAssistantText,
         resultText: finalResultText,
         streamedText: streamedAssistantText.text,
-        fallbackText: finalToolCalls ? "" : "No response from OpenClaw.",
+        fallbackText: finalToolCalls ? "" : "No response from Vasudev.",
       });
       if (!text.startsWith(streamedAssistantText.text)) {
         finishStreamWithError({

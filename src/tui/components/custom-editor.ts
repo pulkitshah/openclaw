@@ -42,7 +42,7 @@ function decodeAltGrPrintable(data: string): string | undefined {
   }
 }
 
-/** Editor with OpenClaw TUI shortcuts layered on top of pi-tui text editing. */
+/** Editor with Vasudev TUI shortcuts layered on top of pi-tui text editing. */
 export class CustomEditor extends Editor {
   onEscape?: () => void;
   onCtrlC?: () => void;

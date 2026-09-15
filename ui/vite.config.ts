@@ -24,6 +24,7 @@ import { createControlUiDevGateway } from "./config/control-ui-dev-gateway.ts";
 import { controlUiHoverGuardPlugin } from "./config/control-ui-hover-guard.ts";
 import { controlUiLocaleModulesPlugin } from "./config/control-ui-locales.ts";
 import { controlUiSocialCardPlugin } from "./config/control-ui-social-card.ts";
+import { MAKER_LINE, PRODUCT_NAME, TAGLINE } from "./src/app/brand.ts";
 import { normalizeControlUiBuildInfo } from "./src/build-info-normalizers.ts";
 import type { ControlUiBuildInfo } from "./src/build-info.ts";
 
@@ -444,6 +445,31 @@ export function controlUiBrowserOnlySharedModuleAliases(): Plugin {
   };
 }
 
+/** `index.html` names the product through `%PRODUCT_NAME%`, `%MAKER_LINE%`, and
+ * `%TAGLINE%` so the pre-app boot copy has the same owner as the running app.
+ * Replacement is idempotent: the build output plugin stamps the emitted document
+ * and `controlUiBrandHtmlPlugin` stamps the dev server's. */
+function applyControlUiBrandPlaceholders(html: string): string {
+  return html
+    .replaceAll("%PRODUCT_NAME%", PRODUCT_NAME)
+    .replaceAll("%MAKER_LINE%", MAKER_LINE)
+    .replaceAll("%TAGLINE%", TAGLINE);
+}
+
+/** Dev twin of the build output plugin's brand stamping: `ui:dev` and the mock
+ * dev server never load build-only plugins, and unstamped placeholders would
+ * reach the browser. */
+function controlUiBrandHtmlPlugin(): Plugin {
+  return {
+    name: "control-ui-brand-html",
+    apply: "serve",
+    transformIndexHtml: {
+      order: "post",
+      handler: applyControlUiBrandPlaceholders,
+    },
+  };
+}
+
 function controlUiBuildOutputPlugin(buildId: string, buildOutDir: string): Plugin {
   let publicAssets: ControlUiAssetManifestEntry[] = [];
   let cacheId: string | undefined;
@@ -468,7 +494,7 @@ function controlUiBuildOutputPlugin(buildId: string, buildOutDir: string): Plugi
       handler(html) {
         // Vite recreates the module entry tag from a fixed attribute set. Finalize every script
         // after synthesis so Cloudflare Rocket Loader cannot defer the Control UI boot sequence.
-        const marked = html.replace(
+        const marked = applyControlUiBrandPlaceholders(html).replace(
           /<script\b(?![^>]*\bdata-cfasync\s*=)/giu,
           '<script data-cfasync="false"',
         );
@@ -678,6 +704,7 @@ export default function controlUiViteConfig(
     },
     plugins: [
       controlUiSocialCardPlugin(),
+      controlUiBrandHtmlPlugin(),
       controlUiLocaleModulesPlugin(),
       controlUiBrowserOnlySharedModuleAliases(),
       controlUiPrecompressedAssetsPlugin(buildOutDir),

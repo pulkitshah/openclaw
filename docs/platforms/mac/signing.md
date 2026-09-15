@@ -44,7 +44,7 @@ DISABLE_LIBRARY_VALIDATION=1 scripts/package-mac-app.sh                         
 
 ## Build metadata for About
 
-Choose **About OpenClaw** to open the standard macOS About panel. It shows the app version and build, with the build timestamp and git commit from Info.plist in its credits. The panel shows missing or invalid timestamp and commit values as unavailable. Re-run the packager after code changes to refresh these values. App update controls live under **Dashboard → Settings → Updates → This Mac**.
+Choose **About Vasudev** to open the standard macOS About panel. It shows the app version and build, with the build timestamp and git commit from Info.plist in its credits. The panel shows missing or invalid timestamp and commit values as unavailable. Re-run the packager after code changes to refresh these values. App update controls live under **Dashboard → Settings → Updates → This Mac**.
 
 ## Related
 

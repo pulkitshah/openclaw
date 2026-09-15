@@ -1377,7 +1377,7 @@ describe("whatsapp inbound dispatch", () => {
         Body: "incoming",
         ReplyToId: "quoted-bot-message",
         ReplyToBody: "Earlier bot reply",
-        ReplyToSender: "OpenClaw",
+        ReplyToSender: "Vasudev",
       },
       deliverReply,
       msg: makeMsg({
@@ -1400,7 +1400,7 @@ describe("whatsapp inbound dispatch", () => {
     expectRecordFields(requireRecord(durableParams.ctxPayload, "durable context"), {
       ReplyToId: "quoted-bot-message",
       ReplyToBody: "Earlier bot reply",
-      ReplyToSender: "OpenClaw",
+      ReplyToSender: "Vasudev",
     });
     expect(deliverReply).not.toHaveBeenCalled();
   });

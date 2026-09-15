@@ -293,6 +293,6 @@ The core `ssh` sandbox backend also supports SecretRefs for SSH auth material:
 
 Runtime behavior:
 
-- OpenClaw resolves these refs during sandbox activation, not lazily on each SSH call.
+- Vasudev resolves these refs during sandbox activation, not lazily on each SSH call.
 - Resolved values are written to a temp directory with restrictive file permissions (`0o600`) and used in the generated SSH config.
 - If the effective sandbox backend is not `ssh` (or sandbox mode is `off`), these refs stay inactive and do not block startup.

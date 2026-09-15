@@ -1,9 +1,7 @@
 // Control UI component renders the login gate.
 import { html, nothing, type TemplateResult } from "lit";
 import { property } from "lit/decorators.js";
-import { normalizeBasePath } from "../app-route-paths.ts";
 import { canReloadControlUiDocument } from "../app/document-reload-guard.ts";
-import { controlUiPublicAssetPath } from "../app/public-assets.ts";
 import { t } from "../i18n/index.ts";
 import "../lib/toast.ts";
 import { registerLoginEnglish } from "../i18n/locales/en-login.ts";
@@ -20,11 +18,12 @@ import {
   type LoginFailureTone,
   resolveLoginFailureFeedback,
 } from "./login-gate-feedback.ts";
+import "./vasu-orb.ts";
+import "./vasu-wordmark.ts";
 
 registerLoginEnglish();
 
 type LoginGateProps = LoginFailureFeedbackParams & {
-  resourceBasePath: string;
   gatewayUrl: string;
   secret: string;
   showGatewaySecret: boolean;
@@ -332,8 +331,6 @@ function renderFormBody(params: { props: LoginGateProps; feedback: LoginFailureF
 }
 
 function renderLoginGate(props: LoginGateProps) {
-  const resourceBasePath = normalizeBasePath(props.resourceBasePath);
-  const faviconSrc = controlUiPublicAssetPath("favicon.svg", resourceBasePath);
   const feedback = resolveLoginFailureFeedback(props);
   const body =
     feedback?.placement === "status"
@@ -345,8 +342,8 @@ function renderLoginGate(props: LoginGateProps) {
       <openclaw-toast-host></openclaw-toast-host>
       <div class="login-gate__card" data-mode=${feedback?.placement ?? "form"}>
         <header class="login-gate__brand">
-          <img class="login-gate__logo" src=${faviconSrc} alt="" />
-          <span class="login-gate__brand-name">OpenClaw</span>
+          <vasu-orb class="login-gate__logo" size="27"></vasu-orb>
+          <vasu-wordmark class="login-gate__brand-name" size="lg" beside-orb></vasu-wordmark>
         </header>
         ${body}
       </div>

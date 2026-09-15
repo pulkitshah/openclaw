@@ -656,7 +656,7 @@ describe("createFeishuClient HTTP timeout", () => {
     });
   });
 
-  it("uses OpenClaw's ambient proxy agent for Feishu HTTP API requests", async () => {
+  it("uses Vasudev's ambient proxy agent for Feishu HTTP API requests", async () => {
     process.env.HTTPS_PROXY = "http://upper-https:8002";
 
     createFeishuClient({

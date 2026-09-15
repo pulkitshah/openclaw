@@ -139,7 +139,7 @@ async function runColdMutation(
     );
     if (!completed || completed.cleanupIncomplete) {
       throw new Error(
-        "Cold transcript worker cleanup is incomplete; restart OpenClaw before another maintenance operation",
+        "Cold transcript worker cleanup is incomplete; restart Vasudev before another maintenance operation",
       );
     }
     return completed.result;

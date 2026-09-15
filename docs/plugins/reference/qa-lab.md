@@ -1,5 +1,5 @@
 ---
-summary: "OpenClaw QA lab plugin with private debugger UI and scenario runner."
+summary: "Vasudev QA lab plugin with private debugger UI and scenario runner."
 read_when:
   - You are installing, configuring, or auditing the qa-lab plugin
 title: "QA Lab plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-OpenClaw QA lab plugin with private debugger UI and scenario runner.
+Vasudev QA lab plugin with private debugger UI and scenario runner.
 
 ## Distribution
 

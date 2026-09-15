@@ -1083,7 +1083,7 @@ describe("sessions_send gating", () => {
 
     expect(requireDetails(result)).toMatchObject({
       status: "error",
-      error: 'Agent "агент✨" not found. Run openclaw agents list to see configured agents.',
+      error: 'Agent "агент✨" not found. Run vasudev agents list to see configured agents.',
     });
     expect(callGatewayMock).not.toHaveBeenCalled();
   });
@@ -1310,7 +1310,7 @@ describe("sessions_send gating", () => {
     const details = requireDetails(result);
     expect(details.status).toBe("forbidden");
     expect(String(details.error)).toBe(
-      "Session send denied because spawned-session ownership lookup failed (transient); retry once, then ask the operator to inspect OpenClaw logs.",
+      "Session send denied because spawned-session ownership lookup failed (transient); retry once, then ask the operator to inspect Vasudev logs.",
     );
     expect(String(details.error)).not.toContain(
       "Session not visible from this sandboxed agent session",

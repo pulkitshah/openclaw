@@ -1,29 +1,29 @@
 ---
-summary: "Host OpenClaw on Hostinger"
+summary: "Host Vasudev on Hostinger"
 read_when:
-  - Setting up OpenClaw on Hostinger
-  - Looking for a managed VPS for OpenClaw
-  - Using Hostinger 1-Click OpenClaw
+  - Setting up Vasudev on Hostinger
+  - Looking for a managed VPS for Vasudev
+  - Using Hostinger 1-Click Vasudev
 title: "Hostinger"
 ---
 
-Run a persistent OpenClaw Gateway on [Hostinger](https://www.hostinger.com/openclaw). Choose a **1-Click** managed deployment, or a **VPS** install you administer yourself.
+Run a persistent Vasudev Gateway on [Hostinger](https://www.hostinger.com/openclaw). Choose a **1-Click** managed deployment, or a **VPS** install you administer yourself.
 
 ## Prerequisites
 
 - Hostinger account ([signup](https://www.hostinger.com/openclaw))
 - About 5-10 minutes
 
-## Option A: 1-Click OpenClaw
+## Option A: 1-Click Vasudev
 
 Hostinger handles infrastructure, Docker, and automatic updates. Fastest path to a running instance.
 
 <Steps>
   <Step title="Purchase and launch">
-    1. From the [Hostinger OpenClaw page](https://www.hostinger.com/openclaw), choose a Managed OpenClaw plan and complete checkout.
+    1. From the [Hostinger Vasudev page](https://www.hostinger.com/openclaw), choose a Managed Vasudev plan and complete checkout.
 
     <Note>
-    During checkout you can select **Ready-to-Use AI** credits. These credits are pre-purchased and integrated instantly inside OpenClaw. You need no external accounts or API keys from other providers. You can start chatting right away. Alternatively, provide your own key from Anthropic, OpenAI, Google Gemini, or xAI during setup.
+    During checkout you can select **Ready-to-Use AI** credits. These credits are pre-purchased and integrated instantly inside Vasudev. You need no external accounts or API keys from other providers. You can start chatting right away. Alternatively, provide your own key from Anthropic, OpenAI, Google Gemini, or xAI during setup.
     </Note>
 
   </Step>
@@ -37,26 +37,26 @@ Hostinger handles infrastructure, Docker, and automatic updates. Fastest path to
   </Step>
 
   <Step title="Complete installation">
-    Click **Finish** to deploy the instance. Once ready, access the OpenClaw dashboard from **OpenClaw Overview** in hPanel.
+    Click **Finish** to deploy the instance. Once ready, access the Vasudev dashboard from **Vasudev Overview** in hPanel.
   </Step>
 
 </Steps>
 
-## Option B: OpenClaw on VPS
+## Option B: Vasudev on VPS
 
-More control over the server. Hostinger deploys OpenClaw via Docker on your VPS. You manage it through the **Docker Manager** in hPanel.
+More control over the server. Hostinger deploys Vasudev via Docker on your VPS. You manage it through the **Docker Manager** in hPanel.
 
 <Steps>
   <Step title="Purchase a VPS">
-    1. From the [Hostinger OpenClaw page](https://www.hostinger.com/openclaw), choose an OpenClaw on VPS plan and complete checkout.
+    1. From the [Hostinger Vasudev page](https://www.hostinger.com/openclaw), choose a Vasudev on VPS plan and complete checkout.
 
     <Note>
-    You can select **Ready-to-Use AI** credits during checkout. These credits are pre-purchased and integrated instantly inside OpenClaw. You can start chatting without any external accounts or API keys from other providers.
+    You can select **Ready-to-Use AI** credits during checkout. These credits are pre-purchased and integrated instantly inside Vasudev. You can start chatting without any external accounts or API keys from other providers.
     </Note>
 
   </Step>
 
-  <Step title="Configure OpenClaw">
+  <Step title="Configure Vasudev">
     Once the VPS is provisioned, fill in the configuration fields:
 
     - **Gateway token** -- auto-generated. Save it for later use.
@@ -66,8 +66,8 @@ More control over the server. Hostinger deploys OpenClaw via Docker on your VPS.
 
   </Step>
 
-  <Step title="Start OpenClaw">
-    Click **Deploy**. Once running, open the OpenClaw dashboard from the hPanel by clicking on **Open**.
+  <Step title="Start Vasudev">
+    Click **Deploy**. Once running, open the Vasudev dashboard from the hPanel by clicking on **Open**.
   </Step>
 
 </Steps>
@@ -76,7 +76,7 @@ Logs, restarts, and updates run from the Docker Manager interface in hPanel. To 
 
 ## Verify your setup
 
-Send "Hi" to your assistant on the channel you connected. OpenClaw replies and walks you through initial preferences.
+Send "Hi" to your assistant on the channel you connected. Vasudev replies and walks you through initial preferences.
 
 ## Troubleshooting
 
@@ -84,7 +84,7 @@ Send "Hi" to your assistant on the channel you connected. OpenClaw replies and w
 
 **Docker container keeps restarting** -- Open Docker Manager logs and look for configuration errors (missing tokens, invalid API keys).
 
-**Telegram bot not responding** -- With DM pairing required, an unknown sender gets a short pairing code, not a reply. Approve it from the OpenClaw dashboard chat. You can also run `openclaw pairing approve telegram <CODE>` if you have shell access to the container. See [Pairing](/channels/pairing).
+**Telegram bot not responding** -- With DM pairing required, an unknown sender gets a short pairing code, not a reply. Approve it from the Vasudev dashboard chat. You can also run `openclaw pairing approve telegram <CODE>` if you have shell access to the container. See [Pairing](/channels/pairing).
 
 ## Next steps
 

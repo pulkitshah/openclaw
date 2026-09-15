@@ -24,7 +24,7 @@ export type CliGatewayStateDirOutcome =
   | { kind: "refuse"; message: string };
 
 export const GATEWAY_SERVICE_PATHS_UNVERIFIED =
-  "Installed Gateway service state and config paths could not be verified. Inspect the service environment with `openclaw gateway status --deep` before repairing plugin state.";
+  "Installed Gateway service state and config paths could not be verified. Inspect the service environment with `vasudev gateway status --deep` before repairing plugin state.";
 
 export async function inspectInstalledGatewayStatePaths(
   timeoutMs = STATE_DIR_CHECK_TIMEOUT_MS,
@@ -98,7 +98,7 @@ export function compareCliGatewayStateDirs(params: {
     kind: "refuse",
     message: [
       `No credentials or configuration were written. CLI and ${params.source} use different ${detail}.`,
-      `Fix: run OPENCLAW_STATE_DIR=${quoteCliArg(gatewayStateDir)} OPENCLAW_CONFIG_PATH=${quoteCliArg(gatewayConfigPath)} ${params.command ?? "openclaw configure"}.`,
+      `Fix: run OPENCLAW_STATE_DIR=${quoteCliArg(gatewayStateDir)} OPENCLAW_CONFIG_PATH=${quoteCliArg(gatewayConfigPath)} ${params.command ?? "vasudev configure"}.`,
       params.source === "live Gateway"
         ? "To write another local store intentionally, stop the running Gateway first."
         : "To write another local store intentionally, uninstall or reconfigure the divergent Gateway service first.",

@@ -231,7 +231,7 @@ export const reefPlugin: ChannelPlugin<ReefAccount> = {
       allowFrom: listTrustedPeers(account.config),
       policyPath: "Reef local peer trust",
       allowFromPath: "Reef local peer trust",
-      approveHint: "openclaw pairing approve reef <code>",
+      approveHint: "vasudev pairing approve reef <code>",
       normalizeEntry: (entry) => normalizeReefTarget(entry) ?? entry,
     }),
   },

@@ -1,14 +1,14 @@
 ---
-summary: "How to route OpenClaw runtime HTTP and WebSocket traffic through an operator-managed filtering proxy"
+summary: "How to route Vasudev runtime HTTP and WebSocket traffic through an operator-managed filtering proxy"
 title: "Network proxy"
 read_when:
   - You want defense-in-depth against SSRF and DNS rebinding attacks
-  - Configuring an external forward proxy for OpenClaw runtime traffic
+  - Configuring an external forward proxy for Vasudev runtime traffic
 ---
 
-OpenClaw can route runtime HTTP and WebSocket traffic through an operator-managed forward proxy. This is optional defense in depth: central egress control, stronger SSRF protection, and destination auditability at the network boundary. Because the proxy evaluates the destination at connect time, after DNS resolution and immediately before it opens the upstream connection, it also narrows the gap a DNS-rebinding attack relies on between an earlier application-level DNS check and the actual outbound connection. A single proxy policy also gives operators one place to enforce destination rules, network segmentation, rate limits, or outbound allowlists without rebuilding OpenClaw.
+Vasudev can route runtime HTTP and WebSocket traffic through an operator-managed forward proxy. This is optional defense in depth: central egress control, stronger SSRF protection, and destination auditability at the network boundary. Because the proxy evaluates the destination at connect time, after DNS resolution and immediately before it opens the upstream connection, it also narrows the gap a DNS-rebinding attack relies on between an earlier application-level DNS check and the actual outbound connection. A single proxy policy also gives operators one place to enforce destination rules, network segmentation, rate limits, or outbound allowlists without rebuilding Vasudev.
 
-OpenClaw does not ship, download, start, configure, or certify a proxy. You run the proxy technology that fits your environment; OpenClaw routes its own HTTP and WebSocket clients through it.
+Vasudev does not ship, download, start, configure, or certify a proxy. You run the proxy technology that fits your environment; Vasudev routes its own HTTP and WebSocket clients through it.
 
 ## Configuration
 
@@ -50,7 +50,7 @@ proxy:
     caFile: /etc/openclaw/proxy-ca.pem
 ```
 
-`proxy.tls.caFile` verifies the proxy endpoint's own TLS certificate. It is not a destination MITM trust setting, a client certificate, or a substitute for the proxy's destination policy. Use `NODE_EXTRA_CA_CERTS` instead only when the entire Node process must trust an additional CA from startup (for example, an enterprise TLS-inspection system re-signing every HTTPS destination certificate) — that variable is process-global and must be set before Node starts, so OpenClaw cannot apply it mid-run the way it applies `proxy.tls.caFile`. Prefer `proxy.tls.caFile` for HTTPS proxy endpoint trust: it is scoped to managed proxy routing instead of the whole process.
+`proxy.tls.caFile` verifies the proxy endpoint's own TLS certificate. It is not a destination MITM trust setting, a client certificate, or a substitute for the proxy's destination policy. Use `NODE_EXTRA_CA_CERTS` instead only when the entire Node process must trust an additional CA from startup (for example, an enterprise TLS-inspection system re-signing every HTTPS destination certificate) — that variable is process-global and must be set before Node starts, so Vasudev cannot apply it mid-run the way it applies `proxy.tls.caFile`. Prefer `proxy.tls.caFile` for HTTPS proxy endpoint trust: it is scoped to managed proxy routing instead of the whole process.
 
 ```bash
 openclaw config set proxy.proxyUrl https://proxy.corp.example:8443
@@ -67,16 +67,16 @@ OpenClaw process
   fetch, node:http, node:https, WebSocket clients  -> operator proxy -> destination
 ```
 
-Internally, OpenClaw installs [Proxyline](https://github.com/openclaw/proxyline) as the process-level routing runtime. It covers `fetch`, undici-backed clients, `node:http`/`node:https`, common WebSocket clients, and helper-created `CONNECT` tunnels, and it replaces caller-provided Node HTTP agents so explicit agents (including `axios`, `got`, `node-fetch`, and similar Node-agent-based clients) cannot silently bypass the proxy.
+Internally, Vasudev installs [Proxyline](https://github.com/openclaw/proxyline) as the process-level routing runtime. It covers `fetch`, undici-backed clients, `node:http`/`node:https`, common WebSocket clients, and helper-created `CONNECT` tunnels, and it replaces caller-provided Node HTTP agents so explicit agents (including `axios`, `got`, `node-fetch`, and similar Node-agent-based clients) cannot silently bypass the proxy.
 
-The proxy URL scheme describes the hop from OpenClaw to the proxy, not to the final destination:
+The proxy URL scheme describes the hop from Vasudev to the proxy, not to the final destination:
 
-- `http://proxy.example:3128` — plain TCP to the proxy; OpenClaw sends HTTP proxy requests, including `CONNECT` for HTTPS destinations.
-- `https://proxy.example:8443` — OpenClaw opens TLS to the proxy itself (verifying the proxy's certificate), then sends HTTP proxy requests inside that session.
+- `http://proxy.example:3128` — plain TCP to the proxy; Vasudev sends HTTP proxy requests, including `CONNECT` for HTTPS destinations.
+- `https://proxy.example:8443` — Vasudev opens TLS to the proxy itself (verifying the proxy's certificate), then sends HTTP proxy requests inside that session.
 
-Destination TLS is independent of proxy-endpoint TLS: for an HTTPS destination, OpenClaw always asks the proxy for a `CONNECT` tunnel and starts destination TLS through that tunnel.
+Destination TLS is independent of proxy-endpoint TLS: for an HTTPS destination, Vasudev always asks the proxy for a `CONNECT` tunnel and starts destination TLS through that tunnel.
 
-While the proxy is active, OpenClaw clears `no_proxy`/`NO_PROXY`. Those bypass lists are destination-based; leaving `localhost` or `127.0.0.1` there would let SSRF targets skip the proxy entirely. On shutdown, OpenClaw restores the prior proxy environment and resets cached routing state.
+While the proxy is active, Vasudev clears `no_proxy`/`NO_PROXY`. Those bypass lists are destination-based; leaving `localhost` or `127.0.0.1` there would let SSRF targets skip the proxy entirely. On shutdown, Vasudev restores the prior proxy environment and resets cached routing state.
 
 Some plugins own a custom transport that needs its own proxy wiring even with process-level routing active. Telegram's Bot API client uses its own HTTP/1 undici dispatcher and separately honors process proxy env plus the `OPENCLAW_PROXY_URL` fallback.
 
@@ -94,17 +94,17 @@ A configured `proxyUrl` or `OPENCLAW_PROXY_URL` enables managed routing. Set
 `proxy.enabled: false` only as an advanced opt-out that keeps the URL stored
 without activating it.
 
-| Mode                     | Behavior                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gateway-only` (default) | OpenClaw registers the active Gateway loopback authority as a direct-connect exception, so local Gateway WebSocket traffic connects without the proxy. Custom loopback ports work because the exception targets the exact configured host/port. The bundled browser plugin registers the same kind of exception for the exact local CDP readiness and DevTools WebSocket URLs of OpenClaw-launched managed browsers; the bundled Ollama memory embedding provider has a narrower guarded direct path for its exact configured host-local loopback embedding origin. |
-| `proxy`                  | No loopback exceptions are registered; Gateway and Ollama loopback traffic goes through the proxy. A remote proxy must be able to route back to the OpenClaw host's loopback service (for example via a reachable hostname, IP, or tunnel) — a standard remote proxy resolves `127.0.0.1`/`localhost` against itself, not against the OpenClaw host.                                                                                                                                                                                                                |
-| `block`                  | OpenClaw denies Gateway loopback control-plane connections and guarded Ollama loopback embedding connections before opening a socket.                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| Mode                     | Behavior                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `gateway-only` (default) | Vasudev registers the active Gateway loopback authority as a direct-connect exception, so local Gateway WebSocket traffic connects without the proxy. Custom loopback ports work because the exception targets the exact configured host/port. The bundled browser plugin registers the same kind of exception for the exact local CDP readiness and DevTools WebSocket URLs of Vasudev-launched managed browsers; the bundled Ollama memory embedding provider has a narrower guarded direct path for its exact configured host-local loopback embedding origin. |
+| `proxy`                  | No loopback exceptions are registered; Gateway and Ollama loopback traffic goes through the proxy. A remote proxy must be able to route back to the Vasudev host's loopback service (for example via a reachable hostname, IP, or tunnel) — a standard remote proxy resolves `127.0.0.1`/`localhost` against itself, not against the Vasudev host.                                                                                                                                                                                                                |
+| `block`                  | Vasudev denies Gateway loopback control-plane connections and guarded Ollama loopback embedding connections before opening a socket.                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 Gateway control-plane bypass is limited to `localhost` and literal loopback IP URLs — use `ws://127.0.0.1:18789`, `ws://[::1]:18789`, or `ws://localhost:18789`. Other hostnames route like ordinary traffic.
 
 ### Containers
 
-For `openclaw --container ...` commands, OpenClaw forwards `OPENCLAW_PROXY_URL` into the container-targeted child CLI when it is set. The URL must be reachable from inside the container — `127.0.0.1` there refers to the container itself, not the host. OpenClaw rejects loopback proxy URLs for container-targeted commands unless you set `OPENCLAW_CONTAINER_ALLOW_LOOPBACK_PROXY_URL=1` to explicitly override that check.
+For `openclaw --container ...` commands, Vasudev forwards `OPENCLAW_PROXY_URL` into the container-targeted child CLI when it is set. The URL must be reachable from inside the container — `127.0.0.1` there refers to the container itself, not the host. Vasudev rejects loopback proxy URLs for container-targeted commands unless you set `OPENCLAW_CONTAINER_ALLOW_LOOPBACK_PROXY_URL=1` to explicitly override that check.
 
 ## Related proxy terms
 
@@ -116,16 +116,16 @@ For `openclaw --container ...` commands, OpenClaw forwards `OPENCLAW_PROXY_URL` 
 
 ## Validating the proxy
 
-The proxy's destination policy is the actual security boundary; OpenClaw cannot verify that your proxy blocks the right targets. Configure it to:
+The proxy's destination policy is the actual security boundary; Vasudev cannot verify that your proxy blocks the right targets. Configure it to:
 
-- Bind only to loopback or a private trusted interface, reachable only by the OpenClaw process/host/container/service account.
+- Bind only to loopback or a private trusted interface, reachable only by the Vasudev process/host/container/service account.
 - Resolve destinations itself and block by IP after DNS resolution, at connect time, for both plain HTTP and HTTPS `CONNECT` tunnels.
 - Reject destination-based bypasses for loopback, private, link-local, metadata, multicast, reserved, and documentation ranges.
 - Avoid hostname allowlists unless you fully trust the DNS resolution path.
 - Log destination, decision, status, and reason — never request bodies, authorization headers, cookies, or other secrets.
 - Keep the policy under version control and review changes as security-sensitive.
 
-Validate from the same host/container/service account that runs OpenClaw:
+Validate from the same host/container/service account that runs Vasudev:
 
 ```bash
 openclaw proxy validate --proxy-url http://127.0.0.1:3128
@@ -150,7 +150,7 @@ openclaw proxy validate --proxy-url https://proxy.corp.example:8443 --proxy-ca-f
 
 If no config, environment, or `--proxy-url` value is available, the command reports a config problem; pass `--proxy-url` for a one-off preflight before changing config.
 
-With no `--allowed-url`/`--denied-url`, the default checks are: `https://example.com/` must succeed, and a temporary loopback canary server the proxy must not reach must be blocked. The loopback check passes on a transport failure, or on a non-2xx response that lacks the canary's per-run token; it fails on a 2xx response missing the token (an unexpected success from something other than the canary) and, especially, on any response carrying the matching token, since that proves the proxy actually forwarded a loopback destination it should have denied. Custom `--denied-url` targets have no such canary token, so they are fail-closed: any HTTP response counts as reachable, and a transport error fails the check too, because OpenClaw cannot confirm your proxy denied a reachable origin versus something else going wrong. Only the built-in loopback canary treats a transport error as proof of blocking. See [`openclaw proxy`](/cli/proxy) for the CLI-side statement of the same rule. `--apns-reachable` sends an intentionally invalid provider token, so a `403 InvalidProviderToken` response counts as proof the tunnel reached Apple. The command exits `1` on any validation failure; proxy URL credentials are redacted from both text and JSON output.
+With no `--allowed-url`/`--denied-url`, the default checks are: `https://example.com/` must succeed, and a temporary loopback canary server the proxy must not reach must be blocked. The loopback check passes on a transport failure, or on a non-2xx response that lacks the canary's per-run token; it fails on a 2xx response missing the token (an unexpected success from something other than the canary) and, especially, on any response carrying the matching token, since that proves the proxy actually forwarded a loopback destination it should have denied. Custom `--denied-url` targets have no such canary token, so they are fail-closed: any HTTP response counts as reachable, and a transport error fails the check too, because Vasudev cannot confirm your proxy denied a reachable origin versus something else going wrong. Only the built-in loopback canary treats a transport error as proof of blocking. See [`openclaw proxy`](/cli/proxy) for the CLI-side statement of the same rule. `--apns-reachable` sends an intentionally invalid provider token, so a `403 InvalidProviderToken` response counts as proof the tunnel reached Apple. The command exits `1` on any validation failure; proxy URL credentials are redacted from both text and JSON output.
 
 ```json
 {
@@ -178,7 +178,7 @@ curl -x http://127.0.0.1:3128 http://169.254.169.254/
 
 ## Recommended blocked destinations
 
-Starting denylist for any forward proxy, firewall, or egress policy. OpenClaw's own SSRF classifier lives in `src/infra/net/ssrf.ts` and `packages/net-policy/src/ip.ts` (`BLOCKED_HOSTNAMES`, `BLOCKED_IPV4_SPECIAL_USE_RANGES`, `BLOCKED_IPV6_SPECIAL_USE_RANGES`, the RFC 2544 benchmark prefix, and embedded-IPv4 handling for NAT64/6to4/Teredo/ISATAP/IPv4-mapped forms) — useful references, but OpenClaw does not export or enforce these rules in your external proxy.
+Starting denylist for any forward proxy, firewall, or egress policy. Vasudev's own SSRF classifier lives in `src/infra/net/ssrf.ts` and `packages/net-policy/src/ip.ts` (`BLOCKED_HOSTNAMES`, `BLOCKED_IPV4_SPECIAL_USE_RANGES`, `BLOCKED_IPV6_SPECIAL_USE_RANGES`, the RFC 2544 benchmark prefix, and embedded-IPv4 handling for NAT64/6to4/Teredo/ISATAP/IPv4-mapped forms) — useful references, but Vasudev does not export or enforce these rules in your external proxy.
 
 | Range or host                                                                        | Why to block                                      |
 | ------------------------------------------------------------------------------------ | ------------------------------------------------- |
@@ -213,13 +213,13 @@ Add any additional metadata hosts or reserved ranges your cloud provider or netw
 | Other raw `net`, `tls`, or `http2` client calls              | Must be classified by the raw socket guard before landing.                                                                                               |
 
 - This is process-level coverage for JavaScript HTTP/WebSocket clients, not an OS-level network sandbox.
-- Raw `net`, `tls`, `http2` sockets, native addons, and non-OpenClaw child processes may bypass Node-level routing unless they inherit and respect proxy environment variables. Forked OpenClaw child CLIs inherit the managed proxy URL and `proxy.loopbackMode` state.
+- Raw `net`, `tls`, `http2` sockets, native addons, and non-Vasudev child processes may bypass Node-level routing unless they inherit and respect proxy environment variables. Forked Vasudev child CLIs inherit the managed proxy URL and `proxy.loopbackMode` state.
 - User local WebUIs and local model servers are not covered by a general local-network bypass — allowlist them in the operator proxy policy if needed. The exception is the bundled Ollama memory embedding provider's guarded direct path, scoped to the exact host-local loopback origin from its configured `baseUrl`; LAN, tailnet, private-network, and public Ollama hosts still use the managed proxy.
 - The local debug proxy's direct upstream forwarding (for proxy requests and `CONNECT` tunnels) is disabled by default while managed proxy mode is active; enable it only for approved local diagnostics.
-- OpenClaw does not inspect, test, or certify your proxy policy. Treat proxy policy changes as security-sensitive operational changes.
+- Vasudev does not inspect, test, or certify your proxy policy. Treat proxy policy changes as security-sensitive operational changes.
 
 ## Related
 
-- [Threat model](/security/THREAT-MODEL-ATLAS) — adversarial threats to the OpenClaw platform and ClawHub, mapped to MITRE ATLAS
-- [Security](/gateway/security) — the trust model, safe defaults, and hardening guidance for running OpenClaw
+- [Threat model](/security/THREAT-MODEL-ATLAS) — adversarial threats to the Vasudev platform and ClawHub, mapped to MITRE ATLAS
+- [Security](/gateway/security) — the trust model, safe defaults, and hardening guidance for running Vasudev
 - [Proxy](/cli/proxy) — `openclaw proxy`, which validates operator-managed proxy routing and runs the local debug capture proxy

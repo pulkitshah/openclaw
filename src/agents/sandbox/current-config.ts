@@ -6,13 +6,13 @@ import type { SandboxScope } from "./types.js";
 
 function formatSandboxRecreateHint(params: { scope: SandboxScope; sessionKey: string }) {
   if (params.scope === "session") {
-    return formatCliCommand(`openclaw sandbox recreate --session ${params.sessionKey}`);
+    return formatCliCommand(`vasudev sandbox recreate --session ${params.sessionKey}`);
   }
   if (params.scope === "agent") {
     const agentId = resolveSandboxAgentId(params.sessionKey) ?? "main";
-    return formatCliCommand(`openclaw sandbox recreate --agent ${agentId}`);
+    return formatCliCommand(`vasudev sandbox recreate --agent ${agentId}`);
   }
-  return formatCliCommand("openclaw sandbox recreate --all");
+  return formatCliCommand("vasudev sandbox recreate --all");
 }
 
 export function handleHotSandboxConfigMismatch(params: {

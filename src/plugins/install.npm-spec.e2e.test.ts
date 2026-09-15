@@ -935,7 +935,7 @@ describe("installPluginFromNpmSpec e2e", () => {
     ).resolves.toBe(true);
   });
 
-  it("keeps an earlier isolated openclaw peer link after later plugin installs", async () => {
+  it("keeps an earlier isolated vasudev peer link after later plugin installs", async () => {
     const { rootDir, npmRoot } = await makeInstallFixture("npm-plugin-peer-e2e");
     const peerPackageName = uniquePackageName("peer-plugin");
     const laterPackageName = uniquePackageName("later-plugin");

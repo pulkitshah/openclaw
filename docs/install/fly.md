@@ -1,12 +1,12 @@
 ---
-summary: "Step-by-step Fly.io deployment for OpenClaw with persistent storage and HTTPS"
+summary: "Step-by-step Fly.io deployment for Vasudev with persistent storage and HTTPS"
 title: Fly.io
 read_when:
-  - Deploying OpenClaw on Fly.io
+  - Deploying Vasudev on Fly.io
   - Setting up Fly volumes, secrets, and first-run config
 ---
 
-**Goal:** OpenClaw Gateway running on a [Fly.io](https://fly.io) machine with persistent storage, automatic HTTPS, and Discord/channel access.
+**Goal:** Vasudev Gateway running on a [Fly.io](https://fly.io) machine with persistent storage, automatic HTTPS, and Discord/channel access.
 
 ## What you need
 
@@ -82,7 +82,7 @@ read_when:
       destination = "/data"
     ```
 
-    The OpenClaw Docker image entrypoint is `tini`, running `node openclaw.mjs gateway` by default. Fly `[processes]` replaces the Docker `CMD` (here it runs `node dist/index.js gateway ...` directly, the same compiled entrypoint) without touching `ENTRYPOINT`, so the process still runs under `tini`.
+    The Vasudev Docker image entrypoint is `tini`, running `node openclaw.mjs gateway` by default. Fly `[processes]` replaces the Docker `CMD` (here it runs `node dist/index.js gateway ...` directly, the same compiled entrypoint) without touching `ENTRYPOINT`, so the process still runs under `tini`.
 
     **Key settings:**
 
@@ -283,7 +283,7 @@ fly machine update <machine-id> --vm-memory 2048 -y
 Gateway refuses to start with "already running" errors after a container restart.
 
 With `OPENCLAW_STATE_DIR=/data`, the lock tree lives under
-`/data/tmp/openclaw-<uid>` and persists with the volume. OpenClaw normally
+`/data/tmp/openclaw-<uid>` and persists with the volume. Vasudev normally
 reclaims stale owners automatically. If startup continues to report an owner,
 first use `fly status` and `fly logs` to verify that no other machine or Gateway
 process is using the volume. Do not delete the lock tree while an owner may
@@ -471,7 +471,7 @@ With the recommended config (`shared-cpu-2x`, 2GB RAM), expect roughly $10-15/mo
 
 - Set up messaging channels: [Channels](/channels)
 - Configure the Gateway: [Gateway configuration](/gateway/configuration)
-- Keep OpenClaw up to date: [Updating](/install/updating)
+- Keep Vasudev up to date: [Updating](/install/updating)
 
 ## Related
 

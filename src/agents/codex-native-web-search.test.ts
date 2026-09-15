@@ -51,7 +51,7 @@ describe("resolveCodexNativeSearchActivation", () => {
   });
 
   it("activates for direct openai when auth exists", () => {
-    // Direct OpenAI needs bridgeable auth before OpenClaw can suppress the
+    // Direct OpenAI needs bridgeable auth before Vasudev can suppress the
     // managed web-search tool in favor of Codex native search.
     const result = resolveCodexNativeSearchActivation({
       config: {

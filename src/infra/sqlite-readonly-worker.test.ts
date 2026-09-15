@@ -182,7 +182,7 @@ describe.each(["async", "sync"] as const)("SQLite read-only snapshot worker (%s)
         );
       }
       await expect(run(source)).rejects.toThrow(
-        `SQLite read-only snapshot timed out after ${seconds} seconds (budget for ${size}) for ${source}. Stop the Gateway service and other OpenClaw processes using this database, then retry; if already stopped, check storage performance.`,
+        `SQLite read-only snapshot timed out after ${seconds} seconds (budget for ${size}) for ${source}. Stop the Gateway service and other Vasudev processes using this database, then retry; if already stopped, check storage performance.`,
       );
       expectBudget(seconds * 1000);
     },

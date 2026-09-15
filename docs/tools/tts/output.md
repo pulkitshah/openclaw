@@ -21,15 +21,15 @@ Telegram also advertises captioned final TTS. With `tts.mode: "final"` and
 Auto-TTS set to `always` (or eligible `inbound` mode), streamed text is held
 until synthesis finishes and sent as the voice-note caption. Text beyond
 Telegram's caption limit follows the voice note as a normal text message. If
-synthesis or a proven pre-send delivery step fails, OpenClaw sends the visible
+synthesis or a proven pre-send delivery step fails, Vasudev sends the visible
 text instead. `tagged` mode keeps its normal streaming behavior, and text
 inside a `[[tts:text]]` block remains audio-only.
 
-After synthesis, OpenClaw persists batch TTS output in the media store under
+After synthesis, Vasudev persists batch TTS output in the media store under
 `tool-speech-synthesis`. The reply uses that stable media path instead of a
 provider temporary file, and normal media maintenance prunes expired output.
 Local CLI providers may still use `{{OutputPath}}` as scratch space before
-OpenClaw imports the completed bytes. See [Media playback](/nodes/media-playback)
+Vasudev imports the completed bytes. See [Media playback](/nodes/media-playback)
 for inline-player formats and limits.
 
 | Target                                | Format                                                                                                                                |
@@ -44,7 +44,7 @@ Per-provider notes:
 - **MiniMax:** MP3 (`speech-2.8-hd` model, 32 kHz sample rate) for normal audio attachments; transcoded to 48 kHz Opus with `ffmpeg` for channel-advertised voice-note targets.
 - **Xiaomi MiMo:** MP3 by default, or WAV when configured; transcoded to 48 kHz Opus with `ffmpeg` for channel-advertised voice-note targets.
 - **Local CLI:** uses the configured `outputFormat`. Voice-note targets are converted to Ogg/Opus and telephony output is converted to raw 16 kHz mono PCM with `ffmpeg`.
-- **Google Gemini:** returns raw 24 kHz PCM. OpenClaw wraps it as WAV for audio attachments, transcodes it to 48 kHz Opus for voice-note targets, and returns PCM directly for Talk/telephony.
+- **Google Gemini:** returns raw 24 kHz PCM. Vasudev wraps it as WAV for audio attachments, transcodes it to 48 kHz Opus for voice-note targets, and returns PCM directly for Talk/telephony.
 - **Gradium:** WAV for audio attachments, Opus for voice-note targets, and `ulaw_8000` at 8 kHz for telephony.
 - **Inworld:** MP3 for normal audio attachments, native `OGG_OPUS` for voice-note targets, and raw `PCM` at 22050 Hz for Talk/telephony.
 - **xAI:** MP3 by default; audio-file synthesis may use `mp3`, `wav`, `pcm`, `mulaw`, or `alaw` for both buffered and streaming output. Voice-note targets use MP3 for streaming and buffered fallback because xAI's `pcm`, `mulaw`, and `alaw` outputs are headerless raw audio. Buffered synthesis uses xAI's batch REST `/v1/tts` endpoint; `textToSpeechStream` uses native `wss://api.x.ai/v1/tts`. This is not the realtime voice contract. Native Opus voice-note format is not supported.
@@ -52,8 +52,8 @@ Per-provider notes:
   - The bundled transport accepts an `outputFormat`, but not all formats are available from the service.
   - Output format values follow Microsoft Speech output formats (including Ogg/WebM Opus).
   - Telegram `sendVoice` accepts OGG/MP3/M4A; use OpenAI/ElevenLabs if you need guaranteed Opus voice messages.
-  - If the configured Microsoft output format fails, OpenClaw retries with MP3.
-  - When no explicit voice override is set and the default English voice is used, OpenClaw auto-switches to a Chinese neural voice (`zh-CN-XiaoxiaoNeural`, `zh-CN` locale) if the reply text is CJK-dominant.
+  - If the configured Microsoft output format fails, Vasudev retries with MP3.
+  - When no explicit voice override is set and the default English voice is used, Vasudev auto-switches to a Chinese neural voice (`zh-CN-XiaoxiaoNeural`, `zh-CN` locale) if the reply text is CJK-dominant.
 
 OpenAI and ElevenLabs choose output formats per channel as listed above. An
 explicit OpenAI `responseFormat` overrides that selection; a format that is not
@@ -62,7 +62,7 @@ channel that supports conversion.
 
 ## Auto-TTS behavior
 
-When `tts.auto` is enabled, OpenClaw:
+When `tts.auto` is enabled, Vasudev:
 
 - Keeps terminal slash and plugin command replies text-only, including with
   `auto: "always"`. Explicit speech requests such as `/tts audio` and `/tts latest`
@@ -80,7 +80,7 @@ When `tts.auto` is enabled, OpenClaw:
   text. Generated media goes through the same channel media normalization as
   normal reply attachments.
 
-If the reply exceeds `maxLength`, OpenClaw never skips audio outright:
+If the reply exceeds `maxLength`, Vasudev never skips audio outright:
 
 - **Summary on** (default) and a summary model is available: summarizes the
   text to roughly `maxLength` chars, then synthesizes the summary.

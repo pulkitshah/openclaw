@@ -245,7 +245,7 @@ async function assertFullResetPreservesOnboardingLock(workspaceDir: string): Pro
   ) {
     throw new Error(
       "Full reset workspace overlaps the active onboarding lock directory. " +
-        "Choose a workspace outside the OpenClaw state migration directory or use a narrower reset scope.",
+        "Choose a workspace outside the Vasudev state migration directory or use a narrower reset scope.",
     );
   }
 }

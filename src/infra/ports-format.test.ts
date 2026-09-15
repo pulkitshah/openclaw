@@ -10,7 +10,7 @@ import {
   isSameProcessSpecificIpv4WithLoopbackListeners,
 } from "./ports-format.js";
 
-const gatewayAlreadyRunningHint = `Gateway already running locally. Stop it (${formatCliCommand("openclaw gateway stop")}) or use a different port.`;
+const gatewayAlreadyRunningHint = `Gateway already running locally. Stop it (${formatCliCommand("vasudev gateway stop")}) or use a different port.`;
 const multipleListenersHint =
   "Multiple listeners detected; ensure only one gateway/tunnel per port unless intentionally running isolated profiles.";
 

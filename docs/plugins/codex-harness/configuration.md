@@ -12,20 +12,20 @@ The Codex harness configuration map and the turn-level behavior each setting con
 
 ## Configuration
 
-| Need                                                | Set                                                                                                       | Where                              |
-| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| Enable the harness                                  | `plugins.entries.codex.enabled: true`                                                                     | OpenClaw config                    |
-| Hide native Codex session discovery                 | `plugins.entries.codex.config.sessionCatalog.enabled: false`                                              | Codex plugin config                |
-| Include additional local Codex stores (stdio only)  | `plugins.entries.codex.config.sessionCatalog.homes`                                                       | Codex plugin config                |
-| Keep an allowlisted plugin install                  | Include `codex` in `plugins.allow`                                                                        | OpenClaw config                    |
-| Allow eligible OpenAI turns to use Codex implicitly | Exact official HTTPS Responses/ChatGPT route, no authored provider request override, runtime unset/`auto` | OpenAI provider/model config       |
-| Sign in with ChatGPT/Codex OAuth                    | `openclaw models auth login --provider openai`                                                            | CLI auth profile                   |
-| Add API-key backup for Codex runs                   | `openai:*` API-key profile listed after subscription auth in `auth.order.openai`                          | CLI auth profile + OpenClaw config |
-| Fail closed when Codex is unavailable               | Provider or model `agentRuntime.id: "codex"`                                                              | OpenClaw model/provider config     |
-| Use direct OpenAI API traffic                       | Provider or model `agentRuntime.id: "openclaw"` with normal OpenAI auth                                   | OpenClaw model/provider config     |
-| Tune app-server behavior                            | `plugins.entries.codex.config.appServer.*`                                                                | Codex plugin config                |
-| Enable native Codex plugin apps                     | `plugins.entries.codex.config.codexPlugins.*`                                                             | Codex plugin config                |
-| Enable Codex Computer Use                           | `plugins.entries.codex.config.computerUse.*`                                                              | Codex plugin config                |
+| Need                                                | Set                                                                                                       | Where                             |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| Enable the harness                                  | `plugins.entries.codex.enabled: true`                                                                     | Vasudev config                    |
+| Hide native Codex session discovery                 | `plugins.entries.codex.config.sessionCatalog.enabled: false`                                              | Codex plugin config               |
+| Include additional local Codex stores (stdio only)  | `plugins.entries.codex.config.sessionCatalog.homes`                                                       | Codex plugin config               |
+| Keep an allowlisted plugin install                  | Include `codex` in `plugins.allow`                                                                        | Vasudev config                    |
+| Allow eligible OpenAI turns to use Codex implicitly | Exact official HTTPS Responses/ChatGPT route, no authored provider request override, runtime unset/`auto` | OpenAI provider/model config      |
+| Sign in with ChatGPT/Codex OAuth                    | `openclaw models auth login --provider openai`                                                            | CLI auth profile                  |
+| Add API-key backup for Codex runs                   | `openai:*` API-key profile listed after subscription auth in `auth.order.openai`                          | CLI auth profile + Vasudev config |
+| Fail closed when Codex is unavailable               | Provider or model `agentRuntime.id: "codex"`                                                              | Vasudev model/provider config     |
+| Use direct OpenAI API traffic                       | Provider or model `agentRuntime.id: "openclaw"` with normal OpenAI auth                                   | Vasudev model/provider config     |
+| Tune app-server behavior                            | `plugins.entries.codex.config.appServer.*`                                                                | Codex plugin config               |
+| Enable native Codex plugin apps                     | `plugins.entries.codex.config.codexPlugins.*`                                                             | Codex plugin config               |
+| Enable Codex Computer Use                           | `plugins.entries.codex.config.computerUse.*`                                                              | Codex plugin config               |
 
 Prefer `auth.order.openai` for subscription-first/API-key-backup ordering.
 Existing legacy Codex auth profile ids and legacy Codex auth order are
@@ -49,13 +49,13 @@ cutoff controls are runtime controls, not request overrides.
 
 ### Restricted turns and ring zero
 
-OpenClaw applies Codex restrictions per turn, not as a permanent session mode.
+Vasudev applies Codex restrictions per turn, not as a permanent session mode.
 An existing session can therefore run one restricted turn and return to its
 normal Codex thread on the next unrestricted turn. When a restriction is
-temporary, OpenClaw preserves the normal thread binding and uses a temporary
+temporary, Vasudev preserves the normal thread binding and uses a temporary
 restricted thread where necessary.
 
-An ordinary **policy-restricted turn** occurs when an explicit OpenClaw tool
+An ordinary **policy-restricted turn** occurs when an explicit Vasudev tool
 policy cannot be mapped safely onto Codex's native tool surface. Common
 triggers include:
 
@@ -67,21 +67,21 @@ triggers include:
   scheduled, or runtime tool policy with one of those restrictions
 
 Default tool-profile narrowing alone does not trigger this mode. A deny list
-containing only audited OpenClaw-owned tools can also stay on the normal native
+containing only audited Vasudev-owned tools can also stay on the normal native
 surface; the harness enforces those denies without disabling unrelated Codex
 capabilities. See [Native tool-policy enforcement](/plugins/sdk-agent-harness#native-tool-policy-enforcement)
 for the generic harness contract and [Codex harness reference](/plugins/codex-harness-reference#restricted-turns)
 for the current Codex rules.
 
-For an ordinary policy-restricted turn, OpenClaw disables Codex native Code
+For an ordinary policy-restricted turn, Vasudev disables Codex native Code
 Mode, removes environment selections, disables and verifies inherited and
 native configured MCP servers, and disables native hook relays. Static configured
-MCP tools that pass the effective policy move to OpenClaw's dynamic surface for
-that turn. Other OpenClaw dynamic tools use the same policy. The bounded workspace `AGENTS.md`
+MCP tools that pass the effective policy move to Vasudev's dynamic surface for
+that turn. Other Vasudev dynamic tools use the same policy. The bounded workspace `AGENTS.md`
 snapshot still reaches the model as thread-level developer instructions because
 project instructions are context, not tool authority.
 
-**Ring zero** is stronger and separate. It is the host-owned OpenClaw system
+**Ring zero** is stronger and separate. It is the host-owned Vasudev system
 agent used for setup and repair operations. The host activates it with the
 single `openclaw` tool; normal agent config cannot opt a chat into ring zero.
 Ring-zero turns keep only that host-scoped tool, replace ambient Codex
@@ -97,12 +97,12 @@ synonyms for ring zero.
 ### Project instructions
 
 Codex loads `AGENTS.md` files through native project-document discovery. For
-normal app-server threads, OpenClaw raises Codex's aggregate root-to-working-
+normal app-server threads, Vasudev raises Codex's aggregate root-to-working-
 directory budget from the upstream 32 KiB default to a bounded 128 KiB so later
 scoped instructions are not silently clipped. Ordinary conversation tool-policy
 restrictions preserve that budget because project instructions are context, not
 tool authority. Their isolated native environment cannot read workspace files,
-so OpenClaw supplies the bounded workspace `AGENTS.md` snapshot as thread-level
+so Vasudev supplies the bounded workspace `AGENTS.md` snapshot as thread-level
 developer instructions. An explicitly authored native
 `project_doc_max_bytes` setting overrides the 128 KiB fallback for ordinary
 threads; Codex's materialized 32 KiB default does not. Lightweight, ring-zero,
@@ -121,13 +121,13 @@ whether any individual file was fully loaded or truncated.
 
 Do not set `compaction.model` or `compaction.provider` on Codex-backed
 agents. Codex compacts through its native app-server thread state, so
-OpenClaw ignores those local summarizer overrides at runtime, and
+Vasudev ignores those local summarizer overrides at runtime, and
 `openclaw doctor --fix` removes them when the agent uses Codex.
 
 An authored `models.providers.*.models[].contextTokens` cap is forwarded to
 Codex thread start and resume as `model_context_window`. Codex clamps the value
 to the model's native maximum and derives automatic compaction from the capped
-window. When the model entry has no authored cap, OpenClaw sends no override.
+window. When the model entry has no authored cap, Vasudev sends no override.
 
 Lossless remains supported as a context engine for assembly, ingestion, and
 maintenance around Codex turns, configured through
@@ -143,7 +143,7 @@ do not provide that host capability.
 For Codex-backed agents, `/compact` starts native Codex app-server
 compaction on the bound thread and waits for its terminal result. The shared
 `agents.defaults.compaction.timeoutSeconds` budget applies; on timeout,
-OpenClaw asks Codex to interrupt the native turn and keeps the per-thread fence
+Vasudev asks Codex to interrupt the native turn and keeps the per-thread fence
 until termination is confirmed. It never falls back to a context engine or
 public OpenAI summarizer. If the native Codex thread binding is missing or
 stale, the command fails closed instead of silently switching compaction
@@ -213,8 +213,8 @@ refresh_interval_ms = 300000
 
 The auth helper must print only the key to stdout. Do not put it in TOML.
 
-For the OpenClaw Codex app-server harness, keep the default agent-scoped Codex
-home and let OpenClaw inject an `openai` API-key profile. Create the profile by
+For the Vasudev Codex app-server harness, keep the default agent-scoped Codex
+home and let Vasudev inject an `openai` API-key profile. Create the profile by
 the normal OpenAI API-key auth flow, put its actual id first in
 `auth.order.openai`, and pass the catalog and context limits as native Codex
 app-server arguments:
@@ -272,7 +272,7 @@ rather than relying on `homeScope: "user"` to provide the intended credential.
 
 The model catalog, `model_context_window`, total-scope automatic compaction
 limit, exact `openai/gpt-5.6-sol` route, and API-key profile order form one
-configuration unit. Apply them together. OpenClaw can keep embedded and native
+configuration unit. Apply them together. Vasudev can keep embedded and native
 long-context choices at the same time only when their model refs or agent
 configurations are distinguishable; one model entry cannot carry both
 runtime-owned compaction strategies.
@@ -291,7 +291,7 @@ of `875900`. Active context grew from `197032` to `377386`, `561957`, and
 automatic compaction to `75980` active tokens, with a minimum after-compaction
 snapshot of `68375`. Compaction took `2810` ms and persisted a count of one. A
 durable marker survived compaction and restart, a deterministic long response
-produced `5442` output tokens, and OpenClaw sent the Codex app-server tier
+produced `5442` output tokens, and Vasudev sent the Codex app-server tier
 `priority` on every call. That request evidence does not prove which upstream
 tier processed each call. The full suite took `401.37` seconds. These timings
 are observations, not service-level guarantees.
@@ -302,7 +302,7 @@ OpenAI bills the entire request at 2× input and cache rates and 1.5× output
 rates. Fast-mode pricing is model-specific; GPT-5.6 Sol API Fast mode (formerly
 Priority processing) is currently another 2× over Standard, so this recipe is
 4× short-context Standard input-side pricing and 3× short-context Standard
-output pricing. OpenClaw currently sends the wire value
+output pricing. Vasudev currently sends the wire value
 `service_tier: "priority"`. ChatGPT/Codex-credit Fast mode is separate: GPT-5.6
 and GPT-5.5 currently consume 2.5× Standard credits, while this API-key Codex
 route uses API token pricing. The API remains authoritative for access, actual

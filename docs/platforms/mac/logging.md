@@ -40,7 +40,7 @@ This also protects private interpolations in strings that are concatenated befor
 
 Some shared components use native OSLog directly rather than the app's swift-log bridge. Native OSLog normally redacts private values; explicitly public values remain visible. For those native events, a subsystem plist in `/Library/Preferences/Logging/Subsystems/` can enable private-data capture. This is not a way to reveal the bridge's `<private>` placeholders or hashes. Background: [macOS logging privacy shenanigans](https://steipete.me/posts/2025/logging-privacy-shenanigans).
 
-## Enable for OpenClaw (`ai.openclaw`)
+## Enable for Vasudev (`ai.openclaw`)
 
 Use this only when you need private values from **native OSLog** events. Check for an existing `ai.openclaw.plist` first and preserve it so you can restore the prior settings afterward. Write the plist to a temp file, then install it atomically as root:
 

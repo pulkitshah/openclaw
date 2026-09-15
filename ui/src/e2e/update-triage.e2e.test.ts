@@ -187,7 +187,7 @@ suite.define(() => {
             await replacementDocument;
             await gateway.waitForRequest("update.status");
             const status = page.locator("#config-section-update .settings-status");
-            await status.getByText("openclaw triage", { exact: false }).waitFor();
+            await status.getByText("vasudev triage", { exact: false }).waitFor();
             expect(await status.textContent()).toContain("ENOSPC");
             expect(questions()).toHaveLength(0);
             expect(await page.locator(".custodian__alert-card").count()).toBe(0);
@@ -225,7 +225,7 @@ suite.define(() => {
             await page.reload();
             await gateway.waitForRequest("update.status");
             const status = page.locator("#config-section-update .settings-status");
-            await status.getByText("openclaw triage", { exact: false }).waitFor();
+            await status.getByText("vasudev triage", { exact: false }).waitFor();
             expect(await status.textContent()).toContain("ENOSPC");
             expect(await page.locator(".custodian__alert-card").count()).toBe(0);
             expect(await page.locator("openclaw-assistant-panel .assistant-panel").count()).toBe(0);
@@ -300,7 +300,7 @@ suite.define(() => {
             const panel = page.locator("openclaw-assistant-panel");
             await panel.getByText("Ready to help.", { exact: true }).first().waitFor();
             const card = panel.locator(".custodian__alert-card");
-            await card.getByText("openclaw triage", { exact: false }).waitFor();
+            await card.getByText("vasudev triage", { exact: false }).waitFor();
             expect(await card.textContent()).toContain("ENOSPC");
             await expectRequestCountStable(gateway, "openclaw.chat", 1);
             expect(

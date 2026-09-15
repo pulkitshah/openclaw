@@ -58,7 +58,7 @@ describe("shell completion health mapping", () => {
     await fs.writeFile(cachePath, "complete -W 'status' openclaw\n", "utf-8");
     await fs.writeFile(
       path.join(homeDir, ".bash_profile"),
-      `# OpenClaw Completion\n[ -f "${cachePath}" ] && source "${cachePath}"\n`,
+      `# Vasudev Completion\n[ -f "${cachePath}" ] && source "${cachePath}"\n`,
       "utf-8",
     );
 
@@ -108,7 +108,7 @@ describe("shell completion health mapping", () => {
 
     await fs.writeFile(
       path.join(homeDir, ".bash_profile"),
-      "source <(openclaw completion --shell bash)\n",
+      "source <(vasudev completion --shell bash)\n",
       "utf-8",
     );
 
@@ -133,7 +133,7 @@ describe("shell completion health mapping", () => {
     await fs.writeFile(cachePath, "complete -W 'status' openclaw\n", "utf-8");
     await fs.writeFile(
       path.join(homeDir, ".bash_profile"),
-      "# OpenClaw Completion\nexport IMPORTANT=keep\n",
+      "# Vasudev Completion\nexport IMPORTANT=keep\n",
       "utf-8",
     );
 
@@ -194,7 +194,7 @@ describe("shell completion health mapping", () => {
       expect.objectContaining({
         severity: "info",
         message: expect.stringContaining("cache is missing"),
-        fixHint: expect.stringContaining("openclaw doctor --fix"),
+        fixHint: expect.stringContaining("vasudev doctor --fix"),
       }),
     ]);
     expect(shellCompletionStatusToRepairEffects(current)).toEqual([
@@ -256,7 +256,7 @@ async function setupDoctorCompletionTest(usesSlowPattern: boolean) {
   if (usesSlowPattern) {
     await fs.writeFile(
       profilePath,
-      '# test bashrc\n[ -f "/tmp/nonexistent" ] && source <(openclaw completion bash)\n',
+      '# test bashrc\n[ -f "/tmp/nonexistent" ] && source <(vasudev completion bash)\n',
       "utf-8",
     );
     const cacheDir = path.join(stateDir, "completions");
@@ -304,7 +304,7 @@ describe("doctorShellCompletion", () => {
   ])("reports the configured $shell startup profile after installation", async (testCase) => {
     const homeDir = tempDirs.make("openclaw-doctor-custom-profile-home-");
     const stateDir = tempDirs.make("openclaw-doctor-custom-profile-state-");
-    const configDir = tempDirs.make(`openclaw doctor ${testCase.shell} profile-`);
+    const configDir = tempDirs.make(`vasudev doctor ${testCase.shell} profile-`);
     setTestEnvValue("HOME", homeDir);
     setTestEnvValue("OPENCLAW_STATE_DIR", stateDir);
     setTestEnvValue("SHELL", `/bin/${testCase.shell}`);

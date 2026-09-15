@@ -153,7 +153,7 @@ describe("buildTurnStartParams source-delivery context", () => {
         buildTurnStartParams({ ...params, sourceReplyDeliveryMode: mode }, options),
       );
       const values = turns.map((turn) => turn.additionalContext?.openclaw_source_delivery?.value);
-      expect(values[0]).toContain("OpenClaw delivers your final response automatically");
+      expect(values[0]).toContain("Vasudev delivers your final response automatically");
       expect(values[0]).toContain("sending a message doesn’t end your task");
       expect(values[1]).toContain("Use `message(action=send)`");
       expect(values[1]).toContain("For progress, set `final=false`");

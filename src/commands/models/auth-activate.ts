@@ -52,6 +52,6 @@ export async function modelsAuthActivateCommand(
   runtime.log(
     applied
       ? `Saved sign-in activated for ${agentId}: ${opts.profileId}`
-      : "Sign-in verified and saved. The running connection could not be confirmed. Run `openclaw gateway restart` to apply the saved settings.",
+      : "Sign-in verified and saved. The running connection could not be confirmed. Run `vasudev gateway restart` to apply the saved settings.",
   );
 }

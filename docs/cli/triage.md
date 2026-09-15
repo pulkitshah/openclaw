@@ -1,7 +1,7 @@
 ---
 summary: "CLI reference for `openclaw triage` (sanitized diagnostics and agent handoff)"
 read_when:
-  - OpenClaw is misbehaving and you want an agent-ready debugging prompt
+  - Vasudev is misbehaving and you want an agent-ready debugging prompt
   - An update failed and you want a local coding agent to repair it
   - You need a sanitized diagnostics bundle without starting an agent
 title: "Triage"
@@ -9,7 +9,7 @@ title: "Triage"
 
 # `openclaw triage`
 
-Collect sanitized diagnostics and open a coding agent on this machine to diagnose, repair, and verify this OpenClaw installation.
+Collect sanitized diagnostics and open a coding agent on this machine to diagnose, repair, and verify this Vasudev installation.
 
 ```bash
 openclaw triage
@@ -27,7 +27,7 @@ openclaw triage --json
 openclaw triage --non-interactive
 ```
 
-The prompt includes the OpenClaw version, platform, Node.js version, prioritized Doctor findings with repair hints, and the diagnostics archive path. The archive contains sanitized config, best-effort Gateway status and health snapshots, operational log summaries, and available stability diagnostics. If the Gateway is unreachable, triage still writes the archive with available local diagnostics and records snapshot failures inside it. Doctor or export failures are recorded in the prompt so the agent can still investigate.
+The prompt includes the Vasudev version, platform, Node.js version, prioritized Doctor findings with repair hints, and the diagnostics archive path. The archive contains sanitized config, best-effort Gateway status and health snapshots, operational log summaries, and available stability diagnostics. If the Gateway is unreachable, triage still writes the archive with available local diagnostics and records snapshot failures inside it. Doctor or export failures are recorded in the prompt so the agent can still investigate.
 
 The diagnostics archive excludes secrets, tokens, raw chat payloads, and raw logs. Failed-update prompts include bounded, sanitized diagnostic excerpts, with secrets and local paths redacted before truncation. Paths inside the prompt are shown relative to `~` or `$OPENCLAW_STATE_DIR`. The saved prompt path, archive path, and printed handoff commands retain the real absolute paths needed by your shell. Diagnostic collection is read-only. A launched agent is asked to repair autonomously within its existing permissions and preserve configuration, history, and databases.
 
@@ -44,7 +44,7 @@ success from validation. Triage remains the handoff when recovery cannot finish.
 
 Interactive update recovery uses this same handoff after the updater releases its maintenance state. It starts from the captured update failure. It defers fresh Doctor checks and archive collection to the repair agent, so checks against the broken installation do not delay the handoff. The agent starts in the operator's captured working directory, or their OS home if that directory was removed or became inaccessible. Absolute installation selectors still identify the state, config, and default workspace to repair, even when the state directory cannot be accessed or created.
 
-Before an automatic interactive launch, OpenClaw shows what it will run. It shows the selected binary, or the embedded OpenClaw agent using your configured model. It also shows the saved prompt path when available, and a notice that it uses your own account or tokens. OpenClaw then asks for confirmation. Enter or `y` proceeds. `n` prints one manual next step for the selected agent, and preserves diagnostics and the failed update's exit status. After 30 seconds without an answer, OpenClaw announces that it is continuing and proceeds as Yes.
+Before an automatic interactive launch, Vasudev shows what it will run. It shows the selected binary, or the embedded Vasudev agent using your configured model. It also shows the saved prompt path when available, and a notice that it uses your own account or tokens. Vasudev then asks for confirmation. Enter or `y` proceeds. `n` prints one manual next step for the selected agent, and preserves diagnostics and the failed update's exit status. After 30 seconds without an answer, Vasudev announces that it is continuing and proceeds as Yes.
 
 The prompt preserves the original error, before and after versions, and recorded recovery state ahead of current Doctor findings. It includes up to three failed or interrupted steps, excluding advisory Doctor results, with bounded excerpts from both stderr and stdout. It also retains bounded plugin failures and the terminal Doctor warning. The failure record is limited to 4 KiB and the whole prompt to 8 KiB. A healthy Doctor check does not erase the failed attempt, and an absent restart-safety verdict remains unknown.
 
@@ -66,7 +66,7 @@ Post-turn Doctor checks run only after the executor confirms cleanup. If cleanup
 
 The operator owns the update or the explicit `--run` request. Embedded repair therefore replaces interactive exec approval with a prompt-free run, scoped to the installation or staged candidate root (`fs.workspaceOnly: true`). It preserves safe-bin and tool allowlists. It never overrides explicit exec or repair-tool denies. It refuses configured sandbox, node, and remote execution routes instead of redirecting them onto the host, and does not launch external coding-agent CLIs. An explicit deny reports `exec-denied-by-policy`. Use `openclaw triage` for an external handoff. The saved execution policy is unchanged.
 
-The repair prompt instructs the agent to change only the installation or staged candidate root and use the pinned OpenClaw state for diagnostics. It forbids editing credentials or auth stores, deleting state or databases, package-manager writes outside the target root, and starting, stopping, or restarting services or the Gateway. Filesystem tools enforce the workspace boundary. Host commands follow the prompt's scope contract and are not an OS sandbox. Allowed checks include `openclaw doctor --lint --json`, `openclaw doctor --fix`, and `openclaw health --json`. The repair loop does not activate updates, restart services, take snapshots, or undo files.
+The repair prompt instructs the agent to change only the installation or staged candidate root and use the pinned Vasudev state for diagnostics. It forbids editing credentials or auth stores, deleting state or databases, package-manager writes outside the target root, and starting, stopping, or restarting services or the Gateway. Filesystem tools enforce the workspace boundary. Host commands follow the prompt's scope contract and are not an OS sandbox. Allowed checks include `openclaw doctor --lint --json`, `openclaw doctor --fix`, and `openclaw health --json`. The repair loop does not activate updates, restart services, take snapshots, or undo files.
 
 Each turn is asked to end with a machine-readable line:
 
@@ -119,11 +119,11 @@ incompatible live handoffs still require the saved diagnostics and manual guidan
 
 Automatic fixing is single-flight per canonical installation, including foreground updates and unsupervised Gateway startup. A competing failure reports that triage is already owned, preserves its original output and exit status, and leaves the running attempt alone. After confirmed cleanup, a later independent failure can start a fresh attempt.
 
-Foreground triage stays attached to its caller. Cancellation or loss of that connection stops new work and gives registered OpenClaw resources their existing cleanup deadlines. The CLI gets the existing 30-second handoff grace to exit after cancellation or terminal disconnect. A stuck CLI is then terminated, and its generation remains fenced. External coding CLIs manage native commands in separate process groups, so even a normal or cooperative CLI exit leaves foreground automatic cleanup uncertain. Their result and manual handoffs remain available. A failed embedded agent can still finish cleanup normally.
+Foreground triage stays attached to its caller. Cancellation or loss of that connection stops new work and gives registered Vasudev resources their existing cleanup deadlines. The CLI gets the existing 30-second handoff grace to exit after cancellation or terminal disconnect. A stuck CLI is then terminated, and its generation remains fenced. External coding CLIs manage native commands in separate process groups, so even a normal or cooperative CLI exit leaves foreground automatic cleanup uncertain. Their result and manual handoffs remain available. A failed embedded agent can still finish cleanup normally.
 
 If the fixing process disappears abruptly, forced termination is needed, or teardown fails, automatic admission remains blocked for that OS boot. Registered embedded resources that confirm cleanup after cooperative cancellation allow another attempt. A forced or uncertain terminal outcome cannot certify that closure. Inspect the saved diagnostics and use `openclaw triage` manually. Do not delete the claim while prior work may still be running. A verified different OS boot allows a fresh attempt. Triage never initiates a reboot. Unavailable boot identity or incompatible private handoff data leaves diagnostics and manual guidance.
 
-Embedded OpenClaw repair keeps local non-PTY commands and stdio LSP/MCP servers under a process-group owner on macOS and Linux. Cleanup must confirm that the owned process group has disappeared. Closed pipes, process listings, or a completed root command are insufficient. Commands that detach from that group and close inherited descriptors remain outside this cleanup guarantee. OpenClaw `exec` requests with `pty: true` fall back to a non-PTY child without starting a native PTY and report a warning. Commands that require a terminal may fail. Windows stdio tools still lack cleanup confirmation, so their use leaves automatic cleanup uncertain.
+Embedded Vasudev repair keeps local non-PTY commands and stdio LSP/MCP servers under a process-group owner on macOS and Linux. Cleanup must confirm that the owned process group has disappeared. Closed pipes, process listings, or a completed root command are insufficient. Commands that detach from that group and close inherited descriptors remain outside this cleanup guarantee. Vasudev `exec` requests with `pty: true` fall back to a non-PTY child without starting a native PTY and report a warning. Commands that require a terminal may fail. Windows stdio tools still lack cleanup confirmation, so their use leaves automatic cleanup uncertain.
 
 For embedded Codex repair, cleanup must observe its owned descendants stopping before the app-server exits gracefully. An inspection failure, unconfirmed native terminal termination, a still-owned shared client, or a signalled app-server exit keeps automatic recovery blocked even when the transport has closed. Commands that deliberately detach from [Codex terminal ownership](/plugins/codex-harness) remain outside that cleanup guarantee.
 

@@ -275,7 +275,7 @@ describe("Codex plugin status command", () => {
       test.io,
       test.runtime,
     );
-    expect(result.text).toContain("OpenClaw app access: disabled");
+    expect(result.text).toContain("Vasudev app access: disabled");
     expect(result.text).toContain("enabled: true; callable: true");
     expect(result.text).toContain("https://chatgpt.com/apps/app-0");
     expect(test.io.mutate).not.toHaveBeenCalled();
@@ -409,7 +409,7 @@ describe("Codex plugin status command", () => {
   it.each([
     {
       options: { disabled: true },
-      expected: "OpenClaw app access: disabled",
+      expected: "Vasudev app access: disabled",
       next: "/codex plugins enable notes@company-tools",
     },
     {
@@ -612,7 +612,7 @@ describe("Codex hosted app refresh", () => {
   });
 
   it.each([
-    { options: { disabled: true }, expected: "OpenClaw app access: disabled" },
+    { options: { disabled: true }, expected: "Vasudev app access: disabled" },
     { options: { blocked: true }, expected: "blocked by marketplace policy" },
     { options: { appCount: 0 }, expected: "No hosted apps declared" },
     { options: { missingMetadata: true }, expected: "app-page permissions are unknown" },

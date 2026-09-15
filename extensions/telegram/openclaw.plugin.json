@@ -2,7 +2,7 @@
   "id": "telegram",
   "categories": ["channels"],
   "name": "Telegram",
-  "description": "OpenClaw Telegram channel plugin.",
+  "description": "Vasudev Telegram channel plugin.",
   "doctorContract": {
     "configRepair": true,
     "stateMigrations": [{ "id": "telegram-legacy-state" }]

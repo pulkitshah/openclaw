@@ -259,7 +259,7 @@ describe("eligible status recovery", () => {
       }),
       async (accountHome, print) => {
         print(await createStatus("missing-unit", accountHome), { json: false });
-        expect(humanOutput()).toContain("openclaw --profile work gateway install");
+        expect(humanOutput()).toContain("vasudev --profile work gateway install");
         expect(humanOutput()).not.toContain("service management skipped");
       },
     );
@@ -271,7 +271,7 @@ describe("eligible status recovery", () => {
       async (accountHome, print) => {
         print(await createStatus("config-audit", accountHome), { json: false });
         const output = humanOutput();
-        expect(output).toContain("openclaw gateway install --force");
+        expect(output).toContain("vasudev gateway install --force");
         expect(output).not.toContain("managed by an external supervisor");
       },
     );
@@ -287,7 +287,7 @@ describe("eligible status recovery", () => {
 
         const output = humanOutput();
         expect(output).toContain("launchctl bootout gui/$UID/ai.openclaw.gateway");
-        expect(output).toContain("openclaw gateway install");
+        expect(output).toContain("vasudev gateway install");
       },
     );
   });

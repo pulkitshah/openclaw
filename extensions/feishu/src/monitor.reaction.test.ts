@@ -706,7 +706,7 @@ describe("Feishu inbound debounce regressions", () => {
       createClaimedFeishuDedupeResult(),
     );
     vi.spyOn(dedup, "hasProcessedFeishuMessage").mockResolvedValue(false);
-    const onMessage = await setupDebounceMonitor({ botName: "OpenClaw Bot" });
+    const onMessage = await setupDebounceMonitor({ botName: "Vasudev Bot" });
 
     await onMessage(
       createTextEvent({
@@ -716,7 +716,7 @@ describe("Feishu inbound debounce regressions", () => {
           {
             key: "@_user_1",
             id: { open_id: "ou_bot" },
-            name: "OpenClaw Bot",
+            name: "Vasudev Bot",
           },
         ],
       }),
@@ -729,7 +729,7 @@ describe("Feishu inbound debounce regressions", () => {
     const firstParams = mockCallAt(handleFeishuMessageMock, 0, "Feishu message dispatch")[0] as
       | { botName?: string }
       | undefined;
-    expect(firstParams?.botName).toBe("OpenClaw Bot");
+    expect(firstParams?.botName).toBe("Vasudev Bot");
   });
 
   it("does not synthesize mention-forward intent across separate messages", async () => {

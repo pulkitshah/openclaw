@@ -17,6 +17,7 @@ import {
   LIVE_DOCKER_AUTH_SHELL_TARGETS,
   detectChangedLanesForPaths,
   getChangedCoreTestPaths,
+  hasBrandGuardInput,
   hasConfigDocInput,
   isConfigDocSchemaSourcePath,
   hasDeadcodeScannedSource,
@@ -612,6 +613,14 @@ export function createChangedCheckPlan(
       ["scripts/check-protocol-event-coverage.mjs"],
       baseEnv,
     );
+  }
+  if (hasBrandGuardInput(result.paths)) {
+    // Deliberately not gated on `lanes.all`: the fail-safe broad lane already
+    // fires for changes with no plausible brand-allowlist overlap (e.g. a
+    // root test config edit), and `pnpm brand:check` depends on this
+    // package.json's `brand:check` script existing, which synthetic
+    // check-changed test fixtures do not define.
+    add("brand guard", ["brand:check"]);
   }
   add("conflict markers", ["check:no-conflict-markers"]);
   if (

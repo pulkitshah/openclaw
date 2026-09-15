@@ -34,7 +34,7 @@ describe("brave web search config merge", () => {
         searchConfig: { provider: "brave" },
       });
 
-      await tool?.execute({ query: "OpenClaw docs" });
+      await tool?.execute({ query: "Vasudev docs" });
 
       const [searchConfig] = searchConfigs;
       expect(searchConfig?.brave).toEqual({

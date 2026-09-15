@@ -145,7 +145,7 @@ function setAgentExecEnvironment(params: { stateDir: string; cwd: string }): () 
 }
 
 function formatActiveGatewayExecRefusal(identity: GatewayLockIdentity): string {
-  return `A Gateway is running for this state directory (pid ${identity.pid}, port ${identity.port}). Omit --state-dir to use isolated temporary state, or stop the Gateway first (${formatCliCommand("openclaw gateway stop")}).`;
+  return `A Gateway is running for this state directory (pid ${identity.pid}, port ${identity.port}). Omit --state-dir to use isolated temporary state, or stop the Gateway first (${formatCliCommand("vasudev gateway stop")}).`;
 }
 
 function isStructuredTimeoutError(error: unknown): boolean {

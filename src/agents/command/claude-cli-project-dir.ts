@@ -1,5 +1,5 @@
 /**
- * Resolves Claude CLI project storage directories for OpenClaw workspaces.
+ * Resolves Claude CLI project storage directories for Vasudev workspaces.
  */
 import fs from "node:fs";
 import os from "node:os";

@@ -39,8 +39,8 @@ import { publishUpdateCommandTerminalResult } from "./update-command-terminal.js
 
 const dirs = useAutoCleanupTempDirTracker(afterEach);
 it.each([
-  { kind: "package-post-install-doctor", name: "openclaw doctor", exitCode: 0 },
-  { kind: "package-post-install-doctor", name: "openclaw doctor", exitCode: 86 },
+  { kind: "package-post-install-doctor", name: "vasudev doctor", exitCode: 0 },
+  { kind: "package-post-install-doctor", name: "vasudev doctor", exitCode: 86 },
   { kind: "recoverable-maintenance", name: "global install swap", exitCode: 0 },
 ] as const)("persists and surfaces $kind warnings (exit $exitCode)", ({ kind, name, exitCode }) => {
   const env = { OPENCLAW_STATE_DIR: dirs.make("update-warning-ledger-") };
@@ -48,11 +48,11 @@ it.each([
   const message =
     kind === "recoverable-maintenance"
       ? "baseline package fingerprint incomplete after 30 s; rollback will be verified by the retained package copy"
-      : "Skipped derived cache cleanup: permission denied. Run openclaw doctor --fix.";
+      : "Skipped derived cache cleanup: permission denied. Run vasudev doctor --fix.";
   const otherWarning =
     kind === "recoverable-maintenance"
       ? "Package fingerprint verification unavailable; rollback verified by the retained package copy's directory identity and version."
-      : "Skipped legacy cache cleanup: read-only directory. Run openclaw doctor --fix.";
+      : "Skipped legacy cache cleanup: read-only directory. Run vasudev doctor --fix.";
   const result = completeUpdateCommandRun(
     {
       status: "ok",
@@ -795,7 +795,7 @@ it.each([
         throw new Error("Expected safe service ownership error");
       }
       if (scenario !== "unresolved-root") {
-        expect(failure.message).toContain("openclaw gateway status --deep");
+        expect(failure.message).toContain("vasudev gateway status --deep");
         expect(failure.cause).toBe(inspectionFailure);
         expect(Object.getOwnPropertyDescriptor(failure, "cause")?.enumerable).toBe(false);
       }

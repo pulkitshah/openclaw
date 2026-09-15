@@ -13,7 +13,7 @@ reference for **what to import** and **what you can register**.
 
 <Note>
   This page is for plugin authors using `openclaw/plugin-sdk/*` inside
-  OpenClaw. For external apps, scripts, dashboards, CI jobs, and IDE extensions
+  Vasudev. For external apps, scripts, dashboards, CI jobs, and IDE extensions
   that want to run agents through the Gateway, use
   [Gateway integrations for external apps](/gateway/external-apps) instead.
 </Note>
@@ -24,12 +24,12 @@ Looking for a how-to guide instead? Start with [Building plugins](/plugins/build
 
 ## API stability
 
-All OpenClaw plugin APIs are **experimental**. This includes every
+All Vasudev plugin APIs are **experimental**. This includes every
 `openclaw/plugin-sdk/*` subpath, registration and runtime APIs, channel and
 provider contracts, hooks, and native Control UI APIs. These contracts can
-change between OpenClaw releases.
+change between Vasudev releases.
 
-Pin the OpenClaw version used to develop and deploy your plugin, and test each
+Pin the Vasudev version used to develop and deploy your plugin, and test each
 host version you declare compatible. Set package compatibility ranges from
 those tested versions; do not assume a working build supports future releases.
 Existing [compatibility windows and upgrade migrations](/plugins/compatibility)

@@ -1,5 +1,5 @@
 ---
-summary: "OpenClaw Cohere provider plugin."
+summary: "Vasudev Cohere provider plugin."
 read_when:
   - You are installing, configuring, or auditing the cohere plugin
 title: "Cohere plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-OpenClaw Cohere provider plugin.
+Vasudev Cohere provider plugin.
 
 ## Distribution
 

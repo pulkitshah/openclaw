@@ -113,7 +113,7 @@ Who may reach the bot, which guild channels it answers in, and which Discord act
 
     Lookups fail closed. If Discord returns `Missing Access`, the member lookup fails, or the channel belongs to a different guild, the DM sender is treated as unauthorized.
 
-    Enable the Discord Developer Portal **Server Members Intent** when using channel-audience access groups. DMs do not include guild member state, so OpenClaw resolves the member through Discord REST at authorization time.
+    Enable the Discord Developer Portal **Server Members Intent** when using channel-audience access groups. DMs do not include guild member state, so Vasudev resolves the member through Discord REST at authorization time.
 
   </Tab>
 
@@ -271,7 +271,7 @@ Use `bindings[].match.roles` to route Discord guild members to different agents 
 - Per-channel override: `channels.discord.commands.native`.
 - `commands.native=false` skips Discord slash-command registration and cleanup during startup. Previously registered commands may remain visible in Discord until you remove them from the Discord app.
 - Native command auth uses the same Discord allowlists/policies as normal message handling.
-- Commands may still be visible in the Discord UI for unauthorized users; execution enforces OpenClaw auth and replies "not authorized".
+- Commands may still be visible in the Discord UI for unauthorized users; execution enforces Vasudev auth and replies "not authorized".
 - Default slash command settings: `ephemeral: true` (`channels.discord.slashCommand.ephemeral`).
 
 See [Slash commands](/tools/slash-commands) for the command catalog and behavior.

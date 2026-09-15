@@ -206,7 +206,7 @@ export function teamsMeetingStatusPreludeSource(params: MeetingStatusPreludePara
         const currentMicrophone = first(selectors.microphone) || findTextButton(/mute|unmute|microphone/i);
         microphoneState = toggleState(currentMicrophone, "microphone");
       }
-      controlManualAction = manualActionFor("teams-audio-choice-required", "Select the OpenClaw virtual audio device as the Teams microphone and verify it is selected before enabling talk-back.");
+      controlManualAction = manualActionFor("teams-audio-choice-required", "Select the Vasudev virtual audio device as the Teams microphone and verify it is selected before enabling talk-back.");
     } else if (canMutateSession && microphoneState === "off") {
       microphone.click();
       await waitForUi();
@@ -258,7 +258,7 @@ export function teamsMeetingStatusPreludeSource(params: MeetingStatusPreludePara
     if (!microphone) {
       controlManualAction = manualActionFor("teams-microphone-required", "Open Teams device settings and verify the microphone control before enabling talk-back.");
     } else if (audioInputRouted !== true) {
-      controlManualAction = manualActionFor("teams-audio-choice-required", "Select the OpenClaw virtual audio device as the Teams microphone and verify it is selected before enabling talk-back.");
+      controlManualAction = manualActionFor("teams-audio-choice-required", "Select the Vasudev virtual audio device as the Teams microphone and verify it is selected before enabling talk-back.");
     } else if (microphoneState !== "on") {
       controlManualAction = manualActionFor("teams-microphone-required", "Unmute the Teams microphone and verify the microphone control shows it is on, then retry joining.");
     }
@@ -292,11 +292,11 @@ export function teamsMeetingStatusPreludeSource(params: MeetingStatusPreludePara
   if (committedOwnerConflict && !canMutateSession) {
     manualAction = manualActionFor("teams-session-conflict", "This Teams tab is owned by another active meeting session.");
   } else if (!inCall && loginRequired) {
-    manualAction = manualActionFor("teams-login-required", tenantLoginRequired ? "This Teams tenant requires sign-in or email verification. Complete it in the OpenClaw browser profile, then retry." : "Sign in to Microsoft Teams in the OpenClaw browser profile, then retry the meeting join.");
+    manualAction = manualActionFor("teams-login-required", tenantLoginRequired ? "This Teams tenant requires sign-in or email verification. Complete it in the Vasudev browser profile, then retry." : "Sign in to Microsoft Teams in the Vasudev browser profile, then retry the meeting join.");
   } else if (!inCall && lobbyWaiting) {
-    manualAction = manualActionFor("teams-admission-required", "Admit the OpenClaw guest from the Microsoft Teams lobby, then retry speech.");
+    manualAction = manualActionFor("teams-admission-required", "Admit the Vasudev guest from the Microsoft Teams lobby, then retry speech.");
   } else if (!inCall && permissionRequired) {
-    manualAction = manualActionFor("teams-permission-required", allowMicrophone ? "Allow microphone permission for Teams in the OpenClaw browser profile, then retry." : "Dismiss the Teams device-permission prompt or continue without devices, then retry.");
+    manualAction = manualActionFor("teams-permission-required", allowMicrophone ? "Allow microphone permission for Teams in the Vasudev browser profile, then retry." : "Dismiss the Teams device-permission prompt or continue without devices, then retry.");
   } else if (!inCall && controlManualAction) {
     manualAction = controlManualAction;
   }

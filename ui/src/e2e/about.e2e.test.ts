@@ -273,7 +273,7 @@ suite.define(() => {
         .toContain("separate from this Control UI build");
 
       const hero = page.locator(".about-hero");
-      await expect.poll(() => hero.locator(".about-hero__name").textContent()).toBe("OpenClaw");
+      await expect.poll(() => hero.locator(".about-hero__name").textContent()).toBe("Vasudev");
       await expect
         .poll(() => hero.locator(".about-hero__version").textContent())
         .toBe("v2026.7.10");
@@ -289,7 +289,7 @@ suite.define(() => {
       const xLink = hero.getByRole("link", { name: "X (Twitter)", exact: true });
       await expect.poll(() => xLink.getAttribute("href")).toBe("https://x.com/openclaw");
 
-      const clawd = page.getByRole("button", { name: "Wave hello to Clawd" });
+      const clawd = page.getByRole("button", { name: "Wave hello to Vasu" });
       // CLAWD_WAVE_MS clears the class after 1400ms, so click and read it in one browser step.
       const clawdWaving = await clawd.evaluate(async (element) => {
         const button = element as HTMLButtonElement;
@@ -307,7 +307,13 @@ suite.define(() => {
       });
       expect(clawdWaving).toBe(true);
 
-      await expect.poll(() => page.locator(".about-footer").textContent()).toContain("MIT License");
+      await expect
+        .poll(() => page.locator(".about-footer").textContent())
+        .toContain("by TripIn Studio");
+      // The upstream MIT notice is only reachable through the Licences panel.
+      await expect
+        .poll(() => page.locator(".about-licences__summary").textContent())
+        .toContain("Licences");
 
       const copyButton = strip.locator(".about-commit button");
       await expect.poll(() => copyButton.getAttribute("aria-label")).toBe("Copy full commit hash");

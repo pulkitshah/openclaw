@@ -2,7 +2,7 @@
   "id": "mattermost",
   "categories": ["channels"],
   "name": "Mattermost",
-  "description": "OpenClaw Mattermost channel plugin.",
+  "description": "Vasudev Mattermost channel plugin.",
   "doctorContract": {
     "configRepair": true
   },

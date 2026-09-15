@@ -17,7 +17,7 @@ function createQaChannelTransportParams(baseUrl = "http://127.0.0.1:43124") {
           enabled: true,
           baseUrl,
           botUserId: "openclaw",
-          botDisplayName: "OpenClaw QA",
+          botDisplayName: "Vasudev QA",
           allowFrom: ["*"],
           pollTimeoutMs: 250,
         },
@@ -353,7 +353,7 @@ describe("buildQaGatewayConfig", () => {
     expect(cfg.plugins?.entries?.anthropic).toEqual({ enabled: true });
   });
 
-  it("keeps forced Codex cells free of OpenClaw request params", () => {
+  it("keeps forced Codex cells free of Vasudev request params", () => {
     const cfg = buildQaGatewayConfig({
       bind: "loopback",
       gatewayPort: 18789,

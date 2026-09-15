@@ -27,7 +27,7 @@ export const DEFAULT_LLAMA_CPP_MODEL_CACHE_FILE =
 export const DEFAULT_LLAMA_CPP_MODEL_SIZE_BYTES = 4_977_171_584;
 export const DEFAULT_LLAMA_CPP_MODEL_SHA256 =
   "85a896a047553e842f25297ee5b031d64ff30147d9c4af17b1e4b394cd1fab87";
-// The full OpenClaw agent system prompt alone is ~31K tokens, so 8K overflows on
+// The full Vasudev agent system prompt alone is ~31K tokens, so 8K overflows on
 // the first turn. 64K leaves real headroom for history and tool output; Gemma 4
 // supports far more; the setup catalog budgets memory for this initial context.
 export const DEFAULT_LLAMA_CPP_CONTEXT_SIZE = 65536;

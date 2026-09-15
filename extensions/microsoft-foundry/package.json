@@ -2,7 +2,7 @@
   "name": "@openclaw/microsoft-foundry",
   "version": "2026.9.4",
   "private": true,
-  "description": "OpenClaw Microsoft Foundry provider plugin",
+  "description": "Vasudev Microsoft Foundry provider plugin",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

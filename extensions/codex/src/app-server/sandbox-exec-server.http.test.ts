@@ -156,7 +156,7 @@ async function createLiveRedirectSandbox(
   };
 }
 
-describe("OpenClaw Codex sandbox exec-server HTTP", () => {
+describe("Vasudev Codex sandbox exec-server HTTP", () => {
   it("routes HTTP requests through the sandbox backend", async () => {
     const runShellCommand = vi.fn(async () => ({
       stdout: Buffer.from(

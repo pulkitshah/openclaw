@@ -345,7 +345,7 @@
 
 .chat-tool-msg-summary:hover .chat-diffstat__add,
 .chat-tool-msg-summary:focus-visible .chat-diffstat__add {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .chat-tool-msg-summary:hover .chat-diffstat__del,
@@ -379,7 +379,7 @@
 }
 
 .chat-diff__row--add .chat-diff__sign {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .chat-diff__row--del {
@@ -1051,15 +1051,15 @@
 }
 
 .chat-activity-group__review-status[data-outcome="approved"] {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .chat-activity-group__review-status[data-outcome="denied"] {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .chat-activity-group__review-status[data-outcome="reviewing"] {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 /* Parent and child rows share one icon/text grid; order and whitespace carry
@@ -1334,7 +1334,7 @@ openclaw-tooltip.chat-tasks-status__preview {
 }
 
 .chat-subagent-activity__indicator--finished {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .chat-subagent-activity__indicator--failed {
@@ -1417,17 +1417,17 @@ openclaw-tooltip.chat-tasks-status__preview {
 .chat-tool-review__icon {
   display: inline-flex;
   flex: 0 0 auto;
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .chat-tool-review[data-review-status="denied"] .chat-tool-review__icon,
 .chat-tool-review[data-review-status="timed_out"] .chat-tool-review__icon,
 .chat-tool-review[data-review-status="aborted"] .chat-tool-review__icon {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .chat-tool-review[data-review-status="in_progress"] .chat-tool-review__icon {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .chat-tool-review__icon svg {

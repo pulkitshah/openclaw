@@ -3,23 +3,23 @@ summary: "Route credential-scoped models through ClawRouter and show managed quo
 title: "ClawRouter"
 read_when:
   - You want one managed key for multiple model providers
-  - You need ClawRouter model discovery or quota reporting in OpenClaw
+  - You need ClawRouter model discovery or quota reporting in Vasudev
 ---
 
-ClawRouter gives OpenClaw one policy-scoped key for multiple upstream model
+ClawRouter gives Vasudev one policy-scoped key for multiple upstream model
 providers. The bundled `clawrouter` plugin discovers only the models allowed
 for that key, routes each model through its declared protocol, and reports
-the key's budget and aggregate usage on OpenClaw usage surfaces.
+the key's budget and aggregate usage on Vasudev usage surfaces.
 
 Upstream credentials and provider-specific forwarding stay in ClawRouter, so
 you never install or authenticate each upstream provider plugin on the
-OpenClaw host. The plugin ships bundled with OpenClaw (`enabledByDefault: true`);
+Vasudev host. The plugin ships bundled with Vasudev (`enabledByDefault: true`);
 you only need an issued ClawRouter key.
 
 | Property      | Value                                    |
 | ------------- | ---------------------------------------- |
 | Provider      | `clawrouter`                             |
-| Plugin        | bundled (included in OpenClaw)           |
+| Plugin        | bundled (included in Vasudev)            |
 | Auth          | `CLAWROUTER_API_KEY`                     |
 | Default URL   | `https://clawrouter.openclaw.ai`         |
 | Model catalog | Credential-scoped via `/v1/catalog`      |
@@ -33,7 +33,7 @@ you only need an issued ClawRouter key.
     includes the providers, models, and monthly budget you should use.
     ClawRouter keys are revealed once when issued.
   </Step>
-  <Step title="Configure OpenClaw">
+  <Step title="Configure Vasudev">
     ```bash
     export CLAWROUTER_API_KEY="..."
     openclaw onboard --auth-choice clawrouter-api-key
@@ -172,7 +172,7 @@ The existing metadata-only model transport diagnostics emit lines shaped like:
 The plugin sends bounded `X-ClawRouter-Client`, `X-ClawRouter-Agent-Id`, and
 `X-ClawRouter-Session-Id` headers when those identifiers are available. It also
 maps the model call's diagnostic `callId` (`<run-id>:model:<n>`) to
-`X-Request-ID`, so an OpenClaw model-call event can be joined to ClawRouter's
+`X-Request-ID`, so a Vasudev model-call event can be joined to ClawRouter's
 metadata-only audit trail. Values within the 128-character request-id budget are
 identical. Longer values retain the `:model:<n>` suffix and a deterministic
 hash so distinct calls remain bounded and joinable. Static deployment metadata
@@ -190,8 +190,8 @@ content-retention state.
 
 `GET /v1/catalog` returns `{ providers: [...] }`, where each provider entry
 lists its own `models[]` (with upstream id, capabilities, and pricing) and its
-supported request routes. OpenClaw does not ship a second, fixed list of
-ClawRouter models. A catalog model is advertised as an OpenClaw model when:
+supported request routes. Vasudev does not ship a second, fixed list of
+ClawRouter models. A catalog model is advertised as a Vasudev model when:
 
 - the ClawRouter key's policy grants its provider;
 - the catalog model advertises a supported LLM capability (`llm.responses`,
@@ -199,11 +199,11 @@ ClawRouter models. A catalog model is advertised as an OpenClaw model when:
   route); and
 - the provider exposes a matching route for one of the transports below.
 
-Adding a model to a supported ClawRouter provider needs no OpenClaw release:
+Adding a model to a supported ClawRouter provider needs no Vasudev release:
 the next catalog refresh (cached 60 seconds per ClawRouter key scope) discovers
 it. A model that needs a new wire protocol requires plugin support first.
 
-A model's optional `displayName` is its picker label; without it, OpenClaw uses
+A model's optional `displayName` is its picker label; without it, Vasudev uses
 the provider display name and catalog `id`, omitting a repeated `<provider>/`
 prefix from the label (for example, `Anthropic · claude-sonnet-4-6`). The label never changes model
 identity. Responses and Chat Completions send the catalog `id` unchanged;
@@ -214,10 +214,10 @@ inside the facade.
 
 ## Protocol and provider plugins
 
-ClawRouter owns upstream credentials; its catalog tells OpenClaw which
+ClawRouter owns upstream credentials; its catalog tells Vasudev which
 transport to use, so you never install every upstream company's auth plugin.
 
-| Catalog capability / route                               | OpenClaw transport     |
+| Catalog capability / route                               | Vasudev transport      |
 | -------------------------------------------------------- | ---------------------- |
 | `llm.responses` (OpenAI-compatible provider)             | `openai-responses`     |
 | `llm.chat` (OpenAI-compatible provider)                  | `openai-completions`   |
@@ -230,13 +230,13 @@ Anthropic and Google Gemini replay policies). Perplexity models get a strict
 schema rewrite: `patternProperties` and `additionalProperties` are removed and
 every object schema declares `properties`, because Perplexity rejects tool
 schemas without them. A catalog provider exposing only an
-unsupported request format is intentionally not advertised as an OpenClaw
+unsupported request format is intentionally not advertised as a Vasudev
 text model. Normalize those providers to one of the supported contracts in
 ClawRouter rather than sending an incompatible payload.
 
 ## Quotas and usage
 
-ClawRouter's `/v1/usage` response feeds the normal OpenClaw provider-usage
+ClawRouter's `/v1/usage` response feeds the normal Vasudev provider-usage
 surfaces: request, token, and spend totals, plus a monthly budget window when
 the key has a limit. Unmetered keys still show aggregate usage without a
 percentage window.
@@ -251,7 +251,7 @@ openclaw status --usage
 openclaw models status
 ```
 
-The same provider snapshot is available to `/status` in chat and OpenClaw's
+The same provider snapshot is available to `/status` in chat and Vasudev's
 usage UI. The budget is policy-wide, so requests made by another client using
 the same ClawRouter policy can change the remaining percentage.
 
@@ -262,7 +262,7 @@ the same ClawRouter policy can change the remaining percentage.
 | No ClawRouter models                     | Confirm the plugin is enabled and allowed by `plugins.allow`, then check that the ClawRouter key is active and grants at least one ready provider. |
 | A configured ClawRouter model is missing | Inspect its `/v1/catalog` capability and route support. Unsupported transport contracts are intentionally filtered.                                |
 | Model override rejected by policy        | Add the exact catalog ref or `clawrouter/*` to `agents.defaults.modelPolicy.allow`.                                                                |
-| `401` or `403` from catalog or usage     | Reissue or re-scope the ClawRouter key; OpenClaw does not fall back to upstream provider keys.                                                     |
+| `401` or `403` from catalog or usage     | Reissue or re-scope the ClawRouter key; Vasudev does not fall back to upstream provider keys.                                                      |
 | Model call fails after discovery         | Check the provider connection and upstream health in ClawRouter, then retry after its readiness state recovers.                                    |
 | Usage has totals but no percentage       | The policy is unmetered; add a monthly budget in ClawRouter to expose a percentage window.                                                         |
 
@@ -282,6 +282,6 @@ the same ClawRouter policy can change the remaining percentage.
     Provider configuration and model selection.
   </Card>
   <Card title="Usage tracking" href="/concepts/usage-tracking" icon="chart-line">
-    OpenClaw usage and status surfaces.
+    Vasudev usage and status surfaces.
   </Card>
 </CardGroup>

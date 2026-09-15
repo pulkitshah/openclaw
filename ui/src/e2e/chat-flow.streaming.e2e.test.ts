@@ -173,7 +173,7 @@ suite.define(() => {
       await expect
         .poll(() => footer.evaluate((element) => getComputedStyle(element).opacity))
         .toBe("1");
-      expect(await footer.locator(".chat-sender-name").textContent()).toBe("OpenClaw");
+      expect(await footer.locator(".chat-sender-name").textContent()).toBe("Vasudev");
       expect(await footer.locator(".chat-group-timestamp").count()).toBe(1);
     } finally {
       await suite.closeBrowserContext(context);
@@ -362,7 +362,7 @@ suite.define(() => {
         });
 
         const gatewayErrorText =
-          "Agent failed before reply: Session became active in another runner; wait for it to finish before continuing.\nTo view logs, run `openclaw logs --follow` in a terminal.";
+          "Agent failed before reply: Session became active in another runner; wait for it to finish before continuing.\nTo view logs, run `vasudev logs --follow` in a terminal.";
         const errorText = `Error: ${gatewayErrorText}`;
         await gateway.emitGatewayEvent("chat", {
           errorMessage: gatewayErrorText,

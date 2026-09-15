@@ -73,7 +73,7 @@ describe("plugins cli lazy runtime boundary", () => {
     {
       name: "plugins",
       argv: ["plugins"],
-      description: "Manage OpenClaw plugins and extensions",
+      description: "Manage Vasudev plugins and extensions",
     },
     {
       name: "plugins marketplace",

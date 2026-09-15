@@ -49,7 +49,7 @@ export type WithRunSession = (
 ) => RunCronAgentTurnResult;
 
 const CRON_EXECUTION_ROOT_RUNTIME_ERROR =
-  "collection review requires a runtime that enforces the Workshop root through OpenClaw tools";
+  "collection review requires a runtime that enforces the Workshop root through Vasudev tools";
 
 export class CronExecutionRootRuntimeError extends Error {
   constructor() {

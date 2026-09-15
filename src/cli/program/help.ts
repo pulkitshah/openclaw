@@ -2,6 +2,7 @@
 import type { Command } from "commander";
 import { formatDocsLink } from "../../../packages/terminal-core/src/links.js";
 import { isRich, theme } from "../../../packages/terminal-core/src/theme.js";
+import { PRODUCT_NAME } from "../../brand.js";
 import { resolveCommitHash } from "../../infra/git-commit.js";
 import { formatConsoleDiagnosticBlock } from "../../logging/json-console-line.js";
 import { escapeRegExp } from "../../utils.js";
@@ -26,23 +27,23 @@ const ROOT_COMMANDS_HINT =
   "Hint: commands suffixed with * have subcommands. Run <command> --help for details.";
 
 const EXAMPLES = [
-  ["openclaw onboard", "Run guided setup for a local Gateway, workspace, auth, and channels."],
-  ["openclaw setup", "Create the baseline config, workspace, and session folders."],
-  ["openclaw configure", "Change models, Gateway, channels, plugins, skills, and health checks."],
-  ["openclaw status", "Check Gateway, channel, model, and recent-session status."],
-  ["openclaw doctor --fix", "Repair common config, service, plugin, and channel problems."],
-  ["openclaw channels add", "Add or update a chat channel account with guided prompts."],
-  ["openclaw channels status", "See connected messaging accounts and login state."],
+  ["vasudev onboard", "Run guided setup for a local Gateway, workspace, auth, and channels."],
+  ["vasudev setup", "Create the baseline config, workspace, and session folders."],
+  ["vasudev configure", "Change models, Gateway, channels, plugins, skills, and health checks."],
+  ["vasudev status", "Check Gateway, channel, model, and recent-session status."],
+  ["vasudev doctor --fix", "Repair common config, service, plugin, and channel problems."],
+  ["vasudev channels add", "Add or update a chat channel account with guided prompts."],
+  ["vasudev channels status", "See connected messaging accounts and login state."],
   ["openclaw --dev gateway", "Run a dev Gateway (isolated state/config) on ws://127.0.0.1:19001."],
-  ["openclaw gateway run --force", "Start the Gateway and replace anything bound to its port."],
-  ["openclaw models status", "Show model/provider auth health before running agents."],
-  ["openclaw plugins list", "Inspect enabled, disabled, and installed plugins."],
+  ["vasudev gateway run --force", "Start the Gateway and replace anything bound to its port."],
+  ["vasudev models status", "Show model/provider auth health before running agents."],
+  ["vasudev plugins list", "Inspect enabled, disabled, and installed plugins."],
   [
-    'openclaw agent --to +15555550123 --message "Run summary" --deliver',
+    'vasudev agent --to +15555550123 --message "Run summary" --deliver',
     "Run one agent turn through the Gateway and optionally deliver the reply.",
   ],
   [
-    'openclaw message send --channel telegram --target @mychat --message "Hi"',
+    'vasudev message send --channel telegram --target @mychat --message "Hi"',
     "Send via your Telegram bot.",
   ],
 ] as const;
@@ -134,7 +135,9 @@ export function configureProgramHelp(
   if (isRootVersionInvocation(process.argv)) {
     const commit = resolveCommitHash({ moduleUrl: import.meta.url });
     console.log(
-      commit ? `OpenClaw ${ctx.programVersion} (${commit})` : `OpenClaw ${ctx.programVersion}`,
+      commit
+        ? `${PRODUCT_NAME} ${ctx.programVersion} (${commit})`
+        : `${PRODUCT_NAME} ${ctx.programVersion}`,
     );
     process.exit(0);
   }

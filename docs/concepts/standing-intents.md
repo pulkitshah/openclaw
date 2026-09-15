@@ -7,7 +7,7 @@ read_when:
   - You want to inspect or cancel a standing intent
 ---
 
-A standing intent is an event-conditioned instruction such as "when the release candidate is mentioned, remind me to verify rollback ownership." OpenClaw stores it in the owning agent's SQLite database and checks it before eligible interactive replies.
+A standing intent is an event-conditioned instruction such as "when the release candidate is mentioned, remind me to verify rollback ownership." Vasudev stores it in the owning agent's SQLite database and checks it before eligible interactive replies.
 
 Standing intents are prospective memory. They remember what to do when a trigger appears; they do not schedule work for a clock time.
 
@@ -28,7 +28,7 @@ Standing intents are owner-directed memory. Channel owners recognized by
 them; other senders do not receive that tool. Authenticated Gateway/Control UI
 administrators and the local CLI can inspect and cancel existing intents, but
 creation requires an authenticated channel and sender identity. If either is
-missing, OpenClaw refuses creation and asks the operator to retry from an
+missing, Vasudev refuses creation and asks the operator to retry from an
 authenticated channel conversation.
 
 Ask the agent to create the intent and name the event clearly:
@@ -53,7 +53,7 @@ For a clock time, the agent should use the existing scheduled-task path instead 
 
 ## How matching works
 
-On an eligible user turn, OpenClaw performs a deterministic FTS keyword prefilter over armed intents. A candidate fires only when every term in at least one configured trigger entry appears in the turn. OpenClaw also rechecks channel scope, sender scope, expiry, cooldown, and fire budget against the authoritative SQLite rows in one synchronous transaction. Matching scans at most 256 scoped FTS candidates per turn so a noisy trigger set cannot stall the reply path.
+On an eligible user turn, Vasudev performs a deterministic FTS keyword prefilter over armed intents. A candidate fires only when every term in at least one configured trigger entry appears in the turn. Vasudev also rechecks channel scope, sender scope, expiry, cooldown, and fire budget against the authoritative SQLite rows in one synchronous transaction. Matching scans at most 256 scoped FTS candidates per turn so a noisy trigger set cannot stall the reply path.
 
 No model call occurs in the matching path. On a hit, the main reply receives a bounded hidden context block:
 
@@ -61,7 +61,7 @@ No model call occurs in the matching path. On a hit, the main reply receives a b
 Standing intent (created 2026-07-27): Confirm the rollback owner.
 ```
 
-The matcher increments `fire_count`, records `last_fired_at`, and moves the intent through its explicit lifecycle. A fired intent becomes armed again only after its cooldown. It becomes `done` when its fire budget is exhausted and `expired` when its expiry passes. Expiry and cooldown maintenance also piggyback on existing heartbeat and cron reply hooks; OpenClaw does not add another timer subsystem.
+The matcher increments `fire_count`, records `last_fired_at`, and moves the intent through its explicit lifecycle. A fired intent becomes armed again only after its cooldown. It becomes `done` when its fire budget is exhausted and `expired` when its expiry passes. Expiry and cooldown maintenance also piggyback on existing heartbeat and cron reply hooks; Vasudev does not add another timer subsystem.
 
 If the prompt hook times out while matching awaits database admission, its late
 completion cannot consume a fire. Memory Core requires the host's per-handler
@@ -77,7 +77,7 @@ TriggerBench finds that prospective recall decays as context grows and can drift
 
 Ask the agent to list standing intents when you want to inspect their status, scope, expiry, or fire count.
 
-Cancellation is always explicit. Ask the agent to cancel a specific intent; the stored row moves to `cancelled` and can no longer fire. OpenClaw never infers cancellation from ordinary conversation. ProEvent reports that proactive systems frequently overact and struggle with event cancellation ([arXiv:2607.17701](https://arxiv.org/abs/2607.17701)), so cancellation is durable state rather than a model judgment.
+Cancellation is always explicit. Ask the agent to cancel a specific intent; the stored row moves to `cancelled` and can no longer fire. Vasudev never infers cancellation from ordinary conversation. ProEvent reports that proactive systems frequently overact and struggle with event cancellation ([arXiv:2607.17701](https://arxiv.org/abs/2607.17701)), so cancellation is durable state rather than a model judgment.
 
 ## Lifecycle states
 

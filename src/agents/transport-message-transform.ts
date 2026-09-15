@@ -28,7 +28,7 @@ const SYNTHETIC_TOOL_RESULT_APIS = new Set<string>([
 
 // "aborted" is the OpenAI Responses-family synthetic result convention,
 // inherited from upstream Codex history normalization. It applies to public,
-// Codex, Azure, and their OpenClaw transport aliases; Gemini/Anthropic use their
+// Codex, Azure, and their Vasudev transport aliases; Gemini/Anthropic use their
 // own text. tool-replay-repair.live.test.ts exercises both paths against real models.
 const OPENAI_RESPONSES_ABORTED_OUTPUT_APIS = new Set<string>([
   "openai-responses",

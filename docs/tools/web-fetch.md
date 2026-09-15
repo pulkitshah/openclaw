@@ -83,7 +83,7 @@ truncated. The caller's requested URL is preserved.
   </Step>
 </Steps>
 
-Set `tools.web.fetch.cacheTtlMinutes: 0` to bypass OpenClaw's fetch cache for both
+Set `tools.web.fetch.cacheTtlMinutes: 0` to bypass Vasudev's fetch cache for both
 reads and writes. A positive value limits reuse by the current request's TTL;
 cached entries still expire at their original deadline. Provider-side caching,
 such as Firecrawl's `maxAgeMs`, is configured separately.
@@ -101,11 +101,11 @@ Fast cache hits and quick network responses finish before the timer fires, so
 they never show a progress line. Canceling the call clears the timer. The
 progress line is channel UI state only and never contains fetched page content.
 
-OpenClaw passes cancellation to fallback providers. Providers that honor the
+Vasudev passes cancellation to fallback providers. Providers that honor the
 signal can stop their requests; core rejects late results even when a provider
 ignores cancellation. Already-canceled calls reject even when a cached result
 exists. If cancellation occurs during fetching, fallback processing, or
-connection cleanup, OpenClaw rejects the call instead of returning success or
+connection cleanup, Vasudev rejects the call instead of returning success or
 adding a result to the fetch cache.
 
 ## Config
@@ -193,7 +193,7 @@ Legacy `tools.web.fetch.firecrawl.*` config auto-migrates to
 Current runtime behavior:
 
 - `tools.web.fetch.provider` selects the fetch fallback provider explicitly.
-- If `provider` is omitted, OpenClaw auto-detects the first ready web-fetch
+- If `provider` is omitted, Vasudev auto-detects the first ready web-fetch
   provider from configured credentials. Non-sandboxed `web_fetch` can use
   installed plugins that declare `contracts.webFetchProviders` and register a
   matching provider at runtime. The official Firecrawl plugin provides this
@@ -266,7 +266,7 @@ Behavior worth knowing:
 If your deployment requires `web_fetch` to go through a trusted outbound
 HTTP(S) proxy, set `tools.web.fetch.useTrustedEnvProxy: true`.
 
-In this mode, OpenClaw still applies hostname-based SSRF checks before sending
+In this mode, Vasudev still applies hostname-based SSRF checks before sending
 the request, but it lets the proxy resolve DNS instead of doing local DNS
 pinning. Enable this only when the proxy is operator-controlled and enforces
 outbound policy after DNS resolution.

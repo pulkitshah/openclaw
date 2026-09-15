@@ -55,7 +55,7 @@ Watch background behavior. See [Watch setup and limits](/platforms/ios#standalon
   Talk with an error. Interruption clears queued output before capture resumes;
   stopped sessions cannot acknowledge playback through a replacement Gateway.
 - Realtime **Thinking** follows provider response generation or an accepted
-  OpenClaw consult, not input transcription, which may finish after the answer.
+  Vasudev consult, not input transcription, which may finish after the answer.
   Direct replies without a provider or Gateway response-start signal stay
   **Listening** until output arrives. Empty completed responses return to **Listening**;
   buffered audio stays **Speaking** until playback drains.

@@ -417,7 +417,7 @@ describe("completion-runtime", () => {
 
         expect((await fs.lstat(profilePath)).isSymbolicLink()).toBe(true);
         expect(await fs.readlink(profilePath)).toBe(path.join("managed", "zshrc"));
-        await expect(fs.readFile(targetPath, "utf8")).resolves.toContain("# OpenClaw Completion");
+        await expect(fs.readFile(targetPath, "utf8")).resolves.toContain("# Vasudev Completion");
       });
     },
   );
@@ -426,7 +426,7 @@ describe("completion-runtime", () => {
     await withBashCompletionHome(async ({ homeDir }) => {
       await fs.writeFile(
         path.join(homeDir, ".bash_profile"),
-        "source <(openclaw completion --shell bash)\n",
+        "source <(vasudev completion --shell bash)\n",
         "utf-8",
       );
 
@@ -442,7 +442,7 @@ describe("completion-runtime", () => {
       await fs.writeFile(cachePath, "complete -W 'status' openclaw\n", "utf-8");
       await fs.writeFile(
         path.join(homeDir, ".bash_profile"),
-        "# OpenClaw Completion\nexport IMPORTANT=keep\n",
+        "# Vasudev Completion\nexport IMPORTANT=keep\n",
         "utf-8",
       );
 
@@ -455,7 +455,7 @@ describe("completion-runtime", () => {
       const cachePath = resolveCompletionCachePath("bash", "openclaw");
       await fs.writeFile(
         path.join(homeDir, ".bash_profile"),
-        `# OpenClaw Completion\n[ -f "${cachePath}" ] && source "${cachePath}"\n`,
+        `# Vasudev Completion\n[ -f "${cachePath}" ] && source "${cachePath}"\n`,
         "utf-8",
       );
 
@@ -491,7 +491,7 @@ describe("completion-runtime", () => {
                   ? `test -f "${previousCachePath}"; and source "${previousCachePath}"`
                   : `[ -f "${previousCachePath}" ] && source "${previousCachePath}"`;
             await fs.mkdir(path.dirname(profilePath), { recursive: true });
-            await fs.writeFile(profilePath, `# OpenClaw Completion\n${source}\n`, "utf8");
+            await fs.writeFile(profilePath, `# Vasudev Completion\n${source}\n`, "utf8");
           }
         });
         const previousSource = (await fs.readFile(profilePath, "utf8")).trim().split("\n").at(-1)!;
@@ -503,7 +503,7 @@ describe("completion-runtime", () => {
 
         const profile = await fs.readFile(profilePath, "utf-8");
         expect(profile).not.toContain(previousSource);
-        expect(profile.match(/^# OpenClaw Completion$/gm)).toHaveLength(1);
+        expect(profile.match(/^# Vasudev Completion$/gm)).toHaveLength(1);
         await expect(isCompletionInstalled(shell, "openclaw")).resolves.toBe(true);
         await installCompletion(shell, true, "openclaw");
         await expect(fs.readFile(profilePath, "utf8")).resolves.toBe(profile);
@@ -534,7 +534,7 @@ describe("completion-runtime", () => {
         [
           unrelatedSource,
           unmarkedPriorSource,
-          ...markedUserSources.flatMap((source) => ["# OpenClaw Completion", source]),
+          ...markedUserSources.flatMap((source) => ["# Vasudev Completion", source]),
           "",
         ].join("\n"),
         "utf-8",
@@ -576,12 +576,12 @@ describe("completion-runtime", () => {
     await withBashCompletionHome(async ({ homeDir }) => {
       const cachePath = resolveCompletionCachePath("bash", "openclaw");
       const profilePath = path.join(homeDir, ".bash_profile");
-      const refreshAlias = "alias refresh_openclaw='openclaw completion --write-state'";
+      const refreshAlias = "alias refresh_openclaw='vasudev completion --write-state'";
       await fs.mkdir(path.dirname(cachePath), { recursive: true });
       await fs.writeFile(cachePath, "complete -W 'status' openclaw\n", "utf-8");
       await fs.writeFile(
         profilePath,
-        `# OpenClaw Completion\nexport IMPORTANT=keep\n${refreshAlias}\n`,
+        `# Vasudev Completion\nexport IMPORTANT=keep\n${refreshAlias}\n`,
         "utf-8",
       );
 
@@ -590,7 +590,7 @@ describe("completion-runtime", () => {
       const profile = await fs.readFile(profilePath, "utf-8");
       expect(profile).toContain("export IMPORTANT=keep\n");
       expect(profile).toContain(`${refreshAlias}\n`);
-      expect(profile.match(/^# OpenClaw Completion$/gm)).toHaveLength(1);
+      expect(profile.match(/^# Vasudev Completion$/gm)).toHaveLength(1);
       expect(profile).toContain(cachePath);
     });
   });
@@ -599,12 +599,12 @@ describe("completion-runtime", () => {
     await withBashCompletionHome(async ({ homeDir }) => {
       const cachePath = resolveCompletionCachePath("bash", "openclaw");
       const profilePath = path.join(homeDir, ".bash_profile");
-      const refreshAlias = "alias refresh_openclaw='openclaw completion --write-state'";
+      const refreshAlias = "alias refresh_openclaw='vasudev completion --write-state'";
       await fs.mkdir(path.dirname(cachePath), { recursive: true });
       await fs.writeFile(cachePath, "complete -W 'status' openclaw\n", "utf-8");
       await fs.writeFile(
         profilePath,
-        `export IMPORTANT=keep\nsource <(openclaw completion --shell bash)\n${refreshAlias}\n`,
+        `export IMPORTANT=keep\nsource <(vasudev completion --shell bash)\n${refreshAlias}\n`,
         "utf-8",
       );
 
@@ -613,17 +613,17 @@ describe("completion-runtime", () => {
       const profile = await fs.readFile(profilePath, "utf-8");
       expect(profile).toContain("export IMPORTANT=keep\n");
       expect(profile).toContain(`${refreshAlias}\n`);
-      expect(profile).not.toContain("source <(openclaw completion");
+      expect(profile).not.toContain("source <(vasudev completion");
       expect(profile).toContain(cachePath);
     });
   });
 
   it.each([
-    "export IMPORTANT=keep; source <(openclaw completion --shell bash)",
-    "source <(openclaw completion --shell bash); export IMPORTANT=keep",
-    'source <(openclaw completion --shell bash) >"$HOME/completion.log"',
-    'eval "$(openclaw completion --shell bash)" >"$HOME/completion.log"',
-    'source <(openclaw completion --shell bash >"$HOME/completion.log")',
+    "export IMPORTANT=keep; source <(vasudev completion --shell bash)",
+    "source <(vasudev completion --shell bash); export IMPORTANT=keep",
+    'source <(vasudev completion --shell bash) >"$HOME/completion.log"',
+    'eval "$(vasudev completion --shell bash)" >"$HOME/completion.log"',
+    'source <(vasudev completion --shell bash >"$HOME/completion.log")',
   ])("preserves compound user-owned Bash profile statements: %s", async (compoundLine) => {
     await withBashCompletionHome(async ({ homeDir }) => {
       const cachePath = resolveCompletionCachePath("bash", "openclaw");
@@ -643,17 +643,17 @@ describe("completion-runtime", () => {
   it.each([
     {
       name: "dot-sourced process substitution",
-      sourceLine: ". <(openclaw completion --shell bash)",
+      sourceLine: ". <(vasudev completion --shell bash)",
     },
     {
       name: "eval command substitution",
-      sourceLine: 'eval "$(openclaw completion --shell bash)"',
+      sourceLine: 'eval "$(vasudev completion --shell bash)"',
     },
   ])("replaces $name without deleting unrelated aliases", async ({ sourceLine }) => {
     await withBashCompletionHome(async ({ homeDir }) => {
       const cachePath = resolveCompletionCachePath("bash", "openclaw");
       const profilePath = path.join(homeDir, ".bash_profile");
-      const refreshAlias = "alias refresh_openclaw='openclaw completion --write-state'";
+      const refreshAlias = "alias refresh_openclaw='vasudev completion --write-state'";
       await fs.mkdir(path.dirname(cachePath), { recursive: true });
       await fs.writeFile(cachePath, "complete -W 'status' openclaw\n", "utf-8");
       await fs.writeFile(profilePath, `${sourceLine}\n${refreshAlias}\n`, "utf-8");
@@ -671,8 +671,8 @@ describe("completion-runtime", () => {
     await withBashCompletionHome(async () => {
       const cachePath = resolveCompletionCachePath("powershell", "openclaw");
       const profilePath = resolveCompletionProfilePath("powershell");
-      const dynamicLine = "openclaw completion --shell powershell | Out-String | Invoke-Expression";
-      const refreshCommand = '$refresh = "openclaw completion --write-state"';
+      const dynamicLine = "vasudev completion --shell powershell | Out-String | Invoke-Expression";
+      const refreshCommand = '$refresh = "vasudev completion --write-state"';
       await fs.mkdir(path.dirname(cachePath), { recursive: true });
       await fs.writeFile(cachePath, "# PowerShell completion\n", "utf-8");
       await fs.mkdir(path.dirname(profilePath), { recursive: true });
@@ -689,8 +689,8 @@ describe("completion-runtime", () => {
   });
 
   it.each([
-    "openclaw completion --shell powershell | Out-String | Invoke-Expression; $env:IMPORTANT = 'keep'",
-    'openclaw completion --shell powershell | Tee-Object "$HOME/generated.ps1" | Out-String | Invoke-Expression',
+    "vasudev completion --shell powershell | Out-String | Invoke-Expression; $env:IMPORTANT = 'keep'",
+    'vasudev completion --shell powershell | Tee-Object "$HOME/generated.ps1" | Out-String | Invoke-Expression',
   ])("preserves compound user-owned PowerShell profile statements: %s", async (compoundLine) => {
     await withBashCompletionHome(async () => {
       const cachePath = resolveCompletionCachePath("powershell", "openclaw");
@@ -838,7 +838,7 @@ describe("completion-runtime", () => {
 
       const profilePath = resolveCompletionProfilePath("powershell");
       const profile = await fs.readFile(profilePath, "utf-8");
-      expect(profile).toBe(`# OpenClaw Completion\n. '${cachePath.replace(/'/g, "''")}'\n`);
+      expect(profile).toBe(`# Vasudev Completion\n. '${cachePath.replace(/'/g, "''")}'\n`);
     }, "openclaw-completion-state-bob's-");
   });
 
@@ -855,8 +855,8 @@ describe("completion-runtime", () => {
     .each([
       '[[ -f "${HOME}/.openclaw/completions/openclaw.bash" ]] && source "${HOME}/.openclaw/completions/openclaw.bash"',
       '[ -f "$HOME/.openclaw/completions/openclaw.bash" ] && source "$HOME/.openclaw/completions/openclaw.bash"',
-      '# OpenClaw Completion\n[[ -f "${HOME}/.openclaw/completions/openclaw.bash" ]] && source "${HOME}/.openclaw/completions/openclaw.bash"',
-      '# OpenClaw Completion\n[ -f "$HOME/.openclaw/completions/openclaw.bash" ] && source "$HOME/.openclaw/completions/openclaw.bash"',
+      '# Vasudev Completion\n[[ -f "${HOME}/.openclaw/completions/openclaw.bash" ]] && source "${HOME}/.openclaw/completions/openclaw.bash"',
+      '# Vasudev Completion\n[ -f "$HOME/.openclaw/completions/openclaw.bash" ] && source "$HOME/.openclaw/completions/openclaw.bash"',
       '[\t-f\t"$HOME/.openclaw/completions/openclaw.bash"\t]&& source "$HOME/.openclaw/completions/openclaw.bash"\t',
     ])(
     "preserves a managed portable Bash hook byte-for-byte across installs: %s",
@@ -985,7 +985,7 @@ describe("completion-runtime", () => {
 
           const profile = await fs.readFile(profilePath, "utf8");
           expect(profile).toContain(`${otherHook}\n`);
-          expect(profile).toContain("# OpenClaw Completion");
+          expect(profile).toContain("# Vasudev Completion");
           expect(profile).toContain(cachePath);
           await expect(isCompletionInstalled("bash", "openclaw")).resolves.toBe(true);
         },
@@ -1055,14 +1055,14 @@ describe("completion-runtime", () => {
           await fs.writeFile(cachePath, "complete -W 'status' openclaw\n", "utf-8");
           await fs.writeFile(
             profilePath,
-            `${marked ? "# OpenClaw Completion\n" : ""}${brokenHook}\n`,
+            `${marked ? "# Vasudev Completion\n" : ""}${brokenHook}\n`,
             "utf-8",
           );
           await expect(isCompletionInstalled("bash", "openclaw")).resolves.toBe(false);
           await installCompletion("bash", true, "openclaw");
           const first = await fs.readFile(profilePath, "utf8");
           expect(first).toContain(`${brokenHook}\n`);
-          expect(first).toContain("# OpenClaw Completion");
+          expect(first).toContain("# Vasudev Completion");
           expect(first).toContain(cachePath);
           await expect(isCompletionInstalled("bash", "openclaw")).resolves.toBe(true);
 

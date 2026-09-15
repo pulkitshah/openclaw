@@ -164,11 +164,11 @@ export type DiscordVoiceRealtimeConfig = {
   instructions?: string;
   /** Tool policy for bidi realtime consult calls. */
   toolPolicy?: DiscordVoiceRealtimeToolPolicy;
-  /** Whether bidi should force the OpenClaw agent brain for every substantive turn. */
+  /** Whether bidi should force the Vasudev agent brain for every substantive turn. */
   consultPolicy?: DiscordVoiceRealtimeConsultPolicy;
   /** OpenAI agent-proxy wake-name policy. Unset adapts to the room: off for one human, on for two or more. True always requires; false never requires. */
   requireWakeName?: boolean;
-  /** Wake names that allow OpenAI agent-proxy realtime Discord voice to respond when the gate is active. Defaults to the routed agent name plus OpenClaw, or the agent id plus OpenClaw. */
+  /** Wake names that allow OpenAI agent-proxy realtime Discord voice to respond when the gate is active. Defaults to the routed agent name plus Vasudev, or the agent id plus Vasudev. */
   wakeNames?: string[];
   /** Agent profile bootstrap files to include in realtime provider instructions. Defaults to IDENTITY.md, USER.md, and SOUL.md; set [] to disable. */
   bootstrapContextFiles?: DiscordVoiceRealtimeBootstrapContextFile[];
@@ -176,14 +176,14 @@ export type DiscordVoiceRealtimeConfig = {
   bargeIn?: boolean;
   /** Minimum assistant playback duration before a barge-in truncates audio. Default: 250ms; set 0 for immediate interruption. */
   minBargeInAudioEndMs?: number;
-  /** Debounce window before buffered transcripts are sent to the OpenClaw agent. */
+  /** Debounce window before buffered transcripts are sent to the Vasudev agent. */
   debounceMs?: number;
   /** Provider-specific realtime voice config keyed by provider id. */
   providers?: Record<string, Record<string, unknown> | undefined>;
 };
 
 export type DiscordVoiceAgentSessionConfig = {
-  /** Which OpenClaw conversation should receive voice turns. Default: "voice". */
+  /** Which Vasudev conversation should receive voice turns. Default: "voice". */
   mode?: "voice" | "target";
   /** Discord target used when mode is "target", for example "channel:123". */
   target?: string;
@@ -194,7 +194,7 @@ export type DiscordVoiceConfig = {
   enabled?: boolean;
   /** Voice conversation mode. Default: agent-proxy. */
   mode?: DiscordVoiceMode;
-  /** Route voice turns through an existing OpenClaw Discord conversation. */
+  /** Route voice turns through an existing Vasudev Discord conversation. */
   agentSession?: DiscordVoiceAgentSessionConfig;
   /** Optional LLM model override for Discord voice channel responses. */
   model?: string;

@@ -58,7 +58,7 @@ export function getGatewayStartGuardErrors(params: {
   }
   if (!params.configExists) {
     return [
-      `Missing config. Run \`${formatCliCommand("openclaw setup")}\` or set gateway.mode=local (or pass --allow-unconfigured).`,
+      `Missing config. Run \`${formatCliCommand("vasudev setup")}\` or set gateway.mode=local (or pass --allow-unconfigured).`,
     ];
   }
   return [
@@ -66,7 +66,7 @@ export function getGatewayStartGuardErrors(params: {
       ? [
           "Gateway start blocked: existing config is missing gateway.mode.",
           "Treat this as suspicious or clobbered config.",
-          `Re-run \`${formatCliCommand("openclaw onboard --mode local")}\` or \`${formatCliCommand("openclaw setup")}\`, set gateway.mode=local manually, or pass --allow-unconfigured.`,
+          `Re-run \`${formatCliCommand("vasudev onboard --mode local")}\` or \`${formatCliCommand("vasudev setup")}\`, set gateway.mode=local manually, or pass --allow-unconfigured.`,
         ].join(" ")
       : `Gateway start blocked: set gateway.mode=local (current: ${params.mode}) or pass --allow-unconfigured.`,
     `Config write audit: ${CONFIG_AUDIT_STORE_LABEL}`,

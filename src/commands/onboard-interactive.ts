@@ -27,7 +27,7 @@ export async function runInteractiveSetup(
 }
 
 /**
- * Opens the OpenClaw onboarding conversation used by the guided escape hatch.
+ * Opens the Vasudev onboarding conversation used by the guided escape hatch.
  * The first-run greeting proposes a setup plan and keeps subsequent setup and
  * agent handoff in the same conversation.
  */
@@ -37,7 +37,7 @@ export async function runConversationalOnboarding(
 ) {
   if (!hasInteractiveOnboardingTty()) {
     runtime.error(
-      "Onboarding needs an interactive TTY. Use `openclaw onboard --non-interactive --accept-risk ...` for automation.",
+      "Onboarding needs an interactive TTY. Use `vasudev onboard --non-interactive --accept-risk ...` for automation.",
     );
     runtime.exit(1);
     return;
@@ -45,7 +45,7 @@ export async function runConversationalOnboarding(
   const { verifySetupInference } = await import("../system-agent/setup-inference.js");
   const inference = await verifySetupInference({ runtime, bindSession: true });
   if (!inference.ok) {
-    runtime.error(`OpenClaw requires working inference: ${inference.error}`);
+    runtime.error(`Vasudev requires working inference: ${inference.error}`);
     runtime.exit(1);
     return;
   }

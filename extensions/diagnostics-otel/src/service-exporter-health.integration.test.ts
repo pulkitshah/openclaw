@@ -219,7 +219,7 @@ function startTraceExporterHealthService(
   });
 }
 
-test("reports no OpenClaw-owned routes when the SDK is disabled", async () => {
+test("reports no Vasudev-owned routes when the SDK is disabled", async () => {
   process.env.OTEL_SDK_DISABLED = " TRUE ";
 
   const { ctx } = await startOtelService({

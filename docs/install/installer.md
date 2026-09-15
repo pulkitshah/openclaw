@@ -4,21 +4,21 @@ read_when:
   - You want to understand `openclaw.ai/install.sh`
   - You want to automate installs (CI / headless)
   - You want to install from a GitHub checkout
-  - You want to install a private Node runtime without reinstalling OpenClaw
+  - You want to install a private Node runtime without reinstalling Vasudev
 title: "Installer internals"
 ---
 
-OpenClaw ships three installer scripts, served from `openclaw.ai`.
+Vasudev ships three installer scripts, served from `openclaw.ai`.
 
-| Script                             | Platform             | What it does                                                                                   |
-| ---------------------------------- | -------------------- | ---------------------------------------------------------------------------------------------- |
-| [`install.sh`](#installsh)         | macOS / Linux / WSL  | Installs Node if needed, installs OpenClaw via npm (default) or git, can run onboarding.       |
-| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL  | Installs Node + OpenClaw into a local prefix (`~/.openclaw`) via npm or git. No root required. |
-| [`install.ps1`](#installps1)       | Windows (PowerShell) | Installs Node if needed, installs OpenClaw via npm (default) or git, can run onboarding.       |
+| Script                             | Platform             | What it does                                                                                  |
+| ---------------------------------- | -------------------- | --------------------------------------------------------------------------------------------- |
+| [`install.sh`](#installsh)         | macOS / Linux / WSL  | Installs Node if needed, installs Vasudev via npm (default) or git, can run onboarding.       |
+| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL  | Installs Node + Vasudev into a local prefix (`~/.openclaw`) via npm or git. No root required. |
+| [`install.ps1`](#installps1)       | Windows (PowerShell) | Installs Node if needed, installs Vasudev via npm (default) or git, can run onboarding.       |
 
 All three support Node **24.16+ or 26.1+** with a WAL-reset-safe linked SQLite library. When Node is missing and nvm is not detected, `install.sh` provisions Node 26 through Homebrew on macOS and the supported Node 24 LTS line through NodeSource on Linux. When a supported RPM-owned Node links unsafe SQLite, `install.sh` preserves the distro package and provisions a user-space Node runtime through `install-cli.sh`. The rootless `install-cli.sh` downloads Node 24.19.0; Linux ARMv7 is unsupported. On Windows, winget/Chocolatey/Scoop install the supported Node LTS line, and the portable fallback downloads Node 26.
 
-Before changing packages, every installer probes the exact npm executable it will use. npm 11.15 and earlier installs normally; npm 11.16 and later, including npm 12, receives `--allow-scripts` for only the npm-resolved OpenClaw candidate identity. An unreadable npm version stops before package mutation. A remaining `.openclaw-lifecycle-pending` marker or legacy `dist/openclaw-install-guard` makes the install fail instead of reporting a lifecycle-skipped package as successful.
+Before changing packages, every installer probes the exact npm executable it will use. npm 11.15 and earlier installs normally; npm 11.16 and later, including npm 12, receives `--allow-scripts` for only the npm-resolved Vasudev candidate identity. An unreadable npm version stops before package mutation. A remaining `.openclaw-lifecycle-pending` marker or legacy `dist/openclaw-install-guard` makes the install fail instead of reporting a lifecycle-skipped package as successful.
 
 On npm 12, local `.tgz` and `.tar.gz` installs and updates need a comma-free archive filename and parent path. npm uses commas to separate lifecycle approvals, so move the archive to a comma-free path before retrying. Relative tarball arguments are still supported; the installer resolves their full path for approval.
 
@@ -26,7 +26,7 @@ Install-method switches verify the replacement before retiring the current owner
 
 ## Private Node recovery
 
-When the active Node.js is unsupported, the CLI can offer `Update NodeJS: Y/N [N]:` before loading OpenClaw. Enter **Y** to install a checksum-verified private runtime and retry the same command. Provisioning leaves system Node.js, shell settings, OpenClaw packages, and Gateway services unchanged; the retried command keeps its normal behavior. Enter **N**, press Enter, or cancel to receive manual upgrade instructions.
+When the active Node.js is unsupported, the CLI can offer `Update NodeJS: Y/N [N]:` before loading Vasudev. Enter **Y** to install a checksum-verified private runtime and retry the same command. Provisioning leaves system Node.js, shell settings, Vasudev packages, and Gateway services unchanged; the retried command keeps its normal behavior. Enter **N**, press Enter, or cancel to receive manual upgrade instructions.
 
 The installation offer requires both stdin and stderr to be interactive terminals. The CLI never prompts or installs a runtime in CI or with `--json`, `--yes`, or `--non-interactive`. Recovery supports x64/ARM64 macOS, Windows, and glibc Linux; Alpine/musl and other architectures require manual installation. Commands with an exact process identity requirement, including `hooks relay` and `webhooks gmail run`, keep their existing runtime requirement.
 
@@ -119,13 +119,13 @@ Recommended for most interactive installs on macOS/Linux/WSL.
     Supports macOS and Linux (including WSL).
   </Step>
   <Step title="Ensure a supported Node.js runtime">
-    Checks the Node version and linked SQLite library, then installs Node if needed (Node 26 through Homebrew `node` on macOS; Node 24 LTS through NodeSource setup scripts on Linux apt/dnf/yum). On RPM-based Linux, a supported distro Node that links unsafe SQLite remains installed while OpenClaw receives a user-space Node runtime. On macOS, Homebrew is installed only when the installer needs it for Node or Git. Node 24.16+ and Node 26.1+ are supported; Node 22, 23, and 25 are unsupported.
+    Checks the Node version and linked SQLite library, then installs Node if needed (Node 26 through Homebrew `node` on macOS; Node 24 LTS through NodeSource setup scripts on Linux apt/dnf/yum). On RPM-based Linux, a supported distro Node that links unsafe SQLite remains installed while Vasudev receives a user-space Node runtime. On macOS, Homebrew is installed only when the installer needs it for Node or Git. Node 24.16+ and Node 26.1+ are supported; Node 22, 23, and 25 are unsupported.
     On Alpine/musl Linux, the installer uses apk packages instead of NodeSource and verifies the actual linked SQLite version. Current stable Alpine package streams can provide a new-enough Node with vulnerable system SQLite; when that happens, use an official `node:26-alpine` container or a glibc-based host instead.
   </Step>
   <Step title="Ensure Git">
     Installs Git if missing using the detected package manager, including Homebrew on macOS and apk on Alpine.
   </Step>
-  <Step title="Install OpenClaw">
+  <Step title="Install Vasudev">
     - `npm` method (default): global npm install
     - `git` method: clone/update repo, install deps with pnpm, build, then install wrapper at `~/.local/bin/openclaw`
 
@@ -170,7 +170,7 @@ commands. Without nvm, the existing user-local npm prefix setup still applies.
 
 ### Source checkout detection
 
-If run inside an OpenClaw checkout (`package.json` + `pnpm-workspace.yaml`), the script offers:
+If run inside a Vasudev checkout (`package.json` + `pnpm-workspace.yaml`), the script offers:
 
 - use checkout (`git`), or
 - use global install (`npm`)
@@ -246,20 +246,20 @@ object is unavailable or cannot resolve to a commit.
 
   <Accordion title="Environment variables reference">
 
-| Variable                                          | Description                                                        |
-| ------------------------------------------------- | ------------------------------------------------------------------ |
-| `OPENCLAW_INSTALL_METHOD=git\|npm`                | Install method                                                     |
-| `OPENCLAW_VERSION=latest\|next\|<semver>\|<spec>` | npm version, dist-tag, or package spec                             |
-| `OPENCLAW_BETA=0\|1`                              | Use beta if available                                              |
-| `OPENCLAW_HOME=<path>`                            | Base directory for OpenClaw state and default git/onboarding paths |
-| `OPENCLAW_GIT_DIR=<path>`                         | Checkout directory                                                 |
-| `OPENCLAW_GIT_UPDATE=0\|1`                        | Toggle git updates                                                 |
-| `OPENCLAW_NO_PROMPT=1`                            | Disable prompts                                                    |
-| `OPENCLAW_VERIFY_INSTALL=1`                       | Run the post-install smoke verify                                  |
-| `OPENCLAW_NO_ONBOARD=1`                           | Skip onboarding                                                    |
-| `OPENCLAW_DRY_RUN=1`                              | Dry run mode                                                       |
-| `OPENCLAW_VERBOSE=1`                              | Debug mode                                                         |
-| `OPENCLAW_NPM_LOGLEVEL=error\|warn\|notice`       | npm log level (default: `error`, hides npm deprecation noise)      |
+| Variable                                          | Description                                                       |
+| ------------------------------------------------- | ----------------------------------------------------------------- |
+| `OPENCLAW_INSTALL_METHOD=git\|npm`                | Install method                                                    |
+| `OPENCLAW_VERSION=latest\|next\|<semver>\|<spec>` | npm version, dist-tag, or package spec                            |
+| `OPENCLAW_BETA=0\|1`                              | Use beta if available                                             |
+| `OPENCLAW_HOME=<path>`                            | Base directory for Vasudev state and default git/onboarding paths |
+| `OPENCLAW_GIT_DIR=<path>`                         | Checkout directory                                                |
+| `OPENCLAW_GIT_UPDATE=0\|1`                        | Toggle git updates                                                |
+| `OPENCLAW_NO_PROMPT=1`                            | Disable prompts                                                   |
+| `OPENCLAW_VERIFY_INSTALL=1`                       | Run the post-install smoke verify                                 |
+| `OPENCLAW_NO_ONBOARD=1`                           | Skip onboarding                                                   |
+| `OPENCLAW_DRY_RUN=1`                              | Dry run mode                                                      |
+| `OPENCLAW_VERBOSE=1`                              | Debug mode                                                        |
+| `OPENCLAW_NPM_LOGLEVEL=error\|warn\|notice`       | npm log level (default: `error`, hides npm deprecation noise)     |
 
   </Accordion>
 </AccordionGroup>
@@ -287,7 +287,7 @@ by default, plus git-checkout installs under the same prefix flow.
   <Step title="Ensure Git">
     If Git is missing, attempts install via apt/dnf/yum/apk on Linux or Homebrew on macOS.
   </Step>
-  <Step title="Install OpenClaw under prefix">
+  <Step title="Install Vasudev under prefix">
     - `npm` method (default): installs under the prefix with npm, then writes wrapper to `<prefix>/bin/openclaw`
     - `git` method: clones/updates a checkout (default `~/openclaw`) and still writes the wrapper to `<prefix>/bin/openclaw`
 
@@ -303,7 +303,7 @@ by default, plus git-checkout installs under the same prefix flow.
   </Step>
 </Steps>
 
-With `--node-only`, `install-cli.sh` stops after provisioning Node into `<prefix>/tools/node-v<version>` and updating the `<prefix>/tools/node` alias. It skips Git, OpenClaw installation, onboarding, and Gateway service work. This mode refuses musl Linux before any system package-manager changes.
+With `--node-only`, `install-cli.sh` stops after provisioning Node into `<prefix>/tools/node-v<version>` and updating the `<prefix>/tools/node` alias. It skips Git, Vasudev installation, onboarding, and Gateway service work. This mode refuses musl Linux before any system package-manager changes.
 
 ### Examples (install-cli.sh)
 
@@ -351,7 +351,7 @@ With `--node-only`, `install-cli.sh` stops after provisioning Node into `<prefix
 | `--git \| --github`                     | Shortcut for git method                                                           |
 | `--git-dir \| --dir <path>`             | Git checkout directory (default: `~/openclaw`)                                    |
 | `--no-git-update`                       | Skip `git pull` for an existing git checkout                                      |
-| `--version <ver>`                       | OpenClaw version or dist-tag (default: `latest`)                                  |
+| `--version <ver>`                       | Vasudev version or dist-tag (default: `latest`)                                   |
 | `--compatible-with <ver>`               | Refuse a CLI that cannot modify config written by `<ver>`                         |
 | `--node-version <ver>`                  | Node version (default: `24.19.0`)                                                 |
 | `--node-only`                           | Install only the private Node runtime under `--prefix`; no system package changes |
@@ -365,17 +365,17 @@ With `--node-only`, `install-cli.sh` stops after provisioning Node into `<prefix
 
   <Accordion title="Environment variables reference">
 
-| Variable                                    | Description                                                        |
-| ------------------------------------------- | ------------------------------------------------------------------ |
-| `OPENCLAW_PREFIX=<path>`                    | Install prefix                                                     |
-| `OPENCLAW_INSTALL_METHOD=git\|npm`          | Install method                                                     |
-| `OPENCLAW_VERSION=<ver>`                    | OpenClaw version or dist-tag                                       |
-| `OPENCLAW_NODE_VERSION=<ver>`               | Node version                                                       |
-| `OPENCLAW_HOME=<path>`                      | Base directory for OpenClaw state and default git/onboarding paths |
-| `OPENCLAW_GIT_DIR=<path>`                   | Git checkout directory for git installs                            |
-| `OPENCLAW_GIT_UPDATE=0\|1`                  | Toggle git updates for existing checkouts                          |
-| `OPENCLAW_NO_ONBOARD=1`                     | Skip onboarding                                                    |
-| `OPENCLAW_NPM_LOGLEVEL=error\|warn\|notice` | npm log level (default: `error`)                                   |
+| Variable                                    | Description                                                       |
+| ------------------------------------------- | ----------------------------------------------------------------- |
+| `OPENCLAW_PREFIX=<path>`                    | Install prefix                                                    |
+| `OPENCLAW_INSTALL_METHOD=git\|npm`          | Install method                                                    |
+| `OPENCLAW_VERSION=<ver>`                    | Vasudev version or dist-tag                                       |
+| `OPENCLAW_NODE_VERSION=<ver>`               | Node version                                                      |
+| `OPENCLAW_HOME=<path>`                      | Base directory for Vasudev state and default git/onboarding paths |
+| `OPENCLAW_GIT_DIR=<path>`                   | Git checkout directory for git installs                           |
+| `OPENCLAW_GIT_UPDATE=0\|1`                  | Toggle git updates for existing checkouts                         |
+| `OPENCLAW_NO_ONBOARD=1`                     | Skip onboarding                                                   |
+| `OPENCLAW_NPM_LOGLEVEL=error\|warn\|notice` | npm log level (default: `error`)                                  |
 
   </Accordion>
 </AccordionGroup>
@@ -399,7 +399,7 @@ With `--node-only`, `install-cli.sh` stops after provisioning Node into `<prefix
   <Step title="Ensure a supported Node.js runtime">
     If missing, attempts install via winget, then Chocolatey, then Scoop. If no package manager is available, the script downloads the official Node.js 26 Windows zip into `%LOCALAPPDATA%\OpenClaw\deps\portable-node` and adds it to the current process and user PATH. Node 24.16+ and Node 26.1+ are supported; Node 22, 23, and 25 are unsupported.
   </Step>
-  <Step title="Install OpenClaw">
+  <Step title="Install Vasudev">
     - `npm` method (default): global npm install using the selected `-Tag`, launched from a writable installer temp directory so shells opened in protected folders such as `C:\` still work
     - `git` method: clone/update repo, install/build with pnpm, and install wrapper at `%USERPROFILE%\.local\bin\openclaw.cmd`. If Git is missing, the script bootstraps user-local MinGit under `%LOCALAPPDATA%\OpenClaw\deps\portable-git` and adds it to the current process and user PATH.
 
@@ -415,7 +415,7 @@ With `--node-only`, `install-cli.sh` stops after provisioning Node into `<prefix
   </Step>
 </Steps>
 
-With `-NodeOnly`, `install.ps1` downloads the official Node archive, verifies its SHA-256 checksum and runtime compatibility, then installs Node with its matching npm/npx into `-NodePrefix`. The prefix must be an absolute private directory, not a filesystem root. This mode skips package managers, OpenClaw installation, onboarding, and Gateway service work, and leaves process, user, and machine PATH unchanged. `-NodePrefix` requires `-NodeOnly`; `-DryRun` previews the destination without installing.
+With `-NodeOnly`, `install.ps1` downloads the official Node archive, verifies its SHA-256 checksum and runtime compatibility, then installs Node with its matching npm/npx into `-NodePrefix`. The prefix must be an absolute private directory, not a filesystem root. This mode skips package managers, Vasudev installation, onboarding, and Gateway service work, and leaves process, user, and machine PATH unchanged. `-NodePrefix` requires `-NodeOnly`; `-DryRun` previews the destination without installing.
 
 <Note>
 The complete native Windows launcher → PowerShell → downloaded Node handoff remains unproven on native Windows. PowerShell installer fixtures cover checksum failures and installation isolation, but do not establish that complete recovery flow.

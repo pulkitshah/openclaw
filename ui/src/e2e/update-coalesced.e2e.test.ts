@@ -156,10 +156,10 @@ suite.define(() => {
           .click();
         const dialog = page.locator("openclaw-modal-dialog");
         await dialog
-          .getByText("⚠️ OpenClaw update failed: global-install-failed.", { exact: true })
+          .getByText("⚠️ Vasudev update failed: global-install-failed.", { exact: true })
           .first()
           .waitFor();
-        expect(await dialog.textContent()).toContain("openclaw triage");
+        expect(await dialog.textContent()).toContain("vasudev triage");
         expect(await dialog.textContent()).toContain("Package install did not verify on disk.");
         expect(await gateway.getRequests("update.run")).toHaveLength(1);
         expect(await gateway.getRequests("openclaw.chat")).toHaveLength(0);
@@ -171,7 +171,7 @@ suite.define(() => {
         expect(await page.locator("openclaw-sidebar-attention").count()).toBe(0);
         await page
           .locator("openclaw-update-run-view")
-          .getByText("⚠️ OpenClaw update failed: global-install-failed.", { exact: true })
+          .getByText("⚠️ Vasudev update failed: global-install-failed.", { exact: true })
           .first()
           .waitFor();
         expect(pageErrors).toEqual([]);
@@ -234,13 +234,13 @@ suite.define(() => {
         );
         await updateIssue.locator("summary").click();
         await updateIssue
-          .getByText("⬆️ OpenClaw update in progress: restarting.", { exact: true })
+          .getByText("⬆️ Vasudev update in progress: restarting.", { exact: true })
           .first()
           .waitFor();
         await updateIssue.locator(".sidebar-update-card__action").click();
         await page
           .locator("openclaw-modal-dialog")
-          .getByText("⬆️ OpenClaw update in progress: restarting.", { exact: true })
+          .getByText("⬆️ Vasudev update in progress: restarting.", { exact: true })
           .waitFor();
         expect(await gateway.getRequests("update.run")).toHaveLength(1);
         expect(await page.locator(".sidebar-issues-button__count").count()).toBe(1);

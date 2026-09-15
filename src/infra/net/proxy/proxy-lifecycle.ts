@@ -332,7 +332,7 @@ function isGatewayControlPlaneLoopbackHost(hostname: string): boolean {
 
 /**
  * Carve out the operator-managed external proxy for the Browser plugin's
- * loopback CDP probe to a Chromium instance OpenClaw spawned itself.
+ * loopback CDP probe to a Chromium instance Vasudev spawned itself.
  *
  * The managed proxy installs a process-wide undici dispatcher that would
  * otherwise route `http://127.0.0.1:<cdpPort>/json/version` and the

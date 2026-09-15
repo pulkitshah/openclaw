@@ -1,13 +1,13 @@
 ---
-summary: "Run OpenClaw with Ollama (cloud and local models)"
+summary: "Run Vasudev with Ollama (cloud and local models)"
 read_when:
-  - You want to run OpenClaw with cloud or local models via Ollama
+  - You want to run Vasudev with cloud or local models via Ollama
   - You need Ollama setup and configuration guidance
   - You want Ollama vision models for image understanding
 title: "Ollama"
 ---
 
-OpenClaw talks to Ollama's native API (`/api/chat`), not the OpenAI-compatible
+Vasudev talks to Ollama's native API (`/api/chat`), not the OpenAI-compatible
 `/v1` endpoint. Three modes are supported:
 
 | Mode          | What it uses                                                                     |
@@ -124,7 +124,7 @@ Each entry points at the page that now holds the content.
 - <a id="ollama-not-detected" />[Ollama not detected](/providers/ollama/troubleshooting#ollama-not-detected)
 - <a id="no-models-available" />[No models available](/providers/ollama/troubleshooting#no-models-available)
 - <a id="connection-refused" />[Connection refused](/providers/ollama/troubleshooting#connection-refused)
-- <a id="remote-host-works-with-curl-but-not-openclaw" />[Remote host works with curl but not OpenClaw](/providers/ollama/troubleshooting#remote-host-works-with-curl-but-not-openclaw)
+- <a id="remote-host-works-with-curl-but-not-openclaw" />[Remote host works with curl but not Vasudev](/providers/ollama/troubleshooting#remote-host-works-with-curl-but-not-vasudev)
 - <a id="model-outputs-tool-json-as-text" />[Model outputs tool JSON as text](/providers/ollama/troubleshooting#model-outputs-tool-json-as-text)
 - <a id="kimi-or-glm-returns-garbled-symbols" />[Kimi or GLM returns garbled symbols](/providers/ollama/troubleshooting#kimi-or-glm-returns-garbled-symbols)
 - <a id="cold-local-model-times-out" />[Cold local model times out](/providers/ollama/troubleshooting#cold-local-model-times-out)

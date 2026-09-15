@@ -7,9 +7,9 @@ read_when:
 title: "CLI backends"
 ---
 
-OpenClaw can run a local AI CLI as a text-only fallback when API providers are down, rate-limited, or misbehaving. It is intentionally conservative:
+Vasudev can run a local AI CLI as a text-only fallback when API providers are down, rate-limited, or misbehaving. It is intentionally conservative:
 
-- OpenClaw tools are not injected directly, but a backend with `bundleMcp: true` can receive Gateway tools through a loopback MCP bridge.
+- Vasudev tools are not injected directly, but a backend with `bundleMcp: true` can receive Gateway tools through a loopback MCP bridge.
 - JSONL streaming for CLIs that support it.
 - Sessions are supported, so follow-up turns stay coherent.
 - Images pass through if the CLI accepts image paths.
@@ -35,7 +35,7 @@ nonstandard executable path or arguments, register that adapter in a
 [CLI backend plugin](/plugins/cli-backend-plugins) instead of putting launch
 mechanics in `openclaw.json`.
 
-OpenClaw auto-loads an owning bundled plugin when model selection or a
+Vasudev auto-loads an owning bundled plugin when model selection or a
 model-scoped `agentRuntime.id` references its backend.
 
 Utility completions for session digests, progress narration, and tool-call titles use the selected model's runtime too. Claude CLI runs a fresh, tool-free completion with its own authentication. This includes canonical `anthropic/*` refs configured with `agentRuntime.id: "claude-cli"`.
@@ -83,14 +83,14 @@ the model ref canonical and select the CLI runtime per model:
 }
 ```
 
-Credentials remain in OpenClaw auth profiles or the owning plugin's config.
+Credentials remain in Vasudev auth profiles or the owning plugin's config.
 Command, argv, environment, parsing, session, image, and watchdog mechanics are
 plugin code registered with `api.registerCliBackend(...)`.
 
 ## How it works
 
 1. Selects a backend by provider prefix (`claude-cli/...`).
-2. Builds a system prompt using the same OpenClaw prompt and workspace context.
+2. Builds a system prompt using the same Vasudev prompt and workspace context.
 3. Executes the CLI with a session id (if supported) so history stays consistent. The bundled `claude-cli` backend communicates directly with the installed Claude Code executable and keeps its authenticated subprocess warm across compatible agent turns.
 4. Parses output (JSON or plain text) and returns the final text.
 5. Persists session ids per backend so follow-ups reuse the same CLI session.
@@ -112,7 +112,7 @@ openclaw config unset agents.defaults.timeoutSeconds
 openclaw config set agents.defaults.timeoutSeconds 43200
 ```
 
-Background work started inside a CLI is still part of that CLI subprocess. If the parent turn reaches its overall limit, OpenClaw stops the subprocess and its CLI-internal background tasks together. For durable long work, use a detached OpenClaw [sub-agent](/tools/subagents) or [ACP agent](/tools/acp-agents). Detached sub-agents have no run timeout by default.
+Background work started inside a CLI is still part of that CLI subprocess. If the parent turn reaches its overall limit, Vasudev stops the subprocess and its CLI-internal background tasks together. For durable long work, use a detached Vasudev [sub-agent](/tools/subagents) or [ACP agent](/tools/acp-agents). Detached sub-agents have no run timeout by default.
 
 The `openclaw agent` command also has its own request deadline. Its 600-second fallback default applies to that command invocation, not to ordinary Gateway turns. See [`openclaw agent`](/cli/agent).
 
@@ -120,7 +120,7 @@ The `openclaw agent` command also has its own request deadline. Its 600-second f
 
 The bundled Anthropic plugin communicates directly with the installed Claude Code
 executable over its structured stdio protocol. Claude Code owns its existing local login and
-subscription. OpenClaw uses a non-secret route marker. It never reads, persists,
+subscription. Vasudev uses a non-secret route marker. It never reads, persists,
 refreshes, or forwards native tokens, or sends synthesized Anthropic API
 requests. Compatible agent turns share one warm Claude Code subprocess.
 A changed model, system prompt, or tool policy starts a
@@ -128,18 +128,18 @@ new subprocess. Persisted Claude session IDs still provide
 conversation continuity when the Gateway or subprocess restarts.
 
 For local plugin-managed turns, prompt-build hook context stays private: Claude
-receives it as a native hook attachment, while OpenClaw history preserves the original user message. The
+receives it as a native hook attachment, while Vasudev history preserves the original user message. The
 native session retains the context for resume. Imported visible history and
 cross-provider fallback preludes do not copy private hook attachments.
 
 Saved session notes also reach fresh and resumed turns as quoted reference data.
-OpenClaw replays eligible notes from the active reset/compaction window, with a
+Vasudev replays eligible notes from the active reset/compaction window, with a
 total limit of 2,000 weighted characters including framing. Newer notes take
 priority. Omitted or truncated notes are marked. Notes may repeat because CLI
-bindings do not track which OpenClaw notes the native session has consumed.
+bindings do not track which Vasudev notes the native session has consumed.
 Transient runtime context and notes excluded from model context are not replayed.
 
-Keep Claude Code updated, especially if OpenClaw reports an incompatible
+Keep Claude Code updated, especially if Vasudev reports an incompatible
 installed executable:
 
 ```bash
@@ -148,32 +148,32 @@ claude update
 # Restart the OpenClaw Gateway after updating.
 ```
 
-The bundled `claude-cli` backend prefers Claude Code's native skill resolver. When the current skills snapshot has at least one selected skill with a materialized path, OpenClaw passes a temporary Claude Code plugin via `--plugin-dir`. It then omits the duplicate OpenClaw skills catalog from the appended system prompt. Without a materialized plugin skill, OpenClaw keeps the prompt catalog as a fallback. Skill env/API key overrides still apply to the child process environment for the run.
+The bundled `claude-cli` backend prefers Claude Code's native skill resolver. When the current skills snapshot has at least one selected skill with a materialized path, Vasudev passes a temporary Claude Code plugin via `--plugin-dir`. It then omits the duplicate Vasudev skills catalog from the appended system prompt. Without a materialized plugin skill, Vasudev keeps the prompt catalog as a fallback. Skill env/API key overrides still apply to the child process environment for the run.
 
-OpenClaw disables Claude Code's built-in Git workflow instructions and startup
+Vasudev disables Claude Code's built-in Git workflow instructions and startup
 Git-status snapshot with `CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS=1`. Claude Code
 rebuilds that snapshot when a process resumes, so workspace edits or commits
 would otherwise invalidate cached conversation history. Git tools and workspace
 instructions remain available. This does not prevent cache misses after prompt
 changes, compaction, model or thinking changes, or cache expiry.
 
-OpenClaw always launches Claude Code with its default permission mode.
-OpenClaw's permission responses and `PreToolUse` hook keep native tools under
+Vasudev always launches Claude Code with its default permission mode.
+Vasudev's permission responses and `PreToolUse` hook keep native tools under
 host control, including when user or enterprise settings would otherwise
 preapprove a call. Native requests pass through canonical `before_tool_call`
 policy before exec policy and approval, with native tool names and file
-arguments projected into their OpenClaw equivalents. Per-agent and session
-restrictions still override broader global policy. OpenClaw-owned MCP tools
+arguments projected into their Vasudev equivalents. Per-agent and session
+restrictions still override broader global policy. Vasudev-owned MCP tools
 remain authorized by the Gateway rather than receiving duplicate native
 approval. Other MCP tools stay host-permission controlled.
 
-Claude's native `AskUserQuestion` uses OpenClaw's structured question flow. When
-OpenClaw rejects malformed questions, it reports the failed field and
+Claude's native `AskUserQuestion` uses Vasudev's structured question flow. When
+Vasudev rejects malformed questions, it reports the failed field and
 constraint without repeating the submitted text, and asks Claude to correct
 the field and retry. Invalid questions do not prompt the user. If the user
 skips a valid question, Claude instead continues with its best judgment.
 
-When the effective exec ask setting is `on-miss` or `always`, OpenClaw relays
+When the effective exec ask setting is `on-miss` or `always`, Vasudev relays
 native or extension tool requests that need approval to the session's
 channel: **Allow once** permits the single call, **Allow always** permits that
 tool name for the same warm live session while each subsequent turn's policy
@@ -192,7 +192,7 @@ against the agent's [exec allowlist](/tools/exec-approvals). For example:
 openclaw approvals allowlist add --agent main /usr/local/bin/gog
 ```
 
-OpenClaw reuses its exec shell evaluator and allows a call without prompting
+Vasudev reuses its exec shell evaluator and allows a call without prompting
 only when every command segment resolves to an explicitly allowlisted binary
 and can be fully classified and bound. Executables may be absolute paths or
 resolved through the CLI launch PATH with the agent's configured exec PATH
@@ -210,15 +210,15 @@ always** remains unavailable for Bash, and truncated Bash approval descriptions
 still fail closed.
 
 This is argument-level policy applied to the command Claude Code will run,
-not sandboxed execution by OpenClaw. Claude Code owns cwd, PATH, environment,
+not sandboxed execution by Vasudev. Claude Code owns cwd, PATH, environment,
 and sandboxing. Use a [paired node](/nodes) or the embedded runtime with
 [sandboxing](/gateway/sandboxing) when sandboxed execution is required.
 
 ### Claude browser tools and 1Password sign-in
 
-Claude Code can drive a Chrome browser through the [Claude in Chrome extension](https://code.claude.com/docs/en/chrome), including [1Password for Claude](/gateway/1password#browser-sign-in-with-1password-for-claude) credential autofill. The bundled backend does not enable it. Register a [CLI backend plugin](/plugins/cli-backend-plugins) that appends `--chrome` to the launch args of a `claude-stream-json`-dialect backend. OpenClaw preserves a configured `--chrome` on normal runs and always forces `--no-chrome` on runs with a restricted tool policy, such as side questions. The Chrome window, the extension, and any 1Password approval prompts live on the Gateway host. Someone must be at that machine to approve credential use.
+Claude Code can drive a Chrome browser through the [Claude in Chrome extension](https://code.claude.com/docs/en/chrome), including [1Password for Claude](/gateway/1password#browser-sign-in-with-1password-for-claude) credential autofill. The bundled backend does not enable it. Register a [CLI backend plugin](/plugins/cli-backend-plugins) that appends `--chrome` to the launch args of a `claude-stream-json`-dialect backend. Vasudev preserves a configured `--chrome` on normal runs and always forces `--no-chrome` on runs with a restricted tool policy, such as side questions. The Chrome window, the extension, and any 1Password approval prompts live on the Gateway host. Someone must be at that machine to approve credential use.
 
-The backend maps OpenClaw `/think` levels to Claude Code's native `--effort` flag: `minimal`/`low` -> `low`, `medium` -> `medium`, and `high`/`xhigh`/`max` pass through directly. For models that allow fixed thinking budgets, it also launches Claude Code with `MAX_THINKING_TOKENS`: `off=0`, `minimal=1024`, `low=2048`, `medium=8192`, `high`/`xhigh=16384`, and `max=32768`. Positive fixed budgets disable adaptive thinking. Models that require adaptive thinking omit the fixed budget and continue to use `--effort`. `adaptive` removes configured effort flags and fixed-budget environment overrides, so Claude Code resolves effective thinking from its own environment, settings, and model defaults. Other CLI backends need their owning plugin to map the selected level before `/think` affects the spawned CLI.
+The backend maps Vasudev `/think` levels to Claude Code's native `--effort` flag: `minimal`/`low` -> `low`, `medium` -> `medium`, and `high`/`xhigh`/`max` pass through directly. For models that allow fixed thinking budgets, it also launches Claude Code with `MAX_THINKING_TOKENS`: `off=0`, `minimal=1024`, `low=2048`, `medium=8192`, `high`/`xhigh=16384`, and `max=32768`. Positive fixed budgets disable adaptive thinking. Models that require adaptive thinking omit the fixed budget and continue to use `--effort`. `adaptive` removes configured effort flags and fixed-budget environment overrides, so Claude Code resolves effective thinking from its own environment, settings, and model defaults. Other CLI backends need their owning plugin to map the selected level before `/think` affects the spawned CLI.
 
 For native login, sign in to Claude Code on the Gateway host:
 
@@ -254,12 +254,12 @@ register a small wrapper backend plugin.
   - `always`: always send a session id (new UUID if none stored).
   - `existing`: only send a session id if one was stored before.
   - `none`: never send a session id.
-- `claude-cli` defaults to `liveSession: "claude-stdio"`, `output: "jsonl"`, and `input: "stdin"`. The owning Anthropic plugin keeps one Claude Code subprocess warm for compatible consecutive agent turns through its direct CLI transport. If the Gateway restarts or the idle process exits, OpenClaw resumes from the stored Claude session id. Stored session ids are verified against a readable project transcript before resume. A missing transcript clears the binding (logged as `reason=transcript-missing`) instead of silently starting a fresh session under `--resume`.
+- `claude-cli` defaults to `liveSession: "claude-stdio"`, `output: "jsonl"`, and `input: "stdin"`. The owning Anthropic plugin keeps one Claude Code subprocess warm for compatible consecutive agent turns through its direct CLI transport. If the Gateway restarts or the idle process exits, Vasudev resumes from the stored Claude session id. Stored session ids are verified against a readable project transcript before resume. A missing transcript clears the binding (logged as `reason=transcript-missing`) instead of silently starting a fresh session under `--resume`.
 - Stored CLI sessions are provider-owned continuity. Automatic reset is disabled by default. `/reset` and explicit daily or idle `session.reset` policies still cut them.
-- Fresh CLI sessions can recover OpenClaw history from the canonical session SQLite database when its independent account boundary matches the selected credential. Compacted recovery includes the latest summary, retained messages, and subsequent turns on the active branch. A backend can opt in to bounded recovery before compaction with `reseedFromRawTranscriptWhenUncompacted: true`, including after its native session binding is cleared. Recovery includes saved tool-result text and error markers. It does not execute past tools. The current user turn is sent once, outside the recovered history.
+- Fresh CLI sessions can recover Vasudev history from the canonical session SQLite database when its independent account boundary matches the selected credential. Compacted recovery includes the latest summary, retained messages, and subsequent turns on the active branch. A backend can opt in to bounded recovery before compaction with `reseedFromRawTranscriptWhenUncompacted: true`, including after its native session binding is cleared. Recovery includes saved tool-result text and error markers. It does not execute past tools. The current user turn is sent once, outside the recovered history.
 - Helper runs with a caller-owned in-memory transcript use that history for hooks, bounded session notes, and fresh-session reseeding, including meaningful history before compaction. Empty memory stays empty even when the run carries another session's storage identity. Context-engine maintenance rewrites that same memory before the helper returns, even when the engine requests background maintenance. Durable transcripts retain their background maintenance path. An explicitly owned native CLI binding can still resume. Resumed turns send the current prompt and bounded session notes without replaying the conversation history.
 
-When prompt content changes, a compatible CLI session can resume with an OpenClaw
+When prompt content changes, a compatible CLI session can resume with a Vasudev
 context note before the current user prompt. Chat history first matches imported
 Claude user turns against the full local text, including any literal quote of the
 note. If that does not match, it ignores one exact context note for comparison, so
@@ -268,7 +268,7 @@ remain intact.
 
 ### History account boundaries
 
-Native session compatibility and permission to replay saved OpenClaw history are separate. Clearing or replacing a native binding does not establish ownership of older transcript rows. OpenClaw records a private account fingerprint and contiguous transcript coverage before an admitted CLI turn, then advances coverage with that turn’s canonical writes. It never stores credential values in this metadata.
+Native session compatibility and permission to replay saved Vasudev history are separate. Clearing or replacing a native binding does not establish ownership of older transcript rows. Vasudev records a private account fingerprint and contiguous transcript coverage before an admitted CLI turn, then advances coverage with that turn’s canonical writes. It never stores credential values in this metadata.
 
 Automatic durable recovery requires a resolved static credential or a named OAuth account. Opaque CLI logins, identity-less OAuth credentials, legacy transcripts without provenance, imported or otherwise unaccounted content, and incompatible provenance versions cannot authorize automatic replay. Native resume remains available under the backend’s existing rules. Switching accounts makes mixed history ineligible even after a successful replacement, a later clear, or a switch back to the original account. A new session or an empty reset can establish a new boundary. A reset that retains messages cannot relabel them.
 
@@ -276,11 +276,11 @@ This uses existing session metadata and transcript generation/sequence counters.
 
 Explicit caller-owned in-memory context remains caller-supplied input, not permission to read a durable conversation carrying the same identifiers. Authentication invalidations still refuse its recovery prompt and saved session notes. When automatic recovery is refused, the saved transcript remains intact. The next CLI process receives the current request without the saved history or notes.
 
-Serialization: `serialize: true` keeps same-lane runs ordered (most CLIs serialize on one provider lane). OpenClaw also drops stored CLI session reuse when the selected auth identity changes. A changed auth profile id, static API key, static token, or OAuth account identity all count, when the CLI exposes one. OAuth access and refresh token rotation alone does not cut the session. If a CLI has no stable OAuth account id, OpenClaw lets that CLI enforce its own resume permissions.
+Serialization: `serialize: true` keeps same-lane runs ordered (most CLIs serialize on one provider lane). Vasudev also drops stored CLI session reuse when the selected auth identity changes. A changed auth profile id, static API key, static token, or OAuth account identity all count, when the CLI exposes one. OAuth access and refresh token rotation alone does not cut the session. If a CLI has no stable OAuth account id, Vasudev lets that CLI enforce its own resume permissions.
 
 ## Fallback prelude from claude-cli sessions
 
-A `claude-cli` attempt can fail over to a non-CLI candidate in [`agents.defaults.model.fallbacks`](/concepts/model-failover). OpenClaw then seeds the next attempt with a context prelude harvested from Claude Code's local JSONL transcript. That transcript lives under `~/.claude/projects/`, keyed per workspace. This supplies CLI-owned context that may not be present in OpenClaw's SQLite session transcript.
+A `claude-cli` attempt can fail over to a non-CLI candidate in [`agents.defaults.model.fallbacks`](/concepts/model-failover). Vasudev then seeds the next attempt with a context prelude harvested from Claude Code's local JSONL transcript. That transcript lives under `~/.claude/projects/`, keyed per workspace. This supplies CLI-owned context that may not be present in Vasudev's SQLite session transcript.
 
 - The prelude prefers the latest `/compact` summary or `compact_boundary` marker, then appends the most recent post-boundary turns up to a char budget. Pre-boundary turns are dropped because the summary already represents them.
 - Tool blocks are coalesced to compact `(tool call: name)` and `(tool result: …)` hints to keep the prompt budget honest. An oversized summary is truncated and labeled `(truncated)`.
@@ -296,14 +296,14 @@ imageArg: "--image",
 imageMode: "repeat"
 ```
 
-OpenClaw writes base64 images to temp files. If `imageArg` is set, those paths are passed as CLI args. If not, OpenClaw appends the file paths to the prompt (path injection), which works for CLIs that auto-load local files from plain paths.
+Vasudev writes base64 images to temp files. If `imageArg` is set, those paths are passed as CLI args. If not, Vasudev appends the file paths to the prompt (path injection), which works for CLIs that auto-load local files from plain paths.
 
 ## Inputs and outputs
 
 - `output: "text"` (default) treats stdout as the final response.
 - `output: "json"` tries to parse JSON and extract text plus a session id.
 - `output: "jsonl"` parses a JSONL stream and extracts the final agent message plus session identifiers when present.
-- For Gemini CLI JSON output, OpenClaw reads reply text from `response` and usage from `stats` when `usage` is missing or empty. The bundled Gemini CLI adapter uses `stream-json`.
+- For Gemini CLI JSON output, Vasudev reads reply text from `response` and usage from `stats` when `usage` is missing or empty. The bundled Gemini CLI adapter uses `stream-json`.
 
 JSON examples inside double-quoted banner text are not treated as response or error records.
 For JSONL, banner scanning starts fresh on each line.
@@ -365,13 +365,13 @@ The bundled Google plugin registers for `google-gemini-cli`:
 Prerequisites: the local Gemini CLI must be installed and on `PATH` as `gemini`
 (`brew install gemini-cli` or `npm install -g @google/gemini-cli`), and the
 selected model must have a supported Google AI Studio API-key profile. Existing
-valid legacy Gemini CLI OAuth profiles remain runtime-compatible, but OpenClaw
+valid legacy Gemini CLI OAuth profiles remain runtime-compatible, but Vasudev
 does not create or repair them.
 
 Gemini CLI output notes:
 
 - The default `stream-json` parser reads assistant `message` events, tool events, final `result` usage, and fatal Gemini error events.
-- Usage falls back to `stats` when `usage` is absent or empty. `stats.cached` normalizes into OpenClaw `cacheRead`, and if `stats.input` is missing, input tokens derive from `stats.input_tokens - stats.cached`.
+- Usage falls back to `stats` when `usage` is absent or empty. `stats.cached` normalizes into Vasudev `cacheRead`, and if `stats.input` is missing, input tokens derive from `stats.input_tokens - stats.cached`.
 
 ## Text transform overlays
 
@@ -384,17 +384,17 @@ api.registerTextTransforms({
 });
 ```
 
-`input` rewrites the system prompt and user prompt passed to the CLI. `output` rewrites streamed assistant text and parsed final text before OpenClaw handles its own control markers and channel delivery. For provider-backed model calls it also restores string values inside structured tool-call arguments after stream repair and before tool execution. Raw provider JSON fragments are left unchanged. Consumers should use the structured partial, end, or result payload.
+`input` rewrites the system prompt and user prompt passed to the CLI. `output` rewrites streamed assistant text and parsed final text before Vasudev handles its own control markers and channel delivery. For provider-backed model calls it also restores string values inside structured tool-call arguments after stream repair and before tool execution. Raw provider JSON fragments are left unchanged. Consumers should use the structured partial, end, or result payload.
 
-For CLIs that emit provider-specific JSONL events, set `jsonlDialect` on that backend's config: `claude-stream-json` for Claude Code-compatible streams, `gemini-stream-json` for Gemini CLI `stream-json` events. Declaring `claude-stream-json` is a contract: the backend's `result` records carry Claude Code's terminal semantics, including `terminal_reason`. A reply-less `result` can carry a `terminal_reason` saying the CLI ended the turn on purpose after work may have run. Those reasons are `hook_stopped`, `stop_hook_prevented`, `aborted_tools`, `aborted_streaming`, `budget_exhausted`, and `max_turns`. OpenClaw treats that as a recorded turn stop. It reports the reason to the user and does not replay the turn on a fallback model, because the backend's tool actions may already have run.
+For CLIs that emit provider-specific JSONL events, set `jsonlDialect` on that backend's config: `claude-stream-json` for Claude Code-compatible streams, `gemini-stream-json` for Gemini CLI `stream-json` events. Declaring `claude-stream-json` is a contract: the backend's `result` records carry Claude Code's terminal semantics, including `terminal_reason`. A reply-less `result` can carry a `terminal_reason` saying the CLI ended the turn on purpose after work may have run. Those reasons are `hook_stopped`, `stop_hook_prevented`, `aborted_tools`, `aborted_streaming`, `budget_exhausted`, and `max_turns`. Vasudev treats that as a recorded turn stop. It reports the reason to the user and does not replay the turn on a fallback model, because the backend's tool actions may already have run.
 
 ## Native compaction ownership
 
-Some CLI backends run an agent that compacts its own transcript. OpenClaw must not run its safeguard summarizer against them. Doing so fights the backend's own compaction and can hard-fail the turn.
+Some CLI backends run an agent that compacts its own transcript. Vasudev must not run its safeguard summarizer against them. Doing so fights the backend's own compaction and can hard-fail the turn.
 
-`claude-cli` has no harness endpoint (Claude Code compacts internally), so it declares `ownsNativeCompaction: true`. Automatic OpenClaw compaction defers to Claude Code, while an explicit `/compact` resumes the bound Claude Code session and sends its native `/compact` command. OpenClaw passes the run's effective context budget through Claude Code's documented [`CLAUDE_CODE_AUTO_COMPACT_WINDOW`](https://code.claude.com/docs/en/env-vars), keeping native auto-compaction aligned with configured Anthropic `contextTokens` limits. Native-harness sessions such as Codex keep routing to their harness compaction endpoint instead.
+`claude-cli` has no harness endpoint (Claude Code compacts internally), so it declares `ownsNativeCompaction: true`. Automatic Vasudev compaction defers to Claude Code, while an explicit `/compact` resumes the bound Claude Code session and sends its native `/compact` command. Vasudev passes the run's effective context budget through Claude Code's documented [`CLAUDE_CODE_AUTO_COMPACT_WINDOW`](https://code.claude.com/docs/en/env-vars), keeping native auto-compaction aligned with configured Anthropic `contextTokens` limits. Native-harness sessions such as Codex keep routing to their harness compaction endpoint instead.
 
-`google-gemini-cli` also owns automatic compaction and persists its compressed session for resume. OpenClaw defers to Gemini CLI rather than running a second summarizer. Explicit `/compact` is unsupported for this backend because it does not declare a manual compaction capability.
+`google-gemini-cli` also owns automatic compaction and persists its compressed session for resume. Vasudev defers to Gemini CLI rather than running a second summarizer. Explicit `/compact` is unsupported for this backend because it does not declare a manual compaction capability.
 
 ```typescript
 api.registerCliBackend({
@@ -414,16 +414,16 @@ api.registerCliBackend({
 
 Only declare `ownsNativeCompaction` for a backend that genuinely owns compaction. It must reliably bound its own transcript near the context window, and persist a resumable session such as `--resume` or `--session-id`. Otherwise a deferred session can stay over budget.
 
-Add the atomic `manualCompaction` capability only when its command compacts the resumed session in place. Its `input` selects the transport the backend command actually recognizes, and `validateOutput` must require a positive backend acknowledgement rather than treating a zero exit as success. OpenClaw runs it as an internal control operation: it is not written as a user turn and does not run agent or context-engine turn hooks.
+Add the atomic `manualCompaction` capability only when its command compacts the resumed session in place. Its `input` selects the transport the backend command actually recognizes, and `validateOutput` must require a positive backend acknowledgement rather than treating a zero exit as success. Vasudev runs it as an internal control operation: it is not written as a user turn and does not run agent or context-engine turn hooks.
 
 ## Bundle MCP overlays
 
-CLI backends do not receive OpenClaw tool calls directly, but a backend can opt into a generated MCP config overlay with `bundleMcp: true`. Current bundled behavior:
+CLI backends do not receive Vasudev tool calls directly, but a backend can opt into a generated MCP config overlay with `bundleMcp: true`. Current bundled behavior:
 
 - `claude-cli`: generated strict MCP config file.
 - `google-gemini-cli`: generated Gemini system settings file.
 
-When bundle MCP is enabled, OpenClaw:
+When bundle MCP is enabled, Vasudev:
 
 - spawns a loopback HTTP MCP server that exposes Gateway tools to the CLI process, authenticated with a per-run context grant (`OPENCLAW_MCP_TOKEN`) active only for the current execution attempt
 - binds tool access to the Gateway-selected session, account, and channel context instead of trusting child-process headers
@@ -438,7 +438,7 @@ are connected, select one explicitly. When local execution is allowed by policy,
 use the CLI's native shell for local work.
 
 `tools.allow` and `tools.deny` also constrain configured native MCP servers.
-OpenClaw lists each server through its session-scoped runtime, assigns the same
+Vasudev lists each server through its session-scoped runtime, assigns the same
 provider-safe `<safe-server>__<safe-tool>` identities used by embedded tools,
 and applies the complete layered policy before process spawn or Codex
 `thread/start`/`thread/resume`. It then projects exact raw names into each
@@ -447,7 +447,7 @@ backend's enforcement contract: Claude receives server omission plus bare
 `disabled_tools`, and Gemini receives `includeTools` and `excludeTools`.
 Configured server filters and session overrides remain additional
 restrictions. These backend fields are generated implementation details. Keep
-operator policy in OpenClaw configuration.
+operator policy in Vasudev configuration.
 
 For example, `agents.entries.research.tools.allow: ["docs__read_docs"]`
 exposes only that tool from the safe `docs` namespace, while
@@ -460,39 +460,39 @@ Restricted runs such as cron jobs with `toolsAllow` require an exact
 backend-owned translation. The bundled `claude-cli` backend disables Claude's
 native tools and user, project, and local customizations, including hooks,
 plugins, agents, skills, and `CLAUDE.md`. It then exposes every allowed
-OpenClaw tool through the grant-scoped MCP server. This keeps filesystem,
-process, exec, approval, and sandbox policy inside OpenClaw instead of widening
+Vasudev tool through the grant-scoped MCP server. This keeps filesystem,
+process, exec, approval, and sandbox policy inside Vasudev instead of widening
 authority to Claude's native tools or customization processes. The same MCP
 list is enforced in Claude's generated config and again by the Gateway on tool
 listing and execution. Before minting the grant, core rejects backend
 translations that name any MCP permission outside the original allowlist.
 Backends without an exact translation still fail closed.
 
-If no MCP servers are enabled, OpenClaw still injects a strict config when a backend opts into bundle MCP, so background runs stay isolated.
+If no MCP servers are enabled, Vasudev still injects a strict config when a backend opts into bundle MCP, so background runs stay isolated.
 
 Session-scoped bundled MCP runtimes are cached for reuse within a session, then reaped after 10 minutes of idle time. One-shot embedded runs such as auth probes, slug generation, and active-memory recall request cleanup at run end. Stdio children and Streamable HTTP or SSE streams therefore do not outlive the run.
 
 A fresh CLI session must wait for its predecessor's cleanup. If cleanup fails or
-exceeds its deadline, OpenClaw refuses replacement, including from a later run.
+exceeds its deadline, Vasudev refuses replacement, including from a later run.
 Check the cleanup error and the backend's remaining processes before retrying.
 Command output and process exit alone do not confirm that descendants stopped.
 
 For `claude-cli`, the installed Claude Code process uses its current native
-login. OpenClaw uses a non-secret route marker and never reads, persists,
+login. Vasudev uses a non-secret route marker and never reads, persists,
 refreshes, selects, or forwards the native tokens.
 Set `CLAUDE_CONFIG_DIR` on the Gateway process to use a separate Claude configuration directory.
-Explicit OpenClaw-managed API-key and token profiles continue to use the
+Explicit Vasudev-managed API-key and token profiles continue to use the
 protected, per-invocation credential-forwarding CLI path.
 
 ## Reseed history cap
 
-A fresh CLI session can be seeded from a prior OpenClaw transcript, for example after a `session_expired` retry. The rendered `<conversation_history>` block is then capped to keep reseed prompts from growing without bound. The default is 12,288 characters (about 3,000 tokens).
+A fresh CLI session can be seeded from a prior Vasudev transcript, for example after a `session_expired` retry. The rendered `<conversation_history>` block is then capped to keep reseed prompts from growing without bound. The default is 12,288 characters (about 3,000 tokens).
 
 Claude CLI backends scale this cap with the resolved Claude context window instead. A larger context window gets a larger prior-history slice, up to a fixed ceiling. Other CLI backends keep the conservative default. This cap only governs the reseed prompt's prior-history block.
 
 ## Limitations
 
-- OpenClaw does not inject tool calls into the CLI backend protocol. Backends only see Gateway tools when they opt into `bundleMcp: true`.
+- Vasudev does not inject tool calls into the CLI backend protocol. Backends only see Gateway tools when they opt into `bundleMcp: true`.
 - Streaming is backend-specific: some backends stream JSONL, others buffer until exit.
 - Structured outputs depend on the CLI's own JSON format.
 

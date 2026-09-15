@@ -6,11 +6,12 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content"
     />
-    <title>OpenClaw Control</title>
+    <title>%PRODUCT_NAME% Control</title>
+    <meta name="description" content="%TAGLINE%" />
     <meta name="color-scheme" content="dark light" />
     <!-- These mirror the claw theme's --bg tokens for first paint; runtime theme application keeps them synchronized. -->
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#faf9f7" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0e1015" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f7f9" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0e12" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
@@ -109,6 +110,42 @@
           document.documentElement.setAttribute("data-theme-resolved", resolvedMode);
         } catch (e) {}
       })();
+
+      (function () {
+        // The brand faces are self-hosted beside the other typefaces (public/fonts,
+        // OFL, no CDN) and linked here rather than from the app bundle so the
+        // wordmark and page titles have the display face by the first frame.
+        // Neither link blocks render: font-display: swap paints the fallback and
+        // swaps, and the Khand 600 preload is what makes that swap immediate.
+        // Only the display face is preloaded; Space Mono downloads on its first
+        // rendered glyph. The mount prefix is read from the document attribute
+        // because the gateway rewrites root-level asset hrefs only, so a literal
+        // /fonts/... href would miss a configured Control UI base path.
+        try {
+          var base =
+            document.documentElement.getAttribute("data-openclaw-control-ui-base-path") || "";
+          var buildId = document.documentElement.getAttribute("data-openclaw-control-ui-build-id");
+          var version = buildId ? "?v=" + encodeURIComponent(buildId) : "";
+          var preload = document.createElement("link");
+          preload.rel = "preload";
+          preload.as = "font";
+          preload.type = "font/woff2";
+          // Fonts are always fetched in CORS mode, so the preload has to match or
+          // the stylesheet refetches the file.
+          preload.crossOrigin = "anonymous";
+          preload.href = base + "/fonts/khand-600.woff2" + version;
+          document.head.appendChild(preload);
+          ["khand", "space-mono"].forEach(function (family) {
+            var sheet = document.createElement("link");
+            sheet.rel = "stylesheet";
+            sheet.onerror = function () {
+              sheet.remove();
+            };
+            sheet.href = base + "/fonts/" + family + ".css" + version;
+            document.head.appendChild(sheet);
+          });
+        } catch (e) {}
+      })();
     </script>
     <style>
       /* Paint before the app stylesheet arrives so WebKit never exposes a white
@@ -119,12 +156,12 @@
       }
 
       html {
-        background: #0e1015;
+        background: #0d0e12;
         color-scheme: dark;
       }
 
       html[data-theme-mode="light"] {
-        background: #faf9f7;
+        background: #f7f7f9;
         color-scheme: light;
       }
 
@@ -364,14 +401,14 @@
       hidden
     >
       <div class="mount-fallback__panel" tabindex="-1">
-        <p class="mount-fallback__eyebrow">OpenClaw Control UI</p>
+        <p class="mount-fallback__eyebrow">%MAKER_LINE%</p>
         <h1 id="openclaw-mount-fallback-title">Control UI did not start</h1>
         <p id="openclaw-mount-fallback-summary">
           The browser loaded the static page, but the app bundle did not start. The gateway may be
-          restarting, or this page may reference assets from a different OpenClaw version.
+          restarting, or this page may reference assets from a different %PRODUCT_NAME% version.
         </p>
         <ul>
-          <li>OpenClaw will retry the current app bundle automatically.</li>
+          <li>%PRODUCT_NAME% will retry the current app bundle automatically.</li>
           <li>If this persists, reload or try a clean browser profile.</li>
           <li>
             See
@@ -452,7 +489,7 @@
             return;
           }
           setSummary(
-            "The gateway is not reachable yet. OpenClaw will keep retrying while it restarts.",
+            "The gateway is not reachable yet. %PRODUCT_NAME% will keep retrying while it restarts.",
           );
           scheduleRecovery();
         }

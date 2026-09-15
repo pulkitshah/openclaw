@@ -78,8 +78,8 @@ describe("splitSdkTools", () => {
     expect(isCodeModeControlTool(wrapToolDefinition(definition))).toBe(true);
   });
 
-  it("keeps OpenClaw-managed custom tools in OpenClaw runtime's session allowlist", () => {
-    // Session tools are OpenClaw-managed custom tools; dropping them from the
+  it("keeps Vasudev-managed custom tools in Vasudev runtime's session allowlist", () => {
+    // Session tools are Vasudev-managed custom tools; dropping them from the
     // allowlist would break inter-agent routing even when sandboxing is enabled.
     const { customTools } = splitSdkTools({
       tools: [createStubTool("read"), createStubTool("sessions_spawn")],

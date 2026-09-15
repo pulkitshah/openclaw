@@ -1,5 +1,5 @@
 ---
-summary: "Pre-flight and rollback checklist before exposing an OpenClaw Gateway beyond loopback"
+summary: "Pre-flight and rollback checklist before exposing a Vasudev Gateway beyond loopback"
 title: "Gateway exposure runbook"
 sidebarTitle: "Exposure runbook"
 read_when:

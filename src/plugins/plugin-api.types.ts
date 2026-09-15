@@ -176,7 +176,7 @@ type OpenClawPluginLifecycleApi = Partial<
 
 /**
  * Main registration API injected into native plugin entry files.
- * @experimental All plugin APIs are experimental. Pin and test OpenClaw host versions.
+ * @experimental All plugin APIs are experimental. Pin and test Vasudev host versions.
  * @see https://docs.openclaw.ai/plugins/sdk-overview#api-stability
  */
 export type OpenClawPluginApi = {

@@ -232,7 +232,7 @@ function buildPendingPayload(params: {
     view.approvalKind === "plugin"
       ? "Plugin Approval Required"
       : view.approvalKind === "system-agent"
-        ? "OpenClaw Change Requires Approval"
+        ? "Vasudev Change Requires Approval"
         : "Exec Approval Required";
   const subtitle = `Expires in ${Math.max(0, Math.ceil((view.expiresAtMs - nowMs) / 1000))}s`;
   const card: GoogleChatCardV2 = {
@@ -278,7 +278,7 @@ function buildResolvedPayload(view: ResolvedApprovalView): GoogleChatFinalDelive
           view.approvalKind === "plugin"
             ? "Plugin"
             : view.approvalKind === "system-agent"
-              ? "OpenClaw Change"
+              ? "Vasudev Change"
               : "Exec"
         } Approval: ${decisionLabel}`,
         subtitle: resolvedBy ? `Resolved by ${resolvedBy}` : "Resolved",
@@ -300,7 +300,7 @@ function buildExpiredPayload(view: ExpiredApprovalView): GoogleChatFinalDelivery
           view.approvalKind === "plugin"
             ? "Plugin"
             : view.approvalKind === "system-agent"
-              ? "OpenClaw Change"
+              ? "Vasudev Change"
               : "Exec"
         } Approval Expired`,
         subtitle: "This approval request expired before it was resolved.",

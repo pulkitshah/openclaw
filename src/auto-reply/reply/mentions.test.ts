@@ -226,7 +226,7 @@ describe("derived mention matching with decorated identity names", () => {
   });
 
   it("keeps a gap required when punctuation shares it with decoration", () => {
-    const regexes = buildMentionRegexes(configForName("Clawd ・🦋 Bot"), "decorated-agent");
+    const regexes = buildMentionRegexes(configForName("Vasu ・🦋 Bot"), "decorated-agent");
 
     expect(matchesMentionPatterns("clawd ・🦋 bot status", regexes)).toBe(true);
     expect(matchesMentionPatterns("clawd bot status", regexes)).toBe(false);
@@ -291,7 +291,7 @@ describe("derived mention matching with decorated identity names", () => {
     expect(
       matchesMentionPatterns(
         "clawd🦋bots online",
-        buildMentionRegexes(configForName("Clawd🦋"), "decorated-agent"),
+        buildMentionRegexes(configForName("Vasu🦋"), "decorated-agent"),
       ),
     ).toBe(false);
     expect(
@@ -348,7 +348,7 @@ describe("derived mention matching with decorated identity names", () => {
   it("matches a configured identity emoji that carries a joiner", () => {
     const cfg = {
       agents: {
-        list: [{ id: "decorated-agent", identity: { name: "Clawd", emoji: "👩‍👧" } }],
+        list: [{ id: "decorated-agent", identity: { name: "Vasu", emoji: "👩‍👧" } }],
       },
     } satisfies OpenClawConfig;
     const regexes = buildMentionRegexes(cfg, "decorated-agent");
@@ -496,7 +496,7 @@ describe("derived mention matching with decorated identity names", () => {
   });
 
   it("reads interior decoration spaced apart or tightened up", () => {
-    const regexes = buildMentionRegexes(configForName("Clawd 🦋 ★ Bot"), "decorated-agent");
+    const regexes = buildMentionRegexes(configForName("Vasu 🦋 ★ Bot"), "decorated-agent");
 
     expect(matchesMentionPatterns("clawd 🦋 ★ bot status", regexes)).toBe(true);
     expect(matchesMentionPatterns("clawd🦋★bot status", regexes)).toBe(true);
@@ -512,11 +512,7 @@ describe("derived mention matching with decorated identity names", () => {
     ["trailing", (name: string) => `小蝶${name}`, (typed: string) => `小蝶${typed}`],
     ["leading", (name: string) => `${name}小蝶`, (typed: string) => `${typed}小蝶`],
     ["interior", (name: string) => `Papillon${name}Bot`, (typed: string) => `Papillon${typed}Bot`],
-    [
-      "interior spaced",
-      (name: string) => `Clawd ${name} Bot`,
-      (typed: string) => `Clawd${typed}Bot`,
-    ],
+    ["interior spaced", (name: string) => `Vasu ${name} Bot`, (typed: string) => `Vasu${typed}Bot`],
   ])("leaves decoration beyond the name's own in place (%s)", (_label, toName, toTyped) => {
     for (const decoration of ["🦋", "❤️", "👩‍👧", "🇹🇼", "✨★"]) {
       const cfg = configForName(toName(decoration));
@@ -556,7 +552,7 @@ describe("derived mention matching with decorated identity names", () => {
   it("keeps a joiner-only identity emoji from matching everything", () => {
     const cfg = {
       agents: {
-        list: [{ id: "decorated-agent", identity: { name: "Clawd", emoji: "\u200D" } }],
+        list: [{ id: "decorated-agent", identity: { name: "Vasu", emoji: "\u200D" } }],
       },
     } satisfies OpenClawConfig;
     const regexes = buildMentionRegexes(cfg, "decorated-agent");
@@ -691,14 +687,14 @@ describe("derived mention matching with decorated identity names", () => {
   });
 
   it("keeps whitespace between plain words required (unchanged contract)", () => {
-    const regexes = buildMentionRegexes(configForName("Clawd Bot"), "decorated-agent");
+    const regexes = buildMentionRegexes(configForName("Vasu Bot"), "decorated-agent");
 
     expect(matchesMentionPatterns("clawd bot status", regexes)).toBe(true);
     expect(matchesMentionPatterns("clawdbot status", regexes)).toBe(false);
   });
 
   it("keeps a separator required when a gap mixes whitespace and decoration", () => {
-    const regexes = buildMentionRegexes(configForName("Clawd 🦋 Bot"), "decorated-agent");
+    const regexes = buildMentionRegexes(configForName("Vasu 🦋 Bot"), "decorated-agent");
 
     expect(matchesMentionPatterns("clawd bot status", regexes)).toBe(true);
     expect(matchesMentionPatterns("clawd🦋bot status", regexes)).toBe(true);

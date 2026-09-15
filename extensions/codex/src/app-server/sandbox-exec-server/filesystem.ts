@@ -1,6 +1,6 @@
 /**
  * Implements filesystem JSON-RPC handlers for the Codex sandbox exec-server
- * with OpenClaw sandbox policy checks before every bridge operation.
+ * with Vasudev sandbox policy checks before every bridge operation.
  */
 import { posix as pathPosix } from "node:path";
 import type { SandboxFsStat } from "openclaw/plugin-sdk/sandbox";

@@ -23,7 +23,7 @@ export async function lockState(record: ManagedWorktreeRecord): Promise<LockStat
     return { kind: "foreign", reason: entry.lockedReason };
   }
   const pid = Number(match[1]);
-  // A cross-user (EPERM) OpenClaw lock is treated as live so a run's checkout is
+  // A cross-user (EPERM) Vasudev lock is treated as live so a run's checkout is
   // never removed under it; only an ESRCH/zombie owner counts as dead.
   return isPidDefinitelyDead(pid) ? { kind: "dead", pid } : { kind: "live", pid };
 }
@@ -51,7 +51,7 @@ export async function lockWorktreeForProcess(record: ManagedWorktreeRecord): Pro
   if (heldByThisProcess(state)) {
     return;
   }
-  // A lock naming a dead OpenClaw pid is restart residue: the owner died (crash or
+  // A lock naming a dead Vasudev pid is restart residue: the owner died (crash or
   // update restart) without unlocking, so git refuses every later lock forever and
   // the run would otherwise proceed unprotected. remove()/release() already treat a
   // dead owner as reclaimable, so reclaim it here instead of failing the acquire.

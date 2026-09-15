@@ -7,9 +7,9 @@ read_when:
 title: "Coming from BlueBubbles"
 ---
 
-BlueBubbles support was removed. OpenClaw supports iMessage only through the official `@openclaw/imessage` plugin, which drives [`steipete/imsg`](https://github.com/steipete/imsg) over JSON-RPC and reaches the same private API surface BlueBubbles had (`react`, `edit`, `unsend`, `reply`, `sendWithEffect`, native polls, group management, attachments). One CLI binary replaces the BlueBubbles server + client app + webhook plumbing: no REST endpoint, no webhook auth.
+BlueBubbles support was removed. Vasudev supports iMessage only through the official `@openclaw/imessage` plugin, which drives [`steipete/imsg`](https://github.com/steipete/imsg) over JSON-RPC and reaches the same private API surface BlueBubbles had (`react`, `edit`, `unsend`, `reply`, `sendWithEffect`, native polls, group management, attachments). One CLI binary replaces the BlueBubbles server + client app + webhook plumbing: no REST endpoint, no webhook auth.
 
-This guide migrates old `channels.bluebubbles` configs to `channels.imessage`. There is no other supported migration path. On current OpenClaw a leftover `channels.bluebubbles` block is inert — no runtime reads it.
+This guide migrates old `channels.bluebubbles` configs to `channels.imessage`. There is no other supported migration path. On current Vasudev a leftover `channels.bluebubbles` block is inert — no runtime reads it.
 
 <Note>
 For the short announcement and operator summary, see [BlueBubbles removal and the imsg iMessage path](/announcements/bluebubbles-imessage).
@@ -23,7 +23,7 @@ The shortest safe path when you already know your old BlueBubbles config:
 2. Verify `imsg` directly on the Mac that runs Messages.app (`imsg chats`, `imsg history`, `imsg send`, `imsg rpc --help`).
 3. Copy behavior keys from `channels.bluebubbles` to `channels.imessage`: `dmPolicy`, `allowFrom`, `groupPolicy`, `groupAllowFrom`, `groups`, `includeAttachments`, `attachmentRoots`, `mediaMaxMb`, `textChunkLimit`, and `actions`.
 4. Drop transport keys that no longer exist: `serverUrl`, `password`, webhook URLs, and BlueBubbles server setup.
-5. If the Gateway is not running on the Messages Mac, set `channels.imessage.cliPath` to the absolute Gateway-local path of an SSH wrapper and keep `dbPath` as an absolute path on that Mac. Set `remoteHost` to the Messages Mac for complex wrappers; OpenClaw auto-detects the simple transparent wrapper shape for compatibility.
+5. If the Gateway is not running on the Messages Mac, set `channels.imessage.cliPath` to the absolute Gateway-local path of an SSH wrapper and keep `dbPath` as an absolute path on that Mac. Set `remoteHost` to the Messages Mac for complex wrappers; Vasudev auto-detects the simple transparent wrapper shape for compatibility.
 6. Enable `channels.imessage`, restart the Gateway, then run `openclaw channels status --probe --channel imessage`.
 7. Test one DM, one allowed group, attachments if enabled, and every private API action you expect the agent to use.
 8. Delete the BlueBubbles server and the old `channels.bluebubbles` config after the iMessage path is verified.
@@ -34,13 +34,13 @@ Remote `imsg` v0.13.4 has two narrow RPC limits: poll votes must use `pollOption
 
 ## What imsg does
 
-`imsg` is a local macOS CLI for Messages. OpenClaw starts `imsg rpc` as a child process and talks JSON-RPC over stdin/stdout. There is no HTTP server, webhook URL, background daemon, launch agent, or port to expose.
+`imsg` is a local macOS CLI for Messages. Vasudev starts `imsg rpc` as a child process and talks JSON-RPC over stdin/stdout. There is no HTTP server, webhook URL, background daemon, launch agent, or port to expose.
 
 - Reads come from `~/Library/Messages/chat.db` using a read-only SQLite handle.
 - Live inbound messages come from `imsg watch` / `watch.subscribe`, which follows `chat.db` filesystem events with a polling fallback.
 - Sends use Messages.app automation for normal text and file sends.
 - Advanced actions use `imsg launch` to inject the `imsg` helper into Messages.app. That is what unlocks read receipts, typing indicators, rich sends, edit, unsend, threaded reply, tapbacks, polls, and group management.
-- Linux builds can inspect a copied `chat.db`, but cannot send, watch the live Mac database, or drive Messages.app. For OpenClaw iMessage, run `imsg` on the signed-in Mac or through an SSH wrapper to that Mac.
+- Linux builds can inspect a copied `chat.db`, but cannot send, watch the live Mac database, or drive Messages.app. For Vasudev iMessage, run `imsg` on the signed-in Mac or through an SSH wrapper to that Mac.
 
 ## Before you start
 
@@ -53,9 +53,9 @@ Remote `imsg` v0.13.4 has two narrow RPC limits: poll votes must use `pollOption
    imsg chats --limit 3
    ```
 
-   For the usual local setup, OpenClaw setup can offer a user-confirmed Homebrew install or update for `imsg` on the signed-in Messages Mac. Manual setup and SSH-wrapper topologies remain operator-managed: repeat the Homebrew update in the same local or remote user context that will run `imsg`. If `imsg chats` fails with `unable to open database file`, empty output, or `authorization denied`, grant Full Disk Access to the terminal, editor, Node process, Gateway service, or SSH parent process that launches `imsg`, then reopen that parent process.
+   For the usual local setup, Vasudev setup can offer a user-confirmed Homebrew install or update for `imsg` on the signed-in Messages Mac. Manual setup and SSH-wrapper topologies remain operator-managed: repeat the Homebrew update in the same local or remote user context that will run `imsg`. If `imsg chats` fails with `unable to open database file`, empty output, or `authorization denied`, grant Full Disk Access to the terminal, editor, Node process, Gateway service, or SSH parent process that launches `imsg`, then reopen that parent process.
 
-2. Verify the read, watch, send, and RPC surfaces before changing OpenClaw config:
+2. Verify the read, watch, send, and RPC surfaces before changing Vasudev config:
 
    ```bash
    imsg chats --limit 10 --json | jq -s
@@ -65,18 +65,18 @@ Remote `imsg` v0.13.4 has two narrow RPC limits: poll votes must use `pollOption
    imsg rpc --help
    ```
 
-   Replace `42` with a real chat id from `imsg chats`. Sending requires Automation permission for Messages.app. If OpenClaw will run through SSH, run these commands through the same SSH wrapper or user context that OpenClaw will use. If reads work but sends fail with AppleEvents `-1743`, check whether Automation landed on `/usr/libexec/sshd-keygen-wrapper`; see [SSH wrapper sends fail with AppleEvents -1743](/channels/imessage#requirements-and-permissions-macos).
+   Replace `42` with a real chat id from `imsg chats`. Sending requires Automation permission for Messages.app. If Vasudev will run through SSH, run these commands through the same SSH wrapper or user context that Vasudev will use. If reads work but sends fail with AppleEvents `-1743`, check whether Automation landed on `/usr/libexec/sshd-keygen-wrapper`; see [SSH wrapper sends fail with AppleEvents -1743](/channels/imessage#requirements-and-permissions-macos).
 
-3. Enable the private API bridge. It is strongly encouraged for OpenClaw iMessage because replies, tapbacks, effects, polls, attachment replies, and group actions depend on it:
+3. Enable the private API bridge. It is strongly encouraged for Vasudev iMessage because replies, tapbacks, effects, polls, attachment replies, and group actions depend on it:
 
    ```bash
    imsg launch
    imsg status --json
    ```
 
-   `imsg launch` requires SIP to be disabled (and on modern macOS, library validation relaxed — see [Enabling the imsg private API](/channels/imessage#enabling-the-imsg-private-api)). Basic send, history, and watch work without `imsg launch`; the full OpenClaw iMessage action surface does not.
+   `imsg launch` requires SIP to be disabled (and on modern macOS, library validation relaxed — see [Enabling the imsg private API](/channels/imessage#enabling-the-imsg-private-api)). Basic send, history, and watch work without `imsg launch`; the full Vasudev iMessage action surface does not.
 
-4. After you enable `channels.imessage` and start the Gateway, verify the bridge through OpenClaw:
+4. After you enable `channels.imessage` and start the Gateway, verify the bridge through Vasudev:
 
    ```bash
    openclaw channels status --probe
@@ -113,7 +113,7 @@ iMessage and BlueBubbles share most channel-level behavior keys. What changes is
 | _(N/A)_                                                    | `channels.imessage.remoteAttachmentRoots` | Only used when `remoteHost` is set for SCP fetches.                                                                                                                                                                                                                                                    |
 | `channels.bluebubbles.mediaMaxMb`                          | `channels.imessage.mediaMaxMb`            | Default 16 MB on iMessage (BlueBubbles default was 8 MB). Set explicitly to keep the lower cap.                                                                                                                                                                                                        |
 | `channels.bluebubbles.textChunkLimit`                      | `channels.imessage.textChunkLimit`        | Default 4000 on both.                                                                                                                                                                                                                                                                                  |
-| `channels.bluebubbles.coalesceSameSenderDms`               | _(removed)_                               | Do not migrate this key. `imsg` 0.13.1 and newer coalesces Apple URL-preview split-sends before OpenClaw receives them; `openclaw doctor --fix` removes a stale iMessage key.                                                                                                                          |
+| `channels.bluebubbles.coalesceSameSenderDms`               | _(removed)_                               | Do not migrate this key. `imsg` 0.13.1 and newer coalesces Apple URL-preview split-sends before Vasudev receives them; `openclaw doctor --fix` removes a stale iMessage key.                                                                                                                           |
 | `channels.bluebubbles.enrichGroupParticipantsFromContacts` | _(N/A)_                                   | `imsg` already surfaces sender display names from `chat.db`.                                                                                                                                                                                                                                           |
 | `channels.bluebubbles.actions.*`                           | `channels.imessage.actions.*`             | Same per-action toggles (`reactions`, `edit`, `unsend`, `reply`, `sendWithEffect`, `renameGroup`, `setGroupIcon`, `addParticipant`, `removeParticipant`, `leaveGroup`, `sendAttachment`) plus new `polls`. All default to enabled; private API actions still require the bridge.                       |
 
@@ -155,7 +155,7 @@ This admits the configured senders in any group. Add `groups` entries to scope a
 
 ## Step-by-step
 
-1. Translate the config. Keep the new block disabled while you edit; the old `channels.bluebubbles` block is ignored by current OpenClaw and can sit alongside as reference:
+1. Translate the config. Keep the new block disabled while you edit; the old `channels.bluebubbles` block is ignored by current Vasudev and can sit alongside as reference:
 
    ```json5
    {
@@ -189,7 +189,7 @@ This admits the configured senders in any group. Add `groups` entries to scope a
 
 5. **Verify the action surface.** From a paired DM, ask the agent to react, edit, unsend, reply, send a photo, and (in a group) rename the group or add/remove a participant. Each action should land natively in Messages.app. If any action throws `iMessage <action> requires the imsg private API bridge`, run `imsg launch` again and refresh with `openclaw channels status --probe`.
 
-6. **Remove the BlueBubbles server and the `channels.bluebubbles` block** once iMessage DMs, groups, and actions are verified. OpenClaw does not read `channels.bluebubbles`.
+6. **Remove the BlueBubbles server and the `channels.bluebubbles` block** once iMessage DMs, groups, and actions are verified. Vasudev does not read `channels.bluebubbles`.
 
 ## Action parity at a glance
 
@@ -206,7 +206,7 @@ This admits the configured senders in any group. Add `groups` entries to scope a
 | Rename group / set group icon                       | ✅                 | ✅                                                                            |
 | Add / remove participant, leave group               | ✅                 | ✅                                                                            |
 | Read receipts and typing indicator                  | ✅                 | ✅ (gated on private API probe)                                               |
-| Apple URL-preview split-send coalescing             | ✅                 | ✅ (handled upstream by `imsg` 0.13.1 and newer; no OpenClaw setting)         |
+| Apple URL-preview split-send coalescing             | ✅                 | ✅ (handled upstream by `imsg` 0.13.1 and newer; no Vasudev setting)          |
 | Inbound recovery after a restart                    | ✅                 | ✅ (automatic: `since_rowid` replay + GUID dedupe; wider window on local)     |
 
 iMessage recovers messages missed while the gateway was down: on startup it replays from the last dispatched rowid via `imsg watch.subscribe` `since_rowid`, dedupes by GUID, and a stale-backlog age fence suppresses the Push-flush "backlog bomb". This runs over the `imsg` RPC connection, so it works for remote SSH `cliPath` setups too; local setups get a wider recovery window because they can read `chat.db`. See [Inbound recovery after a bridge or gateway restart](/channels/imessage#inbound-recovery-after-a-bridge-or-gateway-restart).

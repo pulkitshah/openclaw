@@ -1,10 +1,10 @@
-// Validates config after an approved OpenClaw write and asks for one repair.
+// Validates config after an approved Vasudev write and asks for one repair.
 import { isSystemAgentInferenceUnavailableError } from "./inference-error.js";
 
 function unavailable(reason: string): string {
   return [
     `⚠ The write was applied, but post-write verification is unavailable: ${reason}.`,
-    "Run `openclaw doctor --fix` on the machine running OpenClaw, then verify the configuration before continuing.",
+    "Run `vasudev doctor --fix` on the machine running Vasudev, then verify the configuration before continuing.",
   ].join("\n");
 }
 
@@ -39,9 +39,9 @@ export async function verifyConfigAfterSystemAgentWrite(
     if (!isSystemAgentInferenceUnavailableError(error)) {
       throw error;
     }
-    return `${notice}\nThe write was applied, but inference could not propose a repair. Run \`openclaw doctor --fix\` on the machine running OpenClaw, then try again.`;
+    return `${notice}\nThe write was applied, but inference could not propose a repair. Run \`vasudev doctor --fix\` on the machine running Vasudev, then try again.`;
   }
   return recovery.text
     ? `${notice}\n\n${recovery.text}`
-    : `${notice}\nUse \`config schema <path>\` here to check the expected shape. Or, with OpenClaw stopped, run \`openclaw doctor --fix\` on the machine running it.`;
+    : `${notice}\nUse \`config schema <path>\` here to check the expected shape. Or, with Vasudev stopped, run \`vasudev doctor --fix\` on the machine running it.`;
 }

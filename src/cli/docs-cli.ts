@@ -1,4 +1,4 @@
-// Commander registration for live OpenClaw docs search.
+// Commander registration for live Vasudev docs search.
 import type { Command } from "commander";
 import { formatDocsLink } from "../../packages/terminal-core/src/links.js";
 import { theme } from "../../packages/terminal-core/src/theme.js";
@@ -10,7 +10,7 @@ import { parseStrictPositiveIntOption } from "./program/helpers.js";
 export function registerDocsCli(program: Command) {
   program
     .command("docs")
-    .description("Search the live OpenClaw docs")
+    .description("Search the live Vasudev docs")
     .argument("[query...]", "Search query")
     .option("--json", "Output JSON", false)
     .option("--limit <count>", "Maximum results to return", (value: string) =>

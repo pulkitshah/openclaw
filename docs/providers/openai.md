@@ -1,17 +1,17 @@
 ---
-summary: "Use OpenAI via API keys or Codex subscription in OpenClaw"
+summary: "Use OpenAI via API keys or Codex subscription in Vasudev"
 read_when:
-  - You want to use OpenAI models in OpenClaw
+  - You want to use OpenAI models in Vasudev
   - You want Codex subscription auth instead of API keys
   - You want Astra async tools, mid-turn steering, or cached reasoning changes
   - You need stricter GPT-5 agent execution behavior
 title: "OpenAI"
 ---
 
-OpenClaw uses one provider id, `openai`, for both direct API-key auth and
+Vasudev uses one provider id, `openai`, for both direct API-key auth and
 ChatGPT/Codex subscription auth. `openai/*` is the canonical model route.
 For embedded agent turns with runtime policy unset or `auto`, OpenAI's route
-facts decide whether OpenClaw may select the bundled Codex app-server runtime
+facts decide whether Vasudev may select the bundled Codex app-server runtime
 implicitly. The `openai/*` prefix alone does not select a runtime.
 
 - **Agent models** - `openai/*` through the runtime selected by explicit
@@ -25,7 +25,7 @@ implicitly. The `openai/*` prefix alone does not select a runtime.
   `openclaw doctor --fix`.
 
 OpenAI explicitly supports subscription OAuth usage in external tools and
-workflows like OpenClaw.
+workflows like Vasudev.
 
 This page is an index. OpenAI is documented on eight pages, one per reader
 job. Open the page that matches your task.
@@ -58,7 +58,7 @@ working. Each entry points at the page that now holds the content.
 - <a id="status-indicator" />[Status indicator](/providers/openai/setup#status-indicator)
 - <a id="doctor-warning" />[Doctor warning](/providers/openai/setup#doctor-warning)
 - <a id="context-window-defaults-and-long-context-opt-in" />[Context window defaults and long-context opt-in](/providers/openai/setup#context-window-defaults-and-long-context-opt-in)
-- <a id="embedded-openclaw-translation" />[Embedded OpenClaw translation](/providers/openai/setup#embedded-openclaw-translation)
+- <a id="embedded-openclaw-translation" />[Embedded Vasudev translation](/providers/openai/setup#embedded-vasudev-translation)
 - <a id="native-codex-translation" />[Native Codex translation](/providers/openai/setup#native-codex-translation)
 - <a id="catalog-recovery" />[Catalog recovery](/providers/openai/setup#catalog-recovery)
 - <a id="api-key-openai-platform" />[API key (OpenAI Platform)](/providers/openai/setup#api-key-openai-platform)
@@ -87,7 +87,7 @@ working. Each entry points at the page that now holds the content.
 **[OpenAI coverage and cost](/providers/openai/coverage-and-cost)**
 
 - <a id="usage-and-cost-tracking" />[Usage and cost tracking](/providers/openai/coverage-and-cost#usage-and-cost-tracking)
-- <a id="openclaw-feature-coverage" />[OpenClaw feature coverage](/providers/openai/coverage-and-cost#openclaw-feature-coverage)
+- <a id="openclaw-feature-coverage" />[Vasudev feature coverage](/providers/openai/coverage-and-cost#vasudev-feature-coverage)
 - <a id="memory-embeddings" />[Memory embeddings](/providers/openai/coverage-and-cost#memory-embeddings)
 
 **[OpenAI image and video generation](/providers/openai/image-and-video)**

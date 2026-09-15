@@ -13,7 +13,7 @@ timestamped observations, and builds timeline cards in the
 [Control UI](/web/control-ui). It can also generate daily standup notes and
 answer questions about a tracked day.
 
-OpenClaw-owned state stays on the Gateway under `<state-dir>/logbook/`, but
+Vasudev-owned state stays on the Gateway under `<state-dir>/logbook/`, but
 model processing is not necessarily local. Sampled screenshots go to the
 configured vision route; observations and timeline text go to the default
 agent model. Use local model routes for both stages if screen content and

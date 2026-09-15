@@ -213,7 +213,7 @@ export async function runDoctorConfigPreflight(
         startupMigrationHeartbeatError =
           error instanceof Error
             ? error
-            : new Error("OpenClaw startup migration lease heartbeat failed.");
+            : new Error("Vasudev startup migration lease heartbeat failed.");
       }
     }, 60_000);
     startupMigrationHeartbeat.unref?.();
@@ -713,7 +713,7 @@ export async function runDoctorConfigPreflight(
           persistedIdentity.pluginDoctorConfigFingerprint
       ) {
         throw new Error(
-          'OpenClaw config identity changed while persisting the refreshed plugin registry; refusing to write the migration checkpoint. Run "openclaw doctor --fix" and retry.',
+          'Vasudev config identity changed while persisting the refreshed plugin registry; refusing to write the migration checkpoint. Run "vasudev doctor --fix" and retry.',
         );
       }
       // The durable reread supplies the accepted inventory. Replace both the

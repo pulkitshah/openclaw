@@ -58,11 +58,11 @@
 }
 
 .github-link-hovercard__state[data-tone="open"] {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .github-link-hovercard__state[data-tone="danger"] {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .github-link-hovercard__state[data-tone="purple"] {
@@ -193,11 +193,11 @@
 }
 
 .github-link-hovercard__metric--additions {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .github-link-hovercard__metric--deletions {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .github-link-hovercard__skeleton .skeleton {

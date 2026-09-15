@@ -1,5 +1,5 @@
 /**
- * Shared realtime voice controls for active OpenClaw agent runs.
+ * Shared realtime voice controls for active Vasudev agent runs.
  *
  * This module owns the provider-facing control tool, conservative intent
  * classifier, and user-visible status/queue/cancel messages used by Talk.
@@ -37,7 +37,7 @@ export const REALTIME_VOICE_AGENT_CONTROL_TOOL: RealtimeVoiceTool = {
   type: "function",
   name: REALTIME_VOICE_AGENT_CONTROL_TOOL_NAME,
   description:
-    "Control an active OpenClaw tool-backed voice run. Use this when the caller asks in any language for status/progress, cancellation, a redirect/change to the active work, or a follow-up after the current work. Do not use this for ordinary greetings or chatter unless the caller is asking about the active work.",
+    "Control an active Vasudev tool-backed voice run. Use this when the caller asks in any language for status/progress, cancellation, a redirect/change to the active work, or a follow-up after the current work. Do not use this for ordinary greetings or chatter unless the caller is asking about the active work.",
   parameters: {
     type: "object",
     properties: {
@@ -273,21 +273,21 @@ function parseRealtimeVoiceAgentControlToolArgsRecord(args: unknown): unknown {
 
 /** Fixed user-visible failure; private execution/readiness errors stay in host diagnostics. */
 export const REALTIME_VOICE_AGENT_CONTROL_FAILURE_MESSAGE =
-  "OpenClaw could not process that voice control. Please try again.";
+  "Vasudev could not process that voice control. Please try again.";
 
 /** Build the system-style instruction that forces exact spoken status output. */
 export function buildRealtimeVoiceAgentControlSpeechMessage(text: string): string {
   return [
-    "Internal OpenClaw voice control result.",
+    "Internal Vasudev voice control result.",
     "Do not delegate this message or call any tools.",
-    "Speak this exact OpenClaw status to the voice call, without adding, removing, or rephrasing words.",
+    "Speak this exact Vasudev status to the voice call, without adding, removing, or rephrasing words.",
     `Status: ${JSON.stringify(text)}`,
   ].join("\n");
 }
 
 /** Provider result payload used when the control tool cancels active work. */
 export function buildRealtimeVoiceAgentCancelProviderResult(
-  message = "Cancelled the active OpenClaw run.",
+  message = "Cancelled the active Vasudev run.",
 ): RealtimeVoiceAgentControlProviderResult {
   return {
     status: "cancelled",
@@ -314,14 +314,14 @@ export function formatRealtimeVoiceAgentQueueRejection(
     return "This agent runtime cannot safely accept scoped voice steering. Check status, cancel the run, or start a new explicit request. Update the runtime when guarded injection is supported.";
   }
   if (reason === "compacting") {
-    return "OpenClaw is compacting the active run and cannot accept voice steering yet.";
+    return "Vasudev is compacting the active run and cannot accept voice steering yet.";
   }
   if (reason === "not_streaming") {
-    return "OpenClaw has an active run, but it is not currently accepting steering.";
+    return "Vasudev has an active run, but it is not currently accepting steering.";
   }
   return mode === "followup"
-    ? "OpenClaw could not queue that follow-up."
-    : "OpenClaw could not steer the active run.";
+    ? "Vasudev could not queue that follow-up."
+    : "Vasudev could not steer the active run.";
 }
 
 function isRealtimeVoiceAgentControlToolEvent(event: TalkEvent): boolean {
@@ -345,7 +345,7 @@ export function formatRealtimeVoiceAgentStatus(params: {
   if (!params.active) {
     const turnEnded = recent.find((event) => event.type === "turn.ended");
     return turnEnded
-      ? "OpenClaw finished the last voice request."
+      ? "Vasudev finished the last voice request."
       : "I'm not working on an active request right now.";
   }
 
@@ -360,29 +360,29 @@ export function formatRealtimeVoiceAgentStatus(params: {
     const name = normalizeOptionalString(payload.name);
     const phase = normalizeOptionalString(payload.phase);
     if (toolEvent.type === "tool.call") {
-      return name ? `OpenClaw is starting ${name}.` : "OpenClaw is starting a tool.";
+      return name ? `Vasudev is starting ${name}.` : "Vasudev is starting a tool.";
     }
     if (toolEvent.type === "tool.result") {
       return name
-        ? `OpenClaw finished ${name} and is continuing.`
-        : "OpenClaw finished a tool and is continuing.";
+        ? `Vasudev finished ${name} and is continuing.`
+        : "Vasudev finished a tool and is continuing.";
     }
     if (toolEvent.type === "tool.progress") {
       return name
-        ? `OpenClaw is working in ${name}${phase ? ` (${phase})` : ""}.`
-        : "OpenClaw is still working.";
+        ? `Vasudev is working in ${name}${phase ? ` (${phase})` : ""}.`
+        : "Vasudev is still working.";
     }
   }
 
   if (params.activity?.activeToolName) {
-    return `OpenClaw is running ${params.activity.activeToolName}.`;
+    return `Vasudev is running ${params.activity.activeToolName}.`;
   }
   if (params.activity?.activeWorkKind === "model_call") {
-    return "OpenClaw is waiting on the model.";
+    return "Vasudev is waiting on the model.";
   }
   if (params.activity?.activeWorkKind === "embedded_run" || params.activity?.hasActiveEmbeddedRun) {
-    return "OpenClaw is working on the current voice request.";
+    return "Vasudev is working on the current voice request.";
   }
 
-  return "OpenClaw is working on the current voice request.";
+  return "Vasudev is working on the current voice request.";
 }

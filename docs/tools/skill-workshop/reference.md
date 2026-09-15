@@ -92,7 +92,7 @@ Unless overridden, `<state-dir>` is `~/.openclaw`.
 - Each generation contains one `PROPOSAL.md` and all of that revision's support
   files. Revision publication never overwrites the active generation in place.
 - Generation files are flushed before publication. After the complete bundle is
-  renamed into place, OpenClaw syncs the `generations/` parent directory where
+  renamed into place, Vasudev syncs the `generations/` parent directory where
   the platform supports directory flushing, before committing SQLite state.
   Platforms that report directory synchronization as unsupported retain atomic
   rename and process-interruption safety, but do not claim power-loss durability

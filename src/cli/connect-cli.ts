@@ -279,7 +279,7 @@ async function runConnectCommand(
 
 export function registerConnectCli(program: Command): void {
   addNodeCommandOptions(
-    program.command("connect").description("Connect this machine to an OpenClaw Gateway as a node"),
+    program.command("connect").description("Connect this machine to a Vasudev Gateway as a node"),
   )
     .argument("[target]", "oc-pair URL, setup code, or HTTPS Gateway join URL")
     .option("--service", "Install and run the node host as an OS service", false)
@@ -295,13 +295,13 @@ export function registerConnectCli(program: Command): void {
       "after",
       () =>
         `\n${theme.heading("Examples:")}\n${formatHelpExamples([
-          ["openclaw connect oc-pair://<setup-code>", "Connect in the foreground."],
+          ["vasudev connect oc-pair://<setup-code>", "Connect in the foreground."],
           [
-            "openclaw connect https://gateway.example/j/<code> --service",
+            "vasudev connect https://gateway.example/j/<code> --service",
             "Install the node host service.",
           ],
           [
-            "openclaw connect https://gateway.example/j/<code> --service --session-host",
+            "vasudev connect https://gateway.example/j/<code> --service --session-host",
             "Install a worker-session host service.",
           ],
         ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/connect", "docs.openclaw.ai/cli/connect")}\n`,

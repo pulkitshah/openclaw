@@ -140,7 +140,7 @@ describe.skipIf(process.platform !== "win32")("native Windows source CLI shim", 
         );
         const hostEntry = path.join(fixture.checkout, "scripts", "host.mjs");
         await fs.mkdir(path.dirname(hostEntry));
-        await fs.writeFile(hostEntry, "// A generic Node host is not the OpenClaw CLI entry.\n");
+        await fs.writeFile(hostEntry, "// A generic Node host is not the Vasudev CLI entry.\n");
         const sourceParent = parent === "bare TSX source parent";
         const sourceExecArgv = sourceParent ? ["--import", "tsx"] : fixture.execArgv;
         const control = runSourceCliProbe(

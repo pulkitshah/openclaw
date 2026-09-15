@@ -38,7 +38,7 @@ export type WorkspaceAliasFinding = {
 
 const WORKSPACE_ALIAS_CHECK_ID = "core/doctor/workspace-alias";
 const REPAIR_HINT =
-  "If the same workspace moved, run `openclaw doctor --fix` and confirm the move, or use `openclaw doctor --fix --force`. Otherwise restore the original link or configure the intended workspace directly.";
+  "If the same workspace moved, run `vasudev doctor --fix` and confirm the move, or use `vasudev doctor --fix --force`. Otherwise restore the original link or configure the intended workspace directly.";
 const REBIND_MESSAGES: Record<Exclude<WorkspaceAliasRebindOutcome, "rebound">, string> = {
   "no-repoint": "The alias no longer needs repair.",
   "repoint-changed":

@@ -1,4 +1,4 @@
-/** Pure repair rules for OpenClaw-generated plugin model catalogs. */
+/** Pure repair rules for Vasudev-generated plugin model catalogs. */
 import { isRecord } from "@openclaw/normalization-core/record-coerce";
 
 export const PLUGIN_MODEL_CATALOG_GENERATED_BY = "openclaw-plugin-model-catalog-v1";

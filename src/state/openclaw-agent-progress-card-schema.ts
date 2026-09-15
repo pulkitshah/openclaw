@@ -12,7 +12,7 @@ function splitProgressCardSchema(sql: string): {
   const start = sql.indexOf(PROGRESS_CARD_SCHEMA_START);
   const end = sql.indexOf(PROGRESS_CARD_SCHEMA_END, start);
   if (start === -1 || end === -1) {
-    throw new Error("OpenClaw agent progress-card schema markers are missing.");
+    throw new Error("Vasudev agent progress-card schema markers are missing.");
   }
   return {
     progressCard: sql.slice(start, end),

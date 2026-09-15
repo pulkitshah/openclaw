@@ -26,7 +26,7 @@ register(api) {
 }
 ```
 
-`api.runtime.version` is the current OpenClaw product version, sourced from the shared version resolver so plugins see the same value the CLI reports.
+`api.runtime.version` is the current Vasudev product version, sourced from the shared version resolver so plugins see the same value the CLI reports.
 
 ## What each page covers
 
@@ -146,7 +146,7 @@ available for plugin-owned host state.
 
 Cleanup is best effort. Plugins must explicitly release their own timers,
 listeners, sockets, watchers, and child processes in `onDispose` or their
-service's `stop()` method. OpenClaw does not intercept those native resources or
+service's `stop()` method. Vasudev does not intercept those native resources or
 prove that they have stopped when managed retirement completes. Native plugins
 remain trusted, in-process code. Plain data and native byte buffers retain their
 normal identities; lifecycle fencing applies to the managed callable surfaces,
@@ -176,7 +176,7 @@ when the runtime is retained, even if old cleanup remains unfinished. Retiring
 managers must not publish late results into a replacement manager's caches.
 
 Preparing an unused runtime must leave its manager engine unloaded. For runtimes
-without this hook, OpenClaw calls the existing `closeAllMemorySearchManagers`
+without this hook, Vasudev calls the existing `closeAllMemorySearchManagers`
 method, when provided, if the runtime or an embedding adapter retires. This closes
 all of that runtime's managers as best-effort cleanup; it cannot identify dependent
 managers or prevent concurrent manager acquisition.

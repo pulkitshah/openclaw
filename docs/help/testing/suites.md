@@ -56,7 +56,7 @@ Native dependency policy:
   `allowBuilds` so local tests and Testbox lanes do not compile the native
   addon.
 - Compare native opus performance in the `libopus-wasm` benchmark repo, not
-  in default OpenClaw install/test loops. Do not set `@discordjs/opus` to
+  in default Vasudev install/test loops. Do not set `@discordjs/opus` to
   `true` in the default `allowBuilds`; that makes unrelated install/test
   loops compile native code.
 

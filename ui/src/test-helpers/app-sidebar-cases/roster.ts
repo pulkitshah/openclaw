@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { AgentsListResult } from "../../api/types.ts";
+import { PRODUCT_NAME } from "../../app/brand.ts";
 import { loadSettings, patchSettings } from "../../app/settings.ts";
 import { SIDEBAR_SESSION_PAGE_SIZE } from "../../components/app-sidebar-session-types.ts";
 import { rosterActivityStore } from "../../lib/agents/roster-activity-store.ts";
@@ -12,6 +13,14 @@ import {
   sessionKeys,
   toggleRoster,
 } from "./roster.test-support.ts";
+
+/** The header shows the product as the Vasu wordmark and any other workspace as
+ * plain text, so the identity assertion reads whichever one is rendered. */
+function workspaceHeaderName(header: Element | null): string | undefined {
+  const name = header?.querySelector(".sidebar-agent-card__name-text");
+  const wordmark = name?.querySelector("vasu-wordmark");
+  return wordmark ? (wordmark.getAttribute("aria-label") ?? undefined) : name?.textContent?.trim();
+}
 
 describe("AppSidebar agent roster", () => {
   it.each([undefined, "Studio workspace", "   "])(
@@ -31,9 +40,9 @@ describe("AppSidebar agent roster", () => {
           expect(sidebar.querySelector(".sidebar-workspace-header__main")).not.toBeNull(),
         );
         const header = sidebar.querySelector(".sidebar-workspace-header");
-        expect(header?.textContent).toContain(name?.trim() || "OpenClaw");
+        expect(workspaceHeaderName(header)).toBe(name?.trim() || PRODUCT_NAME);
         expect(header?.querySelector(".sidebar-agent-card__avatar")).toBeNull();
-        expect(header?.querySelector("img")?.getAttribute("src")).toBe("/favicon.svg");
+        expect(header?.querySelector("vasu-orb.sidebar-workspace-header__mark")).not.toBeNull();
         expect(sidebar.querySelector("openclaw-sidebar-agent-card")).toBeNull();
         sidebar.querySelector<HTMLButtonElement>(".sidebar-workspace-header__main")?.click();
         await vi.waitFor(() => expect(sidebar.querySelector(".sidebar-agent-menu")).not.toBeNull());
@@ -142,8 +151,8 @@ describe("AppSidebar agent roster", () => {
       "chat",
       expect.objectContaining({ pathname: "/chat/working/recent" }),
     );
-    expect(sidebar.querySelector(".sidebar-workspace-header__main")?.textContent).toContain(
-      "OpenClaw",
+    expect(workspaceHeaderName(sidebar.querySelector(".sidebar-workspace-header"))).toBe(
+      PRODUCT_NAME,
     );
     expect(sidebar.querySelector("openclaw-sidebar-agent-card")).toBeNull();
     sidebar

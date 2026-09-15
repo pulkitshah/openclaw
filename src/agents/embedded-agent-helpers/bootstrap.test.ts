@@ -5,7 +5,7 @@ import { stripThoughtSignatures } from "./bootstrap.js";
 describe("stripThoughtSignatures", () => {
   it("preserves thinkingSignature while still stripping invalid thought signatures", () => {
     // Providers use camel-case thinkingSignature for signed reasoning, while
-    // OpenClaw-style thoughtSignature fields are internal and must be stripped.
+    // Vasudev-style thoughtSignature fields are internal and must be stripped.
     const thinkingBlock = {
       type: "thinking",
       thinking: "internal",

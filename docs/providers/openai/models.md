@@ -10,16 +10,16 @@ sidebarTitle: "Models"
 
 ## Quick choice
 
-| Goal                                              | Use                                                                | Notes                                                               |
-| ------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------- |
-| ChatGPT/Codex subscription, native Codex runtime  | `openai/gpt-6-astra`                                               | Fresh subscription setup; sign in with Codex auth.                  |
-| Direct API-key billing for agent turns            | `openai/gpt-6-astra` plus an ordered API-key auth profile          | Fresh API-key setup uses Astra.                                     |
-| Choose an exact GPT-5.6 tier                      | `openai/gpt-5.6-sol`, `-terra`, or `-luna`                         | Check `models list` for the tiers available to this account.        |
-| Account without GPT-5.6 access                    | `openai/gpt-5.5`                                                   | Explicit recovery choice; OpenClaw does not silently downgrade.     |
-| Direct API-key billing, explicit OpenClaw runtime | `openai/gpt-5.6` plus provider/model `agentRuntime.id: "openclaw"` | Select a normal `openai` API-key profile.                           |
-| Latest ChatGPT Instant model alias                | `openai/chat-latest`                                               | Direct API-key only; moving alias, not the stable default.          |
-| Image generation or editing                       | `openai/gpt-image-2`                                               | Works with `OPENAI_API_KEY` or Codex OAuth.                         |
-| Transparent-background images                     | `openai/gpt-image-1.5`                                             | Set `outputFormat` to `png` or `webp` and `background=transparent`. |
+| Goal                                             | Use                                                                | Notes                                                               |
+| ------------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| ChatGPT/Codex subscription, native Codex runtime | `openai/gpt-6-astra`                                               | Fresh subscription setup; sign in with Codex auth.                  |
+| Direct API-key billing for agent turns           | `openai/gpt-6-astra` plus an ordered API-key auth profile          | Fresh API-key setup uses Astra.                                     |
+| Choose an exact GPT-5.6 tier                     | `openai/gpt-5.6-sol`, `-terra`, or `-luna`                         | Check `models list` for the tiers available to this account.        |
+| Account without GPT-5.6 access                   | `openai/gpt-5.5`                                                   | Explicit recovery choice; Vasudev does not silently downgrade.      |
+| Direct API-key billing, explicit Vasudev runtime | `openai/gpt-5.6` plus provider/model `agentRuntime.id: "openclaw"` | Select a normal `openai` API-key profile.                           |
+| Latest ChatGPT Instant model alias               | `openai/chat-latest`                                               | Direct API-key only; moving alias, not the stable default.          |
+| Image generation or editing                      | `openai/gpt-image-2`                                               | Works with `OPENAI_API_KEY` or Codex OAuth.                         |
+| Transparent-background images                    | `openai/gpt-image-1.5`                                             | Set `outputFormat` to `png` or `webp` and `background=transparent`. |
 
 ### Retired subscription model references
 
@@ -40,9 +40,9 @@ openclaw models set openai/gpt-6-astra
 
 Astra uses the Responses API for agent tool calls. It supports text and image
 input, a 1,050,000-token context window, and up to 128,000 output tokens.
-OpenClaw retains its ordinary 272,000-token active input budget by default.
+Vasudev retains its ordinary 272,000-token active input budget by default.
 The supported reasoning efforts are `low`, `medium`, `high`, `xhigh`, and `max`.
-OpenClaw defaults Astra to `medium` on both the OpenClaw and Codex runtimes
+Vasudev defaults Astra to `medium` on both the Vasudev and Codex runtimes
 when the account supports that effort.
 The OpenAI provider owns this default, so model selection, Control UI, and
 Codex turn requests share it. Explicit agent, model, global, and session
@@ -55,8 +55,8 @@ These defaults also apply to configured Astra model entries without explicit
 reasoning or temperature compatibility metadata.
 Azure Responses deployments continue to use their configured capabilities.
 
-`/think ultra` is also available on the OpenClaw and Codex runtimes. Ultra enables
-proactive sub-agent orchestration; it is not a raw Responses API effort. OpenClaw
+`/think ultra` is also available on the Vasudev and Codex runtimes. Ultra enables
+proactive sub-agent orchestration; it is not a raw Responses API effort. Vasudev
 uses `max`, while native Codex selects Astra's model-defined effort (`xhigh`).
 
 Standard pricing per million tokens is $10 input, $1 cache reads, $12.50 cache
@@ -66,7 +66,7 @@ and [migration guide](https://developers.openai.com/api/docs/guides/latest-model
 
 ### Async tools, steering, and reasoning changes
 
-Use an OpenAI Platform API-key profile and the built-in OpenClaw runtime for
+Use an OpenAI Platform API-key profile and the built-in Vasudev runtime for
 these Astra capabilities. They require the official `https://api.openai.com/v1`
 Responses endpoint. Configure the existing model settings:
 
@@ -88,8 +88,8 @@ Responses endpoint. Configure the existing model settings:
 }
 ```
 
-- **Async function calls:** Astra can continue reasoning while OpenClaw runs a
-  direct function tool. OpenClaw sends the completed result in the next model
+- **Async function calls:** Astra can continue reasoning while Vasudev runs a
+  direct function tool. Vasudev sends the completed result in the next model
   request after the active response finishes. This
   applies to direct tools; code-mode tools retain their existing execution flow.
 - **Mid-turn steering:** [Steering messages](/concepts/queue#queue-modes) can
@@ -100,7 +100,7 @@ Responses endpoint. Configure the existing model settings:
   that rewrite the active request's prefix keep ordinary queued delivery.
 - **Reasoning changes without rebuilding the cached prefix:** Change the
   [thinking level](/tools/thinking), for example with `/think high`, before
-  the next user turn. OpenClaw preserves the original request-level effort
+  the next user turn. Vasudev preserves the original request-level effort
   and places a `configuration_update` at the new turn. This optimization
   works across matching session history over SSE or cached WebSockets.
   Automatic steering continuations keep their inherited settings. If steering
@@ -127,7 +127,7 @@ these built-in-runtime capabilities do not imply native Codex support.
 
 ## GPT-5.6 limited preview
 
-OpenClaw recognizes the exact `openai/gpt-5.6-sol`,
+Vasudev recognizes the exact `openai/gpt-5.6-sol`,
 `openai/gpt-5.6-terra`, and `openai/gpt-5.6-luna` model ids. All three expose
 `xhigh` and `max` reasoning in the current catalog. OpenAI describes Sol as
 the flagship tier, Terra as the balanced tier, and Luna as the fast,
@@ -154,13 +154,13 @@ available, select GPT-5.5 explicitly:
 openclaw models set openai/gpt-5.5
 ```
 
-OpenClaw surfaces the upstream access error and does not silently replace a
+Vasudev surfaces the upstream access error and does not silently replace a
 GPT-5.6 selection with GPT-5.5.
 
 <Note>
 Eligible exact official HTTPS routes may select the bundled Codex app-server
 plugin when runtime policy is unset or `auto`; authored Completions routes,
-custom endpoints, and request-transport overrides remain on OpenClaw. Plaintext
+custom endpoints, and request-transport overrides remain on Vasudev. Plaintext
 official HTTP endpoints are rejected. Explicit provider/model runtime config remains
 authoritative. Run `openclaw doctor --fix` to repair stale legacy Codex model
 refs, `codex-cli/*` refs, or old runtime session pins that were not set by

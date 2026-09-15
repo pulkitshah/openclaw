@@ -10,7 +10,7 @@ read_when:
 
 <AccordionGroup>
   <Accordion title="What format is the config? Where is it?">
-    OpenClaw reads an optional **JSON5** config from `$OPENCLAW_CONFIG_PATH` (default: `~/.openclaw/openclaw.json`). If the file is missing, it uses safe-ish defaults, including a default workspace of `~/.openclaw/workspace`.
+    Vasudev reads an optional **JSON5** config from `$OPENCLAW_CONFIG_PATH` (default: `~/.openclaw/openclaw.json`). If the file is missing, it uses safe-ish defaults, including a default workspace of `~/.openclaw/workspace`.
   </Accordion>
 
   <Accordion title='I set gateway.bind: "lan" (or "tailnet") and now nothing listens / the UI says unauthorized'>
@@ -37,7 +37,7 @@ read_when:
   </Accordion>
 
   <Accordion title="Why do I need a token on localhost now?">
-    OpenClaw enforces gateway auth by default, including loopback. If no explicit auth path is configured, startup resolves to token mode and generates a runtime-only token for that startup, so local WS clients must authenticate. This blocks other local processes from calling the Gateway.
+    Vasudev enforces gateway auth by default, including loopback. If no explicit auth path is configured, startup resolves to token mode and generates a runtime-only token for that startup, so local WS clients must authenticate. This blocks other local processes from calling the Gateway.
 
     On a fresh loopback start, the Gateway prepares the canonical same-user CLI device credential before `/readyz`, so normal `openclaw` CLI calls can authenticate without persisting the generated token. Other clients still need an explicit shared secret or an approved device pairing.
 
@@ -104,7 +104,7 @@ read_when:
 
     - Allowlists: add `web_search`/`web_fetch`/`x_search`, or `group:web` for all three.
     - `web_fetch` is enabled by default.
-    - If `tools.web.fetch.provider` is omitted, OpenClaw auto-detects the first ready fetch fallback provider from available credentials; the official Firecrawl plugin provides that fallback.
+    - If `tools.web.fetch.provider` is omitted, Vasudev auto-detects the first ready fetch fallback provider from available credentials; the official Firecrawl plugin provides that fallback.
     - Daemons read env vars from `~/.openclaw/.env` (or the service environment).
 
     Docs: [Web tools](/tools/web).
@@ -114,10 +114,10 @@ read_when:
   <Accordion title="config.apply wiped my config. How do I recover and avoid this?">
     `config.apply` replaces the **entire config**; a partial object removes everything else.
 
-    Current OpenClaw protects most accidental clobbers:
+    Current Vasudev protects most accidental clobbers:
 
-    - OpenClaw-owned config writes validate the full post-change config before writing.
-    - Invalid or destructive OpenClaw-owned writes are rejected and saved as `openclaw.json.rejected.*`.
+    - Vasudev-owned config writes validate the full post-change config before writing.
+    - Invalid or destructive Vasudev-owned writes are rejected and saved as `openclaw.json.rejected.*`.
     - Startup can migrate deterministic legacy keys in eligible single-file configs when the whole result validates, keeping the previous config in the `.bak` ring. Other invalid edits make startup fail closed; hot reload skips invalid edits without rewriting `openclaw.json`.
     - `openclaw doctor --fix` owns repairs beyond that startup migration, can restore last-known-good, and saves the rejected file as `openclaw.json.clobbered.*`.
 
@@ -149,7 +149,7 @@ read_when:
 
   </Accordion>
 
-  <Accordion title="Can the OpenClaw browser run headless?">
+  <Accordion title="Can the Vasudev browser run headless?">
     Yes:
 
     ```json5

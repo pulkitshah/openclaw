@@ -65,7 +65,7 @@ export function renderTaskDetailPanel(params: {
       : (currentTask.childSessionKey ?? currentTask.sessionKey),
   );
   // Preserve child-session previews while allowing the task owner to advertise
-  // transcript history without creating an OpenClaw session.
+  // transcript history without creating a Vasudev session.
   const hasTranscript = transcriptSessionKey
     ? !uiConversationMatches(
         params.host,

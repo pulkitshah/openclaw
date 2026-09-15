@@ -1,24 +1,24 @@
 ---
-summary: "How OpenClaw handles local file access safely, and why optional fs-safe native acceleration is off by default"
+summary: "How Vasudev handles local file access safely, and why optional fs-safe native acceleration is off by default"
 read_when:
   - Changing file access, archive extraction, workspace storage, or plugin filesystem helpers
 title: "Secure file operations"
 ---
 
-OpenClaw uses [`@openclaw/fs-safe`](https://github.com/openclaw/fs-safe) for security-sensitive local file operations: root-bounded reads/writes, atomic replacement, archive extraction, temp workspaces, JSON state, and secret-file handling.
+Vasudev uses [`@openclaw/fs-safe`](https://github.com/openclaw/fs-safe) for security-sensitive local file operations: root-bounded reads/writes, atomic replacement, archive extraction, temp workspaces, JSON state, and secret-file handling.
 
-It is a **library guardrail** for trusted OpenClaw code that receives untrusted path names, not a sandbox. Host filesystem permissions, OS users, containers, and the agent/tool policy still define the real blast radius.
+It is a **library guardrail** for trusted Vasudev code that receives untrusted path names, not a sandbox. Host filesystem permissions, OS users, containers, and the agent/tool policy still define the real blast radius.
 
 ## Default: JavaScript fallback
 
-OpenClaw sets fs-safe's optional native helper to **off** by default:
+Vasudev sets fs-safe's optional native helper to **off** by default:
 
-- the guarded JavaScript paths support OpenClaw's normal filesystem operations.
+- the guarded JavaScript paths support Vasudev's normal filesystem operations.
 - disabling native loading keeps runtime behavior deterministic across desktop, Docker, CI, and bundled-app environments.
 
-fs-safe publishes prebuilt native helpers as optional platform packages for Linux x64/arm64 (glibc and musl), macOS x64/arm64, and Windows x64. A normal package install selects the matching package without a compiler. OpenClaw loads it through fs-safe's own dependency scope, including nested pnpm installs. Installs that omit optional dependencies retain the guarded JavaScript path. The `require` mode fails when the binding is unavailable.
+fs-safe publishes prebuilt native helpers as optional platform packages for Linux x64/arm64 (glibc and musl), macOS x64/arm64, and Windows x64. A normal package install selects the matching package without a compiler. Vasudev loads it through fs-safe's own dependency scope, including nested pnpm installs. Installs that omit optional dependencies retain the guarded JavaScript path. The `require` mode fails when the binding is unavailable.
 
-OpenClaw only changes the _default_. An explicit setting always wins:
+Vasudev only changes the _default_. An explicit setting always wins:
 
 ```bash
 # Default OpenClaw behavior: guarded JavaScript fs-safe paths.
@@ -39,7 +39,7 @@ Use `require` (not `auto`) when native primitives are part of your security post
 
 ## What stays protected without native acceleration
 
-With the helper off, OpenClaw still gets fs-safe's Node-only guardrails:
+With the helper off, Vasudev still gets fs-safe's Node-only guardrails:
 
 - rejects relative-path escapes (`..`), absolute paths, and path separators where only bare names are allowed.
 - resolves operations through a trusted root handle instead of ad-hoc `path.resolve(...).startsWith(...)` checks.
@@ -49,7 +49,7 @@ With the helper off, OpenClaw still gets fs-safe's Node-only guardrails:
 - enforces byte limits for reads and archive extraction.
 - applies private file modes for secrets and state files where the API requires them.
 
-This covers OpenClaw's normal threat model: trusted gateway code handling untrusted model/plugin/channel path input inside a single trusted operator boundary.
+This covers Vasudev's normal threat model: trusted gateway code handling untrusted model/plugin/channel path input inside a single trusted operator boundary.
 
 ## What native acceleration adds
 
@@ -68,9 +68,9 @@ In `require` mode, an unavailable or unloadable helper causes `helper-unavailabl
 ## Plugin and core guidance
 
 - Plugin-facing file access should go through `openclaw/plugin-sdk/*` helpers, not raw `fs`. This applies when a path comes from a message, model output, config, or plugin input.
-- Core code should use the fs-safe wrappers under `src/infra/*` so OpenClaw's process policy applies consistently.
+- Core code should use the fs-safe wrappers under `src/infra/*` so Vasudev's process policy applies consistently.
 - Archive extraction should use the fs-safe archive helpers with explicit size, entry-count, link, and destination limits.
-- Secrets should use OpenClaw secret helpers or fs-safe secret/private-state helpers. Do not hand-roll mode checks around `fs.writeFile`.
+- Secrets should use Vasudev secret helpers or fs-safe secret/private-state helpers. Do not hand-roll mode checks around `fs.writeFile`.
 - For hostile local-user isolation, do not rely on fs-safe alone. Run separate gateways under separate OS users/hosts, or use sandboxing.
 
 Related: [Security](/gateway/security), [Sandboxing](/gateway/sandboxing), [Exec approvals](/tools/exec-approvals), [Secrets](/gateway/secrets).

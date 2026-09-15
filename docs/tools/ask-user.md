@@ -35,16 +35,16 @@ You can answer from any supported conversation surface:
   single-question prompt. Mattermost retires its prompt on the tap it accepts;
   a question that ends elsewhere leaves the buttons in place until someone taps
   one and is told it was already answered.
-- For a question created by an active OpenClaw run, a plain-text reply works on
+- For a question created by an active Vasudev run, a plain-text reply works on
   any channel when your current permissions match the creator's. Reply with a
   number, an option label, or your own answer. For multi-select questions,
   separate choices with commas.
 
 Questions from a standalone [attached MCP client](/cli/attach) do not carry an
-OpenClaw run's creator binding. Answer those using the question controls in the
+Vasudev run's creator binding. Answer those using the question controls in the
 Control UI, TUI, or native app, not an ordinary channel message.
 
-OpenClaw always enables a free-text **Other** answer. The agent must not add an
+Vasudev always enables a free-text **Other** answer. The agent must not add an
 `Other` option to the authored option list.
 
 Never answer `ask_user` with a credential. When the agent needs an API key it

@@ -172,7 +172,7 @@ export function buildTurnStartParams(
       ? { model: modelSelection.model, personality: CODEX_NATIVE_PERSONALITY_NONE }
       : {}),
     // Codex distinguishes an omitted native default from explicitly clearing
-    // an OpenClaw-owned priority override left on this exact warm session.
+    // a Vasudev-owned priority override left on this exact warm session.
     ...(options.appServer.serviceTier !== undefined
       ? { serviceTier: options.appServer.serviceTier }
       : options.clearInheritedServiceTier
@@ -261,7 +261,7 @@ function buildTurnScopedCollaborationInstructions(
 
 function buildDefaultCollaborationInstructions(): string {
   // Codex only applies the built-in Default-mode preset when `developer_instructions`
-  // is null. OpenClaw adds per-turn workspace instructions here, so preserve that
+  // is null. Vasudev adds per-turn workspace instructions here, so preserve that
   // pinned Codex default behavior before appending the workspace overlay.
   return [
     "# Collaboration Mode: Default",
@@ -280,7 +280,7 @@ function buildDefaultCollaborationInstructions(): string {
 
 function buildCronCollaborationInstructions(): string {
   return [
-    "This is an OpenClaw cron automation turn. Apply these instructions only to this scheduled job; ordinary chat turns should stay in Codex Default mode.",
+    "This is a Vasudev cron automation turn. Apply these instructions only to this scheduled job; ordinary chat turns should stay in Codex Default mode.",
     "Execute the cron payload directly. If it asks you to run an exact command, run that command before doing any investigation, planning, memory review, or workspace bootstrap.",
     "Use context already provided by the runtime, but do not spend time loading or re-reading workspace bootstrap, memory, or project-doc files before executing the cron payload. Inspect those files only if the payload asks for them or the command fails and they are needed to diagnose it.",
     "Keep output concise and automation-oriented. Prefer the final command result or a short failure summary over status narration.",

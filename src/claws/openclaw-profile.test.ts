@@ -7,7 +7,7 @@ import { parseClawOpenClawProfile } from "./schema.js";
 
 const tempDirs = useAutoCleanupTempDirTracker(afterEach);
 
-describe("OpenClaw profile schema", () => {
+describe("Vasudev profile schema", () => {
   it("accepts typed settings", () => {
     const result = parseClawOpenClawProfile({
       schemaVersion: 1,
@@ -90,7 +90,7 @@ describe("OpenClaw profile schema", () => {
   });
 });
 
-describe("OpenClaw profile reader", () => {
+describe("Vasudev profile reader", () => {
   it.each([
     ["anchor", "agent: &agent {}", "anchors"],
     ["alias", "agent: *agent", "aliases"],
@@ -115,7 +115,7 @@ describe("OpenClaw profile reader", () => {
             phase: "parse",
             path: "$",
             code: "unsupported_openclaw_profile_yaml_feature",
-            message: `profiles/openclaw.yml uses ${feature}; OpenClaw profile YAML must map directly to JSON data.`,
+            message: `profiles/openclaw.yml uses ${feature}; Vasudev profile YAML must map directly to JSON data.`,
           },
         ],
       });
@@ -199,7 +199,7 @@ describe("OpenClaw profile reader", () => {
       },
     });
     if (!first.ok) {
-      throw new Error("expected OpenClaw profile to parse");
+      throw new Error("expected Vasudev profile to parse");
     }
 
     await writeFile(
@@ -210,7 +210,7 @@ describe("OpenClaw profile reader", () => {
     const second = await readClawManifestFile(root);
     expect(second.ok).toBe(true);
     if (!second.ok) {
-      throw new Error("expected changed OpenClaw profile to parse");
+      throw new Error("expected changed Vasudev profile to parse");
     }
     expect(second.source.integrity).not.toBe(first.source.integrity);
   });

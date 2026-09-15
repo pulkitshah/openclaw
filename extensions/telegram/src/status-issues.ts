@@ -67,7 +67,7 @@ function collectTelegramPollingRuntimeIssues(params: {
 
   const lastStartAt = asFiniteNumber(account.lastStartAt) ?? null;
   const lastTransportActivityAt = asFiniteNumber(account.lastTransportActivityAt) ?? null;
-  const fix = `Run: ${formatCliCommand("openclaw channels status --probe")} (or restart the gateway). Check the bot token, proxy/network settings, and logs if it persists.`;
+  const fix = `Run: ${formatCliCommand("vasudev channels status --probe")} (or restart the gateway). Check the bot token, proxy/network settings, and logs if it persists.`;
 
   if (account.connected === false) {
     const withinStartupGrace =
@@ -140,7 +140,7 @@ function collectTelegramWebhookRuntimeIssues(params: {
       "Telegram webhook listener is running but setWebhook has not completed since startup",
       account.lastError,
     ),
-    fix: `Run: ${formatCliCommand("openclaw channels status --probe")} (or restart the gateway). Check the webhook URL, secret, TLS/proxy reachability, and Telegram setWebhook logs if it persists.`,
+    fix: `Run: ${formatCliCommand("vasudev channels status --probe")} (or restart the gateway). Check the webhook URL, secret, TLS/proxy reachability, and Telegram setWebhook logs if it persists.`,
   });
 }
 

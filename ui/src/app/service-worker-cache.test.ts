@@ -394,7 +394,7 @@ describe("Control UI service worker notification scope", () => {
     async ({ scope, target, clientUrls, focusedClientIndex, navigatedUrl, openedUrl }) => {
       const worker = createNotificationServiceWorker(scope, clientUrls);
       const payload: ServiceWorkerPushPayload = {
-        title: "OpenClaw",
+        title: "Vasudev",
         body: "Scoped notification",
       };
       if (target !== null) {
@@ -442,13 +442,13 @@ describe("Control UI service worker notification scope", () => {
     const tag = "openclaw-approval-exec:replacement";
 
     const requested = await worker.dispatchPush({
-      title: "OpenClaw approval requested",
-      body: "Open OpenClaw to review this request.",
+      title: "Vasudev approval requested",
+      body: "Open Vasudev to review this request.",
       tag,
       renotify: false,
     });
     const terminal = await worker.dispatchPush({
-      title: "OpenClaw approval updated",
+      title: "Vasudev approval updated",
       body: "This approval is no longer pending.",
       tag,
       renotify: false,

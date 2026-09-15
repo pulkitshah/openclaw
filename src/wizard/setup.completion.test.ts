@@ -167,7 +167,7 @@ describe("setupWizardShellCompletion", () => {
         generationMode: "full",
       });
       expect(prompter.note).toHaveBeenCalledWith(
-        "Failed to generate completion cache. Run `openclaw completion --write-state --install` later.",
+        "Failed to generate completion cache. Run `vasudev completion --write-state --install` later.",
         "Shell completion",
       );
       expect(deps.installCompletion).not.toHaveBeenCalled();

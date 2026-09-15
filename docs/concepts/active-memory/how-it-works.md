@@ -41,7 +41,7 @@ inference feature:
 | Sub-agent/internal helper execution                                 | No                                                       |
 
 Inter-session messages and child completion deliveries do not run Active
-Memory, even when they arrive in a visible conversation. OpenClaw uses their
+Memory, even when they arrive in a visible conversation. Vasudev uses their
 typed delivery origin to skip recall. Later human messages in that same
 conversation remain eligible under the usual targeting and session rules.
 
@@ -115,7 +115,7 @@ For narrower rollout inside an allowed chat type, add
 
 Ids come from the persistent channel session key (for example Feishu
 `chat_id`/`open_id`, Telegram chat id, Slack channel id). Matching is
-case-insensitive. If `allowedChatIds` is non-empty and OpenClaw cannot
+case-insensitive. If `allowedChatIds` is non-empty and Vasudev cannot
 resolve a conversation id for the session, active memory skips the turn
 instead of guessing.
 

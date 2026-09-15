@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/featherless-provider",
   "version": "2026.9.4",
-  "description": "OpenClaw Featherless AI provider plugin.",
+  "description": "Vasudev Featherless AI provider plugin.",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

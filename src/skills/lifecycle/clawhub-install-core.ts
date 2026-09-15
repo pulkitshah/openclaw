@@ -411,7 +411,7 @@ function assertInstallResolutionAllowed(
     if (resolution.reason === "ambiguous_slug") {
       const message = resolution.message ? ` ${resolution.message}` : "";
       throw new Error(
-        `Skill "${resolution.slug}" is ambiguous on ClawHub. Install an owner-qualified skill, for example: openclaw skills install @owner/${resolution.slug}.${message}`,
+        `Skill "${resolution.slug}" is ambiguous on ClawHub. Install an owner-qualified skill, for example: vasudev skills install @owner/${resolution.slug}.${message}`,
       );
     }
     throw new Error(resolution.message || `Skill "${resolution.slug}" is not installable.`);

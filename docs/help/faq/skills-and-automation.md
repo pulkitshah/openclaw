@@ -14,7 +14,7 @@ read_when:
   </Accordion>
 
   <Accordion title="Can I load skills from a custom folder?">
-    Yes: add directories via `skills.load.extraDirs` in `~/.openclaw/openclaw.json` (lowest precedence in the order above). `clawhub` installs into `./skills` by default, which OpenClaw treats as `<workspace>/skills` on the next session. To limit visibility to certain agents, pair with `agents.defaults.skills` or `agents.entries.*.skills`.
+    Yes: add directories via `skills.load.extraDirs` in `~/.openclaw/openclaw.json` (lowest precedence in the order above). `clawhub` installs into `./skills` by default, which Vasudev treats as `<workspace>/skills` on the next session. To limit visibility to certain agents, pair with `agents.defaults.skills` or `agents.entries.*.skills`.
   </Accordion>
 
   <Accordion title="How can I use different models or settings for different tasks?">
@@ -84,10 +84,10 @@ read_when:
     Check the resolved requester route:
 
     - Completion-mode subagent delivery prefers a bound thread or conversation route when one exists.
-    - If the completion origin only carries a channel, OpenClaw falls back to the requester session's stored route (`lastChannel` / `lastTo` / `lastAccountId`) so direct delivery can still succeed.
+    - If the completion origin only carries a channel, Vasudev falls back to the requester session's stored route (`lastChannel` / `lastTo` / `lastAccountId`) so direct delivery can still succeed.
     - No bound route and no usable stored route: direct delivery can fail and the result falls back to queued session delivery instead of posting immediately.
     - Invalid or stale targets can also force queue fallback or final delivery failure.
-    - If the child's last visible assistant reply is exactly `NO_REPLY` / `no_reply` or `ANNOUNCE_SKIP`, OpenClaw intentionally suppresses the announce instead of posting stale earlier progress.
+    - If the child's last visible assistant reply is exactly `NO_REPLY` / `no_reply` or `ANNOUNCE_SKIP`, Vasudev intentionally suppresses the announce instead of posting stale earlier progress.
 
     Debug: `openclaw tasks show <lookup>` where `<lookup>` is a task id, run id, or session key.
 
@@ -168,7 +168,7 @@ read_when:
 
   </Accordion>
 
-  <Accordion title="Can OpenClaw run tasks on a schedule or continuously in the background?">
+  <Accordion title="Can Vasudev run tasks on a schedule or continuously in the background?">
     Yes, via the Gateway scheduler:
 
     - **Cron jobs** for scheduled or recurring tasks (persist across restarts).
@@ -186,7 +186,7 @@ read_when:
 
     **Option A - run the Gateway on a Mac (simplest)**. Run the Gateway where the macOS binaries exist, then connect from Linux in [remote mode](/help/faq/gateway-ports-and-remote-mode#gateway-ports-already-running-and-remote-mode) or over Tailscale. Skills load normally because the Gateway host is macOS.
 
-    **Option B - use a macOS node (no SSH)**. Run the Gateway on Linux, pair a macOS node (menubar app), and set **Node Run Commands** to "Always Ask" or "Always Allow" on the Mac. OpenClaw treats macOS-only skills as eligible when required binaries exist on the node; the agent runs them via the `nodes` tool. With "Always Ask," approving "Always Allow" in the prompt adds that command to the allowlist.
+    **Option B - use a macOS node (no SSH)**. Run the Gateway on Linux, pair a macOS node (menubar app), and set **Node Run Commands** to "Always Ask" or "Always Allow" on the Mac. Vasudev treats macOS-only skills as eligible when required binaries exist on the node; the agent runs them via the `nodes` tool. With "Always Ask," approving "Always Allow" in the prompt adds that command to the allowlist.
 
     **Option C - proxy macOS binaries over SSH (advanced)**. Keep the Gateway on Linux, but make the required CLI binaries resolve to SSH wrappers that run on a Mac, then override the skill to allow Linux so it stays eligible.
 
@@ -230,7 +230,7 @@ read_when:
 
   </Accordion>
 
-  <Accordion title="How do I use my existing signed-in Chrome with OpenClaw?">
+  <Accordion title="How do I use my existing signed-in Chrome with Vasudev?">
     Use the built-in `user` browser profile, which attaches through Chrome DevTools MCP:
 
     ```bash

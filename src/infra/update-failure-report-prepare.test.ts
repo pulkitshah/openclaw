@@ -146,7 +146,7 @@ describe("update report diagnostic command boundary", () => {
     {
       service: "failed",
       outcome:
-        "runtime files verified; Gateway restart failed. Run `openclaw gateway status --deep` before restarting manually.",
+        "runtime files verified; Gateway restart failed. Run `vasudev gateway status --deep` before restarting manually.",
     },
   ] as const)(
     "reports the observed recovery service outcome: $service",
@@ -293,7 +293,7 @@ describe("update report diagnostic command boundary", () => {
           reason: "doctor-failed",
           steps: [
             {
-              name: "openclaw doctor",
+              name: "vasudev doctor",
               command: "not copied",
               cwd: "/private",
               durationMs: 1,
@@ -306,7 +306,7 @@ describe("update report diagnostic command boundary", () => {
       context,
     );
     expect(report.body).toContain("- Failed phase: doctor-failed\n");
-    expect(report.body).not.toContain("openclaw doctor");
+    expect(report.body).not.toContain("vasudev doctor");
   });
 
   it("retains failed phases from the durable run when the handoff result is compact", async () => {

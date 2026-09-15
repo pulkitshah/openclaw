@@ -422,7 +422,7 @@ async function refreshAfterCredentialMutation(
     return undefined;
   } catch (error) {
     log.warn(`credential change saved but auth refresh failed: ${formatForLog(error)}`);
-    return "Model auth changes were saved, but the Gateway could not refresh them. Run `openclaw gateway restart` to apply the saved changes.";
+    return "Model auth changes were saved, but the Gateway could not refresh them. Run `vasudev gateway restart` to apply the saved changes.";
   }
 }
 

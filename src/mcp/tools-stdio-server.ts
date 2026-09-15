@@ -1,4 +1,4 @@
-// MCP stdio server exposes OpenClaw tools over the MCP stdio transport.
+// MCP stdio server exposes Vasudev tools over the MCP stdio transport.
 import { AsyncLocalStorage } from "node:async_hooks";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";

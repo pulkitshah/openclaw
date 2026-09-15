@@ -513,7 +513,7 @@ describe("loadBundledEntryExportSync", () => {
     });
   });
 
-  it("transforms OpenClaw SDK dependencies after a native built sidecar load declines", async () => {
+  it("transforms Vasudev SDK dependencies after a native built sidecar load declines", async () => {
     const sourceLoad = vi.fn(() => ({ sentinel: 42 }));
     const createJiti = vi.fn((_filename: string, _options?: Record<string, unknown>) => sourceLoad);
     const tempRoot = tempDirs.make("openclaw-channel-entry-contract-");

@@ -638,7 +638,7 @@ function createCronPromptExecutor(
         const bootstrapPromptWarningSignature =
           bootstrapPromptWarningSignaturesSeen[bootstrapPromptWarningSignaturesSeen.length - 1];
         // CLI providers can resume provider-native sessions; embedded providers
-        // use OpenClaw's transcript/session file plus prompt-cache affinity.
+        // use Vasudev's transcript/session file plus prompt-cache affinity.
         const fastModeState = resolveFastModeState({
           cfg: params.cfgWithAgentDefaults,
           provider: providerOverride,

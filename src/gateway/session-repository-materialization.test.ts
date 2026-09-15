@@ -185,7 +185,7 @@ describe("explicit repository move to Gateway", () => {
       const source = state.path("source");
       await fsp.mkdir(source);
       await git(source, ["init", "-b", "main"]);
-      await git(source, ["config", "user.name", "OpenClaw Test"]);
+      await git(source, ["config", "user.name", "Vasudev Test"]);
       await git(source, ["config", "user.email", "test@example.invalid"]);
       await fsp.writeFile(path.join(source, ".gitignore"), "*.ignored\n");
       await fsp.writeFile(path.join(source, ".worktreeinclude"), "retained.ignored\n");

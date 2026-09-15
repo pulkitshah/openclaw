@@ -90,7 +90,7 @@ standalone candidate producer that calls `Full Release Candidate`. Its registry 
 unpublished core dependencies and selected plugins. Installers start that
 registry before resolving the root package, including npm, pnpm, Bun, and
 cross-OS lanes. Published baseline versions remain available through the
-upstream registry. Plugin Prerelease and OpenClaw Release Checks each dispatch an
+upstream registry. Plugin Prerelease and Vasudev Release Checks each dispatch an
 independent phase immediately, while their candidate phases wait for acquisition.
 Both candidate phases verify the same package SHA, artifact IDs, service digests,
 producer run attempt, and Docker archive digest before use. The package-independent

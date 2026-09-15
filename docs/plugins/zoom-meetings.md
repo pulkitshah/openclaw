@@ -2,14 +2,14 @@
 summary: "Zoom meetings plugin: join meetings as a Chrome browser guest"
 doc-schema-version: 1
 read_when:
-  - You want an OpenClaw agent to join a Zoom meeting
+  - You want a Vasudev agent to join a Zoom meeting
   - You need Zoom-specific guest policy or manual-action guidance
 title: "Zoom meetings plugin"
 ---
 
 The `zoom-meetings` plugin joins `zoom.us/j/...` links and account subdomains
 such as `example.zoom.us/j/...` as a guest through the Zoom Web App in the
-OpenClaw Chrome profile. It does not create meetings, dial in, use the Zoom
+Vasudev Chrome profile. It does not create meetings, dial in, use the Zoom
 Meeting SDK, or capture audio/video recordings.
 
 Use [Meeting plugins](/plugins/meeting-plugins) for shared installation, modes,
@@ -26,7 +26,7 @@ navigation. In-call state uses Zoom's Leave control.
 Zoom can disable browser join or require authentication, email verification, a
 passcode, CAPTCHA completion, host admission, or browser device permissions.
 The plugin reports these as `manualAction`. Complete the requested step in the
-same OpenClaw Chrome profile, then retry status or speech. It does not bypass
+same Vasudev Chrome profile, then retry status or speech. It does not bypass
 Zoom policy.
 
 The Zoom Web App was live-validated in 2026.8.1 with an official test meeting

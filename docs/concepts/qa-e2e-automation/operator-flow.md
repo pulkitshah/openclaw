@@ -241,7 +241,7 @@ runs install/build inside the VM. Use `--hydrate-mode prehydrated` only when
 the reused remote workspace already has `node_modules` and a built `dist/`;
 that mode skips the expensive install/build step and fails closed when the
 workspace is not ready. With `--gateway-setup`, Mantis leaves a persistent
-OpenClaw Slack gateway running inside the VM on port `38973`; without it, the
+Vasudev Slack gateway running inside the VM on port `38973`; without it, the
 command runs the normal bot-to-bot Slack QA lane and exits after artifact
 capture.
 

@@ -919,7 +919,7 @@ describe("system-scope gateway unit detection (openclaw#87577)", () => {
     expect(warning).toContain("/etc/systemd/system/openclaw-gateway.service");
     expect(warning).toContain("18789");
     expect(warning).toContain(
-      "Run `openclaw doctor` interactively to inspect both scopes and review supported cleanup.",
+      "Run `vasudev doctor` interactively to inspect both scopes and review supported cleanup.",
     );
     // The unguarded startup path must not hand out a destructive command.
     expect(warning).not.toContain("rm ");
@@ -1532,10 +1532,10 @@ describe("splitArgsPreservingQuotes", () => {
 
   it("supports schtasks-style escaped quotes while preserving other backslashes", () => {
     expect(
-      splitArgsPreservingQuotes('openclaw --path "C:\\\\Program Files\\\\OpenClaw"', {
+      splitArgsPreservingQuotes('openclaw --path "C:\\\\Program Files\\\\Vasudev"', {
         escapeMode: "backslash-quote-only",
       }),
-    ).toEqual(["openclaw", "--path", "C:\\\\Program Files\\\\OpenClaw"]);
+    ).toEqual(["openclaw", "--path", "C:\\\\Program Files\\\\Vasudev"]);
 
     expect(
       splitArgsPreservingQuotes('openclaw --label "My \\"Quoted\\" Name"', {
@@ -3366,7 +3366,7 @@ describe("stageSystemdService", () => {
         programArguments: ["/usr/bin/openclaw", "gateway", "run"],
         workingDirectory: "/tmp",
         // Staging manages OPENCLAW_GATEWAY_TOKEN inline; OPENCLAW_SERVICE_MANAGED_ENV_KEYS
-        // marks it as an OpenClaw-managed key so the stale env-file copy is cleared.
+        // marks it as a Vasudev-managed key so the stale env-file copy is cleared.
         environment: {
           OPENCLAW_GATEWAY_TOKEN: "fresh-gateway-token",
           LLM_API_KEY: "dotenv-key",

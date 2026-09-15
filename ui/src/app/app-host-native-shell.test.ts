@@ -75,7 +75,7 @@ afterEach(() => {
   resetAppHostTestGlobals();
 });
 
-describe("OpenClaw native shell", () => {
+describe("Vasudev native shell", () => {
   it.each(["MacIntel", "Win32", "Linux x86_64"])(
     "uses only the platform sidebar modifier on %s without consuming text navigation",
     (platform) => {
@@ -574,7 +574,7 @@ describe("OpenClaw native shell", () => {
   });
 });
 
-describe("OpenClaw shell update affordance", () => {
+describe("Vasudev shell update affordance", () => {
   it("renders floating attention while keeping update actions in navigation", async () => {
     const container = document.createElement("div");
     document.body.append(container);

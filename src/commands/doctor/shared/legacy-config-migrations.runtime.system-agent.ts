@@ -60,7 +60,7 @@ export function findLegacySystemAgentOwnerIssue(raw: unknown) {
     ? {
         path: "agents",
         message:
-          'Legacy ambient operations have no system-agent owner; run "openclaw doctor --fix" to set agents.defaults.systemAgent.agentId from the default agent.',
+          'Legacy ambient operations have no system-agent owner; run "vasudev doctor --fix" to set agents.defaults.systemAgent.agentId from the default agent.',
       }
     : undefined;
 }
@@ -68,7 +68,7 @@ export function findLegacySystemAgentOwnerIssue(raw: unknown) {
 const LEGACY_SYSTEM_AGENT_CONFIG_RULE: LegacyConfigRule = {
   path: ["crestodian"],
   message:
-    'crestodian config was retired; system-agent rescue now uses built-in policy. Run "openclaw doctor --fix" to remove it.',
+    'crestodian config was retired; system-agent rescue now uses built-in policy. Run "vasudev doctor --fix" to remove it.',
 };
 
 export const LEGACY_CONFIG_MIGRATIONS_RUNTIME_SYSTEM_AGENT: LegacyConfigMigrationSpec[] = [

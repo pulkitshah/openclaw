@@ -57,7 +57,7 @@ type SecretResolutionErrorOwner = DegradedSecretOwner & {
   source: "auth-store" | "config";
 };
 
-export const SECRET_DEGRADATION_RETRY_HINT = "openclaw secrets reload" as const;
+export const SECRET_DEGRADATION_RETRY_HINT = "vasudev secrets reload" as const;
 
 /** Only transient/unavailable resolution failures may enter degraded runtime state. */
 export function isRetryableSecretDegradationReason(reason: string): boolean {

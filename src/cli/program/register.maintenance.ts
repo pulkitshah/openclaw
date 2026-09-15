@@ -43,7 +43,7 @@ function exitDoctorError(message: string, json: boolean): never {
   exitCliAfterOutput(defaultRuntime, 2);
 }
 
-/** Register maintenance commands that inspect or mutate local OpenClaw state. */
+/** Register maintenance commands that inspect or mutate local Vasudev state. */
 export function registerMaintenanceCommands(program: Command) {
   const doctor = program
     .command("doctor")
@@ -123,7 +123,7 @@ export function registerMaintenanceCommands(program: Command) {
       }
       if (hasSessionSqliteOnlyDoctorOptions(opts)) {
         return exitDoctorError(
-          "doctor session SQLite options require --session-sqlite. Use `openclaw doctor --session-sqlite dry-run ...`.",
+          "doctor session SQLite options require --session-sqlite. Use `vasudev doctor --session-sqlite dry-run ...`.",
           opts.json === true || (opts.lint === true && !process.stdout.isTTY),
         );
       }
@@ -156,7 +156,7 @@ export function registerMaintenanceCommands(program: Command) {
       }
       if (opts.lint !== true && hasLintOnlyDoctorOptions(opts)) {
         return exitDoctorError(
-          "doctor lint options require --lint. Use `openclaw doctor --lint ...`.",
+          "doctor lint options require --lint. Use `vasudev doctor --lint ...`.",
           opts.json === true,
         );
       }

@@ -212,7 +212,7 @@ describe("WhatsAppConnectionController", () => {
     expect(sock.end).toHaveBeenCalledOnce();
     const closeError = sock.end.mock.calls[0]?.[0] as Error | undefined;
     expect(closeError).toBeInstanceOf(Error);
-    expect(closeError?.message).toBe("OpenClaw WhatsApp socket close");
+    expect(closeError?.message).toBe("Vasudev WhatsApp socket close");
     expect(sock.ws.close).not.toHaveBeenCalled();
     expect(controller.socketRef.current).toBeNull();
     expect(controller.getActiveListener()).toBeNull();

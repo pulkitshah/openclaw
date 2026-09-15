@@ -251,17 +251,17 @@ describe("config cli integration", () => {
         {
           field: "contextWindow",
           prefix: "Config path is valid but unset",
-          remedy: "openclaw config set",
+          remedy: "vasudev config set",
         },
         {
           field: "contextTokens",
           prefix: "Config path is valid but unset",
-          remedy: "openclaw config set",
+          remedy: "vasudev config set",
         },
         {
           field: "notAConfigField",
           prefix: "Unknown config path",
-          remedy: "openclaw config schema",
+          remedy: "vasudev config schema",
         },
       ];
       for (const { field, prefix, remedy } of failures) {
@@ -626,7 +626,7 @@ describe("config cli integration", () => {
         expect(fs.readFileSync(configPath, "utf8")).toBe(raw);
         expect(output.logs).toStrictEqual([]);
         expect(output.errors.join("\n")).toContain(
-          "Config path not found: gateway.bind. Nothing was changed. Run openclaw config get <path> first if you are unsure of the path.",
+          "Config path not found: gateway.bind. Nothing was changed. Run vasudev config get <path> first if you are unsure of the path.",
         );
       },
     );

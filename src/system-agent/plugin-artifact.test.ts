@@ -257,7 +257,7 @@ describe("exact system-agent plugin artifacts", () => {
           ? prepareSystemAgentPluginArtifact(operation)
           : executePluginArtifactActivation(operation, runtime, { approved: true });
       await expect(attempt).rejects.toThrow(
-        "Install the reviewed archive with openclaw plugins install",
+        "Install the reviewed archive with vasudev plugins install",
       );
       expect(mocks.install).not.toHaveBeenCalled();
       expect(mocks.audit).not.toHaveBeenCalled();

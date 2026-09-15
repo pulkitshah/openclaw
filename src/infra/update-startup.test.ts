@@ -618,7 +618,7 @@ describe("update-startup", () => {
       { surface: "gateway" },
     );
     expect(log.info).toHaveBeenCalledWith(
-      `update available (latest): v2.0.0 (current v1.0.0). Run: ${formatCliCommand("openclaw update")}`,
+      `update available (latest): v2.0.0 (current v1.0.0). Run: ${formatCliCommand("vasudev update")}`,
     );
     expect(parsed?.lastNotifiedVersion).toBe("2.0.0");
     expect(parsed?.lastAvailableVersion).toBe("2.0.0");
@@ -1020,7 +1020,7 @@ describe("update-startup", () => {
     expect(checkTelemetryUpdateMock).toHaveBeenCalledTimes(2);
     expect(log.info).toHaveBeenCalledTimes(1);
     expect(log.info).toHaveBeenCalledWith(
-      `update available (extended-stable): v2.0.0 (current v1.0.0). Run: ${formatCliCommand("openclaw update")}`,
+      `update available (extended-stable): v2.0.0 (current v1.0.0). Run: ${formatCliCommand("vasudev update")}`,
     );
     expect(onUpdateAvailableChange).toHaveBeenCalledTimes(1);
     expect(onUpdateAvailableChange).toHaveBeenCalledWith({
@@ -2651,7 +2651,7 @@ describe("update-startup", () => {
       kind: "update",
       status: "skipped",
       message: expect.stringMatching(
-        /Stop the foreground Gateway.*`openclaw --profile work update --yes --channel beta --tag 2\.0\.0-beta\.1 --timeout 2700`.*then launch the Gateway again/s,
+        /Stop the foreground Gateway.*`vasudev --profile work update --yes --channel beta --tag 2\.0\.0-beta\.1 --timeout 2700`.*then launch the Gateway again/s,
       ),
       stats: { reason: "managed-service-handoff-unavailable" },
     });
@@ -2745,7 +2745,7 @@ describe("update-startup", () => {
       if (triageFails) {
         runUpdateFailureTriageMock.mockResolvedValueOnce({
           status: "failed",
-          hint: "Triage could not complete: collector failed. Run openclaw triage.",
+          hint: "Triage could not complete: collector failed. Run vasudev triage.",
         });
       }
       const log = { info: vi.fn() };
@@ -2773,7 +2773,7 @@ describe("update-startup", () => {
         forced: false,
         reason: "managed-service-handoff-failed",
         message: expect.stringContaining("ENOENT"),
-        triage: expect.stringContaining(triageFails ? "openclaw triage" : triageResult.hint),
+        triage: expect.stringContaining(triageFails ? "vasudev triage" : triageResult.hint),
       });
       expect(log.info).toHaveBeenCalledWith(
         "update campaign ended",
@@ -2786,7 +2786,7 @@ describe("update-startup", () => {
       expect((await terminalSentinels.at(-1))?.payload).toMatchObject({
         kind: "update",
         status: "error",
-        doctorHint: expect.stringContaining(triageFails ? "openclaw triage" : triageResult.hint),
+        doctorHint: expect.stringContaining(triageFails ? "vasudev triage" : triageResult.hint),
         stats: { reason: "managed-service-handoff-failed" },
       });
       expect(runUpdateFailureTriageMock).toHaveBeenCalledOnce();

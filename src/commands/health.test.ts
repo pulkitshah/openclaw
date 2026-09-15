@@ -235,7 +235,7 @@ describe("healthCommand", () => {
     const output = stripAnsi(runtime.log.mock.calls.map((call) => String(call[0])).join("\n"));
     expect(output).toContain(`Session store (main): ${parsed.sessions.path}`);
     expect(output).toContain(
-      "Plugin calendar: failed - service scheduler: address already in use; run openclaw doctor",
+      "Plugin calendar: failed - service scheduler: address already in use; run vasudev doctor",
     );
     expect(output).not.toContain("inactive plugin load failed");
   });

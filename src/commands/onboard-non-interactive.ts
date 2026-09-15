@@ -41,7 +41,7 @@ async function runNonInteractiveMigrationImport(params: {
     rejectOnboardingOption(
       params.opts,
       params.runtime,
-      `--import-from is required for non-interactive migration import. Run ${formatCliCommand("openclaw migrate list")} to choose a provider.`,
+      `--import-from is required for non-interactive migration import. Run ${formatCliCommand("vasudev migrate list")} to choose a provider.`,
     );
     return;
   }
@@ -64,14 +64,14 @@ async function runNonInteractiveMigrationImport(params: {
     async readConfigFile() {
       const snapshot = await readConfigFileSnapshot();
       if (!snapshot.valid) {
-        throw new Error("Migration target config became invalid. Run `openclaw doctor`.");
+        throw new Error("Migration target config became invalid. Run `vasudev doctor`.");
       }
       return snapshot.exists ? (snapshot.sourceConfig ?? snapshot.config) : {};
     },
     async commitConfigFile(config, expectedConfig) {
       const latest = await readConfigFileSnapshot();
       if (!latest.valid) {
-        throw new Error("Migration target config became invalid. Run `openclaw doctor`.");
+        throw new Error("Migration target config became invalid. Run `vasudev doctor`.");
       }
       const latestConfig = latest.exists ? (latest.sourceConfig ?? latest.config) : {};
       if (!isDeepStrictEqual(latestConfig, expectedConfig)) {
@@ -101,7 +101,7 @@ async function runNonInteractiveSetupExclusive(opts: OnboardOptions, runtime: Ru
     rejectOnboardingOption(
       opts,
       runtime,
-      `Config invalid. Run \`${formatCliCommand("openclaw doctor")}\` to repair it, then re-run setup.`,
+      `Config invalid. Run \`${formatCliCommand("vasudev doctor")}\` to repair it, then re-run setup.`,
     );
     return;
   }
@@ -116,7 +116,7 @@ async function runNonInteractiveSetupExclusive(opts: OnboardOptions, runtime: Ru
     rejectOnboardingOption(
       opts,
       runtime,
-      `Invalid --mode "${String(mode)}". Use "local" or "remote", or run ${formatCliCommand("openclaw onboard")} for interactive setup.`,
+      `Invalid --mode "${String(mode)}". Use "local" or "remote", or run ${formatCliCommand("vasudev onboard")} for interactive setup.`,
     );
     return;
   }

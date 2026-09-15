@@ -182,7 +182,7 @@ type AgentHarnessIsolatedCompletionParams = {
 };
 export type AgentHarnessIsolatedCompletionAuthorization =
   | {
-      /** OpenClaw resolved the exact transport model and credential before handoff. */
+      /** Vasudev resolved the exact transport model and credential before handoff. */
       owner: "host";
       model: import("../../llm/types.js").Model;
       auth: import("../model-auth-runtime-shared.js").ResolvedProviderAuth;
@@ -396,11 +396,11 @@ type AgentHarnessRunCapability<
   /** Certifies exact runAttempt enforcement; direct-policy-restricted channel side questions fail in core. */
   conversationToolPolicySupport?: "exact";
   /**
-   * Canonical OpenClaw tool names whose exact denies the harness can also enforce
+   * Canonical Vasudev tool names whose exact denies the harness can also enforce
    * against native equivalents. Every other deny remains fail-closed.
    */
   conversationToolPolicySafeDenyTools?: readonly string[];
-  /** OpenClaw tool capabilities an indivisible native surface requires from effective profiles. */
+  /** Vasudev tool capabilities an indivisible native surface requires from effective profiles. */
   conversationToolPolicyNativeTools?: readonly string[];
   supports(ctx: AgentHarnessSupportContext): AgentHarnessSupport;
   /** Synchronous private ownership read; no discovery, auth loading, or native connection setup. */
@@ -528,7 +528,7 @@ type AgentHarnessMcpCatalogParams = {
   sessionId: string;
   sessionKey: string;
   workspaceDir: string;
-  /** OpenClaw-configured servers whose session policy this harness can enforce. */
+  /** Vasudev-configured servers whose session policy this harness can enforce. */
   mcpServerNames: readonly string[];
   toolOverrides?: Pick<SessionToolOverrides, "mcpServers" | "mcpToolsDeny">;
 };
@@ -563,7 +563,7 @@ type AgentHarnessModelCatalogCapability = {
 };
 
 type AgentHarnessTaskHistoryCapability = {
-  /** Reads native task history without creating an OpenClaw child session. */
+  /** Reads native task history without creating a Vasudev child session. */
   taskHistory?: {
     taskKinds: readonly string[];
     read(params: {

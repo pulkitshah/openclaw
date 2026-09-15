@@ -73,7 +73,7 @@ plugin resolution and compatibility planning. It also rehearses migrations and
 boots a canary with copied configuration and verified SQLite snapshots in an
 isolated temporary state directory. The copied database registry points to the
 copied agent databases. Installed plugin payloads and their dependencies are also
-copied; the rehearsal install records point to those copies, and their OpenClaw
+copied; the rehearsal install records point to those copies, and their Vasudev
 host links target the staged candidate. Path aliases that resolve to a running
 package's bundled plugin use the staged bundled plugin with the same ID when
 available, preserving bundled trust. External path installs keep their existing
@@ -378,7 +378,7 @@ metadata, so the same runtime mismatch stops before package mutation.
 
 On macOS, the post-update check also verifies the LaunchAgent is
 loaded/running for the active profile and the configured loopback port is
-healthy. If the plist is installed but launchd is not supervising it, OpenClaw
+healthy. If the plist is installed but launchd is not supervising it, Vasudev
 re-bootstraps the LaunchAgent automatically and reruns the health/version/
 channel readiness checks (a fresh bootstrap loads the `RunAtLoad` job directly,
 so recovery does not immediately `kickstart -k` the newly spawned Gateway).
@@ -409,7 +409,7 @@ separately from the CLI update that continues in the detached helper:
   service process. The old Gateway stays available during validation; this
   response does not mean the service has stopped or the update has completed.
 - `ok: false`, `result.reason: "managed-service-handoff-unavailable"`, and
-  `handoff.status: "unavailable"`: OpenClaw could not find a supervising
+  `handoff.status: "unavailable"`: Vasudev could not find a supervising
   service boundary and durable service identity for a safe handoff (for
   example, systemd handoff requires the `OPENCLAW_SYSTEMD_UNIT` unit identity,
   not just ambient systemd process markers). The response includes
@@ -480,7 +480,7 @@ the sentinel.
 
 ## Plugin sync details
 
-On stable updates, a configured OpenClaw-owned official plugin with no install
+On stable updates, a configured Vasudev-owned official plugin with no install
 record is repaired from the selected core release cohort. This also applies to
 `doctor --fix` after an earlier upgrade lost a formerly bundled plugin. Post-core
 reconciliation attempts installation before restart; an unavailable target remains
@@ -490,7 +490,7 @@ registry and source choices. Verified official packages use the existing
 
 Eligible managed release pins for npm and trusted official ClawHub installs of
 `@openclaw/*` packages resume the catalog's default selector after a successful
-update. The recorded selector must be an exact OpenClaw release no newer than the
+update. The recorded selector must be an exact Vasudev release no newer than the
 installed core, and the same package must have a verified default catalog target.
 This includes previously recorded automatic and manual pins. An explicit selector
 supplied to the current plugin update command takes precedence. Pins outside that
@@ -499,18 +499,18 @@ eligibility, ranges, explicit tags, and other sources keep their existing policy
 Managed npm plugins on the beta channel select the newest version by semantic
 version order from their `beta` and `latest` dist-tags, using the same policy as
 the core updater. This includes official plugins with a default/latest catalog
-target and managed `@beta` selectors. OpenClaw installs the exact inspected
+target and managed `@beta` selectors. Vasudev installs the exact inspected
 version while keeping the selected tag or restored catalog default for future updates.
 
 ClawHub plugins on the beta channel try their own `@beta` tag. If that release
-is unavailable, OpenClaw falls back to the default/latest spec and reports a
+is unavailable, Vasudev falls back to the default/latest spec and reports a
 warning naming the requested and used targets.
 Integrity, compatibility, trust, install-policy, and capability-consent failures
 do not trigger fallback. Availability fallback warnings do not fail the core
 update. Pins outside the managed release-pin recovery described above, ranges,
 and explicit tags other than `beta` retain their selector.
 Doctor can refresh a stale official runtime plugin that is bound to the current
-OpenClaw release cohort. That repair stays on the recorded registry and verifies
+Vasudev release cohort. That repair stays on the recorded registry and verifies
 the replacement artifact.
 Already-current runtime plugins are kept in place; a no-op startup repair does
 not reinstall the package or invalidate the migration checkpoint.
@@ -530,7 +530,7 @@ history name the plugin, requested target, resolution failure, and
 `openclaw plugins update <id>` next action. JSON keeps top-level `status: "ok"`
 with a `plugin-target-unavailable` advisory under `postUpdate.plugins.warnings`.
 
-Before mutation, OpenClaw checks installed compatibility metadata and skips
+Before mutation, Vasudev checks installed compatibility metadata and skips
 registry queries for compatible plugins. If a plugin's declared
 `openclaw.compat.pluginApi` range or `openclaw.install.minHostVersion` excludes
 the target core and a compatible replacement cannot be resolved, it records a
@@ -562,7 +562,7 @@ After installing the core and before restarting the managed Gateway,
 configured plugin payloads, validates each _active_ tracked install record on disk,
 and statically verifies its `package.json` is parseable and its declared
 `openclaw.extensions` entries are loadable. When a package does not declare
-OpenClaw extensions, the check instead verifies any explicitly declared npm
+Vasudev extensions, the check instead verifies any explicitly declared npm
 `main`. Missing or unloadable plugin payloads add warnings while the core update
 continues. An invalid config snapshot still returns
 `postUpdate.plugins.status: "error"`, makes the top-level update `status`
@@ -577,7 +577,7 @@ When the updated Gateway starts, plugin loading is verify-only: startup does not
 
 After an extended-stable core update succeeds, post-core plugin integrity and
 convergence target eligible official npm and trusted official ClawHub plugins at
-the exact installed core version. For default/`latest` intent, OpenClaw does not
+the exact installed core version. For default/`latest` intent, Vasudev does not
 query plugin `@extended-stable` or fall back to npm `latest`; it derives the
 package version from the installed core. Eligible managed release pins resume
 the catalog default under the recovery rules above. Pins outside that eligibility,
@@ -589,13 +589,13 @@ current plugin operation takes precedence.
 
 For package-manager installs, `openclaw update` resolves the target package
 version before invoking the package manager. npm global installs use a staged
-install: OpenClaw installs the new package into a temporary npm prefix,
+install: Vasudev installs the new package into a temporary npm prefix,
 lets the candidate package validate the host Node version during `preinstall`,
 and verifies the packaged `dist` inventory there. A packed completion guard
 stays outside that inventory until `preinstall` succeeds, so package managers
 that skip lifecycle scripts also stop before activation. On npm 12 and newer,
-the updater approves only the candidate OpenClaw lifecycle; transitive
-dependency scripts remain blocked. OpenClaw then swaps the clean package tree
+the updater approves only the candidate Vasudev lifecycle; transitive
+dependency scripts remain blocked. Vasudev then swaps the clean package tree
 into the real global prefix. If verification fails, post-update doctor, plugin
 sync, and restart work do not run from the suspect tree.
 

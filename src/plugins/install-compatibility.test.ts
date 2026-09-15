@@ -41,7 +41,7 @@ describe("plugin package install compatibility", () => {
       ok: false,
       code: PLUGIN_INSTALL_ERROR_CODE.INCOMPATIBLE_HOST_VERSION,
     });
-    expect(result?.error).toContain("requires OpenClaw >=2026.5.22");
+    expect(result?.error).toContain("requires Vasudev >=2026.5.22");
   });
 
   it("rejects a package whose plugin API range excludes the current runtime", () => {

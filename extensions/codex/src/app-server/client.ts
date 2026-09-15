@@ -758,7 +758,7 @@ export class CodexAppServerClient {
     this.writeMessage({ method, params });
   }
 
-  /** Registers a handler for app-server requests sent back to OpenClaw. */
+  /** Registers a handler for app-server requests sent back to Vasudev. */
   addRequestHandler(handler: CodexServerRequestHandler): () => void {
     this.requestHandlers.add(handler);
     return () => this.requestHandlers.delete(handler);
@@ -768,7 +768,7 @@ export class CodexAppServerClient {
   addNotificationHandler(handler: CodexServerNotificationHandler): () => void {
     this.notificationHandlers.add(handler);
     // Codex sends configuration warnings immediately after initialize, before
-    // OpenClaw can reserve the first thread or install its shared turn router.
+    // Vasudev can reserve the first thread or install its shared turn router.
     for (const notification of this.pendingStartupWarnings.splice(0)) {
       this.handleNotification(notification);
     }
@@ -1155,7 +1155,7 @@ function defaultServerRequestResponse(
       contentItems: [
         {
           type: "inputText",
-          text: "OpenClaw did not register a handler for this app-server tool call.",
+          text: "Vasudev did not register a handler for this app-server tool call.",
         },
       ],
       success: false,
@@ -1177,7 +1177,7 @@ function defaultServerRequestResponse(
   }
   if (request.method === "mcpServer/elicitation/request") {
     return createCodexElicitationResponse("decline", null, {
-      message: "OpenClaw has no interactive handler for this elicitation.",
+      message: "Vasudev has no interactive handler for this elicitation.",
     });
   }
   return {};
@@ -1196,7 +1196,7 @@ function timeoutServerRequestResponse(timeoutMs: number): JsonValue {
     contentItems: [
       {
         type: "inputText",
-        text: `OpenClaw dynamic tool call timed out after ${timeoutMs}ms before sending a response to Codex.`,
+        text: `Vasudev dynamic tool call timed out after ${timeoutMs}ms before sending a response to Codex.`,
       },
     ],
     success: false,
@@ -1210,7 +1210,7 @@ class CodexAppServerVersionError extends Error {
   constructor(detectedVersion: string | undefined) {
     const detected = detectedVersion
       ? `detected ${detectedVersion}`
-      : "OpenClaw could not determine the running Codex version";
+      : "Vasudev could not determine the running Codex version";
     super(
       `Codex app-server ${MIN_SUPPORTED_CODEX_APP_SERVER_VERSION} or newer is required, but ${detected}. Update the configured Codex app-server binary, or remove custom command overrides to use the managed binary.`,
     );
@@ -1230,7 +1230,7 @@ function assertSupportedCodexAppServerVersion(response: CodexInitializeResponse)
   }
   if (detected.compare(CODEX_APP_SERVER_VERSION) > 0) {
     embeddedAgentLog.warn(
-      "codex app-server is newer than OpenClaw's managed runtime; continuing with normal startup validation",
+      "codex app-server is newer than Vasudev's managed runtime; continuing with normal startup validation",
       {
         detectedVersion,
         validatedVersion: CODEX_APP_SERVER_VERSION,
@@ -1264,7 +1264,7 @@ function buildCodexAppServerRuntimeIdentity(
 /** Extracts the Codex version from the app-server initialize user-agent field. */
 function readCodexVersionFromUserAgent(userAgent: string | undefined): string | undefined {
   // Codex returns `<originator>/<codex-version> ...`; the originator can be
-  // OpenClaw, Codex Desktop, or an env override, so only the slash-delimited
+  // Vasudev, Codex Desktop, or an env override, so only the slash-delimited
   // version in the leading product field is stable.
   const match = userAgent?.match(
     /^[^/]+\/(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?)(?:[\s(]|$)/,
@@ -1337,7 +1337,7 @@ const CODEX_APP_SERVER_APPROVAL_REQUEST_METHODS = new Set([
   "item/permissions/requestApproval",
 ]);
 
-/** Returns true for app-server approval request methods OpenClaw can answer. */
+/** Returns true for app-server approval request methods Vasudev can answer. */
 export function isCodexAppServerApprovalRequest(method: string): boolean {
   return CODEX_APP_SERVER_APPROVAL_REQUEST_METHODS.has(method);
 }

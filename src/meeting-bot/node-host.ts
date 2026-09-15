@@ -511,7 +511,7 @@ export function createMeetingNodeHost(options: MeetingNodeHostOptions): {
       if (bridgeCommand) {
         if (mode === options.agentMode) {
           throw new Error(
-            "Chrome agent mode requires audioInputCommand and audioOutputCommand so OpenClaw can run STT and regular TTS directly.",
+            "Chrome agent mode requires audioInputCommand and audioOutputCommand so Vasudev can run STT and regular TTS directly.",
           );
         }
         const bridge = runCommandWithTimeout(bridgeCommand, timeoutMs);

@@ -18,7 +18,7 @@ export function normalizeProviderStatus(status: string | null | undefined): stri
   return normalized && normalized.length > 0 ? normalized : "unknown";
 }
 
-/** Map terminal provider status strings to OpenClaw end reasons. */
+/** Map terminal provider status strings to Vasudev end reasons. */
 export function mapProviderStatusToEndReason(status: string | null | undefined): EndReason | null {
   const normalized = normalizeProviderStatus(status);
   // Provider status is remote-controlled, so an inherited key such as

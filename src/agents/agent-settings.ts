@@ -41,7 +41,7 @@ export function applyAgentCompactionSettingsFromConfig(params: {
   const currentReserveTokens = params.settingsManager.getCompactionReserveTokens();
   const currentKeepRecentTokens = params.settingsManager.getCompactionKeepRecentTokens();
   const compactionCfg = params.cfg?.agents?.defaults?.compaction;
-  // Omission preserves embedded/project settings. OpenClaw config reloads create a new
+  // Omission preserves embedded/project settings. Vasudev config reloads create a new
   // prepared manager; same-manager resource reloads reuse cfg and reapply explicit values.
   const configuredEnabled = compactionCfg?.enabled;
 
@@ -102,7 +102,7 @@ export function resolveEffectiveCompactionMode(cfg?: OpenClawConfig): AgentCompa
 
 /**
  * Detect providers whose shared model runtime `isContextOverflow` Case 2 (silent overflow)
- * fires on a successful turn and triggers OpenClaw runtime's `_runAutoCompaction` from
+ * fires on a successful turn and triggers Vasudev runtime's `_runAutoCompaction` from
  * inside `Session.prompt()`, collapsing `agent.state.messages` before the
  * provider call (openclaw#75799).
  *
@@ -144,12 +144,12 @@ export function isSilentOverflowProneModel(model: {
 }
 
 /**
- * Disable OpenClaw runtime's `_checkCompaction → _runAutoCompaction` (which would otherwise
+ * Disable Vasudev runtime's `_checkCompaction → _runAutoCompaction` (which would otherwise
  * fire from inside `Session.prompt()` and reassign `agent.state.messages`
- * before the provider call) when OpenClaw or a plugin owns compaction:
+ * before the provider call) when Vasudev or a plugin owns compaction:
  * `contextEngineInfo.ownsCompaction === true`, effective safeguard compaction,
  * or an active model that is silent-overflow-prone (openclaw#75799).
- * Default-mode runs against ordinary providers keep OpenClaw runtime's auto-compaction as
+ * Default-mode runs against ordinary providers keep Vasudev runtime's auto-compaction as
  * the existing baseline.
  */
 function shouldDisableAgentAutoCompaction(params: {
@@ -167,7 +167,7 @@ function shouldDisableAgentAutoCompaction(params: {
 /**
  * Apply the auto-compaction guard. Callers that reload a `DefaultResourceLoader`
  * MUST call this AGAIN after each `reload()` — `settingsManager.reload()`
- * rehydrates `compaction.enabled` from disk and silently restores OpenClaw runtime's
+ * rehydrates `compaction.enabled` from disk and silently restores Vasudev runtime's
  * default-on behavior, undoing the guard. Mirrors the existing
  * `applyAgentCompactionSettingsFromConfig` re-call pattern at the same sites.
  */

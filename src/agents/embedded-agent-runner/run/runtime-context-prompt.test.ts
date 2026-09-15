@@ -43,9 +43,9 @@ describe("runtime context prompt submission", () => {
     expect(
       resolveRuntimeContextPromptParts({
         effectivePrompt: "Check the deployment.",
-        transcriptPrompt: "[OpenClaw heartbeat poll]",
+        transcriptPrompt: "[Vasudev heartbeat poll]",
       }),
-    ).toEqual({ prompt: "[OpenClaw heartbeat poll]", modelPrompt: "Check the deployment." });
+    ).toEqual({ prompt: "[Vasudev heartbeat poll]", modelPrompt: "Check the deployment." });
   });
 
   it("requires producer context for the runtime-only continuation prompt", () => {
@@ -57,7 +57,7 @@ describe("runtime context prompt submission", () => {
       transcriptPrompt: "",
       fragments,
     });
-    expect(parts.prompt).toBe("Continue the OpenClaw runtime event.");
+    expect(parts.prompt).toBe("Continue the Vasudev runtime event.");
     expect(parts.runtimeOnly).toBe(true);
     expect(
       resolveRuntimeContextPromptParts({ effectivePrompt: "ordinary input", transcriptPrompt: "" }),

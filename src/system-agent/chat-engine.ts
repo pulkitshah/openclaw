@@ -1,4 +1,4 @@
-// OpenClaw chat engine: stable transport-agnostic facade over turn and wizard owners.
+// Vasudev chat engine: stable transport-agnostic facade over turn and wizard owners.
 import type {
   SystemAgentWizardCancel,
   WizardAnswer,
@@ -60,7 +60,7 @@ type SystemAgentChatEngineInternals = {
 };
 
 /**
- * One conversation with OpenClaw, independent of transport. The facade owns
+ * One conversation with Vasudev, independent of transport. The facade owns
  * serialization, history, and the verified inference session; concept owners
  * route turns and host setup wizards behind the stable public entrypoint.
  */
@@ -127,10 +127,10 @@ export class SystemAgentChatEngine {
         beforePersistentApply,
       );
       if (reply && terminalStatus && !reply.applied) {
-        reply.text = `OpenClaw change ${terminalStatus}. No change. Retry the request if it is still needed.`;
+        reply.text = `Vasudev change ${terminalStatus}. No change. Retry the request if it is still needed.`;
       }
       if (reply && decision === "allow-once" && !reply.applied) {
-        reply.text += " Check the current settings and OpenClaw status before retrying.";
+        reply.text += " Check the current settings and Vasudev status before retrying.";
       }
       if (reply?.text) {
         this.history.push({ role: "assistant", text: reply.text });

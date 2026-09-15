@@ -1,18 +1,18 @@
 ---
-summary: "Step-by-step guide to building a messaging channel plugin for OpenClaw"
+summary: "Step-by-step guide to building a messaging channel plugin for Vasudev"
 title: "Building channel plugins"
 sidebarTitle: "Channel Plugins"
 read_when:
   - You are building a new messaging channel plugin
-  - You want to connect OpenClaw to a messaging platform
+  - You want to connect Vasudev to a messaging platform
   - You need to understand the ChannelPlugin adapter surface
 ---
 
-This guide builds a channel plugin that connects OpenClaw to a messaging
+This guide builds a channel plugin that connects Vasudev to a messaging
 platform: DM security, pairing, reply threading, and outbound messaging.
 
 <Info>
-  New to OpenClaw plugins? Read [Getting Started](/plugins/building-plugins)
+  New to Vasudev plugins? Read [Getting Started](/plugins/building-plugins)
   first for package structure and manifest setup.
 </Info>
 
@@ -310,7 +310,7 @@ raw callback string. Actor and source-message checks remain channel-owned.
     by skipping sender-specific overlays at both the matched-group and wildcard
     scopes while still applying the base `tools` policy.
 
-    OpenClaw sets this mode only for trusted non-ingress execution whose sender
+    Vasudev sets this mode only for trusted non-ingress execution whose sender
     authority was already captured in a server-owned envelope, such as an
     explicitly capped scheduled run. Plugins must not derive the mode from
     inbound metadata, persist it as channel state, or expose it as config. Add
@@ -384,7 +384,7 @@ raw callback string. Actor and source-message checks remain channel-owned.
     });
     ```
 
-    Put channel-owned CLI descriptors in `registerCliMetadata(...)` so OpenClaw
+    Put channel-owned CLI descriptors in `registerCliMetadata(...)` so Vasudev
     can show them in root help without activating the full channel runtime,
     while normal full loads still pick up the same descriptors for real command
     registration. Keep `registerFull(...)` for runtime-only work.
@@ -408,7 +408,7 @@ raw callback string. Actor and source-message checks remain channel-owned.
     export default defineSetupPluginEntry(acmeChatPlugin);
     ```
 
-    OpenClaw loads this instead of the full entry when the channel is disabled
+    Vasudev loads this instead of the full entry when the channel is disabled
     or unconfigured. It avoids pulling in heavy runtime code during setup flows.
     See [Setup and Config](/plugins/sdk-setup#setup-entry) for details.
 
@@ -421,7 +421,7 @@ raw callback string. Actor and source-message checks remain channel-owned.
 
   <Step title="Handle inbound messages">
     Your plugin needs to receive messages from the platform and forward them to
-    OpenClaw. The typical pattern is a webhook that verifies the request and
+    Vasudev. The typical pattern is a webhook that verifies the request and
     dispatches it through your channel's inbound handler:
 
     ```typescript

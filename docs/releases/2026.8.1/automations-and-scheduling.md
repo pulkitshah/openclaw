@@ -247,7 +247,7 @@ New or reauthorized Codex jobs can keep the app permissions and eligible connect
 
 <Accordion title="Heartbeats and email watchers">
 
-[Heartbeat schedules](/automation) are now managed as Automations, with failed work and alerts remaining visible and retryable and queued wakes surviving busy periods, handler replacement, and clock changes. Disabling Cron stops scheduled heartbeats while manual and event-driven wakes remain available. Existing installations using `HEARTBEAT.md` must run `openclaw doctor --fix` to migrate valid work because OpenClaw no longer reads that file at runtime.
+[Heartbeat schedules](/automation) are now managed as Automations, with failed work and alerts remaining visible and retryable and queued wakes surviving busy periods, handler replacement, and clock changes. Disabling Cron stops scheduled heartbeats while manual and event-driven wakes remain available. Existing installations using `HEARTBEAT.md` must run `openclaw doctor --fix` to migrate valid work because Vasudev no longer reads that file at runtime.
 
 [Gmail](/automation/cron-jobs) can split an accepted batch into one isolated run per message when its mapping opts in, filter Sent and Draft mail, and keep forwarding through watcher restarts without overlapping renewals or repeated restart loops. Ordinary custom mappings keep their existing behavior, and expired-OAuth renewal health is unchanged.
 

@@ -50,7 +50,7 @@ export function autoDisableCronJob(params: {
   const text = [
     `⚠️ Automation "${name}" was auto-disabled after ${params.consecutiveErrors} consecutive ${autoDisableReasonLabel(params.reason)}.`,
     ...cronFailureDetailLines(errorReason),
-    `Fix the underlying cause, then run \`openclaw automations enable ${job.id}\` to re-enable it.`,
+    `Fix the underlying cause, then run \`vasudev automations enable ${job.id}\` to re-enable it.`,
   ].join("\n");
   const notify = () => enqueueCronNotification(state, job, text, "auto-disabled");
 

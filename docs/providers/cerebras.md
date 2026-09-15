@@ -2,7 +2,7 @@
 summary: "Cerebras setup (auth + model selection)"
 title: "Cerebras"
 read_when:
-  - You want to use Cerebras with OpenClaw
+  - You want to use Cerebras with Vasudev
   - You need the Cerebras API key env var or CLI auth choice
 ---
 
@@ -79,7 +79,7 @@ up provider credentials on the server.
 ## Discovery and pricing
 
 When Cerebras auth is configured and the inference base URL is the canonical
-`https://api.cerebras.ai/v1`, OpenClaw reads
+`https://api.cerebras.ai/v1`, Vasudev reads
 [`GET /public/v1/models`](https://inference-docs.cerebras.ai/api-reference/models/public-models).
 This request uses public headers only: inference API keys and discovery
 credentials are never sent to the metadata endpoint. A custom base URL skips
@@ -89,12 +89,12 @@ metadata listing does not establish account entitlement.
 
 Live rows supply the native context and completion limits, reasoning and vision
 capabilities, and prompt/completion prices. Cerebras returns those prices as USD
-per-token strings; OpenClaw converts them to USD per million tokens. The public
-feed does not provide cache tariffs. Zero cache fields in OpenClaw's runtime
+per-token strings; Vasudev converts them to USD per million tokens. The public
+feed does not provide cache tariffs. Zero cache fields in Vasudev's runtime
 estimate are not a claim about enterprise caching or billing.
 
 Successful catalogs are cached for 60 seconds. If discovery fails, returns an
-empty catalog, or has no usable model rows, OpenClaw uses the bundled offline
+empty catalog, or has no usable model rows, Vasudev uses the bundled offline
 seed. In the default `models.mode: "merge"`, fresh onboarding does not copy
 generated model rows or prices into your config, allowing prices to refresh.
 Explicitly authored model rows and costs remain intact. In
@@ -115,11 +115,11 @@ August 31, 2026 response; absent legacy references retain their seed snapshots.
 | `cerebras/gemma-4-31b`  | Gemma 4 31B  | yes       | Default; preview; text-and-image input                    |
 
 Cerebras's [deprecation notice](https://inference-docs.cerebras.ai/support/deprecation)
-marks `zai-glm-4.7` deprecated without naming a replacement. OpenClaw keeps the
+marks `zai-glm-4.7` deprecated without naming a replacement. Vasudev keeps the
 shipped reference rather than deleting it or rewriting existing selections;
 retention does not guarantee upstream availability.
 
-Fresh onboarding follows Cerebras's current [Gemma 4 recommendation](https://www.cerebras.ai/blog/gemma-4-on-cerebras-the-fastest-inference-is-now-multimodal). Cerebras describes Gemma 4 31B as its reference medium-size model for equal-or-higher intelligence than GPT OSS, with multimodal agentic support. It is a public-preview model and may change or be discontinued on shorter notice than the production GPT OSS endpoint; existing OpenClaw configurations keep their selected model.
+Fresh onboarding follows Cerebras's current [Gemma 4 recommendation](https://www.cerebras.ai/blog/gemma-4-on-cerebras-the-fastest-inference-is-now-multimodal). Cerebras describes Gemma 4 31B as its reference medium-size model for equal-or-higher intelligence than GPT OSS, with multimodal agentic support. It is a public-preview model and may change or be discontinued on shorter notice than the production GPT OSS endpoint; existing Vasudev configurations keep their selected model.
 
 ## Manual config
 

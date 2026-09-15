@@ -26,7 +26,7 @@ import {
 const dirs = useAutoCleanupTempDirTracker(afterEach);
 const targetSchemas = { state: 16, agent: 19 };
 const doctorSuccess = {
-  name: "openclaw doctor",
+  name: "vasudev doctor",
   command: "node openclaw.mjs doctor --non-interactive --fix",
   cwd: "/selected-target",
   durationMs: 1,

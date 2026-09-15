@@ -13,7 +13,7 @@ The `/codex` slash-command surface and the diagnostics paths around it. Part of 
 ## Commands and diagnostics
 
 The `codex` plugin registers `/codex` as a slash command on any channel that
-supports OpenClaw text commands.
+supports Vasudev text commands.
 
 Native execution, control, and host-wide inspection require an owner or an
 `operator.admin` Gateway client. This includes binding or resuming threads,
@@ -31,8 +31,8 @@ Common forms:
   limits, MCP servers, and skills.
 - `/codex models` lists live Codex app-server models.
 - `/codex threads [filter]` lists recent Codex app-server threads.
-- `/codex goal` reads or updates the attached thread's native Codex goal. Codex automatic goal continuation stays disabled; OpenClaw does not own autonomous follow-on turns yet.
-- `/codex resume <thread-id>` attaches the current OpenClaw session to an
+- `/codex goal` reads or updates the attached thread's native Codex goal. Codex automatic goal continuation stays disabled; Vasudev does not own autonomous follow-on turns yet.
+- `/codex resume <thread-id>` attaches the current Vasudev session to an
   existing Codex thread.
 - `/codex bind [thread-id] [--cwd <path>] [--model <model>] [--provider <provider>]`
   attaches the current chat.
@@ -67,39 +67,39 @@ When `/codex resume` attaches a thread without an existing verified harness
 binding, its next turn checks the native thread's stored tool catalog and
 applies the current harness configuration before continuing. This first
 attachment requires the local stdio app-server and its per-agent Codex home.
-The target native thread must be idle. OpenClaw coordinates attachment, resume,
+The target native thread must be idle. Vasudev coordinates attachment, resume,
 and release of that thread; unrelated chats and catalog reads can continue on
 the same app-server. If the target thread is active, wait for its turn to finish
 and retry. Use [Codex supervision](/plugins/codex-supervision) or native Codex to
 continue threads in a shared user home or on another app-server.
 
 Native child threads controlled by a parent cannot be attached with `/codex
-resume` or `/codex bind`. OpenClaw reports that restriction and keeps the current
+resume` or `/codex bind`. Vasudev reports that restriction and keeps the current
 binding. Continue the child through its native parent instead.
 
 Codex cannot replace a thread's dynamic tool catalog during resume. If that
 catalog differs from the current harness tools, its metadata cannot be read,
-or Codex cannot confirm that it applied the configuration, OpenClaw reports
+or Codex cannot confirm that it applied the configuration, Vasudev reports
 the problem and keeps the selected native thread intact. It does not silently
 start another thread. Use `/new` to start with the current harness tools, or
 continue the preserved thread in native Codex.
 
-If an ordinary OpenClaw-managed native thread was deleted, the next turn starts
+If an ordinary Vasudev-managed native thread was deleted, the next turn starts
 a fresh native thread while keeping the selected model and provider. This
 recovery preserves pending manual attachments and native-model-owned threads.
 It does not replay a turn whose native outcome is uncertain.
 
 ### Shared Fast mode and Codex fast mode
 
-`/fast` controls the shared OpenClaw policy. A directive-only `/fast off`
-persists `off` in the OpenClaw session and sends `null` on affected Codex
-harness turns to clear the OpenClaw-owned service-tier override. `/fast default`
+`/fast` controls the shared Vasudev policy. A directive-only `/fast off`
+persists `off` in the Vasudev session and sends `null` on affected Codex
+harness turns to clear the Vasudev-owned service-tier override. `/fast default`
 clears only that session layer, so lower-precedence shared defaults may still
 resolve to `on`, `off`, or `auto`.
 
 `/codex fast` instead changes the bound native Codex conversation preference.
 `/codex fast off` stores `flex` for later conversation-bound native turns; it
-is not a synonym for `/fast off`, and it does not change the shared OpenClaw
+is not a synonym for `/fast off`, and it does not change the shared Vasudev
 session policy. When a shared Fast-mode run control reaches a Codex harness
 turn, it supersedes `plugins.entries.codex.config.appServer.serviceTier` and
 any binding preference that applies to that turn: Fast on sends `priority`,

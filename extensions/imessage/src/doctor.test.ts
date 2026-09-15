@@ -15,7 +15,7 @@ describe("imessageDoctor.collectPreviewWarnings", () => {
           },
         },
       } as never,
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "vasudev doctor --fix",
     });
 
     expect(warnings).toHaveLength(1);
@@ -23,7 +23,7 @@ describe("imessageDoctor.collectPreviewWarnings", () => {
     expect(warning).toContain(
       'channels.imessage: accounts "swang430-gmail-com" and "default" watch the same local Messages source (cliPath=imsg).',
     );
-    expect(warning).toContain('OpenClaw runs one watcher (owner: "swang430-gmail-com")');
+    expect(warning).toContain('Vasudev runs one watcher (owner: "swang430-gmail-com")');
     expect(warning).toContain("idles the duplicate");
     expect(warning).toContain('accountId="swang430-gmail-com"');
     expect(warning).toContain('"default"');
@@ -42,7 +42,7 @@ describe("imessageDoctor.collectPreviewWarnings", () => {
           },
         },
       } as never,
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "vasudev doctor --fix",
     });
 
     expect(warnings).toHaveLength(1);
@@ -61,7 +61,7 @@ describe("imessageDoctor.collectPreviewWarnings", () => {
           },
         },
       } as never,
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "vasudev doctor --fix",
     });
 
     expect(warnings).toEqual([]);

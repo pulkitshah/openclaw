@@ -160,7 +160,7 @@ export async function readCodexNativeSubagentHistory(
     if (thread.id !== threadId || threadId === historyParentThreadId) {
       throw new Error("Subagent transcript does not belong to this parent session.");
     }
-    // Nested children share the OpenClaw requester, but native lineage records their immediate parent.
+    // Nested children share the Vasudev requester, but native lineage records their immediate parent.
     const visited = new Set([threadId]);
     let ancestor = thread;
     for (;;) {

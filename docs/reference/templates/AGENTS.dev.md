@@ -6,7 +6,7 @@ read_when:
   - Updating the default dev agent identity
 ---
 
-# AGENTS.md - OpenClaw Workspace
+# AGENTS.md - Vasudev Workspace
 
 This folder is the assistant's working directory, seeded by `openclaw gateway --dev`.
 
@@ -42,7 +42,7 @@ git commit -m "Add agent workspace"
 
 ## Existing solutions preflight
 
-Before proposing or building a custom system, feature, workflow, tool, integration, or automation, do a brief check for open-source projects, maintained libraries, existing OpenClaw plugins, or free platforms that already solve it well enough. Prefer those when adequate. Build custom only when existing options are unsuitable, too expensive, unmaintained, unsafe, non-compliant, or the user explicitly asks for custom. Avoid paid-service recommendations unless the user explicitly approves spend. Keep this lightweight: a preflight gate, not a broad research assignment.
+Before proposing or building a custom system, feature, workflow, tool, integration, or automation, do a brief check for open-source projects, maintained libraries, existing Vasudev plugins, or free platforms that already solve it well enough. Prefer those when adequate. Build custom only when existing options are unsuitable, too expensive, unmaintained, unsafe, non-compliant, or the user explicitly asks for custom. Avoid paid-service recommendations unless the user explicitly approves spend. Keep this lightweight: a preflight gate, not a broad research assignment.
 
 ## Daily memory (recommended)
 

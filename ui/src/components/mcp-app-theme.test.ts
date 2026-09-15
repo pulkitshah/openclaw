@@ -97,7 +97,7 @@ describe("collectMcpAppStyleVariables", () => {
     const variables = collectMcpAppStyleVariables(rootWithTokens({ "--card": "#161920" }));
 
     // The transported record is validated against a closed key set, so an
-    // OpenClaw name here would be rejected for the whole payload.
+    // Vasudev name here would be rejected for the whole payload.
     expect(Object.keys(variables ?? {}).filter((key) => key.startsWith("--oc-"))).toEqual([]);
     expect(
       Object.keys(variables ?? {}).every(

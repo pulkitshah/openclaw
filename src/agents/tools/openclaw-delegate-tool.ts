@@ -1,4 +1,4 @@
-/** Regular-agent client for the OpenClaw system agent. */
+/** Regular-agent client for the Vasudev system agent. */
 import { createHash, randomUUID } from "node:crypto";
 import { Type } from "typebox";
 import { SYSTEM_AGENT_ID } from "../../system-agent/agent-id.js";
@@ -10,7 +10,7 @@ import { callInProcessGatewayTool } from "./in-process-gateway.js";
 
 const OpenClawDelegateSchema = Type.Object({
   message: Type.String({ description: "What system must do." }),
-  sessionId: Type.Optional(Type.String({ description: "Continue prior OpenClaw talk." })),
+  sessionId: Type.Optional(Type.String({ description: "Continue prior Vasudev talk." })),
 });
 
 const OpenClawDelegateOutputSchema = Type.Object(
@@ -77,7 +77,7 @@ export function createOpenClawDelegateToolsForRun(
   const turnSourceThreadId = options.currentThreadTs ?? options.agentThreadId;
   const tool: AnyAgentTool = {
     name: "openclaw",
-    label: "OpenClaw",
+    label: "Vasudev",
     // Keep human approval in one model tool call; a yielded cell can outlive its turn.
     catalogMode: "direct-only",
     description:

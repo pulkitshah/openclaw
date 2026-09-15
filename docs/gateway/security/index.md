@@ -1,12 +1,12 @@
 ---
-summary: "Trust model, safe defaults, and hardening guidance for running OpenClaw"
+summary: "Trust model, safe defaults, and hardening guidance for running Vasudev"
 read_when:
   - Adding features that widen access or automation
-  - Reviewing OpenClaw security posture or hardening a deployment
+  - Reviewing Vasudev security posture or hardening a deployment
 title: "Security"
 ---
 
-OpenClaw ships with conservative defaults. On a regular host install the Gateway binds to loopback; most chat channels answer an unknown DM sender with a pairing code instead of processing the message; and group access is allowlisted, usually behind a mention gate. The exceptions are deliberate and documented: container images default to an exposed bind (pair that with auth - see the [exposure runbook](/gateway/security/exposure-runbook)), and a few workspace channels such as ClickClack trust workspace membership by default - each channel page states its exact defaults. Run on those defaults and you are in good shape, and one command tells you if you have drifted:
+Vasudev ships with conservative defaults. On a regular host install the Gateway binds to loopback; most chat channels answer an unknown DM sender with a pairing code instead of processing the message; and group access is allowlisted, usually behind a mention gate. The exceptions are deliberate and documented: container images default to an exposed bind (pair that with auth - see the [exposure runbook](/gateway/security/exposure-runbook)), and a few workspace channels such as ClickClack trust workspace membership by default - each channel page states its exact defaults. Run on those defaults and you are in good shape, and one command tells you if you have drifted:
 
 ```bash
 openclaw security audit
@@ -18,7 +18,7 @@ The pages below are the deep end: the trust model, what the audit checks, and ho
   **One trust boundary per gateway.** This guidance assumes one trusted
   boundary per gateway: a single operator, or a team whose members trust
   each other. Group chats and [multi-user](/concepts/multi-user) operation
-  are supported deployments inside that boundary. OpenClaw is not a hostile
+  are supported deployments inside that boundary. Vasudev is not a hostile
   multi-tenant security boundary for mutually adversarial users sharing one
   agent or gateway. For mixed-trust or adversarial-user operation, split
   trust boundaries: separate gateway + credentials, ideally separate OS
@@ -32,7 +32,7 @@ Understand the model:
 - [Security trust model](/gateway/security/trust-model) - One trust boundary per gateway, the boundary matrix, and the findings closed as no-action.
 - [Running the security audit](/gateway/security/running-the-audit) - What `openclaw security audit` checks and the order to fix findings in.
 - [Security audit checks](/gateway/security/audit-checks) - Reference catalog of every `checkId`, its severity, and its auto-fix support.
-- [Threat model](/security/THREAT-MODEL-ATLAS) - Adversarial threats to the OpenClaw platform and ClawHub, mapped to MITRE ATLAS.
+- [Threat model](/security/THREAT-MODEL-ATLAS) - Adversarial threats to the Vasudev platform and ClawHub, mapped to MITRE ATLAS.
 
 Harden a deployment:
 

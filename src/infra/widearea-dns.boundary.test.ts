@@ -14,7 +14,7 @@ import {
 const zoneOpts: WideAreaGatewayZoneOpts = {
   domain: "openclaw.internal.",
   gatewayPort: 18789,
-  displayName: "Mac Studio (OpenClaw)",
+  displayName: "Mac Studio (Vasudev)",
   tailnetIPv4: "100.123.224.76",
   hostLabel: "studio-london",
   instanceLabel: "studio-london",

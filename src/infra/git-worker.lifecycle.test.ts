@@ -35,9 +35,9 @@ async function gitResult(cwd: string, args: string[]) {
       GIT_TERMINAL_PROMPT: "0",
       GIT_TRACE2_EVENT: undefined,
       GIT_NO_LAZY_FETCH: "1",
-      GIT_AUTHOR_NAME: "OpenClaw Test",
+      GIT_AUTHOR_NAME: "Vasudev Test",
       GIT_AUTHOR_EMAIL: "openclaw-test@example.invalid",
-      GIT_COMMITTER_NAME: "OpenClaw Test",
+      GIT_COMMITTER_NAME: "Vasudev Test",
       GIT_COMMITTER_EMAIL: "openclaw-test@example.invalid",
     },
   }).then(

@@ -683,14 +683,14 @@ async function verifyAndActivateCandidate(
     try {
       await appendSystemAgentAuditEntry({
         operation: "openclaw.setup",
-        summary: "Verified and configured AI access through OpenClaw setup",
+        summary: "Verified and configured AI access through Vasudev setup",
         configPath: after?.path ?? snapshot.path,
         configHashBefore: hashConfigRaw(snapshot.raw),
         configHashAfter: after ? hashConfigRaw(after.raw) : null,
         details: { modelRef: staged.modelRef, inferenceKind: params.kind },
       });
     } catch (error) {
-      const warning = `Inference setup completed, but OpenClaw could not record its audit entry: ${formatErrorMessage(error)}`;
+      const warning = `Inference setup completed, but Vasudev could not record its audit entry: ${formatErrorMessage(error)}`;
       params.runtime.error?.(warning);
       lines.push(warning);
     }

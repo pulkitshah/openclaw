@@ -1,5 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"OpenClaw"</string>
+    <string name="app_name" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Vasudev"</string>
     <string name="chat" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"채팅"</string>
     <string name="session" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"세션"</string>
     <string name="model" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"모델"</string>

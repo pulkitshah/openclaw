@@ -2,11 +2,11 @@
 summary: "Arcee AI setup (auth + model selection)"
 title: "Arcee AI"
 read_when:
-  - You want to use Arcee AI with OpenClaw
+  - You want to use Arcee AI with Vasudev
   - You need the API key env var or CLI auth choice
 ---
 
-[Arcee AI](https://arcee.ai) provides the Trinity family of mixture-of-experts models through an OpenAI-compatible API. All Trinity models are Apache 2.0 licensed. Arcee is an official OpenClaw plugin, not bundled with core, so it needs an install step before onboarding.
+[Arcee AI](https://arcee.ai) provides the Trinity family of mixture-of-experts models through an OpenAI-compatible API. All Trinity models are Apache 2.0 licensed. Arcee is an official Vasudev plugin, not bundled with core, so it needs an install step before onboarding.
 
 Access Arcee models directly through the Arcee platform or through [OpenRouter](/providers/openrouter).
 
@@ -121,7 +121,7 @@ The onboarding preset sets `arcee/trinity-large-thinking` as the default model.
 
 ## OpenRouter catalog
 
-OpenRouter onboarding exposes `arcee/trinity-large-preview` and `arcee/trinity-large-thinking`. OpenClaw keeps those provider-qualified model refs in config and sends OpenRouter's canonical `arcee-ai/*` runtime ids. Trinity Mini is no longer served by OpenRouter; use the direct Arcee API for that model.
+OpenRouter onboarding exposes `arcee/trinity-large-preview` and `arcee/trinity-large-thinking`. Vasudev keeps those provider-qualified model refs in config and sends OpenRouter's canonical `arcee-ai/*` runtime ids. Trinity Mini is no longer served by OpenRouter; use the direct Arcee API for that model.
 
 ## Supported features
 
@@ -140,8 +140,8 @@ OpenRouter onboarding exposes `arcee/trinity-large-preview` and `arcee/trinity-l
   </Accordion>
 
   <Accordion title="OpenRouter routing">
-    OpenRouter uses the same `arcee/trinity-large-thinking` OpenClaw model ref.
-    OpenClaw routes it with the canonical `arcee-ai/trinity-large-thinking`
+    OpenRouter uses the same `arcee/trinity-large-thinking` Vasudev model ref.
+    Vasudev routes it with the canonical `arcee-ai/trinity-large-thinking`
     OpenRouter runtime id. See the
     [OpenRouter provider docs](/providers/openrouter) for OpenRouter-specific
     configuration details.

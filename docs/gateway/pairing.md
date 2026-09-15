@@ -311,7 +311,7 @@ Harden or disable:
 
 ## Manual approval (macOS app)
 
-The macOS app shows node and device requests in one OpenClaw approval panel.
+The macOS app shows node and device requests in one Vasudev approval panel.
 Each request keeps the name, platform, source address, and all requested access
 visible. System-command execution and device admin access are highlighted.
 Node requests that Gateway classifies as requiring administrator approval also
@@ -411,7 +411,7 @@ Boundaries:
 ## Metadata-upgrade auto-approval
 
 When an already-paired device reconnects with only non-sensitive metadata
-changes (for example display name or client platform hints), OpenClaw treats
+changes (for example display name or client platform hints), Vasudev treats
 that as a `metadata-upgrade`. Silent auto-approval is narrow: it applies only
 to trusted non-browser local reconnects that already proved possession of
 local or shared credentials, including same-host native app reconnects after

@@ -48,7 +48,7 @@ describe("google-meet CLI", () => {
                   transcriptLines: 2,
                   lastCaptionAt: "2026-04-25T00:00:03.000Z",
                   lastCaptionSpeaker: "Alice",
-                  lastCaptionText: "Can everyone hear OpenClaw?",
+                  lastCaptionText: "Can everyone hear Vasudev?",
                   providerConnected: true,
                   realtimeReady: true,
                   audioInputActive: true,
@@ -68,7 +68,7 @@ describe("google-meet CLI", () => {
       expect(stdout.output()).toContain("provider connected: yes");
       expect(stdout.output()).toContain("captioning: yes");
       expect(stdout.output()).toContain("transcript lines: 2");
-      expect(stdout.output()).toContain("last caption text: Alice: Can everyone hear OpenClaw?");
+      expect(stdout.output()).toContain("last caption text: Alice: Can everyone hear Vasudev?");
       expect(stdout.output()).toContain("audio input active: yes");
       expect(stdout.output()).toContain("audio output active: no");
     } finally {
@@ -231,11 +231,11 @@ describe("google-meet CLI", () => {
               inCall: false,
               manualAction: {
                 reason: "meet-admission-required",
-                message: "Admit the OpenClaw browser participant in Google Meet.",
+                message: "Admit the Vasudev browser participant in Google Meet.",
               },
               browserUrl: "https://meet.google.com/abc-defg-hij",
             },
-            message: "Admit the OpenClaw browser participant in Google Meet.",
+            message: "Admit the Vasudev browser participant in Google Meet.",
           }),
         },
       }).parseAsync(["googlemeet", "recover-tab"], { from: "user" });

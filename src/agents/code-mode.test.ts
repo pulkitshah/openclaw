@@ -332,7 +332,7 @@ describe("Code Mode catalog and model-visible surface", () => {
     expect(parameters.properties?.code?.description).toContain("`require`, or `import`");
     expect(parameters.properties?.restartSafe?.description).toContain("Do not set on a new exec");
     expect(parameters.properties?.restartSafe?.description).toContain(
-      "only when OpenClaw explicitly requests replay after a gateway restart",
+      "only when Vasudev explicitly requests replay after a gateway restart",
     );
     expect(parameters.properties?.restartSafe?.description).toContain(
       "never for write, edit, exec, or any mutation",

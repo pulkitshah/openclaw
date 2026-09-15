@@ -658,7 +658,7 @@ describe("installPluginFromGitSpec", () => {
     ).rejects.toThrow();
   });
 
-  it("falls back to the OpenClaw temp root when target workspace creation fails", async () => {
+  it("falls back to the Vasudev temp root when target workspace creation fails", async () => {
     const gitDir = trackedTempDirs.make("openclaw-git-install-stage-fallback-");
     runCommandWithTimeoutMock
       .mockResolvedValueOnce({ code: 0, stdout: "", stderr: "" })

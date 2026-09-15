@@ -165,7 +165,7 @@ describe("Codex supervision actions", () => {
     expect(pinnedConnectionMocks.releaseClient).toHaveBeenCalledWith(pinnedConnectionMocks.client);
   });
 
-  it("rejects archive while another OpenClaw session owns the native thread", async () => {
+  it("rejects archive while another Vasudev session owns the native thread", async () => {
     const bindingStore = createCodexTestBindingStore();
     await bindingStore.mutate(
       { kind: "conversation", bindingId: "bound-chat" },
@@ -177,13 +177,13 @@ describe("Codex supervision actions", () => {
     const control = createEligibleControl();
 
     await expect(archiveTestSession({ bindingStore, control })).rejects.toThrow(
-      "attached to an OpenClaw session",
+      "attached to a Vasudev session",
     );
     expect(control.requireEligibleThread).toHaveBeenCalledWith("thread-1");
     expect(control.archiveThread).not.toHaveBeenCalled();
   });
 
-  it("rejects archive when a paginated spawned descendant has an OpenClaw owner", async () => {
+  it("rejects archive when a paginated spawned descendant has a Vasudev owner", async () => {
     const bindingStore = createCodexTestBindingStore();
     await bindingStore.mutate(
       { kind: "conversation", bindingId: "descendant-chat" },
@@ -204,7 +204,7 @@ describe("Codex supervision actions", () => {
     });
 
     await expect(archiveTestSession({ bindingStore, control })).rejects.toThrow(
-      "spawned descendant is owned by an OpenClaw session",
+      "spawned descendant is owned by a Vasudev session",
     );
     expect(control.listDescendantPage).toHaveBeenNthCalledWith(1, {
       ancestorThreadId: "thread-1",

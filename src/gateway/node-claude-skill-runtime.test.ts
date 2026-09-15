@@ -451,7 +451,7 @@ let input = ''; process.stdin.on('data', b => input += b); process.stdin.on('end
   it("requires the additive node capability before dispatching a selected bundle", async () => {
     const f = await fixture("process.exit(99)", { managed: true, capability: false });
     try {
-      await expect(f.execute()).rejects.toThrow("Upgrade OpenClaw on the paired node");
+      await expect(f.execute()).rejects.toThrow("Upgrade Vasudev on the paired node");
       expect(f.requests).toEqual([]);
     } finally {
       await f.close();

@@ -1,5 +1,5 @@
 ---
-summary: "OpenClaw voice-call plugin for Twilio, Telnyx, and Plivo phone calls."
+summary: "Vasudev voice-call plugin for Twilio, Telnyx, and Plivo phone calls."
 read_when:
   - You are installing, configuring, or auditing the voice-call plugin
 title: "Voice Call plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-OpenClaw voice-call plugin for Twilio, Telnyx, and Plivo phone calls.
+Vasudev voice-call plugin for Twilio, Telnyx, and Plivo phone calls.
 
 ## Distribution
 

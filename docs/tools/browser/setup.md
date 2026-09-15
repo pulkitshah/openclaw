@@ -2,7 +2,7 @@
 summary: "Quick start commands, plugin enablement, agent tool policy, and the missing-command fix"
 title: "Browser setup"
 read_when:
-  - You are starting the OpenClaw browser for the first time
+  - You are starting the Vasudev browser for the first time
   - The agent reports the browser tool as unavailable
   - The `openclaw browser` command is missing after an upgrade
 ---

@@ -13,8 +13,8 @@ For the full key index and the other top-level config domains, see [Configuratio
 
 ## MCP
 
-OpenClaw-managed MCP server definitions live under `mcp.servers` for embedded
-OpenClaw and other runtime adapters. `openclaw mcp list`, `show`, `set`, and
+Vasudev-managed MCP server definitions live under `mcp.servers` for embedded
+Vasudev and other runtime adapters. `openclaw mcp list`, `show`, `set`, and
 `unset` manage this block without connecting to the servers. The Fetch example
 requires [`uv`/`uvx`](https://docs.astral.sh/uv/getting-started/installation/).
 
@@ -64,13 +64,13 @@ requires [`uv`/`uvx`](https://docs.astral.sh/uv/getting-started/installation/).
   `type: "http"` is a CLI-native alias that `openclaw mcp set` and
   `openclaw doctor --fix` normalize into the canonical `transport` field.
 - `mcp.servers.<name>.enabled`: set `false` to keep a saved server definition
-  while excluding it from embedded OpenClaw MCP discovery and tool projection.
+  while excluding it from embedded Vasudev MCP discovery and tool projection.
 - `mcp.servers.<name>.requestTimeoutMs`: per-server MCP request timeout in milliseconds.
 - `mcp.servers.<name>.connectionTimeoutMs`: per-server connection timeout in milliseconds.
 - `mcp.servers.<name>.supportsParallelToolCalls`: optional concurrency hint for
   adapters that can choose whether to issue parallel MCP tool calls.
 - `mcp.servers.<name>.auth`: set `"oauth"` for HTTP MCP servers that require
-  OAuth. Run `openclaw mcp login <name>` to store tokens under OpenClaw state.
+  OAuth. Run `openclaw mcp login <name>` to store tokens under Vasudev state.
 - `mcp.servers.<name>.oauth`: optional OAuth scope, redirect URL, and client
   metadata URL overrides.
 - `mcp.servers.<name>.oauth.identity`: credential ownership. Omit it or set
@@ -87,13 +87,13 @@ requires [`uv`/`uvx`](https://docs.astral.sh/uv/getting-started/installation/).
   `resources_read`, `prompts_list`, `prompts_get`), and those names use the
   same filter.
 - `mcp.servers.<name>.codex`: optional Codex app-server projection controls.
-  This block is OpenClaw metadata for Codex app-server threads only; it does not
+  This block is Vasudev metadata for Codex app-server threads only; it does not
   affect ACP sessions, generic Codex harness config, or other runtime adapters.
-  Non-empty `codex.agents` limits the server to the listed OpenClaw agent ids.
+  Non-empty `codex.agents` limits the server to the listed Vasudev agent ids.
   Empty, blank, or invalid scoped agent lists are rejected by config validation
   and omitted by the runtime projection path instead of becoming global.
   `codex.defaultToolsApprovalMode` emits Codex's native
-  `default_tools_approval_mode` for that server. OpenClaw strips the `codex`
+  `default_tools_approval_mode` for that server. Vasudev strips the `codex`
   block before passing native `mcp_servers` config to Codex. Omit the block to
   keep the server projected for every Codex app-server agent with Codex's
   default MCP approval behavior.
@@ -112,7 +112,7 @@ requires [`uv`/`uvx`](https://docs.astral.sh/uv/getting-started/installation/).
   extend a run-owned runtime beyond run end or prevent explicit cleanup.
   Doctor preserves this key. If an earlier `doctor --fix` removed it, restore the
   intended value from your config backup; the deleted value cannot be inferred.
-- Each Gateway admits at most 256 OpenClaw-managed MCP runtimes with server connections across sessions
+- Each Gateway admits at most 256 Vasudev-managed MCP runtimes with server connections across sessions
   and requester partitions, including creation and cleanup in progress. At the
   limit, existing runtimes stay alive and new admissions fail with a log message
   directing you to stop or reset unused sessions. A runtime can own multiple
@@ -129,7 +129,7 @@ requires [`uv`/`uvx`](https://docs.astral.sh/uv/getting-started/installation/).
   prompts. Repeated tool-call failures pause the affected server briefly before
   another call is attempted.
 
-See [MCP](/cli/mcp#openclaw-as-an-mcp-client-registry) and
+See [MCP](/cli/mcp#vasudev-as-an-mcp-client-registry) and
 [CLI backends](/gateway/cli-backends#bundle-mcp-overlays) for runtime behavior.
 
 ## Skills
@@ -204,7 +204,7 @@ See [MCP](/cli/mcp#openclaw-as-an-mcp-client-registry) and
 
 - Loaded from package or bundle directories under `~/.openclaw/extensions` and `<workspace>/.openclaw/extensions`, plus files or directories listed in `plugins.load.paths`.
 - Put standalone plugin files in `plugins.load.paths`; auto-discovered extension roots ignore top-level `.js`, `.mjs`, and `.ts` files so helper scripts in those roots do not block startup.
-- Discovery accepts native OpenClaw plugins plus compatible Codex bundles and Claude bundles, including manifestless Claude default-layout bundles.
+- Discovery accepts native Vasudev plugins plus compatible Codex bundles and Claude bundles, including manifestless Claude default-layout bundles.
 - With the default hybrid reload mode, ordinary plugin policy and entry changes hot-reload the plugin runtime. Plugin code, metadata, and discovery-root changes require a Gateway restart; active plugins can also declare restart-triggering config prefixes.
 - `allow`: optional allowlist (only listed plugins load). `deny` wins.
 - `plugins.entries.<id>.apiKey`: plugin-level API key convenience field (when supported by the plugin).
@@ -218,8 +218,8 @@ See [MCP](/cli/mcp#openclaw-as-an-mcp-client-registry) and
 - `plugins.entries.<id>.llm.allowedCompletionModels`: optional allowlist applied to every plugin LLM completion, including host-resolved defaults and overrides. Use `"*"` only when you intentionally want to allow any model.
 - `plugins.entries.<id>.llm.allowAuthProfileOverride`: explicitly trust this plugin to select a non-default auth profile for isolated `api.runtime.llm.complete` execution. Direct `model@profile` calls remain governed by model-override policy.
 - `plugins.entries.<id>.llm.allowAgentIdOverride`: explicitly trust this plugin to run `api.runtime.llm.complete` against a non-default agent id.
-- `plugins.entries.<id>.config`: plugin-defined config object (validated by native OpenClaw plugin schema when available).
-- Channel plugin account/runtime settings live under `channels.<id>` and should be described by the owning plugin's manifest `channelConfigs` metadata, not by a central OpenClaw option registry.
+- `plugins.entries.<id>.config`: plugin-defined config object (validated by native Vasudev plugin schema when available).
+- Channel plugin account/runtime settings live under `channels.<id>` and should be described by the owning plugin's manifest `channelConfigs` metadata, not by a central Vasudev option registry.
 
 ### Codex harness plugin config
 
@@ -229,7 +229,7 @@ The bundled `codex` plugin owns native Codex app-server harness settings under
 surface and [Codex harness](/plugins/codex-harness) for the runtime model.
 
 `codexPlugins` applies only to sessions that select the native Codex harness.
-It does not enable Codex plugins for OpenClaw provider runs, ACP
+It does not enable Codex plugins for Vasudev provider runs, ACP
 conversation bindings, or any non-Codex harness.
 
 ```json5
@@ -267,7 +267,7 @@ conversation bindings, or any non-Codex harness.
 - `plugins.entries.codex.config.codexPlugins.allow_destructive_actions`:
   default destructive-action policy for configured plugin app elicitations.
   Use `true` to accept safe Codex approval schemas without prompting, `false`
-  to decline them, `"auto"` to route Codex-required approvals through OpenClaw
+  to decline them, `"auto"` to route Codex-required approvals through Vasudev
   plugin approvals, or `"ask"` to prompt for every plugin write/destructive
   action without durable approval. The `"ask"` mode clears durable Codex
   per-tool approval overrides for the affected app and selects the human
@@ -340,7 +340,7 @@ cannot be read, account-wide exposure fails closed.
   - `agents.entries.*.memory.search.*` for per-agent overrides
   - `memory.citations`
   - `plugins.entries.memory-core.config.dreaming`
-- Enabled Claude bundle plugins can also contribute embedded OpenClaw defaults from `settings.json`; OpenClaw applies those as sanitized agent settings, not as raw OpenClaw config patches.
+- Enabled Claude bundle plugins can also contribute embedded Vasudev defaults from `settings.json`; Vasudev applies those as sanitized agent settings, not as raw Vasudev config patches.
 - `plugins.slots.memory`: pick the active memory plugin id, or `"none"` to disable memory plugins.
 - `plugins.slots.contextEngine`: pick the active context engine plugin id; defaults to `"legacy"` unless you install and select another engine.
 

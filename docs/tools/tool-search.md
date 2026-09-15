@@ -1,22 +1,22 @@
 ---
-summary: "Tool Search: compact large OpenClaw tool catalogs behind search, describe, and call"
+summary: "Tool Search: compact large Vasudev tool catalogs behind search, describe, and call"
 title: "Tool Search"
 read_when:
-  - You want OpenClaw agents to use a large tool catalog without adding every tool schema to the prompt
-  - You want OpenClaw tools, MCP tools, and client tools exposed through one compact runtime surface
-  - You are implementing or debugging tool discovery for OpenClaw runs
+  - You want Vasudev agents to use a large tool catalog without adding every tool schema to the prompt
+  - You want Vasudev tools, MCP tools, and client tools exposed through one compact runtime surface
+  - You are implementing or debugging tool discovery for Vasudev runs
 ---
 
-Tool Search is an experimental OpenClaw agent runtime feature. It gives agents one
+Tool Search is an experimental Vasudev agent runtime feature. It gives agents one
 compact way to discover and call large tool catalogs. It is useful when the run
 has many available tools but the model is likely to need only a few of them.
 
-This page documents OpenClaw Tool Search. It is not the Codex-native tool
+This page documents Vasudev Tool Search. It is not the Codex-native tool
 search or dynamic-tools surface. Codex-native code mode, tool search, deferred
 dynamic tools, and nested tool calls are stable Codex harness surfaces and do
 not depend on `tools.toolSearch`.
 
-For the generic OpenClaw runtime that exposes a QuickJS-WASI `exec`/`wait`
+For the generic Vasudev runtime that exposes a QuickJS-WASI `exec`/`wait`
 surface instead of Tool Search controls, see [Code Mode](/tools/code-mode).
 
 Local inference routes use structured Tool Search automatically when
@@ -25,7 +25,7 @@ policy-approved capabilities available. It does not enable lean mode or remove
 optional tools. The default follows the active model for each run, including
 model switches and fallbacks, without changing another agent's settings.
 
-When enabled for OpenClaw runs, the model automatically receives a bounded
+When enabled for Vasudev runs, the model automatically receives a bounded
 directory of the available trusted tool names and descriptions. Explicitly
 setting `tools.toolSearch: true` selects one `tool_search_code` tool, plus any direct-only tools whose
 structured results cannot cross the compact bridge. The code tool runs a short
@@ -42,7 +42,7 @@ return await openclaw.tools.call(tool.id, {
 
 The directory scales with the active model's context window. When space is tight,
 descriptions shorten before tool names are omitted; every authorized catalog
-entry remains searchable and callable. Invalid arguments for OpenClaw-owned
+entry remains searchable and callable. Invalid arguments for Vasudev-owned
 tools include a bounded expected input signature when one can be rendered, so
 the model can correct the call without another schema lookup.
 If a call mistakes an admitted skill name for a tool ID, the error points back
@@ -51,38 +51,38 @@ to the skill’s complete instructions instead of sending the model through tool
 The deferred directory omits tools already exposed directly. They remain searchable,
 so discovery can still return their complete schemas without duplicating native guidance.
 
-The catalog can include catalog-eligible OpenClaw tools, plugin tools, MCP
+The catalog can include catalog-eligible Vasudev tools, plugin tools, MCP
 tools, and client-provided tools. The directory gives the model an idea of
 which trusted capabilities it can discover without exposing every cataloged
 schema up front. It also explains that policy-approved MCP and client tools
 may be discoverable. Their untrusted names and descriptions are not copied into
 the system prompt. Instead, the model searches compact descriptors, describes
 one selected tool when it needs the exact schema, and calls that tool through
-OpenClaw. Direct-only tools remain model-visible and are not added to the
+Vasudev. Direct-only tools remain model-visible and are not added to the
 catalog.
 
-Codex harness runs do not receive these experimental OpenClaw Tool Search
-controls. OpenClaw passes product capabilities to Codex as dynamic tools, and
+Codex harness runs do not receive these experimental Vasudev Tool Search
+controls. Vasudev passes product capabilities to Codex as dynamic tools, and
 Codex owns the stable native code mode, native tool search, deferred dynamic
 tools, and nested tool calls.
 
 ## How a turn runs
 
-At planning time the OpenClaw embedded runner builds the effective catalog for the
+At planning time the Vasudev embedded runner builds the effective catalog for the
 run:
 
 1. Resolve the active tool policy for the agent, profile, sandbox, and session.
-2. List eligible OpenClaw and plugin tools.
+2. List eligible Vasudev and plugin tools.
 3. List eligible MCP tools through the session MCP runtime.
 4. Add eligible client tools supplied for the current run.
 5. Keep core coding primitives and direct-only tools model-visible and index
    compact descriptors for the remaining catalog-eligible tools.
 6. Add a deterministic, bounded, policy-filtered capability directory to the
    cache-stable system-prompt prefix.
-7. Expose the OpenClaw code bridge, the structured fallback tools, or the
+7. Expose the Vasudev code bridge, the structured fallback tools, or the
    compact directory surface alongside those stable, directly callable tools.
 
-At execution time every real tool call returns to OpenClaw. The isolated Node
+At execution time every real tool call returns to Vasudev. The isolated Node
 runtime does not hold plugin implementations, MCP client objects, or secrets.
 `openclaw.tools.call(...)` crosses the bridge back into the Gateway, where the
 normal policy, approval, hook, logging, and result handling still apply.
@@ -101,12 +101,12 @@ normal policy, approval, hook, logging, and result handling still apply.
   tools, and tools required by the run's delivery policy remain visible; other
   schemas stay deferred.
 
-All modes use the same policy-filtered catalog and normal OpenClaw execution
+All modes use the same policy-filtered catalog and normal Vasudev execution
 path. Tools marked `catalogMode: "direct-only"` stay outside that catalog and
 remain model-visible. If the current runtime cannot launch the isolated Node code-mode child
 process, the default `code` mode falls back to `tools` before catalog
 compaction. In `directory` mode, client-provided tools stay directly visible
-for the current run while OpenClaw tools, plugin tools, and MCP tools can be
+for the current run while Vasudev tools, plugin tools, and MCP tools can be
 compacted behind the directory catalog. A direct call to an exact hidden
 directory name is hydrated from that same authorized catalog before execution.
 
@@ -115,7 +115,7 @@ other routes keep direct tool exposure unless configured otherwise. Codex harnes
 runs use their native surfaces.
 
 There is no separate source-selection config. When Tool Search is enabled, the
-catalog includes catalog-eligible OpenClaw, MCP, and client tools after normal
+catalog includes catalog-eligible Vasudev, MCP, and client tools after normal
 policy filtering; direct-only tools are retained separately.
 
 ## Why this exists
@@ -141,12 +141,12 @@ servers or client-provided app tools. Local inference uses it by default to
 reduce the prompt that the model must process before responding.
 
 The capability directory is sorted by tool name, limited to 18,000 characters,
-and built from the already policy-filtered catalog. OpenClaw reuses the
+and built from the already policy-filtered catalog. Vasudev reuses the
 rendered directory for an unchanged catalog snapshot and places it above the
 system-prompt cache boundary. User messages, per-turn tool guesses, session
 identifiers, and untrusted MCP or client metadata do not enter the directory.
 This keeps repeated turns eligible for prompt KV-cache reuse. When the
-authorized catalog changes, OpenClaw builds a new directory for the new
+authorized catalog changes, Vasudev builds a new directory for the new
 snapshot.
 
 ## API
@@ -175,7 +175,7 @@ Results are compact and safe
 to put back into prompt context. Each hit includes a bounded TypeScript-style
 `input` signature, such as `{ id: string; mode?: "drip" | "flood" }`, so the
 model can skip `describe` when that signature is sufficient. A trusted
-OpenClaw core or plugin tool may also include a compact `output` hint, such as
+Vasudev core or plugin tool may also include a compact `output` hint, such as
 `Array<{ id: string; paid: boolean }>`. MCP and client output-schema claims are
 not promoted into this trusted hint. Their untrusted input schemas are also
 deferred as `input: "unknown"`; use `describe` before calling them. Open,
@@ -197,13 +197,13 @@ const calendarCreate = await openclaw.tools.describe("mcp:calendar:create_event"
 
 `openclaw.tools.call(id, args)`
 
-Calls a selected tool through OpenClaw and returns the raw `{ tool, result }`
+Calls a selected tool through Vasudev and returns the raw `{ tool, result }`
 envelope. JSON-returning tools normally place their value in
-`result.details`. OpenClaw validates a trusted core or plugin tool's declared
+`result.details`. Vasudev validates a trusted core or plugin tool's declared
 input schema before execution. Missing required arguments, incorrect types,
 and forbidden properties return actionable tool errors instead of executing
 the tool; misspelled properties include a suggested parameter when available.
-If a trusted tool also declares `outputSchema`, OpenClaw compiles that schema
+If a trusted tool also declares `outputSchema`, Vasudev compiles that schema
 before execution and validates final `details` after normal tool hooks before
 returning the catalog call. MCP and client-owned schemas remain deferred to
 their owning execution boundary.
@@ -304,16 +304,16 @@ tool schemas stay deferred rather than changing with each user prompt. MCP tools
 cannot impersonate a directly visible core or policy-required delivery tool. If
 the bounded directory omits entries, use `tool_search` to find them and
 `tool_describe` to retrieve their full schemas. If the model requests an exact
-hidden directory tool name directly, OpenClaw resolves it from the authorized
+hidden directory tool name directly, Vasudev resolves it from the authorized
 catalog before normal execution.
-Directory-mode client tool names must not collide with OpenClaw, plugin, or MCP
+Directory-mode client tool names must not collide with Vasudev, plugin, or MCP
 tool names because exact deferred dispatch uses those names.
 
 ## Runtime boundary
 
 The code bridge runs in a short-lived Node subprocess. The subprocess starts
 with Node permission mode enabled, an empty environment, no filesystem or
-network grants, and no child-process or worker grants. OpenClaw enforces a
+network grants, and no child-process or worker grants. Vasudev enforces a
 parent-process wall-clock timeout and kills the subprocess on timeout, including
 after async continuations.
 
@@ -329,7 +329,7 @@ The runtime exposes only:
 - `openclaw.tools.describe`
 - `openclaw.tools.call`
 
-Normal OpenClaw behavior still applies to final calls:
+Normal Vasudev behavior still applies to final calls:
 
 - tool allow and deny policies
 - per-agent and per-sandbox tool restrictions
@@ -354,7 +354,7 @@ An explicit `tools.toolSearch` value takes precedence, including `false`.
 Setting `agents.defaults.experimental.localModelLean: false` restores optional
 tools but does not turn off automatic Tool Search.
 
-Enable Tool Search explicitly for OpenClaw runs with the default code bridge:
+Enable Tool Search explicitly for Vasudev runs with the default code bridge:
 
 ```bash
 openclaw config set tools.toolSearch true
@@ -370,7 +370,7 @@ Equivalent JSON:
 }
 ```
 
-Use the structured fallback tools instead for OpenClaw runs:
+Use the structured fallback tools instead for Vasudev runs:
 
 ```json5
 {
@@ -382,7 +382,7 @@ Use the structured fallback tools instead for OpenClaw runs:
 }
 ```
 
-Use the compact directory surface instead for OpenClaw runs:
+Use the compact directory surface instead for Vasudev runs:
 
 ```json5
 {
@@ -436,7 +436,7 @@ Code mode attaches a `telemetry` object to every `tool_search_code` result:
 
 `tools` and `directory` mode emit no telemetry object; their `tool_search`,
 `tool_describe`, and `tool_call` results carry only the catalog data for that
-operation. OpenClaw does not record serialized tool or prompt byte counts. The
+operation. Vasudev does not record serialized tool or prompt byte counts. The
 [E2E scenario](#e2e-validation) measures provider payload bytes separately from
 the mock provider lane, not from the runtime.
 
@@ -448,11 +448,11 @@ Session logs therefore still answer:
 - how many tool schemas the model saw up front
 - how many search and describe operations it performed
 - which final tool was called
-- whether the result came from OpenClaw, MCP, or a client tool
+- whether the result came from Vasudev, MCP, or a client tool
 
 ## E2E validation
 
-The QA Lab gateway scenario proves all three paths with the OpenClaw runtime:
+The QA Lab gateway scenario proves all three paths with the Vasudev runtime:
 
 ```bash
 pnpm openclaw qa suite --provider-mode mock-openai --scenario tool-search-gateway-e2e

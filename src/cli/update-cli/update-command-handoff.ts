@@ -64,7 +64,7 @@ ${GATEWAY_ANCESTRY_SHELL_GUIDANCE}`;
 
 const ANCESTRY_BLOCK_MARKER = "inside the gateway process tree";
 const UPDATE_CHAT_HANDOFF_GUIDANCE =
-  "From chat, the OpenClaw owner can start the update with the gateway update action or /update, which hands it to a managed helper.";
+  "From chat, the Vasudev owner can start the update with the gateway update action or /update, which hands it to a managed helper.";
 
 function appendUpdateChatHandoffGuidance(blockMessage: string): string {
   return blockMessage.includes(UPDATE_CHAT_HANDOFF_GUIDANCE)
@@ -109,7 +109,7 @@ export function gatewayMaintenanceBlockMessage(
         store.readProcessStartIdentity(owner.pid) === owner.startIdentity,
     )
   ) {
-    return "This maintenance command cannot stop the Gateway from inside its automatic triage process tree: stopping the service would cancel this repair. Use read-only diagnosis or safe offline artifact repair followed by an atomic `openclaw gateway restart`, or run stop-requiring maintenance from a shell outside automatic triage. Report this blocker if repair cannot proceed safely.";
+    return "This maintenance command cannot stop the Gateway from inside its automatic triage process tree: stopping the service would cancel this repair. Use read-only diagnosis or safe offline artifact repair followed by an atomic `vasudev gateway restart`, or run stop-requiring maintenance from a shell outside automatic triage. Report this blocker if repair cannot proceed safely.";
   }
   return operation === "handoff" ? undefined : gatewayAncestryBlockMessage(state.runtime?.pid);
 }
@@ -155,7 +155,7 @@ export async function handoffUpdateFromGateway(params: {
   if (!argv1) {
     throw new UpdatePreMutationError(
       "managed-service-handoff-failed",
-      "Cannot locate the installed updater; run `openclaw doctor` before retrying.",
+      "Cannot locate the installed updater; run `vasudev doctor` before retrying.",
     );
   }
   if (params.opts.run?.executorFence) {
@@ -183,7 +183,7 @@ export async function handoffUpdateFromGateway(params: {
   if (started.status === "joined") {
     throw new UpdatePreMutationError(
       "managed-service-handoff-already-running",
-      "Another managed update is already running. Inspect `openclaw status --all` before retrying.",
+      "Another managed update is already running. Inspect `vasudev status --all` before retrying.",
     );
   }
   const identity = {

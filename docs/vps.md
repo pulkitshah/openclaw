@@ -1,14 +1,14 @@
 ---
-summary: "Run OpenClaw on a Linux server or cloud VPS — provider picker, architecture, and tuning"
+summary: "Run Vasudev on a Linux server or cloud VPS — provider picker, architecture, and tuning"
 read_when:
   - You want to run the Gateway on a Linux server or cloud VPS
   - You need a quick map of hosting guides
-  - You want generic Linux server tuning for OpenClaw
+  - You want generic Linux server tuning for Vasudev
 title: "Linux server"
 sidebarTitle: "Linux Server"
 ---
 
-Run the OpenClaw Gateway on any Linux server or cloud VPS. This page helps you
+Run the Vasudev Gateway on any Linux server or cloud VPS. This page helps you
 pick a provider, explains how cloud deployments work, and covers generic Linux
 tuning that applies everywhere.
 
@@ -50,7 +50,7 @@ Related pages: [Gateway remote access](/gateway/remote), [Platforms hub](/platfo
 
 ## Harden admin access first
 
-Before you install OpenClaw on a public VPS, decide how you want to administer
+Before you install Vasudev on a public VPS, decide how you want to administer
 the box itself.
 
 - For Tailnet-only admin access: install Tailscale first, join the VPS to your
@@ -58,7 +58,7 @@ the box itself.
   then restrict public SSH.
 - Without Tailscale: apply the equivalent hardening for your SSH path before
   exposing more services.
-- This is separate from Gateway access. You can still keep OpenClaw bound to
+- This is separate from Gateway access. You can still keep Vasudev bound to
   loopback and use an SSH tunnel or Tailscale Serve for the dashboard.
 
 Tailscale-specific Gateway options live in [Tailscale](/gateway/tailscale).

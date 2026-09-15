@@ -2,7 +2,7 @@
   "id": "buzz",
   "categories": ["channels"],
   "name": "Buzz",
-  "description": "Connect OpenClaw agents to Buzz rooms.",
+  "description": "Connect Vasudev agents to Buzz rooms.",
   "activation": {
     "onStartup": false
   },
@@ -18,7 +18,7 @@
   "channelConfigs": {
     "buzz": {
       "label": "Buzz",
-      "description": "Connect OpenClaw agents to Buzz team rooms."
+      "description": "Connect Vasudev agents to Buzz team rooms."
     }
   },
   "configSchema": {

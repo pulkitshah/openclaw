@@ -325,7 +325,7 @@ function buildOpenRouterAttributionPolicy(
     verification: "vendor-documented",
     hook: "request-headers",
     docsUrl: "https://openrouter.ai/docs/app-attribution",
-    reviewNote: "Documented app attribution headers. Verified in OpenClaw runtime wrapper.",
+    reviewNote: "Documented app attribution headers. Verified in Vasudev runtime wrapper.",
     ...identity,
     headers: {
       "HTTP-Referer": "https://openclaw.ai",
@@ -530,7 +530,7 @@ export function resolveProviderRequestPolicy(
     endpointClass === "opencode-go-native"
   ) {
     // The documented identification contract belongs to Go's native endpoint.
-    // A custom baseUrl is a proxy and must not inherit OpenClaw attribution.
+    // A custom baseUrl is a proxy and must not inherit Vasudev attribution.
     attributionProvider = "opencode-go";
   }
   if (!attributionProvider && endpointClass === "nvidia-native") {

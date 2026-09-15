@@ -86,7 +86,7 @@ export function buildChannelApprovalExpiredText(params: {
 }): string {
   const request = normalizeApprovalRequest(params.request);
   if (request.approvalKind === "system-agent") {
-    return "⏱️ OpenClaw change expired. No change was made.";
+    return "⏱️ Vasudev change expired. No change was made.";
   }
   if (request.approvalKind === "plugin") {
     return buildPluginApprovalExpiredMessage(request);

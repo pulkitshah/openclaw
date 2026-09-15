@@ -862,8 +862,8 @@ describe("tool-cards", () => {
     expect(
       formatDistinctCollapsedToolSummaryText("heartbeat_respond", "Heartbeat Respond"),
     ).toBeUndefined();
-    expect(formatDistinctCollapsedToolSummaryText("run openclaw doctor", "Bash")).toBe(
-      "run openclaw doctor",
+    expect(formatDistinctCollapsedToolSummaryText("run vasudev doctor", "Bash")).toBe(
+      "run vasudev doctor",
     );
   });
 

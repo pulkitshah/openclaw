@@ -42,7 +42,7 @@ function createConfiguredDirectoryState(params: DirectoryConfigParams): {
     channelIds,
     state: new BuzzDirectoryState({
       publicKey: account.publicKey,
-      fallbackProfileName: account.name ?? "OpenClaw",
+      fallbackProfileName: account.name ?? "Vasudev",
       channelIds,
     }),
   };

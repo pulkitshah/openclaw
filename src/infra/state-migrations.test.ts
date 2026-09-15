@@ -2565,7 +2565,7 @@ describe("state migrations", () => {
     await expect(fs.readFile(outsideStorePath, "utf8")).resolves.toBe("{}\n");
     await expect(fs.readFile(legacyStorePath, "utf8")).resolves.toContain("legacy-task");
     expect(result.warnings).toContain(
-      `Deferred legacy session migration in final-component symlink store ${targetStorePath}; configure one canonical session.store path, then rerun openclaw doctor --fix`,
+      `Deferred legacy session migration in final-component symlink store ${targetStorePath}; configure one canonical session.store path, then rerun vasudev doctor --fix`,
     );
   });
 
@@ -2843,7 +2843,7 @@ describe("state migrations", () => {
       });
     }
     expect(result.warnings).toEqual([
-      `Deferred session key migration in final-component symlink store ${storePath}; configure one canonical session.store path, then rerun openclaw doctor --fix`,
+      `Deferred session key migration in final-component symlink store ${storePath}; configure one canonical session.store path, then rerun vasudev doctor --fix`,
     ]);
   });
 
@@ -2900,7 +2900,7 @@ describe("state migrations", () => {
       }),
     ).toBeUndefined();
     expect(result.warnings).toContain(
-      `Deferred ACP metadata migration in final-component symlink store ${configuredStorePath}; configure one canonical session.store path, then rerun openclaw doctor --fix`,
+      `Deferred ACP metadata migration in final-component symlink store ${configuredStorePath}; configure one canonical session.store path, then rerun vasudev doctor --fix`,
     );
     expect(result.changes).not.toContain(
       "Migrated 1 ACP session metadata row → shared SQLite state",

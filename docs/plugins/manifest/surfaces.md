@@ -16,10 +16,10 @@ Place the portable plugin icon at `assets/icon.png`, relative to the plugin root
 field is required. Use a square PNG that remains recognizable at 16 px; 512×512 is recommended.
 Missing, unreadable, or invalid icons are ignored and do not invalidate the plugin.
 
-OpenClaw adopts this fixed package path as its icon convention, matching the path proposed in
-Agent Plugins spec proposal [agent-plugins-spec#66](https://github.com/agentplugins/agent-plugins-spec/pull/66). OpenClaw itself implements Agent Plugins 1.0.0. Other Agent Plugins
+Vasudev adopts this fixed package path as its icon convention, matching the path proposed in
+Agent Plugins spec proposal [agent-plugins-spec#66](https://github.com/agentplugins/agent-plugins-spec/pull/66). Vasudev itself implements Agent Plugins 1.0.0. Other Agent Plugins
 consumers may not discover it unless that proposal is adopted. The fixed path keeps packages
-portable and inspectable, avoids manifest path indirection and precedence rules, and lets OpenClaw
+portable and inspectable, avoids manifest path indirection and precedence rules, and lets Vasudev
 render the icon without a runtime network request. Top-level plugin-branding icon URLs are not
 loaded; provider-auth artwork remains server-owned catalog metadata.
 
@@ -27,8 +27,8 @@ Prefer top-level `sessionRouteStateOwners` for static doctor ownership. The
 older `doctorContract.sessionRouteStateOwners: true` declaration plus a
 `sessionRouteStateOwners` export from `doctor-contract-api` remains supported
 for external plugins, but is deprecated. When the manifest field is present,
-OpenClaw uses it without loading the doctor-contract module. Removal plan:
-remove the module fallback in OpenClaw 2027.1 after the external-plugin
+Vasudev uses it without loading the doctor-contract module. Removal plan:
+remove the module fallback in Vasudev 2027.1 after the external-plugin
 migration window.
 
 Set `doctorContract.configRepair: true` when the doctor-contract module exports
@@ -84,7 +84,7 @@ Codex health registration without preventing other checks; a declared but
 missing or broken API remains an error. This does not grant plugin capabilities
 or replace upgrade consent.
 
-Channel plugins maintained in the OpenClaw source tree also expose these config
+Channel plugins maintained in the Vasudev source tree also expose these config
 exports through a pure `config-doctor-api.ts` entrypoint. The core package retains
 that entrypoint alongside its channel schemas when the plugin runtime is
 distributed separately. This lets `doctor --fix` migrate older configuration
@@ -129,7 +129,7 @@ source edits preserve configured fields when metadata is unavailable.
 ## backupResources reference
 
 Use `backupResources` to declare plugin-owned durable data that backups must
-include, or generated data that OpenClaw can safely omit and regenerate after
+include, or generated data that Vasudev can safely omit and regenerate after
 restore. The backup planner reads this metadata without loading plugin runtime
 or modifying plugin files. Only effectively activated, loadable plugins
 contribute resources; disabled or unloadable plugins cannot exclude data.
@@ -189,7 +189,7 @@ plugin can recreate.
 }
 ```
 
-OpenClaw includes these servers only while the owning plugin is enabled. Relative `command`, `args`, `cwd`, and `workingDirectory` paths resolve from the plugin root. User configuration remains authoritative: `mcp.servers.<name>` can replace a plugin default or set `enabled: false` to omit it. MCP App rendering and server-tool calls still require the normal MCP Apps setting and effective tool policy; declaring a server does not bypass either boundary.
+Vasudev includes these servers only while the owning plugin is enabled. Relative `command`, `args`, `cwd`, and `workingDirectory` paths resolve from the plugin root. User configuration remains authoritative: `mcp.servers.<name>` can replace a plugin default or set `enabled: false` to omit it. MCP App rendering and server-tool calls still require the normal MCP Apps setting and effective tool policy; declaring a server does not bypass either boundary.
 
 ## controlUi reference
 
@@ -253,7 +253,7 @@ replacements, reload, and activation receipts.
 }
 ```
 
-The manifest ids are plugin-local. Widget grants use `<plugin-id>.<id>`, such as `example.items.list` and `example.refresh`. To keep the persisted grant namespace unambiguous, OpenClaw escapes `%` and `.` in the plugin-id segment as `%25` and `%2E`; ordinary plugin ids keep the natural form. `paramShape` is an optional JSON Schema applied to the action params object before OpenClaw invokes the plugin RPC.
+The manifest ids are plugin-local. Widget grants use `<plugin-id>.<id>`, such as `example.items.list` and `example.refresh`. To keep the persisted grant namespace unambiguous, Vasudev escapes `%` and `.` in the plugin-id segment as `%25` and `%2E`; ordinary plugin ids keep the natural form. `paramShape` is an optional JSON Schema applied to the action params object before Vasudev invokes the plugin RPC.
 
 ## catalog reference
 
@@ -293,7 +293,7 @@ The manifest row is the canonical help text. Register the same command at runtim
 
 ## commandAliases reference
 
-Use `commandAliases` when a plugin owns a runtime command name that users may mistakenly put in `plugins.allow` or try to run as a root CLI command. OpenClaw uses this metadata for diagnostics without importing plugin runtime code.
+Use `commandAliases` when a plugin owns a runtime command name that users may mistakenly put in `plugins.allow` or try to run as a root CLI command. Vasudev uses this metadata for diagnostics without importing plugin runtime code.
 
 If a plugin fails to load, invoking its declared `runtime-slash` command in chat returns the plugin name, a short failure reason, and recovery guidance (`openclaw doctor` and gateway logs). Unknown commands and commands belonging to intentionally disabled plugins keep their normal handling; manifest ownership alone does not make a command executable.
 
@@ -387,14 +387,14 @@ for the SDK contract.
 
 Use `channelConfigs` when a channel plugin needs cheap config metadata before runtime loads. Read-only channel setup/status discovery can use this metadata directly for configured external channels when no setup entry is available, or when `setup.requiresRuntime: false` declares setup runtime unnecessary.
 
-`channelConfigs` is plugin manifest metadata, not a new top-level user config section. Users still configure channel instances under `channels.<channel-id>`. OpenClaw reads manifest metadata to decide which plugin owns that configured channel before plugin runtime code executes.
+`channelConfigs` is plugin manifest metadata, not a new top-level user config section. Users still configure channel instances under `channels.<channel-id>`. Vasudev reads manifest metadata to decide which plugin owns that configured channel before plugin runtime code executes.
 
 For a channel plugin, `configSchema` and `channelConfigs` describe different paths:
 
 - `configSchema` validates `plugins.entries.<plugin-id>.config`
 - `channelConfigs.<channel-id>.schema` validates `channels.<channel-id>`
 
-Non-bundled plugins that declare `channels[]` should also declare matching `channelConfigs` entries. Without them, OpenClaw can still load the plugin, but cold-path config schema, setup, and Control UI surfaces cannot know the channel-owned option shape or display-only UI hints until plugin runtime executes.
+Non-bundled plugins that declare `channels[]` should also declare matching `channelConfigs` entries. Without them, Vasudev can still load the plugin, but cold-path config schema, setup, and Control UI surfaces cannot know the channel-owned option shape or display-only UI hints until plugin runtime executes.
 
 `channelConfigs.<channel-id>.commands.nativeCommandsAutoEnabled` and `nativeSkillsAutoEnabled` can declare static `auto` defaults for command config checks that run before channel runtime loads. Bundled channels can also publish the same defaults through `package.json#openclaw.channel.commands` alongside their other package-owned channel catalog metadata.
 
@@ -461,6 +461,6 @@ Use `preferOver` when your plugin is the preferred owner for a channel id that a
 }
 ```
 
-When `channels.chat` is configured, OpenClaw considers both the channel id and the preferred plugin id. If the lower-priority plugin was only selected because it is bundled or enabled by default, OpenClaw disables it in the effective runtime config so one plugin owns the channel and its tools. Explicit user selection still wins: if the user explicitly enables both plugins (via `plugins.allow` or a material `plugins.entries` config), OpenClaw preserves that choice and reports duplicate channel/tool diagnostics instead of silently changing the requested plugin set.
+When `channels.chat` is configured, Vasudev considers both the channel id and the preferred plugin id. If the lower-priority plugin was only selected because it is bundled or enabled by default, Vasudev disables it in the effective runtime config so one plugin owns the channel and its tools. Explicit user selection still wins: if the user explicitly enables both plugins (via `plugins.allow` or a material `plugins.entries` config), Vasudev preserves that choice and reports duplicate channel/tool diagnostics instead of silently changing the requested plugin set.
 
 Keep `preferOver` scoped to plugin ids that can really provide the same channel. It is not a general priority field and it does not rename user config keys.

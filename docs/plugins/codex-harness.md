@@ -1,5 +1,5 @@
 ---
-summary: "Run OpenClaw embedded agent turns through the official Codex app-server harness"
+summary: "Run Vasudev embedded agent turns through the official Codex app-server harness"
 title: "Codex harness"
 read_when:
   - You want to use the official Codex app-server harness
@@ -8,19 +8,19 @@ read_when:
 ---
 
 The official `codex` plugin runs embedded OpenAI agent turns through Codex
-app-server instead of the built-in OpenClaw harness. Codex owns the
+app-server instead of the built-in Vasudev harness. Codex owns the
 low-level agent session: native thread resume, native tool continuation,
-native compaction, and app-server execution. OpenClaw still owns chat
-channels, session files, model selection, OpenClaw dynamic tools, approvals,
+native compaction, and app-server execution. Vasudev still owns chat
+channels, session files, model selection, Vasudev dynamic tools, approvals,
 media delivery, and the visible transcript mirror.
 
-Pasted text saved as a `.txt` attachment is extracted by OpenClaw and included in
+Pasted text saved as a `.txt` attachment is extracted by Vasudev and included in
 the current turn as untrusted external content, subject to the existing file
 extraction limits. This also applies to adopted and forked Codex sessions with
 locked model selection. Images continue through Codex's native image input.
 
 Remote Codex app-servers can run on a different machine from the Gateway. Set
-`remoteWorkspaceRoot` to validate remote workspace attachment paths. OpenClaw
+`remoteWorkspaceRoot` to validate remote workspace attachment paths. Vasudev
 transfers authoritative attachment bytes over the existing app-server connection
 using a fixed, no-shell `command/exec` reader. The reader rejects symlinks,
 enforces file and response size limits before allocation, and stages immutable
@@ -42,15 +42,15 @@ authored provider request override. Valid model-scoped `params.fastMode` /
 controls, so they do not count as authored provider request params or select a
 runtime by themselves. See
 [OpenAI implicit agent runtime](/providers/openai/runtimes#implicit-agent-runtime).
-If Codex owns auth before Platform versus ChatGPT routing is known, OpenClaw
+If Codex owns auth before Platform versus ChatGPT routing is known, Vasudev
 still requires every candidate route to declare Codex compatibility. Native
 auth ownership alone never bypasses that route check.
 
-When no OpenClaw sandbox is active, OpenClaw starts Codex app-server threads
+When no Vasudev sandbox is active, Vasudev starts Codex app-server threads
 with Codex native code mode enabled (code-mode-only stays off by default), so
-native workspace/code capabilities remain available alongside OpenClaw
+native workspace/code capabilities remain available alongside Vasudev
 dynamic tools routed through the app-server `item/tool/call` bridge. An
-ordinary OpenClaw sandbox or restricted tool policy disables native code mode
+ordinary Vasudev sandbox or restricted tool policy disables native code mode
 unless you opt into the experimental sandbox exec-server path. The effective
 tool profile must allow all native shell and filesystem capabilities: `coding`
 and `full` do, while `messaging` and `minimal` disable the native surface. Agent
@@ -67,15 +67,15 @@ existing conversation after an upgrade. To retain a limited profile, use a
 Gateway-managed conversation or runtime with a compatible execution environment.
 If native shell and filesystem access is intended, the operator can choose
 `coding` or `full`. Other explicit tool and sandbox restrictions still apply;
-an explicit finite tool allowlist still blocks native execution. OpenClaw does
+an explicit finite tool allowlist still blocks native execution. Vasudev does
 not broaden tool access or replace externally owned threads automatically.
 
 Eligible native-shell turns also retain `gateway_exec` and `gateway_process`
-as a distinct OpenClaw execution path. Use `gateway_exec` only when a command
-needs OpenClaw-managed Gateway environment access, including Secret Store
+as a distinct Vasudev execution path. Use `gateway_exec` only when a command
+needs Vasudev-managed Gateway environment access, including Secret Store
 agent-readable environment values or protected egress sentinels. It is pinned
-to the Gateway host and follows OpenClaw exec policy. `gateway_process` uses the
-existing per-session OpenClaw process scope for background follow-up. Prefer
+to the Gateway host and follows Vasudev exec policy. `gateway_process` uses the
+existing per-session Vasudev process scope for background follow-up. Prefer
 Codex native shell for ordinary local work.
 
 Stopping an active Codex run interrupts its turn, then stops the native background
@@ -86,34 +86,34 @@ claiming cleanup succeeded. Inspect that thread's running terminals before
 starting more work. This uses Codex's terminal ownership. It does not guarantee
 cleanup of commands that deliberately detach from that ownership.
 
-With the default `tools.exec.host: "auto"` and no active OpenClaw sandbox,
+With the default `tools.exec.host: "auto"` and no active Vasudev sandbox,
 Codex also receives `node_exec` when a connected node supports `system.run`.
 Offline paired devices and devices without shell support do not expose this tool.
 When a node is configured, that binding must resolve to an eligible node. Native shell
 remains on the Codex app-server host and workspace
 (Gateway-local for the default stdio deployment). `node_exec` selects the sole
 connected node that supports `system.run`, or requires a name or id when several
-are eligible. It keeps OpenClaw's node approval policy in force and waits for the
+are eligible. It keeps Vasudev's node approval policy in force and waits for the
 remote command to finish. Remote-node background follow-up is not available. If
 a finite runtime allowlist disables native Code Mode and leaves the turn without
-an execution environment, OpenClaw keeps its policy-filtered `exec` and
+an execution environment, Vasudev keeps its policy-filtered `exec` and
 `process` tools available instead for direct, unsandboxed execution.
 
 When `tools.exec.host: "node"` or `/exec host=node` makes the node the session
-default, OpenClaw hides the Codex-native shell and exposes `node_exec` only while
+default, Vasudev hides the Codex-native shell and exposes `node_exec` only while
 the node target is eligible. If it is unavailable, reconnect the configured node
-or explicitly change the exec host. OpenClaw does not silently fall back to the
+or explicitly change the exec host. Vasudev does not silently fall back to the
 app-server or Gateway machine.
 
-`gateway_exec` is not exposed when an active OpenClaw sandbox, a node-default
+`gateway_exec` is not exposed when an active Vasudev sandbox, a node-default
 execution policy, memory-flush restrictions, tool allow/deny policy, or
 `codexDynamicToolsExclude` would make Gateway host access a bypass. Secret
 Store environment values never enter the Codex app-server process, native
 shell, sandbox exec-server, ACP children, sandbox exec, or node exec.
 
 This Codex-native feature is separate from
-[OpenClaw Code Mode](/tools/code-mode), an opt-in QuickJS-WASI runtime
-for generic OpenClaw runs with a different `exec` input shape. For the
+[Vasudev Code Mode](/tools/code-mode), an opt-in QuickJS-WASI runtime
+for generic Vasudev runs with a different `exec` input shape. For the
 broader model/provider/runtime split, start with
 [Agent runtimes](/concepts/agent-runtimes): `openai/gpt-6-astra` is the model
 ref, `codex` is the runtime, and Telegram, Discord, Slack, or another
@@ -212,7 +212,7 @@ Then check Codex app-server state:
 /codex binding
 ```
 
-After installing or updating OpenClaw, explicitly verify the managed package
+After installing or updating Vasudev, explicitly verify the managed package
 binary before cutover:
 
 ```bash
@@ -221,10 +221,10 @@ openclaw doctor --lint --only codex/managed-app-server --json
 
 For an effective Codex route using the managed stdio app-server, this
 default-disabled check resolves the platform-native executable and requires the
-exact Codex version pinned by OpenClaw. It does not execute custom, remote, or
+exact Codex version pinned by Vasudev. It does not execute custom, remote, or
 macOS desktop-owned app-servers.
 
-`/status` reports the resolved OpenClaw Fast policy (`on`, `off`, or `auto`)
+`/status` reports the resolved Vasudev Fast policy (`on`, `off`, or `auto`)
 and the selected runtime. It does not report the upstream service tier actually
 honored or returned for a completed request. `/codex binding` reports the
 attached native thread and current model settings. `/codex status` reports

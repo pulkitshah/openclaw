@@ -218,7 +218,7 @@ describe("Claw package independent adoption", () => {
         { kind: "skill", source: "clawhub", ref: "summarize", workspace: "/tmp/worker" },
         { env, required: true },
       ),
-    ).toThrow("being changed by another OpenClaw lifecycle");
+    ).toThrow("being changed by another Vasudev lifecycle");
     const otherWorkspace = acquireClawPackageLifecycleLease(
       { kind: "skill", source: "clawhub", ref: "triage", workspace: "/tmp/other" },
       { env, required: true },
@@ -240,13 +240,13 @@ describe("Claw package independent adoption", () => {
         { kind: "plugin", source: "clawhub", ref: "@acme/audit" },
         { env },
       ),
-    ).toThrow("being changed by another OpenClaw lifecycle");
+    ).toThrow("being changed by another Vasudev lifecycle");
     expect(() =>
       acquireClawPackageLifecycleLease(
         { kind: "plugin", source: "clawhub", ref: "@acme/audit" },
         { env, required: true },
       ),
-    ).toThrow("being changed by another OpenClaw lifecycle");
+    ).toThrow("being changed by another Vasudev lifecycle");
     directLease?.release();
   });
 

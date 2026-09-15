@@ -52,7 +52,7 @@ describe("buildStatusCommandReportLines", () => {
     const lines = await buildStatusCommandReportLines(params);
 
     expect(lines).toEqual([
-      "# OpenClaw status",
+      "# Vasudev status",
       "",
       "# Overview",
       "table:Item+Value:1",
@@ -155,7 +155,7 @@ describe("buildStatusCommandReportLines", () => {
         footerLines: [],
       });
       const preparation = [
-        "heading:OpenClaw status",
+        "heading:Vasudev status",
         "muted:maintenance hint",
         "muted:No channels configured",
         "muted:No sessions",
@@ -166,7 +166,7 @@ describe("buildStatusCommandReportLines", () => {
         return;
       }
       expect(await result).toEqual([
-        "# OpenClaw status",
+        "# Vasudev status",
         "",
         "# Overview",
         "table:Item+Value:0",

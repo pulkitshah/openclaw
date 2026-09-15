@@ -1,5 +1,5 @@
 ---
-summary: "Adds ComfyUI model provider support to OpenClaw."
+summary: "Adds ComfyUI model provider support to Vasudev."
 read_when:
   - You are installing, configuring, or auditing the comfy plugin
 title: "ComfyUI plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-Adds ComfyUI model provider support to OpenClaw.
+Adds ComfyUI model provider support to Vasudev.
 
 ## Distribution
 

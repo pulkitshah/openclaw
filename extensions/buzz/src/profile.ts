@@ -155,7 +155,7 @@ export async function syncBuzzProfile(params: {
     typeof agentContent.channel_add_policy !== "string" ||
     !CHANNEL_ADD_POLICIES.has(agentContent.channel_add_policy)
   ) {
-    // OpenClaw accepts messages only from configured Bot-role rooms, so allowing
+    // Vasudev accepts messages only from configured Bot-role rooms, so allowing
     // room admins to add this public identity does not expand Gateway ingress.
     agentContent.channel_add_policy = DEFAULT_CHANNEL_ADD_POLICY;
     agentProfileChanged = true;

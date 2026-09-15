@@ -25,7 +25,7 @@ export async function runMatrixQaE2eeCliRecoveryKeySetupScenario(
   const accountId = "cli-recovery-key-setup";
   const account = await registerMatrixQaCliE2eeAccount({
     context,
-    deviceName: "OpenClaw Matrix QA CLI Recovery Key Owner",
+    deviceName: "Vasudev Matrix QA CLI Recovery Key Owner",
     scenarioId: "matrix-e2ee-cli-recovery-key-setup",
   });
   const owner = await createMatrixQaE2eeCliOwnerClient({
@@ -46,7 +46,7 @@ export async function runMatrixQaE2eeCliRecoveryKeySetupScenario(
     throw new Error("Matrix E2EE CLI recovery-key setup did not expose a recovery key");
   }
   const cliDevice = await loginClient.loginWithPassword({
-    deviceName: "OpenClaw Matrix QA CLI Recovery Key Setup Device",
+    deviceName: "Vasudev Matrix QA CLI Recovery Key Setup Device",
     password: account.password,
     userId: account.userId,
   });
@@ -138,7 +138,7 @@ export async function runMatrixQaE2eeCliRecoveryKeyInvalidScenario(
   const invalidRecoveryKey = "not-a-valid-matrix-recovery-key";
   const account = await registerMatrixQaCliE2eeAccount({
     context,
-    deviceName: "OpenClaw Matrix QA CLI Invalid Recovery Key Owner",
+    deviceName: "Vasudev Matrix QA CLI Invalid Recovery Key Owner",
     scenarioId: "matrix-e2ee-cli-recovery-key-invalid",
   });
   const owner = await createMatrixQaE2eeCliOwnerClient({
@@ -158,7 +158,7 @@ export async function runMatrixQaE2eeCliRecoveryKeyInvalidScenario(
     baseUrl: context.baseUrl,
   });
   const cliDevice = await loginClient.loginWithPassword({
-    deviceName: "OpenClaw Matrix QA CLI Invalid Recovery Key Device",
+    deviceName: "Vasudev Matrix QA CLI Invalid Recovery Key Device",
     password: account.password,
     userId: account.userId,
   });

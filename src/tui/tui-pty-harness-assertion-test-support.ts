@@ -490,7 +490,7 @@ async function exerciseSelectorOutputSafety(
     const expectedSessionLabel = `${sessionKey.text} (${sessionDisplay.text})`;
     await fixture.run.waitForOutput(
       sanitizeRenderableLine(
-        `openclaw tui pty fixture - pty-fixture://local - agent ${expectedAgentLabel} - session ${sessionKey.text}`,
+        `vasudev tui pty fixture - pty-fixture://local - agent ${expectedAgentLabel} - session ${sessionKey.text}`,
       ),
       5_000,
     );

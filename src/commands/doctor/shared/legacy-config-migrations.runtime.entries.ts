@@ -35,7 +35,7 @@ export const LEGACY_CONFIG_MIGRATIONS_RUNTIME_ENTRIES: LegacyConfigMigrationSpec
     legacyRules: [
       {
         path: ["agents", "list"],
-        message: 'agents.list moved to keyed agents.entries. Run "openclaw doctor --fix".',
+        message: 'agents.list moved to keyed agents.entries. Run "vasudev doctor --fix".',
       },
     ],
     apply: migrateAgentEntries,

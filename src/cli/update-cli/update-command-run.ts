@@ -114,7 +114,7 @@ export async function resolveUpdateCommandAdmissionEnv(params: {
           .readCommand(env, { requireEffective: true, requireLoaded: true })
           .catch((cause: unknown) => {
             throw new GatewayServiceUpdateOwnershipError(
-              "Gateway service inspection is unavailable before update admission. Run `openclaw gateway status --deep` from the service's owning account and retry when service access is restored.",
+              "Gateway service inspection is unavailable before update admission. Run `vasudev gateway status --deep` from the service's owning account and retry when service access is restored.",
               cause,
             );
           });

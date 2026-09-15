@@ -1046,7 +1046,7 @@ describe("session history HTTP endpoints", () => {
       expectErrorResponse(await res.json(), {
         type: "migration_required",
         message:
-          "duplicate rows resolve to canonical session key agent:main:work; stop the Gateway and run openclaw doctor --fix",
+          "duplicate rows resolve to canonical session key agent:main:work; stop the Gateway and run vasudev doctor --fix",
       });
     });
   });

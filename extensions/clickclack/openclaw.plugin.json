@@ -2,7 +2,7 @@
   "id": "clickclack",
   "categories": ["channels"],
   "name": "ClickClack",
-  "description": "OpenClaw ClickClack channel plugin.",
+  "description": "Vasudev ClickClack channel plugin.",
   "doctorContract": {
     "configRepair": true
   },

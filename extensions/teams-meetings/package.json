@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/teams-meetings",
   "version": "2026.9.4",
-  "description": "OpenClaw Microsoft Teams browser meeting participant plugin.",
+  "description": "Vasudev Microsoft Teams browser meeting participant plugin.",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

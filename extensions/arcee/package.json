@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/arcee-provider",
   "version": "2026.9.4",
-  "description": "OpenClaw Arcee provider plugin.",
+  "description": "Vasudev Arcee provider plugin.",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

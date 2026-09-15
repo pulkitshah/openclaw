@@ -10,7 +10,7 @@ OpenCode Go is a separate paid subscription inside [OpenCode](/providers/opencod
 It uses the same `OPENCODE_API_KEY` credential infrastructure as Zen, but a Zen
 key does not automatically include Go entitlement. Go keeps its own runtime
 provider id (`opencode-go`) so upstream per-model routing stays correct.
-OpenCode Go is bundled in the OpenClaw package, so onboarding
+OpenCode Go is bundled in the Vasudev package, so onboarding
 and configuration are sufficient; no separate plugin install is required.
 
 | Property         | Value                                              |
@@ -22,7 +22,7 @@ and configuration are sufficient; no separate plugin install is required.
 
 ## Getting started
 
-OpenCode Go is already included with OpenClaw. Continue with
+OpenCode Go is already included with Vasudev. Continue with
 interactive onboarding or pass the shared OpenCode API key directly.
 
 <Tabs>
@@ -74,9 +74,9 @@ interactive onboarding or pass the shared OpenCode API key directly.
 ## Catalog
 
 Run `openclaw models list --provider opencode-go` for the current model list.
-OpenClaw combines Go's advertised model IDs with authoritative metadata from
+Vasudev combines Go's advertised model IDs with authoritative metadata from
 `https://models.opencode.ai/api.json`, so new upstream models appear without an
-OpenClaw update when they use a supported transport on the trusted OpenCode
+Vasudev update when they use a supported transport on the trusted OpenCode
 endpoint. The upstream catalog is downloaded and
 cached only when OpenCode Zen or Go is configured or explicitly selected with
 OpenCode credentials; it is never fetched at startup or while using unrelated
@@ -84,7 +84,7 @@ providers.
 
 Example refs include `opencode-go/deepseek-v4-flash`, `opencode-go/kimi-k3`, and
 `opencode-go/qwen3.8-max`. Use the CLI for the current lineup rather than treating
-these examples as an inventory. OpenClaw excludes deprecated rows from active
+these examples as an inventory. Vasudev excludes deprecated rows from active
 discovery and applies refreshed lifecycle status to its offline fallback.
 Bundled preview rows stay hidden until accepted upstream metadata supplies them.
 Existing explicit refs in the bundled seed remain resolvable.
@@ -97,13 +97,13 @@ active Go subscription, including for promotional models.
 
 Retention and training policies vary by model. Review the current
 [OpenCode Go privacy table](https://opencode.ai/docs/go/#privacy) before using a
-model, because provider policy can change independently of OpenClaw.
+model, because provider policy can change independently of Vasudev.
 
 ## Advanced configuration
 
 <AccordionGroup>
   <Accordion title="Routing behavior">
-    OpenClaw routes any `opencode-go/...` model ref automatically. No extra
+    Vasudev routes any `opencode-go/...` model ref automatically. No extra
     provider config is required.
   </Accordion>
 

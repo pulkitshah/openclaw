@@ -19,7 +19,7 @@ afterEach(async () => {
   await sandboxExecServerRegistry.closeAll();
 });
 
-describe("OpenClaw Codex sandbox exec-server filesystem streaming", () => {
+describe("Vasudev Codex sandbox exec-server filesystem streaming", () => {
   it("streams sandbox files through connection-owned Codex file handles", async () => {
     const data = Buffer.from("0123456789");
     const readFile = vi.fn(async () => data);

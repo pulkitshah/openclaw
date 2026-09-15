@@ -1,6 +1,6 @@
 /**
  * Heavy doctor repair operations: plugin install-path diagnosis, plugin config
- * removal, and OpenClaw state-database schema detection/repair.
+ * removal, and Vasudev state-database schema detection/repair.
  *
  * These pull the state-database and plugin-registry graphs, so they are kept off
  * `runtime-doctor-migrations` (the dependency-light subpath doctor contract

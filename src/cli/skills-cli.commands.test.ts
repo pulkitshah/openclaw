@@ -660,8 +660,8 @@ describe("skills cli commands", () => {
 
       expect(help).toContain("<skill-ref>");
       expect(help).toContain("@owner/slug");
-      expect(help).toContain(`openclaw skills ${commandName} @owner/weather`);
-      expect(help).not.toContain(`openclaw skills ${commandName} weather`);
+      expect(help).toContain(`vasudev skills ${commandName} @owner/weather`);
+      expect(help).not.toContain(`vasudev skills ${commandName} weather`);
     },
   );
 
@@ -1468,7 +1468,7 @@ describe("skills cli commands", () => {
       label: "human",
       argv: ["skills", "info", "missing-skill"],
       expected:
-        'Skill "missing-skill" not found. Run `openclaw skills list` to see available skills.\n\nTip: use `openclaw skills search`, `openclaw skills install`, and `openclaw skills update` for ClawHub-backed skills.',
+        'Skill "missing-skill" not found. Run `vasudev skills list` to see available skills.\n\nTip: use `vasudev skills search`, `vasudev skills install`, and `vasudev skills update` for ClawHub-backed skills.',
     },
     {
       label: "JSON",
@@ -1796,7 +1796,7 @@ describe("skills cli commands", () => {
     await expect(runCommand(argv)).rejects.toThrow("__exit__:1");
 
     expect(runtimeErrors).toStrictEqual([
-      'Unknown agent id "nope-agent". Run openclaw agents list to see configured agents.',
+      'Unknown agent id "nope-agent". Run vasudev agents list to see configured agents.',
     ]);
     expect(resolveAgentWorkspaceDirMock).not.toHaveBeenCalled();
   });
@@ -1869,7 +1869,7 @@ describe("skills cli commands", () => {
     expect(defaultRuntime.log).not.toHaveBeenCalled();
     expect(runtimeErrors).toStrictEqual([]);
     expect(runtimeStdout.at(-1)).toContain("calendar");
-    expect(runtimeStdout.at(-1)).toContain("openclaw skills search");
+    expect(runtimeStdout.at(-1)).toContain("vasudev skills search");
   });
 });
 /* oxlint-disable max-lines -- TODO: split this grandfathered oversized file. */

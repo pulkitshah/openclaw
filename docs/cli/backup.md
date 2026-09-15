@@ -1,8 +1,8 @@
 ---
 summary: "CLI reference for `openclaw backup` (archives, SQLite snapshots, and Git history)"
 read_when:
-  - You want a first-class backup archive for local OpenClaw state
-  - You need a compact, verified snapshot of one OpenClaw SQLite database
+  - You want a first-class backup archive for local Vasudev state
+  - You need a compact, verified snapshot of one Vasudev SQLite database
   - You want scheduled, versioned database backups in an operator-owned Git repository
   - You want to preview which paths would be included before reset or uninstall
   - You want to restore from a `.tar.gz` archive previously created by `openclaw backup`
@@ -11,7 +11,7 @@ title: "Backup"
 
 # `openclaw backup`
 
-Create a local backup archive for OpenClaw state, config, auth profiles, channel/provider credentials, sessions, and optionally workspaces.
+Create a local backup archive for Vasudev state, config, auth profiles, channel/provider credentials, sessions, and optionally workspaces.
 
 ```bash
 openclaw backup create
@@ -43,9 +43,9 @@ Archive `create`, `verify`, and `restore`, plus SQLite `create`, `list`, `verify
 ## Notes
 
 - The archive embeds a schema-version-1 `manifest.json` with the resolved source paths and archive layout. Additive ownership metadata records configured agent ids and roots, including agent roots already covered by another asset; existing archive layout and older archives remain supported.
-- Default output is a timestamped `.tar.gz` archive in the current working directory. Timestamped filenames use your machine's local timezone and include the UTC offset. If the current working directory is inside a backed-up source tree, OpenClaw falls back to your home directory for the default archive location.
+- Default output is a timestamped `.tar.gz` archive in the current working directory. Timestamped filenames use your machine's local timezone and include the UTC offset. If the current working directory is inside a backed-up source tree, Vasudev falls back to your home directory for the default archive location.
 - Existing archive files are never overwritten. Output paths inside the source state/workspace trees are rejected to avoid self-inclusion.
-- `openclaw backup verify <archive>` checks that the archive contains exactly one root manifest, rejects traversal-style archive paths, unsafe symbolic links, and SQLite sidecars, confirms every manifest-declared payload exists, validates every SQLite snapshot's file shape, and runs full integrity and role checks on canonical OpenClaw databases. Dedicated plugin schemas remain opaque because they may require owner-defined SQLite capabilities. `openclaw backup create --verify` runs that validation immediately after writing the archive.
+- `openclaw backup verify <archive>` checks that the archive contains exactly one root manifest, rejects traversal-style archive paths, unsafe symbolic links, and SQLite sidecars, confirms every manifest-declared payload exists, validates every SQLite snapshot's file shape, and runs full integrity and role checks on canonical Vasudev databases. Dedicated plugin schemas remain opaque because they may require owner-defined SQLite capabilities. `openclaw backup create --verify` runs that validation immediately after writing the archive.
 - Full archives include the active config and its required `$include` files, including dependencies outside the state directory. They preserve authored bytes, comments, and environment placeholders; resolved secrets are not written into the config copy. These additional files may contain sensitive data, so protect the archive accordingly.
 - AppleDouble metadata named `._*.sqlite`, such as `._cron.sqlite`, is excluded from state and agent database roots only when its file signature confirms the format. Real SQLite files and hardlink aliases with these names still require verified snapshots.
 - Full archives refuse unresolved include graphs, files that change during config capture, and include aliases that cannot be represented safely. Fix missing or unreadable files, use regular-file include paths, or pause concurrent edits and retry. `--no-include-workspace` still includes required config dependencies, even within an excluded workspace.
@@ -125,7 +125,7 @@ not create captures, change retention, or change ordinary backup sanitization.
 
 ## SQLite snapshots
 
-Use `openclaw backup sqlite` when you need a portable artifact for one OpenClaw-owned SQLite database instead of a broad state archive.
+Use `openclaw backup sqlite` when you need a portable artifact for one Vasudev-owned SQLite database instead of a broad state archive.
 
 Snapshot creation accepts exactly one named source. Agent sources always use
 the current configuration's resolved `<agentDir>/openclaw-agent.sqlite`, even
@@ -133,7 +133,7 @@ when `agentDir` is outside the state directory:
 
 | Command                                                         | Database               |
 | --------------------------------------------------------------- | ---------------------- |
-| `openclaw backup sqlite create --global --repository <dir>`     | Shared OpenClaw state  |
+| `openclaw backup sqlite create --global --repository <dir>`     | Shared Vasudev state   |
 | `openclaw backup sqlite create --agent <id> --repository <dir>` | One per-agent database |
 
 The repository contains one directory per committed snapshot. Each snapshot directory contains exactly:
@@ -153,7 +153,7 @@ database needs no original cold directory;
 missing or corrupt source archives fail backup creation. See
 [Cold transcript backups](/install/backups#cold-transcript-backups).
 
-SQLite snapshots can contain auth profiles, session state, plugin state, and other sensitive records. Protect repositories with the same permissions, encryption, retention policy, and destination restrictions as the live OpenClaw state directory.
+SQLite snapshots can contain auth profiles, session state, plugin state, and other sensitive records. Protect repositories with the same permissions, encryption, retention policy, and destination restrictions as the live Vasudev state directory.
 
 ### Verify and restore
 
@@ -162,13 +162,13 @@ openclaw backup sqlite verify <snapshot-directory>
 openclaw backup sqlite restore <snapshot-directory> --target <new-database-path>
 ```
 
-Verification checks the strict manifest shape, artifact size and SHA-256, SQLite integrity, foreign keys, schema version, database role and owner, and OpenClaw-owned index definitions.
+Verification checks the strict manifest shape, artifact size and SHA-256, SQLite integrity, foreign keys, schema version, database role and owner, and Vasudev-owned index definitions.
 
 Verification validates a private content-pinned copy so pathname races cannot swap the bytes SQLite inspects. By default, that temporary copy is created beside the snapshot repository and removed before the command returns. The staging root and its ancestor chain must prevent other users from replacing it. POSIX roots must be current-user-owned and not group/world writable; sticky ancestors such as `/tmp` are accepted for user-owned children. macOS ACL grants that expose or make staging replaceable are rejected. Windows roots and ancestors must be owned by the current user or a trusted OS principal, with ACLs that deny untrusted staging access. For a read-only mount or network share, pass `--scratch <existing-private-directory>` on storage with equivalent encryption and destination controls.
 
 Snapshot creation applies the same owner, ACL, ancestor, and path-identity checks to the repository before staging or publishing database bytes. Newly created directory edges and final publication metadata are synchronized through the shared `fs-safe` durability boundary before success is reported on supported filesystems.
 
-Restore repeats verification and writes only to a fresh target. It refuses an existing target, `-wal`, `-shm`, or `-journal` sidecar and never performs an in-place replacement of a live OpenClaw database. The target parent has the same path-security requirements as verification scratch. Activating a restored database remains an explicit offline operator step.
+Restore repeats verification and writes only to a fresh target. It refuses an existing target, `-wal`, `-shm`, or `-journal` sidecar and never performs an in-place replacement of a live Vasudev database. The target parent has the same path-security requirements as verification scratch. Activating a restored database remains an explicit offline operator step.
 
 Snapshot repositories are local directories. Scheduling, upload, retention, incremental WAL bundles, failover, and restore-on-boot behavior are intentionally outside this command.
 
@@ -194,13 +194,13 @@ openclaw backup git create --repository ~/Backups/openclaw-git --all --push
 ```
 
 The repository root must be owned by the current user and must not be group- or
-world-writable. OpenClaw checks this when initializing or adopting a repository
+world-writable. Vasudev checks this when initializing or adopting a repository
 and before every create. On POSIX systems, repair unsafe permissions with
 `chmod 700 <repository>` after confirming its ownership.
 
-The repository must be dedicated to OpenClaw backups. An existing `global/` or
+The repository must be dedicated to Vasudev backups. An existing `global/` or
 `agents/<agentId>/` scope is backup-owned only when it is empty or contains a
-valid schema-version-1 `manifest.json`. OpenClaw refuses to replace any other
+valid schema-version-1 `manifest.json`. Vasudev refuses to replace any other
 scope. With `--all`, it validates every existing entry under `agents/` before
 removing stale backup-owned agent scopes, so an unowned entry aborts the cleanup
 before anything is deleted.
@@ -263,7 +263,7 @@ openclaw backup git verify --repository ~/Backups/openclaw-git --ref <commit> --
 Git history output must fit within a 16 MiB read. If a log request reports an
 output-limit error, retry with a smaller `--limit`. An oversized commit subject
 can exceed the limit even with `--limit 1`; inspect that history directly with
-Git. OpenClaw reports the failure without returning partial history entries.
+Git. Vasudev reports the failure without returning partial history entries.
 
 Verification restores the selected snapshot into private scratch space, checks each table's row count and SHA-256, runs `PRAGMA integrity_check` and `PRAGMA foreign_key_check`, and removes the scratch copy. Restore writes only to a fresh target and refuses existing `-wal`, `-shm`, and `-journal` sidecars:
 
@@ -300,7 +300,7 @@ Every real archive, SQLite snapshot, and Git create attempt records a compact ou
 
 ## What gets backed up
 
-`openclaw backup create` plans sources from your local OpenClaw install:
+`openclaw backup create` plans sources from your local Vasudev install:
 
 - The state directory (usually `~/.openclaw`)
 - The active config file path
@@ -319,7 +319,7 @@ ordinary workspace sources, not configured agent directories.
 `--only-config` skips state, agent, credentials-directory, workspace, and
 plugin-resource discovery and archives only the active config file path.
 
-OpenClaw builds one immutable, configuration-derived ownership inventory before
+Vasudev builds one immutable, configuration-derived ownership inventory before
 planning sources, SQLite snapshots, exclusions, results, and the embedded
 manifest. Paths are canonicalized: config, credentials, workspaces, and agents
 already covered by another included root are not duplicated as top-level
@@ -327,7 +327,7 @@ sources. A custom agent root becomes a distinct `agent` asset only when no
 existing asset covers it; the manifest still records its agent id and root when
 another asset contains it. Missing paths are reported as skipped.
 
-During archive creation, OpenClaw excludes known live-mutation paths before `tar` reads them. This avoids races between a file's recorded size and concurrent writes. The filter applies these state-relative rules under each backed-up state directory:
+During archive creation, Vasudev excludes known live-mutation paths before `tar` reads them. This avoids races between a file's recorded size and concurrent writes. The filter applies these state-relative rules under each backed-up state directory:
 
 | State-relative scope                         | Skipped entries                                       |
 | -------------------------------------------- | ----------------------------------------------------- |
@@ -345,13 +345,13 @@ The active config file remains included even when its name or location matches a
 
 These rules do not filter workspace files outside the state directory. They also omit completed transcript and log files that match the table, so retain those records separately when needed. The JSON result's `skippedVolatileCount` reports intentionally omitted volatile entries; regenerable agent temporary roots are listed separately in `skipped` and are not included in that count.
 
-Chromium singleton entries coordinate one running browser on one host and are recreated when that profile starts; the rest of the profile's `user-data/` remains in the archive. Sandbox skills workspaces are generated copies of current skill sources and are materialized again when OpenClaw prepares the next sandbox context after restore; adjacent sandbox registry and other durable state remain included.
+Chromium singleton entries coordinate one running browser on one host and are recreated when that profile starts; the rest of the profile's `user-data/` remains in the archive. Sandbox skills workspaces are generated copies of current skill sources and are materialized again when Vasudev prepares the next sandbox context after restore; adjacent sandbox registry and other durable state remain included.
 
 SQLite databases owned by the state directory or any configured agent directory
 are captured with SQLite's online backup API and compacted offline with
 `VACUUM`, including custom agent roots covered by a workspace or managed state
 asset. Committed WAL changes are included, deleted-page remnants and transient
-leases are removed, sidecars are omitted, and canonical OpenClaw databases must
+leases are removed, sidecars are omitted, and canonical Vasudev databases must
 match their expected role and agent owner. Unsafe aliasing or an owner mismatch
 fails closed. A plugin-owned database that requires unavailable owner-defined
 SQLite capabilities also fails closed rather than falling back to a direct file
@@ -366,12 +366,12 @@ name supplies the committed data. Closed databases without a nonempty WAL remain
 supported. Multiple nonempty WALs, a nonempty rollback journal, or hardlinks
 outside the backup inventory cause an explicit refusal with no archive. Close
 the database writers cleanly and include every hardlink in those roots before retrying.
-Canonical OpenClaw database aliases retain their existing owner validation and
+Canonical Vasudev database aliases retain their existing owner validation and
 sanitization.
 
 Installed plugin source and manifest files under the state directory's `extensions/` tree are included, but their nested `node_modules/` dependency trees are skipped as rebuildable install artifacts. After restoring an archive, use `openclaw plugins update <id>` or reinstall with `openclaw plugins install <spec> --force` if a restored plugin reports missing dependencies.
 
-The state directory's `plugin-skills/` root is a generated, OpenClaw-owned symlink index, not authoritative state. Backup creation reports and omits that root because its absolute targets are specific to the source installation. After activating restored state, run `openclaw skills list` or start an agent session to rebuild the links from current plugin metadata.
+The state directory's `plugin-skills/` root is a generated, Vasudev-owned symlink index, not authoritative state. Backup creation reports and omits that root because its absolute targets are specific to the source installation. After activating restored state, run `openclaw skills list` or start an agent session to rebuild the links from current plugin metadata.
 
 Agent-scoped temporary trees under `agents/<agentId>/agent/**/{tmp,.tmp}/` are also omitted and reported as regenerable. This includes temporary files directly below an agent directory and temporary trees inside agent runtime homes; durable sibling directories remain included. An explicitly configured config file, credentials directory, or workspace nested below an omitted temporary root remains included.
 
@@ -393,7 +393,7 @@ remains traversable to reach those protected descendants. Names such as `tmp`
 and `.tmp` are not blanket exclusions in custom agent directories; only an
 applicable owner declaration can omit their durable-looking siblings.
 
-Local edits inside a managed `dev/` checkout are developer source, not OpenClaw product state, and are not included. Commit and push those edits or copy the checkout separately before relying on a state backup.
+Local edits inside a managed `dev/` checkout are developer source, not Vasudev product state, and are not included. Commit and push those edits or copy the checkout separately before relying on a state backup.
 
 ## Invalid config behavior
 
@@ -410,12 +410,12 @@ do not treat that recovery archive as a complete backup.
 
 ## Size and performance
 
-OpenClaw does not enforce a built-in maximum backup size or per-file size limit. An archive write that produces no data for five minutes fails and removes its partial temporary file instead of hanging indefinitely. Practical limits otherwise come from:
+Vasudev does not enforce a built-in maximum backup size or per-file size limit. An archive write that produces no data for five minutes fails and removes its partial temporary file instead of hanging indefinitely. Practical limits otherwise come from:
 
 - Available space for the temporary archive write plus the final archive
 - Time to walk large workspace trees and compress them into a `.tar.gz`
 - Time to rescan the archive with `--verify` or `openclaw backup verify`
-- Destination filesystem behavior: OpenClaw requires no-overwrite hard-link publication so a final archive path never exposes an in-progress copy; unsupported filesystems fail with an actionable error
+- Destination filesystem behavior: Vasudev requires no-overwrite hard-link publication so a final archive path never exposes an in-progress copy; unsupported filesystems fail with an actionable error
 
 If final-directory durability confirmation fails after publication, the command reports failure but preserves the complete final entry rather than risk deleting a concurrent replacement.
 
@@ -424,5 +424,5 @@ Large workspaces are usually the main driver of archive size. Use `--no-include-
 ## Related
 
 - [CLI reference](/cli)
-- [Migrating an OpenClaw install](/install/migrating)
+- [Migrating a Vasudev install](/install/migrating)
 - [Restore a full archive](/install/backups#restore-a-full-archive)

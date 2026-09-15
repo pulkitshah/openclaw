@@ -41,7 +41,7 @@ WantedBy=default.target
 // Real content from the openclaw-test.service unit file (a non-gateway openclaw service).
 const TEST_SERVICE_CONTENTS = `\
 [Unit]
-Description=OpenClaw test service
+Description=Vasudev test service
 After=default.target
 
 [Service]
@@ -63,7 +63,7 @@ Environment=HOME=/home/clawdbot
 
 const COMPANION_SERVICE_CONTENTS = `\
 [Unit]
-Description=OpenClaw companion worker
+Description=Vasudev companion worker
 After=openclaw-gateway.service
 Requires=openclaw-gateway.service
 
@@ -73,7 +73,7 @@ ExecStart=/usr/bin/node /opt/openclaw-worker/dist/index.js worker
 
 const CUSTOM_OPENCLAW_GATEWAY_CONTENTS = `\
 [Unit]
-Description=Custom OpenClaw gateway
+Description=Custom Vasudev gateway
 
 [Service]
 ExecStart=/usr/bin/node /opt/openclaw/dist/entry.js gateway --port 18888
@@ -518,7 +518,7 @@ describe("findExtraGatewayServices (win32)", () => {
       code: 0,
       stdout: [
         "TaskName:\\OpenClaw Gateway",
-        "Task To Run: C:\\Program Files\\OpenClaw\\openclaw.exe gateway run",
+        "Task To Run: C:\\Program Files\\Vasudev\\openclaw.exe gateway run",
         "",
         "TaskName: Clawdbot Legacy",
         "Task To Run: C:\\clawdbot\\clawdbot.exe run",
@@ -550,13 +550,13 @@ describe("findExtraGatewayServices (win32)", () => {
       code: 0,
       stdout: [
         "TaskName:\\OpenClaw Gateway",
-        "Task To Run: C:\\Program Files\\OpenClaw\\openclaw.exe gateway run",
+        "Task To Run: C:\\Program Files\\Vasudev\\openclaw.exe gateway run",
         "",
         "TaskName:\\OpenClaw Gateway (dev)",
-        "Task To Run: C:\\Program Files\\OpenClaw\\openclaw.exe gateway run --profile dev",
+        "Task To Run: C:\\Program Files\\Vasudev\\openclaw.exe gateway run --profile dev",
         "",
         "TaskName:\\OpenClaw Gateway Backup",
-        "Task To Run: C:\\Program Files\\OpenClaw\\openclaw.exe gateway run",
+        "Task To Run: C:\\Program Files\\Vasudev\\openclaw.exe gateway run",
         "",
       ].join("\n"),
       stderr: "",
@@ -568,7 +568,7 @@ describe("findExtraGatewayServices (win32)", () => {
         platform: "win32",
         label: "\\OpenClaw Gateway Backup",
         detail:
-          "task: \\OpenClaw Gateway Backup, run: C:\\Program Files\\OpenClaw\\openclaw.exe gateway run",
+          "task: \\OpenClaw Gateway Backup, run: C:\\Program Files\\Vasudev\\openclaw.exe gateway run",
         scope: "system",
         marker: "openclaw",
         legacy: false,

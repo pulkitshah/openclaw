@@ -8,12 +8,12 @@ import type { OpenClawConfig } from "./channel-api.js";
 
 export const SLACK_CHANNEL = "slack" as const;
 
-export function buildSlackManifest(botName = "OpenClaw") {
-  const safeName = botName.trim() || "OpenClaw";
+export function buildSlackManifest(botName = "Vasudev") {
+  const safeName = botName.trim() || "Vasudev";
   const manifest = {
     display_information: {
       name: safeName,
-      description: `${safeName} connector for OpenClaw`,
+      description: `${safeName} connector for Vasudev`,
     },
     features: {
       bot_user: {
@@ -26,7 +26,7 @@ export function buildSlackManifest(botName = "OpenClaw") {
         messages_tab_read_only_enabled: false,
       },
       agent_view: {
-        agent_description: `${safeName} connects Slack Agent View conversations to OpenClaw agents.`,
+        agent_description: `${safeName} connects Slack Agent View conversations to Vasudev agents.`,
         suggested_prompts: [
           {
             title: "What can you do?",
@@ -45,7 +45,7 @@ export function buildSlackManifest(botName = "OpenClaw") {
       slash_commands: [
         {
           command: "/openclaw",
-          description: "Send a message to OpenClaw",
+          description: "Send a message to Vasudev",
           should_escape: false,
         },
       ],

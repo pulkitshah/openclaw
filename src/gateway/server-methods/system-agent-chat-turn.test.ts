@@ -33,7 +33,7 @@ describe("system-agent chat input", () => {
         wizardAnswer: { stepId: "secret", value: "not-forwarded" },
         delegation: { agentId: "main", sessionKey: "agent:main:main" },
       },
-      error: "Delegated OpenClaw sessions cannot submit structured wizard answers.",
+      error: "Delegated Vasudev sessions cannot submit structured wizard answers.",
     },
     {
       input: {
@@ -41,7 +41,7 @@ describe("system-agent chat input", () => {
         wizardAnswer: { stepId: "channel", value: "twitch" },
         reset: true,
       },
-      error: "A wizard answer cannot reset its OpenClaw chat session.",
+      error: "A wizard answer cannot reset its Vasudev chat session.",
     },
     {
       input: {
@@ -65,7 +65,7 @@ describe("system-agent chat input", () => {
         wizardCancel: { stepId: "channel" },
         delegation: { agentId: "main", sessionKey: "agent:main:main" },
       },
-      error: "Delegated OpenClaw sessions cannot cancel hosted wizards.",
+      error: "Delegated Vasudev sessions cannot cancel hosted wizards.",
     },
     {
       input: {
@@ -73,7 +73,7 @@ describe("system-agent chat input", () => {
         wizardCancel: { stepId: "channel" },
         reset: true,
       },
-      error: "A wizard cancel cannot reset its OpenClaw chat session.",
+      error: "A wizard cancel cannot reset its Vasudev chat session.",
     },
   ])("rejects invalid mixed input: $error", ({ input, error }) => {
     expect(getSystemAgentChatInputError(input)).toBe(error);

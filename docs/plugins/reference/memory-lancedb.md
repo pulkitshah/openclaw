@@ -1,5 +1,5 @@
 ---
-summary: "OpenClaw LanceDB-backed long-term memory plugin with auto-recall, auto-capture, and vector search."
+summary: "Vasudev LanceDB-backed long-term memory plugin with auto-recall, auto-capture, and vector search."
 read_when:
   - You are installing, configuring, or auditing the memory-lancedb plugin
 title: "Memory Lancedb plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-OpenClaw LanceDB-backed long-term memory plugin with auto-recall, auto-capture, and vector search.
+Vasudev LanceDB-backed long-term memory plugin with auto-recall, auto-capture, and vector search.
 
 ## Distribution
 

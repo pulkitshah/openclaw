@@ -1,5 +1,5 @@
 ---
-summary: "Install, configure, and manage OpenClaw plugins"
+summary: "Install, configure, and manage Vasudev plugins"
 read_when:
   - Installing or configuring plugins
   - Understanding plugin discovery and load rules
@@ -9,7 +9,7 @@ sidebarTitle: "Getting Started"
 doc-schema-version: 1
 ---
 
-Plugins extend OpenClaw with channels, model providers, agent harnesses, tools,
+Plugins extend Vasudev with channels, model providers, agent harnesses, tools,
 skills, speech, realtime transcription, voice, media understanding, generation,
 web fetch, web search, and other runtime capabilities.
 
@@ -21,7 +21,7 @@ bundled, official external, and source-only plugins, see
 
 ## Requirements
 
-- an OpenClaw checkout or installation with the `openclaw` CLI available
+- a Vasudev checkout or installation with the `openclaw` CLI available
 - network access to the selected source (ClawHub, npm, or a git host)
 - any plugin-specific credentials, config keys, or OS tools named by that
   plugin's setup docs
@@ -62,7 +62,7 @@ bundled, official external, and source-only plugins, see
     ```
 
     Treat plugin installs like running code. Prefer pinned versions for
-    reproducible production installs. ClawHub packages and OpenClaw's
+    reproducible production installs. ClawHub packages and Vasudev's
     bundled/official catalog are trusted sources. New arbitrary npm, git,
     local path/archive, `npm-pack:`, or marketplace sources require
     `--force` in noninteractive installs after you
@@ -120,13 +120,13 @@ bundled, official external, and source-only plugins, see
 
 ### Choose an install source
 
-| Source      | Use when                                                                       | Example                                                        |
-| ----------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------- |
-| ClawHub     | You want OpenClaw-native discovery, scans, version metadata, and install hints | `openclaw plugins install clawhub:<package>`                   |
-| npm         | You need direct npm registry or dist-tag workflows                             | `openclaw plugins install npm:<package>`                       |
-| git         | You need a branch, tag, or commit from a repository                            | `openclaw plugins install git:github.com/<owner>/<repo>@<ref>` |
-| local path  | You are developing or testing a plugin on the same machine                     | `openclaw plugins install --link ./my-plugin`                  |
-| marketplace | You are installing a Claude-compatible marketplace plugin                      | `openclaw plugins install <plugin> --marketplace <source>`     |
+| Source      | Use when                                                                      | Example                                                        |
+| ----------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| ClawHub     | You want Vasudev-native discovery, scans, version metadata, and install hints | `openclaw plugins install clawhub:<package>`                   |
+| npm         | You need direct npm registry or dist-tag workflows                            | `openclaw plugins install npm:<package>`                       |
+| git         | You need a branch, tag, or commit from a repository                           | `openclaw plugins install git:github.com/<owner>/<repo>@<ref>` |
+| local path  | You are developing or testing a plugin on the same machine                    | `openclaw plugins install --link ./my-plugin`                  |
+| marketplace | You are installing a Claude-compatible marketplace plugin                     | `openclaw plugins install <plugin> --marketplace <source>`     |
 
 Bare package specs have special compatibility behavior: a bare name that
 matches a bundled plugin id uses that bundled source; a bare name that matches
@@ -139,9 +139,9 @@ external npm package instead of the bundled copy. Use `clawhub:`, `npm:`,
 [`openclaw plugins`](/cli/plugins#install) for the full command contract.
 
 For npm installs, unpinned specs and `@latest` choose the newest stable
-package that advertises compatibility with this OpenClaw build. If npm's
+package that advertises compatibility with this Vasudev build. If npm's
 current latest release declares a newer `openclaw.compat.pluginApi` or
-`openclaw.install.minHostVersion` than this build supports, OpenClaw scans
+`openclaw.install.minHostVersion` than this build supports, Vasudev scans
 older stable versions and installs the newest one that fits. Exact versions
 and explicit channel tags such as `@beta` stay pinned to the selected package
 and fail when incompatible.
@@ -168,7 +168,7 @@ exists, use that command to review and approve the warning. Otherwise, change
 the managed flow. Neither `--force` nor the deprecated plugin
 install/update flag `--dangerously-force-unsafe-install` approves a policy
 warning. Plugin
-`before_install` hooks run later, and only in OpenClaw processes where plugin
+`before_install` hooks run later, and only in Vasudev processes where plugin
 hooks are loaded, so use `security.installPolicy` for operator-owned install
 decisions instead. The flag does not override a block or policy failure.
 It also does not bypass `before_install` hook blocks.
@@ -236,7 +236,7 @@ or [`openclaw plugins inspect <id>`](/cli/plugins#inspect) on the listed
 plugin id before copying trusted plugins into `openclaw.json`. The same
 trust-pinning applies when diagnostics say a plugin loaded
 `without install/load-path provenance`: inspect that plugin id, then pin it in
-`plugins.allow` or reinstall from a trusted source so OpenClaw records install
+`plugins.allow` or reinstall from a trusted source so Vasudev records install
 provenance.
 
 Run `openclaw doctor` or `openclaw doctor --fix` when config validation
@@ -245,12 +245,12 @@ paths.
 
 ## Understand plugin formats
 
-OpenClaw recognizes two plugin formats:
+Vasudev recognizes two plugin formats:
 
-| Format                 | How it loads                                                                                | Use when                                                               |
-| ---------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Native OpenClaw plugin | `openclaw.plugin.json` plus a runtime module loaded in process                              | You are installing or building OpenClaw-specific runtime capabilities  |
-| Compatible bundle      | Agent Plugins, Codex, Claude, or Cursor plugin layout mapped into OpenClaw plugin inventory | You are reusing compatible skills, commands, hooks, or bundle metadata |
+| Format                | How it loads                                                                               | Use when                                                               |
+| --------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| Native Vasudev plugin | `openclaw.plugin.json` plus a runtime module loaded in process                             | You are installing or building Vasudev-specific runtime capabilities   |
+| Compatible bundle     | Agent Plugins, Codex, Claude, or Cursor plugin layout mapped into Vasudev plugin inventory | You are reusing compatible skills, commands, hooks, or bundle metadata |
 
 Both formats appear in `openclaw plugins list`, `openclaw plugins inspect`,
 `openclaw plugins enable`, and `openclaw plugins disable`. See
@@ -325,7 +325,7 @@ serves your channels, not only a wrapper or supervisor.
 | Dependency import fails at runtime                             | Check whether the plugin was installed through npm/git/ClawHub or loaded from a local path                                                 | Run `openclaw plugins update <id>`, reinstall the source, or install local plugin dependencies yourself               |
 
 When an enabled managed plugin fails payload verification during Gateway
-startup, OpenClaw quarantines that exact installed plugin root for the boot and
+startup, Vasudev quarantines that exact installed plugin root for the boot and
 continues serving other plugins. `openclaw status --all`, `openclaw health`,
 and `openclaw doctor` report it as `configured-unavailable`. Fix or reinstall
 the plugin, then restart the Gateway. A healthy explicit `plugins.load.paths`
@@ -340,13 +340,13 @@ stay visible.
 
 For intentional channel replacement, the preferred plugin should declare
 `channelConfigs.<channel-id>.preferOver` with the legacy or lower-priority
-plugin id. If both plugins are explicitly enabled, OpenClaw keeps that request
+plugin id. If both plugins are explicitly enabled, Vasudev keeps that request
 and reports duplicate channel/tool diagnostics instead of silently choosing
 one owner.
 
 If an installed package reports that it `requires compiled runtime output for
 TypeScript entry ...`, the package was published without the JavaScript files
-OpenClaw needs at runtime. Update or reinstall after the publisher ships
+Vasudev needs at runtime. Update or reinstall after the publisher ships
 compiled JavaScript, or disable/uninstall the plugin until then.
 
 ### Trusted plugin state refused
@@ -384,20 +384,20 @@ does not fall back to trusting package-authored metadata.
 
 If diagnostics say
 `blocked plugin candidate: suspicious ownership (... uid=1000, expected uid=0 or root)`
-and validation follows with `plugin present but blocked`, OpenClaw found
+and validation follows with `plugin present but blocked`, Vasudev found
 plugin files owned by a different Unix user than the process loading them.
-Keep the plugin config in place; fix the filesystem ownership or run OpenClaw
+Keep the plugin config in place; fix the filesystem ownership or run Vasudev
 as the same user that owns the state directory.
 
 For Docker installs, the official image runs as `node` (uid `1000`), so the
-host bind-mounted OpenClaw config and workspace directories should normally be
+host bind-mounted Vasudev config and workspace directories should normally be
 owned by uid `1000`:
 
 ```bash
 sudo chown -R 1000:1000 /path/to/openclaw-config /path/to/openclaw-workspace
 ```
 
-If you intentionally run OpenClaw as root, repair the managed plugin root to
+If you intentionally run Vasudev as root, repair the managed plugin root to
 root ownership instead:
 
 ```bash
@@ -429,7 +429,7 @@ including plugin id, declared tool names, result shape, and whether the tool
 is optional. Slow lines are promoted to warnings when a single factory takes
 at least 1s or total plugin tool factory prep takes at least 5s.
 
-OpenClaw caches successful plugin tool factory results for repeated
+Vasudev caches successful plugin tool factory results for repeated
 resolutions with the same effective request context. The cache key includes
 the effective runtime config, workspace and agent id, sandbox policy, browser
 settings, delivery context, requester identity, and ownership state, so

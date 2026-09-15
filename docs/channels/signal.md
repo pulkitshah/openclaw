@@ -6,7 +6,7 @@ read_when:
 title: "Signal"
 ---
 
-Signal is a downloadable channel plugin (`@openclaw/signal`). The gateway talks to `signal-cli` over HTTP: either the native daemon (JSON-RPC + SSE) or the [bbernhard/signal-cli-rest-api](https://github.com/bbernhard/signal-cli-rest-api) container (REST + WebSocket). OpenClaw does not embed libsignal.
+Signal is a downloadable channel plugin (`@openclaw/signal`). The gateway talks to `signal-cli` over HTTP: either the native daemon (JSON-RPC + SSE) or the [bbernhard/signal-cli-rest-api](https://github.com/bbernhard/signal-cli-rest-api) container (REST + WebSocket). Vasudev does not embed libsignal.
 
 ## The number model (read this first)
 
@@ -135,7 +135,7 @@ signal-cli -a +<BOT_PHONE_NUMBER> register --captcha '<SIGNALCAPTCHA_URL>'
 signal-cli -a +<BOT_PHONE_NUMBER> verify <VERIFICATION_CODE>
 ```
 
-4. Configure OpenClaw, restart the gateway, verify the channel:
+4. Configure Vasudev, restart the gateway, verify the channel:
 
 ```bash
 # If you run the gateway as a user systemd service:
@@ -163,7 +163,7 @@ Upstream references:
 
 ## External native daemon mode
 
-To manage `signal-cli` yourself (slow JVM cold starts, container init, shared CPUs), run the daemon separately and point OpenClaw at it:
+To manage `signal-cli` yourself (slow JVM cold starts, container init, shared CPUs), run the daemon separately and point Vasudev at it:
 
 For non-interactive setup, select the endpoint kind explicitly when needed:
 
@@ -185,7 +185,7 @@ openclaw channels add --channel signal --signal-number +15551234567 \
 }
 ```
 
-This skips auto-spawn and OpenClaw's startup wait. For a managed daemon with a slow start, set `channels.signal.transport.startupTimeoutMs`.
+This skips auto-spawn and Vasudev's startup wait. For a managed daemon with a slow start, set `channels.signal.transport.startupTimeoutMs`.
 
 ## Container mode (bbernhard/signal-cli-rest-api)
 
@@ -199,7 +199,7 @@ openclaw channels add --channel signal --signal-number +15551234567 \
 Requirements:
 
 - The container **must** run with `MODE=json-rpc` for real-time message receiving.
-- Register or link your Signal account inside the container before connecting OpenClaw.
+- Register or link your Signal account inside the container before connecting Vasudev.
 
 Example `docker-compose.yml` service:
 
@@ -214,7 +214,7 @@ signal-cli:
     - signal-cli-data:/home/.local/share/signal-cli
 ```
 
-OpenClaw config:
+Vasudev config:
 
 ```json5
 {
@@ -231,7 +231,7 @@ OpenClaw config:
 }
 ```
 
-`transport.kind` controls which protocol and process lifecycle OpenClaw uses:
+`transport.kind` controls which protocol and process lifecycle Vasudev uses:
 
 | Value               | Behavior                                                                                                                                                     |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -241,7 +241,7 @@ OpenClaw config:
 
 Setup and `openclaw doctor --fix` may probe an existing endpoint once to identify its concrete kind. Runtime operations do not auto-detect or switch protocols.
 
-Container mode supports the same Signal operations as native mode where the container exposes matching APIs: sends, receives, attachments, typing indicators, read/viewed receipts, reactions, groups, and styled text. OpenClaw translates native Signal RPC calls into the container's REST payloads, including `group.{base64(internal_id)}` group IDs and `text_mode: "styled"` for formatted text.
+Container mode supports the same Signal operations as native mode where the container exposes matching APIs: sends, receives, attachments, typing indicators, read/viewed receipts, reactions, groups, and styled text. Vasudev translates native Signal RPC calls into the container's REST payloads, including `group.{base64(internal_id)}` group IDs and `text_mode: "styled"` for formatted text.
 
 Operational notes:
 
@@ -293,7 +293,7 @@ Mention-gated group with bounded context:
 }
 ```
 
-Allowed group messages that do not mention the bot stay silent and are kept only in the bounded pending history window. When a later native @mention or fallback text mention triggers the bot, OpenClaw includes that recent context and replies to the same group. Skipped attachment bodies are not downloaded; they may appear only as compact media placeholders in the pending context.
+Allowed group messages that do not mention the bot stay silent and are kept only in the bounded pending history window. When a later native @mention or fallback text mention triggers the bot, Vasudev includes that recent context and replies to the same group. Skipped attachment bodies are not downloaded; they may appear only as compact media placeholders in the pending context.
 
 ## How it works (behavior)
 
@@ -301,7 +301,7 @@ Allowed group messages that do not mention the bot stay silent and are kept only
 - Container mode: the gateway sends via REST API and receives via WebSocket.
 - Inbound messages are normalized into the shared channel envelope.
 - Replies always route back to the same number or group.
-- Replies to inbound messages include native Signal quote metadata when the backend accepts the inbound timestamp and author; if quote metadata is missing or rejected, OpenClaw sends the reply as a normal message.
+- Replies to inbound messages include native Signal quote metadata when the backend accepts the inbound timestamp and author; if quote metadata is missing or rejected, Vasudev sends the reply as a normal message.
 - Configure native quote use with `channels.signal.replyToMode = off | first | all | batched`, or `channels.signal.replyToModeByChatType.direct/group` for per-chat-type overrides. Account-level values under `channels.signal.accounts.<id>` take precedence.
 
 ## Media + limits
@@ -316,8 +316,8 @@ Allowed group messages that do not mention the bot stay silent and are kept only
 
 ## Typing + read receipts
 
-- **Typing indicators**: OpenClaw sends typing signals via `signal-cli sendTyping` and refreshes them while a reply is running.
-- **Read receipts**: when `channels.signal.sendReadReceipts` is true, OpenClaw forwards read receipts for allowed DMs.
+- **Typing indicators**: Vasudev sends typing signals via `signal-cli sendTyping` and refreshes them while a reply is running.
+- **Read receipts**: when `channels.signal.sendReadReceipts` is true, Vasudev forwards read receipts for allowed DMs.
 - `signal-cli` does not expose read receipts for groups.
 
 ## Lifecycle status reactions
@@ -362,7 +362,7 @@ Approval reaction resolution requires explicit Signal approvers from `channels.s
 
 ## Question reactions
 
-For an `ask_user` prompt with one non-secret, single-select question and one to four options, Signal shows `1️⃣` through `4️⃣` beside the option labels. React to the delivered prompt with the matching number to answer it. OpenClaw verifies the reaction targets the bot-authored message, then maps the number to the canonical option through the Gateway. Stale or duplicate taps are ignored. Multi-question, multi-select, and free-text prompts remain text-reply-only; normal Signal DM/group admission rules authorize the sender.
+For an `ask_user` prompt with one non-secret, single-select question and one to four options, Signal shows `1️⃣` through `4️⃣` beside the option labels. React to the delivered prompt with the matching number to answer it. Vasudev verifies the reaction targets the bot-authored message, then maps the number to the canonical option through the Gateway. Stale or duplicate taps are ignored. Multi-question, multi-select, and free-text prompts remain text-reply-only; normal Signal DM/group admission rules authorize the sender.
 
 ## Delivery targets (CLI/cron)
 
@@ -373,7 +373,7 @@ For an `ask_user` prompt with one non-secret, single-select question and one to 
 
 ## Aliases
 
-Configure aliases for stable names on recurring Signal targets. Aliases are OpenClaw-side config only; they do not create or edit Signal contacts.
+Configure aliases for stable names on recurring Signal targets. Aliases are Vasudev-side config only; they do not create or edit Signal contacts.
 
 ```json5
 {
@@ -484,7 +484,7 @@ Provider options:
 - `channels.signal.sendReadReceipts`: forward read receipts.
 - `channels.signal.dmPolicy`: `pairing | allowlist | open | disabled` (default: pairing).
 - `channels.signal.allowFrom`: DM allowlist (E.164 or `uuid:<id>`). `open` requires `"*"`. Signal has no usernames; use phone/UUID IDs.
-- `channels.signal.aliases`: OpenClaw-side aliases for DM or group delivery targets.
+- `channels.signal.aliases`: Vasudev-side aliases for DM or group delivery targets.
 - `channels.signal.groupPolicy`: `open | allowlist | disabled` (default: allowlist).
 - `channels.signal.groupAllowFrom`: group allowlist; accepts Signal group IDs (raw, `group:<id>`, or `signal:group:<id>`), sender E.164 numbers, or `uuid:<id>` values.
 - `channels.signal.groups`: per-group overrides keyed by Signal group ID (or `"*"`). Supported fields: `requireMention`, `tools`, `toolsBySender`.

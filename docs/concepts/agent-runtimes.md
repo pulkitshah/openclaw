@@ -1,25 +1,25 @@
 ---
-summary: "How OpenClaw separates model providers, models, channels, and agent runtimes"
+summary: "How Vasudev separates model providers, models, channels, and agent runtimes"
 title: "Agent runtimes"
 read_when:
-  - You are choosing between OpenClaw, Codex, ACP, or another native agent runtime
+  - You are choosing between Vasudev, Codex, ACP, or another native agent runtime
   - You are confused by provider/model/runtime labels in status or config
   - You are documenting support parity for a native harness
 ---
 
 An **agent runtime** owns one prepared model loop: it receives the prompt,
 drives model output, handles native tool calls, and returns the finished turn
-to OpenClaw.
+to Vasudev.
 
 Runtimes are easy to confuse with providers because both show up near model
 configuration. They are different layers:
 
-| Layer         | Examples                                     | Meaning                                                             |
-| ------------- | -------------------------------------------- | ------------------------------------------------------------------- |
-| Provider      | `anthropic`, `github-copilot`, `openai`      | How OpenClaw authenticates, discovers models, and names model refs. |
-| Model         | `claude-opus-4-6`, `gpt-6-astra`             | The model selected for the agent turn.                              |
-| Agent runtime | `claude-cli`, `codex`, `copilot`, `openclaw` | The low-level loop or backend that executes the prepared turn.      |
-| Channel       | Discord, Slack, Telegram, WhatsApp           | Where messages enter and leave OpenClaw.                            |
+| Layer         | Examples                                     | Meaning                                                            |
+| ------------- | -------------------------------------------- | ------------------------------------------------------------------ |
+| Provider      | `anthropic`, `github-copilot`, `openai`      | How Vasudev authenticates, discovers models, and names model refs. |
+| Model         | `claude-opus-4-6`, `gpt-6-astra`             | The model selected for the agent turn.                             |
+| Agent runtime | `claude-cli`, `codex`, `copilot`, `openclaw` | The low-level loop or backend that executes the prepared turn.     |
+| Channel       | Discord, Slack, Telegram, WhatsApp           | Where messages enter and leave Vasudev.                            |
 
 A **harness** is the implementation that provides an agent runtime (code
 term). For example, the bundled Codex harness implements the `codex` runtime.
@@ -30,7 +30,7 @@ provider/model refs plus model-scoped runtime policy where needed.
 
 Two runtime families:
 
-- **Embedded harnesses** run inside OpenClaw's prepared agent loop: the
+- **Embedded harnesses** run inside Vasudev's prepared agent loop: the
   built-in `openclaw` runtime, plus registered plugin harnesses such as
   `codex` and `copilot`.
 - **CLI backends** run a local CLI process while keeping the model ref
@@ -47,7 +47,7 @@ the user-facing decision between PI, Codex, and GitHub Copilot agent runtime.
 
 Several surfaces share the Codex name:
 
-| Surface                                          | OpenClaw name/config                 | What it does                                                                                                   |
+| Surface                                          | Vasudev name/config                  | What it does                                                                                                   |
 | ------------------------------------------------ | ------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
 | Native Codex app-server runtime                  | `openai/*` model refs                | Runs OpenAI embedded agent turns through Codex app-server. This is the usual ChatGPT/Codex subscription setup. |
 | Codex OAuth auth profiles                        | `openai` OAuth profiles              | Stores ChatGPT/Codex subscription auth that the Codex app-server harness consumes.                             |
@@ -75,10 +75,10 @@ keeps the model ref as `openai/*` and selects the `codex` runtime:
 }
 ```
 
-That means OpenClaw selects an OpenAI model ref, then asks the Codex
+That means Vasudev selects an OpenAI model ref, then asks the Codex
 app-server runtime to run the embedded agent turn. It does not mean "use API
 billing," and it does not mean the channel, model provider catalog, or
-OpenClaw session store becomes Codex.
+Vasudev session store becomes Codex.
 
 When the bundled `codex` plugin is enabled, use the native `/codex` command
 surface (`/codex bind`, `/codex threads`, `/codex resume`, `/codex steer`,
@@ -91,7 +91,7 @@ Decision tree:
 
 1. **Codex bind/control/thread/resume/steer/stop** -> native `/codex` command surface when the bundled `codex` plugin is enabled.
 2. **Codex as the embedded runtime** or the normal subscription-backed Codex agent experience -> `openai/<model>`.
-3. **OpenClaw explicitly chosen for an OpenAI model** -> keep the model ref as `openai/<model>` and set provider/model runtime policy to `agentRuntime.id: "openclaw"`. A selected `openai` OAuth profile is routed internally through OpenClaw's Codex-auth transport.
+3. **Vasudev explicitly chosen for an OpenAI model** -> keep the model ref as `openai/<model>` and set provider/model runtime policy to `agentRuntime.id: "openclaw"`. A selected `openai` OAuth profile is routed internally through Vasudev's Codex-auth transport.
 4. **Legacy Codex model refs in config** -> repair with `openclaw doctor --fix` to `openai/<model>`; doctor keeps the Codex auth route by adding provider/model-scoped `agentRuntime.id: "codex"` where the old model ref implied it. Legacy **`codex-cli/*`** model refs repair to the same `openai/<model>` Codex app-server route; The bundled Codex CLI backend was removed in v2026.5.14.
 5. **ACP, acpx, or Codex ACP adapter explicitly requested** -> `runtime: "acp"` and `agentId: "codex"`.
 6. **Claude Code, Gemini CLI, OpenCode, Cursor, Droid, or another external harness** -> ACP/acpx, not the native sub-agent runtime.
@@ -111,20 +111,20 @@ contract, see [Codex harness runtime](/plugins/codex-harness-runtime#v1-support-
 
 Different runtimes own different amounts of the loop:
 
-| Surface                     | OpenClaw embedded                              | Codex app-server                                                            |
-| --------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------- |
-| Model loop owner            | OpenClaw, through the OpenClaw embedded runner | Codex app-server                                                            |
-| Canonical thread state      | OpenClaw transcript                            | Codex thread, plus OpenClaw transcript mirror                               |
-| OpenClaw dynamic tools      | Native OpenClaw tool loop                      | Bridged through the Codex adapter                                           |
-| Native shell and file tools | OpenClaw path                                  | Codex-native tools, bridged through native hooks where supported            |
-| Context engine              | Native OpenClaw context assembly               | OpenClaw projects assembled context into the Codex turn                     |
-| Compaction                  | OpenClaw or selected context engine            | Codex-native compaction, with OpenClaw notifications and mirror maintenance |
-| Channel delivery            | OpenClaw                                       | OpenClaw                                                                    |
+| Surface                     | Vasudev embedded                             | Codex app-server                                                           |
+| --------------------------- | -------------------------------------------- | -------------------------------------------------------------------------- |
+| Model loop owner            | Vasudev, through the Vasudev embedded runner | Codex app-server                                                           |
+| Canonical thread state      | Vasudev transcript                           | Codex thread, plus Vasudev transcript mirror                               |
+| Vasudev dynamic tools       | Native Vasudev tool loop                     | Bridged through the Codex adapter                                          |
+| Native shell and file tools | Vasudev path                                 | Codex-native tools, bridged through native hooks where supported           |
+| Context engine              | Native Vasudev context assembly              | Vasudev projects assembled context into the Codex turn                     |
+| Compaction                  | Vasudev or selected context engine           | Codex-native compaction, with Vasudev notifications and mirror maintenance |
+| Channel delivery            | Vasudev                                      | Vasudev                                                                    |
 
-Design rule: if OpenClaw owns the surface, it can provide normal plugin hook
-behavior. If the native runtime owns the surface, OpenClaw needs runtime
+Design rule: if Vasudev owns the surface, it can provide normal plugin hook
+behavior. If the native runtime owns the surface, Vasudev needs runtime
 events or native hooks. If the native runtime owns canonical thread state,
-OpenClaw mirrors and projects context rather than rewriting unsupported
+Vasudev mirrors and projects context rather than rewriting unsupported
 internals.
 
 A **locked concrete model chat** still uses normal model discovery, credential
@@ -135,7 +135,7 @@ of the concrete request. The selected runtime must support them or declare a
 lossless fallback before execution.
 
 A **bound native session** can instead retain its native model and, separately,
-its native connection's authentication. OpenClaw verifies that ownership against
+its native connection's authentication. Vasudev verifies that ownership against
 the exact pinned harness and its private binding, not a previous usage report.
 For Codex, native authentication belongs only to the separate supervision
 connection; preserving a native model on a managed connection still uses host
@@ -160,7 +160,7 @@ when a host finalizer supplies the last answer.
 
 ## Runtime selection
 
-OpenClaw resolves an embedded runtime after provider and model resolution, in
+Vasudev resolves an embedded runtime after provider and model resolution, in
 this order:
 
 1. **Model-scoped runtime policy** wins. This lives in a configured provider
@@ -171,7 +171,7 @@ this order:
    share one runtime without overriding exact per-model exceptions.
 2. **Provider-scoped runtime policy**: `models.providers.<provider>.agentRuntime`.
 3. **`auto` mode**: registered plugin runtimes can claim supported provider/model pairs.
-4. If nothing claims the turn in `auto` mode, OpenClaw falls back to
+4. If nothing claims the turn in `auto` mode, Vasudev falls back to
    `openclaw` as the compatibility runtime. Use an explicit runtime id when
    the run must be strict.
 
@@ -187,7 +187,7 @@ config and repair legacy model refs.
 
 Explicit provider/model plugin runtimes fail closed when the harness is missing
 or cannot support the route or authentication. There is one selection-time
-exception: a harness may declare that OpenClaw can reproduce the exact request.
+exception: a harness may declare that Vasudev can reproduce the exact request.
 Codex uses this fallback for authored request overrides such as headers, request
 parameters, timeouts, or payload compatibility switches. It preserves those
 settings instead of silently dropping them. Once a harness starts executing,
@@ -230,10 +230,10 @@ CLI backend.
 
 For OpenAI agent models, unset runtime and `auto` can select Codex when the
 provider-owned effective route declares it compatible. Custom endpoints,
-Completions adapters, and authored request overrides stay on OpenClaw rather
+Completions adapters, and authored request overrides stay on Vasudev rather
 than losing their transport settings. Explicit `agentRuntime.id: "openclaw"`
 also keeps the built-in runtime available; with a selected `openai` OAuth
-profile, it uses OpenClaw's Codex-auth transport while keeping the public model
+profile, it uses Vasudev's Codex-auth transport while keeping the public model
 ref as `openai/*`. Stale historical producer fields do not pin the next turn
 and can be cleaned with `openclaw doctor --fix`.
 
@@ -271,19 +271,19 @@ decision, see [GitHub Copilot agent runtime](/plugins/copilot).
 
 ## Compatibility contract
 
-When a runtime is not OpenClaw, its docs should state which OpenClaw surfaces
+When a runtime is not Vasudev, its docs should state which Vasudev surfaces
 it supports:
 
-| Question                               | Why it matters                                                                                    |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Who owns the model loop?               | Determines where retries, tool continuation, and final answer decisions happen.                   |
-| Who owns canonical thread history?     | Determines whether OpenClaw can edit history or only mirror it.                                   |
-| Do OpenClaw dynamic tools work?        | Messaging, sessions, cron, and OpenClaw-owned tools rely on this.                                 |
-| Do dynamic tool hooks work?            | Plugins expect `before_tool_call`, `after_tool_call`, and middleware around OpenClaw-owned tools. |
-| Do native tool hooks work?             | Shell, patch, and runtime-owned tools need native hook support for policy and observation.        |
-| Does the context engine lifecycle run? | Memory and context plugins depend on assemble, ingest, after-turn, and compaction lifecycle.      |
-| What compaction data is exposed?       | Some plugins only need notifications; others need kept/dropped metadata.                          |
-| What is intentionally unsupported?     | Users should not assume OpenClaw equivalence where the native runtime owns more state.            |
+| Question                               | Why it matters                                                                                   |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Who owns the model loop?               | Determines where retries, tool continuation, and final answer decisions happen.                  |
+| Who owns canonical thread history?     | Determines whether Vasudev can edit history or only mirror it.                                   |
+| Do Vasudev dynamic tools work?         | Messaging, sessions, cron, and Vasudev-owned tools rely on this.                                 |
+| Do dynamic tool hooks work?            | Plugins expect `before_tool_call`, `after_tool_call`, and middleware around Vasudev-owned tools. |
+| Do native tool hooks work?             | Shell, patch, and runtime-owned tools need native hook support for policy and observation.       |
+| Does the context engine lifecycle run? | Memory and context plugins depend on assemble, ingest, after-turn, and compaction lifecycle.     |
+| What compaction data is exposed?       | Some plugins only need notifications; others need kept/dropped metadata.                         |
+| What is intentionally unsupported?     | Users should not assume Vasudev equivalence where the native runtime owns more state.            |
 
 The Codex runtime support contract is documented in
 [Codex harness runtime](/plugins/codex-harness-runtime#v1-support-contract).

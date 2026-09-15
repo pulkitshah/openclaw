@@ -16,7 +16,7 @@ Session permission modes set one session's filesystem boundary and exec escalati
 | `workspace` | Reads and writes under `sessionRoot`                      | LLM review: allow, deny, or ask a human |
 | `full`      | Unrestricted filesystem access                            | None                                    |
 
-These tool-visibility and exec rules describe OpenClaw-managed tools. Native harnesses can retain their own tool surface under their permission controls; see [Codex runtime policy](/plugins/codex-harness-runtime).
+These tool-visibility and exec rules describe Vasudev-managed tools. Native harnesses can retain their own tool surface under their permission controls; see [Codex runtime policy](/plugins/codex-harness-runtime).
 
 In `workspace` mode, an exec reviewer denial returns a reason to the agent without creating a human approval card. The agent must choose a materially safer alternative or ask the user; it must not work around the denial. Reviewer `ask` verdicts and review failures request human approval. Three consecutive gateway reviewer denials also escalate to a human. Existing command-binding checks and explicit human-approval requirements remain in force; see [Exec modes](/tools/exec#modes).
 
@@ -30,7 +30,7 @@ A permission mode can be set on any session. When a session has a recorded `sess
 
 Managed worktree sessions use the worktree checkout as `sessionRoot`. A nested working directory remains the runtime `cwd`, so relative paths start there while filesystem containment covers the whole checkout.
 
-File tools recognize aliases of the session's trusted root and working directory, including absolute paths using those aliases. This does not expand the boundary: unrelated external symlinks pointing inward remain denied, as do symlinks and raw `symlink/..` traversal that escape the root. In `read-only` mode, OpenClaw-managed mutation tools remain omitted.
+File tools recognize aliases of the session's trusted root and working directory, including absolute paths using those aliases. This does not expand the boundary: unrelated external symlinks pointing inward remain denied, as do symlinks and raw `symlink/..` traversal that escape the root. In `read-only` mode, Vasudev-managed mutation tools remain omitted.
 
 New sessions, including managed worktree sessions, inherit the configured global or per-agent tool/exec policy when no mode is specified. Creating a worktree pins the working directory without selecting a permission mode. Explicit modes and modes already saved on existing sessions remain unchanged.
 
@@ -43,7 +43,7 @@ the host applies the requesting run's effective permission policy to the exact
 proposed operation. Full Access applies it automatically without an approval
 prompt, including when Full Access comes from the configured default rather than
 an explicit session mode. Restricted runs still require human approval in the
-OpenClaw operator UI; conversational claims of approval never authorize the change.
+Vasudev operator UI; conversational claims of approval never authorize the change.
 The requesting tool waits for the human decision and application outcome. Stopping
 the run cancels its pending approval; approving later cannot revive that run.
 
@@ -51,18 +51,18 @@ Independent filesystem and sandbox boundaries, tool policy, and system-agent
 operation restrictions still apply. The host also checks that the requesting run
 and verified inference route remain valid. Interactive setup wizards and agent
 handoffs still need a direct operator session. See
-[OpenClaw operations and approval](/cli/openclaw#operations-and-approval).
+[Vasudev operations and approval](/cli/openclaw#operations-and-approval).
 
 ## Change permissions during a task
 
 Choose a mode from the chat composer's **Permissions** menu. The picker immediately shows the selected mode's icon and label while the change settles, and temporarily blocks another selection for that session. Other clients see the mode after the Gateway publishes the updated session. If the change fails, the picker reconciles with the authoritative session state and shows an error; if that state cannot be refreshed yet, it keeps the optimistic selection until the next session update rather than restoring a potentially stale mode.
 
-- **Codex:** OpenClaw interrupts the active native turn and stops its background terminals, then continues in the same conversation with the new permissions and an internal **Permission change** notice. It does not reset the conversation or replay the original request.
-- **OpenClaw native runtime:** OpenClaw refreshes the active tool policy without restarting the conversation. Subsequent tool calls use the updated permissions.
+- **Codex:** Vasudev interrupts the active native turn and stops its background terminals, then continues in the same conversation with the new permissions and an internal **Permission change** notice. It does not reset the conversation or replay the original request.
+- **Vasudev native runtime:** Vasudev refreshes the active tool policy without restarting the conversation. Subsequent tool calls use the updated permissions.
 
 Pending approvals from the old permissions are canceled, not granted. Changing permissions does not undo completed writes or other side effects. Commands and background processes that have already started are not rolled back.
 
-Active CLI-backed runs and runs whose entire agent executes on a worker (`worker-turn`) do not support live permission changes. OpenClaw rejects the change before saving it. Stop the task, change permissions, then continue in the same session. Worker placements that run only remote commands (`remote-exec`) follow the behavior of their locally running agent runtime.
+Active CLI-backed runs and runs whose entire agent executes on a worker (`worker-turn`) do not support live permission changes. Vasudev rejects the change before saving it. Stop the task, change permissions, then continue in the same session. Worker placements that run only remote commands (`remote-exec`) follow the behavior of their locally running agent runtime.
 
 ## Policy precedence and clamping
 
@@ -72,6 +72,6 @@ Before resuming sessions after upgrading a store with legacy session exec policy
 
 The retired `execSecurity` and `execAsk` fields remain in the protocol v4 schemas for `sessions.patch` and `sessions.patchMany`. Requests containing either field, including `null`, are rejected with `INVALID_REQUEST` and guidance to set `permissionMode` (`read-only`, `guarded`, `workspace`, or `full`) or use `/exec` for one run. Neither field is stored as runtime session policy.
 
-An explicit `full` mode is the admin-authorized exception to host approval-file floors: its OpenClaw exec policy remains `full` with approvals off unless a turn-scoped override tightens it. Approval-file floors continue to tighten config-driven exec policy, unset modes, and every non-full session mode. Tightening a full session's security restores those floors; tightening only `ask` does not. Sandbox restrictions and tool allow/deny policy remain independent, and a harness may clamp an unsupported mode to a compatible safer policy tuple. Codex also continues to honor externally enforced `requirements.toml` constraints.
+An explicit `full` mode is the admin-authorized exception to host approval-file floors: its Vasudev exec policy remains `full` with approvals off unless a turn-scoped override tightens it. Approval-file floors continue to tighten config-driven exec policy, unset modes, and every non-full session mode. Tightening a full session's security restores those floors; tightening only `ask` does not. Sandbox restrictions and tool allow/deny policy remain independent, and a harness may clamp an unsupported mode to a compatible safer policy tuple. Codex also continues to honor externally enforced `requirements.toml` constraints.
 
 For the independent sandbox, tool-policy, and elevated-exec controls, see [Sandbox vs tool policy vs elevated](/gateway/sandbox-vs-tool-policy-vs-elevated).

@@ -22,7 +22,7 @@ const PARALLEL_MCP_ERROR_BODY_LIMIT_BYTES = 8 * 1024;
 const require = createRequire(import.meta.url);
 const PLUGIN_VERSION = readPluginPackageVersion({ require });
 // Identify free-tier traffic at the HTTP layer (mirrors the paid REST path);
-// without this, undici sends a generic `node` UA and OpenClaw usage is only
+// without this, undici sends a generic `node` UA and Vasudev usage is only
 // visible via the JSON-RPC `clientInfo` payload.
 const USER_AGENT = `openclaw-parallel/${PLUGIN_VERSION} (${process.platform})`;
 

@@ -10,17 +10,17 @@ title: "Linux app"
 
 The Gateway is fully supported on Linux. Node is the primary, default, and
 recommended runtime; Bun 1.4+ builds with WAL-reset-safe `node:sqlite` can run
-OpenClaw as an explicit opt-in. Use `pnpm` rather than Bun for dependency
+Vasudev as an explicit opt-in. Use `pnpm` rather than Bun for dependency
 installation.
 
 ## Desktop companion
 
-The OpenClaw Linux companion is a Tauri desktop app for local and remote
+The Vasudev Linux companion is a Tauri desktop app for local and remote
 Gateways. It:
 
 - walks new users through choosing a local Gateway, a discovered remote Gateway,
   a manually entered Gateway URL, or an SSH tunnel
-- installs the OpenClaw CLI and Node in a private managed runtime when local
+- installs the Vasudev CLI and Node in a private managed runtime when local
   setup needs them, rather than requiring a global CLI install; release builds
   install the stable channel automatically, while development builds ask for
   the channel first
@@ -80,7 +80,7 @@ started can be retried immediately.
 Model Setup can resume an activation across a Gateway restart or app reopen
 while its temporary recovery record is valid. Recovery stays bound to the same
 Gateway, agent, and authentication. When the known activation target still
-matches the selected model, OpenClaw verifies that exact model before continuing
+matches the selected model, Vasudev verifies that exact model before continuing
 guided onboarding rather than activating the provider again. For an unresolved
 result, use **Verify & use selected model** to explicitly verify and adopt a
 displayed model, or wait for the setup attempt's bounded window to end before
@@ -353,10 +353,10 @@ systemctl --user enable --now openclaw-gateway[-<profile>].service
 
 On Linux, the kernel picks an OOM victim when a host, VM, or container cgroup
 runs out of memory. The Gateway is a poor victim because it owns long-lived
-sessions and channel connections, so OpenClaw biases transient child
+sessions and channel connections, so Vasudev biases transient child
 processes to be killed first when possible.
 
-For eligible Linux child spawns, OpenClaw wraps the command in a short
+For eligible Linux child spawns, Vasudev wraps the command in a short
 `/bin/sh` shim that attempts to raise the child's own `oom_score_adj` to
 `1000`, then `exec`s the real command. This is unprivileged: a process may
 always raise its own OOM score.
@@ -367,7 +367,7 @@ Covered child process surfaces:
 - PTY shell children
 - MCP stdio server children
 - Managed local model and embedding service children
-- OpenClaw-launched browser/Chrome processes (via the plugin SDK process runtime)
+- Vasudev-launched browser/Chrome processes (via the plugin SDK process runtime)
 
 The wrapper is Linux-only and skipped when `/bin/sh` is unavailable, or when
 the child env sets `OPENCLAW_CHILD_OOM_SCORE_ADJ` to `0`, `false`, `no`, or
@@ -380,7 +380,7 @@ Managed local model and embedding services fall back to direct spawn when their
 effective environment defines `SHELLOPTS`, `BASHOPTS`, a `BASH_FUNC_*` key, or
 a reserved `OC_INTERNAL_OOM_EXEC_{BASH_ENV,ENV,CDPATH,PS4}` carrier. Exact
 environment fidelity and shell startup safety take precedence in these cases,
-so OpenClaw does not attempt to change `oom_score_adj`; use the verification
+so Vasudev does not attempt to change `oom_score_adj`; use the verification
 below to check the child's effective value.
 
 Verify a child process:

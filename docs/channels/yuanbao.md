@@ -6,13 +6,13 @@ read_when:
 title: Yuanbao
 ---
 
-Tencent Yuanbao is Tencent's AI assistant platform. The community-maintained `openclaw-plugin-yuanbao` plugin connects Yuanbao bots to OpenClaw over WebSocket for direct messages and group chats.
+Tencent Yuanbao is Tencent's AI assistant platform. The community-maintained `openclaw-plugin-yuanbao` plugin connects Yuanbao bots to Vasudev over WebSocket for direct messages and group chats.
 
-**Status:** production-ready for bot DMs and group chats. WebSocket is the only supported connection mode. This plugin is maintained by the Tencent Yuanbao team as an external catalog entry, not by core OpenClaw; the config/behavior details below (beyond install and the generic CLI surface) come from the plugin's own docs and are not verified against OpenClaw core source.
+**Status:** production-ready for bot DMs and group chats. WebSocket is the only supported connection mode. This plugin is maintained by the Tencent Yuanbao team as an external catalog entry, not by core Vasudev; the config/behavior details below (beyond install and the generic CLI surface) come from the plugin's own docs and are not verified against Vasudev core source.
 
 ## Quick start
 
-Requires OpenClaw 2026.4.10 or above. Check with `openclaw --version`; upgrade with `openclaw update`.
+Requires Vasudev 2026.4.10 or above. Check with `openclaw --version`; upgrade with `openclaw update`.
 
 <Steps>
   <Step title="Add the Yuanbao channel with your credentials">
@@ -133,7 +133,7 @@ Set `outboundQueueStrategy: "immediate"` to send each chunk without buffering.
 | `/status`  | Show bot status             |
 | `/new`     | Start a new session         |
 | `/stop`    | Stop the current run        |
-| `/restart` | Restart OpenClaw            |
+| `/restart` | Restart Vasudev             |
 | `/compact` | Compact the session context |
 
 Yuanbao supports native slash-command menus; commands sync to the platform automatically when the gateway starts.

@@ -1,4 +1,4 @@
-/** Provider auth-pin policy for credentials discovered outside OpenClaw storage. */
+/** Provider auth-pin policy for credentials discovered outside Vasudev storage. */
 import { findNormalizedProviderValue } from "@openclaw/model-catalog-core/provider-id";
 import type { OpenClawConfig } from "../../config/types.openclaw.js";
 import {

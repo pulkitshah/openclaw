@@ -1,5 +1,5 @@
 ---
-summary: "OpenClaw Baseten provider plugin."
+summary: "Vasudev Baseten provider plugin."
 read_when:
   - You are installing, configuring, or auditing the baseten plugin
 title: "Baseten plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-OpenClaw Baseten provider plugin.
+Vasudev Baseten provider plugin.
 
 ## Distribution
 

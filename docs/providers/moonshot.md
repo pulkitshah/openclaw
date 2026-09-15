@@ -36,7 +36,7 @@ and [Kimi K2.7 Code](https://platform.kimi.ai/docs/pricing/chat-k27-code)
 before making cost decisions.
 
 Kimi K3 always reasons and accepts `reasoning_effort` values `low`, `high`,
-and `max` (the default). On the direct Moonshot route OpenClaw exposes only
+and `max` (the default). On the direct Moonshot route Vasudev exposes only
 `/think max` and always sends `reasoning_effort: "max"`. It omits the K2-only
 `thinking` field and removes sampling overrides (`temperature`, `top_p`, `n`, `presence_penalty`, and
 `frequency_penalty`) that K3 fixes to provider defaults. Kimi K2.7 Code also
@@ -318,7 +318,7 @@ Config lives under `plugins.entries.moonshot.config.webSearch`:
 
 <AccordionGroup>
   <Accordion title="Native thinking mode">
-    Moonshot API Kimi K3 always reasons at maximum effort. OpenClaw exposes only
+    Moonshot API Kimi K3 always reasons at maximum effort. Vasudev exposes only
     `/think max`, sends `reasoning_effort: "max"`, and ignores stale lower or
     `off` settings.
 
@@ -329,14 +329,14 @@ Config lives under `plugins.entries.moonshot.config.webSearch`:
     effort. This applies to both `kimi/k3` and `kimi/k3-256k`. Legacy
     `kimi/k3[1m]` normalizes to `kimi/k3`.
     Moonshot API K3 supports `auto`, `none`, `required`, and pinned tool choices,
-    so OpenClaw preserves the requested `tool_choice`. For multi-turn tool use,
-    OpenClaw preserves the assistant reasoning content required by Moonshot's
+    so Vasudev preserves the requested `tool_choice`. For multi-turn tool use,
+    Vasudev preserves the assistant reasoning content required by Moonshot's
     replay contract.
 
     Kimi K2.7 Code always uses native thinking. Moonshot requires clients to
-    omit the `thinking` field for this model, so OpenClaw exposes only `on` and
+    omit the `thinking` field for this model, so Vasudev exposes only `on` and
     ignores stale `off` settings. K2.7 also fixes `temperature`, `top_p`, `n`,
-    `presence_penalty`, and `frequency_penalty`; OpenClaw omits configured
+    `presence_penalty`, and `frequency_penalty`; Vasudev omits configured
     overrides for those fields.
 
     Other Moonshot Kimi models support binary native thinking:
@@ -362,7 +362,7 @@ Config lives under `plugins.entries.moonshot.config.webSearch`:
     }
     ```
 
-    OpenClaw maps runtime `/think` levels for those models:
+    Vasudev maps runtime `/think` levels for those models:
 
     | `/think` level       | Moonshot behavior          |
     | -------------------- | -------------------------- |
@@ -376,9 +376,9 @@ Config lives under `plugins.entries.moonshot.config.webSearch`:
     Kimi K2.6 also accepts an optional `thinking.keep` field that controls
     multi-turn retention of `reasoning_content`. Set it to `"all"` to keep full
     reasoning across turns; omit it (or leave it `null`) to use the server
-    default strategy. OpenClaw only forwards `thinking.keep` for
+    default strategy. Vasudev only forwards `thinking.keep` for
     `moonshot/kimi-k2.6` and strips it from other models. Kimi K2.7 Code
-    preserves full reasoning history by default while OpenClaw omits the entire
+    preserves full reasoning history by default while Vasudev omits the entire
     `thinking` field.
 
     ```json5
@@ -400,13 +400,13 @@ Config lives under `plugins.entries.moonshot.config.webSearch`:
   </Accordion>
 
   <Accordion title="Tool call id sanitization">
-    Moonshot Kimi serves native tool_call ids shaped like `functions.<name>:<index>`. OpenClaw preserves the first occurrence of each native Kimi id and rewrites later duplicates to deterministic OpenAI-style `call_*` ids. Matching tool results are remapped with the same id so replay remains unique without stripping Kimi's first native id. This behavior is wired into the bundled Moonshot provider and is not a user-configurable setting.
+    Moonshot Kimi serves native tool_call ids shaped like `functions.<name>:<index>`. Vasudev preserves the first occurrence of each native Kimi id and rewrites later duplicates to deterministic OpenAI-style `call_*` ids. Matching tool results are remapped with the same id so replay remains unique without stripping Kimi's first native id. This behavior is wired into the bundled Moonshot provider and is not a user-configurable setting.
   </Accordion>
 
   <Accordion title="Streaming usage compatibility">
     Native Moonshot endpoints (`https://api.moonshot.ai/v1` and
     `https://api.moonshot.cn/v1`) advertise streaming usage compatibility.
-    OpenClaw keys this off the endpoint host, not the provider id, so a custom
+    Vasudev keys this off the endpoint host, not the provider id, so a custom
     provider id pointed at the same native Moonshot host inherits the same
     streaming-usage behavior.
 

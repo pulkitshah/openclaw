@@ -16,30 +16,30 @@ type CommandOptions = Record<string, unknown>;
 
 const SANDBOX_EXAMPLES = {
   main: [
-    ["openclaw sandbox list", "List all sandbox containers."],
-    ["openclaw sandbox list --browser", "List only browser containers."],
-    ["openclaw sandbox recreate --all", "Recreate all containers."],
-    ["openclaw sandbox recreate --session main", "Recreate a specific session."],
-    ["openclaw sandbox recreate --agent mybot", "Recreate agent containers."],
-    ["openclaw sandbox explain", "Explain effective sandbox config."],
+    ["vasudev sandbox list", "List all sandbox containers."],
+    ["vasudev sandbox list --browser", "List only browser containers."],
+    ["vasudev sandbox recreate --all", "Recreate all containers."],
+    ["vasudev sandbox recreate --session main", "Recreate a specific session."],
+    ["vasudev sandbox recreate --agent mybot", "Recreate agent containers."],
+    ["vasudev sandbox explain", "Explain effective sandbox config."],
   ],
   list: [
-    ["openclaw sandbox list", "List all sandbox containers."],
-    ["openclaw sandbox list --browser", "List only browser containers."],
-    ["openclaw sandbox list --json", "JSON output."],
+    ["vasudev sandbox list", "List all sandbox containers."],
+    ["vasudev sandbox list --browser", "List only browser containers."],
+    ["vasudev sandbox list --json", "JSON output."],
   ],
   recreate: [
-    ["openclaw sandbox recreate --all", "Recreate all containers."],
-    ["openclaw sandbox recreate --session main", "Recreate a specific session."],
-    ["openclaw sandbox recreate --agent mybot", "Recreate a specific agent (includes sub-agents)."],
-    ["openclaw sandbox recreate --browser --all", "Recreate only browser containers."],
-    ["openclaw sandbox recreate --all --force", "Skip confirmation."],
+    ["vasudev sandbox recreate --all", "Recreate all containers."],
+    ["vasudev sandbox recreate --session main", "Recreate a specific session."],
+    ["vasudev sandbox recreate --agent mybot", "Recreate a specific agent (includes sub-agents)."],
+    ["vasudev sandbox recreate --browser --all", "Recreate only browser containers."],
+    ["vasudev sandbox recreate --all --force", "Skip confirmation."],
   ],
   explain: [
-    ["openclaw sandbox explain", "Show effective sandbox config."],
-    ["openclaw sandbox explain --session agent:main:main", "Explain a specific session."],
-    ["openclaw sandbox explain --agent work", "Explain an agent sandbox."],
-    ["openclaw sandbox explain --json", "JSON output."],
+    ["vasudev sandbox explain", "Show effective sandbox config."],
+    ["vasudev sandbox explain --session agent:main:main", "Explain a specific session."],
+    ["vasudev sandbox explain --agent work", "Explain an agent sandbox."],
+    ["vasudev sandbox explain --json", "JSON output."],
   ],
 } as const;
 

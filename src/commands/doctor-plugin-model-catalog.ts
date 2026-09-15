@@ -48,7 +48,7 @@ async function readLegacyPluginCatalogContents(params: {
   return await privateFileStore(pluginDir).readTextIfExists(path.basename(params.relativePath));
 }
 
-/** Detects only marker-backed catalogs produced by tagged OpenClaw releases. */
+/** Detects only marker-backed catalogs produced by tagged Vasudev releases. */
 async function collectLegacyPluginModelCatalogMigrations(params: {
   cfg: OpenClawConfig;
   env?: NodeJS.ProcessEnv;
@@ -176,7 +176,7 @@ export async function maybeMigrateLegacyPluginModelCatalogs(params: {
         (migration) =>
           `- ${shortenHomePath(path.join(migration.agentDir, migration.relativePath))}`,
       ),
-      "Run openclaw doctor --fix to verify and migrate these catalogs into agent SQLite.",
+      "Run vasudev doctor --fix to verify and migrate these catalogs into agent SQLite.",
     ].join("\n"),
     "Plugin model catalogs",
   );

@@ -1230,7 +1230,7 @@ export async function ensureAgentWorkspace(params?: {
       (await workspaceProfileLooksConfigured({
         dir,
         // A preexisting Git repository is user evidence. Git metadata left by
-        // an expired, wiped OpenClaw workspace is not completion evidence.
+        // an expired, wiped Vasudev workspace is not completion evidence.
         includeGitEvidence: !reseedingExpiredWorkspaceState,
       }))
     ) {

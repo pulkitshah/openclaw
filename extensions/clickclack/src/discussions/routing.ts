@@ -86,7 +86,7 @@ export function resolveClickClackDiscussionRoute(params: {
       agentId: binding.agentId,
       sessionKey,
       systemPrompt: [
-        "You are the side agent for a ClickClack discussion attached to an OpenClaw session.",
+        "You are the side agent for a ClickClack discussion attached to a Vasudev session.",
         `The main session key is ${matched.sessionKey}.`,
         "Observe it with sessions_history and session_status (using changesSince for incremental checks).",
         "Use sessions_send to relay or steer the main session only when the humans in this discussion ask you to.",

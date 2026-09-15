@@ -7,9 +7,9 @@ title: "Media understanding"
 sidebarTitle: "Media understanding"
 ---
 
-OpenClaw can summarize inbound media (image/audio/video) before the reply pipeline runs, so command parsing and routing work off short text instead of raw bytes. Understanding auto-detects local tools or provider keys, or you can configure explicit models. Original media is always delivered to the model as usual; when understanding fails or is disabled, the reply flow continues unchanged.
+Vasudev can summarize inbound media (image/audio/video) before the reply pipeline runs, so command parsing and routing work off short text instead of raw bytes. Understanding auto-detects local tools or provider keys, or you can configure explicit models. Original media is always delivered to the model as usual; when understanding fails or is disabled, the reply flow continues unchanged.
 
-Vendor plugins register capability metadata (which provider supports which media type, default model, priority). OpenClaw core owns the shared `tools.media` config, fallback order, and reply-pipeline integration.
+Vendor plugins register capability metadata (which provider supports which media type, default model, priority). Vasudev core owns the shared `tools.media` config, fallback order, and reply-pipeline integration.
 
 ## How it works
 
@@ -136,14 +136,14 @@ See [Tools and custom providers](/gateway/config-tools) for profiles, env vars, 
 
 - Media exceeding `maxBytes` skips that model and tries the next one.
 - Audio files under 1024 bytes are treated as empty/corrupt and skipped before transcription; the agent gets a deterministic placeholder transcript instead.
-- If the active primary image model already supports vision natively, OpenClaw skips the `[Image]` summary block and passes the original image into the model directly. MiniMax is an exception: `minimax`, `minimax-cn`, `minimax-portal`, and `minimax-portal-cn` always route image understanding through the plugin-owned `MiniMax-VL-01` media provider, even if legacy MiniMax M2.x chat metadata claims image input (only `MiniMax-M3` and later are treated as natively vision-capable).
+- If the active primary image model already supports vision natively, Vasudev skips the `[Image]` summary block and passes the original image into the model directly. MiniMax is an exception: `minimax`, `minimax-cn`, `minimax-portal`, and `minimax-portal-cn` always route image understanding through the plugin-owned `MiniMax-VL-01` media provider, even if legacy MiniMax M2.x chat metadata claims image input (only `MiniMax-M3` and later are treated as natively vision-capable).
 - If a Gateway/WebChat primary model is text-only, image attachments are preserved as offloaded `media://inbound/*` refs so image/PDF tools or a configured image model can still inspect them instead of losing the attachment.
 - Explicit `openclaw infer image describe --file <path> --model <provider/model>` (alias: `openclaw capability image describe`) runs that image-capable provider/model directly, including Ollama refs such as `ollama/qwen2.5vl:7b` when a matching image-capable model is configured under `models.providers.ollama.models[]`.
-- If `<capability>.enabled` is not `false` but no models are configured, OpenClaw tries the active reply model when its provider supports the capability.
+- If `<capability>.enabled` is not `false` but no models are configured, Vasudev tries the active reply model when its provider supports the capability.
 
 ### Auto-detect (default)
 
-When `tools.media.<capability>.enabled` is not `false` and no models are configured, OpenClaw tries these in order and stops at the first working option:
+When `tools.media.<capability>.enabled` is not `false` and no models are configured, Vasudev tries these in order and stops at the first working option:
 
 <Steps>
   <Step title="Configured image model (image only)">
@@ -196,11 +196,11 @@ Binary detection is best-effort across macOS/Linux/Windows; ensure the CLI is on
 
 ### Proxy support (audio/video provider calls)
 
-Provider-based **audio** and **video** understanding honors standard outbound proxy environment variables, including `NO_PROXY`/`no_proxy` bypass rules: `HTTPS_PROXY`, `HTTP_PROXY`, `ALL_PROXY`, `https_proxy`, `http_proxy`, `all_proxy`. Lowercase vars take precedence over uppercase. If none are set, media understanding uses direct egress; if the proxy value is malformed, OpenClaw logs a warning and falls back to direct fetch. Image understanding does not go through this proxy path.
+Provider-based **audio** and **video** understanding honors standard outbound proxy environment variables, including `NO_PROXY`/`no_proxy` bypass rules: `HTTPS_PROXY`, `HTTP_PROXY`, `ALL_PROXY`, `https_proxy`, `http_proxy`, `all_proxy`. Lowercase vars take precedence over uppercase. If none are set, media understanding uses direct egress; if the proxy value is malformed, Vasudev logs a warning and falls back to direct fetch. Image understanding does not go through this proxy path.
 
 ## Capabilities
 
-Set `capabilities` on a `models[]` entry to restrict it to specific media types. For shared lists, OpenClaw infers defaults per bundled provider:
+Set `capabilities` on a `models[]` entry to restrict it to specific media types. For shared lists, Vasudev infers defaults per bundled provider:
 
 | Provider                                                                 | Capabilities          |
 | ------------------------------------------------------------------------ | --------------------- |
@@ -237,7 +237,7 @@ CLI entries require explicit `capabilities`; entries without valid capability ta
 - Keep at least one fallback per capability for availability (quality model + faster/cheaper model).
 - CLI fallbacks (`whisper-cli`, `whisper`, `gemini`) help when provider APIs are unavailable.
 - Known file-output modes are authoritative: an empty or missing inferred transcript file produces no transcript instead of falling back to CLI progress output.
-- `parakeet-mlx`: use `--output-format txt` (or `all`) with `--output-dir` and the default `{filename}` output template. The upstream `PARAKEET_OUTPUT_FORMAT` and `PARAKEET_OUTPUT_TEMPLATE` environment variables are also honored. OpenClaw reads `<output-dir>/<media-basename>.txt`; the default `srt` format, other formats, and custom output templates continue to use stdout.
+- `parakeet-mlx`: use `--output-format txt` (or `all`) with `--output-dir` and the default `{filename}` output template. The upstream `PARAKEET_OUTPUT_FORMAT` and `PARAKEET_OUTPUT_TEMPLATE` environment variables are also honored. Vasudev reads `<output-dir>/<media-basename>.txt`; the default `srt` format, other formats, and custom output templates continue to use stdout.
 
 ## Attachment policy
 
@@ -267,9 +267,9 @@ When `mode: "all"`, outputs are labeled `[Image 1/2]`, `[Audio 2/2]`, etc.
 - URL attachments get `[Attachment skipped: URL file sources are disabled]` when URL file sources are disabled.
 - A file with no extractable text, including an empty local text file, gets `[No extractable text]` and does not consume the skip-marker budget.
 - At most five skip markers render per message; further skipped attachments collapse into one reason-neutral `[<n> more attachments skipped]` summary so junk attachments cannot grow the prompt without bound. File and image, audio, or video markers share this five-marker budget.
-- If a PDF falls back to rendered page images, OpenClaw forwards those images to vision-capable reply models and keeps the placeholder `[PDF content rendered to images]` in the file block.
+- If a PDF falls back to rendered page images, Vasudev forwards those images to vision-capable reply models and keeps the placeholder `[PDF content rendered to images]` in the file block.
 - Image, audio, and video decisions record one closed disposition for every attachment candidate: handled, handed to native vision, not selected after the attachment limit, disabled, missing a model, denied by chat scope, or failed.
-- Unhandled media gets a bounded model-visible marker. Images handed to native vision do not add markers. When a native harness owns the turn and OpenClaw runs only audio preprocessing, failed or skipped audio still gets a marker; image, video, and document inputs remain owned by the harness. Too-small audio keeps its placeholder transcript without a duplicate marker.
+- Unhandled media gets a bounded model-visible marker. Images handed to native vision do not add markers. When a native harness owns the turn and Vasudev runs only audio preprocessing, failed or skipped audio still gets a marker; image, video, and document inputs remain owned by the harness. Too-small audio keeps its placeholder transcript without a duplicate marker.
 
 ## Config examples
 

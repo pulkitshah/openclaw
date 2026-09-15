@@ -16,7 +16,7 @@ const legacyAbsenceCache = new Set<string>();
  * prose rather than as a `VAR=value cmd` one-liner, which no Windows shell accepts.
  */
 function doctorFixInstruction(filePath: string, env: NodeJS.ProcessEnv): string {
-  const command = "Run `openclaw doctor --fix`";
+  const command = "Run `vasudev doctor --fix`";
   return env.OPENCLAW_STATE_DIR?.trim()
     ? `${command} with OPENCLAW_STATE_DIR set to ${path.dirname(filePath)}`
     : command;

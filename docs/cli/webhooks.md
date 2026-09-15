@@ -2,7 +2,7 @@
 doc-schema-version: 1
 summary: "CLI reference for `openclaw webhooks` (Gmail Pub/Sub setup and runner)"
 read_when:
-  - You want to wire Gmail Pub/Sub events into OpenClaw
+  - You want to wire Gmail Pub/Sub events into Vasudev
   - You need the full flag list and default values
 title: "Webhooks"
 ---
@@ -18,10 +18,10 @@ openclaw webhooks gmail setup --account <email> [...]
 openclaw webhooks gmail run   [--account <email>] [...]
 ```
 
-| Subcommand    | Description                                                                           |
-| ------------- | ------------------------------------------------------------------------------------- |
-| `gmail setup` | One-time wizard: Gmail watch, Pub/Sub topic/subscription, and OpenClaw hook delivery. |
-| `gmail run`   | Run `gog gmail watch serve` plus the watch auto-renew loop in the foreground.         |
+| Subcommand    | Description                                                                          |
+| ------------- | ------------------------------------------------------------------------------------ |
+| `gmail setup` | One-time wizard: Gmail watch, Pub/Sub topic/subscription, and Vasudev hook delivery. |
+| `gmail run`   | Run `gog gmail watch serve` plus the watch auto-renew loop in the foreground.        |
 
 <Note>
 The Gateway also auto-starts `gog gmail watch serve` on boot once `hooks.enabled=true` and `hooks.gmail.account` is set (set by `gmail setup`). `gmail run` provides a foreground watcher for debugging or when the Gateway watcher is disabled. Do not run both against the same listener. See [Gmail Pub/Sub integration](/automation/cron-jobs#gmail-pubsub-integration) for the auto-start details and `OPENCLAW_SKIP_GMAIL_WATCHER` opt-out.
@@ -59,13 +59,13 @@ This command connects Gmail transport but does not create a restricted reader ag
 | `--label <label>`       | `INBOX`                | Gmail label to watch.                                                                                                                                                                  |
 | `--push-endpoint <url>` | (none)                 | Explicit Pub/Sub push endpoint. Skips Tailscale endpoint setup; use `--tailscale off` for externally managed exposure. The URL is used as supplied, including any required push token. |
 
-### OpenClaw delivery options
+### Vasudev delivery options
 
-| Flag                   | Default                                       | Description                                                                      |
-| ---------------------- | --------------------------------------------- | -------------------------------------------------------------------------------- |
-| `--hook-url <url>`     | `hooks.gmail.hookUrl`, then local Gateway URL | OpenClaw webhook URL; generated fallback uses `hooks.path` and the Gateway port. |
-| `--hook-token <token>` | `hooks.token`, or a generated token           | OpenClaw webhook token.                                                          |
-| `--push-token <token>` | `hooks.gmail.pushToken`, or a generated token | Separate token authenticating Pub/Sub to `gog gmail watch serve`.                |
+| Flag                   | Default                                       | Description                                                                     |
+| ---------------------- | --------------------------------------------- | ------------------------------------------------------------------------------- |
+| `--hook-url <url>`     | `hooks.gmail.hookUrl`, then local Gateway URL | Vasudev webhook URL; generated fallback uses `hooks.path` and the Gateway port. |
+| `--hook-token <token>` | `hooks.token`, or a generated token           | Vasudev webhook token.                                                          |
+| `--push-token <token>` | `hooks.gmail.pushToken`, or a generated token | Separate token authenticating Pub/Sub to `gog gmail watch serve`.               |
 
 <a id="gog-watch-serve-options" />
 
@@ -108,7 +108,7 @@ openclaw webhooks gmail run --account you@example.com
 
 Starts the Gmail watch and runs `gog gmail watch serve` plus periodic watch renewal in the foreground. Unexpected serve-process exits continue to restart after 5 seconds. A bind conflict stops restarts. Run only one watcher per listener and stop the other watcher before retrying. Ctrl-C or SIGTERM cancels pending restarts and renewal work and shuts down the serve process tree. Investigate repeated exits in the logs.
 
-`run` accepts the same Pub/Sub, OpenClaw delivery, `gog gmail watch serve`, and Tailscale flags as `setup`, except:
+`run` accepts the same Pub/Sub, Vasudev delivery, `gog gmail watch serve`, and Tailscale flags as `setup`, except:
 
 - `--account` is **optional** on `run`. It falls back to `hooks.gmail.account`.
 - `run` does **not** accept `--project`, `--push-endpoint`, or `--json`.
@@ -119,7 +119,7 @@ Starts the Gmail watch and runs `gog gmail watch serve` plus periodic watch rene
 | Category                | Flags                                                                            |
 | ----------------------- | -------------------------------------------------------------------------------- |
 | Pub/Sub                 | `--account`, `--topic`, `--subscription`, `--label`                              |
-| OpenClaw delivery       | `--hook-url`, `--hook-token`, `--push-token`                                     |
+| Vasudev delivery        | `--hook-url`, `--hook-token`, `--push-token`                                     |
 | `gog gmail watch serve` | `--bind`, `--port`, `--path`, `--include-body`, `--max-bytes`, `--renew-minutes` |
 | Tailscale               | `--tailscale`, `--tailscale-path`, `--tailscale-target`                          |
 

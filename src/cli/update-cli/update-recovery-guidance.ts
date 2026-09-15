@@ -14,7 +14,7 @@ export function resolveUnsafeUpdateRecoveryGuidance(
   reason?: UnsafeUpdateRecovery["reason"],
   env: NodeJS.ProcessEnv = process.env,
 ): string {
-  const triageCommand = formatCliCommand("openclaw triage", env);
+  const triageCommand = formatCliCommand("vasudev triage", env);
   const guidance = `Run \`${triageCommand}\` on this machine to open a coding agent that can diagnose and repair the installation.`;
   if (reason === "state-migration-started") {
     return `${guidance} Candidate Doctor may have migrated state; keep the candidate installed and do not roll back code alone.`;
@@ -68,7 +68,7 @@ export function resolveUpdateResultNextAction(params: {
     // Record deployment-specific advice here so CLI output and later reports agree.
     // Keep the recovery constraints: an image change must not roll back migrated state.
     const deployment = containerPermissionFailure
-      ? "Detected package update permission failure (EACCES) inside a container. Pull or build an OpenClaw image with the target version, then recreate or redeploy the container with the same state/config mounts. In-container package changes are not durable. "
+      ? "Detected package update permission failure (EACCES) inside a container. Pull or build a Vasudev image with the target version, then recreate or redeploy the container with the same state/config mounts. In-container package changes are not durable. "
       : "";
     return `${configRefusal ? `${configRefusal} ` : ""}${state}${deployment}${resolveUnsafeUpdateRecoveryGuidance(reason, env)}`;
   }
@@ -77,7 +77,7 @@ export function resolveUpdateResultNextAction(params: {
     return `Git-based updates need a clean working tree before they can switch commits, fetch, or rebase. Commit, stash, or discard the local changes, then rerun \`${command("openclaw update")}\`.`;
   }
   if (result.reason === "not-git-install") {
-    return `This OpenClaw install isn't a git checkout, and the package manager couldn't be detected. Update via your package manager, then run \`${command("openclaw doctor")}\` and \`${command("openclaw gateway restart")}\`. Examples: \`npm i -g openclaw@latest\` or \`pnpm add -g openclaw@latest\`.`;
+    return `This Vasudev install isn't a git checkout, and the package manager couldn't be detected. Update via your package manager, then run \`${command("openclaw doctor")}\` and \`${command("openclaw gateway restart")}\`. Examples: \`npm i -g openclaw@latest\` or \`pnpm add -g openclaw@latest\`.`;
   }
   if (result.status === "ok") {
     if (params.restart === false && result.postUpdate?.plugins?.changed) {

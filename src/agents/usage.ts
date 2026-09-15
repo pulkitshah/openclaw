@@ -1,6 +1,6 @@
 /**
  * Token usage normalization helpers.
- * Converts provider-specific usage shapes into OpenClaw's normalized input,
+ * Converts provider-specific usage shapes into Vasudev's normalized input,
  * output, cache, reasoning, and total token accounting fields.
  */
 import { asFiniteNumber } from "@openclaw/normalization-core/number-coercion";
@@ -163,7 +163,7 @@ const normalizeTokenCount = (value: unknown): number | undefined => {
   return Math.min(Math.trunc(numeric), Number.MAX_SAFE_INTEGER);
 };
 
-/** Normalize provider-specific token usage fields into OpenClaw usage buckets. */
+/** Normalize provider-specific token usage fields into Vasudev usage buckets. */
 export function normalizeUsage(raw?: UsageLike | null): NormalizedUsage | undefined {
   if (!raw) {
     return undefined;
@@ -364,7 +364,7 @@ export function toOpenAiChatCompletionsUsage(
  * Maps normalized usage to OpenAI Responses `usage` fields.
  *
  * Responses reports cache reads and writes as subsets of `input_tokens`, so
- * recombine OpenClaw's separately priced buckets and retain their details.
+ * recombine Vasudev's separately priced buckets and retain their details.
  * Reasoning tokens remain a detail of `output_tokens`, not an extra bucket.
  */
 export function toOpenAiResponsesUsage(usage: NormalizedUsage | undefined): OpenAiResponsesUsage {

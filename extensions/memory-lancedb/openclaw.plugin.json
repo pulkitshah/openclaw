@@ -8,7 +8,7 @@
     ]
   },
   "name": "Memory LanceDB",
-  "description": "OpenClaw LanceDB-backed long-term memory plugin with auto-recall, auto-capture, and vector search.",
+  "description": "Vasudev LanceDB-backed long-term memory plugin with auto-recall, auto-capture, and vector search.",
   "cliCommands": [
     {
       "name": "ltm",

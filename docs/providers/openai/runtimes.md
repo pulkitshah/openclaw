@@ -1,7 +1,7 @@
 ---
 summary: "Which runtime runs an openai/* turn, and how native Codex resolves auth"
 read_when:
-  - You need to know whether a turn runs on OpenClaw or the native Codex harness
+  - You need to know whether a turn runs on Vasudev or the native Codex harness
   - You are mapping the openai, codex, and agentRuntime names to layers
   - You are debugging native Codex app-server account selection
 title: "OpenAI runtimes and Codex auth"
@@ -27,10 +27,10 @@ endpoint and adapter:
 | Effective route facts                                                                                                                                                           | Implicit runtime      |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
 | Exact official Platform HTTPS endpoint with `openai-responses`, or exact official ChatGPT HTTPS endpoint with `openai-chatgpt-responses`; no authored provider request override | Codex may be selected |
-| Authored `openai-completions` adapter                                                                                                                                           | OpenClaw              |
-| Custom endpoint                                                                                                                                                                 | OpenClaw              |
+| Authored `openai-completions` adapter                                                                                                                                           | Vasudev               |
+| Custom endpoint                                                                                                                                                                 | Vasudev               |
 | Explicit exact official endpoint using HTTP                                                                                                                                     | Rejected              |
-| Route with an authored provider/model request override                                                                                                                          | OpenClaw              |
+| Route with an authored provider/model request override                                                                                                                          | Vasudev               |
 
 Valid model-scoped `params.fastMode` / `params.fast_mode`, cutoff, and `thinking`
 values are typed agent-runtime controls, not authored provider request params.
@@ -39,9 +39,9 @@ Codex selection. See [Runtime selection](/concepts/agent-runtimes#runtime-select
 for the supported capability values and the request overrides that remain protected.
 
 An explicit `agentRuntime.id: "openclaw"` keeps a Codex-eligible route on
-OpenClaw. Explicit `agentRuntime.id: "codex"` requires a registered Codex harness;
+Vasudev. Explicit `agentRuntime.id: "codex"` requires a registered Codex harness;
 unsupported routes/auth fail closed, except that authored request overrides may
-use Codex's declared exact-request OpenClaw fallback before execution. Inspect
+use Codex's declared exact-request Vasudev fallback before execution. Inspect
 the completed result's actual harness when a recipe depends on native execution.
 Runtime compatibility does not establish credential type or billing: Platform API-key
 auth and ChatGPT/Codex subscription auth remain distinct.
@@ -53,7 +53,7 @@ subscription route. That preference does not change the implicit runtime or
 require installing Codex for an API-only configuration. A literal provider
 `apiKey` without an `auth` override remains a fallback after eligible profiles.
 Required profile bindings, provider auth settings, configured secret references,
-and explicit auth order still take precedence. An authored OpenClaw runtime choice
+and explicit auth order still take precedence. An authored Vasudev runtime choice
 prefers the API route when both kinds are eligible; runtime compatibility is
 checked independently. Unpinned heartbeat and subagent models inherit their
 default model's route intent. Doctor reports a resolved billing-route change
@@ -78,7 +78,7 @@ only when you want API-key auth for an agent model.
 The native Codex app-server harness uses `openai/*` model refs when an eligible
 exact official HTTPS route selects it implicitly, or when provider/model
 `agentRuntime.id: "codex"` selects it explicitly. Its auth is still
-account-based. OpenClaw selects auth in this order:
+account-based. Vasudev selects auth in this order:
 
 1. Ordered OpenAI auth profiles for the agent, preferably under
    `auth.order.openai`. Run `openclaw doctor --fix` to migrate older legacy
@@ -86,21 +86,21 @@ account-based. OpenClaw selects auth in this order:
 2. The native Codex account, when no host credential or account selection owns
    the route. This path uses the user Codex home. An explicit
    `appServer.homeScope: "agent"` keeps the isolated home and does not borrow the
-   user login. Prepared OpenClaw credentials stay in the agent home; OpenClaw
+   user login. Prepared Vasudev credentials stay in the agent home; Vasudev
    never logs them into the native user home.
 3. For local stdio app-server launches only, and only when the app-server
    reports no account: `CODEX_API_KEY`, then `OPENAI_API_KEY`.
 
 Status and catalog reads ask Codex about its native login without importing
-credentials into an OpenClaw profile. A fresh auth refresh observes native login
+credentials into a Vasudev profile. A fresh auth refresh observes native login
 and logout. Native API-key and subscription accounts select their matching
 routes. Model runtime choices use the same route and account as thinking
 metadata; an unavailable runtime cannot be selected. Explicit auth import
-remains available when you want an OpenClaw-owned profile.
+remains available when you want a Vasudev-owned profile.
 
 The default per-agent `codex-home/auth.json` is not a runtime auth store. If
 you copied or mounted Codex CLI credentials there, import them into the agent's
-OpenClaw auth store before starting a native Codex turn. Replace `<agent-id>`
+Vasudev auth store before starting a native Codex turn. Replace `<agent-id>`
 with the configured agent that owns this Codex home:
 
 ```bash
@@ -112,16 +112,16 @@ A local ChatGPT/Codex subscription sign-in is not replaced just because the
 gateway process also has `OPENAI_API_KEY` for direct OpenAI models or
 embeddings. The env API-key fallback applies only to the local stdio no-account
 path; it is never sent over WebSocket app-server connections. When a
-subscription-style Codex profile is selected, OpenClaw also keeps
+subscription-style Codex profile is selected, Vasudev also keeps
 `CODEX_API_KEY` and `OPENAI_API_KEY` out of the spawned stdio app-server child
 and sends the selected credentials through the app-server login RPC instead.
 
-When that subscription profile is blocked by a Codex usage limit, OpenClaw
+When that subscription profile is blocked by a Codex usage limit, Vasudev
 marks the profile blocked until Codex's advertised reset time and lets auth
 ordering rotate to the next `openai:*` profile, without changing the selected
 model or dropping out of the Codex harness. Once the reset time passes, the
 subscription profile is eligible again.
 
 Chat `/status` reports the authentication mode from the selected runtime's current
-prepared account. A native login stays distinct from an OpenClaw profile; it does
+prepared account. A native login stays distinct from a Vasudev profile; it does
 not satisfy an unavailable explicit profile pin.

@@ -1,6 +1,6 @@
-// Shared directory-permission tightening for OpenClaw-owned private roots.
+// Shared directory-permission tightening for Vasudev-owned private roots.
 // fs-safe 0.8 no longer repairs existing directory modes; these helpers keep
-// OpenClaw's documented behavior of tightening its own directories before
+// Vasudev's documented behavior of tightening its own directories before
 // writing secrets. Every component is opened no-follow and chmodded through
 // the pinned descriptor, so a swapped or symlinked directory is never
 // mutated — fs-safe rejects those itself.

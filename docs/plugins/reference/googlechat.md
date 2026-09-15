@@ -1,5 +1,5 @@
 ---
-summary: "OpenClaw Google Chat channel plugin for spaces and direct messages."
+summary: "Vasudev Google Chat channel plugin for spaces and direct messages."
 read_when:
   - You are installing, configuring, or auditing the googlechat plugin
 title: "Google Chat plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-OpenClaw Google Chat channel plugin for spaces and direct messages.
+Vasudev Google Chat channel plugin for spaces and direct messages.
 
 ## Distribution
 

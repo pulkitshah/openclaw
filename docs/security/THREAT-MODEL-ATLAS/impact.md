@@ -1,8 +1,8 @@
 ---
-summary: "OpenClaw impact threats (AML.TA0011): T-IMPACT-001, T-IMPACT-002, T-IMPACT-003"
+summary: "Vasudev impact threats (AML.TA0011): T-IMPACT-001, T-IMPACT-002, T-IMPACT-003"
 title: "Impact (AML.TA0011)"
 read_when:
-  - Reviewing impact threats against an OpenClaw deployment
+  - Reviewing impact threats against a Vasudev deployment
   - Working on mitigations for T-IMPACT-001, T-IMPACT-002, T-IMPACT-003
 ---
 

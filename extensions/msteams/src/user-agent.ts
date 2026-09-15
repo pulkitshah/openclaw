@@ -24,7 +24,7 @@ function resolveOpenClawVersion(): string {
 
 /**
  * Build a combined User-Agent string that preserves the Teams SDK identity
- * and appends the OpenClaw version.
+ * and appends the Vasudev version.
  *
  * Format: "teams.ts[apps]/<sdk-version> OpenClaw/<openclaw-version>"
  * Example: "teams.ts[apps]/2.0.5 OpenClaw/2026.3.22"
@@ -43,7 +43,7 @@ export function buildUserAgent(): string {
 /**
  * User-Agent fragment for the Teams SDK App's client. The SDK's Client.clone
  * merges this with its own `teams.ts[apps]/<sdk-version>` identifier, so we
- * only contribute the OpenClaw piece — passing the full `buildUserAgent()`
+ * only contribute the Vasudev piece — passing the full `buildUserAgent()`
  * would double-print the SDK token.
  *
  * Format: "OpenClaw/<openclaw-version>"

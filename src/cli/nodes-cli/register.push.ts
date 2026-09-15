@@ -17,7 +17,7 @@ export function registerNodesPushCommand(nodes: Command) {
       .command("push")
       .description("Send an APNs test push to an iOS node")
       .requiredOption("--node <idOrNameOrIp>", "Node id, name, or IP")
-      .option("--title <text>", "Push title", "OpenClaw")
+      .option("--title <text>", "Push title", "Vasudev")
       .option("--body <text>", "Push body")
       .option("--environment <sandbox|production>", "Override APNs environment")
       .action(async (opts: NodesRpcOpts & { environment?: string }) => {
@@ -31,7 +31,7 @@ export function registerNodesPushCommand(nodes: Command) {
             throw new Error("invalid --environment (use sandbox|production)");
           }
           const nodeId = await resolveCliNodeId(opts, normalizeOptionalString(opts.node) ?? "");
-          const title = normalizeOptionalString(opts.title) || "OpenClaw";
+          const title = normalizeOptionalString(opts.title) || "Vasudev";
           const body = normalizeOptionalString(opts.body) || `Push test for node ${nodeId}`;
 
           const params: Record<string, unknown> = {

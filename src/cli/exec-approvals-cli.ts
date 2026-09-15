@@ -603,7 +603,7 @@ function renderStandingGrants(grants: StandingGrantCliEntry[]): void {
       })),
     }),
   );
-  defaultRuntime.log(theme.muted("Revoke with: openclaw approvals grants revoke <grant-id>"));
+  defaultRuntime.log(theme.muted("Revoke with: vasudev approvals grants revoke <grant-id>"));
 }
 
 function renderPendingApprovals(entries: PendingApprovalCliEntry[]): void {
@@ -844,7 +844,7 @@ function buildEffectivePolicyReport(params: {
     return {
       scopes: [],
       note: params.nativePolicy
-        ? "This node enforces a host-native exec policy; OpenClaw approvals-file policy math does not apply."
+        ? "This node enforces a host-native exec policy; Vasudev approvals-file policy math does not apply."
         : "Host approvals policy unavailable.",
     };
   }
@@ -1406,16 +1406,16 @@ export function registerExecApprovalsCli(program: Command) {
       "after",
       () =>
         `\n${theme.heading("Examples:")}\n${formatExample(
-          'openclaw approvals allowlist add "~/Projects/**/bin/rg"',
+          'vasudev approvals allowlist add "~/Projects/**/bin/rg"',
           "Allowlist a local binary pattern for the main agent.",
         )}\n${formatExample(
-          'openclaw approvals allowlist add --agent main --node <id|name|ip> "/usr/bin/uptime"',
+          'vasudev approvals allowlist add --agent main --node <id|name|ip> "/usr/bin/uptime"',
           "Allowlist on a specific node/agent.",
         )}\n${formatExample(
-          'openclaw approvals allowlist add --agent "*" "/usr/bin/uname"',
+          'vasudev approvals allowlist add --agent "*" "/usr/bin/uname"',
           "Allowlist for all agents (wildcard).",
         )}\n${formatExample(
-          'openclaw approvals allowlist remove "~/Projects/**/bin/rg"',
+          'vasudev approvals allowlist remove "~/Projects/**/bin/rg"',
           "Remove an allowlist pattern.",
         )}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/approvals", "docs.openclaw.ai/cli/approvals")}\n`,
     );

@@ -785,7 +785,7 @@ describe("package update recovery safety", () => {
               return null;
             }
             return {
-              name: "openclaw doctor",
+              name: "vasudev doctor",
               command: "openclaw doctor --non-interactive --fix",
               cwd: candidateRoot,
               durationMs: 0,
@@ -889,7 +889,7 @@ describe("package update recovery safety", () => {
             };
           },
           postVerifyStep: async (candidateRoot) => ({
-            name: "openclaw doctor",
+            name: "vasudev doctor",
             command: "openclaw doctor --non-interactive --fix",
             cwd: candidateRoot,
             durationMs: 0,

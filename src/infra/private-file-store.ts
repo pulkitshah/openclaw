@@ -10,7 +10,7 @@ import { tightenPrivateDirRootSync } from "./private-dir-mode.js";
 
 const PRIVATE_STORE_DIR_MODE = 0o700;
 
-// fs-safe 0.8 no longer repairs existing store-root permissions; OpenClaw
+// fs-safe 0.8 no longer repairs existing store-root permissions; Vasudev
 // owns these directories, so tighten them once at store creation.
 function tightenPrivateStoreRoot(rootDir: string): void {
   tightenPrivateDirRootSync(rootDir, PRIVATE_STORE_DIR_MODE);

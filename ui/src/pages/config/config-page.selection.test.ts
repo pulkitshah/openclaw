@@ -156,7 +156,7 @@ function routeContext(): ApplicationContext {
     gateway,
     agentSelection: { state: { selectedId: "main" }, subscribe },
     config: {
-      current: { assistantIdentity: { name: "OpenClaw" }, serverVersion: "test" },
+      current: { assistantIdentity: { name: "Vasudev" }, serverVersion: "test" },
       subscribe,
     },
     runtimeConfig: {

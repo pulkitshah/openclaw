@@ -133,15 +133,15 @@ export async function hasLoadedLaunchdKeepAliveSupervisor(params: {
   if (process.platform !== "darwin") {
     return false;
   }
-  // OpenClaw's loaded LaunchAgent has canonical KeepAlive policy. Read this once before
+  // Vasudev's loaded LaunchAgent has canonical KeepAlive policy. Read this once before
   // polling so an unloaded agent can still reach the existing recovery path promptly.
   return await params.service.isLoaded({ env: params.env }).catch(() => false);
 }
 
 function formatPostUpdateGatewayRecoveryLine(platform: NodeJS.Platform): string {
-  const restartCommand = formatCliCommand("openclaw gateway restart");
-  const installCommand = formatCliCommand("openclaw gateway install --force");
-  const statusCommand = formatCliCommand("openclaw gateway status --deep");
+  const restartCommand = formatCliCommand("vasudev gateway restart");
+  const installCommand = formatCliCommand("vasudev gateway install --force");
+  const statusCommand = formatCliCommand("vasudev gateway status --deep");
   if (platform === "darwin") {
     return `Recovery: run \`${restartCommand}\`; if the LaunchAgent is installed but not loaded, run \`${installCommand}\` from the logged-in macOS user session, then rerun \`${statusCommand}\`.`;
   }
@@ -162,7 +162,7 @@ export function formatPostUpdateGatewayRecoveryInstructions(
   const beforeVersion = normalizeOptionalString(result.before?.version);
   if (isPackageManagerUpdateMode(result.mode) && beforeVersion) {
     lines.push(
-      `Rollback: reinstall OpenClaw ${beforeVersion} with the same package manager, then rerun \`${formatCliCommand("openclaw gateway install --force")}\`.`,
+      `Rollback: reinstall Vasudev ${beforeVersion} with the same package manager, then rerun \`${formatCliCommand("vasudev gateway install --force")}\`.`,
     );
   }
   return lines;
@@ -193,7 +193,7 @@ export async function maybeRestartServiceAfterFailedMutableUpdate(params: {
   }
   if (params.recovery?.serviceRestartSafe !== true || !params.recovery.version) {
     defaultRuntime.error(
-      "Managed gateway remains stopped: update safety is unverified. Run `openclaw doctor` and inspect the update failure before restarting.",
+      "Managed gateway remains stopped: update safety is unverified. Run `vasudev doctor` and inspect the update failure before restarting.",
     );
     return "failed";
   }
@@ -289,7 +289,7 @@ export async function maybeRestartServiceAfterFailedMutableUpdate(params: {
       throw err;
     }
     defaultRuntime.error(
-      `Failed to restart managed gateway service after failed update: ${String(err)}. Run \`openclaw gateway status --deep\` before restarting it manually.`,
+      `Failed to restart managed gateway service after failed update: ${String(err)}. Run \`vasudev gateway status --deep\` before restarting it manually.`,
     );
     return "failed";
   }

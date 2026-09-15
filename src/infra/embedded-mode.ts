@@ -6,7 +6,7 @@ export function setEmbeddedMode(value: boolean): void {
   embeddedModeValue = value;
 }
 
-/** Returns whether the current process is running inside an embedded OpenClaw host. */
+/** Returns whether the current process is running inside an embedded Vasudev host. */
 export function isEmbeddedMode(): boolean {
   return embeddedModeValue;
 }

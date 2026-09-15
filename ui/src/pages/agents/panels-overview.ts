@@ -183,7 +183,11 @@ export function renderAgentOverview(params: {
           </div>
           ${
             params.identityError
-              ? html`<div class="settings-row__desc" role="alert" style="color: var(--danger);">
+              ? html`<div
+                  class="settings-row__desc"
+                  role="alert"
+                  style="color: var(--danger-text);"
+                >
                   ${params.identityError}
                 </div>`
               : nothing

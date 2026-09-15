@@ -238,7 +238,7 @@ describe("codex doctor contract", () => {
         candidate.match(original.plugins.entries.codex.config.appServer),
       );
       expect(rule?.path).toEqual(["plugins", "entries", "codex", "config", "appServer"]);
-      expect(rule?.message).toContain("openclaw doctor --fix");
+      expect(rule?.message).toContain("vasudev doctor --fix");
 
       const result = normalizeCompatibilityConfig({ cfg: original });
 

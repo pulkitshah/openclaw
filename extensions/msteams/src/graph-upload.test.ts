@@ -33,7 +33,7 @@ function expectGraphUploadFetch(
   expect(init?.method).toBe("PUT");
   expect(init?.headers?.Authorization).toBe("Bearer graph-token");
   expect(init?.headers?.["Content-Type"]).toBe(contentType);
-  expect(init?.headers?.["User-Agent"]).toMatch(/^teams\.ts\[apps\]\/.+ OpenClaw\/.+$/);
+  expect(init?.headers?.["User-Agent"]).toMatch(/^teams\.ts\[apps\]\/.+ Vasudev\/.+$/);
 }
 
 function bodyOnlyErrorResponse(body: string, status = 500): Response {

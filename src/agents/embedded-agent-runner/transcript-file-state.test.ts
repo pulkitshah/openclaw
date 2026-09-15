@@ -277,7 +277,7 @@ describe("readTranscriptState", () => {
     ]);
   });
 
-  it("preserves OpenClaw-authored non-model content blocks", async () => {
+  it("preserves Vasudev-authored non-model content blocks", async () => {
     const sessionFile = await writeTranscriptFixture("openclaw-transcript-state-openclaw-blocks-", [
       JSON.stringify({
         type: "message",

@@ -12,7 +12,7 @@ import {
 
 const STRUCTURED_AUTH_MARKER_PREFIX = ";__openclaw_structured_auth_redacted_";
 
-// Minimal fallback for standalone or unwired ACP core. OpenClaw injects canonical
+// Minimal fallback for standalone or unwired ACP core. Vasudev injects canonical
 // redaction via configureAcpErrorRedactor; grow src/logging/redact-patterns.ts, not this table.
 const SECRET_PATTERNS: RegExp[] = [
   /\b[A-Z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|CARD[_-]?NUMBER|CARD[_-]?CVC|CARD[_-]?CVV|CVC|CVV|SECURITY[_-]?CODE|PAYMENT[_-]?CREDENTIAL|SHARED[_-]?PAYMENT[_-]?TOKEN)\b\s*[=:]\s*(["']?)([^\s"'\\]+)\1/g,

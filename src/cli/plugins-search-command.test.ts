@@ -143,7 +143,7 @@ describe("plugins search command", () => {
 
   it("leaves missing-query JSON failures to the root renderer", async () => {
     await expect(runPluginsSearchCommand([], { json: true }, mocks.runtime)).rejects.toThrow(
-      "Usage: openclaw plugins search <query>",
+      "Usage: vasudev plugins search <query>",
     );
 
     expect(mocks.runtime.error).not.toHaveBeenCalled();

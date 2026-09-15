@@ -190,7 +190,7 @@ function createRunEventFixture(runId: string, sessionKey: string, events: readon
   });
 }
 
-describe("OpenClaw SDK", () => {
+describe("Vasudev SDK", () => {
   it("runs an agent through the Gateway agent method", async () => {
     const { transport, oc } = createClientFixture({
       agent: { status: "accepted", runId: "run_123" },
@@ -450,7 +450,7 @@ describe("OpenClaw SDK", () => {
         approvals: "ask",
       }),
     ).rejects.toThrow(
-      "OpenClaw Gateway does not support per-run SDK options yet: workspace, runtime, environment, approvals",
+      "Vasudev Gateway does not support per-run SDK options yet: workspace, runtime, environment, approvals",
     );
   });
 
@@ -715,7 +715,7 @@ describe("OpenClaw SDK", () => {
       status: "unavailable",
     });
     await expect(oc.environments.delete("worker_123")).rejects.toThrow(
-      "oc.environments.delete is not supported by the current OpenClaw Gateway yet",
+      "oc.environments.delete is not supported by the current Vasudev Gateway yet",
     );
     expect(transport.calls).toEqual([
       { method: "environments.list", params: {}, options: undefined },
@@ -802,13 +802,13 @@ describe("OpenClaw SDK", () => {
     const close = oc.close();
     transport.finishConnect();
 
-    await expect(connect).rejects.toThrow("OpenClaw SDK client is closed");
+    await expect(connect).rejects.toThrow("Vasudev SDK client is closed");
     await close;
-    await expect(oc.agents.list()).rejects.toThrow("OpenClaw SDK client is closed");
+    await expect(oc.agents.list()).rejects.toThrow("Vasudev SDK client is closed");
     await expect(oc.events()[Symbol.asyncIterator]().next()).rejects.toThrow(
-      "OpenClaw SDK client is closed",
+      "Vasudev SDK client is closed",
     );
-    expect(() => oc.rawEvents()).toThrow("OpenClaw SDK client is closed");
+    expect(() => oc.rawEvents()).toThrow("Vasudev SDK client is closed");
     expect(transport.connectCalls).toBe(1);
     expect(transport.calls).toEqual([]);
   });
@@ -849,7 +849,7 @@ describe("OpenClaw SDK", () => {
       closePromise = oc.close();
     };
 
-    await expect(oc.agents.list()).rejects.toThrow("OpenClaw SDK client is closed");
+    await expect(oc.agents.list()).rejects.toThrow("Vasudev SDK client is closed");
     await closePromise;
     expect(transport.calls).toEqual([]);
   });
@@ -1173,9 +1173,9 @@ describe("OpenClaw SDK", () => {
       );
       expect(seen.at(-1)?.data).toEqual({ text, delta: " 501" });
       await expect(run.events()[Symbol.asyncIterator]().next()).rejects.toThrow(
-        "OpenClaw SDK client is closed",
+        "Vasudev SDK client is closed",
       );
-      await expect(oc.connect()).rejects.toThrow("OpenClaw SDK client is closed");
+      await expect(oc.connect()).rejects.toThrow("Vasudev SDK client is closed");
     } finally {
       await iterator?.return?.();
       await oc.close();

@@ -606,7 +606,7 @@ export async function runServiceRestart(params: {
             `${params.serviceNoun} service needs repair before restart: ${issues
               .map((issue) => issue.message)
               .join("; ")}`,
-            [formatCliCommand("openclaw gateway install --force")],
+            [formatCliCommand("vasudev gateway install --force")],
           );
           return false;
         }
@@ -642,7 +642,7 @@ export async function runServiceRestart(params: {
       if (driftIssue) {
         const recovery =
           resolveDaemonInstallBlockMessage("gateway") ??
-          `Run \`${formatCliCommand("openclaw gateway install --force")}\` to refresh the service token source.`;
+          `Run \`${formatCliCommand("vasudev gateway install --force")}\` to refresh the service token source.`;
         const warning = `${driftIssue.message} ${recovery}`;
         warnings.push(warning);
         if (!json) {

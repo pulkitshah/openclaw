@@ -87,7 +87,7 @@ describe("ClickClack post-write setup verification", () => {
     );
     expect(runtime.log).toHaveBeenNthCalledWith(
       2,
-      "OpenClaw is running — ClickClack will connect automatically.",
+      "Vasudev is running — ClickClack will connect automatically.",
     );
   });
 
@@ -120,7 +120,7 @@ describe("ClickClack post-write setup verification", () => {
     expect(runtime.log).toHaveBeenNthCalledWith(1, expected);
     expect(runtime.log).toHaveBeenNthCalledWith(
       2,
-      "OpenClaw is running — ClickClack will connect automatically.",
+      "Vasudev is running — ClickClack will connect automatically.",
     );
   });
 
@@ -146,7 +146,7 @@ describe("ClickClack post-write setup verification", () => {
     {
       name: "running",
       arrange: () => mocks.callGatewayFromCli.mockResolvedValue({ ok: true }),
-      expected: "OpenClaw is running — ClickClack will connect automatically.",
+      expected: "Vasudev is running — ClickClack will connect automatically.",
     },
     {
       name: "not running",
@@ -158,13 +158,13 @@ describe("ClickClack post-write setup verification", () => {
             code: 1006,
           }),
         ),
-      expected: "Start OpenClaw to connect: openclaw gateway",
+      expected: "Start Vasudev to connect: vasudev gateway",
     },
     {
       name: "unavailable",
       arrange: () => mocks.callGatewayFromCli.mockRejectedValue(new Error("probe failed")),
       expected:
-        "If OpenClaw is running it connects automatically; otherwise start it with: openclaw gateway",
+        "If Vasudev is running it connects automatically; otherwise start it with: vasudev gateway",
     },
   ])("prints the gateway next step when status is $name", async ({ arrange, expected }) => {
     arrange();

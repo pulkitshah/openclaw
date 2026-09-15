@@ -33,7 +33,7 @@ describe("compareSemverStrings", () => {
     expect(compareSemverStrings("2026.6.6.beta.2", "2026.6.6-beta.1")).toBe(1);
   });
 
-  it("treats OpenClaw stable correction releases as newer than their base release", () => {
+  it("treats Vasudev stable correction releases as newer than their base release", () => {
     expect(compareSemverStrings("2026.5.3", "2026.5.3-1")).toBe(-1);
     expect(compareSemverStrings("2026.5.3-1", "2026.5.3")).toBe(1);
     expect(compareSemverStrings("2026.5.3-2", "2026.5.3-1")).toBe(1);
@@ -46,7 +46,7 @@ describe("compareSemverStrings", () => {
 });
 
 describe("historical package schema compatibility", () => {
-  it("does not assign OpenClaw historical schemas to an npm alias", async () => {
+  it("does not assign Vasudev historical schemas to an npm alias", async () => {
     const result = await fetchNpmPackageTargetStatus({
       target: "2026.7.1",
       spec: "openclaw@npm:@example/replacement@2026.7.1",

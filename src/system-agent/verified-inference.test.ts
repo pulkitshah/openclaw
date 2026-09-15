@@ -317,7 +317,7 @@ async function envAuthFixture() {
   };
 }
 
-describe("verified OpenClaw inference binding", () => {
+describe("verified Vasudev inference binding", () => {
   it("invalidates an identity-less OAuth binding when its grant changes", async () => {
     const oauthConfig = {
       agents: { defaults: { model: "anthropic/claude-opus-4-8@anthropic:oauth" } },

@@ -108,7 +108,7 @@ function acceptManagedPluginDeclaredSurface<T extends PluginInstallRecord>(
 
 function throwManagedPluginCapabilityConsentRequired(
   review: PluginCapabilityConsentReview,
-  recovery = "Rerun the openclaw plugins install, enable, update, or reload command with --accept-capabilities after reviewing the plugin.",
+  recovery = "Rerun the vasudev plugins install, enable, update, or reload command with --accept-capabilities after reviewing the plugin.",
 ): never {
   pendingPluginCapabilityReviews.delete(review.pluginId);
   pendingPluginCapabilityReviews.set(review.pluginId, review);
@@ -323,7 +323,7 @@ async function resolvePluginArtifactCapabilityConsent(params: {
     const outcome = params.currentArtifactDir ? "updated" : "installed";
     return throwManagedPluginCapabilityConsentRequired(
       finalReview,
-      `The plugin was not ${outcome}. Re-run the same "openclaw plugins install" or "openclaw plugins update" command with --accept-capabilities, keeping its source and other options. For Doctor or setup, complete the plugin command first, then retry Doctor or setup.`,
+      `The plugin was not ${outcome}. Re-run the same "vasudev plugins install" or "vasudev plugins update" command with --accept-capabilities, keeping its source and other options. For Doctor or setup, complete the plugin command first, then retry Doctor or setup.`,
     );
   }
   pendingPluginCapabilityReviews.delete(params.pluginId);

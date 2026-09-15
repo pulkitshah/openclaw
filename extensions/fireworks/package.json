@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/fireworks-provider",
   "version": "2026.9.4",
-  "description": "OpenClaw Fireworks provider plugin",
+  "description": "Vasudev Fireworks provider plugin",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

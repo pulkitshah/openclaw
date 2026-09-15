@@ -12,7 +12,7 @@
     ]
   },
   "name": "Microsoft Teams",
-  "description": "OpenClaw Microsoft Teams channel plugin for bot conversations.",
+  "description": "Vasudev Microsoft Teams channel plugin for bot conversations.",
   "activation": {
     "onStartup": false
   },

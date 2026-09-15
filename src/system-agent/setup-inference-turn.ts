@@ -279,7 +279,7 @@ export async function runSetupInferenceTurn(params: {
     if (params.requireExecutionOwner && !successfulAuth) {
       return failed(
         "unknown",
-        "Inference succeeded, but its runtime did not report an owner that OpenClaw can safely reuse.",
+        "Inference succeeded, but its runtime did not report an owner that Vasudev can safely reuse.",
       );
     }
     return {
@@ -496,7 +496,7 @@ export async function verifySetupInference(
     return {
       ok: false,
       status: "unavailable",
-      error: "No OpenClaw config exists. Run `openclaw onboard` first.",
+      error: "No Vasudev config exists. Run `vasudev onboard` first.",
     };
   }
   if (!snapshot.valid) {
@@ -546,7 +546,7 @@ export async function verifySetupInference(
       ok: false,
       status: "unknown",
       error:
-        "The successful inference run did not report an exact execution binding. Retry setup before starting OpenClaw.",
+        "The successful inference run did not report an exact execution binding. Retry setup before starting Vasudev.",
     };
   }
   return { ...verification, binding: verifiedBinding };
@@ -651,7 +651,7 @@ export async function verifySetupInferenceConfig(
     return {
       ok: false,
       status: "unavailable",
-      error: "No agent model is configured. Run `openclaw onboard` first.",
+      error: "No agent model is configured. Run `vasudev onboard` first.",
     };
   }
   const route = params.agentDir
@@ -707,7 +707,7 @@ export async function completeSetupInference(
     (await import("../config/config.js")).readConfigFileSnapshot;
   const snapshot = await readSnapshot();
   if (!snapshot.exists) {
-    return { ok: false, status: "unavailable", error: "No OpenClaw config exists." };
+    return { ok: false, status: "unavailable", error: "No Vasudev config exists." };
   }
   if (!snapshot.valid) {
     return { ok: false, status: "format", error: invalidSetupConfigError(snapshot) };

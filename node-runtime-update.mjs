@@ -74,7 +74,7 @@ export async function resolveUpdatedNodeRuntime(
   }
 
   process.stderr.write(
-    "Install a compatible Node.js for OpenClaw only and retry this command.\n" +
+    "Install a compatible Node.js for Vasudev only and retry this command.\n" +
       "The Node.js installation will not change system Node.js, shell settings, or Gateway services.\n",
   );
   if (!(await confirmNodeUpdate())) {

@@ -98,7 +98,7 @@ export function buildMSTeamsPendingApprovalCard(params: {
     view.approvalKind === "plugin"
       ? "Plugin"
       : view.approvalKind === "system-agent"
-        ? "OpenClaw Change"
+        ? "Vasudev Change"
         : "Exec";
   const actionTokens: MSTeamsApprovalActionToken[] = [];
   const actions = view.actions.map(({ decision, label }) => {
@@ -133,7 +133,7 @@ export function buildMSTeamsResolvedApprovalCard(
     view.approvalKind === "plugin"
       ? "Plugin"
       : view.approvalKind === "system-agent"
-        ? "OpenClaw Change"
+        ? "Vasudev Change"
         : "Exec";
   const resolvedBy = normalizeOptionalString(view.resolvedBy);
   const decisionLabel = formatChannelApprovalResolvedLabel(view);
@@ -154,7 +154,7 @@ export function buildMSTeamsExpiredApprovalCard(
     view.approvalKind === "plugin"
       ? "Plugin"
       : view.approvalKind === "system-agent"
-        ? "OpenClaw Change"
+        ? "Vasudev Change"
         : "Exec";
   return buildAdaptiveCard([
     ...buildCardHeading(

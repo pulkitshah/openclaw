@@ -300,7 +300,7 @@ describe("handleBashChatCommand", () => {
         const result = await handleBashChatCommand(params);
 
         expect(result.text).toContain(`elevated is not available right now (runtime=${runtime})`);
-        expect(result.text).toContain(`openclaw sandbox explain --session ${sessionKey}`);
+        expect(result.text).toContain(`vasudev sandbox explain --session ${sessionKey}`);
         expect(result.text).not.toContain("agent:main:telegram:slash-session");
         expect(createExecToolMock).not.toHaveBeenCalled();
       });

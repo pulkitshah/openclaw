@@ -11,7 +11,7 @@ Tailscale Serve gives your Gateway one HTTPS URL without exposing the Gateway po
 
 The result is `https://<host>.<tailnet>.ts.net`, reachable from permitted devices on your tailnet and not from the public internet. The matching WebSocket URL is `wss://<host>.<tailnet>.ts.net`.
 
-If you need a public URL, use [Tailscale Funnel](/gateway/tailscale#public-internet-funnel-%2B-shared-password) instead. Funnel is public, and OpenClaw requires password auth for it.
+If you need a public URL, use [Tailscale Funnel](/gateway/tailscale#public-internet-funnel-%2B-shared-password) instead. Funnel is public, and Vasudev requires password auth for it.
 
 ## Before you begin
 
@@ -22,7 +22,7 @@ You need:
 - Tailscale installed and logged in on the Gateway host.
 - The Gateway already configured with token, password, or trusted-proxy auth. Serve cannot be combined with `gateway.auth.mode: "none"`.
 
-OpenClaw locates the Tailscale CLI automatically. It checks `tailscale` on `PATH`, the macOS app bundle at `/Applications/Tailscale.app/Contents/MacOS/Tailscale`, other matching app installations under `/Applications`, and the system locate database. You do not need to add the macOS app-bundle binary to `PATH`.
+Vasudev locates the Tailscale CLI automatically. It checks `tailscale` on `PATH`, the macOS app bundle at `/Applications/Tailscale.app/Contents/MacOS/Tailscale`, other matching app installations under `/Applications`, and the system locate database. You do not need to add the macOS app-bundle binary to `PATH`.
 
 ## 1. Enable Serve while keeping loopback bind
 
@@ -47,7 +47,7 @@ The equivalent configuration is:
 }
 ```
 
-OpenClaw configures Tailscale to serve HTTPS on port `443` and proxy to a private ephemeral loopback listener owned by the Gateway. The ordinary Gateway listener remains on `127.0.0.1:18789` by default for direct local clients.
+Vasudev configures Tailscale to serve HTTPS on port `443` and proxy to a private ephemeral loopback listener owned by the Gateway. The ordinary Gateway listener remains on `127.0.0.1:18789` by default for direct local clients.
 
 ### Optional identity-header auth
 
@@ -57,9 +57,9 @@ To explicitly allow Tailscale identity headers for Control UI WebSocket auth:
 openclaw config set gateway.auth.allowTailscale true
 ```
 
-For Serve with token auth, OpenClaw enables this behavior by default unless you set it to `false`. Password and trusted-proxy modes keep their explicit auth boundary unless you opt in.
+For Serve with token auth, Vasudev enables this behavior by default unless you set it to `false`. Password and trusted-proxy modes keep their explicit auth boundary unless you opt in.
 
-This setting lets a verified Tailscale identity satisfy the Control UI WebSocket shared-secret check. OpenClaw verifies the forwarded client address with `tailscale whois` and matches it to the `tailscale-user-login` header. It applies only when the request arrives through Serve on OpenClaw's dedicated managed-Tailscale listener with the expected forwarded headers.
+This setting lets a verified Tailscale identity satisfy the Control UI WebSocket shared-secret check. Vasudev verifies the forwarded client address with `tailscale whois` and matches it to the `tailscale-user-login` header. It applies only when the request arrives through Serve on Vasudev's dedicated managed-Tailscale listener with the expected forwarded headers.
 
 It does not authenticate HTTP API endpoints, remove browser device identity requirements, authenticate node-role connections, or bypass node pairing. See [Tailscale identity headers](/gateway/tailscale#tailscale-identity-headers-serve-only) for the full contract.
 
@@ -129,10 +129,10 @@ For the default port, replace `<port>` with `18789`. The Gateway listener should
 
 ### macOS app
 
-In the OpenClaw macOS app:
+In the Vasudev macOS app:
 
 1. Open **Settings > Connection**.
-2. Set **OpenClaw runs** to **Remote (another host)**.
+2. Set **Vasudev runs** to **Remote (another host)**.
 3. Set **Transport** to **Direct (ws/wss)**.
 4. Enter `wss://<host>.<tailnet>.ts.net` in **Gateway URL**.
 5. Select **Test remote**.

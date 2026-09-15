@@ -2,13 +2,13 @@
 summary: "Chutes setup (OAuth or API key, model discovery, aliases)"
 title: "Chutes"
 read_when:
-  - You want to use Chutes with OpenClaw
+  - You want to use Chutes with Vasudev
   - You need the OAuth or API key setup path
   - You want the default model, aliases, or discovery behavior
 ---
 
 [Chutes](https://chutes.ai) exposes open-source model catalogs through an
-OpenAI-compatible API. OpenClaw supports both browser OAuth and API-key auth.
+OpenAI-compatible API. Vasudev supports both browser OAuth and API-key auth.
 
 | Property         | Value                                                   |
 | ---------------- | ------------------------------------------------------- |
@@ -41,8 +41,8 @@ the Chutes catalog.
         ```bash
         openclaw onboard --auth-choice chutes
         ```
-        OpenClaw launches the browser flow locally, or shows a URL + redirect-paste
-        flow on remote/headless hosts. OAuth tokens auto-refresh through OpenClaw auth
+        Vasudev launches the browser flow locally, or shows a URL + redirect-paste
+        flow on remote/headless hosts. OAuth tokens auto-refresh through Vasudev auth
         profiles.
       </Step>
     </Steps>
@@ -64,10 +64,10 @@ the Chutes catalog.
 
 ## Discovery behavior
 
-When Chutes auth is available, OpenClaw queries `GET /v1/models` with that
+When Chutes auth is available, Vasudev queries `GET /v1/models` with that
 credential and uses the discovered models, cached for 5 minutes per
 credential. A rejected credential produces a catalog authentication failure;
-OpenClaw does not retry anonymously. Other request failures produce an
+Vasudev does not retry anonymously. Other request failures produce an
 unavailable catalog outcome, not a successful static list. A successful empty
 response stays empty. API-key and OAuth discovery use this same path.
 
@@ -85,7 +85,7 @@ and their prices are preserved when applying provider setup again.
 
 ## Default aliases
 
-OpenClaw registers two convenience aliases for the Chutes catalog:
+Vasudev registers two convenience aliases for the Chutes catalog:
 
 | Alias           | Target model                           |
 | --------------- | -------------------------------------- |

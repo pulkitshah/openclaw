@@ -1,7 +1,7 @@
 ---
 summary: "CLI reference for `openclaw attach` (launch Claude Code with a scoped Gateway MCP grant)"
 read_when:
-  - You want Claude Code to use OpenClaw Gateway MCP tools
+  - You want Claude Code to use Vasudev Gateway MCP tools
   - You need a temporary session-bound MCP grant for an external harness
 title: "Attach CLI"
 ---
@@ -52,11 +52,11 @@ rejected.
 Target resolution uses the same [session target error matrix](/cli/tui#session-target-errors)
 as `openclaw tui`.
 
-The bearer token is passed through environment variables, not argv. OpenClaw launches Claude Code with `--strict-mcp-config --mcp-config <path>` so ambient Claude MCP servers do not join the attached session. Normal launches (without `--print-config`) revoke the grant when the Claude Code process exits.
+The bearer token is passed through environment variables, not argv. Vasudev launches Claude Code with `--strict-mcp-config --mcp-config <path>` so ambient Claude MCP servers do not join the attached session. Normal launches (without `--print-config`) revoke the grant when the Claude Code process exits.
 
 If an attached tool asks a structured question, answer it through the question
 controls in the Control UI or native app. An attach grant scopes tools to a
-session but does not identify an active OpenClaw run or its original caller
+session but does not identify an active Vasudev run or its original caller
 permissions, so ordinary channel text cannot claim that question. See
 [Ask user](/tools/ask-user).
 

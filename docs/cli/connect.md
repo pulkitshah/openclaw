@@ -1,5 +1,5 @@
 ---
-summary: "Connect a machine to an OpenClaw Gateway with one pasted command"
+summary: "Connect a machine to a Vasudev Gateway with one pasted command"
 read_when:
   - Pairing a new headless node with a Gateway
   - Installing a node host from a join URL or setup code
@@ -8,7 +8,7 @@ title: "Connect"
 
 # `openclaw connect`
 
-Connect the current machine to an OpenClaw Gateway as a headless node. The
+Connect the current machine to a Vasudev Gateway as a headless node. The
 command redeems a short-lived bootstrap credential, saves the Gateway endpoint
 in the existing node-host state, and runs the same runtime as
 [`openclaw node run`](/cli/node).
@@ -99,7 +99,7 @@ the platform user service:
 npx openclaw connect https://gateway.example/j/<shortcode> --service
 ```
 
-OpenClaw completes the first authenticated connection before installing the
+Vasudev completes the first authenticated connection before installing the
 service. The short-lived bootstrap token is never stored in the service command
 or node-host configuration; later starts use the durable paired-device token.
 When restarting against that saved endpoint, config credentials for a co-located
@@ -117,7 +117,7 @@ npx openclaw connect https://gateway.example/j/<shortcode> --service --session-h
 
 The one-shot bootstrap connection authenticates and saves the durable device
 identity without advertising worker hosting. Only after that connection
-succeeds does OpenClaw persist `nodeHost.workerRuns.enabled=true`, preserving
+succeeds does Vasudev persist `nodeHost.workerRuns.enabled=true`, preserving
 the rest of the config, and install the service. If the config write fails,
 service installation does not start. The installed service advertises worker
 hosting and exact capacity from this durable consent when it starts.
@@ -142,8 +142,8 @@ hosting and exact capacity from this durable consent when it starts.
 
 `--target-file <path>` accepts a regular file up to 64 KiB. It removes the path
 only after reading a non-empty target. If the file is empty, too large,
-unreadable, or not a regular file, OpenClaw leaves it in place. A symlink is
-allowed; OpenClaw reads its target, removes the symlink after a successful read,
+unreadable, or not a regular file, Vasudev leaves it in place. A symlink is
+allowed; Vasudev reads its target, removes the symlink after a successful read,
 and keeps the backing file. The dormant installer wrapper uses this handoff to
 keep the single-use target out of child-process arguments.
 

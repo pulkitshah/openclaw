@@ -36,14 +36,15 @@ describe("typeface presentation", () => {
     ["rose", ["dm-sans", "dm-sans"]],
     ["miami", ["space-grotesk", "space-grotesk"]],
     ["custom", ["system", "system"]],
-  ] as const)("loads %s's default faces plus the shared mono face", (theme, [ui, chat]) => {
+  ] as const)("loads %s's selected faces and nothing else", (theme, [ui, chat]) => {
     const faces = resolveTypefaces(theme);
     expect(faces).toEqual({ ui, chat });
     syncTypefaceStylesheets(faces);
-    // The mono face is always declared: base.css --mono promises JetBrains
-    // Mono for code spans on every theme; its woff2 still downloads lazily.
+    // This loader carries the selected UI and chat faces only. The mono face
+    // base.css --mono names is Space Mono, which index.html links before first
+    // paint from public/fonts, so it never gets an openclaw-typeface- link.
     expect(hrefs()).toEqual(
-      [...new Set([ui, chat, "jetbrains-mono"])]
+      [...new Set([ui, chat])]
         .filter((face) => face !== "system")
         .map((face) => `/fonts/${face}.css`),
     );
@@ -51,11 +52,11 @@ describe("typeface presentation", () => {
 
   it("loads overrides once, retaining them without fetching for system or custom defaults", () => {
     syncTypefaceStylesheets(resolveTypefaces("dash", "system", "system"));
-    expect(hrefs()).toEqual(["/fonts/jetbrains-mono.css"]);
+    expect(hrefs()).toEqual([]);
     const faces = resolveTypefaces("dash", "geist", "lora");
     expect(faces).toEqual({ ui: "geist", chat: "lora" });
     syncTypefaceStylesheets(faces);
-    expect(hrefs()).toEqual(["/fonts/jetbrains-mono.css", "/fonts/geist.css", "/fonts/lora.css"]);
+    expect(hrefs()).toEqual(["/fonts/geist.css", "/fonts/lora.css"]);
     expect(resolveTypefaces("custom", "lora")).toEqual({ ui: "lora", chat: "system" });
     const loaded = fontLinks();
     for (const next of [

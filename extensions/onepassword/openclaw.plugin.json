@@ -28,7 +28,7 @@
     "onepassword": {
       "providerAlias": "onepassword",
       "displayName": "1Password",
-      "description": "Resolve OpenClaw exec SecretRefs from 1Password using the op CLI.",
+      "description": "Resolve Vasudev exec SecretRefs from 1Password using the op CLI.",
       "source": "exec",
       "command": "${node}",
       "args": ["./onepassword-secret-ref-resolver.js"],

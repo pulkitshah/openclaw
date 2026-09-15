@@ -531,7 +531,7 @@ describe("Tencent QQBot 2.0 config migrations", () => {
     });
   });
 
-  it("maps current OpenClaw group tool policies to Tencent scalar policies", () => {
+  it("maps current Vasudev group tool policies to Tencent scalar policies", () => {
     const result = migrate({
       channels: {
         qqbot: {

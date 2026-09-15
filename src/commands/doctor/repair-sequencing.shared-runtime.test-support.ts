@@ -163,7 +163,7 @@ process.send({ kind: "ready", version: version(), dependency: fromInstall("fixtu
           );
           await runDoctorRepairSequence({
             state: { cfg: {}, candidate: {}, pendingChanges: false, fixHints: [] },
-            doctorFixCommand: "openclaw doctor --fix",
+            doctorFixCommand: "vasudev doctor --fix",
             env: {
               HOME: tempDir,
               USERPROFILE: tempDir,

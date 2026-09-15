@@ -201,7 +201,7 @@ describe("startup run repair auto-disable", () => {
       );
       expect(prompts[0]).toContain('Automation "Important report" was auto-disabled');
       expect(prompts[0]).toContain("10 consecutive run failures");
-      expect(prompts[0]).toContain("openclaw automations enable restart-auto-disable-notification");
+      expect(prompts[0]).toContain("vasudev automations enable restart-auto-disable-notification");
       expect(prompts[0]).toContain("Please relay this reminder to the user");
     } finally {
       runner.stop();

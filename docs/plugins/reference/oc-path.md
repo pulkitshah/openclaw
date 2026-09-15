@@ -15,7 +15,7 @@ Adds the openclaw path CLI for oc:// workspace file addressing.
 ## Distribution
 
 - Package: `@openclaw/oc-path`
-- Install route: included in OpenClaw
+- Install route: included in Vasudev
 
 ## Surface
 

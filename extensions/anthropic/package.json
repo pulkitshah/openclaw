@@ -2,7 +2,7 @@
   "name": "@openclaw/anthropic-provider",
   "version": "2026.9.4",
   "private": true,
-  "description": "OpenClaw Anthropic provider, Claude CLI, and native session catalog plugin",
+  "description": "Vasudev Anthropic provider, Claude CLI, and native session catalog plugin",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

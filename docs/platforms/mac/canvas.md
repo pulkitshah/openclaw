@@ -13,7 +13,7 @@ The Canvas plugin owns this presentation path. It is not a standalone visual
 workspace or an A2UI push target.
 
 The recommended agent path is [`show_widget`](/tools/show-widget) with
-`presentation.target: "node_panel"`. OpenClaw stores the widget as a hosted
+`presentation.target: "node_panel"`. Vasudev stores the widget as a hosted
 document, selects a connected macOS node, opens the panel, and navigates it to
 that document. If no eligible Mac is connected or presentation fails, the
 widget still appears inline in chat and the tool result explains how to retry.
@@ -46,7 +46,7 @@ Ask the agent to use `show_widget` and target the node panel. The tool exposes
 }
 ```
 
-The result identifies the selected Mac when presentation succeeds. OpenClaw
+The result identifies the selected Mac when presentation succeeds. Vasudev
 currently selects only a connected macOS node that declares `canvas.present`.
 
 ## Node commands

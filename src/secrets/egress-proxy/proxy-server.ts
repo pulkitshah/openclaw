@@ -38,7 +38,7 @@ import {
 } from "./stream-substitution.js";
 
 const PROXY_AUTH_USERNAME = "openclaw";
-const PROXY_AUTH_REALM = "OpenClaw secret egress";
+const PROXY_AUTH_REALM = "Vasudev secret egress";
 
 type SecretEgressProxyAuditEvent = {
   kind: "forwarded" | "refused";
@@ -298,7 +298,7 @@ export async function startSecretEgressProxyServer(params: {
     return false;
   };
   const hostNotAllowedBody = (host: string): string =>
-    `Host "${host}" is not in the secret egress proxy traffic allowlist. Add it to secrets.egressProxy.allowedHosts or bind a store secret to it with: openclaw secrets store set <NAME> --allow-host ${host}, then restart the Gateway.\n`;
+    `Host "${host}" is not in the secret egress proxy traffic allowlist. Add it to secrets.egressProxy.allowedHosts or bind a store secret to it with: vasudev secrets store set <NAME> --allow-host ${host}, then restart the Gateway.\n`;
   const authorize = (
     headers: IncomingHttpHeaders,
   ): RegisteredRun | Exclude<SecretEgressRefusalReason, "destination-not-allowed"> => {

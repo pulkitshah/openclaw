@@ -42,7 +42,7 @@ export class DoctorSqliteMaintenanceLockUnavailableError extends Error {
     public override readonly cause: GatewayLockError,
   ) {
     super(
-      `Cannot run ${operation} while the Gateway or another SQLite maintenance command owns this OpenClaw state directory. Stop the Gateway and retry.`,
+      `Cannot run ${operation} while the Gateway or another SQLite maintenance command owns this Vasudev state directory. Stop the Gateway and retry.`,
     );
     this.name = "DoctorSqliteMaintenanceLockUnavailableError";
   }
@@ -67,13 +67,13 @@ async function assertMaintenancePathsOwnedByStateDir(
       }
       resolveRootPathSync({
         absolutePath,
-        boundaryLabel: "OpenClaw state directory",
+        boundaryLabel: "Vasudev state directory",
         rootCanonicalPath: stateCanonicalDir,
         rootPath: stateDir,
       });
     } catch (error) {
       throw new Error(
-        `Cannot run ${operation} for a path outside the active OpenClaw state directory: ${protectedPath}. Set OPENCLAW_STATE_DIR to the owning state directory and retry.`,
+        `Cannot run ${operation} for a path outside the active Vasudev state directory: ${protectedPath}. Set OPENCLAW_STATE_DIR to the owning state directory and retry.`,
         { cause: error },
       );
     }
@@ -198,7 +198,7 @@ export async function withDoctorSqliteMaintenanceLock<T>(
     throw error;
   }
   if (!lock) {
-    throw new Error(`Cannot run ${params.operation} without exclusive OpenClaw state ownership.`);
+    throw new Error(`Cannot run ${params.operation} without exclusive Vasudev state ownership.`);
   }
 
   let active = true;

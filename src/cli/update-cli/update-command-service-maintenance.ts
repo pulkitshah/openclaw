@@ -53,7 +53,7 @@ export type { PreManagedServiceStop } from "./update-command-service-context-typ
 export { UpdateCommandAbort } from "./update-command-windows-task.js";
 
 const GATEWAY_SERVICE_INSPECTION_BLOCK_MESSAGE =
-  "Gateway service inspection is unavailable. Refusing to mutate code because managed service ownership cannot be verified. Run `openclaw gateway status --deep` and retry when service access is restored.";
+  "Gateway service inspection is unavailable. Refusing to mutate code because managed service ownership cannot be verified. Run `vasudev gateway status --deep` and retry when service access is restored.";
 const JSON_MODE_SERVICE_STDOUT = new Writable({
   write(_chunk, _encoding, callback) {
     callback();
@@ -489,7 +489,7 @@ async function stopManagedServiceBeforeMutableUpdate(
       ...inspected,
       serviceMutationAllowed: false,
       serviceMutationSkipMessage:
-        "Gateway service management skipped: the service belongs to a different OpenClaw installation and was left untouched.",
+        "Gateway service management skipped: the service belongs to a different Vasudev installation and was left untouched.",
     };
   }
   if (serviceUpdateVerdict.kind === "absent") {

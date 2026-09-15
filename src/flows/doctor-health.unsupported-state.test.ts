@@ -65,7 +65,7 @@ it("reports unsupported workspace and conflicting exec policy without recommendi
     expect(output).toContain(databasePath);
     expect(output).toContain(state.workspaceDir);
     expect(output).toContain("99");
-    expect(output).toContain("compatible OpenClaw build");
+    expect(output).toContain("compatible Vasudev build");
     expect(output).toContain(sourcePath);
     expect(output).toContain("reconcile this file");
     expect(output).not.toMatch(/(?:openclaw\s+)?doctor\s+--(?:fix|repair)/i);

@@ -16,7 +16,7 @@ For WSL2 Gateway + Windows Chrome split-host setups, see
 
 These are different failure classes and they point to different code paths.
 
-- **CDP startup or readiness failure** means OpenClaw cannot confirm that the browser control plane is healthy.
+- **CDP startup or readiness failure** means Vasudev cannot confirm that the browser control plane is healthy.
 - **Navigation SSRF block** means the browser control plane is healthy, but a page navigation target is rejected by policy.
 
 Common examples:
@@ -47,7 +47,7 @@ How to read the results:
 Important behavior details:
 
 - Browser config defaults to a fail-closed SSRF policy object even when you do not configure `browser.ssrfPolicy`.
-- For the local loopback `openclaw` managed profile, CDP health checks intentionally skip browser SSRF reachability enforcement for OpenClaw's own local control plane.
+- For the local loopback `openclaw` managed profile, CDP health checks intentionally skip browser SSRF reachability enforcement for Vasudev's own local control plane.
 - Navigation protection is separate. A successful `start` or `tabs` result does not mean a later `open` or `navigate` target is allowed.
 
 Security guidance:

@@ -190,7 +190,7 @@ describe("update failure report", () => {
     expect(saved).not.toContain("raw-command-secret");
     expect(saved).not.toContain("raw-log-secret");
     expect(saved).not.toContain("raw chat and log output");
-    expect(saved).not.toContain("openclaw doctor --fix");
+    expect(saved).not.toContain("vasudev doctor --fix");
     expect(saved).not.toContain("C:\\Users\\private");
     expect(saved).not.toContain("\\\\server\\private");
     if (process.platform !== "win32") {

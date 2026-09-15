@@ -278,7 +278,7 @@ export function createTuiQuestionController(deps: TuiQuestionControllerDeps) {
         finish(record.id, "answered");
         if (matchesSession(record)) {
           deps.chatLog.addSystem(
-            "Secret stored, but runtime refresh failed. Run openclaw secrets reload; do not resubmit this answer.",
+            "Secret stored, but runtime refresh failed. Run vasudev secrets reload; do not resubmit this answer.",
           );
         }
         return;

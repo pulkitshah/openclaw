@@ -16,7 +16,7 @@ sidebarTitle: "Configuration"
     ```
 
     <Tip>
-    If `OLLAMA_API_KEY` is set, you can omit `apiKey` in the provider entry; OpenClaw fills it in for availability checks.
+    If `OLLAMA_API_KEY` is set, you can omit `apiKey` in the provider entry; Vasudev fills it in for availability checks.
     </Tip>
 
   </Tab>

@@ -1,5 +1,5 @@
 ---
-summary: "How to contribute to the OpenClaw threat model"
+summary: "How to contribute to the Vasudev threat model"
 title: "Contributing to the threat model"
 read_when:
   - You want to contribute security findings or threat scenarios
@@ -75,7 +75,7 @@ Threats are mapped to [MITRE ATLAS](https://atlas.mitre.org/) (Adversarial Threa
 
 ## Recognition
 
-Contributors to the threat model are recognized in the threat model acknowledgments, release notes, and the OpenClaw security hall of fame for significant contributions.
+Contributors to the threat model are recognized in the threat model acknowledgments, release notes, and the Vasudev security hall of fame for significant contributions.
 
 ## Related
 

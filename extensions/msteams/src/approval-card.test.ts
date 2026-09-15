@@ -179,7 +179,7 @@ describe("Microsoft Teams approval Adaptive Cards", () => {
         approvalKind: "system-agent",
         approvalId: "system-agent:change-1",
         phase: "resolved",
-        title: "OpenClaw change",
+        title: "Vasudev change",
         metadata: [],
         commandText: "restart the Gateway",
         operationSummary: "restart the Gateway",
@@ -190,7 +190,7 @@ describe("Microsoft Teams approval Adaptive Cards", () => {
 
       expect(card.body).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ text: `OpenClaw Change Approval: ${label}` }),
+          expect.objectContaining({ text: `Vasudev Change Approval: ${label}` }),
         ]),
       );
     },

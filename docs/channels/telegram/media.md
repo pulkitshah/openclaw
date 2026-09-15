@@ -8,7 +8,7 @@ title: "Telegram media and attachments"
 sidebarTitle: "Media and attachments"
 ---
 
-What OpenClaw can send to Telegram beyond text, and how inbound media reaches the agent.
+What Vasudev can send to Telegram beyond text, and how inbound media reaches the agent.
 
 ## Media and attachments
 
@@ -16,7 +16,7 @@ What OpenClaw can send to Telegram beyond text, and how inbound media reaches th
   <Accordion title="Photo albums, audio, video, and stickers">
     ### Photo albums
 
-    Send multiple image attachments in one `message` tool call. OpenClaw groups consecutive photos into Telegram albums of up to 10 images, in their original order. Automatic replies with multiple photos use the same grouping. A single photo, including a final remainder of one, is sent separately.
+    Send multiple image attachments in one `message` tool call. Vasudev groups consecutive photos into Telegram albums of up to 10 images, in their original order. Automatic replies with multiple photos use the same grouping. A single photo, including a final remainder of one, is sent separately.
 
 ```json5
 {
@@ -84,7 +84,7 @@ What OpenClaw can send to Telegram beyond text, and how inbound media reaches th
 
     Inbound: static WEBP is downloaded and processed (placeholder `<media:sticker>`); animated TGS and video WEBM are skipped.
 
-    Sticker context fields: `Sticker.emoji`, `Sticker.setName`, `Sticker.fileId`, `Sticker.fileUniqueId`, `Sticker.cachedDescription`. Descriptions are cached in OpenClaw SQLite plugin state to reduce repeated vision calls.
+    Sticker context fields: `Sticker.emoji`, `Sticker.setName`, `Sticker.fileId`, `Sticker.fileUniqueId`, `Sticker.cachedDescription`. Descriptions are cached in Vasudev SQLite plugin state to reduce repeated vision calls.
 
     Sticker descriptions use the configured `agents.defaults.imageModel` before shared automatic image-model selection, including the provider's MiniMax image routing. The sticker description uses one selected model and does not try the configured fallback list if that model fails. A failed description is not cached; general media analysis can still run separately with its normal fallback handling.
 

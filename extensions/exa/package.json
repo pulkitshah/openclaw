@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/exa-plugin",
   "version": "2026.9.4",
-  "description": "OpenClaw Exa plugin.",
+  "description": "Vasudev Exa plugin.",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

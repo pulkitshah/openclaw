@@ -53,7 +53,7 @@ describe("retired runtime config migrations", () => {
       expect(findLegacyConfigIssues(raw)).toContainEqual({
         path: "messages.suppressToolErrors",
         message:
-          'messages.suppressToolErrors is retired; tool failure warnings now appear only when a run ends without a reply. Run "openclaw doctor --fix".',
+          'messages.suppressToolErrors is retired; tool failure warnings now appear only when a run ends without a reply. Run "vasudev doctor --fix".',
       });
 
       expect(applyAll(raw).changes).toEqual([
@@ -210,7 +210,7 @@ describe("retired runtime config migrations", () => {
           candidate.path.join(".") === "agents.defaults.compaction.truncateAfterCompaction",
       );
       expect(retiredRule?.message).toBe(
-        'agents.defaults.compaction.truncateAfterCompaction is retired; byte-triggered compaction now opts in via maxActiveTranscriptBytes alone. Run "openclaw doctor --fix".',
+        'agents.defaults.compaction.truncateAfterCompaction is retired; byte-triggered compaction now opts in via maxActiveTranscriptBytes alone. Run "vasudev doctor --fix".',
       );
     }
   });

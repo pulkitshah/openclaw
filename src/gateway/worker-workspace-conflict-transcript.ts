@@ -175,7 +175,7 @@ export function createWorkerWorkspaceConflictTranscriptHandlers(
             customTypes: [WORKSPACE_RECOVERY_FAILURE_TRANSCRIPT_TYPE],
             selectReport: (latestRecovery) => {
               const error = boundedWorkerError(recovery.error, 768);
-              const content = `Cloud workspace recovery attempt failed: ${error}. OpenClaw preserved the result and will retry.`;
+              const content = `Cloud workspace recovery attempt failed: ${error}. Vasudev preserved the result and will retry.`;
               if (latestRecovery?.content !== content) {
                 return {
                   customType: WORKSPACE_RECOVERY_FAILURE_TRANSCRIPT_TYPE,

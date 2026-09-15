@@ -85,7 +85,7 @@ function createMissingSdkError(
     "including its platform-specific Copilot runtime package.",
     "Reinstall the plugin once with:",
     "",
-    "  openclaw plugins install @openclaw/copilot",
+    "  vasudev plugins install @openclaw/copilot",
     "",
     "For source checkouts or offline repair, install the SDK directly:",
     "",

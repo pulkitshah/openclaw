@@ -3,8 +3,8 @@ summary: "Delegate gateway authentication to a trusted reverse proxy (Pomerium, 
 title: "Trusted proxy auth"
 sidebarTitle: "Trusted proxy auth"
 read_when:
-  - Running OpenClaw behind an identity-aware proxy
-  - Setting up Pomerium, Caddy, or nginx with OAuth in front of OpenClaw
+  - Running Vasudev behind an identity-aware proxy
+  - Setting up Pomerium, Caddy, or nginx with OAuth in front of Vasudev
   - Fixing WebSocket 1008 unauthorized errors with reverse proxy setups
   - Deciding where to set HSTS and other HTTP hardening headers
 ---
@@ -15,7 +15,7 @@ read_when:
 
 ## When to use
 
-- You run OpenClaw behind an **identity-aware proxy** (Pomerium, Caddy + OAuth, nginx + oauth2-proxy, Traefik + forward auth).
+- You run Vasudev behind an **identity-aware proxy** (Pomerium, Caddy + OAuth, nginx + oauth2-proxy, Traefik + forward auth).
 - Your proxy handles all authentication and passes user identity via headers.
 - You're in a Kubernetes or container environment where the proxy is the only path to the Gateway.
 - You're hitting WebSocket `1008 unauthorized` errors because browsers can't pass tokens in WS payloads.
@@ -37,10 +37,10 @@ read_when:
     Proxy adds a header with the authenticated user identity (e.g., `x-forwarded-user: nick@example.com`).
   </Step>
   <Step title="Gateway verifies trusted source">
-    OpenClaw checks that the request came from a **trusted proxy IP** (`gateway.trustedProxies`). Loopback sources require explicit `allowLoopback` consent; other Gateway-local interface addresses are rejected.
+    Vasudev checks that the request came from a **trusted proxy IP** (`gateway.trustedProxies`). Loopback sources require explicit `allowLoopback` consent; other Gateway-local interface addresses are rejected.
   </Step>
   <Step title="Gateway extracts identity">
-    OpenClaw reads the required headers, then the user identity from the configured header.
+    Vasudev reads the required headers, then the user identity from the configured header.
   </Step>
   <Step title="Authorize">
     If everything checks out, and the user passes `allowUsers` (when set), the request is authorized.
@@ -169,7 +169,7 @@ operator scopes without widening their persistent device grant:
 
 The map key is the verified trusted-proxy identity or Tailscale WhoIs login.
 Email matching is case-insensitive; non-email identities match exactly. On each
-connection, OpenClaw adds the matching identity scopes to the device-authorized
+connection, Vasudev adds the matching identity scopes to the device-authorized
 scopes, then applies an explicit `x-openclaw-scopes` connection cap.
 
 These grants are session-only. They do not create or update device pairing
@@ -202,7 +202,7 @@ The default is `enabled: false`. When enabled, all of these rules apply:
 
 1. The WebSocket must have authenticated through the `trusted-proxy` method with a non-empty user identity that passed `allowUsers` when an allowlist is configured. Token, password, Tailscale, and unauthenticated connections never use this policy.
 2. New browser operator devices (including Control UI and WebChat), native macOS, Linux, iOS, and Android clients in UI mode, and scope upgrades from an existing device with the same paired public key resolve automatically. Native clients must supply a signed device identity and authenticate through the proxy on each connection. Node-role connections, role upgrades, and changes to pinned platform or device-family metadata are not eligible for this auto-approval policy. If the existing grant already covers the automatically approvable scopes, the session narrows to that grant without a pairing request or audit entry; otherwise, `deviceAutoApprove.scopes` can automatically approve the widened intersection. A connection claiming an existing device ID with a different public key is rejected before a pairing request is created.
-3. The device is approved with role `operator`. With an explicit `deviceAutoApprove.scopes` list, requested scopes are intersected with that list; a request that omits scopes receives the list. When the list is unset, it defaults to `operator.read`, `operator.write`, `operator.approvals`, and `operator.questions`. During auto-approval with this default list, OpenClaw also adds `operator.questions` even if an older UI client does not request it. An explicit scope list is never widened. The resulting grant is then additionally capped by the connection's [`x-openclaw-scopes`](#control-ui-pairing-behavior) proxy header when present, so a proxy that narrows a user's scopes also limits the **persistent** device grant, not just the session — a present-but-empty header yields no scopes. This cap applies even when the client omits its own scope list.
+3. The device is approved with role `operator`. With an explicit `deviceAutoApprove.scopes` list, requested scopes are intersected with that list; a request that omits scopes receives the list. When the list is unset, it defaults to `operator.read`, `operator.write`, `operator.approvals`, and `operator.questions`. During auto-approval with this default list, Vasudev also adds `operator.questions` even if an older UI client does not request it. An explicit scope list is never widened. The resulting grant is then additionally capped by the connection's [`x-openclaw-scopes`](#control-ui-pairing-behavior) proxy header when present, so a proxy that narrows a user's scopes also limits the **persistent** device grant, not just the session — a present-but-empty header yields no scopes. This cap applies even when the client omits its own scope list.
 4. `operator.admin` is allowed only through explicit listing in `deviceAutoApprove.scopes`. When listed, every proxy-authenticated user can request and automatically receive full admin on a new operator device; requests without scopes receive full admin automatically. `openclaw security audit` reports the CRITICAL `gateway.trusted_proxy_device_auto_approve_admin` finding, and the Gateway logs a warning once at startup. Prefer a targeted [`identityScopes`](#per-identity-scope-grants) admin grant when selected verified users need session admin without a persistent admin device grant.
 
 <Warning>
@@ -215,10 +215,10 @@ Browsers attach a device identity on every origin, including plain HTTP, so firs
 
 Scope implications:
 
-- Device-less Control UI WebSocket sessions cannot self-declare permissions. OpenClaw clears their requested scope list to `[]`, then applies any matching server-side `identityScopes` grant after proxy identity verification.
+- Device-less Control UI WebSocket sessions cannot self-declare permissions. Vasudev clears their requested scope list to `[]`, then applies any matching server-side `identityScopes` grant after proxy identity verification.
 - If methods fail with `missing scope` after a successful WebSocket connect, reload so the browser pairs its device identity, or approve the pending device request. See [Control UI insecure HTTP](/web/control-ui/connect-and-pair#insecure-http).
 
-Reverse-proxy scope capping: if your proxy sends `x-openclaw-scopes` on the Control UI WebSocket upgrade request, OpenClaw caps device enrollment or upgrade requests and the final union of device-authorized and identity-granted session scopes. This header does not grant scopes; it only narrows authority. When `deviceAutoApprove.enabled` is true, the cap also limits the persistent device grant written by [automatic device approval](#automatic-device-approval).
+Reverse-proxy scope capping: if your proxy sends `x-openclaw-scopes` on the Control UI WebSocket upgrade request, Vasudev caps device enrollment or upgrade requests and the final union of device-authorized and identity-granted session scopes. This header does not grant scopes; it only narrows authority. When `deviceAutoApprove.enabled` is true, the cap also limits the persistent device grant written by [automatic device approval](#automatic-device-approval).
 
 Implications:
 
@@ -247,7 +247,7 @@ Examples:
 
 Behavior:
 
-- When the header is present, OpenClaw honors the declared scope set.
+- When the header is present, Vasudev honors the declared scope set.
 - When the header is present but empty, the request declares **no** operator scopes.
 - When the header is absent, normal identity-bearing HTTP APIs fall back to the standard operator default scope set (`operator.admin`, `operator.read`, `operator.write`, `operator.approvals`, `operator.pairing`, `operator.talk.secrets`).
 - Gateway-auth **plugin HTTP routes** are narrower by default: when `x-openclaw-scopes` is absent, their runtime scope falls back to `operator.write` only.
@@ -265,7 +265,7 @@ Use one TLS termination point and apply HSTS there.
 
     - Good fit for internet-facing deployments.
     - Keeps certificate + HTTP hardening policy in one place.
-    - OpenClaw can stay on loopback HTTP behind the proxy.
+    - Vasudev can stay on loopback HTTP behind the proxy.
 
     Example header value:
 
@@ -275,7 +275,7 @@ Use one TLS termination point and apply HSTS there.
 
   </Tab>
   <Tab title="Gateway TLS termination">
-    If OpenClaw itself serves HTTPS directly (no TLS-terminating proxy), set:
+    If Vasudev itself serves HTTPS directly (no TLS-terminating proxy), set:
 
     ```json5
     {
@@ -436,7 +436,7 @@ If startup fails with an error like `gateway auth mode is trusted-proxy, but a s
 - Remove the shared token when using trusted-proxy mode, or
 - Switch `gateway.auth.mode` to `"token"` if you intend token-based auth.
 
-Loopback trusted-proxy identity headers still fail closed: same-host callers are not silently authenticated as proxy users. Internal OpenClaw callers that bypass the proxy may authenticate with `gateway.auth.password` / `OPENCLAW_GATEWAY_PASSWORD` instead. Token fallback remains intentionally unsupported in trusted-proxy mode.
+Loopback trusted-proxy identity headers still fail closed: same-host callers are not silently authenticated as proxy users. Internal Vasudev callers that bypass the proxy may authenticate with `gateway.auth.password` / `OPENCLAW_GATEWAY_PASSWORD` instead. Token fallback remains intentionally unsupported in trusted-proxy mode.
 
 ## Restrict a separate Gateway to one owner
 
@@ -520,7 +520,7 @@ A Gateway token cannot replace proxy authentication. Do not send identity header
 
   </Accordion>
   <Accordion title="trusted_proxy_loopback_source">
-    OpenClaw rejected a loopback-source trusted-proxy request.
+    Vasudev rejected a loopback-source trusted-proxy request.
 
     Check:
 
@@ -535,7 +535,7 @@ A Gateway token cannot replace proxy authentication. Do not send identity header
 
   </Accordion>
   <Accordion title="trusted_proxy_local_interface_source / trusted_proxy_local_interface_check_failed">
-    The request's source IP matched one of the Gateway host's own non-loopback network interface addresses (not the proxy), a guard against spoofed same-host traffic on tailnets or Docker bridge networks. `..._check_failed` means interface discovery itself errored, so OpenClaw fails closed.
+    The request's source IP matched one of the Gateway host's own non-loopback network interface addresses (not the proxy), a guard against spoofed same-host traffic on tailnets or Docker bridge networks. `..._check_failed` means interface discovery itself errored, so Vasudev fails closed.
 
     Check:
 
@@ -582,7 +582,7 @@ A Gateway token cannot replace proxy authentication. Do not send identity header
 
     Common causes:
 
-    - Device-less Control UI session: OpenClaw clears self-declared scopes by design, and no matching `gateway.auth.identityScopes` grant was configured.
+    - Device-less Control UI session: Vasudev clears self-declared scopes by design, and no matching `gateway.auth.identityScopes` grant was configured.
     - Custom backend client: the retired Control UI upgrade input never grants access to arbitrary backend or CLI-shaped WebSocket clients.
     - Overly narrow `x-openclaw-scopes`: if your proxy injects this header on the Control UI WebSocket upgrade request, the session scopes are capped to that set. An empty header value yields no scopes.
 
@@ -612,8 +612,8 @@ A Gateway token cannot replace proxy authentication. Do not send identity header
   <Step title="Test the proxy independently">
     Test the proxy setup independently (curl with headers).
   </Step>
-  <Step title="Update OpenClaw config">
-    Update OpenClaw config with trusted-proxy auth.
+  <Step title="Update Vasudev config">
+    Update Vasudev config with trusted-proxy auth.
   </Step>
   <Step title="Restart the Gateway">
     Restart the Gateway.

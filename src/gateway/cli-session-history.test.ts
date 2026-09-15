@@ -28,9 +28,9 @@ type ClaudeCliFallbackSeed = NonNullable<ReturnType<typeof readClaudeCliFallback
 type AugmentCliHistoryParams = Parameters<typeof resolveChatHistoryWithCliSessionImports>[0];
 
 const CLAUDE_RESUME_DRIFT_NOTES = [
-  "OpenClaw resumed this CLI session after prompt content changed. Follow the current turn's instructions; changed=system-prompt.",
-  "OpenClaw resumed this CLI session after prompt content changed. Follow the current turn's instructions; changed=prompt-tools.",
-  "OpenClaw resumed this CLI session after prompt content changed. Follow the current turn's instructions; changed=system-prompt,prompt-tools.",
+  "Vasudev resumed this CLI session after prompt content changed. Follow the current turn's instructions; changed=system-prompt.",
+  "Vasudev resumed this CLI session after prompt content changed. Follow the current turn's instructions; changed=prompt-tools.",
+  "Vasudev resumed this CLI session after prompt content changed. Follow the current turn's instructions; changed=system-prompt,prompt-tools.",
 ] as const;
 
 function requireFallbackSeed(
@@ -79,7 +79,7 @@ function augmentBoundClaudeHistory(params: {
 
 function buildLegacyReseedPrompt(current = "current"): string {
   return [
-    "Continue this conversation using the OpenClaw transcript below as prior session history.",
+    "Continue this conversation using the Vasudev transcript below as prior session history.",
     "Treat it as authoritative context for this fresh CLI session.",
     "",
     "<conversation_history>",
@@ -846,7 +846,7 @@ describe("cli session history", () => {
   it.each([
     [
       "first sentence followed by user prose",
-      "OpenClaw resumed this CLI session after prompt content changed. This is my own note.\n\nhello",
+      "Vasudev resumed this CLI session after prompt content changed. This is my own note.\n\nhello",
     ],
     [
       "unknown reason",

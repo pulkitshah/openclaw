@@ -317,7 +317,7 @@ describe("gateway-backed CLI process exit", () => {
   );
 
   it.runIf(process.platform !== "win32")(
-    "runs gateway status through one OpenClaw entry process",
+    "runs gateway status through one Vasudev entry process",
     async () => {
       const root = tempDirs.make("openclaw-gateway-status-entry-process-");
       const pidLogPath = path.join(root, "entry-pids");
@@ -536,13 +536,13 @@ describe("gateway-backed CLI process exit", () => {
       }
       expect(result.stderr).toContain(`Gateway not reachable at ws://127.0.0.1:${port}`);
       expect(result.stderr).toContain(
-        "Start it with `openclaw gateway run` or check `openclaw gateway status`.",
+        "Start it with `vasudev gateway run` or check `vasudev gateway status`.",
       );
       expect(result.stderr).not.toContain("The CLI command failed");
       expect(result.stderr).not.toContain("Could not start the CLI");
       expect(result.stderr).not.toContain("OPENCLAW_DEBUG");
       expect(result.stderr).not.toContain("Stack:");
-      expect(result.stderr).not.toContain("openclaw doctor");
+      expect(result.stderr).not.toContain("vasudev doctor");
     },
   );
 
@@ -601,7 +601,7 @@ describe("gateway-backed CLI process exit", () => {
       ok: false,
       error: {
         type: "cli_error",
-        message: expect.stringContaining("OpenClaw config is invalid:"),
+        message: expect.stringContaining("Vasudev config is invalid:"),
       },
       issues: [
         {
@@ -611,7 +611,7 @@ describe("gateway-backed CLI process exit", () => {
         },
       ],
     });
-    expect(result.stderr).toContain("OpenClaw config is invalid");
+    expect(result.stderr).toContain("Vasudev config is invalid");
     expect(result.stderr).toContain("gateway.mode");
     expect(gateway.calls).toEqual([]);
     await expect(fs.stat(path.join(stateDir, "state", "openclaw.sqlite"))).rejects.toMatchObject({
@@ -756,7 +756,7 @@ describe("gateway-backed CLI process exit", () => {
         expect(result.stderr).not.toContain("Could not start the CLI");
         expect(result.stderr).not.toContain("OPENCLAW_DEBUG");
         expect(result.stderr).not.toContain("Stack:");
-        expect(result.stderr).not.toContain("openclaw doctor");
+        expect(result.stderr).not.toContain("vasudev doctor");
       } finally {
         if (gatewayOwnsLock) {
           closeOpenClawStateDatabaseForTest();
@@ -811,7 +811,7 @@ describe("gateway-backed CLI process exit", () => {
       expect(result.stderr).not.toContain("Could not start the CLI");
       expect(result.stderr).not.toContain("OPENCLAW_DEBUG");
       expect(result.stderr).not.toContain("Stack:");
-      expect(result.stderr).not.toContain("openclaw doctor");
+      expect(result.stderr).not.toContain("vasudev doctor");
     },
   );
 
@@ -856,7 +856,7 @@ describe("gateway-backed CLI process exit", () => {
       const result = await runIsolatedGatewayCli({ args, root, stateDir, configPath });
 
       const message =
-        "Automation not found: missing-job. Run `openclaw cron list` to see recent automation ids.";
+        "Automation not found: missing-job. Run `vasudev cron list` to see recent automation ids.";
       expect(result).toMatchObject({ code: 1, signal: null });
       if (machineOutput) {
         expect(JSON.parse(result.stdout)).toEqual({
@@ -871,7 +871,7 @@ describe("gateway-backed CLI process exit", () => {
       expect(result.stderr).not.toContain("Could not start the CLI");
       expect(result.stderr).not.toContain("OPENCLAW_DEBUG");
       expect(result.stderr).not.toContain("Stack:");
-      expect(result.stderr).not.toContain("openclaw doctor");
+      expect(result.stderr).not.toContain("vasudev doctor");
       expect(gateway.calls).toEqual(["cron.get", "cron.list"]);
     },
   );

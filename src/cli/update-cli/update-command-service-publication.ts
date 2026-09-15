@@ -73,7 +73,7 @@ export async function withGatewayRuntimeArtifactPublication<T>(
     const refuse = (cause?: unknown): never => {
       throw new UpdatePreMutationError(
         "runtime-artifact-publication",
-        "Runtime artifacts changed, but the affected Gateway is running or its offline state could not be verified. Run `openclaw gateway status --deep`, stop the affected Gateway through its service owner, and retry the update.",
+        "Runtime artifacts changed, but the affected Gateway is running or its offline state could not be verified. Run `vasudev gateway status --deep`, stop the affected Gateway through its service owner, and retry the update.",
         { cause },
       );
     };

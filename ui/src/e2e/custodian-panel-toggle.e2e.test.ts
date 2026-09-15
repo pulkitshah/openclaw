@@ -1,4 +1,4 @@
-// Control UI tests cover the global Ask OpenClaw panel toggle and persisted session identity.
+// Control UI tests cover the global Ask Vasudev panel toggle and persisted session identity.
 import path from "node:path";
 import { chromium, type Browser } from "playwright";
 import { beforeEach, afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -44,9 +44,9 @@ function custodianGatewayScenario(): ControlUiMockGatewayScenario {
     methodResponses: {
       "sessions.list": {
         cases: [
-          // The work session does not match the Ask OpenClaw palette query.
+          // The work session does not match the Ask Vasudev palette query.
           {
-            match: { search: "Ask OpenClaw" },
+            match: { search: "Ask Vasudev" },
             response: { count: 0, sessions: [] },
           },
         ],
@@ -66,7 +66,7 @@ function custodianGatewayScenario(): ControlUiMockGatewayScenario {
   };
 }
 
-describeControlUiE2e("Control UI Ask OpenClaw panel toggle mocked Gateway E2E", () => {
+describeControlUiE2e("Control UI Ask Vasudev panel toggle mocked Gateway E2E", () => {
   beforeAll(async () => {
     if (!chromiumAvailable) {
       throw new Error(`Playwright Chromium is unavailable at ${chromiumExecutablePath}`);
@@ -80,7 +80,7 @@ describeControlUiE2e("Control UI Ask OpenClaw panel toggle mocked Gateway E2E", 
     await server?.close();
   });
 
-  it("keeps Home available without an OpenClaw tab when openclaw.chat is not advertised", async () => {
+  it("keeps Home available without a Vasudev tab when openclaw.chat is not advertised", async () => {
     const context = await browser.newContext({
       colorScheme: "dark",
       locale: "en-US",
@@ -101,9 +101,7 @@ describeControlUiE2e("Control UI Ask OpenClaw panel toggle mocked Gateway E2E", 
       await page.locator(".sidebar-footer-bar__home").click();
       const panel = page.locator("openclaw-assistant-panel");
       await panel.getByRole("button", { name: "Home", exact: true }).waitFor();
-      expect(await panel.getByRole("button", { name: "Ask OpenClaw", exact: true }).count()).toBe(
-        0,
-      );
+      expect(await panel.getByRole("button", { name: "Ask Vasudev", exact: true }).count()).toBe(0);
       expect(await gateway.getRequests("openclaw.chat")).toHaveLength(0);
       await page.screenshot({
         animations: "disabled",
@@ -114,7 +112,7 @@ describeControlUiE2e("Control UI Ask OpenClaw panel toggle mocked Gateway E2E", 
     }
   });
 
-  it("opens OpenClaw from Home and the palette and reuses the persisted session id", async () => {
+  it("opens Vasudev from Home and the palette and reuses the persisted session id", async () => {
     const context = await browser.newContext({
       colorScheme: "dark",
       locale: "en-US",
@@ -131,7 +129,7 @@ describeControlUiE2e("Control UI Ask OpenClaw panel toggle mocked Gateway E2E", 
 
       await page.locator(".sidebar-footer-bar__home").click();
       const panel = page.locator("openclaw-assistant-panel");
-      const openClawTab = panel.getByRole("button", { name: "Ask OpenClaw", exact: true });
+      const openClawTab = panel.getByRole("button", { name: "Ask Vasudev", exact: true });
       await openClawTab.waitFor();
       await page.screenshot({
         animations: "disabled",
@@ -154,8 +152,8 @@ describeControlUiE2e("Control UI Ask OpenClaw panel toggle mocked Gateway E2E", 
 
       // The command palette opens the same conversation directly.
       await page.locator(".sidebar-brand__search").click();
-      await page.getByPlaceholder("Search chats and commands…").fill("Ask OpenClaw");
-      const paletteItem = page.getByRole("option", { name: "Ask OpenClaw", exact: true });
+      await page.getByPlaceholder("Search chats and commands…").fill("Ask Vasudev");
+      const paletteItem = page.getByRole("option", { name: "Ask Vasudev", exact: true });
       await paletteItem.waitFor();
       await page.screenshot({
         animations: "disabled",

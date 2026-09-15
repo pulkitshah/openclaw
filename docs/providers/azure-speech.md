@@ -1,12 +1,12 @@
 ---
-summary: "Azure AI Speech text-to-speech for OpenClaw replies"
+summary: "Azure AI Speech text-to-speech for Vasudev replies"
 read_when:
   - You want Azure Speech synthesis for outbound replies
   - You need native Ogg Opus voice-note output from Azure Speech
 title: "Azure Speech"
 ---
 
-Azure Speech is a bundled Azure AI Speech text-to-speech provider. OpenClaw
+Azure Speech is a bundled Azure AI Speech text-to-speech provider. Vasudev
 calls the Azure Speech REST API directly with SSML, synthesizing MP3 for
 standard replies, native Ogg/Opus for voice notes, and 8 kHz mulaw for
 telephony channels such as Voice Call. The request sends the provider-owned
@@ -53,7 +53,7 @@ output format through the `X-Microsoft-OutputFormat` header.
     ```
   </Step>
   <Step title="Send a message">
-    Send a reply through any connected channel. OpenClaw synthesizes the audio
+    Send a reply through any connected channel. Vasudev synthesizes the audio
     with Azure Speech and delivers MP3 for standard audio, or Ogg/Opus when
     the channel expects a voice note.
   </Step>
@@ -86,7 +86,7 @@ or explicit config for endpoint routing.
 <AccordionGroup>
   <Accordion title="Authentication">
     Azure Speech uses a Speech resource key, not an Azure OpenAI key. The key
-    is sent as `Ocp-Apim-Subscription-Key`; OpenClaw derives
+    is sent as `Ocp-Apim-Subscription-Key`; Vasudev derives
     `https://<region>.tts.speech.microsoft.com` from `region` unless you
     provide `endpoint` or `baseUrl`.
   </Accordion>
@@ -98,7 +98,7 @@ or explicit config for endpoint routing.
   </Accordion>
   <Accordion title="Audio outputs">
     Azure accepts output formats such as `audio-24khz-48kbitrate-mono-mp3`,
-    `ogg-24khz-16bit-mono-opus`, and `riff-24khz-16bit-mono-pcm`. OpenClaw
+    `ogg-24khz-16bit-mono-opus`, and `riff-24khz-16bit-mono-pcm`. Vasudev
     requests Ogg/Opus for `voice-note` targets so channels can send native
     voice bubbles without an extra MP3 conversion, and forces
     `raw-8khz-8bit-mono-mulaw` for telephony targets.
@@ -120,7 +120,7 @@ or explicit config for endpoint routing.
     Full config reference including `tts` settings.
   </Card>
   <Card title="Providers" href="/providers" icon="grid">
-    All bundled OpenClaw providers.
+    All bundled Vasudev providers.
   </Card>
   <Card title="Troubleshooting" href="/help/troubleshooting" icon="wrench">
     Common issues and debugging steps.

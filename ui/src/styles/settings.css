@@ -215,9 +215,10 @@
 
 .settings-section__heading {
   margin: 0;
-  font-size: var(--control-ui-text-xs);
+  font-family: var(--font-display);
+  font-size: var(--control-ui-text-sm);
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.7px;
   color: var(--muted-strong);
   text-transform: uppercase;
 }
@@ -846,7 +847,7 @@ textarea.settings-input {
 }
 
 .identity-error .settings-row__desc {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 /* ── Account value (small round avatar + handle inside a row control) ── */

@@ -145,7 +145,7 @@ describe("checkGatewayHealth", () => {
       config: cfg,
     });
     expect(runtime.error).not.toHaveBeenCalled();
-    expect(note.mock.calls.map(([, title]) => title)).not.toContain("OpenClaw version mismatch");
+    expect(note.mock.calls.map(([, title]) => title)).not.toContain("Vasudev version mismatch");
   });
 
   it.each([
@@ -175,7 +175,7 @@ describe("checkGatewayHealth", () => {
     expect(warning).toContain(
       environment.OPENCLAW_STATE_DIR ? "doctor-service-state" : "doctor-service-home",
     );
-    expect(warning).toContain("openclaw gateway install --force");
+    expect(warning).toContain("vasudev gateway install --force");
     expect(readServiceCommand).toHaveBeenCalledWith(
       expect.not.objectContaining({ OPENCLAW_STATE_DIR: expect.anything() }),
       expect.objectContaining({ requireEffective: true }),
@@ -235,7 +235,7 @@ describe("checkGatewayHealth", () => {
   );
 
   it("reports startup migration warnings without marking the gateway unhealthy", async () => {
-    const startupMigrationWarning = 'Retained legacy state. Run "openclaw doctor --fix".';
+    const startupMigrationWarning = 'Retained legacy state. Run "vasudev doctor --fix".';
     callGateway.mockResolvedValueOnce({ startupMigrationWarning }).mockResolvedValue({});
     const runtime = { log: vi.fn(), error: vi.fn(), exit: vi.fn() };
     await expect(checkGatewayHealth({ runtime, cfg })).resolves.toMatchObject({ healthOk: true });
@@ -284,7 +284,7 @@ describe("checkGatewayHealth", () => {
     expect(note).toHaveBeenCalledWith(
       [
         "Channel status probe failed: channel probe timed out",
-        "Retry: openclaw channels status --probe",
+        "Retry: vasudev channels status --probe",
       ].join("\n"),
       "Channel warnings",
     );
@@ -327,7 +327,7 @@ describe("checkGatewayHealth", () => {
     const [message, title] = note.mock.calls.at(-1) ?? [];
     expect(title).toBe("Telemetry exporters");
     expect(message).toContain("Exporter diagnostics failed: exporter probe failed");
-    expect(message).toContain("Retry: openclaw gateway stability --type telemetry.exporter");
+    expect(message).toContain("Retry: vasudev gateway stability --type telemetry.exporter");
     expect(message).not.toContain(token);
     expect(message).not.toContain("\u001B");
     expect(message.split("\n")).toHaveLength(2);
@@ -347,10 +347,10 @@ describe("checkGatewayHealth", () => {
     });
 
     const mismatchNotes = note.mock.calls
-      .filter(([, title]) => title === "OpenClaw version mismatch")
+      .filter(([, title]) => title === "Vasudev version mismatch")
       .map(([message]) => String(message));
     const mismatchOutput = mismatchNotes.join("\n");
-    expect(mismatchOutput).toContain("the running Gateway is OpenClaw 2026.4.23");
+    expect(mismatchOutput).toContain("the running Gateway is Vasudev 2026.4.23");
     expect(mismatchOutput).not.toContain("That usually means");
     expect(mismatchOutput).toContain("Check `openclaw --version`, `which openclaw`");
     expect(mismatchOutput).toContain(
@@ -418,11 +418,11 @@ describe("checkGatewayHealth", () => {
     expect(note).toHaveBeenCalledWith(
       [
         "- cold account:discord:ops (channels.discord.accounts.ops.token): secret resolution failed",
-        "  Retry: openclaw secrets reload",
+        "  Retry: vasudev secrets reload",
         "- stale capability:tts (tts.providers.elevenlabs.apiKey): secret provider policy denied resolution",
-        "  Retry: openclaw secrets reload",
+        "  Retry: vasudev secrets reload",
         "- cold capability:web-fetch:firecrawl (plugins.entries.firecrawl.config.webFetch.apiKey): resolved secret value was invalid",
-        "  Retry: openclaw secrets reload",
+        "  Retry: vasudev secrets reload",
       ].join("\n"),
       "Secret runtime degradation",
     );
@@ -698,7 +698,7 @@ describe("probeGatewayMemoryStatus", () => {
         ok: false,
         checked: false,
         error:
-          "memory embedding readiness not checked; run `openclaw memory status --deep` to probe",
+          "memory embedding readiness not checked; run `vasudev memory status --deep` to probe",
       },
     });
 

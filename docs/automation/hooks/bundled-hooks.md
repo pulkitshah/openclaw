@@ -1,5 +1,5 @@
 ---
-summary: "The hooks shipped with OpenClaw and the behavior and options of each"
+summary: "The hooks shipped with Vasudev and the behavior and options of each"
 read_when:
   - You want to enable a hook without writing one
   - You need `boot-md`, `bootstrap-extra-files`, `command-logger`, `compaction-notifier`, or `session-memory` behavior
@@ -7,7 +7,7 @@ read_when:
 title: "Bundled hooks"
 ---
 
-The hooks shipped with OpenClaw, and the behavior and options of each. Part of the [Hooks](/automation/hooks) guide.
+The hooks shipped with Vasudev, and the behavior and options of each. Part of the [Hooks](/automation/hooks) guide.
 
 ## Bundled hooks
 

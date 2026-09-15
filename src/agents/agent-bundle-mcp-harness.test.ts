@@ -509,9 +509,7 @@ describe("materializeStaticMcpToolsForHarnessRunCore", () => {
 
     expect(result.tools).toEqual([]);
     expect(result.diagnosticNotice).toContain("user-mail/inbox");
-    expect(result.diagnosticNotice).toContain(
-      "openclaw mcp configure user-mail --approval approve",
-    );
+    expect(result.diagnosticNotice).toContain("vasudev mcp configure user-mail --approval approve");
     expect(callTool).not.toHaveBeenCalled();
     await result?.dispose();
   });
@@ -594,9 +592,7 @@ describe("materializeStaticMcpToolsForHarnessRunCore", () => {
 
     expect(result.tools).toEqual([]);
     expect(result.diagnosticNotice).toContain("user-mail/inbox");
-    expect(result.diagnosticNotice).toContain(
-      "openclaw mcp configure user-mail --approval approve",
-    );
+    expect(result.diagnosticNotice).toContain("vasudev mcp configure user-mail --approval approve");
     expect(callTool).not.toHaveBeenCalled();
     await result?.dispose();
   });
@@ -891,7 +887,7 @@ describe("materializeRequesterScopedMcpToolsForHarnessRunCore", () => {
     // Fail open by explicit caller-compatibility decision: callers that pass no
     // approval callback keep their pre-gate behavior — the tool stays exposed
     // and dispatches ungated, so a caller's tool surface never loses
-    // availability across upgrades. OpenClaw's own requester turns always pass
+    // availability across upgrades. Vasudev's own requester turns always pass
     // an approval callback, so this branch is foreign-SDK-caller only.
     expect(result!.tools.map((tool) => tool.name)).toEqual(["user-mail__inbox"]);
     expect(result!.advertisedTools.map((tool) => tool.name)).toEqual(["user-mail__inbox"]);

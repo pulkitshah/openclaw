@@ -30,7 +30,7 @@ private conversations with one per-agent setting:
 The setting defaults on for personal installs: global `session.dmScope` must be
 unset or `"main"`, and no binding may override `session.dmScope`. Any configured
 DM isolation defaults it off. An explicit `true` or `false` always wins. When
-enabled, OpenClaw indexes that agent's session transcripts and runs an Active
+enabled, Vasudev indexes that agent's session transcripts and runs an Active
 Memory retrieval pass before eligible private replies. The pass can read
 relevant transcript excerpts from the same agent's other private conversations.
 It excludes the conversation already being answered.
@@ -51,7 +51,7 @@ eligible replies. An intentional no-intent skip or an unavailable search adds a
 short hidden outcome note instead of recalled transcript context. This tells
 the main model that recall did not run or could not finish without exposing
 provider errors. Timeout and empty results keep their existing behavior.
-OpenClaw's built-in memory provider supports this protected transcript-recall
+Vasudev's built-in memory provider supports this protected transcript-recall
 path. Other memory providers keep their own recall behavior but do not
 automatically receive private transcript authorization. `openclaw doctor`
 reports an unsupported provider or missing `memory_search` tool.

@@ -30,7 +30,7 @@ type Scenario = FailurePhase | "success" | "drift";
 const syntheticToken = "sk-140392syntheticfixturetoken123456789";
 const syntheticStructuredValue = "140392-structured-placeholder";
 const syntheticCustomValue = "PR140392_PRIVATE_SAMPLE";
-const guidance = "Run `openclaw onboard` to connect and live-test AI first.";
+const guidance = "Run `vasudev onboard` to connect and live-test AI first.";
 
 async function observeScenario(scenario: Scenario, json: boolean) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-error-reporting-140392-"));
@@ -222,7 +222,7 @@ async function observeScenario(scenario: Scenario, json: boolean) {
       expect(output.endsWith(`\n${guidance}`)).toBe(true);
       message = output.slice(0, -guidance.length - 1);
     }
-    expect(message.startsWith("OpenClaw requires working inference: ")).toBe(true);
+    expect(message.startsWith("Vasudev requires working inference: ")).toBe(true);
     expect(message).not.toContain(syntheticToken);
     expect(message).not.toContain(syntheticStructuredValue);
     expect(message).not.toContain(syntheticCustomValue);

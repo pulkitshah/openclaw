@@ -1,4 +1,4 @@
-// OpenClaw state database manages shared persisted state and migrations.
+// Vasudev state database manages shared persisted state and migrations.
 import { existsSync } from "node:fs";
 import type { DatabaseSync } from "node:sqlite";
 import { clearNodeSqliteKyselyCacheForDatabase } from "../infra/kysely-sync.js";
@@ -265,7 +265,7 @@ function repairStateSchema(
       warnings: quarantineCleared
         ? []
         : [
-            `Persisted quarantine record for ${pathname} could not be cleared; rerun openclaw doctor --fix so the repaired database is not refused again.`,
+            `Persisted quarantine record for ${pathname} could not be cleared; rerun vasudev doctor --fix so the repaired database is not refused again.`,
           ],
     };
   } catch (err) {
@@ -279,7 +279,7 @@ function repairStateSchema(
     // Reaching this catch inside doctor means repair itself refused or failed,
     // so the runtime asserts' "run openclaw doctor --fix" advice is circular here.
     const reason = String(err).replace(
-      /has a legacy ([a-z ]+) schema; run openclaw doctor --fix to migrate it\./u,
+      /has a legacy ([a-z ]+) schema; run vasudev doctor --fix to migrate it\./u,
       "has a legacy $1 schema; automatic repair refused the unrecognized schema shape.",
     );
     return {
@@ -565,7 +565,7 @@ function openOpenClawStateDatabaseWithBusyTimeout(
     if (errors.length > 0) {
       throw createSqliteLifecycleAggregateError(
         [error, ...errors],
-        `Fresh OpenClaw state database open failed releasing access and closing its unpublished handle for ${pathname}.`,
+        `Fresh Vasudev state database open failed releasing access and closing its unpublished handle for ${pathname}.`,
         error,
       );
     }

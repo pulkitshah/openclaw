@@ -51,7 +51,7 @@ it("keeps Messages default and opens capture with a collapsed schema editor insi
       gateway: { ...gateway, connection: { gatewayUrl: "ws://transcripts.test" } },
       runtimeConfig,
       navigate: vi.fn(),
-      config: { current: { assistantIdentity: { name: "OpenClaw" } } },
+      config: { current: { assistantIdentity: { name: "Vasudev" } } },
       overlays: { snapshot: { updateRunning: false, updateReconciliationPending: false } },
       webPush: { snapshot: {} },
     } as unknown as ApplicationContext;

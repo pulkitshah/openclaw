@@ -1,16 +1,16 @@
 ---
-summary: "Connect MCP servers to OpenClaw from the Control UI, CLI, or config"
+summary: "Connect MCP servers to Vasudev from the Control UI, CLI, or config"
 title: "Connect MCP servers"
 read_when:
-  - Adding an MCP server for OpenClaw agents
+  - Adding an MCP server for Vasudev agents
   - Choosing between Settings and `openclaw mcp`
   - Troubleshooting MCP transport, OAuth, or tool discovery
 ---
 
-The Model Context Protocol (MCP) is how an agent borrows tools from another program: an MCP server exposes tools, resources, and prompts, and OpenClaw connects to it and makes those tools available to your agents. Server definitions live under `mcp.servers` in config, and the tools they expose go through the same tool-profile and tool-policy controls as everything else — connecting a server does not bypass your policy.
+The Model Context Protocol (MCP) is how an agent borrows tools from another program: an MCP server exposes tools, resources, and prompts, and Vasudev connects to it and makes those tools available to your agents. Server definitions live under `mcp.servers` in config, and the tools they expose go through the same tool-profile and tool-policy controls as everything else — connecting a server does not bypass your policy.
 
 <Note>
-This guide is about connecting third-party MCP servers **to OpenClaw**. For the reverse — exposing OpenClaw channel conversations to another MCP client — use [`openclaw mcp serve`](/cli/mcp#openclaw-as-an-mcp-server).
+This guide is about connecting third-party MCP servers **to Vasudev**. For the reverse — exposing Vasudev channel conversations to another MCP client — use [`openclaw mcp serve`](/cli/mcp#vasudev-as-an-mcp-server).
 </Note>
 
 ## Add a server from Settings
@@ -39,7 +39,7 @@ Choose **This session** for session-only enablement or **Everywhere** for global
 
 From an active conversation, open **+ → Connectors → Tool access** to inspect
 or deny individual tools for that session. The view follows the session's
-actual runtime owner: built-in OpenClaw sessions read the in-process MCP
+actual runtime owner: built-in Vasudev sessions read the in-process MCP
 catalog, while native agent harnesses can contribute their thread-owned
 catalog. Session server and tool denials are enforced by either runtime before
 the next turn starts.
@@ -99,7 +99,7 @@ Codex MCP tool approvals follow the session permission posture: the default full
 
 When durable persistence is offered, **Allow Always** saves a per-agent grant
 for the exact configured server and tool, even when its arguments change.
-This applies to Gateway-hosted Codex runs when OpenClaw can unambiguously match
+This applies to Gateway-hosted Codex runs when Vasudev can unambiguously match
 the approval to a live Gateway-owned tool call; missing or ambiguous matches retain
 Codex's native/session behavior. Codex apps, native plugin servers, and
 computer-use servers are excluded. Grants survive restarts and apply at the
@@ -118,7 +118,7 @@ Run `openclaw mcp doctor <name> --probe`. Doctor validates the saved definition 
 
 Confirm the `command` resolves in the Gateway process environment and that `cwd` exists. Arguments belong in `args`, and an explicit `transport: "stdio"` requires a non-empty command.
 
-For servers launched by OpenClaw's built-in MCP client, debug logs prefix stderr diagnostics with `bundle-mcp:<name>:`. Unicode characters survive split writes, and shutdown diagnostics are retained. Output without a newline is briefly buffered for up to 250 ms before being logged as progress fragments; this does not wait for the server to stop writing. A diagnostic exceeding the 8 KiB buffer retains its Unicode-safe tail with a `[stderr line truncated]` marker.
+For servers launched by Vasudev's built-in MCP client, debug logs prefix stderr diagnostics with `bundle-mcp:<name>:`. Unicode characters survive split writes, and shutdown diagnostics are retained. Output without a newline is briefly buffered for up to 250 ms before being logged as progress fragments; this does not wait for the server to stop writing. A diagnostic exceeding the 8 KiB buffer retains its Unicode-safe tail with a `[stderr line truncated]` marker.
 
 ### An HTTP server needs authorization
 
@@ -128,7 +128,7 @@ Set `auth: "oauth"` plus any required `oauth` metadata, then:
 openclaw mcp login <name>
 ```
 
-Follow the printed authorization URL. OpenClaw normally captures the loopback redirect and saves the credentials automatically; use the printed `--code` command when the browser cannot reach the callback listener.
+Follow the printed authorization URL. Vasudev normally captures the loopback redirect and saves the credentials automatically; use the printed `--code` command when the browser cannot reach the callback listener.
 
 ### Changes do not reach an active agent
 

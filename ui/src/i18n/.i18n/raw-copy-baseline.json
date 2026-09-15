@@ -125,14 +125,14 @@
       "kind": "html-attribute",
       "name": "aria-label",
       "path": "ui/src/components/app-topbar.ts",
-      "text": "OpenClaw"
+      "text": "Vasudev"
     },
     {
       "count": 1,
       "kind": "html-text",
       "name": "text",
       "path": "ui/src/components/app-topbar.ts",
-      "text": "OpenClaw"
+      "text": "Vasudev"
     },
     {
       "count": 1,
@@ -213,13 +213,6 @@
     },
     {
       "count": 1,
-      "kind": "html-text",
-      "name": "text",
-      "path": "ui/src/components/login-gate.ts",
-      "text": "OpenClaw"
-    },
-    {
-      "count": 1,
       "kind": "html-attribute",
       "name": "placeholder",
       "path": "ui/src/components/mcp-server-form.ts",
@@ -238,6 +231,27 @@
       "name": "text",
       "path": "ui/src/components/settings-sidebar.ts",
       "text": "esc"
+    },
+    {
+      "count": 1,
+      "kind": "html-attribute",
+      "name": "aria-label",
+      "path": "ui/src/components/vasu-wordmark.ts",
+      "text": "Vasudev"
+    },
+    {
+      "count": 1,
+      "kind": "html-text",
+      "name": "text",
+      "path": "ui/src/components/vasu-wordmark.ts",
+      "text": "dev"
+    },
+    {
+      "count": 1,
+      "kind": "html-text",
+      "name": "text",
+      "path": "ui/src/components/vasu-wordmark.ts",
+      "text": "Vasu"
     },
     {
       "count": 1,
@@ -342,35 +356,35 @@
       "kind": "html-text",
       "name": "text",
       "path": "ui/src/pages/config/mcp.ts",
-      "text": "openclaw mcp doctor --probe"
+      "text": "vasudev mcp doctor --probe"
     },
     {
       "count": 1,
       "kind": "html-text",
       "name": "text",
       "path": "ui/src/pages/config/mcp.ts",
-      "text": "openclaw mcp login &lt;name&gt;"
+      "text": "vasudev mcp login &lt;name&gt;"
     },
     {
       "count": 1,
       "kind": "html-text",
       "name": "text",
       "path": "ui/src/pages/config/mcp.ts",
-      "text": "openclaw mcp reload"
+      "text": "vasudev mcp reload"
     },
     {
       "count": 1,
       "kind": "html-text",
       "name": "text",
       "path": "ui/src/pages/config/mcp.ts",
-      "text": "openclaw mcp status --verbose"
+      "text": "vasudev mcp status --verbose"
     },
     {
       "count": 1,
       "kind": "html-text",
       "name": "text",
       "path": "ui/src/pages/config/updates.ts",
-      "text": "openclaw triage"
+      "text": "vasudev triage"
     },
     {
       "count": 1,
@@ -419,7 +433,7 @@
       "kind": "html-text",
       "name": "text",
       "path": "ui/src/pages/debug/view.ts",
-      "text": "openclaw security audit --deep"
+      "text": "vasudev security audit --deep"
     },
     {
       "count": 1,
@@ -433,21 +447,21 @@
       "kind": "html-text",
       "name": "text",
       "path": "ui/src/pages/new-session/cloud-target.ts",
-      "text": "openclaw connect --service --session-host"
+      "text": "vasudev connect --service --session-host"
     },
     {
       "count": 1,
       "kind": "html-text",
       "name": "text",
       "path": "ui/src/pages/new-session/cloud-target.ts",
-      "text": "openclaw node restart"
+      "text": "vasudev node restart"
     },
     {
       "count": 1,
       "kind": "html-text",
       "name": "text",
       "path": "ui/src/pages/new-session/cloud-target.ts",
-      "text": "openclaw update"
+      "text": "vasudev update"
     },
     {
       "count": 1,
@@ -461,7 +475,7 @@
       "kind": "object-property",
       "name": "description",
       "path": "ui/src/pages/plugins/plugins.e2e.test-support.ts",
-      "text": "Connect OpenClaw to Matrix rooms and direct messages."
+      "text": "Connect Vasudev to Matrix rooms and direct messages."
     },
     {
       "count": 1,
@@ -552,7 +566,7 @@
       "kind": "html-text",
       "name": "text",
       "path": "ui/src/pages/profile/profile-hero.ts",
-      "text": "OpenClaw"
+      "text": "Vasudev"
     },
     {
       "count": 1,

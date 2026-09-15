@@ -66,7 +66,7 @@ function steerWithDeliveryWait(
   });
 }
 
-describe("embedded OpenClaw queued steering cancellation", () => {
+describe("embedded Vasudev queued steering cancellation", () => {
   it.each(["text", "offloaded", "recorded"] as const)(
     "keeps %s replies distinct from harness secrets",
     async (kind) => {

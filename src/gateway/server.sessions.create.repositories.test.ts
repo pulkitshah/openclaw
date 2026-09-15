@@ -35,7 +35,7 @@ test("sessions.create retains a cloud repository across replay without creating 
   const workspace = path.join(root, "must-not-be-created");
   testState.agentConfig = { workspace };
   const { storePath } = await createSessionStoreDir();
-  const repository = { url: "git@github.com:OpenClaw/OpenClaw.git", ref: "release/next" };
+  const repository = { url: "git@github.com:Vasudev/Vasudev.git", ref: "release/next" };
   const created = await directSessionReq<{
     key: string;
     entry: { repositoryWorkspaceId: string };

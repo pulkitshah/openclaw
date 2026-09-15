@@ -11,7 +11,7 @@ export function sessionParticipantsSchemaSql(): string {
   return extractSqliteTableSchema(OPENCLAW_AGENT_SCHEMA_SQL, SESSION_PARTICIPANTS_TABLE, {
     endMarker: "CREATE TABLE IF NOT EXISTS session_key_contract (",
     includeEndMarker: false,
-    errorMessage: "OpenClaw session participant schema markers are missing.",
+    errorMessage: "Vasudev session participant schema markers are missing.",
   });
 }
 

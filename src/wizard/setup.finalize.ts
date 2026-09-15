@@ -129,7 +129,7 @@ async function startSessionGatewayForOnboarding(params: {
         t("wizard.finalize.sessionGatewayStartFailed"),
         formatErrorMessage(error),
         t("wizard.finalize.startGatewayNow", {
-          command: formatCliCommand("openclaw gateway run"),
+          command: formatCliCommand("vasudev gateway run"),
         }),
       ].join("\n"),
       "Gateway",
@@ -191,8 +191,8 @@ function buildGatewayRecoveryProjection(params: {
     const service = params.serviceLabel ?? t("wizard.finalize.gatewayService");
     const detail = t("wizard.finalize.managedGatewayUnreachable", {
       service,
-      statusCommand: formatCliCommand("openclaw gateway status --deep"),
-      recoveryCommand: formatCliCommand("openclaw gateway restart"),
+      statusCommand: formatCliCommand("vasudev gateway status --deep"),
+      recoveryCommand: formatCliCommand("vasudev gateway restart"),
     });
     return { detail, summary: `${notDetected} ${detail.replaceAll("\n", " ")}` };
   }
@@ -201,8 +201,8 @@ function buildGatewayRecoveryProjection(params: {
     const detail = t("wizard.finalize.managedGatewaySetupFailed", {
       service,
       error: gateway.error,
-      statusCommand: formatCliCommand("openclaw gateway status --deep"),
-      recoveryCommand: formatCliCommand("openclaw gateway install --force"),
+      statusCommand: formatCliCommand("vasudev gateway status --deep"),
+      recoveryCommand: formatCliCommand("vasudev gateway install --force"),
     });
     return {
       detail,
@@ -214,7 +214,7 @@ function buildGatewayRecoveryProjection(params: {
     gateway.reason === "external"
       ? formatExternalSupervisorActionRequired("start the gateway")
       : t("wizard.finalize.startGatewayNow", {
-          command: formatCliCommand("openclaw gateway run"),
+          command: formatCliCommand("vasudev gateway run"),
         });
   const summary = [notDetected, startGuidance].join(" ");
   if (gateway.reason === "external") {
@@ -226,10 +226,10 @@ function buildGatewayRecoveryProjection(params: {
       t("wizard.finalize.noBackgroundGatewayExpected"),
       startGuidance,
       t("wizard.finalize.rerunInstallDaemon", {
-        command: formatCliCommand("openclaw onboard --install-daemon"),
+        command: formatCliCommand("vasudev onboard --install-daemon"),
       }),
       t("wizard.finalize.skipHealthNextTime", {
-        command: formatCliCommand("openclaw onboard --skip-health"),
+        command: formatCliCommand("vasudev onboard --skip-health"),
       }),
     ].join("\n"),
     summary,
@@ -816,7 +816,7 @@ export async function finalizeSetupWizard(
           [
             t("wizard.finalize.noModelAuth", { provider: modelAuthStatus.provider }),
             t("wizard.finalize.noModelAuthNext", {
-              command: formatCliCommand("openclaw configure --section model"),
+              command: formatCliCommand("vasudev configure --section model"),
             }),
           ].join("\n"),
           t("wizard.finalize.noModelAuthTitle"),
@@ -828,13 +828,13 @@ export async function finalizeSetupWizard(
           t("wizard.finalize.gatewayTokenShared"),
           t("wizard.finalize.gatewayTokenStored"),
           t("wizard.finalize.gatewayTokenView", {
-            command: formatCliCommand("openclaw gateway auth-token --show"),
+            command: formatCliCommand("vasudev gateway auth-token --show"),
           }),
           t("wizard.finalize.gatewayTokenGenerate", {
-            command: formatCliCommand("openclaw doctor --generate-gateway-token"),
+            command: formatCliCommand("vasudev doctor --generate-gateway-token"),
           }),
           t("wizard.finalize.dashboardOpenAnytime", {
-            command: formatCliCommand("openclaw dashboard --no-open"),
+            command: formatCliCommand("vasudev dashboard --no-open"),
           }),
         ].filter(Boolean);
         await prompter.note(tokenNotes.join("\n"), "Token");
@@ -897,7 +897,7 @@ export async function finalizeSetupWizard(
           [
             t("wizard.finalize.webSearchProviderUnavailable", { provider: label }),
             t("wizard.finalize.webSearchUnavailableAction"),
-            `  ${formatCliCommand("openclaw configure --section web")}`,
+            `  ${formatCliCommand("vasudev configure --section web")}`,
             "",
             t("wizard.finalize.webDocs"),
           ].join("\n"),
@@ -931,7 +931,7 @@ export async function finalizeSetupWizard(
           [
             t("wizard.finalize.webSearchNoKey", { provider: label }),
             t("wizard.finalize.webSearchNeedsKey"),
-            `  ${formatCliCommand("openclaw configure --section web")}`,
+            `  ${formatCliCommand("vasudev configure --section web")}`,
             "",
             t("wizard.finalize.webSearchGetKey", {
               url: entry?.signupUrl ?? "https://docs.openclaw.ai/tools/web",
@@ -945,7 +945,7 @@ export async function finalizeSetupWizard(
           [
             t("wizard.finalize.webSearchDisabled", { provider: label }),
             t("wizard.finalize.webSearchReenable", {
-              command: formatCliCommand("openclaw configure --section web"),
+              command: formatCliCommand("vasudev configure --section web"),
             }),
             "",
             t("wizard.finalize.webDocs"),
@@ -981,7 +981,7 @@ export async function finalizeSetupWizard(
         await prompter.note(
           [
             t("wizard.finalize.webSearchSkipped"),
-            `  ${formatCliCommand("openclaw configure --section web")}`,
+            `  ${formatCliCommand("vasudev configure --section web")}`,
             "",
             t("wizard.finalize.webDocs"),
           ].join("\n"),
@@ -1012,7 +1012,7 @@ export async function finalizeSetupWizard(
           }).summary
         : gatewayHealthCheckFailed
           ? t("wizard.finalize.outroHealthCheckFailed", {
-              command: formatCliCommand("openclaw health"),
+              command: formatCliCommand("vasudev health"),
             })
           : dashboardReady
             ? t("wizard.finalize.outroDashboardLink")
@@ -1020,7 +1020,7 @@ export async function finalizeSetupWizard(
               ? [
                   t("wizard.guided.complete"),
                   t("wizard.finalize.dashboardWhenReady", {
-                    command: formatCliCommand("openclaw dashboard"),
+                    command: formatCliCommand("vasudev dashboard"),
                   }),
                 ].join(" ")
               : t("wizard.guided.complete"),

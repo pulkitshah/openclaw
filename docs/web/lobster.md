@@ -10,7 +10,7 @@ sidebarTitle: "The Lobster"
 
 If you use the [Control UI](/web/control-ui) long enough, at some point a small lobster will wander into the bottom of your sidebar, look around, and make itself at home for a few minutes.
 
-This is normal. This is OpenClaw.
+This is normal. This is Vasudev.
 
 ## What you are looking at
 
@@ -79,10 +79,10 @@ Collected observations from people who spend too much time watching their sideba
 
 ## Privacy
 
-Everything on this page happens locally in your browser: the randomness, the schedule, the Lobsterdex. No lobster data leaves your machine. OpenClaw does not know which lobsters you have met, and frankly it is jealous.
+Everything on this page happens locally in your browser: the randomness, the schedule, the Lobsterdex. No lobster data leaves your machine. Vasudev does not know which lobsters you have met, and frankly it is jealous.
 
 ## Related
 
 - [Control UI](/web/control-ui) - the dashboard the lobster wanders into
 - [Settings](/web/control-ui/settings#appearance-themes) - the Control UI Appearance panel that holds the visits and sounds toggles
-- [OpenClaw lore](/start/lore) - why there is a lobster at all
+- [Vasudev lore](/start/lore) - why there is a lobster at all

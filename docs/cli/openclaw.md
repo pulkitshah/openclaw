@@ -1,15 +1,15 @@
 ---
-summary: "CLI reference and security model for the inference-backed OpenClaw setup and repair helper"
+summary: "CLI reference and security model for the inference-backed Vasudev setup and repair helper"
 read_when:
-  - You finished inference setup and want OpenClaw to configure the rest
-  - You need to inspect or repair OpenClaw with the local setup agent
+  - You finished inference setup and want Vasudev to configure the rest
+  - You need to inspect or repair Vasudev with the local setup agent
   - You are designing or enabling message-channel rescue mode
-title: "OpenClaw setup agent"
+title: "Vasudev setup agent"
 ---
 
 # `openclaw setup`
 
-OpenClaw ships with a built-in system agent — it speaks as "OpenClaw" — for
+Vasudev ships with a built-in system agent — it speaks as "Vasudev" — for
 local setup, repair, and configuration (formerly called Crestodian). It starts only after the effective default model completes a real turn.
 Fresh installs establish inference first; malformed config stays on the
 classic doctor path.
@@ -22,23 +22,23 @@ Running `openclaw` with no subcommand routes based on config state:
 - Config exists but fails validation: starts classic onboarding, which reports the issues and directs you to `openclaw doctor`.
 - Config exists and is valid: opens the normal agent TUI. A reachable
   configured Gateway whose default agent has a model goes directly to that UI
-  without onboarding or OpenClaw. Use `/openclaw` inside the TUI, or run
-  `openclaw setup` directly, to reach OpenClaw later.
+  without onboarding or Vasudev. Use `/openclaw` inside the TUI, or run
+  `openclaw setup` directly, to reach Vasudev later.
 
-Running `openclaw setup` first live-tests the configured default model. A passing turn starts OpenClaw. An interactive failure opens guided inference setup and hands off to OpenClaw after a candidate passes. One-shot, JSON, and other noninteractive requests fail with instructions to run [`openclaw onboard`](/cli/onboard) when inference is unavailable. `openclaw --help` and `openclaw --version` keep their normal fast paths.
+Running `openclaw setup` first live-tests the configured default model. A passing turn starts Vasudev. An interactive failure opens guided inference setup and hands off to Vasudev after a candidate passes. One-shot, JSON, and other noninteractive requests fail with instructions to run [`openclaw onboard`](/cli/onboard) when inference is unavailable. `openclaw --help` and `openclaw --version` keep their normal fast paths.
 
-If inference plugin loading or owner verification fails, the error includes the underlying cause after applying OpenClaw's error redaction. One-shot text and JSON output retain that detail alongside onboarding guidance.
+If inference plugin loading or owner verification fails, the error includes the underlying cause after applying Vasudev's error redaction. One-shot text and JSON output retain that detail alongside onboarding guidance.
 
 Noninteractive bare `openclaw` (no TTY) exits with a short message instead of printing root help: it points to non-interactive onboarding on a fresh or invalid install, or to `openclaw agent --local ...` when config is valid.
 
-`openclaw onboard --modern` remains a compatibility alias for OpenClaw, but uses the same inference gate: working inference opens the chat, interactive failures start guided inference setup, and noninteractive failures exit with onboarding guidance. `openclaw onboard --classic` opens the full step-by-step wizard.
+`openclaw onboard --modern` remains a compatibility alias for Vasudev, but uses the same inference gate: working inference opens the chat, interactive failures start guided inference setup, and noninteractive failures exit with onboarding guidance. `openclaw onboard --classic` opens the full step-by-step wizard.
 
-## What OpenClaw shows
+## What Vasudev shows
 
-Interactive OpenClaw opens the same TUI shell as `openclaw tui`, with an OpenClaw chat backend. The startup greeting covers:
+Interactive Vasudev opens the same TUI shell as `openclaw tui`, with a Vasudev chat backend. The startup greeting covers:
 
 - config validity and the default agent
-- the verified model OpenClaw is using
+- the verified model Vasudev is using
 - Gateway reachability from the first startup probe
 - the next recommended debug action
 
@@ -46,7 +46,7 @@ It does not dump secrets or load plugin CLI commands just to start.
 
 Use `status` for the detailed inventory: config path, docs/source paths, local CLI probes, key/token presence, agents, model, and Gateway details.
 
-OpenClaw uses the same reference discovery as regular agents: in a Git checkout it points at local `docs/` and the source tree; in an npm install it uses bundled docs and links to [https://github.com/openclaw/openclaw](https://github.com/openclaw/openclaw), with guidance to check source when docs are not enough.
+Vasudev uses the same reference discovery as regular agents: in a Git checkout it points at local `docs/` and the source tree; in an npm install it uses bundled docs and links to [https://github.com/openclaw/openclaw](https://github.com/openclaw/openclaw), with guidance to check source when docs are not enough.
 
 ## Examples
 
@@ -61,7 +61,7 @@ openclaw setup --message "set default model openai/gpt-5.6" --yes
 openclaw onboard --modern
 ```
 
-Inside the OpenClaw TUI:
+Inside the Vasudev TUI:
 
 ```text
 status
@@ -100,7 +100,7 @@ quit
 
 ## Operations and approval
 
-OpenClaw uses typed operations instead of editing config ad hoc.
+Vasudev uses typed operations instead of editing config ad hoc.
 
 For `config get`, quote record keys that contain dots or brackets, such as
 `config get channels.modelByChannel.telegram["team.ops[west]"]`.
@@ -114,13 +114,13 @@ Starting a guided setup flow also runs immediately: channel setup (`connect tele
 
 `import memory` is copy-only rather than a config write. It detects supported local agent homes, lets you choose the available sources, and copies new memory files into the existing default agent workspace without importing config, credentials, or skills. It requires completed onboarding and reports confirmed imports, nothing-to-import results, provider failures, and failures where some files may already have been copied. No Gateway restart is needed. Use the Control UI's [Import Memory page](/web/control-ui/settings#import-assistant-memory) when you need to target another agent or replace an existing import.
 
-In direct OpenClaw chat, persistent operations require conversational approval (or `--yes` for a one-shot command): write config, `config set`, `config set-ref`, setup/onboarding bootstrap, change the default model, start/stop/restart the Gateway, create agents, and install plugins.
+In direct Vasudev chat, persistent operations require conversational approval (or `--yes` for a one-shot command): write config, `config set`, `config set-ref`, setup/onboarding bootstrap, change the default model, start/stop/restart the Gateway, create agents, and install plugins.
 
 Changes delegated by a regular agent, including requests from messaging channels,
 follow the requesting run's effective [session permission policy](/gateway/permission-modes).
 Full Access applies the exact proposed operation automatically, including when
 Full Access comes from the configured default rather than an explicit session
-mode. Restricted runs still require approval in the OpenClaw operator UI. Replying
+mode. Restricted runs still require approval in the Vasudev operator UI. Replying
 "yes" in the delegated chat cannot authorize a change. When approval is required,
 run `openclaw dashboard` on the Gateway host to review it, or run the change
 directly with `openclaw setup` there. Independent filesystem and sandbox boundaries,
@@ -135,20 +135,20 @@ returns a non-applied outcome instead of leaving the agent reporting a pending
 change. Stopping the requesting run cancels its approval. A late approval cannot
 restart a closed run: request the change again from an active run if still needed.
 
-Configured agents can ask OpenClaw to create another agent through their
+Configured agents can ask Vasudev to create another agent through their
 `openclaw` tool. The request enters the same typed create-agent operation and
 host authorization flow; any approval summary names the requesting agent.
-OpenClaw remains the executor, and authorized creation records that requesting
+Vasudev remains the executor, and authorized creation records that requesting
 agent as the new agent's creator.
 
 Delegated creation remains tied to the requesting run. If that run ends or loses
-authority during preparation, OpenClaw stops before starting the next persistent
+authority during preparation, Vasudev stops before starting the next persistent
 write. A write already in progress may finish, and workspace files created earlier
 are not automatically removed. Check `openclaw agents list` before retrying from
 an active run; an agent whose creation already completed is not removed when its
 requesting run ends.
 
-Doctor repairs are unavailable inside OpenClaw because they can rewrite the provider, authentication, or default-agent inference route powering the session. Exit OpenClaw and run `openclaw doctor --fix` in a terminal. Read-only `doctor` remains available inside OpenClaw.
+Doctor repairs are unavailable inside Vasudev because they can rewrite the provider, authentication, or default-agent inference route powering the session. Exit Vasudev and run `openclaw doctor --fix` in a terminal. Read-only `doctor` remains available inside Vasudev.
 
 New agents inherit the live-verified default inference route. The agent ids `openclaw` and `crestodian` are reserved for the system agent and cannot be created as normal agents. The retired id remains blocked so an old config cannot claim it.
 
@@ -163,24 +163,24 @@ identity/topology fields (`id`, `agentDir`, `default`). Routing fields for
 other agents remain writable behind approval. Gateway and channel auth remain
 normal config surfaces. Use `set default model <provider/model>` for an
 already configured route; it live-tests the route before saving it. To
-configure or repair provider/auth access, exit OpenClaw and run
+configure or repair provider/auth access, exit Vasudev and run
 `openclaw onboard`.
 
 `plugins.entries.<id>.*` writes (enable/disable/config of installed plugins)
 are allowed unless that plugin backs the active inference route. Plugin
 install sources and load policy keep their trust boundary in the typed
 plugin-install workflow. Plugin uninstall of the route-backing plugin is
-refused for the same reason; exit OpenClaw and run
+refused for the same reason; exit Vasudev and run
 `openclaw plugins uninstall <id>` from a terminal.
 
 Approval is given in your own words: unambiguous replies ("yes", "sure", "go ahead", "not now") resolve from a closed deterministic list. When the configured route supports a separate completion call, other replies can be classified from only your message and the pending proposal — never by the conversation model itself, which cannot self-approve. Unclassified or ambiguous replies keep the proposal pending and the conversation asks again.
 
 ### Change history
 
-The Ask OpenClaw page can show recent applied system-agent operations, Doctor
+The Ask Vasudev page can show recent applied system-agent operations, Doctor
 migrations, Settings and CLI config writes, and manual edits to
 `openclaw.json`. The config journal detects external edits while the Gateway
-is watching, during an OpenClaw-owned write, or at the next startup after an
+is watching, during a Vasudev-owned write, or at the next startup after an
 offline edit.
 
 History is stored in the `diagnostic_events` table of the shared
@@ -196,7 +196,7 @@ runtime snapshot refresh are suppressed. Existing unlabeled records are not
 backfilled.
 
 Channel, web-search, and local Gateway setup can run as hosted conversations
-until they reach a secret. The local OpenClaw TUI does not accept sensitive wizard answers
+until they reach a secret. The local Vasudev TUI does not accept sensitive wizard answers
 because terminal chat input is visible. It offers `open channel wizard`
 (carrying the selected channel), `open search wizard`, or `open gateway wizard`
 immediately, handing off to the masked terminal wizard; you can also run
@@ -222,12 +222,12 @@ same way for web-search provider setup, opening the masked search wizard after
 the chat TUI closes. `open gateway wizard` opens masked local Gateway setup;
 when it finishes, run `openclaw gateway restart` to apply the saved settings.
 
-OpenClaw never changes provider/auth access from inside its own session: the
+Vasudev never changes provider/auth access from inside its own session: the
 session already depends on that inference route. For model-provider setup or
 repair, `configure model provider` returns exit/onboarding guidance without
-starting a wizard or writing config. Exit OpenClaw and run `openclaw
+starting a wizard or writing config. Exit Vasudev and run `openclaw
 onboard`; onboarding stages the credentials and saves only a route that
-completes a real live turn. Start OpenClaw again after onboarding succeeds.
+completes a real live turn. Start Vasudev again after onboarding succeeds.
 
 ## Setup bootstrap
 
@@ -243,7 +243,7 @@ replace inference.
 
 Delegated setup remains tied to the requesting run through configuration,
 workspace, and session preparation. If that run ends or loses authority,
-OpenClaw stops before starting the next persistent effect. Earlier completed
+Vasudev stops before starting the next persistent effect. Earlier completed
 effects remain, including an agent whose creation already finished; setup may
 still be incomplete. Check `openclaw agents list` and `status`, then request
 setup again from an active run and approve the new request, or finish directly
@@ -251,7 +251,7 @@ with `openclaw setup` on the Gateway host. If cancellation deferred legacy
 history migration for a newly named agent, the next Gateway startup retries it;
 use `openclaw doctor --fix` on the same state/config to finish it sooner.
 
-If inference is missing or its live check fails, leave OpenClaw and run `openclaw onboard`. Guided onboarding tries the configured model first, then authenticated subscription CLIs, API keys, and remaining supported CLIs; it asks each candidate for a real reply and persists only a passing route. OpenClaw starts immediately after that boundary and can then configure the workspace, Gateway, channels, agents, plugins, and other optional features.
+If inference is missing or its live check fails, leave Vasudev and run `openclaw onboard`. Guided onboarding tries the configured model first, then authenticated subscription CLIs, API keys, and remaining supported CLIs; it asks each candidate for a real reply and persists only a passing route. Vasudev starts immediately after that boundary and can then configure the workspace, Gateway, channels, agents, plugins, and other optional features.
 
 The macOS app skips this ladder entirely when it reaches a configured Gateway
 whose default agent already has a configured model; it opens the normal agent
@@ -260,7 +260,7 @@ For a fresh or incomplete Gateway, the app drives the inference ladder through
 the `openclaw.setup.detect` and `openclaw.setup.activate` Gateway methods:
 detect lists every candidate backend it finds, activate live-tests one
 candidate (a real "reply with OK" completion), and only persists the model,
-credential, and provider/runtime state needed for that route after the test passes. Workspace and Gateway defaults remain for OpenClaw. A failing candidate
+credential, and provider/runtime state needed for that route after the test passes. Workspace and Gateway defaults remain for Vasudev. A failing candidate
 never changes config; the app automatically walks down the ladder and finally
 offers a manual key/token step populated from the Gateway's active
 text-inference provider plugins. The selected provider owns its starter model
@@ -268,12 +268,12 @@ and config, and the credential is verified the same way before it is saved.
 
 Codex supervision and other optional plugin features stay outside this
 inference activation transaction. Configure them only after inference is
-working and OpenClaw has started; existing plugin policy and explicit
+working and Vasudev has started; existing plugin policy and explicit
 supervision opt-outs remain untouched during inference setup.
 
 ## AI conversation
 
-Interactive OpenClaw's free-form conversation runs through the same agent loop as regular OpenClaw agents, restricted to one ring-zero OpenClaw authority tool, `openclaw`, that wraps the typed operations. Read actions run freely, mutations require your conversational approval for that exact operation (see Operations and approval), and every applied write is audited and re-validated. The agent session persists, so OpenClaw has real multi-turn memory. If the verified inference route later stops working, return to `openclaw onboard` and repair it before continuing.
+Interactive Vasudev's free-form conversation runs through the same agent loop as regular Vasudev agents, restricted to one ring-zero Vasudev authority tool, `openclaw`, that wraps the typed operations. Read actions run freely, mutations require your conversational approval for that exact operation (see Operations and approval), and every applied write is audited and re-validated. The agent session persists, so Vasudev has real multi-turn memory. If the verified inference route later stops working, return to `openclaw onboard` and repair it before continuing.
 
 A failed or timed-out turn ends that setup conversation with a visible error.
 Retrying starts a fresh conversation and live-checks the inference route again.
@@ -297,27 +297,27 @@ Message-channel rescue mode never uses the model-assisted planner. Remote rescue
 ### CLI harness trust model
 
 Embedded runtimes and the Codex app-server harness enforce the ring-zero
-restriction directly: the run carries an OpenClaw tool allow-list with only
-the `openclaw` tool. For Codex, OpenClaw also disables environments, native
+restriction directly: the run carries a Vasudev tool allow-list with only
+the `openclaw` tool. For Codex, Vasudev also disables environments, native
 execution, multi-agent, goal, app/plugin, skill/MCP, web-search,
 `request_user_input`, and its native planning utility for that run. CLI
-harnesses do not consume OpenClaw's allow-list,
-so OpenClaw admits only backends whose own tool-selection contract can prove
+harnesses do not consume Vasudev's allow-list,
+so Vasudev admits only backends whose own tool-selection contract can prove
 the same restriction:
 
 - Selectable backends, including Claude Code, launch with an empty native-tool
   selection and one MCP tool, `openclaw`. Claude's generated MCP config is
   applied with `--strict-mcp-config`, so no other MCP servers are loaded.
-- Backends that declare no native tools receive the same dedicated OpenClaw
+- Backends that declare no native tools receive the same dedicated Vasudev
   MCP server.
 - Always-on or unknown native-tool backends fail closed before inference; they
-  cannot host an OpenClaw session.
+  cannot host a Vasudev session.
 
-Only OpenClaw sessions get the openclaw MCP server; normal agent runs
+Only Vasudev sessions get the openclaw MCP server; normal agent runs
 never see this tool. Selectable/no-native CLI backends and API-key models
 therefore enforce the literal single-tool loop. Codex app-server models enforce
-a single OpenClaw authority tool plus the inert native planning utility. In all
-three cases, setup writes remain confined to OpenClaw's audited approval
+a single Vasudev authority tool plus the inert native planning utility. In all
+three cases, setup writes remain confined to Vasudev's audited approval
 contract.
 
 Gemini CLI remains available as an explicitly configured runtime for normal
@@ -327,7 +327,7 @@ CLI runtime specifically requires an AI Studio API-key profile.
 
 ## Switching to an agent
 
-Use a natural-language selector to leave OpenClaw and open the normal TUI:
+Use a natural-language selector to leave Vasudev and open the normal TUI:
 
 ```text
 talk to agent
@@ -335,7 +335,7 @@ talk to work agent
 switch to main agent
 ```
 
-`openclaw tui`, `openclaw chat`, and `openclaw terminal` open the normal agent TUI directly; they do not start OpenClaw. After switching into the normal TUI, `/openclaw` returns to OpenClaw, optionally with a follow-up request:
+`openclaw tui`, `openclaw chat`, and `openclaw terminal` open the normal agent TUI directly; they do not start Vasudev. After switching into the normal TUI, `/openclaw` returns to Vasudev, optionally with a follow-up request:
 
 ```text
 /openclaw
@@ -344,11 +344,11 @@ switch to main agent
 
 ## Message rescue mode
 
-Message rescue mode is the message-channel entrypoint for OpenClaw: use it when your normal agent is dead but a trusted channel (for example WhatsApp) still receives commands.
+Message rescue mode is the message-channel entrypoint for Vasudev: use it when your normal agent is dead but a trusted channel (for example WhatsApp) still receives commands.
 
 This is a deterministic emergency command handler, not the conversational
-OpenClaw agent. It does not bootstrap a fresh setup or relax the inference
-gate for OpenClaw chat.
+Vasudev agent. It does not bootstrap a fresh setup or relax the inference
+gate for Vasudev chat.
 
 Supported command: `/openclaw <request>`. Rescue accepts the exact typed command grammar only — natural language is rejected with a hint, never guessed into an operation, and no model is ever consulted.
 
@@ -375,11 +375,11 @@ Remote rescue is an admin surface and must be treated like remote config repair,
 
 Security contract for remote rescue:
 
-- Disabled when sandboxing is active for the agent/session; OpenClaw refuses remote rescue and points to local CLI repair.
+- Disabled when sandboxing is active for the agent/session; Vasudev refuses remote rescue and points to local CLI repair.
 - Default effective state is `auto`: allow remote rescue only in trusted YOLO operation, where the runtime already has unsandboxed local authority (`tools.exec.security` resolves to `full` and `tools.exec.ask` resolves to `off`, with sandbox mode `off`).
 - Requires an explicit owner identity; no wildcard sender rules, open group policy, unauthenticated webhooks, or anonymous channels.
 - Rescue is limited to owner DMs.
-- Plugin search and list are read-only. Plugin install is always local-only (blocked in rescue, even when otherwise enabled) because it downloads executable code. Plugin uninstall is refused in both local OpenClaw and rescue; run `openclaw plugins uninstall <id>` from a terminal.
+- Plugin search and list are read-only. Plugin install is always local-only (blocked in rescue, even when otherwise enabled) because it downloads executable code. Plugin uninstall is refused in both local Vasudev and rescue; run `openclaw plugins uninstall <id>` from a terminal.
 - Remote rescue cannot open the local TUI or switch into an interactive agent session; use local `openclaw` for agent handoff.
 - Persistent writes still require approval, even in rescue mode.
 - Pending approvals are one-use. Any newer rescue command for the same account, channel, and sender revokes the older plan; failed execution also consumes approval, so resend the command to retry.
@@ -410,14 +410,14 @@ Inference-gated packaged one-shot setup is covered by:
 pnpm test:docker:system-agent-first-run
 ```
 
-That packaged-CLI lane starts with an empty state dir and proves OpenClaw
+That packaged-CLI lane starts with an empty state dir and proves Vasudev
 fails closed without inference. It then tests and activates fake Claude through
 the packaged activation module. Only afterward does a fuzzy request reach the
 planner and resolve to typed setup, followed by one-shot commands that create an
 additional agent, configure Discord through a plugin enablement plus token
 SecretRef, validate config, and check the audit log. This lane is supporting
 gate/operation evidence; it does not exercise interactive onboarding or the
-OpenClaw agent/tool/approval conversation. The QA Lab scenario below redirects
+Vasudev agent/tool/approval conversation. The QA Lab scenario below redirects
 to the same Docker lane:
 
 ```bash

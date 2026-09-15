@@ -1,4 +1,4 @@
-// Implements maintenance commands for OpenClaw-backed session cleanup.
+// Implements maintenance commands for Vasudev-backed session cleanup.
 import { readChannelContextGatewayContextResolver } from "../../channels/message-access/admission-evidence.js";
 import { logVerbose } from "../../globals.js";
 import { getPluginRuntimeGatewayRequestScope } from "../../plugins/runtime/gateway-request-scope.js";
@@ -43,7 +43,7 @@ export const handleSystemAgentCommand: CommandHandler = async (params, allowText
                 }),
             },
           },
-        })) ?? "OpenClaw did not find a rescue request.",
+        })) ?? "Vasudev did not find a rescue request.",
     },
   };
 };

@@ -40,7 +40,7 @@ read_when:
 
 <Note>
 Auto-TTS is **off** by default. When `tts.provider` is unset,
-OpenClaw picks the first configured provider in registry auto-select order.
+Vasudev picks the first configured provider in registry auto-select order.
 The built-in `tts` agent tool is explicit-intent only: ordinary chat stays
 text unless the user asks for audio, uses `/tts`, or enables Auto-TTS/directive
 speech.

@@ -573,7 +573,7 @@ export async function prepareCodexAttemptTools(runtime: CodexAttemptRuntime) {
         delete cronCreatorToolAllowlistCaptureRef.value;
       }
       if (requiresScheduledCodexAppAuthority) {
-        // Native apps are not represented in the OpenClaw dynamic-tool list.
+        // Native apps are not represented in the Vasudev dynamic-tool list.
         // Require the exact-thread resolver before certifying a default cap.
         delete cronCreatorToolAllowlistCaptureRef.value;
       }

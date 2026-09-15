@@ -42,9 +42,9 @@ export function formatPluginTrustRefusal(params: {
   };
   const remedy =
     trust.reason === "provenance-missing"
-      ? "Run openclaw doctor --fix to repair proven legacy official provenance; if it cannot be verified, reinstall from the official npm package or ClawHub listing."
+      ? "Run vasudev doctor --fix to repair proven legacy official provenance; if it cannot be verified, reinstall from the official npm package or ClawHub listing."
       : trust.reason === "record-missing"
-        ? "Compare this registryPath with openclaw plugins inspect <plugin-id> --json. If the CLI and Gateway state paths differ, align the service environment; otherwise reinstall from the official npm package or ClawHub listing."
+        ? "Compare this registryPath with vasudev plugins inspect <plugin-id> --json. If the CLI and Gateway state paths differ, align the service environment; otherwise reinstall from the official npm package or ClawHub listing."
         : "Reinstall from the official npm package or ClawHub listing; local paths, archives, ambiguous ownership, and inconsistent install records do not grant trusted plugin state.";
   return `${params.methodName} is only available for trusted plugins in this release. Plugin ${JSON.stringify(params.pluginId)} loaded with origin ${JSON.stringify(params.origin ?? "unknown")}; ${formatPluginTrustDiagnostic(trust)}. ${remedy}`;
 }

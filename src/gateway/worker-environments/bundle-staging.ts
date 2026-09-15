@@ -34,7 +34,7 @@ async function stageWorkerDeployArtifact(params: {
     expectedRealPath = await fs.realpath(sourcePath);
   } catch (error) {
     throw new Error(
-      `OpenClaw worker deploy artifact is missing; build the running package at ${params.sourceRoot}`,
+      `Vasudev worker deploy artifact is missing; build the running package at ${params.sourceRoot}`,
       { cause: error },
     );
   }

@@ -74,7 +74,7 @@ Concrete paths preserve literal record keys and array indices: `headers["X.Trace
 
 ## secretProviderIntegrations reference
 
-Use `secretProviderIntegrations` when a plugin can publish a reusable SecretRef exec provider preset. OpenClaw reads this metadata before plugin runtime loads, stores plugin ownership in `secrets.providers.<alias>.pluginIntegration`, and leaves actual secret resolution to the SecretRef runtime. Presets are exposed only for bundled plugins and installed plugins discovered from the managed plugin install roots, such as git and ClawHub installs.
+Use `secretProviderIntegrations` when a plugin can publish a reusable SecretRef exec provider preset. Vasudev reads this metadata before plugin runtime loads, stores plugin ownership in `secrets.providers.<alias>.pluginIntegration`, and leaves actual secret resolution to the SecretRef runtime. Presets are exposed only for bundled plugins and installed plugins discovered from the managed plugin install roots, such as git and ClawHub installs.
 
 ```json
 {
@@ -90,9 +90,9 @@ Use `secretProviderIntegrations` when a plugin can publish a reusable SecretRef 
 }
 ```
 
-The map key is the integration id. If `providerAlias` is omitted, OpenClaw uses the integration id as the SecretRef provider alias. Provider aliases must match the normal SecretRef provider alias pattern, for example `team-secrets` or `onepassword-work`.
+The map key is the integration id. If `providerAlias` is omitted, Vasudev uses the integration id as the SecretRef provider alias. Provider aliases must match the normal SecretRef provider alias pattern, for example `team-secrets` or `onepassword-work`.
 
-When an operator selects the preset, OpenClaw writes a provider reference like:
+When an operator selects the preset, Vasudev writes a provider reference like:
 
 ```json
 {
@@ -110,8 +110,8 @@ When an operator selects the preset, OpenClaw writes a provider reference like:
 }
 ```
 
-At startup/reload, OpenClaw resolves that provider by loading current plugin manifest metadata, checking that the owning plugin is installed and active, and materializing the exec command from the manifest. Disabling or removing the plugin revokes the provider for active SecretRefs. Operators who want standalone exec configuration can still write manual `command`/`args` providers directly.
+At startup/reload, Vasudev resolves that provider by loading current plugin manifest metadata, checking that the owning plugin is installed and active, and materializing the exec command from the manifest. Disabling or removing the plugin revokes the provider for active SecretRefs. Operators who want standalone exec configuration can still write manual `command`/`args` providers directly.
 
-`source` accepts a single value, `"exec"`. `command` must be `${node}`, and `args[0]` must be a `./` plugin-root-relative resolver script. OpenClaw materializes it at startup/reload to the current Node executable and the absolute in-plugin script path. Node options such as `--require`, `--import`, `--loader`, `--env-file`, `--eval`, and `--print` are not part of the manifest preset contract. Operators who need non-Node commands can configure standalone manual exec providers directly.
+`source` accepts a single value, `"exec"`. `command` must be `${node}`, and `args[0]` must be a `./` plugin-root-relative resolver script. Vasudev materializes it at startup/reload to the current Node executable and the absolute in-plugin script path. Node options such as `--require`, `--import`, `--loader`, `--env-file`, `--eval`, and `--print` are not part of the manifest preset contract. Operators who need non-Node commands can configure standalone manual exec providers directly.
 
-OpenClaw derives `trustedDirs` for manifest presets from the plugin root and, for `${node}` presets, the current Node executable directory. Manifest-authored `trustedDirs` are ignored. Other exec provider options such as `timeoutMs`, `noOutputTimeoutMs`, `maxOutputBytes`, `jsonOnly`, `env`, and `passEnv` pass through to the normal SecretRef exec provider config.
+Vasudev derives `trustedDirs` for manifest presets from the plugin root and, for `${node}` presets, the current Node executable directory. Manifest-authored `trustedDirs` are ignored. Other exec provider options such as `timeoutMs`, `noOutputTimeoutMs`, `maxOutputBytes`, `jsonOnly`, `env`, and `passEnv` pass through to the normal SecretRef exec provider config.

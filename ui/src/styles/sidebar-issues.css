@@ -501,11 +501,11 @@ footer.sidebar-issues-panel__mentions-note {
 }
 
 .sidebar-issues-panel__icon--critical {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .sidebar-issues-panel__details[data-attention-kind="scopeUpgrade"] .sidebar-issues-panel__icon {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .sidebar-issues-panel__dismiss {
@@ -706,7 +706,7 @@ footer.sidebar-issues-panel__mentions-note {
 }
 
 .sidebar-approval-row__timer--urgent {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .sidebar-approval-row__command {
@@ -742,31 +742,31 @@ footer.sidebar-issues-panel__mentions-note {
   .sidebar-approval-row__action.sidebar-approval-row__action--allow-once {
   border-color: color-mix(in srgb, var(--ok) 36%, var(--border));
   background: color-mix(in srgb, var(--ok) 20%, var(--bg-elevated));
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .sidebar-issues-panel
   .sidebar-approval-row
   .sidebar-approval-row__action.sidebar-approval-row__action--allow-once:hover:not(:disabled) {
   background: color-mix(in srgb, var(--ok) 27%, var(--bg-elevated));
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .sidebar-issues-panel
   .sidebar-approval-row
   .sidebar-approval-row__action.sidebar-approval-row__action--allow-once:active:not(:disabled) {
   background: color-mix(in srgb, var(--ok) 31%, var(--bg-elevated));
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .sidebar-approval-row__action--deny {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .sidebar-approval-row__action.sidebar-approval-row__action--deny:hover:not(:disabled),
 .sidebar-approval-row__action.sidebar-approval-row__action--deny:focus-visible:not(:disabled) {
   background: var(--danger-subtle);
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .sidebar-approval-row__open-session {
@@ -805,11 +805,11 @@ footer.sidebar-issues-panel__mentions-note {
 
 .sidebar-approval-row__message {
   margin: 0 6px 6px;
-  color: var(--warn);
+  color: var(--warn-text);
   font-size: var(--control-ui-text-xs);
   line-height: 1.35;
 }
 
 .sidebar-approval-row__message--error {
-  color: var(--danger);
+  color: var(--danger-text);
 }

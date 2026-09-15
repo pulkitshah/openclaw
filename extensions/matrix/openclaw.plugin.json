@@ -14,7 +14,7 @@
     ]
   },
   "name": "Matrix",
-  "description": "OpenClaw Matrix channel plugin for rooms and direct messages.",
+  "description": "Vasudev Matrix channel plugin for rooms and direct messages.",
   "cliCommands": [
     {
       "name": "matrix",

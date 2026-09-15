@@ -16,7 +16,7 @@ The entry helper for plugins that only add agent tools. Part of the
 
 For plugins that only add agent tools. Keeps the source small, infers config
 and tool-parameter types from TypeBox schemas, wraps plain return values in
-the OpenClaw tool-result format, and exposes static metadata that
+the Vasudev tool-result format, and exposes static metadata that
 `openclaw plugins build` writes into the plugin manifest (`contracts.tools`,
 `configSchema`).
 
@@ -65,5 +65,5 @@ export default defineToolPlugin({
 - Tool names are static, so `openclaw plugins build` derives
   `contracts.tools` from the declared tools without hand-duplicated names.
 - Runtime loading stays strict: installed plugins still need
-  `openclaw.plugin.json` and `package.json` `openclaw.extensions`. OpenClaw
+  `openclaw.plugin.json` and `package.json` `openclaw.extensions`. Vasudev
   never executes plugin code to infer missing manifest data.

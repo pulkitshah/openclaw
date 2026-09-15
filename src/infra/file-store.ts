@@ -1,4 +1,4 @@
-// Exposes fs-safe file stores after applying OpenClaw filesystem defaults.
+// Exposes fs-safe file stores after applying Vasudev filesystem defaults.
 import "./fs-safe-defaults.js";
 
 // Safe file-store facade. Callers get the repo default fs-safe configuration

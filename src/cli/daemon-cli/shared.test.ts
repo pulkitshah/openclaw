@@ -38,21 +38,21 @@ describe("renderGatewayServiceStartHints", () => {
 
     expect(hints[0]).toContain("Nix mode detected; service install is disabled.");
     expect(hints.slice(1)).toEqual(existingHints.slice(1));
-    expect(hints).toContain("openclaw --profile work gateway start");
+    expect(hints).toContain("vasudev --profile work gateway start");
   });
 
   it.each([
     {
       name: "the default profile",
       profile: "default",
-      installCommand: "openclaw gateway install",
-      startCommand: "openclaw gateway start",
+      installCommand: "vasudev gateway install",
+      startCommand: "vasudev gateway start",
     },
     {
       name: "a named profile",
       profile: "work",
-      installCommand: "openclaw --profile work gateway install",
-      startCommand: "openclaw --profile work gateway start",
+      installCommand: "vasudev --profile work gateway install",
+      startCommand: "vasudev --profile work gateway start",
     },
   ])(
     "recommends managed service commands for $name",
@@ -94,7 +94,7 @@ describe("filterContainerGenericHints", () => {
       filterContainerGenericHints(
         [
           "systemd user services are unavailable; install/enable systemd or run the gateway under your supervisor.",
-          "If you're in a container, run the gateway in the foreground instead of `openclaw gateway`.",
+          "If you're in a container, run the gateway in the foreground instead of `vasudev gateway`.",
         ],
         { OPENCLAW_CONTAINER: "openclaw-demo-container" } as NodeJS.ProcessEnv,
       ),
@@ -106,7 +106,7 @@ describe("filterContainerGenericHints", () => {
       filterContainerGenericHints(
         [
           "systemd user services are unavailable; install/enable systemd or run the gateway under your supervisor.",
-          "If you're in a container, run the gateway in the foreground instead of `openclaw gateway`.",
+          "If you're in a container, run the gateway in the foreground instead of `vasudev gateway`.",
         ],
         { OPENCLAW_CONTAINER_HINT: "openclaw-demo-container" } as NodeJS.ProcessEnv,
       ),

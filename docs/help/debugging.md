@@ -178,7 +178,7 @@ openclaw gateway stop
 
 ## Raw stream logging
 
-OpenClaw can log the **raw assistant stream** before any filtering/formatting. This is the best way to see whether reasoning is arriving as plain text deltas (or as separate thinking blocks).
+Vasudev can log the **raw assistant stream** before any filtering/formatting. This is the best way to see whether reasoning is arriving as plain text deltas (or as separate thinking blocks).
 
 Enable it via CLI:
 

@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/mattermost",
   "version": "2026.9.4",
-  "description": "OpenClaw Mattermost channel plugin",
+  "description": "Vasudev Mattermost channel plugin",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

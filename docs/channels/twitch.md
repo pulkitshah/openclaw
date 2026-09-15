@@ -1,12 +1,12 @@
 ---
 summary: "Twitch chat bot: install, credentials, access control, token refresh"
 read_when:
-  - Setting up Twitch chat integration for OpenClaw
+  - Setting up Twitch chat integration for Vasudev
 title: "Twitch"
 sidebarTitle: "Twitch"
 ---
 
-Twitch chat support over Twitch's chat (IRC) interface via the Twurple client. OpenClaw signs in as a Twitch bot account, joins one channel per configured account, and replies in that channel.
+Twitch chat support over Twitch's chat (IRC) interface via the Twurple client. Vasudev signs in as a Twitch bot account, joins one channel per configured account, and replies in that channel.
 
 ## Install
 
@@ -25,7 +25,7 @@ Twitch ships as an official plugin; it is not part of the core install.
   </Tab>
 </Tabs>
 
-`plugins install` registers and enables the plugin. Picking Twitch during `openclaw onboard` or `openclaw channels add` installs it on demand. Use the bare package name to follow the current release; pin an exact version only for reproducible installs. Requires OpenClaw 2026.4.10 or newer.
+`plugins install` registers and enables the plugin. Picking Twitch during `openclaw onboard` or `openclaw channels add` installs it on demand. Use the bare package name to follow the current release; pin an exact version only for reproducible installs. Requires Vasudev 2026.4.10 or newer.
 
 Details: [Plugins](/tools/plugin)
 
@@ -90,17 +90,17 @@ Minimal config:
 - Deterministic routing: replies always go back to the Twitch channel the message came from.
 - Each joined channel maps to an isolated group session key `agent:<agentId>:twitch:group:<channel>`.
 - `username` is the bot's account (who authenticates), `channel` is which chat room to join. One account entry joins exactly one channel.
-- Tokens work with or without the `oauth:` prefix; OpenClaw normalizes both ways (the setup wizard expects the `oauth:` form).
+- Tokens work with or without the `oauth:` prefix; Vasudev normalizes both ways (the setup wizard expects the `oauth:` form).
 
 ## Inbound durability
 
-OpenClaw durably queues each accepted Twitch chat message before normal dispatch. Pending or retryable messages survive a Gateway restart, stay serialized for the configured channel, and use Twitch's message ID to suppress duplicate queue entries while the active or retained completion record exists.
+Vasudev durably queues each accepted Twitch chat message before normal dispatch. Pending or retryable messages survive a Gateway restart, stay serialized for the configured channel, and use Twitch's message ID to suppress duplicate queue entries while the active or retained completion record exists.
 
-Twitch chat does not replay a `PRIVMSG` after the client has accepted it. This protects the local accept-to-dispatch crash window, but it cannot recover messages missed before durable admission. If the queue append itself fails, OpenClaw logs the failure; reconnecting does not ask Twitch to resend that message.
+Twitch chat does not replay a `PRIVMSG` after the client has accepted it. This protects the local accept-to-dispatch crash window, but it cannot recover messages missed before durable admission. If the queue append itself fails, Vasudev logs the failure; reconnecting does not ask Twitch to resend that message.
 
 ## Token refresh (optional)
 
-Tokens from [Twitch Token Generator](https://twitchtokengenerator.com/) cannot be refreshed by OpenClaw - regenerate when expired (they last a few hours; no app registration needed).
+Tokens from [Twitch Token Generator](https://twitchtokengenerator.com/) cannot be refreshed by Vasudev - regenerate when expired (they last a few hours; no app registration needed).
 
 For automatic refresh, create your own app at the [Twitch Developer Console](https://dev.twitch.tv/console) and add:
 
@@ -394,7 +394,7 @@ When replying in a Twitch conversation, omit `to` to use the current conversatio
 - **500 characters** per message; longer replies are chunked at word boundaries.
 - Markdown is stripped before sending (Twitch chat is plain text; newlines become spaces).
 - Text that becomes empty after Markdown stripping, such as `---`, is recorded as intentionally not sent and does not count as a delivered message.
-- OpenClaw adds no rate limiting of its own; the Twurple chat client handles Twitch rate limits.
+- Vasudev adds no rate limiting of its own; the Twurple chat client handles Twitch rate limits.
 
 ## Related
 

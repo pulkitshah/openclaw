@@ -72,11 +72,11 @@ export function resolvePluginVersionDriftUpdateCommand(
     }
     const exactNpmTarget = `${exactNpmPackageName}@${entry.targetResolution.version}`;
     if (parseRegistryNpmSpec(exactNpmTarget)?.selectorKind === "exact-version") {
-      return `openclaw plugins update ${exactNpmTarget}`;
+      return `vasudev plugins update ${exactNpmTarget}`;
     }
     return undefined;
   }
-  return `openclaw plugins update ${entry.pluginId}`;
+  return `vasudev plugins update ${entry.pluginId}`;
 }
 
 async function resolveEntryTarget(
@@ -156,7 +156,7 @@ export function hasOfficialPluginVersionCandidates(params: {
 }
 
 /**
- * Compare active official external plugin installs against an OpenClaw host
+ * Compare active official external plugin installs against a Vasudev host
  * version and return any mismatches.
  *
  * @param params.gatewayVersion The host version the plugins must match.

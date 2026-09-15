@@ -277,7 +277,7 @@ const gatewayAttempts = fs.readFileSync(recordPath, "utf8").trim().split("\\n")
   .map((line) => JSON.parse(line)).filter((entry) => entry.kind === "gateway").length;
 if (gatewayAttempts === 1 && process.env.QA_STARTUP_RETRY) {
   process.stderr.write(process.env.QA_STARTUP_RETRY === "migration"
-    ? "OpenClaw plugin migration inputs changed during startup convergence; refusing readiness."
+    ? "Vasudev plugin migration inputs changed during startup convergence; refusing readiness."
     : "listen EADDRINUSE: address already in use");
   process.exit(18);
 }
@@ -325,7 +325,7 @@ describe("runQaGatewayCliCommand", () => {
         cwd: process.cwd(),
         env: process.env,
       }),
-    ).rejects.toThrow("OpenClaw CLI exited 7: fixture failure");
+    ).rejects.toThrow("Vasudev CLI exited 7: fixture failure");
   });
 
   it("retains bounded redacted stdout failures alongside stderr panels", async () => {
@@ -353,7 +353,7 @@ describe("runQaGatewayCliCommand", () => {
       if (!(error instanceof Error)) {
         throw new Error("expected CLI failure");
       }
-      expect(error.message).toContain("OpenClaw CLI exited 7: Doctor panel:");
+      expect(error.message).toContain("Vasudev CLI exited 7: Doctor panel:");
       expect(error.message).toContain('"reason":"readiness execution failed"');
       expect(error.message.length).toBeLessThanOrEqual(2_048);
       expect(error.message).toContain("Bearer <redacted>");
@@ -627,7 +627,7 @@ describe("buildQaRuntimeEnv", () => {
         useRepoCli: true,
         transportBaseUrl: "http://127.0.0.1:43123",
       }),
-    ).rejects.toThrow("OpenClaw CLI entry not found");
+    ).rejects.toThrow("Vasudev CLI entry not found");
     await expect(owner.stop()).resolves.toMatchObject({ errors: [] });
 
     await expect(readdir(tempParent)).resolves.toStrictEqual([]);
@@ -766,7 +766,7 @@ describe("buildQaRuntimeEnv", () => {
         INVOCATION_ID: "synthetic-parent-invocation",
         SYSTEMD_EXEC_PID: "1234",
         JOURNAL_STREAM: "8:1234",
-        OPENCLAW_WINDOWS_TASK_NAME: "OpenClaw Gateway",
+        OPENCLAW_WINDOWS_TASK_NAME: "Vasudev Gateway",
         OPENCLAW_SERVICE_MARKER: "openclaw",
         OPENCLAW_SERVICE_KIND: "gateway",
       };
@@ -866,7 +866,7 @@ describe("buildQaRuntimeEnv", () => {
     expect(env.OPENAI_API_KEY).toBe("openai-explicit");
   });
 
-  it("preserves Codex CLI auth home for live frontier runs while sandboxing OpenClaw home", async () => {
+  it("preserves Codex CLI auth home for live frontier runs while sandboxing Vasudev home", async () => {
     const hostHome = await tempDirs.makeTempDir("qa-host-home-");
     const codexHome = path.join(hostHome, ".codex");
     await mkdir(codexHome);
@@ -883,7 +883,7 @@ describe("buildQaRuntimeEnv", () => {
     expect(env.CODEX_HOME).toBe(codexHome);
   });
 
-  it("forwards host HOME for live Claude CLI runs while keeping OpenClaw home sandboxed", async () => {
+  it("forwards host HOME for live Claude CLI runs while keeping Vasudev home sandboxed", async () => {
     const hostHome = await tempDirs.makeTempDir("qa-host-home-");
 
     const env = buildQaRuntimeEnv({
@@ -899,7 +899,7 @@ describe("buildQaRuntimeEnv", () => {
     expect(env.OPENCLAW_STATE_DIR).toBe("/tmp/openclaw-qa/state");
   });
 
-  it("can forward host HOME for browser-backed QA runs while keeping OpenClaw home sandboxed", async () => {
+  it("can forward host HOME for browser-backed QA runs while keeping Vasudev home sandboxed", async () => {
     const hostHome = await tempDirs.makeTempDir("qa-host-home-");
 
     const env = buildQaRuntimeEnv({
@@ -1962,8 +1962,8 @@ describe("buildQaRuntimeEnv", () => {
         ? `installed package mock auth bootstrap failed for ${provider}: `
         : `installed package plugin setup failed (update repair${phase === "help" ? " --help" : ""}): `;
       const detail = provider
-        ? "OpenClaw CLI exited 9: Authorization: Bearer <redacted>"
-        : "OpenClaw CLI exited 8: plugin fixture rejected: Authorization: Bearer <redacted>";
+        ? "Vasudev CLI exited 9: Authorization: Bearer <redacted>"
+        : "Vasudev CLI exited 8: plugin fixture rejected: Authorization: Bearer <redacted>";
       expect(error.message).toContain(`${prefix}${detail}\ncontext retained\n`);
       expect(error.cause.message.length).toBeLessThanOrEqual(prefix.length + 2_048);
       expect(error.cause.message).not.toContain("diagnostic ".repeat(400));
@@ -2231,7 +2231,7 @@ describe("buildQaRuntimeEnv", () => {
       "bind-collision",
     ],
     [
-      "OpenClaw plugin migration inputs changed during startup convergence; refusing to report the gateway ready. Restart OpenClaw so state migrations run against the final config and plugin inventory.",
+      "Vasudev plugin migration inputs changed during startup convergence; refusing to report the gateway ready. Restart Vasudev so state migrations run against the final config and plugin inventory.",
       "migration-convergence-restart",
     ],
   ] as const)("classifies %s", (details, expectedKind) => {
@@ -2245,9 +2245,9 @@ describe("buildQaRuntimeEnv", () => {
   });
 
   it.each([
-    "OpenClaw startup migrations did not complete cleanly; refusing to report the gateway ready.",
-    "OpenClaw plugin migration inputs changed during startup convergence",
-    "Restart OpenClaw so state migrations can continue.",
+    "Vasudev startup migrations did not complete cleanly; refusing to report the gateway ready.",
+    "Vasudev plugin migration inputs changed during startup convergence",
+    "Restart Vasudev so state migrations can continue.",
     "gateway failed to become healthy",
   ])("does not retry unrelated startup failure: %s", (details) => {
     expect(
@@ -2263,7 +2263,7 @@ describe("buildQaRuntimeEnv", () => {
     const first = resolveQaGatewayStartupRetry({
       attempt: 1,
       details:
-        "OpenClaw plugin migration inputs changed during startup convergence; refusing readiness.",
+        "Vasudev plugin migration inputs changed during startup convergence; refusing readiness.",
       migrationConvergenceRestartUsed: false,
     });
 
@@ -2276,7 +2276,7 @@ describe("buildQaRuntimeEnv", () => {
       resolveQaGatewayStartupRetry({
         attempt: 2,
         details:
-          "OpenClaw plugin migration inputs changed during startup convergence; refusing readiness.",
+          "Vasudev plugin migration inputs changed during startup convergence; refusing readiness.",
         migrationConvergenceRestartUsed: first?.migrationConvergenceRestartUsed ?? false,
       }),
     ).toBeNull();

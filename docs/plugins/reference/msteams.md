@@ -1,5 +1,5 @@
 ---
-summary: "OpenClaw Microsoft Teams channel plugin for bot conversations."
+summary: "Vasudev Microsoft Teams channel plugin for bot conversations."
 read_when:
   - You are installing, configuring, or auditing the msteams plugin
 title: "Microsoft Teams plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-OpenClaw Microsoft Teams channel plugin for bot conversations.
+Vasudev Microsoft Teams channel plugin for bot conversations.
 
 ## Distribution
 

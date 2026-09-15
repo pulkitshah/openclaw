@@ -2,15 +2,15 @@
 summary: "Experimental Cloudflare Worker and Container deployment with Litestream backups to R2"
 title: "Cloudflare Containers"
 read_when:
-  - You want to run OpenClaw on Cloudflare Containers
+  - You want to run Vasudev on Cloudflare Containers
   - You are evaluating R2-backed SQLite recovery on ephemeral containers
   - You need to choose between webhook scale-to-zero and always-on channels
 ---
 
-Run one OpenClaw installation behind a Cloudflare Worker and a named Durable Object, with the official OpenClaw image and Litestream replication to R2.
+Run one Vasudev installation behind a Cloudflare Worker and a named Durable Object, with the official Vasudev image and Litestream replication to R2.
 
 <Warning>
-  This deployment target is experimental. Litestream protects SQLite databases, not the complete OpenClaw state directory. Read [Limits and recovery](#limits-and-recovery) before using production credentials.
+  This deployment target is experimental. Litestream protects SQLite databases, not the complete Vasudev state directory. Read [Limits and recovery](#limits-and-recovery) before using production credentials.
 </Warning>
 
 ## What you need
@@ -20,20 +20,20 @@ Run one OpenClaw installation behind a Cloudflare Worker and a named Durable Obj
 - A public Docker Hub repository for the derived image, and a `docker login` session that can push to it
 - An S3-compatible CLI such as the AWS CLI, used later to verify Litestream replication
 - Node.js and npm
-- Provider and channel credentials for your OpenClaw setup
+- Provider and channel credentials for your Vasudev setup
 
 The template lives in [`scripts/cloudflare`](https://github.com/openclaw/openclaw/tree/main/scripts/cloudflare). It deploys a `standard-2` Container with `max_instances: 1`.
 
 ## How it works
 
-The Worker forwards every HTTP and WebSocket request to one stable Durable Object name. That Durable Object owns one Container instance and is the single-writer fence around the Litestream replica. The Container exposes OpenClaw on port `8080`, and the Durable Object polls `/healthz` there before routing to it.
+The Worker forwards every HTTP and WebSocket request to one stable Durable Object name. That Durable Object owns one Container instance and is the single-writer fence around the Litestream replica. The Container exposes Vasudev on port `8080`, and the Durable Object polls `/healthz` there before routing to it.
 
 ```mermaid
 flowchart TD
     client[Channels, browsers, API clients]
     worker[Cloudflare Worker]
     durable[Durable Object, one stable name]
-    container[Container running the OpenClaw Gateway on 8080]
+    container[Container running the Vasudev Gateway on 8080]
     litestream[Litestream sidecar process]
     r2[(R2 bucket of SQLite replicas)]
 
@@ -58,7 +58,7 @@ Measured on this template against a real R2 bucket: about 2.4 seconds from write
 
 <Steps>
   <Step title="Prepare the template">
-    Clone OpenClaw and enter the template directory:
+    Clone Vasudev and enter the template directory:
 
     ```bash
     git clone https://github.com/openclaw/openclaw.git
@@ -138,7 +138,7 @@ Measured on this template against a real R2 bucket: about 2.4 seconds from write
 
   </Step>
 
-  <Step title="Bootstrap OpenClaw">
+  <Step title="Bootstrap Vasudev">
     First boot needs one interactive session inside the Container. SSH access ships disabled; enable it temporarily by adding this to the container entry in `wrangler.jsonc`, then redeploy:
 
     ```jsonc
@@ -217,7 +217,7 @@ This matters for the lifecycle decision below:
 - **Socket channels keep the Container awake**, so they pay the always-on rate. A small always-on virtual machine is often cheaper. Choose Cloudflare here for its operational model, colocation with other Cloudflare services, or the R2 durability path, not to save money.
 - **Webhook-only installations sleep**, and a sleeping Container bills nothing. That is where this target is genuinely inexpensive.
 
-Verify current rates on [Cloudflare's Containers pricing page](https://developers.cloudflare.com/containers/pricing/) before committing; these figures are estimates from the published rate card and change independently of OpenClaw.
+Verify current rates on [Cloudflare's Containers pricing page](https://developers.cloudflare.com/containers/pricing/) before committing; these figures are estimates from the published rate card and change independently of Vasudev.
 
 ## Observability
 
@@ -249,15 +249,15 @@ Set `OPENCLAW_WEBHOOK_ONLY` to `true` only when every enabled channel receives t
 
 - **Single writer:** every request resolves the same Durable Object name, and Cloudflare runs one live Durable Object instance for that name. Do not increase `max_instances` or introduce alternate routing around this fence. A brief old/new Container overlap during a platform replacement or rollout is an accepted experimental tradeoff.
 - **Recovery point:** the one-second Litestream sync interval normally produces a seconds-scale RPO. It is not synchronous replication, and abrupt termination can lose writes that have not reached R2.
-- **Ephemeral disk:** every sleep, replacement, or host restart starts from the image plus the restored SQLite databases. Use [full OpenClaw archives](/install/backups#full-archives) for config, credential files, plugin files, and workspaces.
+- **Ephemeral disk:** every sleep, replacement, or host restart starts from the image plus the restored SQLite databases. Use [full Vasudev archives](/install/backups#full-archives) for config, credential files, plugin files, and workspaces.
 - **Rollback:** older database bytes are time travel. Ratcheting channel credentials, especially WhatsApp, can desynchronize; approvals and delivery/dedupe state also roll back. Relink affected channels and review pending approvals before resuming. See [Restore](/install/backups#restore).
 - **WebSockets:** Worker and Container proxying supports WebSockets. Cloudflare limits each received WebSocket message to 32 MiB.
 - **Egress:** outbound requests use shared Cloudflare IP space. This target does not provide a fixed egress address.
-- **Provider boundary:** this is a deployment template, not an OpenClaw `cloudWorkers` provider. Its operator SSH access does not implement that provider's SSH execution contract.
+- **Provider boundary:** this is a deployment template, not a Vasudev `cloudWorkers` provider. Its operator SSH access does not implement that provider's SSH execution contract.
 
 ## Update
 
-Build a new derived image from a new immutable official OpenClaw digest, push it, update the derived digest in `wrangler.jsonc`, and deploy:
+Build a new derived image from a new immutable official Vasudev digest, push it, update the derived digest in `wrangler.jsonc`, and deploy:
 
 ```bash
 npm run check

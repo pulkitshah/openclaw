@@ -483,7 +483,7 @@ export async function monitorMSTeamsProvider(
   app.on("signin.verify-state", (ctx) => handleSdkSigninInvoke(ctx, "onVerifyState"));
 
   // The delegated SDK sign-in handlers emit `signin` only after a successful
-  // token exchange/lookup. Persist that token for later OpenClaw use.
+  // token exchange/lookup. Persist that token for later Vasudev use.
   if (ssoDeps) {
     app.event("signin", (ctx) => {
       void (async () => {

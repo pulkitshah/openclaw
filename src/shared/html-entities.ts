@@ -19,7 +19,7 @@ export function decodeHtmlEntities(html: string): string {
   }
 
   // Decode only references present in the original input so decoded ampersands cannot trigger a
-  // second pass. Keep OpenClaw's direct numeric scalar mapping and legacy mixed-case XML names.
+  // second pass. Keep Vasudev's direct numeric scalar mapping and legacy mixed-case XML names.
   return html.replace(
     HTML_ENTITY_RE,
     (entity, hex: string | undefined, decimal: string | undefined, name: string | undefined) => {

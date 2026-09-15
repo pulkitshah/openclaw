@@ -86,8 +86,8 @@ describe("external preview App SDK boundary", () => {
           issues: [{
             code: "update-required",
             action: "update-and-reconnect",
-            updateCommand: "openclaw update",
-            headlessReconnectCommand: "openclaw node restart",
+            updateCommand: "vasudev update",
+            headlessReconnectCommand: "vasudev node restart",
           }],
           worker: {
             providerId: "worker-provider",
@@ -137,7 +137,7 @@ describe("external preview App SDK boundary", () => {
         ];
       `);
       await consumer.run(`
-        import { GatewayClientTransport, OpenClaw, normalizeGatewayEvent } from "@openclaw/sdk";
+        import { GatewayClientTransport, Vasudev, normalizeGatewayEvent } from "@openclaw/sdk";
 
         if (typeof GatewayClientTransport !== "function") throw new Error("missing transport export");
         const event = normalizeGatewayEvent({
@@ -169,7 +169,7 @@ describe("external preview App SDK boundary", () => {
           },
         };
 
-        const client = new OpenClaw({ transport });
+        const client = new Vasudev({ transport });
         const agents = await client.agents.list();
         const run = await client.runs.wait("packed-run", { timeoutMs: 25 });
         const artifacts = await client.artifacts.list({ sessionKey: "agent:main:external" });

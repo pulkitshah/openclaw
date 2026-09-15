@@ -2,7 +2,7 @@
  * Transcript guardrails for realtime voice agent consults.
  *
  * ASR often emits partial fragments or polite closings that should not trigger
- * an OpenClaw consult. This classifier names those skip reasons for callers.
+ * a Vasudev consult. This classifier names those skip reasons for callers.
  */
 const REALTIME_VOICE_CONSULT_TRAILING_FRAGMENT_WORDS = new Set([
   "a",

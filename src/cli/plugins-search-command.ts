@@ -23,7 +23,7 @@ function formatPackageSearchLine(entry: ClawHubPackageSearchResult): string {
     pkg.latestVersion ? `v${pkg.latestVersion}` : undefined,
   ].filter(Boolean);
   const summary = pkg.summary ? theme.muted(` — ${pkg.summary}`) : "";
-  return `${pkg.name}  ${theme.muted(flags.join(" | "))}${summary}\n  ${theme.muted(`Install: ${formatCliCommand(`openclaw plugins install clawhub:${pkg.name}`)}`)}`;
+  return `${pkg.name}  ${theme.muted(flags.join(" | "))}${summary}\n  ${theme.muted(`Install: ${formatCliCommand(`vasudev plugins install clawhub:${pkg.name}`)}`)}`;
 }
 
 /** Search ClawHub for installable plugins and write JSON or terminal output. */
@@ -36,7 +36,7 @@ export async function runPluginsSearchCommand(
     Array.isArray(queryParts) ? queryParts.join(" ") : queryParts,
   );
   if (!query) {
-    const message = "Usage: openclaw plugins search <query>";
+    const message = "Usage: vasudev plugins search <query>";
     throw new ExpectedCliError({ message, humanOutput: message, machineOutput: message });
   }
 

@@ -25,14 +25,14 @@ export async function registerNodesCli(program: Command, argv: readonly string[]
       "after",
       () =>
         `\n${theme.heading("Examples:")}\n${formatHelpExamples([
-          ["openclaw nodes status", "List known nodes with live status."],
-          ["openclaw nodes pending", "Show pending node pairing requests."],
-          ["openclaw nodes remove --node <id|name|ip>", "Remove a stale paired node entry."],
+          ["vasudev nodes status", "List known nodes with live status."],
+          ["vasudev nodes pending", "Show pending node pairing requests."],
+          ["vasudev nodes remove --node <id|name|ip>", "Remove a stale paired node entry."],
           [
-            'openclaw nodes invoke --node <id> --command system.which --params \'{"bins":["uname"]}\'',
+            'vasudev nodes invoke --node <id> --command system.which --params \'{"bins":["uname"]}\'',
             "Invoke a node command directly.",
           ],
-          ["openclaw nodes camera snap --node <id>", "Capture a photo from a node camera."],
+          ["vasudev nodes camera snap --node <id>", "Capture a photo from a node camera."],
         ])}\n\n${theme.muted("Docs:")} ${formatDocsLink("/cli/nodes", "docs.openclaw.ai/cli/nodes")}\n`,
     );
 

@@ -181,7 +181,7 @@ describe("device worker placement dispatch", () => {
     expect(harness.placements.current()).toMatchObject({ state: "active" });
   });
 
-  it("syncs paired-device remote-exec without launching an OpenClaw worker child", async () => {
+  it("syncs paired-device remote-exec without launching a Vasudev worker child", async () => {
     const harness = createHarness(database, placementStore);
     bindDeviceWorkerAvailability(harness.environments, async () => ({
       available: true,
@@ -517,7 +517,7 @@ describe("device worker placement dispatch", () => {
     await expect(
       harness.service.dispatch(request, (placement) => states.push(placement.state)),
     ).rejects.toThrow(
-      "device worker node offline-device requires an update before it can host sessions; run openclaw update, then reconnect it (for a headless node, run openclaw node restart)",
+      "device worker node offline-device requires an update before it can host sessions; run vasudev update, then reconnect it (for a headless node, run vasudev node restart)",
     );
 
     expect(states).toEqual(["requested", "failed"]);
@@ -525,8 +525,8 @@ describe("device worker placement dispatch", () => {
     expect(createWorkerSessionPlacementStore({ database }).get(REQUEST.sessionId)).toMatchObject({
       state: "failed",
       environmentId: null,
-      recoveryError: expect.stringContaining("run openclaw update"),
-      terminalReason: expect.stringContaining("run openclaw node restart"),
+      recoveryError: expect.stringContaining("run vasudev update"),
+      terminalReason: expect.stringContaining("run vasudev node restart"),
       terminalAtMs: 1_000,
     });
   });

@@ -23,7 +23,7 @@ export function cronFailureDetailLines(
     return errorReason === "model_not_found"
       ? [
           `Cause: ${errorReason}`,
-          "Run `openclaw doctor --fix` to repair provider-declared retired model references.",
+          "Run `vasudev doctor --fix` to repair provider-declared retired model references.",
           "Choose a supported model for this automation or remove its model override to use the agent default. If the agent default is unavailable, update it too.",
         ]
       : [`Cause: ${errorReason}`];

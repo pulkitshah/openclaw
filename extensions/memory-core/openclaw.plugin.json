@@ -215,7 +215,7 @@
                     "type": "number",
                     "minimum": 0,
                     "maximum": 1,
-                    "description": "Maximum fraction of prior MEMORY.md entries a consolidation rewrite may remove before OpenClaw rejects it and uses append-only fallback."
+                    "description": "Maximum fraction of prior MEMORY.md entries a consolidation rewrite may remove before Vasudev rejects it and uses append-only fallback."
                   },
                   "execution": {
                     "type": "object",

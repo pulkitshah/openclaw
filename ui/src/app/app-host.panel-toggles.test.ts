@@ -83,7 +83,7 @@ afterEach(() => {
   resetAppHostTestGlobals();
 });
 
-describe("OpenClaw shell panel toggles", () => {
+describe("Vasudev shell panel toggles", () => {
   it.each([false, true])(
     "captures the terminal chord once before a consuming target (defined: %s)",
     async (defined) => {

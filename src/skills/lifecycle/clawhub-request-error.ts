@@ -18,7 +18,7 @@ export function formatClawHubSkillRequestError(
   ) {
     // ClawHub said this slug is not in the registry, so listing locally installed skills cannot
     // resolve it; search is the only next step that can find the right slug.
-    return `Skill "${params.slug}" not found on ClawHub. Run \`${formatCliCommand(`openclaw skills search ${params.slug}`)}\` to find the right skill reference.`;
+    return `Skill "${params.slug}" not found on ClawHub. Run \`${formatCliCommand(`vasudev skills search ${params.slug}`)}\` to find the right skill reference.`;
   }
   const action = params.operation === "install" ? "installing" : "verifying";
   if (error.status === 401) {

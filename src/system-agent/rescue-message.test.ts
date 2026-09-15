@@ -1,4 +1,4 @@
-// OpenClaw rescue message tests cover generated rescue message content.
+// Vasudev rescue message tests cover generated rescue message content.
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -202,7 +202,7 @@ async function runRescue(
   });
 }
 
-describe("OpenClaw rescue message", () => {
+describe("Vasudev rescue message", () => {
   beforeAll(async () => {
     tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "system-agent-rescue-"));
   });
@@ -223,7 +223,7 @@ describe("OpenClaw rescue message", () => {
     resetPluginStateStoreForTests();
   });
 
-  it("recognizes the OpenClaw rescue command", () => {
+  it("recognizes the Vasudev rescue command", () => {
     expect(extractSystemAgentRescueMessage("/openclaw status")).toBe("status");
     expect(extractSystemAgentRescueMessage("/openclaw")).toBe("");
     expect(extractSystemAgentRescueMessage("/status")).toBeNull();
@@ -284,7 +284,7 @@ describe("OpenClaw rescue message", () => {
     const cfg: OpenClawConfig = {};
     const reply = await runRescue("/openclaw configure model provider", cfg);
     expect(reply).toContain("cannot host model-provider credential setup");
-    expect(reply).toContain("openclaw onboard");
+    expect(reply).toContain("vasudev onboard");
   });
 
   it("refuses doctor repairs without creating a pending approval", async () => {
@@ -297,11 +297,11 @@ describe("OpenClaw rescue message", () => {
       };
 
       const reply = await runRescue("/openclaw doctor fix", cfg, commandContext(), deps);
-      expect(reply).toContain("machine running OpenClaw");
-      expect(reply).toContain("with OpenClaw stopped");
-      expect(reply).toContain("run `openclaw doctor --fix`");
+      expect(reply).toContain("machine running Vasudev");
+      expect(reply).toContain("with Vasudev stopped");
+      expect(reply).toContain("run `vasudev doctor --fix`");
       await expect(runRescue("/openclaw yes", cfg, commandContext(), deps)).resolves.toBe(
-        "No pending OpenClaw rescue change is waiting for approval.",
+        "No pending Vasudev rescue change is waiting for approval.",
       );
       expect(deps.runDoctor).not.toHaveBeenCalled();
     });
@@ -316,10 +316,10 @@ describe("OpenClaw rescue message", () => {
         runRescue("/openclaw restart gateway", cfg, commandContext(), deps),
       ).resolves.toContain("Reply /openclaw yes to apply");
       await expect(runRescue("/openclaw no", cfg, commandContext(), deps)).resolves.toContain(
-        "Dropped the pending OpenClaw rescue change",
+        "Dropped the pending Vasudev rescue change",
       );
       await expect(runRescue("/openclaw yes", cfg, commandContext(), deps)).resolves.toBe(
-        "No pending OpenClaw rescue change is waiting for approval.",
+        "No pending Vasudev rescue change is waiting for approval.",
       );
       expect(deps.runGatewayRestart).not.toHaveBeenCalled();
     });
@@ -340,7 +340,7 @@ describe("OpenClaw rescue message", () => {
         "plugin rows",
       );
       await expect(runRescue("/openclaw yes", cfg, commandContext(), deps)).resolves.toBe(
-        "No pending OpenClaw rescue change is waiting for approval.",
+        "No pending Vasudev rescue change is waiting for approval.",
       );
       expect(deps.runGatewayRestart).not.toHaveBeenCalled();
     });
@@ -358,7 +358,7 @@ describe("OpenClaw rescue message", () => {
       ]);
 
       expect(deps.runGatewayRestart).toHaveBeenCalledTimes(1);
-      expect(replies).toContain("No pending OpenClaw rescue change is waiting for approval.");
+      expect(replies).toContain("No pending Vasudev rescue change is waiting for approval.");
       expect(replies.some((reply) => reply?.includes("[openclaw] done: gateway.restart"))).toBe(
         true,
       );
@@ -379,7 +379,7 @@ describe("OpenClaw rescue message", () => {
         "restart failed",
       );
       await expect(runRescue("/openclaw yes", cfg, commandContext(), deps)).resolves.toBe(
-        "No pending OpenClaw rescue change is waiting for approval.",
+        "No pending Vasudev rescue change is waiting for approval.",
       );
       expect(deps.runGatewayRestart).toHaveBeenCalledTimes(1);
     });
@@ -469,7 +469,7 @@ describe("OpenClaw rescue message", () => {
         commandContext({ from: "user:other", senderId: "user:other" }),
       ]) {
         await expect(runRescue("/openclaw yes", cfg, isolated, deps)).resolves.toBe(
-          "No pending OpenClaw rescue change is waiting for approval.",
+          "No pending Vasudev rescue change is waiting for approval.",
         );
       }
       await expect(runRescue("/openclaw yes", cfg, original, deps)).resolves.toContain(
@@ -493,7 +493,7 @@ describe("OpenClaw rescue message", () => {
           commandContext({ accountId: undefined, to: "bot:secondary" }),
           deps,
         ),
-      ).resolves.toBe("No pending OpenClaw rescue change is waiting for approval.");
+      ).resolves.toBe("No pending Vasudev rescue change is waiting for approval.");
       await expect(runRescue("/openclaw yes", cfg, original, deps)).resolves.toContain(
         "[openclaw] done: gateway.restart",
       );
@@ -624,7 +624,7 @@ describe("OpenClaw rescue message", () => {
       vi.advanceTimersByTime(15 * 60_000 + 1);
 
       await expect(runRescue("/openclaw yes", cfg, commandContext(), deps)).resolves.toBe(
-        "No pending OpenClaw rescue change is waiting for approval.",
+        "No pending Vasudev rescue change is waiting for approval.",
       );
       expect(deps.runGatewayRestart).not.toHaveBeenCalled();
     });
@@ -648,10 +648,10 @@ describe("OpenClaw rescue message", () => {
       );
 
       await expect(runRescue("/openclaw yes", cfg, commandContext(), deps)).resolves.toBe(
-        "No pending OpenClaw rescue change is waiting for approval.",
+        "No pending Vasudev rescue change is waiting for approval.",
       );
       await expect(runRescue("/openclaw yes", cfg, commandContext(), deps)).resolves.toBe(
-        "No pending OpenClaw rescue change is waiting for approval.",
+        "No pending Vasudev rescue change is waiting for approval.",
       );
       expect(deps.runGatewayRestart).not.toHaveBeenCalled();
     });

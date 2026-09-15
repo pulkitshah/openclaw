@@ -62,7 +62,7 @@ async function connectAndCollectRegistration(params: {
       tls: false,
       nick: "bot",
       username: "bot",
-      realname: "OpenClaw Bot",
+      realname: "Vasudev Bot",
       nickserv: params.nickserv,
       onError: (error) => errors.push(error),
     });
@@ -86,7 +86,7 @@ async function connectAfterNickCollision(nick: string): Promise<string> {
       tls: false,
       nick,
       username: "bot",
-      realname: "OpenClaw Bot",
+      realname: "Vasudev Bot",
     });
     const nickLines = server.lines.filter((line) => line.startsWith("NICK "));
     expect(nickLines).toHaveLength(2);
@@ -179,7 +179,7 @@ describe("irc client readiness timeout", () => {
           tls: false,
           nick: "bot",
           username: "bot",
-          realname: "OpenClaw Bot",
+          realname: "Vasudev Bot",
           connectTimeoutMs: 50,
         }),
       ).rejects.toThrow(/IRC connect/);
@@ -234,7 +234,7 @@ async function collectPrivmsgBodies(
     tls: false,
     nick: "bot",
     username: "bot",
-    realname: "OpenClaw Bot",
+    realname: "Vasudev Bot",
     connectTimeoutMs: 5000,
     messageChunkMaxChars,
   });

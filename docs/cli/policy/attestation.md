@@ -143,7 +143,7 @@ Example JSON output:
 ```
 
 `attestation.policy.hash` identifies the authored rule artifact. `evidence`
-records the observed OpenClaw state used by the checks, and
+records the observed Vasudev state used by the checks, and
 `workspace.hash` identifies that evidence payload. `findingsHash` identifies
 the exact finding set. `checkedAt` records when the check ran.
 `attestationHash` identifies the stable claim (policy hash, evidence hash,

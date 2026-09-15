@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/diffs-language-pack",
   "version": "2026.9.4",
-  "description": "OpenClaw diffs viewer syntax highlighting language pack",
+  "description": "Vasudev diffs viewer syntax highlighting language pack",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

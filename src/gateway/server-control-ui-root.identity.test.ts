@@ -204,7 +204,7 @@ describe("source-selected Control UI identity preparation", () => {
       await lifecycle.stop();
       expect(lifecycle.state).toEqual({ kind: "failed" });
       expect(warn).toHaveBeenCalledWith(expect.stringContaining(fixture.selectedRoot));
-      expect(warn).toHaveBeenCalledWith(expect.stringContaining("Reinstall OpenClaw"));
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining("Reinstall Vasudev"));
       expect(fixture.build).not.toHaveBeenCalled();
     },
   );

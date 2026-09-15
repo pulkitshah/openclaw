@@ -196,7 +196,7 @@ export async function auditOpenClawPeerDependencyLink(params: {
     return {
       packageName,
       packageDir: params.packageDir,
-      reason: "could not locate openclaw package root",
+      reason: "could not locate vasudev package root",
     };
   }
   return await auditOpenClawPeerDependency({
@@ -206,7 +206,7 @@ export async function auditOpenClawPeerDependencyLink(params: {
   });
 }
 
-/** Audit the installed host only when the package actually declares an OpenClaw dependency. */
+/** Audit the installed host only when the package actually declares a Vasudev dependency. */
 export async function auditDeclaredOpenClawHostDependency(params: {
   packageDir: string;
   packageName?: string;
@@ -354,7 +354,7 @@ export async function linkOpenClawPeerDependencies(params: {
     });
   if (!hostRoot) {
     params.logger.warn?.(
-      "Could not locate openclaw package root to symlink peerDependencies; plugin may fail to resolve openclaw at runtime.",
+      "Could not locate vasudev package root to symlink peerDependencies; plugin may fail to resolve openclaw at runtime.",
     );
     return { repaired: 0, skipped: peers.length };
   }

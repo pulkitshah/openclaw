@@ -14,7 +14,7 @@ The Gateway watches `~/.openclaw/openclaw.json` and applies changes automaticall
 
 Direct file edits are treated as untrusted until they validate. The watcher waits
 for editor temp-write/rename churn to settle, reads the final file, and rejects
-invalid external edits without rewriting `openclaw.json`. OpenClaw-owned config
+invalid external edits without rewriting `openclaw.json`. Vasudev-owned config
 writes use the same schema gate before writing (see [Strict validation](/gateway/configuration#strict-validation)
 for the clobber/rollback rules that apply to every write).
 
@@ -73,7 +73,7 @@ stopped accounts; use an explicit channel start to resume those accounts.
 Model runtime selection keeps your authored settings separate from catalog defaults.
 Hot reload and secrets reload preserve that distinction: catalog compatibility
 metadata does not become a custom request override that switches a native runtime
-back to OpenClaw.
+back to Vasudev.
 
 | Category                  | Fields                                                                                                                                                                                                                                                             | Gateway restart needed?                |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------- |
@@ -177,7 +177,7 @@ changes replace affected managed browser processes when next used; externally
 attached browsers stay running. Browser enablement, evaluation, and SSRF policy
 changes replace only the Browser control service: pending operations cancel and
 owned Chrome processes close before the new policy applies. Attached and remote
-browser processes stay open while OpenClaw disconnects its control sessions.
+browser processes stay open while Vasudev disconnects its control sessions.
 When enabled, Browser control starts again on demand; managed tabs from the
 retired process are not kept. Extension relay settings still require a Gateway
 restart. Snapshot defaults apply to the next snapshot, and tab-cleanup settings
@@ -245,7 +245,7 @@ When replacement ingress reports ready, old paths it did not reclaim are removed
 
 ### Reload planning
 
-When you edit a source file that is referenced through `$include`, OpenClaw plans
+When you edit a source file that is referenced through `$include`, Vasudev plans
 the reload from the source-authored layout, not the flattened in-memory view.
 That keeps hot-reload decisions (hot-apply vs restart) predictable even when a
 single top-level section lives in its own included file such as

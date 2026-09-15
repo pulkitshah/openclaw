@@ -3,7 +3,7 @@ import {
   type ConversationReadInvocationOrigin,
 } from "../channels/plugins/conversation-read-origin.js";
 /**
- * Runtime context resolver for OpenClaw plugin tools.
+ * Runtime context resolver for Vasudev plugin tools.
  *
  * Normalizes workspace, delivery, browser, sandbox, and active-model inputs before plugin tool invocation.
  */
@@ -15,7 +15,7 @@ import { modelKey } from "./model-ref-shared.js";
 import type { ToolFsPolicy } from "./tool-fs-policy.js";
 import { resolveWorkspaceRoot } from "./workspace-dir.js";
 
-/** Options provided by agent runtime callers when invoking OpenClaw plugin tools. */
+/** Options provided by agent runtime callers when invoking Vasudev plugin tools. */
 export type OpenClawPluginToolOptions = {
   agentSessionKey?: string;
   runSessionKey?: string;

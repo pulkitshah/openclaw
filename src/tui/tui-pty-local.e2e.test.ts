@@ -1177,7 +1177,7 @@ describe("TUI PTY real backends", () => {
   }
 
   it(
-    "sends the initial message supplied to openclaw tui through a real local PTY",
+    "sends the initial message supplied to vasudev tui through a real local PTY",
     async ({ onTestFinished }) => {
       const initialMessage = "initial message from CLI launch";
       const replyText = "INITIAL_MESSAGE_RESPONSE";
@@ -2886,7 +2886,7 @@ export default {
       await cleanupStartedFixture(startup);
     }, LOCAL_TEST_TIMEOUT_MS);
 
-    it("launches openclaw tui against a real Gateway through a real PTY", async () => {
+    it("launches vasudev tui against a real Gateway through a real PTY", async () => {
       const fixture = await requireSharedGatewayFixture();
       expect(fixture.run.visibleOutput()).toContain("gateway connected");
     });

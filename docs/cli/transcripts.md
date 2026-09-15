@@ -28,7 +28,7 @@ $OPENCLAW_STATE_DIR/transcripts/YYYY-MM-DD/<session>/
   summary.md
 ```
 
-These files are exports, not a second runtime store. OpenClaw does not read them
+These files are exports, not a second runtime store. Vasudev does not read them
 back during capture, summarization, or listing. Default state directory is
 `~/.openclaw`; override with `OPENCLAW_STATE_DIR`. The date directory comes
 from the session start time; the session directory is a filesystem-safe slug
@@ -117,7 +117,7 @@ selector; no raw ID is sanitized to choose a capture. Default session IDs
 include a timestamp and random suffix; give a session a fixed ID only when
 that ID is unique within the day.
 
-If the filesystem-safe export name exceeds 255 bytes, OpenClaw shortens it
+If the filesystem-safe export name exceeds 255 bytes, Vasudev shortens it
 to a prefix plus a deterministic SHA-256 hash of the complete original session
 ID. Only the derived export name and its selector change; the raw session ID,
 provider stop handle, and stored notes stay intact. Names that already fit
@@ -309,7 +309,7 @@ when it will not repeat on the same date.
 
 Meeting notes use the owning agent's utility model first, then its primary model
 when needed. If no model is available, a request times out, or the model returns
-invalid output, OpenClaw saves deterministic heuristic notes instead. Model
+invalid output, Vasudev saves deterministic heuristic notes instead. Model
 generation enhances the notes; it does not gate saving them. Notes include an
 overview, participants, decisions, action items, risks, and finally the transcript,
 so bounded readers see the notes before long transcripts.
@@ -323,7 +323,7 @@ and end when the middle must be omitted. Stored utterances remain intact. Use
 from the stored transcript, including after changing model configuration.
 
 The tool's `status` action lists active capture subscriptions, not historical
-notes. When a provider ends or replaces a subscription, OpenClaw records
+notes. When a provider ends or replaces a subscription, Vasudev records
 `stoppedAt` and stores its summary; the transcript remains available to `list`,
 `show`, and the tool's `summarize` action. A temporary transport disconnect does
 not end a subscription. Stopping historical notes does not stop a newer capture
@@ -371,7 +371,7 @@ openclaw agent --agent <owning-agent-or-main> --local --message \
 
 ## Upgrading the legacy file store
 
-OpenClaw releases that predate the SQLite store wrote canonical runtime state
+Vasudev releases that predate the SQLite store wrote canonical runtime state
 directly beneath `$OPENCLAW_STATE_DIR/transcripts/`. Run:
 
 ```bash
@@ -434,8 +434,8 @@ Configure auto-start sources with `transcripts.autoStart`. Each entry is
 enabled by being present; omit an entry to disable that source. `discord-voice`
 is the bundled auto-start-capable source and requires `guildId` and
 `channelId`. When exactly one configured Discord account has credentials and
-voice enabled, OpenClaw selects it automatically. When multiple accounts are
-voice-capable, OpenClaw selects a capable `channels.discord.defaultAccount`.
+voice enabled, Vasudev selects it automatically. When multiple accounts are
+voice-capable, Vasudev selects a capable `channels.discord.defaultAccount`.
 Otherwise, set `accountId` to the corresponding key under
 `channels.discord.accounts`; an omitted account is rejected as ambiguous:
 
@@ -461,10 +461,10 @@ until stopped. Set it to `true` to wait for humans, then capture one meeting per
 occupancy episode. It also starts when humans are already present at startup;
 bots never count. After the last human leaves, a fixed 30-second grace period
 allows short reconnects without splitting the meeting. A human returning during
-that grace cancels the stop. Otherwise, OpenClaw stops capture and generates notes.
+that grace cancels the stop. Otherwise, Vasudev stops capture and generates notes.
 
 Occupancy episodes use generated IDs; an entry's `sessionId` is ignored. To
-continue a meeting across a Gateway restart, OpenClaw reopens the most recent
+continue a meeting across a Gateway restart, Vasudev reopens the most recent
 session for the same provider, account, guild, and channel when it stopped within
 the last 10 minutes and its stored ID origin is `generated`. The session keeps its original ID, title, and start time, and new
 utterances append to it. A later return within that window also reuses the meeting;

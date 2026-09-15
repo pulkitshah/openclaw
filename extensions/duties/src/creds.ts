@@ -67,7 +67,7 @@ export async function credGet(
     // `Buffer.from` would silently truncate it into the wrong value — so refuse it instead.
     if (!HEX_RE.test(stored) || stored.length % 2 !== 0) {
       throw new Error(
-        `credential ${key} was not stored by OpenClaw; save it again from Duties → Logins`,
+        `credential ${key} was not stored by Vasudev; save it again from Duties → Logins`,
       );
     }
     return Buffer.from(stored, "hex").toString("utf8");

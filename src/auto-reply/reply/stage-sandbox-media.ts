@@ -72,7 +72,7 @@ export async function stageSandboxMedia(params: {
       });
 
   // For remote attachments without sandbox, use ~/.openclaw/media (not agent workspace for privacy).
-  // Managed local inbound refs are already in OpenClaw's media store; when no sandbox is
+  // Managed local inbound refs are already in Vasudev's media store; when no sandbox is
   // active, copy them into the runner workspace so host-mode shell/doc readers get a path.
   const remoteMediaCacheDir = ctx.MediaRemoteHost
     ? path.join(CONFIG_DIR, "media", "remote-cache", slugifySessionKey(sessionKey))

@@ -277,7 +277,7 @@ describe("terminal ansi helpers", () => {
     expect(visibleWidth("a\u009B31\tmb")).toBe(3);
   });
 
-  it("keeps malformed ANSI ownership with OpenClaw's canonical scanner", () => {
+  it("keeps malformed ANSI ownership with Vasudev's canonical scanner", () => {
     expect(visibleWidth("\u001B")).toBe(0);
     expect(visibleWidth("\u009B")).toBe(0);
     expect(visibleWidth("\u009D")).toBe(0);

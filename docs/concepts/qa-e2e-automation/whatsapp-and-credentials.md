@@ -14,7 +14,7 @@ pnpm openclaw qa whatsapp
 ```
 
 Targets two dedicated WhatsApp Web accounts: a driver account controlled by
-the harness and a SUT account started by the child OpenClaw gateway through
+the harness and a SUT account started by the child Vasudev gateway through
 the bundled WhatsApp plugin.
 
 Required env when `--credential-source env`:

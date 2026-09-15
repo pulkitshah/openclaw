@@ -22,7 +22,7 @@ type GatewayStatusWarning = {
 };
 
 const noReachableGatewayDiagnostic =
-  "No gateway answered any probe and Bonjour discovery returned no local gateways. Run `openclaw gateway status --deep --require-rpc` to inspect service state, config paths, listener owners, and logs; include `ss -ltnp` or `lsof -nP -iTCP:<port> -sTCP:LISTEN` for the configured port when filing a report.";
+  "No gateway answered any probe and Bonjour discovery returned no local gateways. Run `vasudev gateway status --deep --require-rpc` to inspect service state, config paths, listener owners, and logs; include `ss -ltnp` or `lsof -nP -iTCP:<port> -sTCP:LISTEN` for the configured port when filing a report.";
 
 function gatewaySelfIdentityKey(entry: GatewayStatusProbedTarget): string | null {
   if (!entry.self) {
@@ -93,7 +93,7 @@ export function buildGatewayStatusWarnings(params: {
   if (params.localTlsLoadError) {
     warnings.push({
       code: "local_tls_runtime_unavailable",
-      message: `Local gateway TLS is enabled but OpenClaw could not load the local certificate fingerprint: ${params.localTlsLoadError}`,
+      message: `Local gateway TLS is enabled but Vasudev could not load the local certificate fingerprint: ${params.localTlsLoadError}`,
       targetIds: ["localLoopback"],
     });
   }

@@ -53,7 +53,7 @@ describe("UI protocol freshness health mapping", () => {
         checkId: "core/doctor/ui-protocol-freshness",
         severity: "warning",
         path: "/repo/openclaw/dist/control-ui/index.html",
-        fixHint: expect.stringContaining("openclaw doctor --fix"),
+        fixHint: expect.stringContaining("vasudev doctor --fix"),
       }),
     );
     expect(uiProtocolFreshnessIssueToRepairEffects(current)).toEqual([
@@ -74,7 +74,7 @@ describe("UI protocol freshness health mapping", () => {
     const finding = uiProtocolFreshnessIssueToHealthFinding(current);
 
     expect(finding.message).toContain("abc123 schema change");
-    expect(finding.fixHint).toContain("openclaw doctor --fix --force");
+    expect(finding.fixHint).toContain("vasudev doctor --fix --force");
     expect(uiProtocolFreshnessIssueToRepairEffects(current)).toEqual([
       {
         kind: "process",
@@ -162,7 +162,7 @@ describe("UI protocol freshness health mapping", () => {
     const finding = uiProtocolFreshnessIssueToHealthFinding(issue({ canBuild: false }));
 
     expect(finding.message).not.toContain("pnpm ui:build");
-    expect(finding.fixHint).toContain("Reinstall OpenClaw");
+    expect(finding.fixHint).toContain("Reinstall Vasudev");
   });
 
   it("keeps healthy packaged UI assets quiet without probing unpublished protocol history", async () => {

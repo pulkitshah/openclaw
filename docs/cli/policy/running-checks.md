@@ -27,7 +27,7 @@ and attestation hashes. The same findings also appear in
 In a multi-agent fleet with explicit ownership, pass `--agent <id>` so the
 command reads governed declarations and `policy.jsonc` from that agent's
 workspace. A sole-agent or retained legacy-owner configuration still resolves
-without the flag; OpenClaw never selects an arbitrary first agent.
+without the flag; Vasudev never selects an arbitrary first agent.
 
 Compare an operator policy file against an authored baseline:
 

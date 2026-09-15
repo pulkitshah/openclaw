@@ -3428,7 +3428,7 @@ describe("installPluginFromDir", () => {
       hostVersion: "2026.3.21",
       minHostVersion: ">=2026.3.22",
       expectedCode: PLUGIN_INSTALL_ERROR_CODE.INCOMPATIBLE_HOST_VERSION,
-      expectedMessageIncludes: ["requires OpenClaw >=2026.3.22, but this host is 2026.3.21"],
+      expectedMessageIncludes: ["requires Vasudev >=2026.3.22, but this host is 2026.3.21"],
     },
     {
       name: "rejects plugins with invalid minHostVersion metadata",
@@ -3828,7 +3828,7 @@ describe("linkOpenClawPeerDependencies (via installPluginFromDir)", () => {
     },
   );
 
-  it("keeps the openclaw peer symlink when a local plugin already has dependencies", async () => {
+  it("keeps the vasudev peer symlink when a local plugin already has dependencies", async () => {
     const { pluginDir, extensionsDir } = setupPluginInstallDirs();
     const fakeHostRoot = suiteTempRootTracker.makeTempDir();
     resolveRootMock.mockReturnValue(fakeHostRoot);
@@ -3856,7 +3856,7 @@ describe("linkOpenClawPeerDependencies (via installPluginFromDir)", () => {
   });
 
   it.each(hostDependencyDeclarations)(
-    "replaces a copied local openclaw package with the host symlink for $declaration",
+    "replaces a copied local vasudev package with the host symlink for $declaration",
     async ({ peerDependencies, dependencies }) => {
       const { pluginDir, extensionsDir } = setupPluginInstallDirs();
       const fakeHostRoot = suiteTempRootTracker.makeTempDir();
@@ -3943,7 +3943,7 @@ describe("linkOpenClawPeerDependencies (via installPluginFromDir)", () => {
       if (!result.ok) {
         expect(result.error).toContain("plugin-local node_modules/openclaw link");
       }
-      expectWarningIncludes(warnings, "Could not locate openclaw package root");
+      expectWarningIncludes(warnings, "Could not locate vasudev package root");
     },
   );
 });

@@ -280,7 +280,7 @@ describe("telegram state migrations", () => {
           botInfo: {
             id: 123456,
             is_bot: true,
-            first_name: "OpenClaw",
+            first_name: "Vasudev",
             username: "openclaw_bot",
           },
         }),
@@ -608,7 +608,7 @@ describe("telegram state migrations", () => {
           version: 1,
           tokenFingerprint: "token:fingerprint",
           fetchedAt: "2026-05-24T11:00:00.000Z",
-          botInfo: { id: 123456, is_bot: true, first_name: "OpenClaw" },
+          botInfo: { id: 123456, is_bot: true, first_name: "Vasudev" },
         }),
       );
       await writeFile(

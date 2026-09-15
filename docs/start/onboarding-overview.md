@@ -1,5 +1,5 @@
 ---
-summary: "Overview of OpenClaw onboarding options and flows"
+summary: "Overview of Vasudev onboarding options and flows"
 read_when:
   - Choosing an onboarding path
   - Setting up a new environment
@@ -7,9 +7,9 @@ title: "Onboarding overview"
 sidebarTitle: "Onboarding Overview"
 ---
 
-OpenClaw supports onboarding from the terminal, the macOS app, and the Linux
+Vasudev supports onboarding from the terminal, the macOS app, and the Linux
 desktop companion. Every path establishes inference first: it detects existing
-AI access, requires a live completion, and only then starts OpenClaw to
+AI access, requires a live completion, and only then starts Vasudev to
 configure the remaining setup. During macOS onboarding, selecting an already
 configured model verifies that route before opening the normal dashboard.
 The terminal flow also offers the full classic wizard for detailed setup.
@@ -37,7 +37,7 @@ The guided inference phase establishes only:
 2. **Verified inference** — a real completion on the default agent's effective
    model
 
-After that completion passes, OpenClaw can configure the workspace, Gateway,
+After that completion passes, Vasudev can configure the workspace, Gateway,
 Gateway service, channels, agents, plugins, and other optional features.
 
 The classic CLI wizard can additionally configure:
@@ -61,8 +61,8 @@ a real completion, and only then configures the rest of the setup. Both lanes,
 the provider picker, **Skip for now**, and the foreground Gateway are described
 step by step in [Onboarding (CLI)](/start/wizard#guided-default).
 
-After inference passes, OpenClaw can hand channel setup to a masked terminal
-wizard. It does not open guided or classic provider setup. Exit OpenClaw and
+After inference passes, Vasudev can hand channel setup to a masked terminal
+wizard. It does not open guided or classic provider setup. Exit Vasudev and
 run `openclaw onboard` to change the model provider or its authentication.
 
 Use `openclaw onboard --classic` for detailed model/auth, channel, skill,

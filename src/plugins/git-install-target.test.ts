@@ -50,7 +50,7 @@ describe("git install target ownership", () => {
     sourceDir = state.path("source");
     await fs.mkdir(sourceDir);
     await git(sourceDir, "init", "--initial-branch=main");
-    await git(sourceDir, "config", "user.name", "OpenClaw Test");
+    await git(sourceDir, "config", "user.name", "Vasudev Test");
     await git(sourceDir, "config", "user.email", "test@openclaw.invalid");
     await commitPlugin("demo", "1.0.0");
     spec = `git:${pathToFileURL(sourceDir).href}`;

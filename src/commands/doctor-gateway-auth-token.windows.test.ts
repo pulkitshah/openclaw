@@ -20,7 +20,7 @@ describe("resolveGatewayAuthTokenForService Windows diagnostics", () => {
   it("preserves the detailed path-free ACL recovery from the canonical resolver", async () => {
     const privateCommand = String.raw`C:\private\gateway-token-provider.cmd`;
     const recovery =
-      "Windows path security could not be verified. Restore Windows path security verification, or use an existing provider command whose owner and ACLs OpenClaw can verify.";
+      "Windows path security could not be verified. Restore Windows path security verification, or use an existing provider command whose owner and ACLs Vasudev can verify.";
     const cfg: OpenClawConfig = {
       gateway: {
         auth: {

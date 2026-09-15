@@ -9,7 +9,7 @@ const CODEX_EPHEMERAL_AUTH_STORE_OVERRIDE = 'cli_auth_credentials_store="ephemer
 
 export function resolveCodexAppServerHomeDir(agentDir: string | undefined): string {
   if (!agentDir) {
-    throw new Error("Agent-scoped Codex requires an OpenClaw agent directory");
+    throw new Error("Agent-scoped Codex requires a Vasudev agent directory");
   }
   return path.join(path.resolve(agentDir), CODEX_APP_SERVER_HOME_DIRNAME);
 }
@@ -38,7 +38,7 @@ export function resolveCodexAppServerLocalHomeDir(
     : resolveCodexAppServerHomeDir(agentDir);
 }
 
-/** Forces OpenClaw-owned Codex auth to remain process-local. */
+/** Forces Vasudev-owned Codex auth to remain process-local. */
 export function withEphemeralCodexAuthStore(params: {
   startOptions: CodexAppServerStartOptions;
   preparedAuth?: unknown;

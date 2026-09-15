@@ -1,12 +1,12 @@
 ---
 summary: "Zalo Personal plugin: QR login + messaging via native zca-js (plugin install + channel config + tool)"
 read_when:
-  - You want Zalo Personal (unofficial) support in OpenClaw
+  - You want Zalo Personal (unofficial) support in Vasudev
   - You are configuring or developing the zalouser plugin
 title: "Zalo personal plugin"
 ---
 
-The zalouser plugin adds unofficial Zalo Personal support to OpenClaw. It uses
+The zalouser plugin adds unofficial Zalo Personal support to Vasudev. It uses
 native `zca-js` to automate a normal Zalo user account. No external
 `zca`/`openzca` CLI binary is required.
 

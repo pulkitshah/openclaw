@@ -256,7 +256,7 @@ function resolvePolicyCommandAgentId(
     const agentId = normalizeAgentId(requestedAgentId);
     if (!listAgentIds(cfg).includes(agentId)) {
       throw new Error(
-        `Unknown agent id "${requestedAgentId}". Run ${formatCliCommand("openclaw agents list")} to see configured agents.`,
+        `Unknown agent id "${requestedAgentId}". Run ${formatCliCommand("vasudev agents list")} to see configured agents.`,
       );
     }
     return agentId;

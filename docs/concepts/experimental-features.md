@@ -1,5 +1,5 @@
 ---
-summary: "What experimental flags mean in OpenClaw and which ones are currently documented"
+summary: "What experimental flags mean in Vasudev and which ones are currently documented"
 title: "Experimental features"
 read_when:
   - You see an `.experimental` config key and want to know whether it is stable
@@ -20,14 +20,14 @@ Custom plugin UI flag below controls user-installed native browser code only.
 
 ## Currently documented flags
 
-| Surface          | Key                                                                     | Use it when                                                                                                                       | More                                                                                   |
-| ---------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| Codex harness    | `plugins.entries.codex.config.appServer.experimental.sandboxExecServer` | You want native Codex app-server 0.143.0 or newer to target an OpenClaw sandbox-backed exec-server instead of disabling Code Mode | [Codex harness reference](/plugins/codex-harness-reference#sandboxed-native-execution) |
-| Code Mode        | `tools.codeMode.enabled`                                                | You want compact code-orchestrated access to a hidden OpenClaw tool catalog                                                       | [Code Mode](/tools/code-mode)                                                          |
-| Cloud workers    | `cloudWorkers.desktop`                                                  | You want to watch or control desktop-capable cloud worker environments from the Control UI                                        | [Cloud Worker Desktop](/gateway/cloud-workers#desktop-interactive)                     |
-| Custom plugin UI | `gateway.controlUi.experimental.customPlugins`                          | You want trusted user-installed plugins to add native Control UI views or replace built-in views                                  | [Feature plugins](/plugins/feature-plugins#enable-custom-plugin-ui)                    |
-| Host Desktop     | `desktop.host.enabled`                                                  | You want to watch or control the Gateway host through its VNC or Screen Sharing server                                            | [Desktop](/gateway/configuration-reference#desktop)                                    |
-| Tool Search      | `tools.toolSearch.enabled`                                              | You want to defer tool schemas for all models instead of using each model's default                                               | [Tool Search](/tools/tool-search)                                                      |
+| Surface          | Key                                                                     | Use it when                                                                                                                      | More                                                                                   |
+| ---------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Codex harness    | `plugins.entries.codex.config.appServer.experimental.sandboxExecServer` | You want native Codex app-server 0.143.0 or newer to target a Vasudev sandbox-backed exec-server instead of disabling Code Mode | [Codex harness reference](/plugins/codex-harness-reference#sandboxed-native-execution) |
+| Code Mode        | `tools.codeMode.enabled`                                                | You want compact code-orchestrated access to a hidden Vasudev tool catalog                                                       | [Code Mode](/tools/code-mode)                                                          |
+| Cloud workers    | `cloudWorkers.desktop`                                                  | You want to watch or control desktop-capable cloud worker environments from the Control UI                                       | [Cloud Worker Desktop](/gateway/cloud-workers#desktop-interactive)                     |
+| Custom plugin UI | `gateway.controlUi.experimental.customPlugins`                          | You want trusted user-installed plugins to add native Control UI views or replace built-in views                                 | [Feature plugins](/plugins/feature-plugins#enable-custom-plugin-ui)                    |
+| Host Desktop     | `desktop.host.enabled`                                                  | You want to watch or control the Gateway host through its VNC or Screen Sharing server                                           | [Desktop](/gateway/configuration-reference#desktop)                                    |
+| Tool Search      | `tools.toolSearch.enabled`                                              | You want to defer tool schemas for all models instead of using each model's default                                              | [Tool Search](/tools/tool-search)                                                      |
 
 ## Control UI Labs
 

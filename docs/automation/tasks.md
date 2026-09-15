@@ -109,7 +109,7 @@ Not every agent run creates a task. Heartbeat turns and normal interactive chat 
   <Accordion title="Notify defaults for automations and media">
     Automation tasks (main-session and isolated) use `silent` notify policy - they create records for tracking but do not generate task notifications of their own; the scheduler owns its delivery path.
 
-    Session-backed `image_generate`, `music_generate`, and `video_generate` runs also use `silent` notify policy. They still create task records, but completion is handed back to the original agent session as an internal wake. The requester agent follows its current visible-reply contract: successful completion includes a short user-facing caption and every structured generated attachment from the completion event, while failure produces a concise visible failure. Internal task and session details stay private. If the requester session is no longer active or its active wake fails, and the completion agent misses some or all generated media, OpenClaw sends an idempotent direct fallback with only the missing media to the original channel target.
+    Session-backed `image_generate`, `music_generate`, and `video_generate` runs also use `silent` notify policy. They still create task records, but completion is handed back to the original agent session as an internal wake. The requester agent follows its current visible-reply contract: successful completion includes a short user-facing caption and every structured generated attachment from the completion event, while failure produces a concise visible failure. Internal task and session details stay private. If the requester session is no longer active or its active wake fails, and the completion agent misses some or all generated media, Vasudev sends an idempotent direct fallback with only the missing media to the original channel target.
 
   </Accordion>
   <Accordion title="Concurrent media-generation guardrail">
@@ -173,9 +173,9 @@ Agent run completion is authoritative for active task records. A successful deta
 
 ## Delivery and notifications
 
-When a task reaches a terminal state, OpenClaw notifies you. There are two delivery paths:
+When a task reaches a terminal state, Vasudev notifies you. There are two delivery paths:
 
-**Direct delivery** - if the task has a channel target (the `requesterOrigin`), the completion message goes straight to that channel (Discord, Slack, Telegram, etc.). Group and channel task completions are instead routed through the requester session so the parent agent can write the visible reply. For subagent completions, OpenClaw also preserves bound thread/topic routing when available and can fill a missing `to` / account from the requester session's stored route (`lastChannel` / `lastTo` / `lastAccountId`) before giving up on direct delivery.
+**Direct delivery** - if the task has a channel target (the `requesterOrigin`), the completion message goes straight to that channel (Discord, Slack, Telegram, etc.). Group and channel task completions are instead routed through the requester session so the parent agent can write the visible reply. For subagent completions, Vasudev also preserves bound thread/topic routing when available and can fill a missing `to` / account from the requester session's stored route (`lastChannel` / `lastTo` / `lastAccountId`) before giving up on direct delivery.
 
 **Session-queued delivery** - if direct delivery fails or no origin is set, the update is queued as a system event in the requester's session and surfaces on the next heartbeat.
 
@@ -321,7 +321,7 @@ Completion cleanup is also runtime-aware:
 - Subagent completion delivery uses the child's latest visible assistant text only. Tool/toolResult output is not promoted into child result text. Terminal failed runs announce failure status without replaying captured reply text.
 - Cleanup failures do not mask the real task outcome.
 
-When applying maintenance, OpenClaw also removes stale `cron:<jobId>:run:<runId>` session registry rows older than 7 days, while preserving rows for currently running automation jobs and leaving other session rows untouched.
+When applying maintenance, Vasudev also removes stale `cron:<jobId>:run:<runId>` session registry rows older than 7 days, while preserving rows for currently running automation jobs and leaving other session rows untouched.
 
 <a id="tasks-flow-list-show-cancel" />
 
@@ -369,7 +369,7 @@ Both `/status` and the `session_status` tool use a cleanup-aware task snapshot: 
 
 ### Where tasks live
 
-Task records and delivery state persist in the shared OpenClaw SQLite state database:
+Task records and delivery state persist in the shared Vasudev SQLite state database:
 
 ```
 ~/.openclaw/state/openclaw.sqlite   (tables: task_runs, task_delivery_state, flow_runs)
@@ -415,7 +415,7 @@ A sweeper runs every **60 seconds** (first pass about 5 seconds after gateway st
 
 ### Tasks and automations
 
-Automation job definitions, runtime execution state, and run history live in OpenClaw's shared SQLite state database. **Every** automation run creates a task record - both main-session and isolated - with `silent` notify policy, so automation runs are tracked without generating task notifications of their own.
+Automation job definitions, runtime execution state, and run history live in Vasudev's shared SQLite state database. **Every** automation run creates a task record - both main-session and isolated - with `silent` notify policy, so automation runs are tracked without generating task notifications of their own.
 
 See [Automations](/automation/cron-jobs).
 
@@ -433,7 +433,7 @@ A task may reference a `childSessionKey` (where work runs) and a `requesterSessi
 
 A task's `runId` links to the agent run doing the work. Agent lifecycle events (start, end, error) automatically update the task status - you do not need to manage the lifecycle manually.
 
-When execution identity collection is enabled, OpenClaw also binds the exact
+When execution identity collection is enabled, Vasudev also binds the exact
 admitted `contextId` and `executionId` to Gateway CLI, ACP, and automation task
 rows and their mirrored flow rows. This is inspection provenance only: `runId`
 remains correlation, task/flow status remains authoritative, and a missing or

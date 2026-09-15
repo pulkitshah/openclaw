@@ -3,7 +3,7 @@ import { readRootJsonObjectSync } from "@openclaw/fs-safe/json";
 import { compareOpenClawReleaseVersions } from "./npm-registry-spec.js";
 import { compareValidSemver } from "./semver.js";
 
-/** Compare two package versions, preferring OpenClaw release ordering over plain semver. */
+/** Compare two package versions, preferring Vasudev release ordering over plain semver. */
 export function comparePackageUpdateVersions(left: string, right: string): number {
   const releaseCmp = compareOpenClawReleaseVersions(left, right);
   if (releaseCmp !== null) {

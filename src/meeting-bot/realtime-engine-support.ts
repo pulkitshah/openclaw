@@ -117,7 +117,7 @@ export function resolveMeetingRealtimeTranscriptionProvider(params: {
 
 export function buildMeetingSpeakExactUserMessage(text: string): string {
   return [
-    "Speak this exact OpenClaw answer to the meeting, without adding, removing, or rephrasing words.",
+    "Speak this exact Vasudev answer to the meeting, without adding, removing, or rephrasing words.",
     `Answer: ${JSON.stringify(text)}`,
   ].join("\n");
 }

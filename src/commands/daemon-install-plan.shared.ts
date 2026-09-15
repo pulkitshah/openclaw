@@ -98,7 +98,7 @@ function addUniquePathDir(dirs: string[], dir: string | undefined): void {
   dirs.push(dir);
 }
 
-/** Resolve the OpenClaw CLI binary directory from argv/PATH for daemon PATH. */
+/** Resolve the Vasudev CLI binary directory from argv/PATH for daemon PATH. */
 function resolveDaemonOpenClawBinDir(
   params: {
     argv?: string[];
@@ -146,7 +146,7 @@ function resolveDaemonOpenClawBinDir(
   return dirs.length > 0 ? dirs : undefined;
 }
 
-/** Merge runtime and OpenClaw binary directories for the daemon service PATH. */
+/** Merge runtime and Vasudev binary directories for the daemon service PATH. */
 export function resolveDaemonServicePathDirs(params: {
   runtimePath?: string;
   argv?: string[];

@@ -31,7 +31,7 @@ function resolveTermuxHome(env: NodeJS.ProcessEnv): string | undefined {
   return path.resolve(prefix, "..", "home");
 }
 
-/** Resolve the underlying OS home before applying OpenClaw overrides. */
+/** Resolve the underlying OS home before applying Vasudev overrides. */
 function resolveRawOsHomeDir(env: NodeJS.ProcessEnv, homedir: () => string): string | undefined {
   return (
     normalize(env.HOME) ??

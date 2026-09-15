@@ -203,7 +203,8 @@ export function readPluginSdkSurfaceBudgets(env: NodeJS.ProcessEnv = process.env
       // +1: canonical node CLI owners for plugin-provided node commands.
       // +3: typed feature contracts, backend registration, and native Control UI hosting.
       // +1: public provider-owned asynchronous embedding batch contract.
-      153,
+      // +1: product brand constants (name, maker line, tagline) for plugin display strings.
+      154,
       env,
     ),
     publicExports: readPluginSdkSurfaceBudgetEnv(
@@ -370,7 +371,8 @@ export function readPluginSdkSurfaceBudgets(env: NodeJS.ProcessEnv = process.env
       // +2: canonical credential-value functions through the narrow secret-input surface.
       // +1: shared removed-model choice recovery text for channel consumers.
       // +2: shared stored-account key selection and its plugin-owned policy type.
-      4464,
+      // +4: product brand constants (PRODUCT_NAME, MAKER_LINE, TAGLINE, CLI_ALIASES).
+      4468,
       env,
     ),
     publicFunctionExports: readPluginSdkSurfaceBudgetEnv(

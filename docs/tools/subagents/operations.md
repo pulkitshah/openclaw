@@ -15,13 +15,13 @@ Sub-agents use a dedicated in-process queue lane:
 - **Concurrency:** `agents.defaults.subagents.maxConcurrent` (default `8`)
 
 Retained blocked completions also protect the gateway from unbounded fan-out.
-OpenClaw warns when the delivery backlog reaches 25 and blocks new subagent
+Vasudev warns when the delivery backlog reaches 25 and blocks new subagent
 spawns at 50 until operators retry or dismiss enough retained deliveries. It
 does not prune results to make room.
 
 ## Liveness and recovery
 
-OpenClaw does not treat `endedAt` absence as permanent proof that a
+Vasudev does not treat `endedAt` absence as permanent proof that a
 sub-agent is still alive. Unended runs older than the stale-run window
 (2 hours, or the configured run timeout plus a short grace period,
 whichever is longer) stop counting as active/pending in `/subagents list`,
@@ -47,14 +47,14 @@ If saving an accepted recovery temporarily fails, the Gateway retries adopting
 that same execution into its original task. Cancellation, replacement by a newer
 run, or another Gateway restart prevents that adoption.
 
-For sub-agents that announce completion, OpenClaw also attempts a notice to the
+For sub-agents that announce completion, Vasudev also attempts a notice to the
 original requester: “Resumed your interrupted task after the Gateway restart.”
 Failed or suppressed notices are retried without launching another recovery
 turn; completion continues through the normal delivery path.
 
 Automatic restart recovery is bounded per child session. If the same
 sub-agent child is accepted for orphan recovery repeatedly inside the
-rapid re-wedge window, OpenClaw persists a recovery tombstone on that
+rapid re-wedge window, Vasudev persists a recovery tombstone on that
 session and stops auto-resuming it on later restarts. Run
 `openclaw tasks maintenance --apply` to reconcile the task record, or
 `openclaw doctor --fix` to clear stale aborted recovery flags on

@@ -1,0 +1,53 @@
+// @vitest-environment node
+import type { RouteLoaderOptions, RouteLocation } from "@openclaw/uirouter";
+import { afterEach, describe, expect, it } from "vitest";
+import { FEATURES } from "../../app/brand.ts";
+import type { ApplicationContext } from "../../app/context.ts";
+import { page } from "./route.ts";
+
+function loaderOptions(location: RouteLocation): RouteLoaderOptions {
+  return {
+    signal: new AbortController().signal,
+    shouldRun: () => true,
+    revalidating: false,
+    location,
+    deps: `${location.pathname} ${location.search} ${location.hash}`,
+    cause: "navigation",
+  };
+}
+
+async function load(url: string, basePath = "") {
+  const parsed = new URL(url, "https://control.test");
+  const location: RouteLocation = {
+    pathname: parsed.pathname,
+    search: parsed.search,
+    hash: parsed.hash,
+  };
+  return await page.loader?.({ basePath } as ApplicationContext, loaderOptions(location));
+}
+
+afterEach(() => {
+  FEATURES.lobsterDex = false;
+});
+
+describe("lobsterdex route", () => {
+  it("sends the path home in a build without LobsterDex", async () => {
+    expect(await load("/settings/lobsterdex")).toEqual({
+      type: "redirect",
+      location: { pathname: "/chat", search: "", hash: "" },
+    });
+  });
+
+  it("redirects the short alias and keeps the base path", async () => {
+    expect(await load("/control/lobsterdex", "/control")).toEqual({
+      type: "redirect",
+      location: { pathname: "/control/chat", search: "", hash: "" },
+    });
+  });
+
+  it("renders the page when the build ships LobsterDex", async () => {
+    FEATURES.lobsterDex = true;
+
+    expect(await load("/settings/lobsterdex")).toBeUndefined();
+  });
+});

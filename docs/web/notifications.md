@@ -8,7 +8,7 @@ read_when:
   - Enabling browser alerts when another person mentions you
 ---
 
-OpenClaw can ping you when something needs your attention, including an exec or plugin approval request. The ping arrives in the browser that runs the Control UI. It can also arrive through native macOS notifications when you use the OpenClaw macOS app. Your first chat send may request permission automatically. **Settings → Notifications** remains the place to enable or repair the current device. Use the same page to check its status and send yourself a test.
+Vasudev can ping you when something needs your attention, including an exec or plugin approval request. The ping arrives in the browser that runs the Control UI. It can also arrive through native macOS notifications when you use the Vasudev macOS app. Your first chat send may request permission automatically. **Settings → Notifications** remains the place to enable or repair the current device. Use the same page to check its status and send yourself a test.
 
 This page covers those two surfaces. It does not control channel reaction notifications, Android notification forwarding, or iOS background push. The mobile apps register for push through their own node paths. See [iOS](/platforms/ios) and [Nodes](/nodes).
 
@@ -19,7 +19,7 @@ What the Notifications page controls depends on where you opened it:
 | Where Settings is open                            | Transport                                          | What you can do                                                                                         |
 | ------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | Supported web browser or installed Control UI PWA | Browser Push API via the Control UI service worker | Receive approvals and enabled attention categories, manage this browser's subscription, and send a test |
-| OpenClaw macOS app                                | Native macOS notifications                         | Grant app permission, jump to System Settings when blocked, send a local test                           |
+| Vasudev macOS app                                 | Native macOS notifications                         | Grant app permission, jump to System Settings when blocked, send a local test                           |
 | Browser without Push API support                  | None                                               | Status only. Enable and test stay unavailable                                                           |
 
 The macOS app deliberately uses the native permission flow instead of browser push. That is the notification system your Mac already respects.
@@ -43,7 +43,7 @@ Approval notifications use generic lock-screen text. Command, working-directory,
 After subscribing, **Settings → Notifications** exposes two preference layers:
 
 - **Account defaults** follow a durable authenticated user profile across devices. They control approval requests and updates, agent completion, agent questions, and human mentions. They also control scheduled-task failures, background-task failures, lock-screen detail, quiet hours, timezone, and an optional agent allowlist.
-- **This browser or app** can mute one browser profile or installed Home Screen app. It can also add a source label or override individual categories. The account defaults stay unchanged. Native OpenClaw app notifications are configured separately.
+- **This browser or app** can mute one browser profile or installed Home Screen app. It can also add a source label or override individual categories. The account defaults stay unchanged. Native Vasudev app notifications are configured separately.
 
 Single-user Gateways use their durable owner profile for account defaults, so those preferences follow the owner across devices. Connections without a profile keep the controls but store preferences only with the current browser subscription. Preferences never grant access: every delivery still rechecks the paired device, current role and scopes, authenticated profile, and session visibility. Multi-user events without an authoritative session owner are suppressed instead of being broadcast to every operator.
 
@@ -61,7 +61,7 @@ On iPhone and iPad, Web Push is available only after two steps. First, install t
 
 **Send test** asks the Gateway to push a test message to every registered browser subscription. Tests intentionally check transport only. Approval requests are targeted to authorized device bindings. **Unsubscribe** removes the current browser's endpoint from the Gateway only when its paired device and user profile still own the subscription. It then unsubscribes locally. Reconnecting under another profile can transfer the browser subscription only with its existing subscription keys. Knowing an endpoint alone cannot change its owner or remove it.
 
-The Gateway sends Web Push directly to the browser vendor's push service. This works with a self-hosted Gateway and does not use the OpenClaw-hosted iOS relay.
+The Gateway sends Web Push directly to the browser vendor's push service. This works with a self-hosted Gateway and does not use the Vasudev-hosted iOS relay.
 
 ### Receive human mention alerts
 
@@ -79,7 +79,7 @@ The recommended self-hosted setup is one Control UI service-worker scope per Gat
 
 A single installed PWA can also switch among remote Gateways. Every Gateway behind that PWA must then use the same VAPID keypair. Each must also set `gateway.publicOrigin` to its browser-reachable HTTPS origin. Reconnect the PWA to each Gateway once so each one registers the shared browser subscription and current device/profile binding. Approval notification links stay inside the installed PWA's scope and carry the owning Gateway URL in their fragment. The Control UI removes the fragment before authentication and uses the normal remote-Gateway handoff.
 
-The browser Push API permits only one application-server key per service-worker registration. If a PWA subscription belongs to a different VAPID key, OpenClaw removes the unusable row from the current Gateway. OpenClaw also shows **Unavailable** and **Not subscribed**, with an error explaining the mismatch. To switch that PWA scope to the current Gateway, select **Unsubscribe**, then **Enable notifications** and **Send test**. Unsubscribing deactivates the shared browser subscription for every Gateway registered through that scope. After re-enabling, reconnect to each Gateway once.
+The browser Push API permits only one application-server key per service-worker registration. If a PWA subscription belongs to a different VAPID key, Vasudev removes the unusable row from the current Gateway. Vasudev also shows **Unavailable** and **Not subscribed**, with an error explaining the mismatch. To switch that PWA scope to the current Gateway, select **Unsubscribe**, then **Enable notifications** and **Send test**. Unsubscribing deactivates the shared browser subscription for every Gateway registered through that scope. After re-enabling, reconnect to each Gateway once.
 
 Sharing a private VAPID key and browser endpoint makes those Gateways one push-signing trust domain. Use that layout only for Gateways you trust equally. Configure VAPID values through each Gateway process's secure environment or secret manager. Do not place private keys in URLs or command arguments.
 
@@ -87,12 +87,12 @@ Sharing a private VAPID key and browser endpoint makes those Gateways one push-s
 
 The macOS app also asks automatically on your first chat send, but only while permission is **Not requested**. It never opens System Settings automatically after a denial. Use **Settings → Notifications** to manage permission manually.
 
-1. Open **Settings → Notifications** in the OpenClaw macOS app.
+1. Open **Settings → Notifications** in the Vasudev macOS app.
 2. Select **Enable notifications** while the permission shows **Not requested**.
 3. Approve the macOS permission prompt.
-4. Select **Send test** to post a local OpenClaw notification.
+4. Select **Send test** to post a local Vasudev notification.
 
-If the permission shows **Denied**, macOS will not re-prompt. Select **Open System Settings**. Allow notifications for OpenClaw there. Then switch back. The page rechecks permission when the app regains focus. This permission belongs to macOS, not to Gateway config.
+If the permission shows **Denied**, macOS will not re-prompt. Select **Open System Settings**. Allow notifications for Vasudev there. Then switch back. The page rechecks permission when the app regains focus. This permission belongs to macOS, not to Gateway config.
 
 ### Background session completion
 

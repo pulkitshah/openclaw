@@ -5,7 +5,7 @@
     "onStartup": false
   },
   "name": "Hermes Migration",
-  "description": "Imports Hermes configuration, memories, skills, and supported credentials into OpenClaw.",
+  "description": "Imports Hermes configuration, memories, skills, and supported credentials into Vasudev.",
   "contracts": {
     "migrationProviders": ["hermes"]
   },

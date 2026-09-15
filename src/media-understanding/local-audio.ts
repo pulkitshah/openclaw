@@ -441,7 +441,7 @@ export async function inspectLocalAudioSelection(
       available: Boolean(sherpaCommand),
       ready: sherpaReady,
       requestedBackend: "cpu",
-      evidence: "OpenClaw auto args omit --provider, so sherpa-onnx uses its CPU default",
+      evidence: "Vasudev auto args omit --provider, so sherpa-onnx uses its CPU default",
       selected: false,
       reason: sherpaCommand
         ? sherpaReady

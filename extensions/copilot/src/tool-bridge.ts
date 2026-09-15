@@ -638,10 +638,10 @@ function convertOpenClawToolToSdkTool(
       scheduleToolExecution(sourceTool.executionMode, () => executeOnce(args, invocation)),
     name: sourceTool.name,
     // Copilot built-ins share coding-tool names. Explicit overrides keep calls
-    // on OpenClaw's host-bound tools instead of rejecting registration.
+    // on Vasudev's host-bound tools instead of rejecting registration.
     overridesBuiltInTool: true,
     parameters: sourceTool.parameters as Record<string, unknown> | undefined,
-    // Host-bound tools enforce OpenClaw policy and approvals; an SDK custom-tool
+    // Host-bound tools enforce Vasudev policy and approvals; an SDK custom-tool
     // prompt would apply a second, independent permission decision.
     skipPermission: true,
   };

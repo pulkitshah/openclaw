@@ -259,7 +259,7 @@ export function registerQrCli(program: Command) {
 
         const lines: string[] = [
           theme.heading("Pairing QR"),
-          "Scan this with the OpenClaw mobile app (Onboarding -> Scan QR).",
+          "Scan this with the Vasudev mobile app (Onboarding -> Scan QR).",
           "",
         ];
 
@@ -279,8 +279,8 @@ export function registerQrCli(program: Command) {
           `${theme.muted("Source:")} ${resolved.urlSource}`,
           "",
           "Approve after scan with:",
-          `  ${theme.command("openclaw devices list")}`,
-          `  ${theme.command("openclaw devices approve <requestId>")}`,
+          `  ${theme.command("vasudev devices list")}`,
+          `  ${theme.command("vasudev devices approve <requestId>")}`,
         );
 
         defaultRuntime.log(lines.join("\n"));

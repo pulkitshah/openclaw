@@ -180,7 +180,7 @@ async function assertSupportedPodmanConnection(remoteSocketPath: string): Promis
   } else if (configuredName) {
     selected = connections.find((entry) => entry.Name === configuredName);
   } else {
-    // OpenClaw supplies no Podman global connection flag, so Podman's documented
+    // Vasudev supplies no Podman global connection flag, so Podman's documented
     // selection order reaches the saved default after the env overrides above.
     selected = connections.find((entry) => entry.Default === true);
   }

@@ -847,7 +847,7 @@ describe("secret ref resolver", () => {
           "Windows path security could not be verified",
         );
         expect(describeSecretResolutionOperatorRecovery(error)).toBe(
-          "Restore Windows path security verification, or use an existing secret file whose owner and ACLs OpenClaw can verify",
+          "Restore Windows path security verification, or use an existing secret file whose owner and ACLs Vasudev can verify",
         );
       },
     );
@@ -906,7 +906,7 @@ describe("secret ref resolver", () => {
           "Windows path security could not be verified",
         );
         expect(describeSecretResolutionOperatorRecovery(error)).toBe(
-          "Restore Windows path security verification, or use an existing provider command whose owner and ACLs OpenClaw can verify",
+          "Restore Windows path security verification, or use an existing provider command whose owner and ACLs Vasudev can verify",
         );
         await expect(fs.access(markerPath)).rejects.toThrow();
       },

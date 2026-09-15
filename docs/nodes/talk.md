@@ -116,7 +116,7 @@ with your own values.
 OpenAI browser WebRTC and Gateway-relay Talk support native GPT-Live. Select
 `gpt-live-1` for the public API or `gpt-live-1-codex` for the Codex route in
 **Settings → Talk**. The public API requires a Platform key; the Codex route
-prefers an OpenClaw ChatGPT OAuth profile and falls back to Platform API-key
+prefers a Vasudev ChatGPT OAuth profile and falls back to Platform API-key
 authentication. Browser Talk uses client WebRTC with Gateway-owned control.
 Gateway relay uses direct Platform-key WebSockets for `gpt-live-1` and
 Gateway-owned WebRTC for `gpt-live-1-codex`. Discord uses these same Gateway
@@ -142,8 +142,8 @@ identify the cause by itself. Check the selected account, model, and voice.
 
 GPT-Live handles interruption natively and produces continuous audio without
 requiring completed-response events. Discord preserves each speaker's identity
-through delegated OpenClaw work. Its voice-model connections remain separate
-per speaker; shared room context belongs to the OpenClaw agent conversation.
+through delegated Vasudev work. Its voice-model connections remain separate
+per speaker; shared room context belongs to the Vasudev agent conversation.
 See [GPT-Live in Discord](/channels/discord/voice-channels#gpt-live-in-discord)
 for configuration and the limits on host-enforced meeting participation.
 
@@ -165,13 +165,13 @@ and [Voice Call tools](/plugins/voice-call#realtime-voice-conversations).
 
 The Gateway-owned WebRTC route keeps OAuth and Platform credentials away from
 relay clients. Backend WebSocket paths keep the Platform key on the Gateway.
-OpenClaw converts telephony G.711 u-law audio to and from GPT-Live's 24 kHz PCM
+Vasudev converts telephony G.711 u-law audio to and from GPT-Live's 24 kHz PCM
 contract.
 
 For GA `gpt-realtime-2.1`, `gpt-realtime-2.1-mini`, and `gpt-realtime-2`
 browser sessions, Platform credentials remain preferred in this order: the
 configured realtime API key, an `openai` API-key profile, then
-`OPENAI_API_KEY`. With none configured, browser Talk falls back to an OpenClaw
+`OPENAI_API_KEY`. With none configured, browser Talk falls back to a Vasudev
 ChatGPT OAuth profile and exchanges SDP through the Gateway's single-use offer
 broker, so the OAuth token never reaches the browser. A configured Platform
 credential that cannot be resolved fails closed instead of silently falling
@@ -207,8 +207,8 @@ Platform-key-only.
 | `realtime.model`                         | provider default                            | Realtime voice model. Overrides `realtime.providers.<id>.model` when both are set — the same precedence `talk.client.create` applies at session time.                                                                                                          |
 | `realtime.transport`                     | -                                           | `webrtc`: OpenAI WebRTC on iOS, in the browser, and on Watch with Gateway control. `provider-websocket`: browser-owned, stays on Gateway relay on iOS. `gateway-relay`: keeps provider audio on the Gateway; Android uses realtime only with this transport.   |
 | `realtime.brain`                         | -                                           | `agent-consult` routes realtime tool calls through Gateway policy; `direct-tools` is legacy direct-tool compatibility; `none` is for transcription/external orchestration.                                                                                     |
-| `realtime.consultRouting`                | -                                           | `provider-direct` preserves the provider's direct reply when it skips `openclaw_agent_consult`; `force-agent-consult` routes finalized user transcripts through OpenClaw instead.                                                                              |
-| `realtime.instructions`                  | -                                           | Appends provider-facing system instructions to OpenClaw's built-in realtime prompt.                                                                                                                                                                            |
+| `realtime.consultRouting`                | -                                           | `provider-direct` preserves the provider's direct reply when it skips `openclaw_agent_consult`; `force-agent-consult` routes finalized user transcripts through Vasudev instead.                                                                               |
+| `realtime.instructions`                  | -                                           | Appends provider-facing system instructions to Vasudev's built-in realtime prompt.                                                                                                                                                                             |
 
 `talk.catalog` exposes canonical provider ids and registry aliases. It exposes each provider's valid modes/transports/brain strategies/realtime audio formats/capability flags. It exposes the runtime-selected readiness result. First-party Talk clients should read that catalog instead of maintaining provider aliases locally. Treat an older Gateway that omits group readiness as unverified rather than definitively unconfigured. Streaming transcription providers are discovered through `talk.catalog.transcription`. The current Gateway relay uses the Voice Call streaming provider config until a dedicated Talk transcription config surface ships.
 

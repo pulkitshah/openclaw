@@ -2,7 +2,7 @@
  * Shared provider HTTP error normalization helpers.
  *
  * Transport adapters use this module to turn provider-specific response bodies,
- * request ids, and binary payload guardrails into stable OpenClaw error shapes.
+ * request ids, and binary payload guardrails into stable Vasudev error shapes.
  */
 import { asOptionalRecord } from "@openclaw/normalization-core/record-coerce";
 import { truncateUtf16Safe } from "@openclaw/normalization-core/utf16-slice";

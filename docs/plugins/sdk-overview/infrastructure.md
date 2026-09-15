@@ -111,7 +111,7 @@ returns the corresponding output promise. The host currently rejects calls from
 other application workers, which need a shared host-broker connection.
 
 This first host supports filesystem-backed databases only. Empty paths, SQLite
-URIs, `:memory:`, and OpenClaw's reserved incognito database basename are refused
+URIs, `:memory:`, and Vasudev's reserved incognito database basename are refused
 before normalization or worker admission. In-memory and incognito ownership
 remain pending; these locators must never become disk filenames.
 
@@ -321,7 +321,7 @@ Contract notes:
   senders change. Before any requester resolves, no scoped specs are advertised.
 - Unauthenticated requesters on a shared-thread harness still see the advertised
   scoped tools; calling one returns a clean not-connected tool error for that
-  requester. OpenClaw never falls back to another requester's credentials.
+  requester. Vasudev never falls back to another requester's credentials.
 
 Memory prompt supplement builders receive optional `agentId`,
 `agentSessionKey`, and `sandboxed` context. Memory corpus supplement `search`
@@ -335,13 +335,13 @@ Use `registerMemoryPromptPreparation(...)` when prompt text depends on async
 plugin state. The callback runs once before each full agent prompt and receives
 the same tool, agent, session, and sandbox context as synchronous memory prompt
 builders. Validate the current storage-owner instance before loading persisted
-state, then return only lines for that run. OpenClaw freezes those lines and
+state, then return only lines for that run. Vasudev freezes those lines and
 hands the immutable result to synchronous prompt assembly. Keep persistence,
 atomic replacement, and owner-removal deletion inside the owning plugin; do not
 poll or read files from a prompt builder.
 
 Telegram interactive handlers can return `{ submitText }` to route text through
-Telegram's normal inbound agent path after the handler succeeds. OpenClaw keeps
+Telegram's normal inbound agent path after the handler succeeds. Vasudev keeps
 the callback button when inbound policy skips the text or processing fails, so
 the user can retry after the blocking condition changes. This result field is
 Telegram-specific; other channels keep their own interactive result contracts.

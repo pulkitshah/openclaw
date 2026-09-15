@@ -752,7 +752,7 @@ describe("mantis Slack desktop smoke runtime", () => {
       expect(runCommand?.env?.OPENCLAW_QA_SLACK_SUT_BOT_TOKEN).toBe("xoxb-leased");
       const remoteScript = runCommand?.args.at(-1);
       expect(remoteScript).toContain("setup_gateway=1");
-      expect(remoteScript).toContain("openclaw gateway run");
+      expect(remoteScript).toContain("vasudev gateway run");
       expect(remoteScript).toContain('</dev/null >"$out/openclaw-gateway.log"');
       expect(remoteScript).toContain('kill -0 "$gateway_pid"');
       expect(remoteScript).toContain('disown "$gateway_pid"');

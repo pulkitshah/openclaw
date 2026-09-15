@@ -42,7 +42,7 @@ describe("meeting audio backend", () => {
     });
     expect(runtime).toMatchObject({
       backend: "pipewire-pulse",
-      deviceLabel: "OpenClaw Meeting Audio",
+      deviceLabel: "Vasudev Meeting Audio",
     });
     expect(runtime.inputCommand).toEqual([
       "parec",
@@ -122,7 +122,7 @@ describe("meeting audio backend", () => {
       "rate=48000",
       "channels=2",
       "channel_map=front-left,front-right",
-      `sink_properties='device.description="OpenClaw Meeting Audio"'`,
+      `sink_properties='device.description="Vasudev Meeting Audio"'`,
     ]);
     expect(calls).toContainEqual([
       "pactl",
@@ -134,7 +134,7 @@ describe("meeting audio backend", () => {
       "master_channel_map=front-left,front-right",
       "channel_map=front-left,front-right",
       "remix=no",
-      `source_properties='device.description="OpenClaw Meeting Audio"'`,
+      `source_properties='device.description="Vasudev Meeting Audio"'`,
     ]);
   });
 

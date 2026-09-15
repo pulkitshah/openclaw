@@ -26,7 +26,7 @@ openclaw dashboard --yes
 
 ## Gateway service and state compatibility
 
-The OpenClaw CLI and the background Gateway service are separate. A service-installation
+The Vasudev CLI and the background Gateway service are separate. A service-installation
 prompt refers to the background service for the selected profile; it does not mean the
 CLI is missing. The dashboard needs a running Gateway, which can also run in a terminal.
 

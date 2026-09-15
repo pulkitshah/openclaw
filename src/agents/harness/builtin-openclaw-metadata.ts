@@ -7,7 +7,7 @@ export const BUILTIN_AGENT_HARNESS_METADATA: Pick<
   "id" | "label" | "contextEngineHostCapabilities" | "supports" | "deliveryDefaults"
 > = {
   id: "openclaw",
-  label: "OpenClaw embedded agent",
+  label: "Vasudev embedded agent",
   contextEngineHostCapabilities: OPENCLAW_EMBEDDED_CONTEXT_ENGINE_HOST.capabilities,
   supports: () => ({ supported: true, priority: 0 }),
 };

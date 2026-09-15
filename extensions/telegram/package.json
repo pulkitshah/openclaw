@@ -2,7 +2,7 @@
   "name": "@openclaw/telegram",
   "version": "2026.9.4",
   "private": true,
-  "description": "OpenClaw Telegram channel plugin",
+  "description": "Vasudev Telegram channel plugin",
   "type": "module",
   "dependencies": {
     "@grammyjs/runner": "2.0.3",

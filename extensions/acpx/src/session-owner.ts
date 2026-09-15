@@ -6,7 +6,7 @@ export { resolveAcpxSessionResource } from "./session-resource.js";
 function requireAcpxOwnerMigration(sessionKey: string): never {
   throw new AcpRuntimeError(
     "ACP_SESSION_INIT_FAILED",
-    `ACP session "${sessionKey}" has an unqualified or unverifiable backend locator. Stop the Gateway and run "openclaw doctor --fix" to migrate ownership without losing history, then restart.`,
+    `ACP session "${sessionKey}" has an unqualified or unverifiable backend locator. Stop the Gateway and run "vasudev doctor --fix" to migrate ownership without losing history, then restart.`,
     { detailCode: "SESSION_OWNER_MIGRATION_REQUIRED" },
   );
 }

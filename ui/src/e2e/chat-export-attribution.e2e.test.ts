@@ -76,7 +76,7 @@ suite.define(() => {
             const downloadPromise = page.waitForEvent("download");
             await page.getByRole("button", { name: "Send message" }).click();
             const download = await downloadPromise;
-            expect(download.suggestedFilename()).toMatch(/^chat-OpenClaw-.+\.md$/);
+            expect(download.suggestedFilename()).toMatch(/^chat-Vasudev-.+\.md$/);
             const stream = await download.createReadStream();
             if (!stream) {
               throw new Error("chat export did not provide a readable download");

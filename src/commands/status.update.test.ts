@@ -313,7 +313,7 @@ describe("formatUpdateAvailableHint", () => {
     });
 
     expect(formatUpdateAvailableHint(update)).toBe(
-      `Update available (git behind 2${cached ? " (cached)" : ""} · npm ${latestVersion}). Run: openclaw update`,
+      `Update available (git behind 2${cached ? " (cached)" : ""} · npm ${latestVersion}). Run: vasudev update`,
     );
   });
 });

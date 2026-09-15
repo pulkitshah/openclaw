@@ -204,7 +204,7 @@ function assistantMessageHasText(message: unknown): boolean {
 }
 
 // Claude's assistant envelopes can contain native tool arguments and opaque
-// thinking signatures. Keep only the visible response blocks OpenClaw can
+// thinking signatures. Keep only the visible response blocks Vasudev can
 // represent accurately; external harness tool spans stay metadata-only.
 function normalizeClaudeAssistantMessage(
   message: unknown,

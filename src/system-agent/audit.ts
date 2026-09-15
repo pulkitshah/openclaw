@@ -1,10 +1,10 @@
-// OpenClaw audit helpers persist approved local-state changes.
+// Vasudev audit helpers persist approved local-state changes.
 import { randomUUID } from "node:crypto";
 import { createSqliteAuditRecordStore } from "../infra/sqlite-audit-record-store.js";
 import { redactSecrets } from "../logging/redact.js";
 
 /**
- * Append-only audit log helpers for OpenClaw writes.
+ * Append-only audit log helpers for Vasudev writes.
  *
  * Discovery and read-only commands stay quiet; persistent operations append a
  * SQLite entry under the shared state directory with config hashes and redacted details.
@@ -32,7 +32,7 @@ function openSystemAgentAuditStore(env?: NodeJS.ProcessEnv) {
   });
 }
 
-/** Append one OpenClaw audit entry and return its SQLite owner label. */
+/** Append one Vasudev audit entry and return its SQLite owner label. */
 export async function appendSystemAgentAuditEntry(
   entry: Omit<SystemAgentAuditEntry, "timestamp">,
   opts: { env?: NodeJS.ProcessEnv } = {},

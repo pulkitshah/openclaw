@@ -8,7 +8,7 @@ read_when:
 
 ## Live: OpenAI long context
 
-- Goal: validate exact-model embedded OpenClaw execution through a
+- Goal: validate exact-model embedded Vasudev execution through a
   process-owned isolated Gateway, cross the long-context pricing boundary,
   observe a first-class OpenAI Responses compaction item, and prove opaque
   replay plus prefix pruning on the next request.
@@ -53,11 +53,11 @@ OPENCLAW_LIVE_OPENAI_LONG_CONTEXT=1 \
 The full embedded and native recipes are proof runs, not throughput
 benchmarks. They fail unless the following runtime contracts hold:
 
-- Runtime and model identity are exact: embedded OpenClaw or native Codex as
+- Runtime and model identity are exact: embedded Vasudev or native Codex as
   requested, both on `openai/gpt-5.6-luna`.
 - At least one provider request crosses `272000` input tokens and every call
   reports priority service.
-- Embedded OpenClaw receives and persists a first-class encrypted Responses
+- Embedded Vasudev receives and persists a first-class encrypted Responses
   `compaction` item, replays the exact opaque item on the next request, and
   prunes the earlier input prefix. The encrypted content must never appear in
   display or diagnostics.
@@ -91,7 +91,7 @@ This proof leaves `OPENCLAW_LIVE_GATEWAY_MODELS` unset, resolves the model throu
 the fresh onboarding inference-selection seam, asserts `openai/gpt-6-astra`, and then
 runs a real gateway turn with that resolved model.
 
-GPT-5.6 embedded OpenClaw matrix:
+GPT-5.6 embedded Vasudev matrix:
 
 ```bash
 OPENCLAW_LIVE_GATEWAY_THINKING=ultra \
@@ -111,7 +111,7 @@ Docker notes:
   `OPENCLAW_LIVE_CODEX_HARNESS_MCP_PROBE=0` or
   `OPENCLAW_LIVE_CODEX_HARNESS_GUARDIAN_PROBE=0` when you need a narrower debug
   run.
-- Docker uses the same explicit Codex runtime config, so legacy aliases or OpenClaw
+- Docker uses the same explicit Codex runtime config, so legacy aliases or Vasudev
   fallback cannot hide a Codex harness regression.
 - Matrix targets run sequentially in one container. The Docker script scales its
   default 35-minute timeout by target count; any outer shell or CI timeout must
@@ -155,8 +155,8 @@ Notes:
 - `google-gemini-cli/...` uses the local Gemini CLI on your machine (separate auth + tooling quirks).
 - `google-antigravity/...` is not a registered provider or supported setup path. Do not add it to live-test allowlists.
 - Gemini API vs Gemini CLI:
-  - API: OpenClaw calls Google's hosted Gemini API over HTTP (API key / profile auth); this is what most users mean by "Gemini".
-  - CLI: OpenClaw shells out to a local `gemini` binary; it has its own auth and can behave differently (streaming/tool support/version skew).
+  - API: Vasudev calls Google's hosted Gemini API over HTTP (API key / profile auth); this is what most users mean by "Gemini".
+  - CLI: Vasudev shells out to a local `gemini` binary; it has its own auth and can behave differently (streaming/tool support/version skew).
 
 ## Live: model matrix (what we cover)
 

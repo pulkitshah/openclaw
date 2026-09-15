@@ -13,7 +13,7 @@ import type {
 import type { AssistantMessageDiagnostic } from "./utils/diagnostics.js";
 export type { AssistantMessageDiagnostic, DiagnosticErrorInfo } from "./utils/diagnostics.js";
 
-/** Provider API families with first-class request/stream adapters in OpenClaw. */
+/** Provider API families with first-class request/stream adapters in Vasudev. */
 export type KnownApi =
   | "openai-completions"
   | "mistral-conversations"
@@ -28,7 +28,7 @@ export type KnownApi =
 /** Provider API id; custom providers can use ids outside the built-in set. */
 export type Api = KnownApi | (string & {});
 
-/** Image-generation API families with first-class adapters in OpenClaw. */
+/** Image-generation API families with first-class adapters in Vasudev. */
 export type KnownImagesApi = "openrouter-images";
 
 /** Image API id; custom image providers can use ids outside the built-in set. */
@@ -37,7 +37,7 @@ export type ImagesApi = KnownImagesApi | (string & {});
 /** Provider id used for routing, diagnostics, and config lookups. */
 export type Provider = string;
 
-/** Image provider ids with first-class adapters in OpenClaw. */
+/** Image provider ids with first-class adapters in Vasudev. */
 export type KnownImagesProvider = "openrouter";
 
 /** Image provider id used for routing, diagnostics, and config lookups. */
@@ -665,7 +665,7 @@ export interface Model<TApi extends Api = Api> {
   baseUrl: string;
   reasoning: boolean;
   /**
-   * Maps OpenClaw thinking levels to provider/model-specific values.
+   * Maps Vasudev thinking levels to provider/model-specific values.
    * Missing keys use provider defaults. null marks a level as unsupported.
    */
   thinkingLevelMap?: ThinkingLevelMap;

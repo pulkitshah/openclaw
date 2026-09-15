@@ -33,7 +33,7 @@ export function buildGitHubExecLaunchArgv(argv: string[], profileDir: string): s
   // this private substitution; neither supervisor/relay messages nor argv carry the token.
   // Resolve source-mode tsx beside application code; only the substitution changes cwd.
   const resolverDir = quoteCliArg(fileURLToPath(new URL(".", workerUrl)));
-  const enterResolverDir = `cd ${resolverDir} 2>/dev/null || { printf '%s\\n' 'GitHub Identity launcher is unavailable. Restart OpenClaw, then retry.' >&2; exit 1; }`;
+  const enterResolverDir = `cd ${resolverDir} 2>/dev/null || { printf '%s\\n' 'GitHub Identity launcher is unavailable. Restart Vasudev, then retry.' >&2; exit 1; }`;
   const bootstrap = `set +x; GH_TOKEN="$(${enterResolverDir}; exec ${launcher.map(quoteCliArg).join(" ")})" || exit $?; export GH_TOKEN; GITHUB_TOKEN=; export GITHUB_TOKEN; exec "$@"`;
   return ["/bin/sh", "-c", bootstrap, "openclaw-github-exec", ...argv];
 }

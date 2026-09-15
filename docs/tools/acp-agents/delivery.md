@@ -25,20 +25,20 @@ work. The delivery path depends on that shape.
     channel/thread/topic.
 
     When an ACP agent requests structured input during a delivered turn,
-    OpenClaw presents supported form fields as transient Gateway questions in
+    Vasudev presents supported form fields as transient Gateway questions in
     batches of up to three. Single- and multi-select fields support up to four
     choices. URL requests show the literal HTTP(S) URL with explicit Continue
-    and Decline choices; OpenClaw does not fetch or open it. Explicitly secret
+    and Decline choices; Vasudev does not fetch or open it. Explicitly secret
     fields use a warned, ephemeral text-reply prompt and are never stored in a
     Gateway question record. Malformed or unsupported requests produce a
     visible explanation and are declined instead of returning empty answers.
 
-    What OpenClaw sends to the harness:
+    What Vasudev sends to the harness:
 
     - Normal bound follow-ups are sent as prompt text, plus attachments only when the harness/backend supports them.
     - `/acp` management commands and local Gateway commands are intercepted before ACP dispatch.
-    - Runtime-generated completion events are materialized per target. OpenClaw agents get OpenClaw's internal runtime-context envelope; external ACP harnesses get a plain prompt with the child result and instruction. The raw `<<<BEGIN_OPENCLAW_INTERNAL_CONTEXT>>>` envelope should never be sent to external harnesses or persisted as ACP user transcript text.
-    - ACP transcript entries use the user-visible trigger text or the plain completion prompt. Internal event metadata stays structured in OpenClaw where possible and is not treated as user-authored chat content.
+    - Runtime-generated completion events are materialized per target. Vasudev agents get Vasudev's internal runtime-context envelope; external ACP harnesses get a plain prompt with the child result and instruction. The raw `<<<BEGIN_OPENCLAW_INTERNAL_CONTEXT>>>` envelope should never be sent to external harnesses or persisted as ACP user transcript text.
+    - ACP transcript entries use the user-visible trigger text or the plain completion prompt. Internal event metadata stays structured in Vasudev where possible and is not treated as user-authored chat content.
 
   </Accordion>
   <Accordion title="Parent-owned one-shot ACP sessions">
@@ -48,7 +48,7 @@ work. The delivery path depends on that shape.
     - The parent asks for work with `sessions_spawn({ runtime: "acp", mode: "run" })`.
     - The child runs in its own ACP harness session.
     - Child turns run on the same background lane used by native sub-agent spawns, so a slow ACP harness does not block unrelated main-session work.
-    - Completion reports back through the task-completion announce path. OpenClaw converts internal completion metadata into a plain ACP prompt before sending it to an external harness, so harnesses do not see OpenClaw-only runtime context markers.
+    - Completion reports back through the task-completion announce path. Vasudev converts internal completion metadata into a plain ACP prompt before sending it to an external harness, so harnesses do not see Vasudev-only runtime context markers.
     - The parent rewrites the child result in normal assistant voice when a user-facing reply is useful.
 
     Do **not** treat this path as a peer-to-peer chat between parent and
@@ -57,7 +57,7 @@ work. The delivery path depends on that shape.
   </Accordion>
   <Accordion title="sessions_send and A2A delivery">
     `sessions_send` can target another session after spawn. For normal peer
-    sessions, OpenClaw uses an agent-to-agent (A2A) follow-up path after
+    sessions, Vasudev uses an agent-to-agent (A2A) follow-up path after
     injecting the message:
 
     - Wait for the target session's reply.
@@ -70,7 +70,7 @@ work. The delivery path depends on that shape.
     message an ACP target, for example under broad `tools.sessions.visibility`
     settings.
 
-    OpenClaw skips the A2A follow-up only when the requester is the parent of
+    Vasudev skips the A2A follow-up only when the requester is the parent of
     its own parent-owned one-shot ACP child. In that case, running A2A on top
     of task completion can wake the parent with the child's result, forward
     the parent's reply back into the child, and create a parent/child echo
@@ -105,8 +105,8 @@ work. The delivery path depends on that shape.
 
     - `resumeSessionId` only applies when `runtime: "acp"`; the default sub-agent runtime ignores this ACP-only field.
     - `streamTo` only applies when `runtime: "acp"`; the default sub-agent runtime ignores this ACP-only field.
-    - `resumeSessionId` is a host-local ACP/harness resume id, not an OpenClaw channel session key; OpenClaw still checks ACP spawn policy and target agent policy before dispatch, while the ACP backend or harness owns authorization for loading that upstream id.
-    - `resumeSessionId` restores the upstream ACP conversation history; `thread` and `mode` still apply normally to the new OpenClaw session you are creating, so `mode: "session"` still requires `thread: true`.
+    - `resumeSessionId` is a host-local ACP/harness resume id, not a Vasudev channel session key; Vasudev still checks ACP spawn policy and target agent policy before dispatch, while the ACP backend or harness owns authorization for loading that upstream id.
+    - `resumeSessionId` restores the upstream ACP conversation history; `thread` and `mode` still apply normally to the new Vasudev session you are creating, so `mode: "session"` still requires `thread: true`.
     - The target agent must support `session/load` (Codex and Claude Code do).
     - If the session id is not found, the spawn fails with a clear error - no silent fallback to a new session.
 
@@ -130,16 +130,16 @@ work. The delivery path depends on that shape.
 
 ## Sandbox compatibility
 
-ACP sessions currently run on the host runtime, **not** inside the OpenClaw
+ACP sessions currently run on the host runtime, **not** inside the Vasudev
 sandbox.
 
 <Warning>
 **Security boundary:**
 
 - The external harness can read/write according to its own CLI permissions and the selected `cwd`.
-- OpenClaw's sandbox policy does **not** wrap ACP harness execution.
-- OpenClaw still enforces ACP feature gates, allowed agents, session ownership, channel bindings, and Gateway delivery policy.
-- Use `runtime: "subagent"` for sandbox-enforced OpenClaw-native work.
+- Vasudev's sandbox policy does **not** wrap ACP harness execution.
+- Vasudev still enforces ACP feature gates, allowed agents, session ownership, channel bindings, and Gateway delivery policy.
+- Use `runtime: "subagent"` for sandbox-enforced Vasudev-native work.
 
 </Warning>
 

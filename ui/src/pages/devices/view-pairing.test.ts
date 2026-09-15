@@ -73,7 +73,7 @@ describe("device pairing dialog", () => {
 
     expect(container.querySelectorAll('input[name="device-pair-access"]')).toHaveLength(3);
     expect(container.querySelector(".device-pair-setup__command code")?.textContent).toBe(
-      'openclaw node run --pair "oc-pair://AbC_123"',
+      'vasudev node run --pair "oc-pair://AbC_123"',
     );
     expect(container.querySelector('[role="timer"]')?.textContent?.trim()).toBe(
       "This setup link expires in 1:00.",

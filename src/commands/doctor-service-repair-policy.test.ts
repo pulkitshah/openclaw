@@ -74,7 +74,7 @@ describe("doctor gateway service repair policy", () => {
       probes: "none",
     },
     {
-      name: "Docker without an installed OpenClaw service",
+      name: "Docker without an installed Vasudev service",
       env: {},
       container: true,
       installed: false,
@@ -89,7 +89,7 @@ describe("doctor gateway service repair policy", () => {
       probes: "manager",
     },
     {
-      name: "Docker with an installed system-scoped OpenClaw service",
+      name: "Docker with an installed system-scoped Vasudev service",
       env: {},
       container: true,
       scope: "system" as const,

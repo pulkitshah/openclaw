@@ -52,11 +52,11 @@ When debugging real providers/models (requires real creds):
     This exits after the sub-agent probe unless
     `OPENCLAW_LIVE_CODEX_HARNESS_SUBAGENT_ONLY=0` is set.
 - Codex on-demand install smoke: `pnpm test:docker:codex-on-demand`
-  - Installs the packaged OpenClaw tarball in Docker, runs OpenAI API-key
+  - Installs the packaged Vasudev tarball in Docker, runs OpenAI API-key
     onboarding, and verifies the Codex plugin plus `@openai/codex` dependency
     were downloaded into the managed npm project root on demand.
 - Codex npm-plugin live package smoke: `pnpm test:docker:live-codex-npm-plugin`
-  - Installs the candidate OpenClaw package and exact Codex plugin into Docker,
+  - Installs the candidate Vasudev package and exact Codex plugin into Docker,
     then uses a real OpenAI key for CLI preflight and same-session turns.
   - Its zero-retry medium-thinking follow-through turn must send progress, keep
     working through randomized workspace reads and an exact artifact write,
@@ -66,20 +66,20 @@ When debugging real providers/models (requires real creds):
     through `npm-pack:`, verifies the dependency under the managed npm
     project root, then asks a live OpenAI model to call the plugin tool and
     return the hidden slug.
-- OpenClaw rescue command smoke: `pnpm test:live:system-agent-rescue-channel`
+- Vasudev rescue command smoke: `pnpm test:live:system-agent-rescue-channel`
   - Opt-in belt-and-suspenders check for the message-channel rescue command
     surface. Exercises `/openclaw status`, queues a persistent model
     change, replies `/openclaw yes`, and verifies the audit/config write
     path.
-- OpenClaw first-run Docker smoke: `pnpm test:docker:system-agent-first-run`
-  - Starts from an empty OpenClaw state dir and first proves the packaged
+- Vasudev first-run Docker smoke: `pnpm test:docker:system-agent-first-run`
+  - Starts from an empty Vasudev state dir and first proves the packaged
     `openclaw setup` CLI fails closed without inference. It then
     tests and activates fake Claude through the packaged activation module.
     Only afterward does a fuzzy packaged CLI request reach the planner and
     resolve to typed setup, followed by one-shot model, agent, Discord config,
     and SecretRef operations. It validates config and audit entries. This is
     supporting gate/operation evidence, not an interactive onboarding or
-    OpenClaw agent/tool/approval proof. The same lane is exposed in QA Lab by
+    Vasudev agent/tool/approval proof. The same lane is exposed in QA Lab by
     `pnpm openclaw qa suite --scenario system-agent-ring-zero-setup`.
 - Moonshot/Kimi cost smoke: with `MOONSHOT_API_KEY` set, run
   `openclaw models list --provider moonshot --json`, then run an isolated

@@ -193,7 +193,7 @@ export function buildManifestBuiltInModelSuppressionResolver(params: {
         provider,
         modelId,
         reason: suppression.retirement
-          ? `${suppression.reason ?? "This model has retired."} Run \`openclaw doctor --fix\` to ${suppression.retirement.replacedBy ? `replace it with ${suppression.retirement.replacedBy}` : "clear the retired override and use the default model"}.`
+          ? `${suppression.reason ?? "This model has retired."} Run \`vasudev doctor --fix\` to ${suppression.retirement.replacedBy ? `replace it with ${suppression.retirement.replacedBy}` : "clear the retired override and use the default model"}.`
           : suppression.reason,
       }),
       ...(suppression.retirement ? { retirement: suppression.retirement } : {}),

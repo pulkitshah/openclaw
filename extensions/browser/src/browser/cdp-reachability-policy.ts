@@ -70,7 +70,7 @@ export function resolveCdpReachabilityPolicy(
   ssrfPolicy?: SsrFPolicy,
 ): SsrFPolicy | undefined {
   const capabilities = getBrowserProfileCapabilities(profile);
-  // The browser SSRF policy protects page/network navigation, not OpenClaw's
+  // The browser SSRF policy protects page/network navigation, not Vasudev's
   // own local CDP control plane. Explicit local loopback CDP profiles should
   // not self-block health/control checks just because they target 127.0.0.1.
   if (!capabilities.isRemote && profile.cdpIsLoopback && profile.driver === "openclaw") {
@@ -96,6 +96,6 @@ export function assertChromeMcpCdpTransportAllowed(
     return;
   }
   throw new BrowserProfileUnavailableError(
-    `Browser profile "${profile.name}" uses Chrome MCP with an explicit CDP endpoint, but the active Browser CDP policy requires OpenClaw to pin the approved endpoint. Chrome MCP cannot carry that pinned transport across its subprocess boundary. Use driver "openclaw" for guarded CDP endpoints, or remove cdpUrl and browserUrl/wsEndpoint mcpArgs from this existing-session profile so Chrome MCP attaches to a host-local Chrome profile.`,
+    `Browser profile "${profile.name}" uses Chrome MCP with an explicit CDP endpoint, but the active Browser CDP policy requires Vasudev to pin the approved endpoint. Chrome MCP cannot carry that pinned transport across its subprocess boundary. Use driver "openclaw" for guarded CDP endpoints, or remove cdpUrl and browserUrl/wsEndpoint mcpArgs from this existing-session profile so Chrome MCP attaches to a host-local Chrome profile.`,
   );
 }

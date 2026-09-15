@@ -1,4 +1,4 @@
-// OpenClaw TUI backend runs setup-helper dialogue inside the shared local TUI shell.
+// Vasudev TUI backend runs setup-helper dialogue inside the shared local TUI shell.
 import { randomUUID } from "node:crypto";
 import type {
   SessionsPatchParams,
@@ -212,7 +212,7 @@ class SystemAgentTuiBackend implements TuiBackend {
         {
           key: SYSTEM_AGENT_SESSION_KEY,
           sessionId: "openclaw",
-          displayName: "OpenClaw",
+          displayName: "Vasudev",
           updatedAt: Date.now(),
           thinkingLevel: this.route.thinkingLevel,
           verboseLevel: "off",
@@ -228,14 +228,14 @@ class SystemAgentTuiBackend implements TuiBackend {
       defaultId: SYSTEM_AGENT_ID,
       mainKey: "main",
       scope: "per-sender",
-      agents: [{ id: SYSTEM_AGENT_ID, kind: "system", name: "OpenClaw" }],
+      agents: [{ id: SYSTEM_AGENT_ID, kind: "system", name: "Vasudev" }],
     };
   }
 
   async patchSession(opts: SessionsPatchParams): Promise<SessionsPatchResult> {
     if (opts.model !== undefined) {
       throw new Error(
-        "OpenClaw cannot change the model inside its active verified session. Exit and run `openclaw onboard`, then start OpenClaw again.",
+        "Vasudev cannot change the model inside its active verified session. Exit and run `vasudev onboard`, then start Vasudev again.",
       );
     }
     return {
@@ -244,7 +244,7 @@ class SystemAgentTuiBackend implements TuiBackend {
       key: SYSTEM_AGENT_SESSION_KEY,
       entry: {
         sessionId: "openclaw",
-        displayName: "OpenClaw",
+        displayName: "Vasudev",
         updatedAt: Date.now(),
       },
       resolved: {},
@@ -325,10 +325,7 @@ class SystemAgentTuiBackend implements TuiBackend {
   }
 
   private emitFinal(runId: string, sessionKey: string, text: string): void {
-    const assistant = message(
-      "assistant",
-      text || "OpenClaw listened and found nothing to change.",
-    );
+    const assistant = message("assistant", text || "Vasudev listened and found nothing to change.");
     this.appendMessage(assistant);
     this.emit("chat", {
       runId,
@@ -357,7 +354,7 @@ class SystemAgentTuiBackend implements TuiBackend {
     try {
       const reply = await this.engine.handle(text);
       if ((reply.action === "open-tui" || reply.action === "open-setup") && reply.handoff) {
-        // The outer loop owns interactive handoffs after the OpenClaw TUI exits.
+        // The outer loop owns interactive handoffs after the Vasudev TUI exits.
         this.handoff = reply.handoff;
         queueMicrotask(() => this.requestExit?.());
       } else if (reply.action === "exit") {
@@ -396,7 +393,7 @@ async function runSetupHandoff(
     handoff.target !== "gateway"
   ) {
     runtime.error(
-      "Setup cannot replace the inference route powering OpenClaw. Exit and run `openclaw onboard`, then start OpenClaw again.",
+      "Setup cannot replace the inference route powering Vasudev. Exit and run `vasudev onboard`, then start Vasudev again.",
     );
     return;
   }
@@ -426,7 +423,7 @@ async function runSetupHandoff(
   if (handoff.target === "gateway") {
     if (opts.runGatewaySetupHandoff) {
       await opts.runGatewaySetupHandoff(runtime, beforePersistentEffect);
-      runtime.log("Done — gateway settings saved. Run `openclaw gateway restart` to apply them.");
+      runtime.log("Done — gateway settings saved. Run `vasudev gateway restart` to apply them.");
       return;
     }
     const { createClackPrompter, hostedSetup } = await loadHostedSetupForTui();
@@ -435,7 +432,7 @@ async function runSetupHandoff(
       async () => await beforePersistentEffect(),
       runtime,
     );
-    runtime.log("Done — gateway settings saved. Run `openclaw gateway restart` to apply them.");
+    runtime.log("Done — gateway settings saved. Run `vasudev gateway restart` to apply them.");
     return;
   }
   if (handoff.target === "search") {
@@ -475,7 +472,7 @@ export async function runSystemAgentTui(
   for (;;) {
     const route = await requireTuiVerifiedInference(boundOpts);
     // A returned agent request is single-use; a later wizard handoff must not
-    // replay it when OpenClaw re-enters the chat shell.
+    // replay it when Vasudev re-enters the chat shell.
     const initialMessage = nextInput;
     const engine = createChatEngine(boundOpts);
     let welcome: string;
@@ -505,7 +502,7 @@ export async function runSystemAgentTui(
         historyLimit: SYSTEM_AGENT_HISTORY_LIMIT,
         backend,
         config: {},
-        title: "openclaw setup",
+        title: "vasudev setup",
         ...(initialMessage ? { message: initialMessage } : {}),
       });
     } finally {
@@ -518,7 +515,7 @@ export async function runSystemAgentTui(
     }
     if (handoff.kind === "model-setup") {
       runtime.error(
-        "OpenClaw cannot replace its active inference route. Run `openclaw onboard` outside this session, then start OpenClaw again.",
+        "Vasudev cannot replace its active inference route. Run `vasudev onboard` outside this session, then start Vasudev again.",
       );
       return;
     }

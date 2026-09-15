@@ -60,7 +60,7 @@ export function normalizeE164(number: string): string {
 // to preserve the historical `utils.ts` import surface.
 export { sliceUtf16Safe, truncateUtf16Safe } from "@openclaw/normalization-core/utf16-slice";
 
-/** Resolves the OpenClaw config directory from state/config env overrides or home. */
+/** Resolves the Vasudev config directory from state/config env overrides or home. */
 export function resolveConfigDir(
   env: NodeJS.ProcessEnv = process.env,
   homedir: () => string = os.homedir,
@@ -76,7 +76,7 @@ export function resolveConfigDir(
   return path.join(resolveRequiredHomeDir(env, homedir), ".openclaw");
 }
 
-/** Resolves the effective OpenClaw home directory, if one can be determined. */
+/** Resolves the effective Vasudev home directory, if one can be determined. */
 export function resolveHomeDir(): string | undefined {
   return resolveEffectiveHomeDir(process.env, os.homedir);
 }

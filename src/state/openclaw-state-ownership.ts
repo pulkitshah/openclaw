@@ -46,7 +46,7 @@ export class OpenClawStateOwnershipMetadataError extends OpenClawStateOwnershipE
     message: string,
   ) {
     super(
-      `OpenClaw shared state ownership metadata is invalid at ${databasePath}: ${message}. ` +
+      `Vasudev shared state ownership metadata is invalid at ${databasePath}: ${message}. ` +
         "Repair it with OPENCLAW_SUPERVISOR_MODE=external openclaw database ownership claim --manager <manager-id>.",
     );
     this.name = "OpenClawStateOwnershipMetadataError";
@@ -59,7 +59,7 @@ export class OpenClawStateExternalOwnershipError extends OpenClawStateOwnershipE
     readonly managerId: string,
   ) {
     super(
-      `OpenClaw shared state database ${databasePath} is externally supervised by ${managerId}. ` +
+      `Vasudev shared state database ${databasePath} is externally supervised by ${managerId}. ` +
         "Use that external supervisor with OPENCLAW_SUPERVISOR_MODE=external for writable operations.",
     );
     this.name = "OpenClawStateExternalOwnershipError";

@@ -1,6 +1,6 @@
 import { shortenHomePath } from "../../utils.js";
 
-export const AUTH_PROFILE_MIGRATION_COMMAND = "openclaw doctor --fix" as const;
+export const AUTH_PROFILE_MIGRATION_COMMAND = "vasudev doctor --fix" as const;
 
 export class AuthProfileStoreUnreadableError extends Error {
   readonly code = "AUTH_PROFILE_STORE_UNREADABLE" as const;

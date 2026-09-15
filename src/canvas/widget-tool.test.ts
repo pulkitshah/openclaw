@@ -622,9 +622,11 @@ describe("show_widget", () => {
       `Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:;`,
     );
     expect(html).toContain("<title>&lt;Status&gt;</title>");
-    expect(html).toContain("--accent:#bd4531");
-    expect(html).toContain("--accent:#ff5c5c");
-    expect(html).toContain("--accent-fill:#d13c3c");
+    // Both halves of the baked palette ship: light first, then the
+    // prefers-color-scheme:dark block (src/canvas/wrap.ts).
+    expect(html).toContain("--accent:#8a2be2");
+    expect(html).toContain("--accent:#a58bf0");
+    expect(html).toContain("--accent-fill:#8a2be2");
     expect(html).toContain('<body class="svg-widget"><script>');
     expect(html).toContain("openclaw:widget-size");
     const manifest = JSON.parse(

@@ -19,7 +19,7 @@ const ACP_UNSUPPORTED_INHERITED_TOOL_DENY = [
   "write",
 ] as const;
 
-// Inherited allowlists are rebuilt from the effective OpenClaw tool surface.
+// Inherited allowlists are rebuilt from the effective Vasudev tool surface.
 // ACP-only aliases can appear in explicit deny policies, but not in that
 // effective allowlist unless a plugin happens to expose matching tool names.
 const ACP_REQUIRED_INHERITED_TOOL_ALLOW = [

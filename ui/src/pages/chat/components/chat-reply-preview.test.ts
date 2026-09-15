@@ -26,11 +26,11 @@ describe("attachment reply previews", () => {
       const resolve = createReplyPreviewResolver(
         new Map<string, LoadedReplySource>(
           location === "loaded"
-            ? [[sourceId, { message: source, messageId: sourceId, senderLabel: "OpenClaw" }]]
+            ? [[sourceId, { message: source, messageId: sourceId, senderLabel: "Vasudev" }]]
             : [],
         ),
         {
-          assistantName: "OpenClaw",
+          assistantName: "Vasudev",
           userAvatar: null,
           userId: null,
           userName: null,
@@ -46,7 +46,7 @@ describe("attachment reply previews", () => {
 
       expect(resolve(sourceId)).toMatchObject({
         sourceMessageId: sourceId,
-        senderLabel: "OpenClaw",
+        senderLabel: "Vasudev",
         text: "report.pdf",
       });
     },

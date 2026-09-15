@@ -78,13 +78,13 @@ describe("message read legacy option visibility", () => {
       name: "Fish",
       test: itWithFish,
       complete: (program: Command) =>
-        runGeneratedFishCompletion(program, "openclaw message read --"),
+        runGeneratedFishCompletion(program, "vasudev message read --"),
     },
     {
       name: "PowerShell",
       test: itWithPowerShell,
       complete: (program: Command) =>
-        powerShellCompletion.complete(program, "openclaw message read --"),
+        powerShellCompletion.complete(program, "vasudev message read --"),
     },
   ];
   for (const engine of engines) {

@@ -1,6 +1,6 @@
 ---
 title: "v2026.8.1: Maintenance changes (part 5 of 8)"
-description: "Part 5 of the 6,016 routine maintenance changes in OpenClaw v2026.8.1, with a source link for each one."
+description: "Part 5 of the 6,016 routine maintenance changes in Vasudev v2026.8.1, with a source link for each one."
 ---
 
 Maintenance changes 3,009 to 3,760 of 6,016. See [Maintainer and Internal Changes](/releases/2026.8.1/maintainer-and-internal-changes) for the other categories and the remaining parts.
@@ -113,7 +113,7 @@ Maintenance changes 3,009 to 3,760 of 6,016. See [Maintainer and Internal Change
 - Consolidate cron stream watcher test fixtures [#117696](https://github.com/openclaw/openclaw/pull/117696)
 - Consolidate Fal image-provider test fixtures [#117698](https://github.com/openclaw/openclaw/pull/117698)
 - Deduplicate WhatsApp live-transport QA fixtures [#117700](https://github.com/openclaw/openclaw/pull/117700)
-- Consolidate OpenClaw E2E test fixtures [#117701](https://github.com/openclaw/openclaw/pull/117701)
+- Consolidate Vasudev E2E test fixtures [#117701](https://github.com/openclaw/openclaw/pull/117701)
 - Deduplicate WhatsApp reply-delivery test fixtures [#117710](https://github.com/openclaw/openclaw/pull/117710)
 - Attribute hidden CLI command startup stages [#117720](https://github.com/openclaw/openclaw/pull/117720)
 - Align Gateway test readiness and module isolation [#117725](https://github.com/openclaw/openclaw/pull/117725)
@@ -164,7 +164,7 @@ Maintenance changes 3,009 to 3,760 of 6,016. See [Maintainer and Internal Change
 - Consolidate Android chat-controller test setup [#117862](https://github.com/openclaw/openclaw/pull/117862)
 - Consolidate plugin OAuth helpers into the shared SDK [#117867](https://github.com/openclaw/openclaw/pull/117867)
 - Centralize global and project session settings state [#117868](https://github.com/openclaw/openclaw/pull/117868)
-- Consolidate OpenClaw agent-tool test suites [#117870](https://github.com/openclaw/openclaw/pull/117870)
+- Consolidate Vasudev agent-tool test suites [#117870](https://github.com/openclaw/openclaw/pull/117870)
 - Consolidate gateway protocol test fixtures [#117873](https://github.com/openclaw/openclaw/pull/117873)
 - Consolidate outbound delivery recovery test fixtures [#117876](https://github.com/openclaw/openclaw/pull/117876)
 - Align SQLite flip-proof test timeouts [#117878](https://github.com/openclaw/openclaw/pull/117878)

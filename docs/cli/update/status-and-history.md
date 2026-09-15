@@ -79,7 +79,7 @@ are preserved. Inherited update continuations and automatic campaigns do not
 supersede legacy history. Configuration writes remain suspended until the
 active row is reconciled.
 
-OpenClaw 2026.9.2 can admit a new CLI update while an older row remains running;
+Vasudev 2026.9.2 can admit a new CLI update while an older row remains running;
 the stale row does not block updater admission. Upgrade normally, then run
 `openclaw update repair` from the updated installation if status still shows the
 old run. See [Updating](/install/updating#stale-update-history).

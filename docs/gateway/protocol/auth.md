@@ -115,7 +115,7 @@ Owner page: [Gateway pairing](/gateway/pairing) — the approval flow, device re
 - Pairing approvals are required for new device IDs unless local
   auto-approval is enabled.
 - Pairing auto-approval is centered on direct local loopback connects.
-- OpenClaw also has a narrow backend/container-local self-connect path for
+- Vasudev also has a narrow backend/container-local self-connect path for
   trusted shared-secret helper flows.
 - Same-host tailnet or LAN connects are still treated as remote for pairing
   and require approval.
@@ -125,7 +125,7 @@ Owner page: [Gateway pairing](/gateway/pairing) — the approval flow, device re
   - direct-loopback `gateway-client` backend RPCs on the reserved internal
     helper path.
 - Omitting device identity has scope consequences. When a device-less
-  operator connection is allowed through an explicit trust path, OpenClaw
+  operator connection is allowed through an explicit trust path, Vasudev
   still clears self-declared scopes to an empty set unless that path has a
   named scope-preservation exception. Scope-gated methods then fail with
   `missing scope`.

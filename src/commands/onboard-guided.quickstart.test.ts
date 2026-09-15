@@ -125,7 +125,7 @@ describe("runGuidedOnboarding quick start", () => {
           ? []
           : [
               [
-                "OpenClaw runs an AI agent with real access to this machine. Security guide: https://docs.openclaw.ai/gateway/security",
+                "Vasudev runs an AI agent with real access to this machine. Security guide: https://docs.openclaw.ai/gateway/security",
                 "Security disclaimer",
               ],
             ],
@@ -185,7 +185,7 @@ describe("runGuidedOnboarding quick start", () => {
 
     expect(vi.mocked(prompter.select).mock.calls.map(([params]) => params.message)).toEqual([
       "How would you like to start?",
-      "Help make OpenClaw better?",
+      "Help make Vasudev better?",
       "What would you like to create?",
       "How should I set things up?",
     ]);

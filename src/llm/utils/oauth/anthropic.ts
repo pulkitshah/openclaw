@@ -143,7 +143,7 @@ async function startCallbackServer(expectedState: string): Promise<CallbackServe
     bindHostname: resolveCallbackHost(),
     renderSuccess: () => ({
       body: oauthSuccessHtml(
-        "Authorization received; return to the terminal while OpenClaw finishes.",
+        "Authorization received; return to the terminal while Vasudev finishes.",
       ),
       contentType: "text/html; charset=utf-8",
     }),

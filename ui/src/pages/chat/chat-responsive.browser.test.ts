@@ -4712,8 +4712,8 @@ describeBrowserLayout.concurrent("chat responsive browser layout", () => {
       const page = await openBrowserPage(390, 844);
       try {
         await page.setContent(`<!doctype html><html data-theme-mode="${theme}"><head><style>${readUiCss()}</style></head><body>
-        <span id="warning-color-probe" style="color: var(--warn)">Warning</span>
-        <span id="danger-color-probe" style="color: var(--danger)">Failure</span>
+        <span id="warning-color-probe" style="color: var(--warn-text)">Warning</span>
+        <span id="danger-color-probe" style="color: var(--danger-text)">Failure</span>
         <div class="chat-thread">
         ${[
           { state: "unconfirmed", label: "Delivery unconfirmed" },
@@ -4979,7 +4979,7 @@ describeBrowserLayout.concurrent("chat responsive browser layout", () => {
           <div class="agent-chat__input">Composer</div>
         </div>
         <span id="failed-outcome-probe" class="session-progress-card__summary-count" data-outcome="failed">Failed</span>
-        <span id="danger-color-probe" style="color: var(--danger)">Danger</span>
+        <span id="danger-color-probe" style="color: var(--danger-text)">Danger</span>
       </body></html>`);
       await page.evaluate(() => {
         document.documentElement.dataset.themeMode = "light";

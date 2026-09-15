@@ -130,7 +130,9 @@ export function renderNostrProfileForm(params: {
           ${help ? html`<span class="settings-row__desc">${help}</span>` : nothing}
           ${
             error
-              ? html`<span class="settings-row__desc" style="color: var(--danger);">${error}</span>`
+              ? html`<span class="settings-row__desc" style="color: var(--danger-text);"
+                  >${error}</span
+                >`
               : nothing
           }
         </div>

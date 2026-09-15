@@ -52,7 +52,7 @@ function formatAccountRemovalErrorMessage(params: {
   accountIds: readonly string[];
 }): string {
   const label = channelLabel(params.channel);
-  const inspect = `Run ${formatCliCommand(`openclaw channels status --channel ${params.channel}`)} to inspect configured accounts.`;
+  const inspect = `Run ${formatCliCommand(`vasudev channels status --channel ${params.channel}`)} to inspect configured accounts.`;
   const known = params.accountIds.length ? ` Known accounts: ${params.accountIds.join(", ")}.` : "";
   if (params.kind === "nothing-to-remove") {
     return `${label} account "${params.accountId}" has no configuration to delete.${known} ${inspect}`;
@@ -168,7 +168,7 @@ async function removeChannelAccount(
   } else {
     if (!rawChannel) {
       runtime.error(
-        `Missing channel. Use ${formatCliCommand("openclaw channels remove --channel <name>")} or run ${formatCliCommand("openclaw channels status")} to inspect configured channels.`,
+        `Missing channel. Use ${formatCliCommand("vasudev channels remove --channel <name>")} or run ${formatCliCommand("vasudev channels status")} to inspect configured channels.`,
       );
       runtime.exit(1);
       return;
@@ -211,7 +211,7 @@ async function removeChannelAccount(
   if (!plugin) {
     if (resolvedPluginState?.catalogEntry) {
       runtime.error(
-        `Channel plugin "${resolvedPluginState.catalogEntry.id}" is not installed. Run ${formatCliCommand(`openclaw channels add --channel ${resolvedPluginState.catalogEntry.id}`)} first.`,
+        `Channel plugin "${resolvedPluginState.catalogEntry.id}" is not installed. Run ${formatCliCommand(`vasudev channels add --channel ${resolvedPluginState.catalogEntry.id}`)} first.`,
       );
       runtime.exit(1);
       return;
@@ -252,8 +252,8 @@ async function removeChannelAccount(
     }
     runtime.error(
       removal.error.action === "delete"
-        ? `${formatUnsupportedChannelActionMessage({ channel, action: "delete" })} Use ${formatCliCommand("openclaw channels remove --channel " + channel)} to disable it without deleting config.`
-        : `${formatUnsupportedChannelActionMessage({ channel, action: "disable" })} Use ${formatCliCommand("openclaw channels remove --channel " + channel + " --delete")} only if you want to remove config.`,
+        ? `${formatUnsupportedChannelActionMessage({ channel, action: "delete" })} Use ${formatCliCommand("vasudev channels remove --channel " + channel)} to disable it without deleting config.`
+        : `${formatUnsupportedChannelActionMessage({ channel, action: "disable" })} Use ${formatCliCommand("vasudev channels remove --channel " + channel + " --delete")} only if you want to remove config.`,
     );
     runtime.exit(1);
     return;

@@ -70,7 +70,7 @@ const brokenPlugin = {
   installed: true,
   enabled: false,
   state: "error",
-  error: "Dependency check failed. Reinstall the plugin and restart OpenClaw.",
+  error: "Dependency check failed. Reinstall the plugin and restart Vasudev.",
   removable: true,
 } satisfies PluginCatalogItem;
 
@@ -137,7 +137,7 @@ const inspection = {
     detail: {
       origin: "clawhub",
       packageName: "@openclaw/workboard",
-      author: { handle: "openclaw", displayName: "OpenClaw" },
+      author: { handle: "openclaw", displayName: "Vasudev" },
       topics: ["planning"],
       updatedAt: 1_788_000_000_000,
       readme: "# Workboard\n\nCoordinate agent work in one place.",
@@ -552,7 +552,7 @@ suite.define(() => {
         await page
           .getByRole("alert")
           .filter({
-            hasText: "Dependency check failed. Reinstall the plugin and restart OpenClaw.",
+            hasText: "Dependency check failed. Reinstall the plugin and restart Vasudev.",
           })
           .waitFor();
         expect(await page.getByRole("tab", { name: "Configuration", exact: true }).count()).toBe(0);

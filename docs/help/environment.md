@@ -1,5 +1,5 @@
 ---
-summary: "Where OpenClaw loads environment variables and the precedence order"
+summary: "Where Vasudev loads environment variables and the precedence order"
 read_when:
   - You need to know which env vars are loaded, and in what order
   - You are debugging missing API keys in the Gateway
@@ -7,18 +7,18 @@ read_when:
 title: "Environment variables"
 ---
 
-OpenClaw pulls environment variables from multiple sources. The normal rule is **never override existing values**. For an OpenClaw-installed systemd service, the global `.env` may replace only service values that OpenClaw recorded as managed. Operator-owned service values still take precedence.
-Workspace `.env` files are a lower-trust source: OpenClaw ignores provider credentials and protected runtime controls from workspace `.env` before applying precedence.
+Vasudev pulls environment variables from multiple sources. The normal rule is **never override existing values**. For a Vasudev-installed systemd service, the global `.env` may replace only service values that Vasudev recorded as managed. Operator-owned service values still take precedence.
+Workspace `.env` files are a lower-trust source: Vasudev ignores provider credentials and protected runtime controls from workspace `.env` before applying precedence.
 
 ## Precedence (highest to lowest)
 
 1. **Process environment** (what the Gateway process already has from the parent shell/daemon).
-2. **`.env` in the current working directory** (dotenv default). It does not override. OpenClaw ignores provider credentials and protected runtime controls from this file.
-3. **Global `.env`** at `~/.openclaw/.env`, also known as `$OPENCLAW_STATE_DIR/.env`. It is recommended for provider API keys. It does not override, except for recorded OpenClaw-managed systemd service values.
+2. **`.env` in the current working directory** (dotenv default). It does not override. Vasudev ignores provider credentials and protected runtime controls from this file.
+3. **Global `.env`** at `~/.openclaw/.env`, also known as `$OPENCLAW_STATE_DIR/.env`. It is recommended for provider API keys. It does not override, except for recorded Vasudev-managed systemd service values.
 4. **Config `env` block** in `~/.openclaw/openclaw.json` (applied only if missing).
 5. **Optional login-shell import** (`env.shellEnv.enabled` or `OPENCLAW_LOAD_SHELL_ENV=1`), applied only for missing expected keys.
 
-On fresh Ubuntu installs that use the default state dir, OpenClaw reads `~/.config/openclaw/gateway.env` too. That file is a compatibility fallback after the global `.env`. If both files exist and disagree, OpenClaw keeps `~/.openclaw/.env` and prints a warning.
+On fresh Ubuntu installs that use the default state dir, Vasudev reads `~/.config/openclaw/gateway.env` too. That file is a compatibility fallback after the global `.env`. If both files exist and disagree, Vasudev keeps `~/.openclaw/.env` and prints a warning.
 
 If the config file is missing entirely, step 4 is skipped. Shell import still runs if enabled.
 
@@ -30,7 +30,7 @@ The variables below are the supported environment contract for operators. Undocu
 
 | Variable                  | Purpose                                                                                              |
 | ------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `OPENCLAW_HOME`           | Override the home directory used for OpenClaw path defaults.                                         |
+| `OPENCLAW_HOME`           | Override the home directory used for Vasudev path defaults.                                          |
 | `OPENCLAW_STATE_DIR`      | Override the mutable state directory.                                                                |
 | `OPENCLAW_CONFIG_PATH`    | Override the active config file path.                                                                |
 | `OPENCLAW_WORKSPACE_DIR`  | Override the default agent workspace.                                                                |
@@ -41,7 +41,7 @@ The variables below are the supported environment contract for operators. Undocu
 
 #### `OPENCLAW_HOME`
 
-When set, `OPENCLAW_HOME` replaces the system home directory (`$HOME` / `os.homedir()`) for internal OpenClaw path defaults. This includes the default state directory, config path, agent directories, credentials, installer onboarding workspace, and the default dev checkout used by `openclaw update --channel dev`.
+When set, `OPENCLAW_HOME` replaces the system home directory (`$HOME` / `os.homedir()`) for internal Vasudev path defaults. This includes the default state directory, config path, agent directories, credentials, installer onboarding workspace, and the default dev checkout used by `openclaw update --channel dev`.
 
 `OPENCLAW_HOME` does not grant ownership of the OS account's native Gateway service. Gateway service-management commands treat a relocated home as isolated state. Use the OS account home and a named profile when a separate native service identity is required.
 
@@ -76,7 +76,7 @@ Core and bundled provider plugins recognize the following credential and provide
 
 `AI_GATEWAY_API_KEY`, `ANTHROPIC_ADMIN_API_KEY`, `ANTHROPIC_ADMIN_KEY`, `ANTHROPIC_API_KEY`, `ANTHROPIC_OAUTH_TOKEN`, `ARCEEAI_API_KEY`, `AZURE_OPENAI_API_KEY`, `AZURE_SPEECH_API_KEY`, `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`, `BASETEN_API_KEY`, `BRAVE_API_KEY`, `BYTEPLUS_API_KEY`, `BYTEPLUS_SEED_SPEECH_API_KEY`, `CEREBRAS_API_KEY`, `CHUTES_API_KEY`, `CHUTES_OAUTH_TOKEN`, `CLAWROUTER_API_KEY`, `CLOUDFLARE_AI_GATEWAY_API_KEY`, `CODEX_API_KEY`, `COHERE_API_KEY`, `COMFY_API_KEY`, `COMFY_CLOUD_API_KEY`, `COPILOT_GITHUB_TOKEN`, `DASHSCOPE_API_KEY`, `DEEPGRAM_API_KEY`, `DEEPINFRA_API_KEY`, `DEEPSEEK_API_KEY`, `ELEVENLABS_API_KEY`, `EXA_API_KEY`, `FAL_API_KEY`, `FAL_KEY`, `FEATHERLESS_API_KEY`, `FIRECRAWL_API_KEY`, `FIREWORKS_API_KEY`, `FISH_API_KEY`, `FISH_AUDIO_API_KEY`, `GCLOUD_PROJECT`, `GEMINI_API_KEY`, `GMI_API_KEY`, `GOOGLE_API_KEY`, `GOOGLE_APPLICATION_CREDENTIALS`, `GOOGLE_CLOUD_API_KEY`, `GOOGLE_CLOUD_LOCATION`, `GOOGLE_CLOUD_PROJECT`, `GRADIUM_API_KEY`, `GROQ_API_KEY`, `HF_TOKEN`, `HUGGINGFACE_HUB_TOKEN`, `INWORLD_API_KEY`, `KILOCODE_API_KEY`, `KIMICODE_API_KEY`, `KIMI_API_KEY`, `LITELLM_API_KEY`, `LLAMA_SERVER_API_KEY`, `LM_API_TOKEN`, `LONGCAT_API_KEY`, `MINIMAX_API_KEY`, `MINIMAX_CODE_PLAN_KEY`, `MINIMAX_CODING_API_KEY`, `MINIMAX_OAUTH_TOKEN`, `MISTRAL_API_KEY`, `MODELSTUDIO_API_KEY`, `MODEL_API_KEY`, `MOONSHOT_API_KEY`, `NOVITA_API_KEY`, `NVIDIA_API_KEY`, `OLLAMA_API_KEY`, `OPENAI_ADMIN_KEY`, `OPENAI_API_KEY`, `OPENCODE_API_KEY`, `OPENCODE_ZEN_API_KEY`, `OPENROUTER_API_KEY`, `PARALLEL_API_KEY`, `PERPLEXITY_API_KEY`, `PIXVERSE_API_KEY`, `QIANFAN_API_KEY`, `QWEN_API_KEY`, `QWEN_TOKEN_PLAN_API_KEY`, `RUNWAYML_API_SECRET`, `RUNWAY_API_KEY`, `SENSEAUDIO_API_KEY`, `SGLANG_API_KEY`, `SPEECH_KEY`, `SPEECH_REGION`, `STEPFUN_API_KEY`, `SYNTHETIC_API_KEY`, `TAVILY_API_KEY`, `TOGETHER_API_KEY`, `TOKENHUB_API_KEY`, `TOKENPLAN_API_KEY`, `VENICE_API_KEY`, `VLLM_API_KEY`, `VOLCANO_ENGINE_API_KEY`, `VOLCENGINE_TTS_API_KEY`, `VOLCENGINE_TTS_APPID`, `VOLCENGINE_TTS_TOKEN`, `VOYAGE_API_KEY`, `VYDRA_API_KEY`, `XAI_API_KEY`, `XIAOMI_API_KEY`, `XIAOMI_TOKEN_PLAN_API_KEY`, `XI_API_KEY`, `ZAI_API_KEY`, and `Z_AI_API_KEY`.
 
-Installed third-party plugins may declare additional credential variables in their plugin manifests. Those variables are contracts of the plugin that declares them, not core OpenClaw variables.
+Installed third-party plugins may declare additional credential variables in their plugin manifests. Those variables are contracts of the plugin that declares them, not core Vasudev variables.
 
 ### Logging and diagnostics
 
@@ -111,7 +111,7 @@ Installed third-party plugins may declare additional credential variables in the
 
 ## Provider credentials and workspace `.env`
 
-Do not keep provider API keys only in a workspace `.env`. OpenClaw blocks a large set of provider credential and endpoint-redirect keys from workspace `.env` files, including every known provider auth env var (for example `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `XAI_API_KEY`, `MISTRAL_API_KEY`, `GROQ_API_KEY`, `DEEPSEEK_API_KEY`, `PERPLEXITY_API_KEY`, `BRAVE_API_KEY`, `TAVILY_API_KEY`, `EXA_API_KEY`, `FIRECRAWL_API_KEY`), plus any key ending in `_API_HOST`, `_BASE_URL`, `_ENDPOINT`, or `_HOMESERVER`, and the entire `OPENCLAW_*`, `CLAWHUB_*`, `ANTHROPIC_API_KEY_*`, and `OPENAI_API_KEY_*` namespaces.
+Do not keep provider API keys only in a workspace `.env`. Vasudev blocks a large set of provider credential and endpoint-redirect keys from workspace `.env` files, including every known provider auth env var (for example `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `XAI_API_KEY`, `MISTRAL_API_KEY`, `GROQ_API_KEY`, `DEEPSEEK_API_KEY`, `PERPLEXITY_API_KEY`, `BRAVE_API_KEY`, `TAVILY_API_KEY`, `EXA_API_KEY`, `FIRECRAWL_API_KEY`), plus any key ending in `_API_HOST`, `_BASE_URL`, `_ENDPOINT`, or `_HOMESERVER`, and the entire `OPENCLAW_*`, `CLAWHUB_*`, `ANTHROPIC_API_KEY_*`, and `OPENAI_API_KEY_*` namespaces.
 
 Use one of these trusted sources for provider credentials instead:
 
@@ -195,9 +195,9 @@ For Bash, the import uses an interactive login shell (`bash -lic`) so `PS1` is i
 before login startup files run. Bash reads `/etc/profile` and the first available user login
 profile (`~/.bash_profile`, `~/.bash_login`, or `~/.profile`). Many login profiles also source
 `~/.bashrc`. Keep those files quiet and bounded because their output, long-running work, or
-failures can affect OpenClaw startup. Other shells use noninteractive login startup (`-l -c`).
+failures can affect Vasudev startup. Other shells use noninteractive login startup (`-l -c`).
 The probe runs in its own session, detached from your terminal, so startup files get no job
-control and cannot take over the terminal that runs OpenClaw.
+control and cannot take over the terminal that runs Vasudev.
 This interactive Bash mode is limited to explicit shell env imports. Automatic executable PATH
 discovery during ordinary Gateway commands remains noninteractive.
 
@@ -219,7 +219,7 @@ application tokens, proxies, runtime injection variables, or arbitrary applicati
 This boundary leaves the parent environment and normal agent, Gateway, and updater payload
 environments unchanged.
 
-OpenClaw also injects context markers into spawned child processes:
+Vasudev also injects context markers into spawned child processes:
 
 - `OPENCLAW_SHELL=exec`: set for commands run through the `exec` tool.
 - `OPENCLAW_SHELL=acp-client`: set for `openclaw acp client` when it spawns the ACP bridge process.
@@ -233,7 +233,7 @@ to apply context-specific rules.
 
 - `OPENCLAW_THEME=light`: force the light TUI palette when your terminal has a light background.
 - `OPENCLAW_THEME=dark`: force the dark TUI palette.
-- `COLORFGBG`: if your terminal exports it, OpenClaw uses the background color hint to auto-pick the TUI palette.
+- `COLORFGBG`: if your terminal exports it, Vasudev uses the background color hint to auto-pick the TUI palette.
 
 ## Env var substitution in config
 
@@ -255,15 +255,15 @@ A missing or empty variable remains visible as `${VAR_NAME}` and emits a warning
 
 See [Configuration: Env var substitution](/gateway/config-secrets-env#env-var-substitution) for full details.
 
-This applies to string values in `openclaw.json`. It also applies to any file that `openclaw.json` pulls in through `$include`. The include case works because substitution runs over the config tree after includes resolve. OpenClaw's dotenv loader does not expand environment variable values. For example, `OPENCLAW_WORKSPACE_DIR=${XDG_CONFIG_HOME}/workspace` in a runtime `.env` file remains literal when OpenClaw loads it.
+This applies to string values in `openclaw.json`. It also applies to any file that `openclaw.json` pulls in through `$include`. The include case works because substitution runs over the config tree after includes resolve. Vasudev's dotenv loader does not expand environment variable values. For example, `OPENCLAW_WORKSPACE_DIR=${XDG_CONFIG_HOME}/workspace` in a runtime `.env` file remains literal when Vasudev loads it.
 
-Since OpenClaw does not expand these values, give path variables fully-resolved absolute paths. `OPENCLAW_WORKSPACE_DIR` does not expand a leading `~` either, because it goes straight to `path.resolve`. `OPENCLAW_STATE_DIR` and `OPENCLAW_CONFIG_PATH` do expand `~`. A workspace-local `.env` file drops the entire `OPENCLAW_*` namespace, because it is untrusted input. Set these variables in the trusted global `.env` at `$OPENCLAW_STATE_DIR/.env`, or `~/.openclaw/.env` by default.
+Since Vasudev does not expand these values, give path variables fully-resolved absolute paths. `OPENCLAW_WORKSPACE_DIR` does not expand a leading `~` either, because it goes straight to `path.resolve`. `OPENCLAW_STATE_DIR` and `OPENCLAW_CONFIG_PATH` do expand `~`. A workspace-local `.env` file drops the entire `OPENCLAW_*` namespace, because it is untrusted input. Set these variables in the trusted global `.env` at `$OPENCLAW_STATE_DIR/.env`, or `~/.openclaw/.env` by default.
 
 Docker Compose follows its own [interpolation rules](https://docs.docker.com/compose/how-tos/environment-variables/variable-interpolation/). In the bundled `docker-compose.yml`, `OPENCLAW_WORKSPACE_DIR` from the project `.env` selects the host directory for the workspace bind mount. The container-side `OPENCLAW_WORKSPACE_DIR` stays pinned to `/home/node/.openclaw/workspace`.
 
 ## Secret refs vs `${ENV}` strings
 
-OpenClaw supports two env-driven patterns:
+Vasudev supports two env-driven patterns:
 
 - `${VAR}` string substitution in config values.
 - SecretRef objects (`{ source: "env", provider: "default", id: "VAR" }`) for fields that support secrets references.
@@ -274,17 +274,17 @@ shorthand values.
 
 ## Path-related env vars
 
-| Variable                 | Purpose                                                                                                                                                                                                                                 |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OPENCLAW_HOME`          | Override the home directory used for internal OpenClaw path defaults (`~/.openclaw/`, agent dirs, sessions, credentials, installer onboarding, and the default dev checkout). Useful when running OpenClaw as a dedicated service user. |
-| `OPENCLAW_STATE_DIR`     | Override the state directory (default `~/.openclaw`).                                                                                                                                                                                   |
-| `OPENCLAW_CONFIG_PATH`   | Override the config file path (default `~/.openclaw/openclaw.json`).                                                                                                                                                                    |
-| `OPENCLAW_INCLUDE_ROOTS` | Path-list of directories where `$include` directives may resolve files outside the config directory (default: none - `$include` is confined to the config dir). Tilde-expanded.                                                         |
+| Variable                 | Purpose                                                                                                                                                                                                                               |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OPENCLAW_HOME`          | Override the home directory used for internal Vasudev path defaults (`~/.openclaw/`, agent dirs, sessions, credentials, installer onboarding, and the default dev checkout). Useful when running Vasudev as a dedicated service user. |
+| `OPENCLAW_STATE_DIR`     | Override the state directory (default `~/.openclaw`).                                                                                                                                                                                 |
+| `OPENCLAW_CONFIG_PATH`   | Override the config file path (default `~/.openclaw/openclaw.json`).                                                                                                                                                                  |
+| `OPENCLAW_INCLUDE_ROOTS` | Path-list of directories where `$include` directives may resolve files outside the config directory (default: none - `$include` is confined to the config dir). Tilde-expanded.                                                       |
 
 ## Agent helper tool downloads
 
-Set `OPENCLAW_OFFLINE=1` to prevent OpenClaw from downloading its pinned `fd`
-and `ripgrep` helper binaries. Existing helpers under the OpenClaw tools
+Set `OPENCLAW_OFFLINE=1` to prevent Vasudev from downloading its pinned `fd`
+and `ripgrep` helper binaries. Existing helpers under the Vasudev tools
 directory and working system binaries remain eligible. A missing helper stays
 unavailable instead of triggering a network request.
 
@@ -304,14 +304,14 @@ If Node.js was installed via **nvm** (not the system package manager), the built
 nvm's bundled CA store, which may be missing modern root CAs (ISRG Root X1/X2 for Let's Encrypt,
 DigiCert Global Root G2, etc.). This causes `web_fetch` to fail with `"fetch failed"` on most HTTPS sites.
 
-On Linux, OpenClaw automatically detects nvm and applies the fix in the actual startup environment:
+On Linux, Vasudev automatically detects nvm and applies the fix in the actual startup environment:
 
 - `openclaw gateway install` writes `NODE_EXTRA_CA_CERTS` into the systemd service environment
 - the `openclaw` CLI entrypoint re-execs itself with `NODE_EXTRA_CA_CERTS` set before Node startup
 
 **Manual fix (for older versions or direct `node ...` launches):**
 
-Export the variable before starting OpenClaw:
+Export the variable before starting Vasudev:
 
 ```bash
 export NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
@@ -323,11 +323,11 @@ Do not rely on writing only to `~/.openclaw/.env` for this variable. Node reads
 
 ## Legacy environment variables
 
-OpenClaw only reads `OPENCLAW_*` environment variables. The legacy
+Vasudev only reads `OPENCLAW_*` environment variables. The legacy
 `CLAWDBOT_*` and `MOLTBOT_*` prefixes from earlier releases are silently
 ignored.
 
-If any are still set on the Gateway process at startup, OpenClaw emits a
+If any are still set on the Gateway process at startup, Vasudev emits a
 single Node deprecation warning (`OPENCLAW_LEGACY_ENV_VARS`) listing the
 detected prefixes and the total count. Rename each value by replacing the
 legacy prefix with `OPENCLAW_` (for example `CLAWDBOT_GATEWAY_TOKEN` to

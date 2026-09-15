@@ -1,7 +1,7 @@
 ---
 summary: "CLI reference for `openclaw setup` (system-agent chat with onboarding fallback)"
 read_when:
-  - You want to chat with OpenClaw for setup or repair
+  - You want to chat with Vasudev for setup or repair
   - You're doing first-run setup with the onboarding wizard
   - You want to set the default workspace path
   - You need the baseline-only setup flag for scripts
@@ -11,7 +11,7 @@ title: "Setup CLI"
 # `openclaw setup`
 
 `openclaw setup` is the system-agent entry point. On a configured system, bare
-`openclaw setup` opens an interactive OpenClaw chat. On a fresh system, it
+`openclaw setup` opens an interactive Vasudev chat. On a fresh system, it
 falls through to guided onboarding. Use `-m`/`--message` for one request or
 `--baseline` to initialize config/workspace folders without the wizard.
 
@@ -21,12 +21,12 @@ Routing order:
    non-interactive, flow, mode, Gateway, daemon, skip, import, remote, or auth
    options) runs onboarding exactly as `openclaw onboard` does.
 2. `-m`/`--message` or `--yes` runs the system agent.
-3. With no routing option, a configured interactive system opens OpenClaw. A
+3. With no routing option, a configured interactive system opens Vasudev. A
    fresh system runs onboarding. On a configured system, `--json` prints the
    system overview even without a TTY; an onboarding option keeps onboarding's
    JSON summary.
 
-In guided mode, `--workspace <dir>` is the workspace proposed to OpenClaw;
+In guided mode, `--workspace <dir>` is the workspace proposed to Vasudev;
 it is persisted only after you approve that proposal. Baseline, classic, and
 noninteractive setup persist the supplied workspace through their normal flow
 on a fresh install. When an existing agent roster would be remapped, the
@@ -66,7 +66,7 @@ Tailscale (`--tailscale`), reset (`--reset`, `--reset-scope`), flow
 terminal hatch as `openclaw onboard --tui`. See [Onboard](/cli/onboard) and
 [CLI automation](/start/wizard-cli-automation) for the full flag reference and
 non-interactive examples. `openclaw onboard --modern` remains a compatibility
-entry for the same inference-gated OpenClaw assistant.
+entry for the same inference-gated Vasudev assistant.
 
 Local onboarding generates a Gateway secret in token mode by default, without
 asking you to choose token or password. Existing password-mode configs are
@@ -77,14 +77,14 @@ Use `setup --team` for the same small-team onboarding as `onboard --team`.
 `--agent-name <name>` names the first agent or, with `--team`, the coordinator.
 
 <Note>
-`openclaw setup` is for mutable config installs. In Nix mode (`OPENCLAW_NIX_MODE=1`) OpenClaw refuses setup writes because the config file is managed by Nix. Use the first-party [nix-openclaw Quick Start](https://github.com/openclaw/nix-openclaw#quick-start) or the equivalent source config for another Nix package.
+`openclaw setup` is for mutable config installs. In Nix mode (`OPENCLAW_NIX_MODE=1`) Vasudev refuses setup writes because the config file is managed by Nix. Use the first-party [nix-openclaw Quick Start](https://github.com/openclaw/nix-openclaw#quick-start) or the equivalent source config for another Nix package.
 </Note>
 
 ## Options
 
 | Flag                           | Description                                                                                          |
 | ------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `-m, --message <text>`         | Run one OpenClaw request.                                                                            |
+| `-m, --message <text>`         | Run one Vasudev request.                                                                             |
 | `--yes`                        | Approve persistent config writes for one `--message` request.                                        |
 | `--workspace <dir>`            | Workspace proposal; existing fleets require classic confirmation and are preserved noninteractively. |
 | `--baseline`                   | Create baseline config/workspace/session folders without onboarding.                                 |
@@ -104,7 +104,7 @@ Use `setup --team` for the same small-team onboarding as `onboard --team`.
 | `--remote-url <url>`           | Remote Gateway WebSocket URL.                                                                        |
 | `--remote-token <token>`       | Remote Gateway token (optional).                                                                     |
 | `--remote-password <password>` | Remote Gateway password (optional).                                                                  |
-| `--json`                       | Configured system: OpenClaw overview. Onboarding route: onboarding summary.                          |
+| `--json`                       | Configured system: Vasudev overview. Onboarding route: onboarding summary.                           |
 
 `--classic` and `--non-interactive` are mutually exclusive: classic opens the
 prompted wizard, while noninteractive setup uses the automation path.
@@ -146,7 +146,7 @@ openclaw setup --non-interactive --accept-risk --mode remote --remote-url wss://
 
 ## Notes
 
-- Inside the interactive OpenClaw chat, `configure skills`, `configure web search`, and `configure gateway` run hosted setup flows. `open search wizard` and `open gateway wizard` hand credential entry to masked terminal wizards. Gateway setup is local-only and config-only; restart afterward with `restart gateway` in chat or `openclaw gateway restart` in the terminal. See [`openclaw setup` operations](/cli/openclaw#operations-and-approval).
+- Inside the interactive Vasudev chat, `configure skills`, `configure web search`, and `configure gateway` run hosted setup flows. `open search wizard` and `open gateway wizard` hand credential entry to masked terminal wizards. Gateway setup is local-only and config-only; restart afterward with `restart gateway` in chat or `openclaw gateway restart` in the terminal. See [`openclaw setup` operations](/cli/openclaw#operations-and-approval).
 - `import memory` copies detected local memory into the existing default agent workspace without importing config, credentials, or skills. Finish onboarding first; the chat reports partial and failed copies instead of assuming success.
 - After baseline setup, run `openclaw onboard` for the full guided journey, `openclaw configure` for targeted changes, or `openclaw channels add` to add channel accounts.
 - If Hermes state is detected, interactive onboarding can offer migration automatically. Import onboarding requires a fresh setup; use [Migrate](/cli/migrate) for dry-run plans, backups, and overwrite mode outside onboarding.

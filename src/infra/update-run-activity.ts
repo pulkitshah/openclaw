@@ -81,6 +81,6 @@ export function inspectUpdateRunAbandonment(
 /** Legacy activity cannot prove death; reporting must leave recovery to the operator. */
 export function staleUpdateRunGuidance(record: UpdateRunRecord): string | undefined {
   return isStaleIdentitylessUpdateRun(record)
-    ? `no activity since ${new Date(updateRunLastActivity(record)).toISOString()}; if no update is running, run \`openclaw update repair\` or start a new \`openclaw update\``
+    ? `no activity since ${new Date(updateRunLastActivity(record)).toISOString()}; if no update is running, run \`vasudev update repair\` or start a new \`vasudev update\``
     : undefined;
 }

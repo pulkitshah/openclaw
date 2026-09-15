@@ -109,7 +109,7 @@ ${body}`,
     const runningGuard = 'if ($taskState -eq "Running")';
     const endCommand =
       'Invoke-OpenClawSchtasksWithTimeout -Arguments @("/End", "/TN", $taskName) -TimeoutSeconds 10';
-    const skipEndLog = "openclaw restart skipped schtasks end";
+    const skipEndLog = "vasudev restart skipped schtasks end";
     const pollLoop = "for ($attempt = 1; $attempt -le 10; $attempt++)";
     const pollCall = `Get-OpenClawListenerSnapshot -Port $port`;
     const forceKillBranch = "if ($attempt -eq 10)";
@@ -438,7 +438,7 @@ exit 1
       const calls = await fs.readFile(callsPath, "utf-8");
 
       expect(result.code).toBe(78);
-      expect(result.stderr).toContain("system-scoped openclaw gateway unit detected");
+      expect(result.stderr).toContain("system-scoped vasudev gateway unit detected");
       expect(result.stderr).toContain("sudo systemctl restart openclaw-gateway.service");
       expect(calls).toContain("--user is-active --quiet openclaw-gateway.service");
       expect(calls).toContain("is-active --quiet openclaw-gateway.service");
@@ -536,10 +536,10 @@ exit 0
       const log = await fs.readFile(path.join(stateDir, "logs", "gateway-restart.log"), "utf-8");
 
       expect(result.code).toBe(42);
-      expect(log).toContain("openclaw restart attempt source=update target=ai.openclaw.gateway");
+      expect(log).toContain("vasudev restart attempt source=update target=ai.openclaw.gateway");
       expect(log).toContain("launchctl kickstart -k gui/501/ai.openclaw.gateway");
-      expect(log).toContain("openclaw restart failed source=update status=42");
-      expect(log).not.toContain("openclaw restart done source=update");
+      expect(log).toContain("vasudev restart failed source=update status=42");
+      expect(log).not.toContain("vasudev restart done source=update");
     });
 
     it("continues the macOS restart path when log setup fails", async () => {
@@ -617,10 +617,10 @@ exit 0
       expect(content).toContain("function Invoke-OpenClawVerifiedListenerKill");
       expect(content).toContain("function Invoke-OpenClawStartupLauncher");
       expect(content).toContain("Get-ScheduledTask -TaskName $TaskName");
-      expect(content).toContain("openclaw restart skipped schtasks end");
+      expect(content).toContain("vasudev restart skipped schtasks end");
       expect(content).toContain("$gatewayScriptPath = ");
       expect(content).toContain("$expectedGatewayArgv = @()");
-      expect(content).toContain("openclaw restart launched startup fallback");
+      expect(content).toContain("vasudev restart launched startup fallback");
       expectWindowsRestartWaitOrdering(content);
       expect(content).toContain('del "%~f0" >nul 2>&1');
       expect(content).toContain('rmdir "%OPENCLAW_RESTART_SCRIPT_DIR%" >nul 2>&1');
@@ -667,9 +667,9 @@ exit 0
 
       const { scriptPath, content } = await prepareAndReadScript({
         OPENCLAW_PROFILE: "default",
-        OPENCLAW_WINDOWS_TASK_NAME: "OpenClaw Gateway (custom)",
+        OPENCLAW_WINDOWS_TASK_NAME: "Vasudev Gateway (custom)",
       });
-      expect(content).toContain("$taskName = 'OpenClaw Gateway (custom)'");
+      expect(content).toContain("$taskName = 'Vasudev Gateway (custom)'");
       expect(content).toContain("Get-OpenClawScheduledTaskState -TaskName $taskName");
       expect(content).toContain(
         'Invoke-OpenClawSchtasksWithTimeout -Arguments @("/End", "/TN", $taskName) -TimeoutSeconds 10',

@@ -36,7 +36,7 @@ export function writeSessionSqliteMigrationFailureReports(
     generatedAt: new Date().toISOString(),
     manifestPath: sanitizeFailureReportText(shortenFailureReportPath(manifestPath)),
     reason: params.reason,
-    recoveryCommand: "openclaw doctor --session-sqlite recover --github-issue",
+    recoveryCommand: "vasudev doctor --session-sqlite recover --github-issue",
     restoreStatus: manifest?.restore?.status ?? "not_attempted",
     runId: manifest?.runId ?? path.basename(manifestPath, ".json"),
     targets: targets.map((target) => ({
@@ -96,7 +96,7 @@ export function createSessionSqliteMigrationFailureIssue(
       generatedAt: new Date().toISOString(),
       manifestPath: sanitizeFailureReportText(shortenFailureReportPath(manifestPath)),
       reason: "session SQLite migration failed",
-      recoveryCommand: "openclaw doctor --session-sqlite recover --github-issue",
+      recoveryCommand: "vasudev doctor --session-sqlite recover --github-issue",
       restoreStatus: manifest.restore?.status ?? "not_attempted",
       runId: manifest.runId,
       targets: targets.map((target) => ({
@@ -114,7 +114,7 @@ export function createSessionSqliteMigrationFailureIssue(
       version: VERSION,
     });
   const body = [
-    "OpenClaw doctor generated this sanitized report from a local session SQLite migration recovery.",
+    "Vasudev doctor generated this sanitized report from a local session SQLite migration recovery.",
     "",
     reportBody,
   ].join("\n");
@@ -227,7 +227,7 @@ function renderFailureMarkdown(payload: {
     "",
     `- Run: ${payload.runId}`,
     `- Generated: ${payload.generatedAt}`,
-    `- OpenClaw version: ${payload.version}`,
+    `- Vasudev version: ${payload.version}`,
     `- Reason: ${sanitizeFailureReportText(payload.reason)}`,
     `- Restore status: ${payload.restoreStatus}`,
     `- Recovery command: \`${payload.recoveryCommand}\``,

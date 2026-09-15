@@ -639,7 +639,7 @@ export function registerSkillsCli(program: Command) {
     .option("--as <slug>", "Install a git/local skill under this slug")
     .addHelpText(
       "after",
-      "\nExamples:\n  openclaw skills install @owner/weather\n  openclaw skills install skills-sh:owner/repo/weather\n",
+      "\nExamples:\n  vasudev skills install @owner/weather\n  vasudev skills install skills-sh:owner/repo/weather\n",
     )
     .action(
       async (
@@ -853,7 +853,7 @@ export function registerSkillsCli(program: Command) {
       false,
     )
     .option("--agent <id>", "Target agent workspace (defaults to cwd-inferred, then default agent)")
-    .addHelpText("after", "\nExamples:\n  openclaw skills verify @owner/weather\n")
+    .addHelpText("after", "\nExamples:\n  vasudev skills verify @owner/weather\n")
     .action(
       async (
         slug: string,

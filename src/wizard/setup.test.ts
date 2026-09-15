@@ -720,7 +720,7 @@ describe("runSetupWizard", () => {
       agentId: "robby",
       bootstrapPending: true,
       createdAgent: true,
-      sessionMigrationWarnings: ["Run `openclaw doctor --fix` and retry setup."],
+      sessionMigrationWarnings: ["Run `vasudev doctor --fix` and retry setup."],
     }));
 
     await runWizard({ workspace: "/tmp/openclaw-workspace" }, createRuntime(), prompter);
@@ -739,7 +739,7 @@ describe("runSetupWizard", () => {
       }),
     );
     expect(prompter.note).toHaveBeenCalledWith(
-      "Run `openclaw doctor --fix` and retry setup.",
+      "Run `vasudev doctor --fix` and retry setup.",
       "Session history migration",
     );
   });
@@ -902,7 +902,7 @@ describe("runSetupWizard", () => {
     expect(plain).not.toHaveBeenCalled();
     expect(select).toHaveBeenCalledOnce();
     expect(select).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Help make OpenClaw better?", initialValue: false }),
+      expect.objectContaining({ message: "Help make Vasudev better?", initialValue: false }),
     );
     expect(ensureAuthProfileStore).not.toHaveBeenCalled();
     expect(setupChannels).not.toHaveBeenCalled();
@@ -1374,7 +1374,7 @@ describe("runSetupWizard", () => {
 
     expect(persistedWizardConfigs().at(-1)?.telemetry).toBeUndefined();
     expect(prompter.select).not.toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Help make OpenClaw better?" }),
+      expect.objectContaining({ message: "Help make Vasudev better?" }),
     );
   });
 
@@ -1453,7 +1453,7 @@ describe("runSetupWizard", () => {
     {
       label: "freshness rejection",
       error: new SetupMigrationFreshnessError(
-        "Migration import during onboarding requires a fresh OpenClaw setup.\nExisting setup:\n- state agents/ exists",
+        "Migration import during onboarding requires a fresh Vasudev setup.\nExisting setup:\n- state agents/ exists",
       ),
       detail: "state agents/ exists",
     },
@@ -1803,7 +1803,7 @@ describe("runSetupWizard", () => {
     );
     expect(prompter.select).toHaveBeenCalledOnce();
     expect(prompter.select).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Help make OpenClaw better?", initialValue: false }),
+      expect.objectContaining({ message: "Help make Vasudev better?", initialValue: false }),
     );
   });
 

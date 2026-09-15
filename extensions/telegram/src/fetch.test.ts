@@ -458,7 +458,7 @@ describe("resolveTelegramFetch", () => {
     expectTelegramKeepAliveOptions(dispatcher?.options?.connect);
   });
 
-  it("uses the OpenClaw debug proxy URL when no explicit proxy fetch is provided", async () => {
+  it("uses the Vasudev debug proxy URL when no explicit proxy fetch is provided", async () => {
     vi.stubEnv("OPENCLAW_DEBUG_PROXY_ENABLED", "1");
     vi.stubEnv("OPENCLAW_DEBUG_PROXY_URL", "http://127.0.0.1:7777");
     undiciFetch.mockResolvedValue({ ok: true } as Response);
@@ -489,7 +489,7 @@ describe("resolveTelegramFetch", () => {
     await transport.fetch("https://api.telegram.org/botTOKEN/getMe");
 
     expect(ProxyAgentCtor).toHaveBeenCalledTimes(1);
-    const proxyOptions = constructorOptions(ProxyAgentCtor, "OpenClaw proxy") as {
+    const proxyOptions = constructorOptions(ProxyAgentCtor, "Vasudev proxy") as {
       allowH2?: boolean;
       uri?: string;
       requestTls?: { autoSelectFamily?: boolean };
@@ -528,7 +528,7 @@ describe("resolveTelegramFetch", () => {
     expect(transport.dispatcherAttempts).toBeUndefined();
   });
 
-  it("keeps resolver-scoped transport policy for OpenClaw proxy fetches", async () => {
+  it("keeps resolver-scoped transport policy for Vasudev proxy fetches", async () => {
     const { makeProxyFetch } = await import("./proxy.js");
     const proxyFetch = makeProxyFetch("http://127.0.0.1:7890");
     ProxyAgentCtor.mockClear();

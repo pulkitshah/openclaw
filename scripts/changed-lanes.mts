@@ -33,6 +33,26 @@ export function hasProtocolEventCoverageInput(changedPaths: string[]): boolean {
   );
 }
 
+// The Vasudev rebrand guard's enforced allowlist: docs/README prose,
+// docs.json's `name` field, the two bundled-plugin manifest fields it
+// targets, the single files already migrated to the brand module, the
+// CLI/wizard/doctor TypeScript sources (rewritten via rebrand-apply.mjs's
+// TypeScript-aware pass, which only touches string/template literals and
+// comments), and the guard's own scripts (so editing the guard re-runs it).
+// docs/superpowers/** is excluded like in rebrand-apply.mjs's own allowlist:
+// it holds this repo's planning/spec docs (including this rebrand's own),
+// not the published docs site, and is never in scope for the rewrite. Every
+// TypeScript source under src/**, extensions/*/src/**, packages/*/src/** and
+// ui/src/** is now guarded (spec section 2b: no "OpenClaw" anywhere a user
+// can see it, errors included), test files included — rebrand-apply.mjs owns
+// which of them the *apply* may rewrite.
+const BRAND_GUARD_INPUT_RE =
+  /^(?:docs\/(?!superpowers\/).+\.md|docs\/docs\.json|README\.md|extensions\/[^/]+\/(?:openclaw\.plugin\.json|package\.json)|src\/.+\.tsx?|(?:extensions|packages)\/[^/]+\/src\/.+\.tsx?|ui\/src\/.+\.ts|scripts\/(?:rebrand-apply|check-brand)\.mjs)$/u;
+
+export function hasBrandGuardInput(changedPaths: string[]): boolean {
+  return changedPaths.some((path) => BRAND_GUARD_INPUT_RE.test(path));
+}
+
 const SCRIPTS_TYPECHECK_PATH_RE =
   /^(?:scripts\/.*\.(?:[cm]?ts|[cm]?tsx)|tsconfig\.scripts\.json)$/u;
 /** @internal Shared repository-script contract. */

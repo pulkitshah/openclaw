@@ -365,7 +365,7 @@ describe("buildTelegramMessageContext prompt context", () => {
     };
     const previousBotReply = {
       messageId: "11",
-      sender: "OpenClaw (you)",
+      sender: "Vasudev (you)",
       timestamp: 1_700_000_001_000,
       body: "LLM request failed.",
     };
@@ -402,7 +402,7 @@ describe("buildTelegramMessageContext prompt context", () => {
               },
               {
                 message_id: "9",
-                sender: "OpenClaw (you)",
+                sender: "Vasudev (you)",
                 timestamp_ms: 1_699_999_999_000,
                 body: "explicit reply target",
                 is_reply_target: true,

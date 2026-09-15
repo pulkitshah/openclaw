@@ -1,4 +1,4 @@
-// Covers the hosted OpenClaw marketplace feed entries command.
+// Covers the hosted Vasudev marketplace feed entries command.
 import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";

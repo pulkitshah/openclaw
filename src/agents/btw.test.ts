@@ -284,7 +284,7 @@ vi.mock("./harness/builtin-openclaw.js", () => ({
   createOpenClawAgentHarness: (): AgentHarness => {
     const harness: AgentHarness = {
       id: "openclaw",
-      label: "OpenClaw embedded agent",
+      label: "Vasudev embedded agent",
       supports: () => ({ supported: true, priority: 0 }),
       runAttempt: vi.fn(),
     };
@@ -1485,7 +1485,7 @@ describe("runBtwSideQuestion", () => {
     },
   );
 
-  it("keeps an unprofiled subscription token on the OpenClaw BTW path", async () => {
+  it("keeps an unprofiled subscription token on the Vasudev BTW path", async () => {
     const supports = vi.fn(supportsPreparedOpenAIAuth);
     const codexSideQuestionMock = registerCodexSideQuestionHarness({ supports });
     const subscriptionModel = {
@@ -1505,7 +1505,7 @@ describe("runBtwSideQuestion", () => {
       source: "models.json",
     });
     requireApiKeyMock.mockReturnValue("subscription-token");
-    mockDoneAnswer("OpenClaw side answer.");
+    mockDoneAnswer("Vasudev side answer.");
 
     await expect(
       runSideQuestion({
@@ -1519,7 +1519,7 @@ describe("runBtwSideQuestion", () => {
         provider: "openai",
         model: "gpt-5.5",
       }),
-    ).resolves.toEqual({ text: "OpenClaw side answer." });
+    ).resolves.toEqual({ text: "Vasudev side answer." });
 
     expect(codexSideQuestionMock).not.toHaveBeenCalled();
     expect(streamSimpleMock).toHaveBeenCalled();

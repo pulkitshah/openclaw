@@ -1,11 +1,11 @@
 ---
-summary: "Run OpenClaw in a rootless Podman container"
+summary: "Run Vasudev in a rootless Podman container"
 read_when:
   - You want a containerized gateway with Podman instead of Docker
 title: "Podman"
 ---
 
-Run the OpenClaw Gateway in a rootless Podman container, managed by your current non-root user.
+Run the Vasudev Gateway in a rootless Podman container, managed by your current non-root user.
 
 The model:
 
@@ -17,7 +17,7 @@ The model:
 ## Prerequisites
 
 - **Podman** in rootless mode
-- **OpenClaw CLI** installed on the host
+- **Vasudev CLI** installed on the host
 - **Optional:** `systemd --user` if you want Quadlet-managed auto-start
 - **Optional:** `sudo` only if you want `loginctl enable-linger "$(whoami)"` for boot persistence on a headless host
 
@@ -54,7 +54,7 @@ The model:
     ./scripts/run-openclaw-podman.sh launch
     ```
 
-    Starts the container as your current uid/gid with `--userns=keep-id` and bind-mounts your OpenClaw state into the container.
+    Starts the container as your current uid/gid with `--userns=keep-id` and bind-mounts your Vasudev state into the container.
 
   </Step>
 
@@ -65,7 +65,7 @@ The model:
 
     Then open `http://127.0.0.1:18789/` and use the token from `~/.openclaw/.env`.
 
-    Model auth: use OpenClaw-managed auth during setup (Anthropic API keys, or OpenAI Codex browser OAuth/device-code auth for Codex-backed OpenAI). The Podman launcher does not mount host CLI credential homes such as `~/.claude` or `~/.codex` into the setup or gateway container. Existing host CLI logins are same-host convenience paths only -- for container installs, keep provider auth in the mounted `~/.openclaw` state that setup manages.
+    Model auth: use Vasudev-managed auth during setup (Anthropic API keys, or OpenAI Codex browser OAuth/device-code auth for Codex-backed OpenAI). The Podman launcher does not mount host CLI credential homes such as `~/.claude` or `~/.codex` into the setup or gateway container. Existing host CLI logins are same-host convenience paths only -- for container installs, keep provider auth in the mounted `~/.openclaw` state that setup manages.
 
   </Step>
 
@@ -162,7 +162,7 @@ If you use a non-default `OPENCLAW_CONFIG_DIR` or `OPENCLAW_WORKSPACE_DIR`, set 
 ## Upgrading images
 
 After you rebuild or pull a new image, restart the container or Quadlet service.
-On first startup for a new OpenClaw version, the gateway runs safe state and
+On first startup for a new Vasudev version, the gateway runs safe state and
 plugin repairs before reporting ready.
 
 If the gateway exits instead of becoming ready, run the same image once with

@@ -186,7 +186,7 @@ function resolveMcpLoopbackTools(
   params.signal?.throwIfAborted();
   const { toolsAllow, ...context } = params.context;
   const excludeToolNames = new Set(NATIVE_TOOL_EXCLUDE);
-  // Restricted CLI grants use OpenClaw's implementations for coding tools;
+  // Restricted CLI grants use Vasudev's implementations for coding tools;
   // native CLI tools bypass path, approval, sandbox, and exec policy.
   const mediatedNativeTools = params.rootedExecution
     ? new Set(NATIVE_TOOL_EXCLUDE)

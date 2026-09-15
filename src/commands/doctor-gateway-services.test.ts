@@ -1369,7 +1369,7 @@ describe("maybeRepairGatewayServiceConfig", () => {
       "Gateway service entrypoint does not match the current install.",
       "Gateway service config",
     );
-    expectNoteContaining("openclaw gateway install --force", "Gateway service config");
+    expectNoteContaining("vasudev gateway install --force", "Gateway service config");
     expect(mocks.stage).not.toHaveBeenCalled();
     expect(mocks.install).not.toHaveBeenCalled();
   });
@@ -1930,10 +1930,10 @@ describe("maybeRepairGatewayServiceConfig", () => {
 
         expectNoteContaining("resolves to a source checkout", "Gateway service config");
         expectNoteContaining(
-          "Run `openclaw gateway install --force` from the intended package install to replace the gateway service definition.",
+          "Run `vasudev gateway install --force` from the intended package install to replace the gateway service definition.",
           "Gateway service config",
         );
-        expectNoNoteContaining("openclaw doctor --fix", "Gateway service config");
+        expectNoNoteContaining("vasudev doctor --fix", "Gateway service config");
         expect(mocks.install).not.toHaveBeenCalled();
       } finally {
         await fs.rm(root, { recursive: true, force: true });
@@ -2030,7 +2030,7 @@ describe("maybeRepairGatewayServiceConfig", () => {
           "Gateway service entrypoint does not match the current install.",
         );
         expect(auditNote).not.toContain("resolves to a source checkout");
-        expect(gatewayServiceConfigNotes[1]?.[0]).toContain("openclaw gateway install --force");
+        expect(gatewayServiceConfigNotes[1]?.[0]).toContain("vasudev gateway install --force");
       } finally {
         await fs.rm(root, { recursive: true, force: true });
       }
@@ -2137,7 +2137,7 @@ describe("maybeScanExtraGatewayServices", () => {
     expect(mocks.findExtraGatewayServices).toHaveBeenCalledWith(process.env, { deep: true });
   });
 
-  it("skips structured host-service discovery in containers without an OpenClaw service", async () => {
+  it("skips structured host-service discovery in containers without a Vasudev service", async () => {
     mocks.isContainerEnvironment.mockReturnValue(true);
 
     await expect(detectExtraGatewayServiceIssues({ deep: true })).resolves.toEqual([]);
@@ -2181,7 +2181,7 @@ describe("maybeScanExtraGatewayServices", () => {
         source: "linux",
         target: "openclaw-gateway.service",
         fixHint:
-          "Run `openclaw doctor` interactively to review legacy gateway services and confirm supported cleanup.",
+          "Run `vasudev doctor` interactively to review legacy gateway services and confirm supported cleanup.",
       }),
     );
   });
@@ -2249,7 +2249,7 @@ describe("maybeScanExtraGatewayServices", () => {
     });
     expectNoteContaining("clawdbot-gateway.service", "Legacy gateway removed");
     expect(runtime.log).not.toHaveBeenCalledWith(
-      expect.stringContaining("Installing OpenClaw gateway next."),
+      expect.stringContaining("Installing Vasudev gateway next."),
     );
   });
 
@@ -2270,7 +2270,7 @@ describe("maybeScanExtraGatewayServices", () => {
       expectNoteContaining(LEGACY_MAC_LABEL, "Legacy gateway removed");
       expectNoNoteContaining(LEGACY_MAC_LABEL, "Legacy gateway cleanup skipped");
       expect(runtime.log).not.toHaveBeenCalledWith(
-        expect.stringContaining("Installing OpenClaw gateway next."),
+        expect.stringContaining("Installing Vasudev gateway next."),
       );
     },
   );
@@ -2298,7 +2298,7 @@ describe("maybeScanExtraGatewayServices", () => {
     );
     expectNoNoteContaining(LEGACY_MAC_LABEL, "Legacy gateway removed");
     expect(runtime.log).not.toHaveBeenCalledWith(
-      "Legacy gateway services removed. Installing OpenClaw gateway next.",
+      "Legacy gateway services removed. Installing Vasudev gateway next.",
     );
   });
 
@@ -2456,7 +2456,7 @@ describe("maybeScanExtraGatewayServices", () => {
     );
     expectNoNoteContaining(LEGACY_MAC_LABEL, "Legacy gateway removed");
     expect(runtime.log).not.toHaveBeenCalledWith(
-      "Legacy gateway services removed. Installing OpenClaw gateway next.",
+      "Legacy gateway services removed. Installing Vasudev gateway next.",
     );
   });
 
@@ -2482,7 +2482,7 @@ describe("maybeScanExtraGatewayServices", () => {
       );
       expect(mocks.uninstallLegacySystemdUnits).not.toHaveBeenCalled();
       expect(runtime.log).not.toHaveBeenCalledWith(
-        "Legacy gateway services removed. Installing OpenClaw gateway next.",
+        "Legacy gateway services removed. Installing Vasudev gateway next.",
       );
     });
   });

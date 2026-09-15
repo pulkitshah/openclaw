@@ -238,9 +238,9 @@ export async function snapshotWorktree(
   const filemodeArgs = process.platform === "win32" ? [] : ["-c", "core.filemode=true"];
   const env: NodeJS.ProcessEnv = {
     GIT_INDEX_FILE: path.join(temporaryDirectory, "index"),
-    GIT_AUTHOR_NAME: "OpenClaw",
+    GIT_AUTHOR_NAME: "Vasudev",
     GIT_AUTHOR_EMAIL: "openclaw@localhost",
-    GIT_COMMITTER_NAME: "OpenClaw",
+    GIT_COMMITTER_NAME: "Vasudev",
     GIT_COMMITTER_EMAIL: "openclaw@localhost",
   };
   const inventory = await collectSnapshotInventory(input);
@@ -309,7 +309,7 @@ export async function snapshotWorktree(
       "-p",
       inventory.head,
       "-m",
-      `OpenClaw worktree snapshot: ${input.reason}`,
+      `Vasudev worktree snapshot: ${input.reason}`,
     ],
     { env },
   );

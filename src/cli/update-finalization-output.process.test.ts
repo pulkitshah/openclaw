@@ -20,7 +20,7 @@ const fixture = fileURLToPath(
   new URL("./update-finalization-output.test-support.ts", import.meta.url),
 );
 const doctorDiagnostics = [
-  "OpenClaw doctor",
+  "Vasudev doctor",
   "Doctor panel diagnostic",
   "Doctor workspace diagnostic",
   "Doctor console diagnostic",
@@ -310,7 +310,7 @@ describe.each(["repair", "finalize"])("update %s process output", (command) => {
           expect(triageIndex, failure).toBeGreaterThan(result.stdout.indexOf(terminal));
           expect(promptIndex, failure).toBeGreaterThan(triageIndex);
           expect(guidanceIndex, failure).toBeGreaterThan(promptIndex);
-          expect(result.stdout.trimEnd().endsWith("openclaw triage --run"), failure).toBe(true);
+          expect(result.stdout.trimEnd().endsWith("vasudev triage --run"), failure).toBe(true);
         } else {
           expect(result.stdout.trimEnd().endsWith(terminal), failure).toBe(true);
         }

@@ -527,7 +527,7 @@ describe("qa scenario catalog causality", () => {
     }
 
     const marker = String(scenario.execution.config?.turnMarker);
-    const heartbeat = { allInputText: "[OpenClaw heartbeat poll]" };
+    const heartbeat = { allInputText: "[Vasudev heartbeat poll]" };
     const scenarioRequest = (suffix: string) => ({ allInputText: `${marker} ${suffix}` });
     const traces = new Map<string, unknown[]>([
       ["10", [heartbeat, scenarioRequest("baseline main")]],

@@ -19,7 +19,7 @@ afterEach(() => {
   closeOpenClawStateDatabaseForTest();
 });
 
-describe("OpenClaw state lease", () => {
+describe("Vasudev state lease", () => {
   it.each([undefined, "worker"] as const)(
     "releases ownership when a CLI exits with %s renewal",
     async (heartbeat) => {

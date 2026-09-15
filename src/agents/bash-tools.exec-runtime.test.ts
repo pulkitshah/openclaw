@@ -1001,7 +1001,7 @@ describe("runExecProcess PTY fallback", () => {
       }
       expect(event.type).toBe("exec.process.completed");
       // The payload stays untrusted, but exporters need the ambient trace context marked
-      // OpenClaw-owned or the exec span cannot be nested under the run that spawned it.
+      // Vasudev-owned or the exec span cannot be nested under the run that spawned it.
       expect(metadataByEvent.get(event)?.trusted).toBe(false);
       expect(metadataByEvent.get(event)?.trustedTraceContext).toBe(true);
       expect(event.target).toBe("host");

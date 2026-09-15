@@ -2,14 +2,14 @@
 doc-schema-version: 1
 summary: "Gateway HTTP hooks that let an external service wake an agent or submit a turn"
 read_when:
-  - Letting an external service call OpenClaw over HTTP
+  - Letting an external service call Vasudev over HTTP
   - Enabling, authenticating, and smoke-testing hook endpoints
   - Debugging a hook request status code
 title: "Inbound webhooks"
 sidebarTitle: "Inbound webhooks"
 ---
 
-Gateway HTTP hooks: how an external service calls OpenClaw to wake an agent or submit an agent turn. Part of the [Automations](/automation/cron-jobs) guide.
+Gateway HTTP hooks: how an external service calls Vasudev to wake an agent or submit an agent turn. Part of the [Automations](/automation/cron-jobs) guide.
 
 ## Webhooks
 
@@ -17,7 +17,7 @@ Gateway HTTP hooks let an external service wake an agent or submit an agent turn
 They are disabled by default. These endpoints are separate from [internal event
 hooks](/automation/hooks) (`HOOK.md` handlers) and the [Webhooks
 plugin](/plugins/webhooks), which manages TaskFlow records. They also differ from
-outbound automation webhook delivery: here, the external service calls OpenClaw.
+outbound automation webhook delivery: here, the external service calls Vasudev.
 
 ### Enable and test an agent hook
 

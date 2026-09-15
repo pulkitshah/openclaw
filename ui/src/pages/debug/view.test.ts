@@ -301,7 +301,7 @@ describe("renderDebug", () => {
         chinese.get("debug.security.info")?.replace("{count}", "2"),
       ].join(" · "),
     );
-    expect(command.textContent).toBe("openclaw security audit --deep");
+    expect(command.textContent).toBe("vasudev security audit --deep");
   });
 
   it("does not render Invalid Date for Date-invalid event timestamps", () => {

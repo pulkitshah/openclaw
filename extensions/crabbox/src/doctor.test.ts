@@ -78,7 +78,7 @@ describe("Crabbox worker doctor", () => {
           severity: "warning",
           target: "worker",
           requirement: "Crabbox 0.56.0 or newer",
-          fixHint: expect.stringContaining("openclaw doctor --fix"),
+          fixHint: expect.stringContaining("vasudev doctor --fix"),
         }),
       ]);
       expect(install).not.toHaveBeenCalled();

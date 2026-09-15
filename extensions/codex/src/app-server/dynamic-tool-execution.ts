@@ -107,7 +107,7 @@ function formatDynamicToolTimeoutDetails(params: {
 
   if (tool !== "process" || !isJsonObject(params.call.arguments)) {
     return {
-      responseMessage: `OpenClaw dynamic tool call timed out after ${params.timeoutMs}ms while running tool ${tool}.`,
+      responseMessage: `Vasudev dynamic tool call timed out after ${params.timeoutMs}ms while running tool ${tool}.`,
       consoleMessage: `codex dynamic tool timeout: tool=${tool} toolTimeoutMs=${params.timeoutMs}; per-tool-call watchdog, not session idle`,
       meta: baseMeta,
     };
@@ -130,7 +130,7 @@ function formatDynamicToolTimeoutDetails(params: {
       : " while waiting for the process tool";
 
   return {
-    responseMessage: `OpenClaw dynamic tool call timed out after ${params.timeoutMs}ms${responseTarget}. This is a tool RPC timeout, not a session idle timeout.`,
+    responseMessage: `Vasudev dynamic tool call timed out after ${params.timeoutMs}ms${responseTarget}. This is a tool RPC timeout, not a session idle timeout.`,
     consoleMessage: `codex process tool timeout:${actionPart}${sessionPart} toolTimeoutMs=${params.timeoutMs}${requestedPart}; per-tool-call watchdog, not session idle${retryHint}`,
     meta: {
       ...baseMeta,
@@ -230,7 +230,7 @@ export async function handleDynamicToolCallWithTimeout(params: {
     });
   };
   if (params.signal.aborted) {
-    const message = "OpenClaw dynamic tool call aborted before execution.";
+    const message = "Vasudev dynamic tool call aborted before execution.";
     const terminalReason = resolveCodexToolAbortTerminalReason(params.signal);
     params.onFallbackSelected?.();
     notifyFailedToolResult(message, terminalReason);
@@ -247,7 +247,7 @@ export async function handleDynamicToolCallWithTimeout(params: {
   let timedOut = false;
   let resolveAbort: ((response: CodexDynamicToolRuntimeResponse) => void) | undefined;
   const abortFromRun = () => {
-    const message = "OpenClaw dynamic tool call aborted.";
+    const message = "Vasudev dynamic tool call aborted.";
     const terminalReason = resolveCodexToolAbortTerminalReason(params.signal);
     params.onFallbackSelected?.();
     controller.abort(params.signal.reason ?? new Error(message));
@@ -301,7 +301,7 @@ export async function handleDynamicToolCallWithTimeout(params: {
     const terminalReason = params.signal.aborted
       ? resolveCodexToolAbortTerminalReason(params.signal)
       : resolveToolExecutionErrorKind(error);
-    const message = formatToolExecutionErrorMessage(error, "OpenClaw dynamic tool call failed.");
+    const message = formatToolExecutionErrorMessage(error, "Vasudev dynamic tool call failed.");
     notifyFailedToolResult(message, terminalReason);
     return finalizeTerminal(createFailedAfterPossibleDispatch(message, terminalReason));
   } finally {
@@ -311,7 +311,7 @@ export async function handleDynamicToolCallWithTimeout(params: {
     params.signal.removeEventListener("abort", abortFromRun);
     resolveAbort = undefined;
     if (!timedOut && !controller.signal.aborted) {
-      controller.abort(new Error("OpenClaw dynamic tool call finished."));
+      controller.abort(new Error("Vasudev dynamic tool call finished."));
     }
   }
 }
@@ -323,10 +323,10 @@ function readDynamicToolResponseText(response: CodexDynamicToolCallResponse): st
     )
     .join("\n")
     .trim();
-  return text || "OpenClaw dynamic tool call failed.";
+  return text || "Vasudev dynamic tool call failed.";
 }
 
-/** Strips OpenClaw-only metadata before sending a dynamic tool response to Codex. */
+/** Strips Vasudev-only metadata before sending a dynamic tool response to Codex. */
 export function toCodexDynamicToolProtocolResponse(
   response: CodexDynamicToolRuntimeResponse,
 ): CodexDynamicToolCallResponse {
@@ -515,7 +515,7 @@ export function resolveDynamicToolCallTimeoutMs(params: {
   ) {
     try {
       // Human entry owns a validated wait longer than ordinary tool execution.
-      // OpenClaw delegation uses that default for its ten-minute approval plus
+      // Vasudev delegation uses that default for its ten-minute approval plus
       // staging/application; it has no model-authored timeout override.
       const timeoutSeconds = params.call.tool === "openclaw" ? undefined : args?.timeoutSeconds;
       return (

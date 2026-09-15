@@ -628,7 +628,7 @@ describe("transactional setup migration import", () => {
     expect(report.items.filter((item) => item.id === "plugin:calendar")).toHaveLength(1);
     expect(report.items.find((item) => item.id === "plugin:calendar")?.status).toBe("warning");
     expect(report.warnings?.join("\n")).toContain(
-      "Retry only those steps with openclaw onboard --flow import --import-from claude",
+      "Retry only those steps with vasudev onboard --flow import --import-from claude",
     );
     expect(JSON.stringify(report)).not.toContain(".openclaw-migration-");
   });

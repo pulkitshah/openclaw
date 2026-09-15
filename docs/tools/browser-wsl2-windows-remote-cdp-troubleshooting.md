@@ -1,13 +1,13 @@
 ---
 summary: "Troubleshoot WSL2 Gateway + Windows Chrome remote CDP in layers"
 read_when:
-  - Running OpenClaw Gateway in WSL2 while Chrome lives on Windows
+  - Running Vasudev Gateway in WSL2 while Chrome lives on Windows
   - Seeing overlapping browser/control-ui errors across WSL2 and Windows
   - Deciding between host-local Chrome MCP and raw remote CDP in split-host setups
 title: "WSL2 + Windows + remote Chrome CDP troubleshooting"
 ---
 
-In the common split-host setup, OpenClaw Gateway runs inside WSL2, Chrome runs
+In the common split-host setup, Vasudev Gateway runs inside WSL2, Chrome runs
 on Windows, and browser control must cross the WSL2/Windows boundary. Several
 independent problems can surface at once (see
 [issue #39369](https://github.com/openclaw/openclaw/issues/39369)): CDP
@@ -40,7 +40,7 @@ host-local, not a WSL2-to-Windows bridge.
 - Windows opens the Control UI in a normal browser at `http://127.0.0.1:18789/`
 - Windows Chrome exposes a CDP endpoint on port `9222`
 - WSL2 can reach that Windows CDP endpoint
-- OpenClaw points a browser profile at the address reachable from WSL2
+- Vasudev points a browser profile at the address reachable from WSL2
 
 ## Critical rule for the Control UI
 
@@ -79,7 +79,7 @@ curl.exe http://127.0.0.1:9222/json/version
 curl.exe http://127.0.0.1:9222/json/list
 ```
 
-If this fails, diagnose the Windows listeners below. OpenClaw is not the
+If this fails, diagnose the Windows listeners below. Vasudev is not the
 problem yet.
 
 #### Diagnose IPv4 and IPv6 before changing portproxy
@@ -132,11 +132,11 @@ Good result:
 
 If this fails, Windows is not exposing the port to WSL2 yet, the address is
 wrong for the WSL2 side, or firewall/port-forwarding/proxying is missing. Fix
-that before touching OpenClaw config.
+that before touching Vasudev config.
 
 ### Layer 3: configure the correct browser profile
 
-Point OpenClaw at the address reachable from WSL2:
+Point Vasudev at the address reachable from WSL2:
 
 ```json5
 {
@@ -158,10 +158,10 @@ Notes:
 - use the WSL2-reachable address, not whatever only works on Windows
 - keep `attachOnly: true` for externally managed browsers
 - `cdpUrl` can be `http://`, `https://`, `ws://`, or `wss://`
-- use HTTP(S) when you want OpenClaw to discover `/json/version`
+- use HTTP(S) when you want Vasudev to discover `/json/version`
 - use WS(S) only when the browser provider gives you a direct DevTools
   socket URL
-- test the same URL with `curl` before expecting OpenClaw to succeed
+- test the same URL with `curl` before expecting Vasudev to succeed
 
 ### Layer 4: verify the Control UI layer separately
 
@@ -210,14 +210,14 @@ Good result:
 1. Windows: which of `127.0.0.1` or `[::1]` answers on `/json/version`, and
    does that listener belong to `chrome.exe`?
 2. WSL2: does `curl http://WINDOWS_HOST_OR_IP:9222/json/version` work?
-3. OpenClaw config: does `browser.profiles.<name>.cdpUrl` use that exact
+3. Vasudev config: does `browser.profiles.<name>.cdpUrl` use that exact
    WSL2-reachable address?
 4. Control UI: are you opening `http://127.0.0.1:18789/` instead of a LAN IP?
 5. Are you trying to use `existing-session` across WSL2 and Windows instead
    of raw remote CDP?
 
 Verify the Windows Chrome endpoint locally first, verify the same endpoint
-from WSL2 second, and only then debug OpenClaw config or Control UI auth.
+from WSL2 second, and only then debug Vasudev config or Control UI auth.
 
 ## Related
 

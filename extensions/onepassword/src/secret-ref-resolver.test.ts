@@ -387,7 +387,7 @@ process.stdout.write("not-a-real-value \\t");
       const tempDir = fixtureWorkspace.dir;
       const opPath = path.join(tempDir, "op");
       const logPath = path.join(tempDir, "op-args.json");
-      const nativeRef = "op://Personal/OpenClaw QA API Key/password?attribute=value%20one";
+      const nativeRef = "op://Personal/Vasudev QA API Key/password?attribute=value%20one";
       fs.writeFileSync(
         opPath,
         `#!${getTrustedNodePath()}

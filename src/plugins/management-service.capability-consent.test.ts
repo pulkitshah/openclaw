@@ -425,7 +425,7 @@ describe("managed plugin capability consent", () => {
         reviewToken: artifactReviewToken(record),
       },
       message: expect.stringContaining(
-        "Rerun the openclaw plugins install, enable, update, or reload command with --accept-capabilities after reviewing the plugin.",
+        "Rerun the vasudev plugins install, enable, update, or reload command with --accept-capabilities after reviewing the plugin.",
       ),
     });
     expect(mocks.replaceConfig).not.toHaveBeenCalled();

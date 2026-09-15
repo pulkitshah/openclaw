@@ -113,7 +113,7 @@ The repair/setup command for encrypted accounts. In order, it:
 - marks and cross-signs the current device
 - creates a server-side room-key backup if one does not already exist
 
-If the homeserver requires UIA to upload cross-signing keys, OpenClaw tries no-auth first, then `m.login.dummy`, then `m.login.password` (requires `channels.matrix.password`).
+If the homeserver requires UIA to upload cross-signing keys, Vasudev tries no-auth first, then `m.login.dummy`, then `m.login.password` (requires `channels.matrix.password`).
 
 Useful flags:
 
@@ -129,7 +129,7 @@ printf '%s\n' "$MATRIX_RECOVERY_KEY" | openclaw matrix verify backup restore --r
 
 `backup status` shows whether a server-side backup exists and whether this device can decrypt it. `backup restore` imports backed-up room keys into the local crypto store; omit `--recovery-key-stdin` if the recovery key is already on disk.
 
-OpenClaw reads prior edits to notify only newly mentioned recipients. If an edit reports that its history is not fully decrypted, restore the missing room keys with `backup restore`, then retry the edit. If those keys are unavailable, send a new message.
+Vasudev reads prior edits to notify only newly mentioned recipients. If an edit reports that its history is not fully decrypted, restore the missing room keys with `backup restore`, then retry the edit. If those keys are unavailable, send a new message.
 
 To replace a broken backup with a fresh baseline (accepts losing unrecoverable old history; can also recreate secret storage if the current backup secret is unloadable):
 
@@ -175,7 +175,7 @@ Without `--account <id>`, Matrix CLI commands use the implicit default account. 
   <Accordion title="Startup behavior">
     With `encryption: true`, `startupVerification` defaults to `"if-unverified"`. On startup an unverified device requests self-verification in another Matrix client, skipping duplicates and applying a cooldown (24 hours by default). Tune with `startupVerificationCooldownHours` or disable with `startupVerification: "off"`.
 
-    Startup also runs a conservative crypto bootstrap pass reusing the current secret storage and cross-signing identity. If bootstrap state is broken, OpenClaw attempts a guarded repair even without `channels.matrix.password`; if the homeserver requires password UIA, startup logs a warning and stays non-fatal. Already-owner-signed devices are preserved.
+    Startup also runs a conservative crypto bootstrap pass reusing the current secret storage and cross-signing identity. If bootstrap state is broken, Vasudev attempts a guarded repair even without `channels.matrix.password`; if the homeserver requires password UIA, startup logs a warning and stays non-fatal. Already-owner-signed devices are preserved.
 
     See [Matrix migration](/channels/matrix-migration) for the full upgrade flow.
 
@@ -184,14 +184,14 @@ Without `--account <id>`, Matrix CLI commands use the implicit default account. 
   <Accordion title="Verification notices">
     Matrix posts verification lifecycle notices into the strict DM verification room as `m.notice` messages: request, ready (with "Verify by emoji" guidance), start/completion, and SAS (emoji/decimal) details when available.
 
-    Incoming requests from another Matrix client are tracked and auto-accepted. For self-verification, OpenClaw starts the SAS flow automatically and confirms its own side once emoji verification is available - you still need to compare and confirm "They match" in your Matrix client.
+    Incoming requests from another Matrix client are tracked and auto-accepted. For self-verification, Vasudev starts the SAS flow automatically and confirms its own side once emoji verification is available - you still need to compare and confirm "They match" in your Matrix client.
 
     Verification system notices are not forwarded to the agent chat pipeline.
 
   </Accordion>
 
   <Accordion title="Deleted or invalid Matrix device">
-    If `verify status` says the current device is no longer listed on the homeserver, create a new OpenClaw Matrix device. For password login:
+    If `verify status` says the current device is no longer listed on the homeserver, create a new Vasudev Matrix device. For password login:
 
 ```bash
 openclaw matrix account add \
@@ -202,7 +202,7 @@ openclaw matrix account add \
   --device-name OpenClaw-Gateway
 ```
 
-    For token auth, create a fresh access token in your Matrix client or admin UI, then update OpenClaw:
+    For token auth, create a fresh access token in your Matrix client or admin UI, then update Vasudev:
 
 ```bash
 openclaw matrix account add \
@@ -216,7 +216,7 @@ openclaw matrix account add \
   </Accordion>
 
   <Accordion title="Device hygiene">
-    Old OpenClaw-managed devices can accumulate. List and prune:
+    Old Vasudev-managed devices can accumulate. List and prune:
 
 ```bash
 openclaw matrix devices list
@@ -228,9 +228,9 @@ openclaw matrix devices prune-stale
   <Accordion title="Crypto store">
     Matrix E2EE uses the official `matrix-js-sdk` Rust crypto path with `fake-indexeddb` as the IndexedDB shim. Crypto state persists to `crypto-idb-snapshot.json` (restrictive file permissions).
 
-    Encrypted runtime state lives under `~/.openclaw/matrix/accounts/<account>/<homeserver>__<user>/<token-hash>/` and includes the sync store, crypto store, recovery key, IDB snapshot, thread bindings, and startup verification state. When the token changes but the account identity stays the same, OpenClaw reuses the best existing root so prior state remains visible.
+    Encrypted runtime state lives under `~/.openclaw/matrix/accounts/<account>/<homeserver>__<user>/<token-hash>/` and includes the sync store, crypto store, recovery key, IDB snapshot, thread bindings, and startup verification state. When the token changes but the account identity stays the same, Vasudev reuses the best existing root so prior state remains visible.
 
-    A single older token-hash root can be a normal token-rotation continuity path. If OpenClaw logs `matrix: multiple populated token-hash storage roots detected`, inspect the account directory and archive stale sibling roots only after confirming the selected active root is healthy. Prefer moving stale roots into an `_archive/` directory over deleting them immediately.
+    A single older token-hash root can be a normal token-rotation continuity path. If Vasudev logs `matrix: multiple populated token-hash storage roots detected`, inspect the account directory and archive stale sibling roots only after confirming the selected active root is healthy. Prefer moving stale roots into an `_archive/` directory over deleting them immediately.
 
   </Accordion>
 </AccordionGroup>

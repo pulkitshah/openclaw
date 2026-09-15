@@ -4,7 +4,7 @@ import {
   type SessionParticipantIdentity,
 } from "./session-participant-identity.js";
 
-const invalidIdentity = "Session participant identity is invalid; run openclaw doctor --fix.";
+const invalidIdentity = "Session participant identity is invalid; run vasudev doctor --fix.";
 
 const validIdentities: SessionParticipantIdentity[] = [
   { type: "profile", id: "profile-1" },

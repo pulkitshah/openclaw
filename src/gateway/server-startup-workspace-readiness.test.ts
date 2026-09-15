@@ -184,8 +184,8 @@ describe("Gateway workspace migration readiness", () => {
             raw: JSON.stringify(nextConfig),
             baseHash: snapshot.hash,
           }),
-        ).rejects.toThrow("openclaw doctor --fix");
-        await expect(writeConfigFile(nextConfig)).rejects.toThrow("openclaw doctor --fix");
+        ).rejects.toThrow("vasudev doctor --fix");
+        await expect(writeConfigFile(nextConfig)).rejects.toThrow("vasudev doctor --fix");
         expect(await fs.readFile(state.configPath, "utf8")).toBe(originalBytes);
       } else {
         await state.writeConfig(nextConfig);
@@ -197,7 +197,7 @@ describe("Gateway workspace migration readiness", () => {
             { timeout: 5_000 },
           )
           .toBe(true);
-        expect(reloadError).toHaveBeenCalledWith(expect.stringContaining("openclaw doctor --fix"));
+        expect(reloadError).toHaveBeenCalledWith(expect.stringContaining("vasudev doctor --fix"));
         expect(JSON.parse(await fs.readFile(state.configPath, "utf8"))).toEqual(nextConfig);
       }
       expect(resolveAgentWorkspaceDir(getRuntimeConfig(), "main")).toBe(oldWorkspace);

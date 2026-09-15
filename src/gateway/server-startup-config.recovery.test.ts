@@ -487,7 +487,7 @@ describe("gateway startup config validation", () => {
     vi.mocked(configIo.readConfigFileSnapshot).mockResolvedValueOnce(invalidSnapshot);
 
     await expectStartupRejects(
-      `Invalid config at ${configPath}:\ngateway.mode: Expected 'local' or 'remote'\nRun "openclaw doctor --fix" to repair, then retry.\nIf startup is still blocked, inspect the adjacent .bak backup before restoring it manually.`,
+      `Invalid config at ${configPath}:\ngateway.mode: Expected 'local' or 'remote'\nRun "vasudev doctor --fix" to repair, then retry.\nIf startup is still blocked, inspect the adjacent .bak backup before restoring it manually.`,
     );
   });
 
@@ -511,7 +511,7 @@ describe("gateway startup config validation", () => {
 
     await expectStartupRejects(
       new RegExp(
-        'openclaw-startup-recovery\\.json:1 — gateway\\.mode: Invalid input \\(allowed: "local", "remote"\\), got: "nope".*Config was last written by OpenClaw 9999\\.1\\.1, but you are running',
+        'openclaw-startup-recovery\\.json:1 — gateway\\.mode: Invalid input \\(allowed: "local", "remote"\\), got: "nope".*Config was last written by Vasudev 9999\\.1\\.1, but you are running',
         "s",
       ),
     );
@@ -543,7 +543,7 @@ describe("gateway startup config validation", () => {
       `Invalid config at ${configPath}:\nplugins.slots.memory: plugin not found: source-only-pack\nThis is a plugin packaging issue, not a local config problem.\nUpdate or reinstall the plugin after the publisher ships compiled JavaScript, or disable/uninstall the plugin until then.`,
     );
     await start.catch((error: unknown) => {
-      expect(String(error)).not.toContain("openclaw doctor --fix");
+      expect(String(error)).not.toContain("vasudev doctor --fix");
     });
   });
 
@@ -572,7 +572,7 @@ describe("gateway startup config validation", () => {
     });
     vi.mocked(configIo.readConfigFileSnapshot).mockResolvedValueOnce(invalidSnapshot);
 
-    await expectStartupRejects('Run "openclaw doctor --fix" to repair, then retry.');
+    await expectStartupRejects('Run "vasudev doctor --fix" to repair, then retry.');
   });
 
   it.each(["Nix", "read-only"])("rejects legacy config entries in %s mode", async (mode) => {
@@ -616,7 +616,7 @@ describe("gateway startup config validation", () => {
         {
           path: "plugins.entries.feishu",
           message:
-            "plugin feishu: plugin requires OpenClaw >=2026.4.23, but this host is 2026.4.22; skipping load",
+            "plugin feishu: plugin requires Vasudev >=2026.4.23, but this host is 2026.4.22; skipping load",
         },
       ],
     });

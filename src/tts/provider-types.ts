@@ -135,7 +135,7 @@ export type SpeechListVoicesRequest = {
   timeoutMs?: number;
 };
 
-/** Provider hook input for resolving normalized config from raw OpenClaw config. */
+/** Provider hook input for resolving normalized config from raw Vasudev config. */
 export type SpeechProviderResolveConfigContext = {
   cfg: OpenClawConfig;
   rawConfig: Record<string, unknown>;

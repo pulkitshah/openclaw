@@ -1,12 +1,12 @@
 ---
 summary: "Twilio SMS/MMS setup, access controls, webhooks, and delivery status"
 read_when:
-  - You want to connect OpenClaw to SMS or MMS through Twilio
+  - You want to connect Vasudev to SMS or MMS through Twilio
   - You need SMS/MMS webhook or allowlist setup
 title: "SMS"
 ---
 
-OpenClaw receives and sends SMS/MMS through a Twilio phone number or Messaging Service. The Gateway registers a webhook route (default `/webhooks/sms`), validates Twilio request signatures by default, sends replies through Twilio's Messages API, and records outbound delivery callbacks.
+Vasudev receives and sends SMS/MMS through a Twilio phone number or Messaging Service. The Gateway registers a webhook route (default `/webhooks/sms`), validates Twilio request signatures by default, sends replies through Twilio's Messages API, and records outbound delivery callbacks.
 
 Status: official plugin, installed separately. SMS text and MMS attachments, direct messages only.
 
@@ -29,14 +29,14 @@ You need:
 - The official SMS plugin installed with `openclaw plugins install @openclaw/sms`.
 - A Twilio account with an SMS-capable phone number, or a Twilio Messaging Service. MMS requires an MMS-capable sender; native MMS delivery also depends on the destination country and carrier.
 - The Twilio Account SID and Auth Token.
-- A public HTTPS URL that reaches your OpenClaw Gateway.
+- A public HTTPS URL that reaches your Vasudev Gateway.
 - A sender policy choice: `pairing` (default) for private use, `allowlist` for preapproved phone numbers, or `open` only for intentionally public SMS access.
 
 One Twilio number can serve both SMS and [Voice Call](/plugins/voice-call) if it has both capabilities. The SMS webhook and Voice webhook are configured separately in Twilio and use separate Gateway paths; this page only covers the SMS webhook.
 
 ## US A2P / 10DLC delivery
 
-SMS and MMS sent by an application from a US local 10DLC number to US recipients require US A2P 10DLC registration. Toll-free numbers and short codes use separate verification processes. This is separate from OpenClaw channel setup: webhook signature validation, pairing, and outbound credentials can all be correct while carriers still block or filter delivery.
+SMS and MMS sent by an application from a US local 10DLC number to US recipients require US A2P 10DLC registration. Toll-free numbers and short codes use separate verification processes. This is separate from Vasudev channel setup: webhook signature validation, pairing, and outbound credentials can all be correct while carriers still block or filter delivery.
 
 Before relying on a US 10DLC sender, confirm in Twilio that:
 
@@ -44,14 +44,14 @@ Before relying on a US 10DLC sender, confirm in Twilio that:
 - A Primary or Secondary Compliance Profile is approved in Twilio Trust Hub.
 - The Brand and Campaign are registered and approved.
 - The Twilio phone number has A2P status `REGISTERED` and is in the Sender Pool of the Messaging Service associated with the approved Campaign, or the `messagingServiceSid` you configure here is that approved service.
-- The Campaign describes the real OpenClaw message use case and includes matching sample messages.
+- The Campaign describes the real Vasudev message use case and includes matching sample messages.
 - Every website, keyword, offline, paper, or QR-code opt-in path is described completely. If the flow is not publicly visible, provide publicly accessible screenshots or other evidence.
 - Messaging consent is voluntary and separate from required service terms, account creation, or purchase, with the privacy policy, terms, frequency, rates, and opt-out disclosures Twilio requires.
 - You retain proof of consent, identify the sender, honor standard one-step opt-out keywords, and do not buy, rent, sell, or transfer consent. After an opt-out, send only one confirmation unless the recipient opts in again.
 
 Use Twilio as the source of truth for current requirements: [A2P 10DLC overview](https://www.twilio.com/docs/messaging/compliance/a2p-10dlc), [registration quickstart](https://www.twilio.com/docs/messaging/compliance/a2p-10dlc/quickstart), and [required business and campaign information](https://www.twilio.com/docs/messaging/compliance/a2p-10dlc/collect-business-info). This section is setup guidance, not legal advice.
 
-If Twilio rejects the Brand or Campaign during registration review, fix that in Twilio before using the sender with OpenClaw. [`30909`](https://www.twilio.com/docs/api/errors/30909) means the message flow or call to action is incomplete or unverifiable. [`30923`](https://www.twilio.com/docs/api/errors/30923) means messaging consent is required as a condition of service, account creation, or purchase, or is bundled with service terms. [`30893`](https://www.twilio.com/docs/api/errors/30893) means the sample messages do not match the declared use case.
+If Twilio rejects the Brand or Campaign during registration review, fix that in Twilio before using the sender with Vasudev. [`30909`](https://www.twilio.com/docs/api/errors/30909) means the message flow or call to action is incomplete or unverifiable. [`30923`](https://www.twilio.com/docs/api/errors/30923) means messaging consent is required as a condition of service, account creation, or purchase, or is bundled with service terms. [`30893`](https://www.twilio.com/docs/api/errors/30893) means the sample messages do not match the declared use case.
 
 ## Quick Setup
 
@@ -112,7 +112,7 @@ https://gateway.example.com/webhooks/sms
   </Step>
 
   <Step title="Expose the exact SMS webhook path">
-    Your public URL must route the SMS path to the Gateway process (default port `18789`). The same path serves inbound Twilio webhooks and short-lived, tokenized attachments when OpenClaw sends MMS. If you use Tailscale Funnel for local testing, expose `/webhooks/sms` explicitly:
+    Your public URL must route the SMS path to the Gateway process (default port `18789`). The same path serves inbound Twilio webhooks and short-lived, tokenized attachments when Vasudev sends MMS. If you use Tailscale Funnel for local testing, expose `/webhooks/sms` explicitly:
 
 ```bash
 tailscale funnel --bg --set-path /webhooks/sms http://127.0.0.1:<gateway-port>/webhooks/sms
@@ -218,7 +218,7 @@ Then enable the channel in config:
 
 ### SecretRef auth token
 
-`authToken` can be a [SecretRef](/gateway/secrets) (`source: "env" | "file" | "exec" | "store"`). Use this when the Gateway should resolve the Twilio Auth Token from the OpenClaw secrets runtime instead of storing plaintext config:
+`authToken` can be a [SecretRef](/gateway/secrets) (`source: "env" | "file" | "exec" | "store"`). Use this when the Gateway should resolve the Twilio Auth Token from the Vasudev secrets runtime instead of storing plaintext config:
 
 ```json5
 {
@@ -322,7 +322,7 @@ The CLI requires an explicit `--target`. `defaultTo` is for automation and agent
 
 Agent replies from inbound SMS conversations automatically go back to the sender through the configured Twilio sender.
 
-SMS output is plain text. OpenClaw strips markdown, flattens fenced code blocks, rewrites links as `label (url)`, and splits long replies into chunks of at most `textChunkLimit` characters (default 1500) before sending them through Twilio.
+SMS output is plain text. Vasudev strips markdown, flattens fenced code blocks, rewrites links as `label (url)`, and splits long replies into chunks of at most `textChunkLimit` characters (default 1500) before sending them through Twilio.
 
 ### Sending MMS
 
@@ -336,7 +336,7 @@ openclaw message send \
   --media ./photo.jpg
 ```
 
-OpenClaw loads the attachment through the shared outbound-media policy, stores it temporarily in plugin-scoped SQLite state, and gives Twilio a tokenized HTTPS URL on the configured `publicWebhookUrl` path. Media-only sends are supported.
+Vasudev loads the attachment through the shared outbound-media policy, stores it temporarily in plugin-scoped SQLite state, and gives Twilio a tokenized HTTPS URL on the configured `publicWebhookUrl` path. Media-only sends are supported.
 
 `channels.sms.mediaMaxMb` limits each inbound and outbound attachment in MiB.
 The selected account's `mediaMaxMb` overrides the channel root, then
@@ -344,15 +344,15 @@ The selected account's `mediaMaxMb` overrides the channel root, then
 does not replace Twilio's total-message or media-type ceilings below. Outbound
 images may be optimized before sending.
 
-The generated media URL is a bearer capability that expires after 10 minutes. Treat its full query string as a secret: configure reverse-proxy and access logs to omit the query string or redact every query value. OpenClaw Gateway route diagnostics record only the pathname, but cannot control upstream proxy logs.
+The generated media URL is a bearer capability that expires after 10 minutes. Treat its full query string as a secret: configure reverse-proxy and access logs to omit the query string or redact every query value. Vasudev Gateway route diagnostics record only the pathname, but cannot control upstream proxy logs.
 
-Outbound OpenClaw deliveries attach one media item. OpenClaw caps JPEG, JPG, PNG, and GIF attachments at 5,000,000 bytes; other supported media types are capped at 500,000 bytes. `application/vcard` attachments must be media-only; Twilio does not accept them with a caption. Destination carriers may enforce smaller limits or reject unsupported formats. Twilio must be able to fetch the generated URL without HTTP authentication, so `publicWebhookUrl` cannot contain embedded userinfo; query-based reverse-proxy tokens are preserved.
+Outbound Vasudev deliveries attach one media item. Vasudev caps JPEG, JPG, PNG, and GIF attachments at 5,000,000 bytes; other supported media types are capped at 500,000 bytes. `application/vcard` attachments must be media-only; Twilio does not accept them with a caption. Destination carriers may enforce smaller limits or reject unsupported formats. Twilio must be able to fetch the generated URL without HTTP authentication, so `publicWebhookUrl` cannot contain embedded userinfo; query-based reverse-proxy tokens are preserved.
 
-For incoming MMS, OpenClaw processes at most 10 attachments and downloads at most 5 MiB total. Any additional or unavailable attachments produce a visible unavailable-media notice instead of discarding the signed message or silently delivering an empty turn. Downloads happen only after sender authorization, with Twilio authentication and an `api.twilio.com` host restriction.
+For incoming MMS, Vasudev processes at most 10 attachments and downloads at most 5 MiB total. Any additional or unavailable attachments produce a visible unavailable-media notice instead of discarding the signed message or silently delivering an empty turn. Downloads happen only after sender authorization, with Twilio authentication and an `api.twilio.com` host restriction.
 
 ### Delivery status
 
-After each successful outbound send, OpenClaw stores the initial Twilio API status when the response includes one. When `publicWebhookUrl` is valid, every outbound message also gives Twilio a derived `StatusCallback` URL that preserves its base URL and connection overrides while adding the required delivery-callback retry settings. Invalid or oversized derived URLs are omitted.
+After each successful outbound send, Vasudev stores the initial Twilio API status when the response includes one. When `publicWebhookUrl` is valid, every outbound message also gives Twilio a derived `StatusCallback` URL that preserves its base URL and connection overrides while adding the required delivery-callback retry settings. Invalid or oversized derived URLs are omitted.
 
 Later delivery callbacks update the same plugin-scoped SQLite record. Semantic retries are deduplicated, older transitions cannot regress a terminal state, and conflicting terminal observations are reported as `conflicted` instead of choosing a false winner. Records contain message SIDs, status/error metadata, and timestamps, but not message bodies or phone-number addresses. Each record is retained for up to 30 days after its latest observation, subject to the plugin-wide 5,000-message cap and oldest-record eviction.
 
@@ -394,7 +394,7 @@ The first message should create a pairing request. The second message should rec
 
 ## Webhook security
 
-By default, OpenClaw validates `X-Twilio-Signature` using `publicWebhookUrl` and `authToken`. Keep the endpoint portion of `publicWebhookUrl` byte-for-byte aligned with the URL configured in Twilio, including scheme, host, path, and query string. OpenClaw excludes Twilio [connection-override](https://www.twilio.com/docs/usage/webhooks/webhooks-connection-overrides) fragments (`#...`) from signature computation, as Twilio requires.
+By default, Vasudev validates `X-Twilio-Signature` using `publicWebhookUrl` and `authToken`. Keep the endpoint portion of `publicWebhookUrl` byte-for-byte aligned with the URL configured in Twilio, including scheme, host, path, and query string. Vasudev excludes Twilio [connection-override](https://www.twilio.com/docs/usage/webhooks/webhooks-connection-overrides) fragments (`#...`) from signature computation, as Twilio requires.
 
 The webhook route also enforces, independent of signature validation:
 
@@ -403,14 +403,14 @@ The webhook route also enforces, independent of signature validation:
 - Signed delivery callbacks are classified before inbound sender quotas and commit to bounded, plugin-scoped SQLite state before HTTP 200. They do not consume inbound dispatch quotas: those quotas protect raw inbound message admission and downstream agent dispatch. Delivery persistence instead has a separate 3,000-callback-per-minute safety fuse per SMS account route and returns HTTP 503 without the durable-acceptance marker above that limit. This is fail-closed overload protection, not lossless backpressure. With signature validation disabled, delivery callbacks first use the stricter 30/minute resolved-client-address cap before persistence.
 - Dispatchable callback rate limit of 30 accepted callbacks per minute per SMS account, webhook route, and validated sender after body parsing and signature validation pass (HTTP 429 above that). The sender key is the canonicalized, signature-covered `From` value, so equivalent SMS/RCS address forms share one budget, one flooding sender exhausts only its own budget, and callbacks from other senders behind Twilio's shared egress addresses remain dispatchable. Invalid or missing sender values share a separate empty-sender budget.
 - Aggregate validated-callback ceiling of 300 accepted callbacks per minute per SMS account and webhook route. This bounds durable-ingress pressure from many distinct signed senders without recreating shared-egress cross-throttling. If signature validation is disabled, nothing authenticates `From`; the stricter 30/min resolved-client-address dispatch cap applies instead of the validated sender and aggregate policy.
-- Client addresses are resolved through the shared Gateway trusted-proxy rules. If [`gateway.trustedProxies`](/gateway/config-gateway) contains the reverse proxy that forwards Twilio callbacks, OpenClaw keys the address-based limits from the forwarded client address; otherwise it falls back to the direct socket address.
+- Client addresses are resolved through the shared Gateway trusted-proxy rules. If [`gateway.trustedProxies`](/gateway/config-gateway) contains the reverse proxy that forwards Twilio callbacks, Vasudev keys the address-based limits from the forwarded client address; otherwise it falls back to the direct socket address.
 - Inbound payloads must carry a nonempty `AccountSid` that exactly matches the configured `accountSid`. Direct-number callbacks must target the configured `fromNumber`; Messaging Service callbacks must carry the configured `MessagingServiceSid`. The raw callback is first committed to the durable ingress queue and acknowledged; an identity mismatch is then marked as a permanent invalid-payload failure during drain and is never dispatched or allowed to download media.
 - Delivery callbacks with a missing or different `AccountSid` are acknowledged, logged, and intentionally not stored.
 - Replayed `MessageSid` values are deduplicated by the durable ingress queue. Completed-message tombstones are retained for 24 hours (up to 20,000 entries per account); permanent-failure tombstones are retained for 30 days (up to 1,000 entries).
 - Delivery observations use a semantic, non-PII fingerprint of source, message SID, normalized status, error code, and carrier completion date. Multiple states for one outbound message remain distinct. Records expire 30 days after their latest observation, while the 5,000-message cap can evict older records sooner.
 - Request bodies over 32 KB are rejected.
 
-OpenClaw adds the `5xx` retry policy and a retry count to generated delivery `StatusCallback` URLs so Twilio can retry a failed SQLite commit or an overloaded delivery-state route. Twilio does not retry HTTP 429 by default. The `#rp=4xx` and `#rp=all` connection overrides opt into 4xx retries, but Twilio caps the complete retry transaction at 15 seconds. Neither a 429 nor a delivery-state 503 guarantees later recovery; use reconciliation when final-state completeness matters. Missed intermediate transitions cannot be reconstructed.
+Vasudev adds the `5xx` retry policy and a retry count to generated delivery `StatusCallback` URLs so Twilio can retry a failed SQLite commit or an overloaded delivery-state route. Twilio does not retry HTTP 429 by default. The `#rp=4xx` and `#rp=all` connection overrides opt into 4xx retries, but Twilio caps the complete retry transaction at 15 seconds. Neither a 429 nor a delivery-state 503 guarantees later recovery; use reconciliation when final-state completeness matters. Missed intermediate transitions cannot be reconstructed.
 
 For completeness-sensitive workflows, persist Message SIDs and reconcile stale nonterminal records by polling Twilio's Message resource. Twilio's [delivery logging guidance](https://www.twilio.com/docs/messaging/guides/outbound-message-logging) recommends polling when a message has not reached `delivered` or `undelivered` within 12 hours because a status callback may not have arrived. The SMS fallback URL is not a substitute: it only handles failures retrieving or executing the [inbound SMS TwiML webhook](https://www.twilio.com/docs/phone-numbers/api/incomingphonenumber-resource).
 
@@ -457,7 +457,7 @@ Each account must use a distinct `webhookPath`; the Gateway refuses to register 
 
 ## Troubleshooting
 
-### Twilio returns 403 or OpenClaw rejects the webhook
+### Twilio returns 403 or Vasudev rejects the webhook
 
 Check that `publicWebhookUrl` exactly matches the URL configured in Twilio, including scheme, host, path, and query string. Twilio signs the public URL string, so proxy rewrites and alternate hostnames can break signature validation.
 
@@ -482,7 +482,7 @@ Confirm `accountSid`, `authToken`, and either `fromNumber` or `messagingServiceS
 
 ### Twilio accepts the send but delivery later fails
 
-Start with OpenClaw's stored delivery observation:
+Start with Vasudev's stored delivery observation:
 
 ```bash
 openclaw channels status --channel sms --probe --json

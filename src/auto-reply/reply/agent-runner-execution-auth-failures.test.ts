@@ -42,7 +42,7 @@ describe("executeAgentTurn: authentication failures", () => {
     expect(result.kind).toBe("final");
     if (result.kind === "final") {
       expect(result.payload.text).toBe(
-        "⚠️ Your model provider needs a new login. Send `/login openai` from a private chat or Control UI session. Where shown, you can also select **Sign in**. You can also re-auth with `openclaw models auth login --provider openai` on the gateway.",
+        "⚠️ Your model provider needs a new login. Send `/login openai` from a private chat or Control UI session. Where shown, you can also select **Sign in**. You can also re-auth with `vasudev models auth login --provider openai` on the gateway.",
       );
       expect(result.payload.presentation).toEqual(PROVIDER_LOGIN_PRESENTATION);
     }
@@ -88,7 +88,7 @@ describe("executeAgentTurn: authentication failures", () => {
     expect(result.kind).toBe("final");
     if (result.kind === "final") {
       expect(result.payload.text).toBe(
-        "⚠️ Your model provider needs a new login. Send `/login openai` from a private chat or Control UI session. Where shown, you can also select **Sign in**. You can also re-auth with `openclaw models auth login --provider openai` on the gateway.",
+        "⚠️ Your model provider needs a new login. Send `/login openai` from a private chat or Control UI session. Where shown, you can also select **Sign in**. You can also re-auth with `vasudev models auth login --provider openai` on the gateway.",
       );
       expect(result.payload.presentation).toEqual(PROVIDER_LOGIN_PRESENTATION);
     }
@@ -109,7 +109,7 @@ describe("executeAgentTurn: authentication failures", () => {
     expect(result.kind).toBe("final");
     if (result.kind === "final") {
       expect(result.payload.text).toBe(
-        "⚠️ Your model provider needs a new login. Send `/login openai` from a private chat or Control UI session. Where shown, you can also select **Sign in**. You can also re-auth with `openclaw models auth login --provider openai --profile-id 'openai:user@example.com'` on the gateway.",
+        "⚠️ Your model provider needs a new login. Send `/login openai` from a private chat or Control UI session. Where shown, you can also select **Sign in**. You can also re-auth with `vasudev models auth login --provider openai --profile-id 'openai:user@example.com'` on the gateway.",
       );
       expect(result.payload.presentation).toEqual(PROVIDER_LOGIN_PRESENTATION);
     }
@@ -205,7 +205,7 @@ describe("executeAgentTurn: authentication failures", () => {
 
     expect(result.kind).toBe("final");
     if (result.kind === "final") {
-      expect(result.payload.text).toContain("openclaw models auth login --provider openai");
+      expect(result.payload.text).toContain("vasudev models auth login --provider openai");
       expect(result.payload.text).not.toContain("user@example.com");
       expect(result.payload.presentation).toEqual(PROVIDER_LOGIN_PRESENTATION);
     }
@@ -288,7 +288,7 @@ describe("executeAgentTurn: authentication failures", () => {
     expect(result.kind).toBe("final");
     if (result.kind === "final") {
       expect(result.payload.text).toBe(
-        "⚠️ Your model provider needs a new login. Send `/login anthropic` from a private chat or Control UI session. Where shown, you can also select **Sign in**. You can also re-auth with `openclaw models auth login --provider anthropic` on the gateway.",
+        "⚠️ Your model provider needs a new login. Send `/login anthropic` from a private chat or Control UI session. Where shown, you can also select **Sign in**. You can also re-auth with `vasudev models auth login --provider anthropic` on the gateway.",
       );
       expect(result.payload.presentation).toEqual(providerLoginPresentation("/login anthropic"));
     }
@@ -323,7 +323,7 @@ describe("executeAgentTurn: authentication failures", () => {
     expect(result.kind).toBe("final");
     if (result.kind === "final") {
       expect(result.payload.text).toBe(
-        "⚠️ Your model provider needs a new login. Send `/login` from a private chat or Control UI session. Where shown, you can also select **Sign in**. You can also re-auth with `claude auth login && openclaw models auth login --provider anthropic --method cli` on the gateway.",
+        "⚠️ Your model provider needs a new login. Send `/login` from a private chat or Control UI session. Where shown, you can also select **Sign in**. You can also re-auth with `claude auth login && vasudev models auth login --provider anthropic --method cli` on the gateway.",
       );
       expect(result.payload.presentation).toEqual(providerLoginPresentation("/login"));
     }
@@ -348,7 +348,7 @@ describe("executeAgentTurn: authentication failures", () => {
     expect(result.kind).toBe("final");
     if (result.kind === "final") {
       expect(result.payload.text).toBe(
-        "⚠️ Your model provider needs a new login. Send `/login` from a private chat or Control UI session. Where shown, you can also select **Sign in**. You can also re-auth with `claude auth login && openclaw models auth login --provider anthropic --method cli` on the gateway.",
+        "⚠️ Your model provider needs a new login. Send `/login` from a private chat or Control UI session. Where shown, you can also select **Sign in**. You can also re-auth with `claude auth login && vasudev models auth login --provider anthropic --method cli` on the gateway.",
       );
     }
   });
@@ -369,7 +369,7 @@ describe("executeAgentTurn: authentication failures", () => {
     expect(result.kind).toBe("final");
     if (result.kind === "final") {
       expect(result.payload.text).toBe(
-        "⚠️ Your model provider needs a new login. Send `/login` from a private chat or Control UI session. Where shown, you can also select **Sign in**. You can also re-auth with `claude auth login && openclaw models auth login --provider anthropic --method cli` on the gateway.",
+        "⚠️ Your model provider needs a new login. Send `/login` from a private chat or Control UI session. Where shown, you can also select **Sign in**. You can also re-auth with `claude auth login && vasudev models auth login --provider anthropic --method cli` on the gateway.",
       );
     }
   });
@@ -409,7 +409,7 @@ describe("executeAgentTurn: authentication failures", () => {
     expect(result.kind).toBe("final");
     if (result.kind === "final") {
       expect(result.payload.text).toBe(
-        '⚠️ Missing API key for provider "openai". Run `openclaw doctor --fix` to repair stale OpenAI model/session routes, restart the gateway if doctor asks, then try again. If doctor has nothing to repair or the error persists, re-auth with `openclaw models auth login --provider openai` or run `openclaw configure`.',
+        '⚠️ Missing API key for provider "openai". Run `vasudev doctor --fix` to repair stale OpenAI model/session routes, restart the gateway if doctor asks, then try again. If doctor has nothing to repair or the error persists, re-auth with `vasudev models auth login --provider openai` or run `vasudev configure`.',
       );
     }
   });
@@ -431,7 +431,7 @@ describe("executeAgentTurn: authentication failures", () => {
     expect(result.kind).toBe("final");
     if (result.kind === "final") {
       expect(result.payload.text).toContain("Couldn't sign in to openai.");
-      expect(result.payload.text).toContain("openclaw configure");
+      expect(result.payload.text).toContain("vasudev configure");
       expect(result.payload.text).toContain("(invalid_grant)");
       expect(result.payload.text).not.toContain("Auth profile failover exhausted");
     }
@@ -456,7 +456,7 @@ describe("executeAgentTurn: authentication failures", () => {
     expect(result.kind).toBe("final");
     if (result.kind === "final") {
       expect(result.payload.text).toBe(
-        "The selected auth profile is unavailable in this agent's OpenClaw credential store. Import or migrate that credential into the agent, select another configured profile, or run `openclaw configure`, then retry.",
+        "The selected auth profile is unavailable in this agent's Vasudev credential store. Import or migrate that credential into the agent, select another configured profile, or run `vasudev configure`, then retry.",
       );
       expect(result.payload.text).not.toContain("openai:private");
       expect(result.payload.text).not.toContain("arbitrary plugin detail");
@@ -483,7 +483,7 @@ describe("executeAgentTurn: authentication failures", () => {
       expect(result.payload.text).toContain("Couldn't reach openai");
       expect(result.payload.text).toContain("messages must alternate roles");
       expect(result.payload.text).not.toContain("models auth login");
-      expect(result.payload.text).not.toContain("openclaw configure");
+      expect(result.payload.text).not.toContain("vasudev configure");
     }
   });
 
@@ -502,7 +502,7 @@ describe("executeAgentTurn: authentication failures", () => {
     expect(result.kind).toBe("final");
     if (result.kind === "final") {
       expect(result.payload.text).toBe(
-        '⚠️ Missing API key for provider "openai". Run `openclaw doctor --fix` to repair stale OpenAI model/session routes, restart the gateway if doctor asks, then try again. If doctor has nothing to repair or the error persists, re-auth with `openclaw models auth login --provider openai` or run `openclaw configure`.',
+        '⚠️ Missing API key for provider "openai". Run `vasudev doctor --fix` to repair stale OpenAI model/session routes, restart the gateway if doctor asks, then try again. If doctor has nothing to repair or the error persists, re-auth with `vasudev models auth login --provider openai` or run `vasudev configure`.',
       );
     }
   });
@@ -538,7 +538,7 @@ describe("executeAgentTurn: authentication failures", () => {
     expect(result.kind).toBe("final");
     if (result.kind === "final") {
       expect(result.payload.text).toBe(
-        "⚠️ Your model provider needs a new login. Send `/login` from a private chat or Control UI session. Where shown, you can also select **Sign in**. You can also re-auth with `openclaw models auth login` on the gateway.",
+        "⚠️ Your model provider needs a new login. Send `/login` from a private chat or Control UI session. Where shown, you can also select **Sign in**. You can also re-auth with `vasudev models auth login` on the gateway.",
       );
       expect(result.payload.presentation).toEqual(providerLoginPresentation("/login"));
     }

@@ -24,7 +24,7 @@ describe("handleCronCliError", () => {
     expect(() => handleCronCliError(error)).toThrow("exit 1");
     expect(errorOutput).toHaveBeenCalledWith(
       expect.stringContaining(
-        "Automation not found: missing-job. Run `openclaw cron list` to see recent automation ids.",
+        "Automation not found: missing-job. Run `vasudev cron list` to see recent automation ids.",
       ),
     );
     errorOutput.mockRestore();
@@ -40,7 +40,7 @@ describe("handleCronCliError", () => {
         details: { code: "CRON_JOB_NOT_FOUND", jobId: "missing-job" },
       }),
       message:
-        "Automation not found: missing-job. Run `openclaw cron list` to see recent automation ids.",
+        "Automation not found: missing-job. Run `vasudev cron list` to see recent automation ids.",
     },
     {
       label: "local validation failure",
@@ -71,7 +71,7 @@ describe("handleCronCliError", () => {
         }).join("\n");
         expect(stderr).toContain(message);
         expect(stderr).not.toContain("Could not start the CLI.");
-        expect(stderr).not.toContain("openclaw doctor");
+        expect(stderr).not.toContain("vasudev doctor");
         expect(stderr).not.toContain("OPENCLAW_DEBUG");
       } finally {
         process.argv = argv;
@@ -148,7 +148,7 @@ describe("handleCronCliError", () => {
         error: thrown,
       }).join("\n");
       expect(stderr).toContain("The CLI command failed.");
-      expect(stderr).toContain("openclaw doctor");
+      expect(stderr).toContain("vasudev doctor");
       expect(stderr.includes("Stack:")).toBe(debug);
       expect(formatCliJsonFailure(thrown).error.message.includes("Runtime load failed")).toBe(
         debug,

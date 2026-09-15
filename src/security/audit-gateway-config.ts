@@ -264,7 +264,7 @@ export function collectGatewayConfigFindings(
       detail:
         "mcp.apps.enabled=true allows configured MCP servers to provide interactive HTML. Views are CSP-restricted and origin-isolated, but they can call app-visible tools on their owning MCP server while the session runtime remains active.",
       remediation:
-        "Keep this enabled only for MCP servers you trust. Disable with `openclaw config set mcp.apps.enabled false --strict-json` when it is not needed.",
+        "Keep this enabled only for MCP servers you trust. Disable with `vasudev config set mcp.apps.enabled false --strict-json` when it is not needed.",
     });
   }
 
@@ -311,7 +311,7 @@ export function collectGatewayConfigFindings(
         detail: `The selected Gateway ${credential} is a known non-secret value. Gateway startup rejects it.`,
         remediation:
           credential === "token"
-            ? "Run `openclaw doctor --fix --generate-gateway-token` for an inline token; otherwise rotate its external secret source. Restart the Gateway afterward."
+            ? "Run `vasudev doctor --fix --generate-gateway-token` for an inline token; otherwise rotate its external secret source. Restart the Gateway afterward."
             : "Generate a real secret (for example, `openssl rand -hex 32`) and update OPENCLAW_GATEWAY_PASSWORD or gateway.auth.password (or its external source). Restart the Gateway afterward.",
       });
     } else if (value && value.length < 24) {

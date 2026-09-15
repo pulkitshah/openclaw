@@ -42,8 +42,8 @@ function buildBackupDoctorHint(params: {
     latestOk
       ? "The newest successful backup is more than 14 days old."
       : "No successful backup is recorded.",
-    `Create one now with ${formatCliCommand("openclaw backup create")}.`,
-    `Schedule versioned backups with ${formatCliCommand("openclaw backup enable --repository <dir>")}.`,
+    `Create one now with ${formatCliCommand("vasudev backup create")}.`,
+    `Schedule versioned backups with ${formatCliCommand("vasudev backup enable --repository <dir>")}.`,
   ].join("\n");
 }
 

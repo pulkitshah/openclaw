@@ -163,7 +163,7 @@ export async function convergeUpdatePlugins(params: {
             reason: "post-core-update-failed",
           },
           detail:
-            "The installed target could not resume plugin convergence. Run openclaw update using the installed target executable.",
+            "The installed target could not resume plugin convergence. Run vasudev update using the installed target executable.",
         };
       }
 

@@ -106,7 +106,7 @@ function canonicalizeSystemAgentTurnStateForResume(
 }
 
 function canonicalizeBundleMcpConfigForResume(config: BundleMcpConfig): BundleMcpConfig {
-  // The OpenClaw loopback MCP port changes across runs. Replace it before
+  // The Vasudev loopback MCP port changes across runs. Replace it before
   // hashing so resume compatibility tracks config shape, not ephemeral ports.
   const canonicalServers = Object.fromEntries(
     Object.entries(config.mcpServers).map(([name, server]) => {
@@ -347,7 +347,7 @@ export async function prepareCliBundleMcpConfig(params: {
   additionalConfig?: BundleMcpConfig;
   /**
    * Serve exactly these servers, skipping user/plugin/additional merges.
-   * Ring-zero OpenClaw runs use this so the CLI harness sees only the
+   * Ring-zero Vasudev runs use this so the CLI harness sees only the
    * openclaw MCP server instead of the normal openclaw tool surface.
    */
   exclusiveConfig?: BundleMcpConfig;

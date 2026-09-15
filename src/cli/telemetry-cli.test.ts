@@ -207,7 +207,7 @@ describe("telemetry cli", () => {
       }
 
       expect(exitCode).toEqual(0);
-      expect(stdout.join("")).toContain("Usage: openclaw telemetry [options] [command]");
+      expect(stdout.join("")).toContain("Usage: vasudev telemetry [options] [command]");
       expect(stdout.join("")).toContain("Inspect and manage anonymous usage telemetry");
       expect(stderr).toEqual([]);
       expect(mocks.getRuntimeConfig).not.toHaveBeenCalled();

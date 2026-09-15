@@ -1,5 +1,5 @@
 ---
-summary: "Index of the OpenClaw text-to-speech documentation, one page per reader job"
+summary: "Index of the Vasudev text-to-speech documentation, one page per reader job"
 title: "Text-to-speech"
 sidebarTitle: "Text to speech (TTS)"
 read_when:
@@ -8,7 +8,7 @@ read_when:
   - Using /tts commands or directives
 ---
 
-OpenClaw converts outbound replies into native voice messages on Feishu, Matrix,
+Vasudev converts outbound replies into native voice messages on Feishu, Matrix,
 Telegram, and WhatsApp. Every other channel receives an audio attachment.
 Telephony and Talk receive PCM or Ulaw streams.
 

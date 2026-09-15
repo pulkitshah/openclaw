@@ -1,5 +1,5 @@
 ---
-summary: "How untrusted content reaches the model, what OpenClaw does about it, and which layers you still have to enforce"
+summary: "How untrusted content reaches the model, what Vasudev does about it, and which layers you still have to enforce"
 read_when:
   - The agent reads web pages, email, attachments, or other untrusted content
   - Choosing a model for a tool-enabled agent
@@ -52,7 +52,7 @@ For tool-enabled agents or agents that read untrusted content, prompt-injection 
 
 OpenResponses `input_file` text is still injected as untrusted external content even though the Gateway decodes it locally - the block carries `<<<EXTERNAL_UNTRUSTED_CONTENT ...>>>` boundary markers plus `Source: External` metadata (this path omits the longer `SECURITY NOTICE:` banner used elsewhere). The same marker-based wrapping applies when media-understanding extracts text from attached documents before appending it to the media prompt.
 
-OpenClaw also strips common self-hosted LLM chat-template special-token literals (Qwen/ChatML, Llama, Gemma, Mistral, Phi, GPT-OSS role/turn tokens) from wrapped external content and metadata before they reach the model. Self-hosted OpenAI-compatible backends (vLLM, SGLang, TGI, LM Studio, custom Hugging Face tokenizer stacks) sometimes tokenize literal strings like `<|im_start|>` or `<|start_header_id|>` as structural chat-template tokens inside user content; without this sanitization, untrusted text in a fetched page, email body, or file-contents tool output could forge a synthetic `assistant`/`system` role boundary. Sanitization happens at the external-content wrapping layer, so it applies uniformly across fetch/read tools and inbound channel content. Hosted providers (OpenAI, Anthropic) already apply their own request-side sanitization; keep external-content wrapping enabled and prefer backend settings that split/escape special tokens when available.
+Vasudev also strips common self-hosted LLM chat-template special-token literals (Qwen/ChatML, Llama, Gemma, Mistral, Phi, GPT-OSS role/turn tokens) from wrapped external content and metadata before they reach the model. Self-hosted OpenAI-compatible backends (vLLM, SGLang, TGI, LM Studio, custom Hugging Face tokenizer stacks) sometimes tokenize literal strings like `<|im_start|>` or `<|start_header_id|>` as structural chat-template tokens inside user content; without this sanitization, untrusted text in a fetched page, email body, or file-contents tool output could forge a synthetic `assistant`/`system` role boundary. Sanitization happens at the external-content wrapping layer, so it applies uniformly across fetch/read tools and inbound channel content. Hosted providers (OpenAI, Anthropic) already apply their own request-side sanitization; keep external-content wrapping enabled and prefer backend settings that split/escape special tokens when available.
 
 Outbound model responses have a separate sanitizer that strips leaked `<tool_call>`, `<function_calls>`, `<system-reminder>`, `<previous_response>`, and similar internal scaffolding from user-visible replies at the final channel delivery boundary.
 

@@ -65,14 +65,14 @@ describe("creds (macOS)", () => {
     expect(opts?.input).not.toContain('p"a');
     expect(opts?.input).not.toContain("\\ss");
   });
-  it("refuses a value written by anything but OpenClaw instead of filling the wrong bytes", async () => {
+  it("refuses a value written by anything but Vasudev instead of filling the wrong bytes", async () => {
     const exec = mockExec(async () => ({ stdout: "mypassword\n" }));
     await expect(credGet("acme-demo.password", "darwin", exec)).rejects.toThrow(
-      "credential acme-demo.password was not stored by OpenClaw",
+      "credential acme-demo.password was not stored by Vasudev",
     );
     const oddLength = mockExec(async () => ({ stdout: "abc\n" }));
     await expect(credGet("acme-demo.password", "darwin", oddLength)).rejects.toThrow(
-      "was not stored by OpenClaw",
+      "was not stored by Vasudev",
     );
   });
   it("rejects an empty value instead of leaving `security` waiting on stdin", async () => {

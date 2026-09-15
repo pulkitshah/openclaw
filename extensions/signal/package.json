@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/signal",
   "version": "2026.9.4",
-  "description": "OpenClaw Signal channel plugin",
+  "description": "Vasudev Signal channel plugin",
   "type": "module",
   "dependencies": {
     "ws": "8.21.3",

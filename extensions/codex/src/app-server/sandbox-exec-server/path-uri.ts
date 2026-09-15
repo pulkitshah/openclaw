@@ -34,7 +34,7 @@ export function resolveExecServerPath(rawPath: string, label: string): string {
     );
   }
   if (WINDOWS_DRIVE_PATH_RE.test(resolved)) {
-    // OpenClaw exec-server backends currently expose Docker/SSH POSIX paths.
+    // Vasudev exec-server backends currently expose Docker/SSH POSIX paths.
     // Reject foreign drive URIs instead of silently rewriting their meaning.
     throw new Error(`${label} Windows file URI is not supported by the sandbox.`);
   }

@@ -34,15 +34,15 @@ modifications explicitly instead of relying on in-place mutation.
 
 `api.on(name, handler, opts?)` accepts:
 
-| Option                  | Effect                                                                                                                                                                                                                                                 |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `matcher`               | Non-empty list of canonical OpenClaw tool ids handled by `before_tool_call` or `after_tool_call`, such as `exec`, `apply_patch`, or `spawn_agent`. Omit to match all tools. Empty lists, wildcards, blanks, and provider-specific aliases are invalid. |
-| `priority`              | Ordering; higher runs first.                                                                                                                                                                                                                           |
-| `registrationId`        | Stable identity for one registration inside a plugin. Skill evaluators use it as `evaluatorId`; otherwise the plugin id is used.                                                                                                                       |
-| `timeoutMs`             | Per-handler asynchronous await budget. Expiry applies the hook's failure policy below; it does not cancel the handler or its side effects. Omit to use the runner's default, if any.                                                                   |
-| `eligibleTriggers`      | For `before_agent_reply` only, limits host dispatch to one or more of `cron`, `heartbeat`, or `user`.                                                                                                                                                  |
-| `eligibleDispatchKinds` | For `reply_dispatch` only, limits host dispatch to `agent`, `acp`, or both. Omit to handle all dispatch kinds.                                                                                                                                         |
-| `requiresToolAuthority` | For `before_prompt_build` only, runs the handler after the host finalizes the current turn's tool surface and supplies ephemeral `ctx.toolAuthority`. Use this for context retrieval that must follow tool policy.                                     |
+| Option                  | Effect                                                                                                                                                                                                                                                |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `matcher`               | Non-empty list of canonical Vasudev tool ids handled by `before_tool_call` or `after_tool_call`, such as `exec`, `apply_patch`, or `spawn_agent`. Omit to match all tools. Empty lists, wildcards, blanks, and provider-specific aliases are invalid. |
+| `priority`              | Ordering; higher runs first.                                                                                                                                                                                                                          |
+| `registrationId`        | Stable identity for one registration inside a plugin. Skill evaluators use it as `evaluatorId`; otherwise the plugin id is used.                                                                                                                      |
+| `timeoutMs`             | Per-handler asynchronous await budget. Expiry applies the hook's failure policy below; it does not cancel the handler or its side effects. Omit to use the runner's default, if any.                                                                  |
+| `eligibleTriggers`      | For `before_agent_reply` only, limits host dispatch to one or more of `cron`, `heartbeat`, or `user`.                                                                                                                                                 |
+| `eligibleDispatchKinds` | For `reply_dispatch` only, limits host dispatch to `agent`, `acp`, or both. Omit to handle all dispatch kinds.                                                                                                                                        |
+| `requiresToolAuthority` | For `before_prompt_build` only, runs the handler after the host finalizes the current turn's tool surface and supplies ephemeral `ctx.toolAuthority`. Use this for context retrieval that must follow tool policy.                                    |
 
 Trigger eligibility is enforced by the host before it invokes the handler. A
 hook registered with `eligibleTriggers: ["heartbeat", "cron"]` is therefore
@@ -164,7 +164,7 @@ contracts above; a modifying hook is not an observation hook.
 | `before_dispatch`           | Claim         | Handle an inbound message before the normal model dispatch                 |
 | `reply_dispatch`            | Claim         | Own reply generation and dispatch instead of the default model path        |
 
-`inbound_claim` is not a global pre-routing broadcast. OpenClaw invokes it only
+`inbound_claim` is not a global pre-routing broadcast. Vasudev invokes it only
 for the plugin that owns the message's core-managed conversation binding. To
 suppress an ordinary agent turn before model input without retaining the
 original prompt in transcript, use `before_agent_run` on a supported runner.
@@ -192,7 +192,7 @@ before the process exits.
 Shutdown and restart share one **2-second total `session_end` drain budget**
 across all active sessions and plugin handlers; the budget is not per handler.
 Return quickly or keep finalization bounded and persistence crash-consistent.
-If the budget expires, OpenClaw logs `shutdown session-end drain timed out`
+If the budget expires, Vasudev logs `shutdown session-end drain timed out`
 and continues shutdown, so unfinished plugin work can be interrupted.
 
 For `sessions.create` calls with `parentSessionKey` and `emitCommandHooks: true`, a distinct child always receives `session_start`. Callers declare whether the parent also receives terminal `session_end` with `succeedsParent`: `true` means successor, `false` means parallel child. Omission preserves the legacy parent-rollover behavior. The `command:new` and `before_reset` hooks still describe the requested `/new` action in both cases.
@@ -202,7 +202,7 @@ For `sessions.create` calls with `parentSessionKey` and `emitCommandHooks: true`
 - `subagent_spawned` / `subagent_ended` - observe subagent launch and completion.
 - `subagent_progress` - observe portable `started` / `ended` progress for a background child run; includes `runId`, `childSessionKey`, optional requester route, and an outcome on `ended`.
 - `subagent_delivery_target` - modifying compatibility hook for completion delivery when no core session binding can project a route. The first returned `origin` wins.
-- `subagent_spawned` includes `resolvedModel` and `resolvedProvider` when OpenClaw has resolved the child session's native model before launch.
+- `subagent_spawned` includes `resolvedModel` and `resolvedProvider` when Vasudev has resolved the child session's native model before launch.
 - `subagent_ended` carries `targetSessionKey` (identity - matches `subagent_spawned.childSessionKey`), `targetKind` (`"subagent"` or `"acp"`), `reason`, optional `outcome` (`"ok"`, `"error"`, `"timeout"`, `"killed"`, `"reset"`, or `"deleted"`), optional `error`, `runId`, `endedAt`, `accountId`, and `sendFarewell`. It does **not** include `agentId` or `childSessionKey`; use `targetSessionKey` to correlate with the matching `subagent_spawned` event.
 
 **Lifecycle**
@@ -220,7 +220,7 @@ For `sessions.create` calls with `parentSessionKey` and `emitCommandHooks: true`
 ### Skill lifecycle and evaluation
 
 Use `skill_proposal_evaluate` for static analyzers, security scanners,
-benchmarks, model-based graders, or other third-party evaluators. OpenClaw
+benchmarks, model-based graders, or other third-party evaluators. Vasudev
 passes an immutable candidate bundle with file hashes and a tree hash. Update
 proposals also include the complete current skill as `baseline`. Text files use
 UTF-8 content; binary files use base64.
@@ -246,7 +246,7 @@ api.on(
 );
 ```
 
-When evaluation input includes `correlationId`, OpenClaw forwards it to the
+When evaluation input includes `correlationId`, Vasudev forwards it to the
 evaluator event for both manual and apply-triggered evaluations. This value is
 caller-supplied correlation metadata, not authenticated identity or proof of
 authorization. An authorization plugin must mint or replace the value through
@@ -271,7 +271,7 @@ declared and source versions when available.
 
 These hooks are primitives, not an optimization scheduler. A plugin or external
 controller can observe a durable proposal event, evaluate its exact revision hash,
-revise with that hash and a correlation id, then repeat. OpenClaw does not
+revise with that hash and a correlation id, then repeat. Vasudev does not
 automatically revise proposals or run an unbounded evaluation loop.
 Event replay is byte-bounded and returns `nextSequence` when another page is
 available.

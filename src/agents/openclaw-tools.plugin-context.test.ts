@@ -107,7 +107,7 @@ describe("openclaw plugin tool context", () => {
   });
 
   it("forwards host-prepared active project keys", () => {
-    const activeProjectKeys = ["github.com/OpenClaw/OpenClaw"];
+    const activeProjectKeys = ["github.com/OpenClaw/Vasudev"];
     const result = resolveOpenClawPluginToolInputs({
       options: { config: {} as never, activeProjectKeys },
     });

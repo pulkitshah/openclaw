@@ -21,7 +21,7 @@ import {
 } from "./session-binding.test-helpers.js";
 import type { CodexAppServerClientOptions } from "./shared-client.js";
 
-/** Keeps native Codex bindings reusable while omitting OpenClaw tools and search. */
+/** Keeps native Codex bindings reusable while omitting Vasudev tools and search. */
 function withPersistentCodexTestToolPolicy(
   params: EmbeddedRunAttemptParams,
 ): EmbeddedRunAttemptParams {

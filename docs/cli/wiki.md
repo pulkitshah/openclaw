@@ -126,7 +126,7 @@ openclaw wiki get <path-from-json-result>
 
 ### `wiki compile`
 
-Rebuild indexes, related blocks, dashboards, and the compiled query/prompt snapshot. The snapshot is persisted in OpenClaw's shared SQLite plugin state and kept in memory for synchronous prompt projection; it does not create cache files in the vault.
+Rebuild indexes, related blocks, dashboards, and the compiled query/prompt snapshot. The snapshot is persisted in Vasudev's shared SQLite plugin state and kept in memory for synchronous prompt projection; it does not create cache files in the vault.
 
 If `render.createDashboards` is enabled, compile also refreshes report pages.
 

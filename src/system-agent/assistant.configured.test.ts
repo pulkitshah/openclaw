@@ -1,4 +1,4 @@
-// Configured OpenClaw assistant tests cover route-owned, tool-free planning.
+// Configured Vasudev assistant tests cover route-owned, tool-free planning.
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type { RunCliAgentParams } from "../agents/cli-runner/types.js";
 import type { RunEmbeddedAgentParams } from "../agents/embedded-agent-runner/run/params.js";
@@ -108,7 +108,7 @@ function snapshot(config: OpenClawConfig) {
   };
 }
 
-describe("OpenClaw configured-model planner", () => {
+describe("Vasudev configured-model planner", () => {
   it.each(["embedded", "cli"] as const)(
     "rejects a failed %s completion before interpreting retained command text",
     async (runner) => {

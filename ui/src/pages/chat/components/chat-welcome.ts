@@ -6,7 +6,7 @@ import type {
   SessionsListResult,
 } from "../../../api/types.ts";
 import { renderAgentIdentityAvatar } from "../../../components/identity-avatar-view.ts";
-import "../../../components/openclaw-mascot.ts";
+import "../../../components/vasu-orb.ts";
 import { t } from "../../../i18n/index.ts";
 import { resolveAgentTextAvatar } from "../../../lib/agents/display.ts";
 import {
@@ -118,7 +118,7 @@ function selectWelcomeRecentSessions(
 function renderWelcomeClawd() {
   return html`
     <div class="agent-chat__welcome-clawd" aria-hidden="true">
-      <openclaw-mascot mood="idle" .size=${112}></openclaw-mascot>
+      <vasu-orb size="112"></vasu-orb>
     </div>
   `;
 }

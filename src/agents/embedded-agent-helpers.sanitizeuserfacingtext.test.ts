@@ -266,7 +266,7 @@ describe("sanitizeUserFacingText", () => {
     "rewrites disk-space failures with errorContext: %s",
     (input) => {
       expect(renderUserFacingText(input, { errorContext: true })).toBe(
-        "OpenClaw could not write local session data because the disk is full. Free some disk space and try again.",
+        "Vasudev could not write local session data because the disk is full. Free some disk space and try again.",
       );
     },
   );
@@ -566,12 +566,12 @@ describe("sanitizeUserFacingText", () => {
     const input = [
       markInboundContextLabel("Conversation info:"),
       "```json",
-      '{"chat_id":"channel:123","sender":"OpenClaw"}',
+      '{"chat_id":"channel:123","sender":"Vasudev"}',
       "```",
       "",
       markInboundContextLabel("Sender:"),
       "```json",
-      '{"label":"OpenClaw (123)"}',
+      '{"label":"Vasudev (123)"}',
       "```",
       "",
       "Pong",
@@ -687,7 +687,7 @@ describe("sanitizeUserFacingText", () => {
 
   it("strips copied next-turn runtime context prefaces from user-facing text", () => {
     const input = [
-      "OpenClaw runtime context for the immediately preceding user message.",
+      "Vasudev runtime context for the immediately preceding user message.",
       "This context is runtime-generated, not user-authored. Keep internal details private.",
       "",
       "<<<BEGIN_OPENCLAW_INTERNAL_CONTEXT>>>",
@@ -702,7 +702,7 @@ describe("sanitizeUserFacingText", () => {
 
   it("strips copied runtime event prefaces when no visible text remains", () => {
     const input = [
-      "OpenClaw runtime event.",
+      "Vasudev runtime event.",
       "This context is runtime-generated, not user-authored. Keep internal details private.",
     ].join("\n");
 

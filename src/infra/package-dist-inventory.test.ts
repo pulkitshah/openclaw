@@ -431,7 +431,7 @@ describe("package dist inventory", () => {
     ).toBe(true);
     expect(
       isLegacyPluginDependencyInstallStagePath(
-        "Dist/Extensions/browser/.OpenClaw-Install-Stage/package.json",
+        "Dist/Extensions/browser/.Vasudev-Install-Stage/package.json",
       ),
     ).toBe(true);
     expect(

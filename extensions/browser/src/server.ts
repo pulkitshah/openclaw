@@ -85,7 +85,7 @@ async function startBrowserControlServerUnlocked(): Promise<BrowserServerState |
 
   const port = resolved.controlPort;
   const server = await listenBrowserHttpServer(app, port, "127.0.0.1").catch((err: unknown) => {
-    logServer.error(`openclaw browser server failed to bind 127.0.0.1:${port}: ${String(err)}`);
+    logServer.error(`vasudev browser server failed to bind 127.0.0.1:${port}: ${String(err)}`);
     return null;
   });
 

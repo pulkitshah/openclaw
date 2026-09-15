@@ -22,7 +22,7 @@ export type NodeMatchCandidate = {
   remoteIp?: string;
   /** Connected nodes win only after the strongest match type is chosen. */
   connected?: boolean;
-  /** Client id used to prefer current OpenClaw nodes over legacy migration ties. */
+  /** Client id used to prefer current Vasudev nodes over legacy migration ties. */
   clientId?: string;
 };
 
@@ -79,7 +79,7 @@ function pickPreferredLegacyMigrationMatch(
   if (legacyCount === 0 || current.length + legacyCount !== matches.length) {
     return undefined;
   }
-  // During Clawdbot -> OpenClaw migration, a unique current client should win only
+  // During Clawdbot -> Vasudev migration, a unique current client should win only
   // when every other tie is a known legacy client for the same human-facing node.
   return current[0];
 }

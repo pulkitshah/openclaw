@@ -433,7 +433,6 @@ async function mountLoginGate(page: Page, lastError: string | null): Promise<voi
     };
     document.body.dataset.connectCount = "0";
     gate.props = {
-      resourceBasePath: "",
       connected: false,
       lastError: failureMessage,
       lastErrorCode: null,

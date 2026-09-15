@@ -136,11 +136,11 @@ Or enable it in config:
 
 The output path always comes from `OPENCLAW_DIAGNOSTICS_TIMELINE_PATH`, even
 when the flag itself is set in config; there is no config key for the path.
-See [Environment variables](/help/environment) for where OpenClaw reads
+See [Environment variables](/help/environment) for where Vasudev reads
 `OPENCLAW_DIAGNOSTICS`, `OPENCLAW_DIAGNOSTICS_TIMELINE_PATH`, and
 `OPENCLAW_DIAGNOSTICS_EVENT_LOOP` from, and in what precedence order.
 When `timeline` is enabled only from config, the earliest config-loading spans
-are missing because OpenClaw has not read config yet; subsequent startup spans
+are missing because Vasudev has not read config yet; subsequent startup spans
 are captured normally.
 
 `OPENCLAW_DIAGNOSTICS=1`, `=all`, and `=*` also enable the timeline, since they

@@ -1,4 +1,4 @@
-// OpenClaw MCP tools tests cover core tool server startup and registration.
+// Vasudev MCP tools tests cover core tool server startup and registration.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { hashSystemAgentOperation } from "../system-agent/operator-approval.js";
 import { resolveToolsMcpAgentId } from "./agent-session-env.js";
@@ -61,7 +61,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe("OpenClaw tools MCP server", () => {
+describe("Vasudev tools MCP server", () => {
   it("exposes cron", async () => {
     const handlers = createPluginToolsMcpHandlers(
       resolveOpenClawToolsForMcp({ agentSessionKey: "agent:worker:main" }),
@@ -243,7 +243,7 @@ describe("OpenClaw tools MCP server", () => {
     expect(text).toContain("needs-approval:");
     expect(text).toContain("requesting session's permission policy");
     expect(text).toContain("returns the final outcome");
-    expect(text).not.toContain("OpenClaw operator UI");
+    expect(text).not.toContain("Vasudev operator UI");
     expect(text).not.toContain("ask the user to reply yes");
   });
 });

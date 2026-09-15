@@ -278,7 +278,7 @@ describe("managed plugin installation", () => {
   it.each([
     {
       valid: false,
-      reason: "Config invalid; run `openclaw doctor --fix` before installing plugins.",
+      reason: "Config invalid; run `vasudev doctor --fix` before installing plugins.",
     },
     { valid: true, reason: "Plugin settings belong to an external include." },
   ])(

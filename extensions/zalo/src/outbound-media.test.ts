@@ -67,7 +67,7 @@ describe("zalo outbound hosted media", () => {
     });
   });
 
-  it("loads outbound media under OpenClaw control and returns a hosted URL", async () => {
+  it("loads outbound media under Vasudev control and returns a hosted URL", async () => {
     const hostedUrl = await prepareHostedZaloMediaUrl({
       mediaUrl: "https://example.com/photo.png",
       webhookUrl: "https://gateway.example.com/zalo-webhook",

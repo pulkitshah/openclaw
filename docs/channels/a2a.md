@@ -1,16 +1,16 @@
 ---
-summary: "Connect external agents to OpenClaw through the A2A 1.0 JSON-RPC protocol"
+summary: "Connect external agents to Vasudev through the A2A 1.0 JSON-RPC protocol"
 read_when:
-  - You want an A2A-compliant agent to discover and message OpenClaw
+  - You want an A2A-compliant agent to discover and message Vasudev
   - You need to configure authenticated A2A peers or outbound agent messages
 title: "A2A"
 ---
 
-The A2A channel plugin connects OpenClaw to other agents through the Linux Foundation [Agent2Agent protocol](https://a2a-protocol.org). External agents discover the gateway through a public Agent Card and submit authenticated text tasks using the A2A 1.0 JSON-RPC binding. OpenClaw can also send messages to configured peer agents.
+The A2A channel plugin connects Vasudev to other agents through the Linux Foundation [Agent2Agent protocol](https://a2a-protocol.org). External agents discover the gateway through a public Agent Card and submit authenticated text tasks using the A2A 1.0 JSON-RPC binding. Vasudev can also send messages to configured peer agents.
 
 ## Quick setup
 
-Add the bundled plugin to your OpenClaw configuration and define a separate bearer token for each trusted peer:
+Add the bundled plugin to your Vasudev configuration and define a separate bearer token for each trusted peer:
 
 ```json5
 {
@@ -38,7 +38,7 @@ Fetch the public A2A Agent Card without authentication:
 curl http://127.0.0.1:18789/.well-known/agent-card.json
 ```
 
-The card advertises the gateway JSON-RPC endpoint, supported text input and output, and one skill for each exposed OpenClaw agent. Set `channels.a2a.exposeAgents` to an array of agent IDs to limit which agents appear. If unset or empty, all configured agents are advertised.
+The card advertises the gateway JSON-RPC endpoint, supported text input and output, and one skill for each exposed Vasudev agent. Set `channels.a2a.exposeAgents` to an array of agent IDs to limit which agents appear. If unset or empty, all configured agents are advertised.
 
 `/.well-known/agent.json` returns the same card for older A2A clients.
 
@@ -118,7 +118,7 @@ The task transitions from `TASK_STATE_WORKING` to `TASK_STATE_COMPLETED`, `TASK_
 
 ## Configure outbound peers
 
-Add a peer URL when OpenClaw should send messages to another A2A agent. Set `outboundToken` when the remote agent requires its own bearer token:
+Add a peer URL when Vasudev should send messages to another A2A agent. Set `outboundToken` when the remote agent requires its own bearer token:
 
 ```json5
 {
@@ -149,9 +149,9 @@ Address outbound messages to `a2a:hermes`. The plugin sends `SendMessage` direct
 | `rateLimitPerMinute`         | number   | `30`     | Sliding-window request limit per peer; `0` disables the limit.                 |
 | `exposeAgents`               | string[] | all      | Agent IDs advertised as Agent Card skills.                                     |
 | `peers`                      | object   | `{}`     | Trusted peers keyed by lowercase names up to 64 characters.                    |
-| `peers.<name>.token`         | string   | required | Bearer token required when this peer sends requests to OpenClaw.               |
+| `peers.<name>.token`         | string   | required | Bearer token required when this peer sends requests to Vasudev.                |
 | `peers.<name>.url`           | string   | -        | Peer JSON-RPC endpoint for outbound messages.                                  |
-| `peers.<name>.outboundToken` | string   | -        | Bearer token OpenClaw sends to the configured peer URL.                        |
+| `peers.<name>.outboundToken` | string   | -        | Bearer token Vasudev sends to the configured peer URL.                         |
 
 Peer names must begin with a lowercase letter or number and can also contain periods, underscores, and hyphens.
 
@@ -169,7 +169,7 @@ binding, and the stable peer binding takes precedence over broader A2A account o
 
 Agent Card discovery is intentionally public: anyone who can reach the gateway can read the instance description and exposed agent IDs. Use `exposeAgents` to limit disclosure, and expose the gateway through HTTPS when it is reachable over an untrusted network.
 
-Every JSON-RPC request requires a configured peer bearer token. There is no unauthenticated mode. Each authenticated peer is also the sender identity used for normal OpenClaw channel ingress policy. Use different high-entropy tokens for each peer, keep tokens out of source control, and rotate tokens by updating the gateway environment and restarting.
+Every JSON-RPC request requires a configured peer bearer token. There is no unauthenticated mode. Each authenticated peer is also the sender identity used for normal Vasudev channel ingress policy. Use different high-entropy tokens for each peer, keep tokens out of source control, and rotate tokens by updating the gateway environment and restarting.
 
 A2A peers send tasks, not user commands. Messages beginning with `/` are rejected with `TASK_STATE_REJECTED` and an explanation. Command-like text inside an ordinary task stays literal. It cannot change session settings or resolve approvals. This also applies when the peer sets the protocol message role to `ROLE_USER`: that field does not authenticate a human user.
 
@@ -179,7 +179,7 @@ While an exec approval is pending, the original task stays working. After the op
 
 Requests are limited to 1 MiB, JSON-RPC batches to 30 entries, and serialized JSON-RPC responses to 1 MiB. Extracted message text is capped at 64 KiB and includes an explicit truncation marker when shortened. The default sliding-window limit is 30 requests per minute for each peer. Schema-invalid requests count toward that limit. Set `rateLimitPerMinute` to `0` only on a separately protected network. Rate-limited requests return a JSON-RPC error while keeping HTTP status 200.
 
-Outbound destinations come only from operator-configured peer URLs. Inbound callers cannot supply a proxy target or redirect OpenClaw to another destination.
+Outbound destinations come only from operator-configured peer URLs. Inbound callers cannot supply a proxy target or redirect Vasudev to another destination.
 
 ## A2A 1.0 limitations
 

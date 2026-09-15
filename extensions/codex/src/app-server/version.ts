@@ -1,7 +1,7 @@
 /**
  * Version and package pins for the managed Codex app-server runtime.
  */
-/** Exact Codex app-server version shipped by the OpenClaw Codex bridge. */
+/** Exact Codex app-server version shipped by the Vasudev Codex bridge. */
 export const CODEX_APP_SERVER_VERSION = "0.153.4";
 /** Inclusive runtime compatibility floor for external app-server binaries. */
 export const MIN_SUPPORTED_CODEX_APP_SERVER_VERSION = "0.149.0";

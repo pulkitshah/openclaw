@@ -878,7 +878,7 @@ export function buildAssistantMessage(
   const promptTokens = resolveUsageCount(response.prompt_eval_count, usageFallback?.input);
   const outputTokens = resolveUsageCount(response.eval_count, usageFallback?.output);
   const reportedCacheRead = resolveOptionalUsageCount(response.prompt_eval_cached_count);
-  // Ollama includes cached tokens in prompt_eval_count; OpenClaw records input as uncached.
+  // Ollama includes cached tokens in prompt_eval_count; Vasudev records input as uncached.
   const cacheRead =
     reportedCacheRead === undefined ? undefined : Math.min(reportedCacheRead, promptTokens);
 
@@ -1059,7 +1059,7 @@ function createRawOllamaStreamFn(
                 modelId: model.id,
               });
         const requestParams = {
-          // OpenClaw owns history compaction. Ask local servers to reject overflow
+          // Vasudev owns history compaction. Ask local servers to reject overflow
           // instead of silently discarding messages or shifting the context window.
           ...(model.provider !== OLLAMA_CLOUD_PROVIDER_ID &&
           !isOllamaCloudModel(model.id) &&

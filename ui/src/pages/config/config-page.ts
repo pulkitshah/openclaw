@@ -12,6 +12,7 @@ import type { GatewayBrowserClient } from "../../api/gateway.ts";
 import type { ModelCatalogEntry } from "../../api/types.ts";
 import { subtitleForRoute, titleForRoute } from "../../app-navigation.ts";
 import { pathForRoute, type RouteId } from "../../app-route-paths.ts";
+import { FEATURES } from "../../app/brand.ts";
 import { applicationContext, type ApplicationContext } from "../../app/context.ts";
 import { hasNativeBrowserBridge } from "../../app/native-browser-host.ts";
 import { hasOperatorAdminAccess, hasOperatorWriteAccess } from "../../app/operator-access.ts";
@@ -1242,15 +1243,25 @@ export class ConfigPage extends OpenClawLightDomElement {
             }
           });
       },
-      lobsterPetVisits: this.settings.lobsterPetVisits ?? UI_APPEARANCE_DEFAULTS.lobsterPetVisits,
-      setLobsterPetVisits: (enabled) => this.applySettings({ lobsterPetVisits: enabled }),
       sessionDeleteConfirm:
         this.settings.sessionDeleteConfirm ?? UI_APPEARANCE_DEFAULTS.sessionDeleteConfirm,
       setSessionDeleteConfirm: (enabled) => this.applySettings({ sessionDeleteConfirm: enabled }),
-      lobsterPetSounds: this.settings.lobsterPetSounds ?? UI_APPEARANCE_DEFAULTS.lobsterPetSounds,
-      setLobsterPetSounds: (enabled) => this.applySettings({ lobsterPetSounds: enabled }),
-      lobsterdexHref: pathForRoute("lobsterdex", this.context.basePath),
-      onOpenLobsterdex: () => this.context.navigate("lobsterdex"),
+      // Appearance renders the LobsterDex section only when it is handed the
+      // toggles, so a build without the feature simply never supplies them.
+      ...(FEATURES.lobsterDex
+        ? {
+            lobsterPetVisits:
+              this.settings.lobsterPetVisits ?? UI_APPEARANCE_DEFAULTS.lobsterPetVisits,
+            setLobsterPetVisits: (enabled: boolean) =>
+              this.applySettings({ lobsterPetVisits: enabled }),
+            lobsterPetSounds:
+              this.settings.lobsterPetSounds ?? UI_APPEARANCE_DEFAULTS.lobsterPetSounds,
+            setLobsterPetSounds: (enabled: boolean) =>
+              this.applySettings({ lobsterPetSounds: enabled }),
+            lobsterdexHref: pathForRoute("lobsterdex", this.context.basePath),
+            onOpenLobsterdex: () => this.context.navigate("lobsterdex"),
+          }
+        : {}),
       chatSendShortcut: normalizeChatSendShortcut(this.settings.chatSendShortcut),
       chatSendShortcutOverridden: chatSendShortcutPref.overridden,
       chatSendShortcutProvenance: chatSendShortcutPref.provenance,

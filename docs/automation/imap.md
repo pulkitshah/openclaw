@@ -2,7 +2,7 @@
 doc-schema-version: 1
 summary: "Watch an IMAP mailbox and route authenticated incoming email to an isolated restricted reader agent"
 read_when:
-  - Triggering OpenClaw from Fastmail, iCloud, or another IMAP mailbox
+  - Triggering Vasudev from Fastmail, iCloud, or another IMAP mailbox
   - Configuring sender authentication and isolated email reader sessions
   - Troubleshooting IMAP IDLE, mailbox credentials, or rejected senders
 title: "IMAP email trigger"

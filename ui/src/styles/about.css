@@ -1,6 +1,6 @@
 /* Settings > System > About — page-specific leftovers on top of settings.css. */
 
-/* Hero: big Clawd, product identity, and community links (iOS About-style). */
+/* Hero: big Vasu, product identity, and community links (iOS About-style). */
 .about-hero {
   display: flex;
   flex-direction: column;
@@ -290,4 +290,34 @@
   color: var(--muted);
   font-size: var(--control-ui-text-xs, 12px);
   white-space: nowrap;
+}
+
+/* Third-party notices, closed by default. Legal copy stays monospaced and
+   scrollable rather than reflowing with the page. Deliberately terse: the
+   startup CSS budget has little headroom, so this reuses .muted for the hint
+   and the page's own radius/ink tokens. */
+.about-licences {
+  margin: 0 auto;
+  max-width: 44rem;
+}
+
+.about-licences__summary {
+  color: var(--ink-2);
+  cursor: pointer;
+  font-size: 0.75rem;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.about-licences__notice {
+  background: var(--surface-2);
+  border: 1px solid var(--line-1);
+  border-radius: 16px;
+  color: var(--ink-2);
+  font-size: 0.75rem;
+  margin: 0.5rem 0 0;
+  max-height: 20rem;
+  overflow: auto;
+  padding: 0.75rem 1rem;
+  white-space: pre-wrap;
 }

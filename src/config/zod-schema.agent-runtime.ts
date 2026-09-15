@@ -398,7 +398,7 @@ function addExecPolicyModeConflictIssue(
   ctx.addIssue({
     code: z.ZodIssueCode.custom,
     path: ["mode"],
-    message: `mode cannot be combined with security or ask in the same exec object. Update the deploy script, template, or patch at this scope. ${repair} Doctor migrates supported legacy policies to mode; run "openclaw doctor --fix" only when the saved file still needs migration.`,
+    message: `mode cannot be combined with security or ask in the same exec object. Update the deploy script, template, or patch at this scope. ${repair} Doctor migrates supported legacy policies to mode; run "vasudev doctor --fix" only when the saved file still needs migration.`,
   });
 }
 

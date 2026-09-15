@@ -30,7 +30,7 @@ check out their own complete source trees.
 `OpenClaw Release Publish` is the manual mutating release workflow. Dispatch
 regular beta and stable publishes from a protected lightweight
 `release-publish/<tooling-sha12>-<epoch>` tag at the frozen Tooling SHA after the
-release tag exists and after the OpenClaw npm preflight has succeeded (the preflight runs
+release tag exists and after the Vasudev npm preflight has succeeded (the preflight runs
 `pnpm plugins:sync:check` among its checks). The tag still selects the exact
 release commit, including a commit on `release/YYYY.M.PATCH`; Tideclaw alpha
 publishes keep using their matching alpha branch. For current validation runs,

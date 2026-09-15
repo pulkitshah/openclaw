@@ -108,11 +108,11 @@ Full troubleshooting: [Slack troubleshooting](/channels/slack/troubleshooting#tr
 
 ### iMessage failure signatures
 
-| Symptom                              | Fastest check                                           | Fix                                                                   |
-| ------------------------------------ | ------------------------------------------------------- | --------------------------------------------------------------------- |
-| `imsg` missing or fails on non-macOS | `openclaw channels status --probe --channel imessage`   | Run OpenClaw on the Messages Mac or use an SSH wrapper for `cliPath`. |
-| Can send but no receive on macOS     | Check macOS privacy permissions for Messages automation | Re-grant TCC permissions and restart channel process.                 |
-| DM sender blocked                    | `openclaw pairing list imessage`                        | Approve pairing or update allowlist.                                  |
+| Symptom                              | Fastest check                                           | Fix                                                                  |
+| ------------------------------------ | ------------------------------------------------------- | -------------------------------------------------------------------- |
+| `imsg` missing or fails on non-macOS | `openclaw channels status --probe --channel imessage`   | Run Vasudev on the Messages Mac or use an SSH wrapper for `cliPath`. |
+| Can send but no receive on macOS     | Check macOS privacy permissions for Messages automation | Re-grant TCC permissions and restart channel process.                |
+| DM sender blocked                    | `openclaw pairing list imessage`                        | Approve pairing or update allowlist.                                 |
 
 Full troubleshooting: [iMessage troubleshooting](/channels/imessage#troubleshooting)
 

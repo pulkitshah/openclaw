@@ -1,10 +1,10 @@
-// Leaf contract for the parsed OpenClaw operation shape. Uses only type imports so
+// Leaf contract for the parsed Vasudev operation shape. Uses only type imports so
 // gateway server types can reference it without pulling the system-agent
 // runtime graph (operations-parse -> overview -> config -> gateway) into a
 // type-only import cycle.
 import type { AgentRoleId } from "../agents/agent-roles.js";
 
-/** Parsed OpenClaw operation before approval/execution. */
+/** Parsed Vasudev operation before approval/execution. */
 export type SystemAgentOperation =
   | { kind: "none"; message: string }
   | { kind: "overview" }

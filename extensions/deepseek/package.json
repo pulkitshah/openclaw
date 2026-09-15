@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/deepseek-provider",
   "version": "2026.9.4",
-  "description": "OpenClaw DeepSeek provider plugin.",
+  "description": "Vasudev DeepSeek provider plugin.",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

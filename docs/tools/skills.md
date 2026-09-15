@@ -10,7 +10,7 @@ read_when:
 
 Skills are markdown instruction files that teach the agent how and when to use
 tools. Each skill lives in a directory containing a `SKILL.md` file with YAML
-frontmatter and a markdown body. OpenClaw loads bundled skills plus any local
+frontmatter and a markdown body. Vasudev loads bundled skills plus any local
 overrides, and filters them at load time based on environment, config, and
 binary presence.
 
@@ -47,7 +47,7 @@ identity and revision rather than discovered by scanning every user's files.
 | 6           | Custodian skills       | shipped; configured Custodian agent only             |
 | 7 — lowest  | Extra directories      | `skills.load.extraDirs` + plugin skills              |
 
-When a session uses a different execution workspace, OpenClaw also loads that
+When a session uses a different execution workspace, Vasudev also loads that
 workspace's `skills/` and `.agents/skills/` directories. These skills follow the
 entire agent catalog in precedence and prompt order; within the execution
 workspace, `skills/` wins over `.agents/skills/`. Both directories participate in
@@ -56,10 +56,10 @@ materialized copies, not the original host paths.
 
 Managed worktree sessions keep their recorded canonical workspace as the skill
 source. A selected nested workspace stays nested: discovery does not walk up to
-its parent repository. Installing OpenClaw from a repository does not make that
+its parent repository. Installing Vasudev from a repository does not make that
 repository's `.agents/skills/` a global bundled skill source.
 
-Skill roots support grouped layouts. OpenClaw discovers a skill whenever
+Skill roots support grouped layouts. Vasudev discovers a skill whenever
 `SKILL.md` appears anywhere under a configured root (up to 6 levels deep):
 
 ```text
@@ -79,14 +79,14 @@ the bundled precedence tier but is absent for every agent except the configured
 system/Custodian agent.
 
 <Note>
-  Codex CLI's native `$CODEX_HOME/skills` directory is **not** an OpenClaw
+  Codex CLI's native `$CODEX_HOME/skills` directory is **not** a Vasudev
   skill root. Use `openclaw migrate plan codex` to inventory those skills, then
-  `openclaw migrate codex` to copy them into your OpenClaw workspace.
+  `openclaw migrate codex` to copy them into your Vasudev workspace.
 </Note>
 
 ## Node-hosted skills
 
-A connected headless node can publish skills installed in its active OpenClaw
+A connected headless node can publish skills installed in its active Vasudev
 skills directory (`~/.openclaw/skills` by default; profile environment overrides
 apply). They appear in the normal agent skill list while the node is connected
 and disappear when it disconnects. A local or Gateway skill keeps its name on
@@ -270,11 +270,11 @@ reference more than one skill:
 Use $github and $release_notes to summarize this change for the release.
 ```
 
-OpenClaw resolves explicit references from authorized senders on every channel
+Vasudev resolves explicit references from authorized senders on every channel
 and on generic Gateway, CLI, and webhook agent turns. It matches the current
 agent's eligible, user-invocable skills and tells the model to read each
 referenced `SKILL.md` before acting. A single message can reference up to eight
-distinct skills; OpenClaw returns a visible error instead of ignoring extra or
+distinct skills; Vasudev returns a visible error instead of ignoring extra or
 allowlist-hidden references. The `$` form is composable prompt text. On channel
 messages, `/release_notes ...` remains the standalone command form and may use
 direct tool dispatch when the skill declares `command-dispatch: tool`; generic
@@ -418,7 +418,7 @@ When the user asks to generate an image, use the `image_generate` tool...
 ```
 
 <Note>
-  OpenClaw follows the [AgentSkills](https://agentskills.io) spec. Frontmatter
+  Vasudev follows the [AgentSkills](https://agentskills.io) spec. Frontmatter
   is parsed as YAML first; if that fails, it falls back to a single-line-only
   parser. Nested `metadata` blocks (including multi-line YAML mappings) are
   flattened to a JSON string and re-parsed as JSON5, so the block form shown
@@ -438,7 +438,7 @@ When the user asks to generate an image, use the `image_generate` tool...
 </ParamField>
 
 <ParamField path="disable-model-invocation" type="boolean" default="false">
-  When `true`, OpenClaw keeps the skill's instructions out of the agent's normal
+  When `true`, Vasudev keeps the skill's instructions out of the agent's normal
   prompt. The skill is still available as a slash command when `user-invocable`
   is also `true`.
 </ParamField>
@@ -460,7 +460,7 @@ When the user asks to generate an image, use the `image_generate` tool...
 
 ## Gating
 
-OpenClaw filters skills at load time using `metadata.openclaw` (JSON5 object
+Vasudev filters skills at load time using `metadata.openclaw` (JSON5 object
 embedded in the frontmatter, see the parsing note above). A skill with no
 `metadata.openclaw` block is always eligible unless explicitly disabled.
 
@@ -567,7 +567,7 @@ metadata:
   <Accordion title="Installer selection rules">
     - When multiple installers are listed, the gateway picks one preferred
       option (brew when available, otherwise node).
-    - If all installers are `download`, OpenClaw lists each entry so you can
+    - If all installers are `download`, Vasudev lists each entry so you can
       see all available artifacts.
     - Specs can include `os: ["darwin"|"linux"|"win32"]` to filter by platform.
     - Node installs honor `skills.install.nodeManager` in `openclaw.json`
@@ -577,16 +577,16 @@ metadata:
       go → download.
   </Accordion>
   <Accordion title="Per-installer details">
-    - **Homebrew:** OpenClaw does not auto-install Homebrew or translate brew
+    - **Homebrew:** Vasudev does not auto-install Homebrew or translate brew
       formulas into system package commands. In Linux containers without
       `brew`, brew-only installers are hidden; use a custom image or install
       the dependency manually.
-    - **Go:** OpenClaw requires Go 1.21 or newer for automatic skill installs.
-      If `go` is missing and Homebrew is available, OpenClaw installs Go via
+    - **Go:** Vasudev requires Go 1.21 or newer for automatic skill installs.
+      If `go` is missing and Homebrew is available, Vasudev installs Go via
       Homebrew first; on Linux without Homebrew it can instead use `apt-get`
       as root or through passwordless `sudo` when the refreshed `golang-go`
       candidate meets the minimum version. The actual `go install` for the
-      dependency always targets a dedicated OpenClaw-managed bin directory
+      dependency always targets a dedicated Vasudev-managed bin directory
       (Homebrew's `bin` on a fresh install, else `~/.local/bin`) rather than
       your configured `GOBIN` — your own `GOBIN`, `GOPATH`, and `GOTOOLCHAIN`
       env vars are read but never overwritten.
@@ -666,11 +666,11 @@ Toggle and configure bundled or managed skills under `skills.entries` in
 
 ## Environment injection
 
-When an agent run starts, OpenClaw:
+When an agent run starts, Vasudev:
 
 <Steps>
   <Step title="Reads skill metadata">
-    OpenClaw resolves the effective skill list for the agent, applying gating
+    Vasudev resolves the effective skill list for the agent, applying gating
     rules, allowlists, and config overrides.
   </Step>
   <Step title="Injects env and API keys">
@@ -695,14 +695,14 @@ When an agent run starts, OpenClaw:
 
 For the bundled `claude-cli` backend, sessions without library selections
 materialize eligible skills as a temporary Claude Code plugin, passed via
-`--plugin-dir`. Sessions with library selections use OpenClaw's prompt catalog
-and pinned revision paths instead. OpenClaw omits `--plugin-dir` for those
+`--plugin-dir`. Sessions with library selections use Vasudev's prompt catalog
+and pinned revision paths instead. Vasudev omits `--plugin-dir` for those
 sessions to keep Claude's native skill aliases from conflicting with library
 command identities. Other CLI backends use the prompt catalog only.
 
 ## Snapshots and refresh
 
-OpenClaw snapshots eligible skills **when a session starts** and reuses that
+Vasudev snapshots eligible skills **when a session starts** and reuses that
 list until a refresh trigger below applies.
 
 Managed library selections keep their exact revisions until an explicit
@@ -717,17 +717,17 @@ File-backed skills refresh mid-session when:
 - Native file-watch capacity is exhausted and the next agent turn starts.
 
 The refreshed list is picked up on the next agent turn in the same session.
-If the effective agent allowlist changes, OpenClaw refreshes the snapshot to
+If the effective agent allowlist changes, Vasudev refreshes the snapshot to
 keep visible skills aligned.
 
-When native watch capacity is exhausted, OpenClaw logs one warning and stops
+When native watch capacity is exhausted, Vasudev logs one warning and stops
 the skills watchers. With watching enabled, later agent turns refresh file-backed
 skills through the existing snapshot preparation. Restart the Gateway after
 restoring watch capacity to enable native watching again.
 
 <AccordionGroup>
   <Accordion title="Skills watcher">
-    By default, OpenClaw watches skill folders and bumps the snapshot when
+    By default, Vasudev watches skill folders and bumps the snapshot when
     `SKILL.md` files change, including skill roots first created after startup.
     Configure under `skills.load`:
 
@@ -752,19 +752,19 @@ restoring watch capacity to enable native watching again.
   </Accordion>
   <Accordion title="Remote macOS nodes (Linux gateway)">
     If the Gateway runs on Linux but a **macOS node** is connected with
-    `system.run` allowed, OpenClaw can treat macOS-only skills as eligible when
+    `system.run` allowed, Vasudev can treat macOS-only skills as eligible when
     the required binaries are present on that node. The agent should run those
     skills via the `exec` tool with `host=node`.
 
     Offline nodes do **not** make remote-only skills visible. If a node stops
-    answering bin probes, OpenClaw clears its cached bin matches.
+    answering bin probes, Vasudev clears its cached bin matches.
 
   </Accordion>
 </AccordionGroup>
 
 ## Token impact
 
-When skills are eligible, OpenClaw injects a compact XML block into the system
+When skills are eligible, Vasudev injects a compact XML block into the system
 prompt. The cost is deterministic and scales linearly per skill:
 
 - **Base overhead** (only when 1+ skills are eligible): a fixed block of intro
@@ -776,7 +776,7 @@ prompt. The cost is deterministic and scales linearly per skill:
 - At ~4 chars/token, 97 chars ≈ 24 tokens per skill before field lengths.
 
 If the rendered block would exceed the configured prompt budget
-(`skills.limits.maxSkillsPromptChars`), OpenClaw first preserves as many skill
+(`skills.limits.maxSkillsPromptChars`), Vasudev first preserves as many skill
 identities (name and location) as the description-free compact format
 can fit. It then uses any remaining budget for shortened descriptions. If no
 description budget remains, descriptions are omitted. The prompt includes a
@@ -785,7 +785,7 @@ truncation is required.
 
 Keep descriptions short and descriptive to minimize prompt overhead.
 
-For small context windows, the OpenClaw embedded runtime further shortens the
+For small context windows, the Vasudev embedded runtime further shortens the
 descriptions in the already-admitted catalog. It retains every admitted name,
 location, and loading note, even when these exceed the description budget.
 Full skill instructions and saved snapshots are unchanged; Code Mode can still

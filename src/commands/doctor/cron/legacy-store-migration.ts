@@ -215,7 +215,7 @@ async function copyLegacyCronFileAcrossDevices(
     ) {
       throw new Error("legacy cron source changed during archival; refusing to remove it");
     }
-    // Current OpenClaw runtime never writes legacy JSON. POSIX has no conditional
+    // Current Vasudev runtime never writes legacy JSON. POSIX has no conditional
     // unlink, so hashes close observed external edits before migration-owned removal.
     await fs.unlink(filePath);
     sourceRemoved = true;

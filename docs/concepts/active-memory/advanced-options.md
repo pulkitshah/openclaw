@@ -47,7 +47,7 @@ promptOverride: "You are a memory search agent. Return NONE or one compact user 
 ## Transcript persistence
 
 Blocking sub-agent runs keep their runtime transcript in the agent's SQLite
-store. By default, OpenClaw removes the temporary sub-agent session rows after
+store. By default, Vasudev removes the temporary sub-agent session rows after
 the run finishes and does not create a JSONL file.
 
 If cleanup crosses the recall deadline, a completed summary grounded in memory
@@ -76,7 +76,7 @@ To export those transcripts as JSONL artifacts for debugging:
 }
 ```
 
-Exported transcript artifacts go under the OpenClaw state directory, in a
+Exported transcript artifacts go under the Vasudev state directory, in a
 plugin-owned, per-agent directory separate from active runtime state:
 
 ```text

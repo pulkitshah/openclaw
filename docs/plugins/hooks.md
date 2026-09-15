@@ -6,10 +6,10 @@ read_when:
   - You are building a plugin that needs before_tool_call, before_agent_reply, message hooks, or lifecycle hooks
   - You need to block, rewrite, or require approval for tool calls from a plugin
   - You are deciding between internal hooks and plugin hooks
-  - You are projecting OpenClaw cron wakes into an external host scheduler
+  - You are projecting Vasudev cron wakes into an external host scheduler
 ---
 
-Plugin hooks let a native OpenClaw plugin observe or change agent runs, tool
+Plugin hooks let a native Vasudev plugin observe or change agent runs, tool
 calls, message delivery, and lifecycle events. Register a typed handler with
 `api.on("hook_name", handler)` and return the result documented for that hook.
 

@@ -311,7 +311,7 @@ export async function applyLegacyCronStoreRepair(params: {
           : tryResolveAmbientOwnerAgentId(params.cfg));
       if (!agentId && params.repairRetiredModelRefs) {
         warnings.push(
-          `Skipped retired model repair for cron job "${jobId}": select its owning agent, then rerun openclaw doctor --fix.`,
+          `Skipped retired model repair for cron job "${jobId}": select its owning agent, then rerun vasudev doctor --fix.`,
         );
       }
       const beforeChanges = retirementChanges.length;
@@ -326,7 +326,7 @@ export async function applyLegacyCronStoreRepair(params: {
       if (retirementChanges.length > beforeChanges && asOptionalRecord(job.state)?.autoDisabled) {
         const jobName = normalizeOptionalString(job.name) ?? jobId;
         retirementChanges.push(
-          `Automation "${jobName}" remains auto-disabled. Run openclaw automations enable ${jobId} to resume it after this repair.`,
+          `Automation "${jobName}" remains auto-disabled. Run vasudev automations enable ${jobId} to resume it after this repair.`,
         );
       }
     }
@@ -411,7 +411,7 @@ export async function applyLegacyCronStoreRepair(params: {
       rethrowSqliteSchemaVersionError(err);
       const failure =
         err instanceof CronJobsStoreChangedError
-          ? `Cron store at ${shortenHomePath(state.storePath)} changed while doctor was waiting, so no rows were rewritten; re-run ${formatCliCommand("openclaw doctor --fix")} to repair from a fresh snapshot.`
+          ? `Cron store at ${shortenHomePath(state.storePath)} changed while doctor was waiting, so no rows were rewritten; re-run ${formatCliCommand("vasudev doctor --fix")} to repair from a fresh snapshot.`
           : `Failed writing migrated cron store at ${shortenHomePath(state.storePath)}: ${errorMessage(err)}`;
       return { changes, warnings: [...warnings, failure] };
     }
@@ -437,7 +437,7 @@ export async function applyLegacyCronStoreRepair(params: {
       );
     } else {
       warnings.push(
-        `Migrated quarantined automations to SQLite but could not archive the legacy cron file at ${shortenHomePath(state.legacyQuarantine.path)}: ${archiveResult.reason}. Remove it manually or rerun ${formatCliCommand("openclaw doctor --fix")} to retry.`,
+        `Migrated quarantined automations to SQLite but could not archive the legacy cron file at ${shortenHomePath(state.legacyQuarantine.path)}: ${archiveResult.reason}. Remove it manually or rerun ${formatCliCommand("vasudev doctor --fix")} to retry.`,
       );
     }
   }
@@ -479,7 +479,7 @@ export async function applyLegacyCronStoreRepair(params: {
       // claiming a finished migration; doctor re-detects the leftover and retries.
       for (const failure of archiveResult.failures) {
         warnings.push(
-          `Migrated automations to SQLite but could not archive the legacy cron file at ${shortenHomePath(failure.path)}: ${failure.reason}. Remove it manually or rerun ${formatCliCommand("openclaw doctor --fix")} to retry.`,
+          `Migrated automations to SQLite but could not archive the legacy cron file at ${shortenHomePath(failure.path)}: ${failure.reason}. Remove it manually or rerun ${formatCliCommand("vasudev doctor --fix")} to retry.`,
         );
       }
     }

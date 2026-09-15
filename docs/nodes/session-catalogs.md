@@ -69,7 +69,7 @@ the node pairing upgrade when those commands first appear.
 A native node host with the Claude CLI available also advertises
 `anthropic.claude.terminal.resume.v1`. Eligible CLI and Desktop rows can open
 `claude --resume <session-id>` in the operator terminal on their owning host.
-This is a takeover of the native session; unlike OpenClaw adoption, it does not
+This is a takeover of the native session; unlike Vasudev adoption, it does not
 fork the Claude session first.
 
 The catalog combines valid Claude CLI project-index records with a bounded
@@ -99,7 +99,7 @@ when people must not share access to files, credentials, or tools. See
 [Multi-user mode](/concepts/multi-user).
 
 A Gateway-local Claude CLI row can be adopted from the normal Chat composer:
-OpenClaw imports bounded visible history, resumes with `--fork-session` on the
+Vasudev imports bounded visible history, resumes with `--fork-session` on the
 first turn, and leaves the source transcript untouched.
 
 A headless node host can opt into the same continuation flow:
@@ -119,7 +119,7 @@ is enabled and the `claude` executable resolves on that node. The Gateway cannot
 enable it remotely. The command also passes through the node's existing exec
 approval policy. When all three Claude commands are advertised and permitted by
 the Gateway's node command policy, a Claude CLI
-row on that node becomes continuable: OpenClaw imports bounded history, binds
+row on that node becomes continuable: Vasudev imports bounded history, binds
 the adopted session to the node and its catalog-reported working directory, and
 runs each one-shot `claude -p` turn there. The first turn still uses
 `--fork-session`, preserving the source transcript.
@@ -152,16 +152,16 @@ Terminal resume uses the stored session working directory and the same
 allowlisted duplex PTY relay as Codex and Claude. It does not expose arbitrary
 node command execution.
 
-## OpenClaw sessions and transcripts
+## Vasudev sessions and transcripts
 
 The bundled [Session Share plugin](/plugins/session-share) publishes selected
-native OpenClaw sessions from a source Gateway to a paired receiver Gateway.
+native Vasudev sessions from a source Gateway to a paired receiver Gateway.
 The source node host runs as the same user with the source Gateway's state
 directory. Enable the plugin on both sides, choose source session groups, and
 connect with only `openclaw.sessions.list.v1` and
 `openclaw.sessions.read.v1` in `--commands`.
 
-The receiver shows read-only rows under the source node in **OpenClaw sessions**.
+The receiver shows read-only rows under the source node in **Vasudev sessions**.
 Viewers need permission to view others' sessions on role-restricted Gateways.
 This does not permit continuation, terminal access, or worker execution on the
 source. It is separate from hosting new sessions on a node, described in [Session hosting](/nodes/session-hosting).

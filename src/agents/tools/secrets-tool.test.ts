@@ -160,7 +160,7 @@ describe("secrets tool", () => {
           name: "SERVICE_API_KEY",
         }),
       ).rejects.toThrow(
-        "Secret store requests need a running Gateway; ask the operator to run `openclaw secrets store` or use the Control UI.",
+        "Secret store requests need a running Gateway; ask the operator to run `vasudev secrets store` or use the Control UI.",
       );
       expect(events).toEqual([]);
       expect(broker.list().questions).toEqual([]);

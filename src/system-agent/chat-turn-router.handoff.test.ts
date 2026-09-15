@@ -8,7 +8,7 @@ import {
 
 describe.each([
   ["cli", "Use /openclaw to come back."],
-  ["gateway", "You can return through Settings → Ask OpenClaw."],
+  ["gateway", "You can return through Settings → Ask Vasudev."],
 ] as const)("SystemAgentChatEngine %s handoff", (surface, returnHint) => {
   it.each(["command", "tool"] as const)(
     "hands personal accounts to the human from a %s",
@@ -36,7 +36,7 @@ describe.each([
       expect(reply.handoff).toEqual(surface === "gateway" ? { kind: "model-accounts" } : undefined);
       expect(reply.text).toContain("Settings → Profile → Connected accounts");
       if (surface === "cli") {
-        expect(reply.text).toContain("openclaw models accounts login <provider>");
+        expect(reply.text).toContain("vasudev models accounts login <provider>");
       }
       expect(runAgentTurn).toHaveBeenCalledTimes(source === "command" ? 0 : 1);
       expect(executeOperation).not.toHaveBeenCalled();

@@ -1,4 +1,4 @@
-// OpenClaw operation grammar, approval descriptions, and public types.
+// Vasudev operation grammar, approval descriptions, and public types.
 import { listAgentRoles } from "../agents/agent-roles.js";
 import { parseConfigSetPath } from "../cli/config-cli-path.js";
 import type { ConfigSetOptions } from "../cli/config-set-input.js";
@@ -265,7 +265,7 @@ function parseConfigSetRefCommand(input: string):
 }
 
 /**
- * Parse one user command into OpenClaw's closed operation union. Anything
+ * Parse one user command into Vasudev's closed operation union. Anything
  * that does not match the anchored grammar exactly returns kind "none" so the
  * caller can route it to the system agent (or show guidance).
  */
@@ -314,7 +314,7 @@ export function parseSystemAgentOperation(input: string): SystemAgentOperation {
       return { kind: "open-tui" };
     case "quit":
     case "exit":
-      return { kind: "none", message: "OpenClaw retracts into shell. Bye." };
+      return { kind: "none", message: "Vasudev retracts into shell. Bye." };
     default:
       break;
   }
@@ -577,7 +577,7 @@ export function describeSystemAgentPersistentOperation(operation: SystemAgentOpe
     case "model-setup":
       return "configure a model provider and default model";
     case "doctor-fix":
-      return "run openclaw doctor --fix on the machine running OpenClaw, with OpenClaw stopped";
+      return "run vasudev doctor --fix on the machine running Vasudev, with Vasudev stopped";
     case "plugin-install":
       return `install plugin ${operation.spec}`;
     case "plugin-activate-artifact":
@@ -620,7 +620,7 @@ export const SYSTEM_AGENT_OPERATOR_APPROVAL_HANDOFF =
   "The host applies the requesting session's permission policy to this exact proposal and returns the final outcome. Do not request conversational approval or claim the change was applied before that outcome.";
 
 export const SYSTEM_AGENT_OPERATOR_NAVIGATION_HANDOFF =
-  "Channel, model, and setup flows need a human operator in the OpenClaw app; they cannot run from a delegated agent request. Open `openclaw dashboard` or run `openclaw setup` on the Gateway host.";
+  "Channel, model, and setup flows need a human operator in the Vasudev app; they cannot run from a delegated agent request. Open `vasudev dashboard` or run `vasudev setup` on the Gateway host.";
 
 /** Format the standard approval plan text for a persistent operation. */
 export function formatSystemAgentPersistentPlan(
@@ -648,5 +648,5 @@ function formatSetupPlanDescription(
   operation: Extract<SystemAgentOperation, { kind: "setup" }>,
 ): string {
   const workspace = shortenHomePath(resolveUserPath(operation.workspace ?? process.cwd()));
-  return `bootstrap OpenClaw setup for workspace ${workspace}`;
+  return `bootstrap Vasudev setup for workspace ${workspace}`;
 }

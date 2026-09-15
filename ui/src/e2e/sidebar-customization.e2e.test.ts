@@ -3,6 +3,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Locator, Page } from "playwright";
 import { expect, it } from "vitest";
+import { FEATURES } from "../app/brand.ts";
 import {
   takeControlUiElementScreenshot,
   takeControlUiViewportScreenshot,
@@ -22,6 +23,10 @@ const suite = createControlUiE2eSuite({
   unavailableMessage: (executablePath) =>
     `Playwright Chromium is not installed or cannot start at ${executablePath}. Run \`pnpm --dir ui exec playwright install --with-deps chromium\`, or set OPENCLAW_UI_E2E_ALLOW_MISSING_CHROMIUM=1 only when intentionally skipping this lane.`,
 });
+
+// The decorative pet only exists in a build that ships LobsterDex; the cases
+// that read it stay in place for that build.
+const itWithPet = it.skipIf(!FEATURES.lobsterDex);
 
 const captureUiProofEnabled = process.env.OPENCLAW_CAPTURE_UI_PROOF === "1";
 const hiddenSessionCatalogsStorageKey = "openclaw:sidebar:sessions:hidden-catalogs";
@@ -376,7 +381,7 @@ suite.define(() => {
       await expect
         .poll(() => trimmedTextContents(settingsLinks))
         .toEqual([
-          "Ask OpenClaw",
+          "Ask Vasudev",
           "Approvals",
           "Infrastructure",
           "Labs",
@@ -510,12 +515,12 @@ suite.define(() => {
       await expect.poll(() => settingsSearch.inputValue()).toBe("");
       await captureSettingsSidebarProof(settingsSidebar, "01g-settings-search-reset.png");
       await holdUiProof(page);
-      await settingsSidebar.getByRole("link", { name: "Ask OpenClaw" }).click();
+      await settingsSidebar.getByRole("link", { name: "Ask Vasudev" }).click();
       await expect.poll(() => new URL(page.url()).pathname).toBe("/custodian");
       await expect
         .poll(() => page.locator(".shell").getAttribute("class"))
         .not.toContain("shell--onboarding");
-      // Ask OpenClaw is a settings-takeover page (#111686): the settings
+      // Ask Vasudev is a settings-takeover page (#111686): the settings
       // sidebar owns navigation there, not the app sidebar.
       await expect.poll(() => settingsSidebar.isVisible()).toBe(true);
       await expect.poll(() => sidebar.isVisible()).toBe(false);
@@ -555,10 +560,10 @@ suite.define(() => {
         .not.toContain("Workboard");
       const tasksItem = menu.getByRole("menuitemcheckbox", { name: "Tasks" });
       await expect.poll(() => tasksItem.getAttribute("aria-checked")).toBe("false");
-      // Ask OpenClaw moved to Settings (#111686): custodian is not a sidebar
+      // Ask Vasudev moved to Settings (#111686): custodian is not a sidebar
       // nav route anymore, so the pin editor does not offer it.
       await expect
-        .poll(() => menu.getByRole("menuitemcheckbox", { name: "OpenClaw" }).count())
+        .poll(() => menu.getByRole("menuitemcheckbox", { name: "Vasudev" }).count())
         .toBe(0);
       await captureUiProof(page, "02-customize-menu.png", menu.locator('[part="menu"]'));
 
@@ -925,7 +930,7 @@ suite.define(() => {
     );
   });
 
-  it("passes failed run outcomes through the desktop and drawer sidebar", async () => {
+  itWithPet("passes failed run outcomes through the desktop and drawer sidebar", async () => {
     await suite.withPage(
       {
         locale: "en-US",
@@ -980,62 +985,69 @@ suite.define(() => {
     );
   });
 
-  it("keeps the lobster on the community invite ledge across desktop and drawer layouts", async () => {
-    const { context, page } = await openSidebarTestPage();
+  itWithPet(
+    "keeps the lobster on the community invite ledge across desktop and drawer layouts",
+    async () => {
+      const { context, page } = await openSidebarTestPage();
 
-    try {
-      const sidebar = page.locator("openclaw-app-sidebar");
-      const pet = sidebar.locator("openclaw-lobster-pet");
-      const movement = await pet.evaluate(async (element) => {
-        const lobster = element as HTMLElement & {
-          anchor: "bar";
-          mode: "offline";
-          performAct(act: "scuttle"): void;
-          requestUpdate(): void;
-          updateComplete: Promise<unknown>;
-        };
-        lobster.mode = "offline";
-        await lobster.updateComplete;
-        lobster.anchor = "bar";
-        lobster.setAttribute("data-spot", "bar");
-        lobster.requestUpdate();
-        await lobster.updateComplete;
+      try {
+        const sidebar = page.locator("openclaw-app-sidebar");
+        const pet = sidebar.locator("openclaw-lobster-pet");
+        const movement = await pet.evaluate(async (element) => {
+          const lobster = element as HTMLElement & {
+            anchor: "bar";
+            mode: "offline";
+            performAct(act: "scuttle"): void;
+            requestUpdate(): void;
+            updateComplete: Promise<unknown>;
+          };
+          lobster.mode = "offline";
+          await lobster.updateComplete;
+          lobster.anchor = "bar";
+          lobster.setAttribute("data-spot", "bar");
+          lobster.requestUpdate();
+          await lobster.updateComplete;
 
-        const sprite = lobster.querySelector<HTMLElement>(".lobster-pet:not(.lobster-pet--passer)");
-        const before = sprite?.style.getPropertyValue("--lob-x") ?? "";
-        lobster.performAct("scuttle");
-        await lobster.updateComplete;
-        const after = sprite?.style.getPropertyValue("--lob-x") ?? "";
-        return { after, before, spot: lobster.getAttribute("data-spot") };
-      });
+          const sprite = lobster.querySelector<HTMLElement>(
+            ".lobster-pet:not(.lobster-pet--passer)",
+          );
+          const before = sprite?.style.getPropertyValue("--lob-x") ?? "";
+          lobster.performAct("scuttle");
+          await lobster.updateComplete;
+          const after = sprite?.style.getPropertyValue("--lob-x") ?? "";
+          return { after, before, spot: lobster.getAttribute("data-spot") };
+        });
 
-      expect(movement.spot).toBe("bar");
-      expect(movement.after).not.toBe(movement.before);
-      expect(Number.parseFloat(movement.after)).toBeGreaterThanOrEqual(18);
-      expect(Number.parseFloat(movement.after)).toBeLessThanOrEqual(50);
-      await expectLobsterOnInviteLedge(sidebar);
-      // startle clears itself after LOBSTER_PET_ACT_DURATION_MS.startle (750ms), so
-      // poking over one round trip and then polling for the class over another can
-      // straddle the entire window on a loaded runner and never observe it. Poke and
-      // read the resulting class in a single in-page step, as the unit test does.
-      const startleClasses = await pet.evaluate(async (element) => {
-        const lobster = element as HTMLElement & { updateComplete: Promise<unknown> };
-        const target = lobster.querySelector<HTMLElement>(".lobster-pet:not(.lobster-pet--passer)");
-        target?.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
-        target?.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
-        await lobster.updateComplete;
-        return target?.getAttribute("class") ?? "";
-      });
-      expect(startleClasses).toContain("lobster-pet--act-startle");
-      await captureUiProof(page, "08-lobster-invite-ledge-desktop.png");
+        expect(movement.spot).toBe("bar");
+        expect(movement.after).not.toBe(movement.before);
+        expect(Number.parseFloat(movement.after)).toBeGreaterThanOrEqual(18);
+        expect(Number.parseFloat(movement.after)).toBeLessThanOrEqual(50);
+        await expectLobsterOnInviteLedge(sidebar);
+        // startle clears itself after LOBSTER_PET_ACT_DURATION_MS.startle (750ms), so
+        // poking over one round trip and then polling for the class over another can
+        // straddle the entire window on a loaded runner and never observe it. Poke and
+        // read the resulting class in a single in-page step, as the unit test does.
+        const startleClasses = await pet.evaluate(async (element) => {
+          const lobster = element as HTMLElement & { updateComplete: Promise<unknown> };
+          const target = lobster.querySelector<HTMLElement>(
+            ".lobster-pet:not(.lobster-pet--passer)",
+          );
+          target?.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+          target?.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
+          await lobster.updateComplete;
+          return target?.getAttribute("class") ?? "";
+        });
+        expect(startleClasses).toContain("lobster-pet--act-startle");
+        await captureUiProof(page, "08-sidebar-invite-ledge-desktop.png");
 
-      await page.setViewportSize({ height: 900, width: 900 });
-      await visibleDrawerButton(page).click();
-      await expect.poll(() => sidebar.isVisible()).toBe(true);
-      await expectLobsterOnInviteLedge(sidebar);
-      await captureUiProof(page, "09-lobster-invite-ledge-drawer.png");
-    } finally {
-      await context.close();
-    }
-  });
+        await page.setViewportSize({ height: 900, width: 900 });
+        await visibleDrawerButton(page).click();
+        await expect.poll(() => sidebar.isVisible()).toBe(true);
+        await expectLobsterOnInviteLedge(sidebar);
+        await captureUiProof(page, "09-sidebar-invite-ledge-drawer.png");
+      } finally {
+        await context.close();
+      }
+    },
+  );
 });

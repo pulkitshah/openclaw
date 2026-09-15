@@ -1,4 +1,4 @@
-// OpenClaw-authored rich block subset plus size accounting and the plain-text
+// Vasudev-authored rich block subset plus size accounting and the plain-text
 // projection shared by the emitter, splitter, and fallback paths.
 export type TelegramRichBlocksDegradationReason = "list-limit" | "table-ascii";
 

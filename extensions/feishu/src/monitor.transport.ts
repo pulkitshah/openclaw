@@ -401,7 +401,7 @@ export async function monitorWebhook({
   if (normalizeFeishuWebhookPath(path) !== path) {
     throw new Error(
       `Feishu account "${accountId}" webhookPath must be a canonical HTTP request path; ` +
-        'run "openclaw doctor --fix" to repair it',
+        'run "vasudev doctor --fix" to repair it',
     );
   }
   const host = account.config.webhookHost ?? "127.0.0.1";

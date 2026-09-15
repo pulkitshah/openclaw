@@ -38,7 +38,7 @@ export function recordPluginUpdateFailure(params: {
     options.installedPayloadRunnable === true;
   if (params.disableOnFailure && !params.dryRun && !preserveInstalledPayload) {
     const message =
-      `Disabled "${params.pluginId}" after plugin update failure; OpenClaw will continue without it. ` +
+      `Disabled "${params.pluginId}" after plugin update failure; Vasudev will continue without it. ` +
       params.message;
     params.logger.warn?.(message);
     params.outcomes.push({

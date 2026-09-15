@@ -8,11 +8,11 @@ title: "Codex app-server policy"
 sidebarTitle: "App-server policy"
 ---
 
-How OpenClaw starts and authenticates the Codex app-server, and what it isolates from the operator environment. Part of the [Codex harness](/plugins/codex-harness) guide; [Where each section moved](/plugins/codex-harness#where-each-section-moved) lists every section.
+How Vasudev starts and authenticates the Codex app-server, and what it isolates from the operator environment. Part of the [Codex harness](/plugins/codex-harness) guide; [Where each section moved](/plugins/codex-harness#where-each-section-moved) lists every section.
 
 ## App-server policy
 
-By default, the plugin starts OpenClaw's managed Codex binary locally with
+By default, the plugin starts Vasudev's managed Codex binary locally with
 stdio transport. Set `appServer.command` only to intentionally run a
 different executable. Verified setup accepts a native Codex executable or the
 official `@openai/codex` npm entrypoint, including its installed symlink or
@@ -55,15 +55,15 @@ transports do not perform these remote connection checks.
 Local stdio app-server sessions default to the trusted local operator
 posture: `approvalPolicy: "never"`, `approvalsReviewer: "user"`, and
 `sandbox: "danger-full-access"`. If local Codex requirements disallow that
-implicit YOLO posture, OpenClaw selects allowed guardian permissions
-instead. When an OpenClaw sandbox is active for the session, OpenClaw
+implicit YOLO posture, Vasudev selects allowed guardian permissions
+instead. When a Vasudev sandbox is active for the session, Vasudev
 disables Codex native Code Mode, user MCP servers, and app-backed plugin
 execution for that turn instead of relying on Codex host-side sandboxing.
-Shell access instead goes through OpenClaw sandbox-backed dynamic tools such
+Shell access instead goes through Vasudev sandbox-backed dynamic tools such
 as `sandbox_exec` and `sandbox_process` when the normal exec/process tools
 are available.
 
-Use normalized OpenClaw exec mode for Codex native auto-review before
+Use normalized Vasudev exec mode for Codex native auto-review before
 sandbox escapes or extra permissions:
 
 ```json5
@@ -87,11 +87,11 @@ For Codex app-server sessions, `tools.exec.mode: "auto"` maps to Codex
 Guardian-reviewed approvals: usually `approvalPolicy: "on-request"`,
 `approvalsReviewer: "auto_review"`, and `sandbox: "workspace-write"` when
 local requirements allow those values. In `tools.exec.mode: "auto"`,
-OpenClaw does not preserve legacy unsafe Codex `approvalPolicy: "never"` or
+Vasudev does not preserve legacy unsafe Codex `approvalPolicy: "never"` or
 `sandbox: "danger-full-access"` overrides; use `tools.exec.mode: "full"` for
 an intentional no-approval Codex posture. The legacy
 `plugins.entries.codex.config.appServer.mode: "guardian"` preset still
-works, but `tools.exec.mode: "auto"` is the normalized OpenClaw surface.
+works, but `tools.exec.mode: "auto"` is the normalized Vasudev surface.
 
 For the mode-level comparison with host exec approvals and ACPX
 permissions, see [Permission modes](/tools/permission-modes). For every
@@ -101,7 +101,7 @@ see [Codex harness reference](/plugins/codex-harness-reference).
 ### Native approval audit evidence
 
 With `tools.exec.mode: "ask"` and the Codex user reviewer, native command and
-file prompts use OpenClaw's two-phase operator approval route. The prompt shows
+file prompts use Vasudev's two-phase operator approval route. The prompt shows
 only decisions that the native request can preserve. For example, a command
 that permits one execution but not session trust offers allow-once and deny;
 byte-bound script approvals also remain one-shot. File prompts support both
@@ -114,7 +114,7 @@ inspect the admitted run with
 can report allow-once, allow-always, denial, no-route, expiry, or cancellation
 without exposing command text, patch content, paths, or native request ids.
 
-Codex auto-review, full-access policy, and native hook or OpenClaw policy
+Codex auto-review, full-access policy, and native hook or Vasudev policy
 decisions do not create an operator approval row. Missing or stale native turn
 context is rejected before routing. These cases therefore do not produce an
 enforced operator-approval receipt; audit inspection does not reconstruct one
@@ -132,7 +132,7 @@ In the default per-agent home, auth is selected in this order:
    `OPENAI_API_KEY`, when no app-server account is present and OpenAI auth
    is still required.
 
-When OpenClaw sees a ChatGPT subscription-style Codex auth profile, it
+When Vasudev sees a ChatGPT subscription-style Codex auth profile, it
 removes `CODEX_API_KEY` and `OPENAI_API_KEY` from the spawned Codex child
 process. That keeps Gateway-level API keys available for embeddings or
 direct OpenAI models without making native Codex app-server turns bill
@@ -142,13 +142,13 @@ child-process env. WebSocket app-server connections do not receive Gateway
 env API-key fallback; use an explicit auth profile or the remote
 app-server's own account.
 
-If a subscription profile hits a Codex usage limit, OpenClaw records the
+If a subscription profile hits a Codex usage limit, Vasudev records the
 reset time when Codex reports one and tries the next ordered auth profile
 for the same Codex run. When the reset time passes, the subscription
 profile becomes eligible again without changing the selected `openai/gpt-*`
 model or Codex runtime.
 
-When native Codex plugins are configured, OpenClaw reads and caches one
+When native Codex plugins are configured, Vasudev reads and caches one
 runtime-and-workspace-scoped `plugin/installed` snapshot. That one snapshot
 covers configured plugins from Codex-discovered marketplaces, including
 disabled plugin ownership. `plugin/read` resolves only explicitly configured
@@ -158,32 +158,32 @@ owner- or administrator-authorized installation path. Routine thread setup
 retains existing explicitly configured curated-plugin recovery.
 
 `app/installed` supplies the installed app runtime snapshot, and `app/read`
-supplies authenticated app metadata in batches of at most 100 app IDs. OpenClaw
+supplies authenticated app metadata in batches of at most 100 app IDs. Vasudev
 force-refreshes a cold snapshot once and consolidates successful curated
 installations into one app-inventory refresh. Ordinary cached reads do not
 force a connector refresh for every thread.
 
 An authorized app can initially appear disabled or non-callable because Codex
 has not yet applied the target thread's restrictive app configuration.
-OpenClaw provisionally admits only explicitly allowed, ownership-proven apps,
+Vasudev provisionally admits only explicitly allowed, ownership-proven apps,
 starts the thread with `_default.enabled = false`, and reads `app/installed`
 once with that thread's ID and `forceRefresh: false`. Missing, disabled, or
 non-callable apps produce one warning without blocking unrelated chat or
 heartbeat runs. Codex still enforces app/tool permissions, managed restrictions,
 and workspace policy; continuing the conversation does not enable an unavailable app.
 
-The check runs before OpenClaw starts a turn or commits a thread binding. If the
+The check runs before Vasudev starts a turn or commits a thread binding. If the
 snapshot request fails, a persistent provisional thread is deleted and an
-ephemeral thread is unsubscribed. If cleanup cannot be confirmed, OpenClaw retires the app-server
+ephemeral thread is unsubscribed. If cleanup cannot be confirmed, Vasudev retires the app-server
 connection instead of reusing an unsafe thread.
 
 Account-wide app access never overrides an explicitly disabled configured
-workspace plugin. When `app/read` omits that plugin's ownership, OpenClaw uses
+workspace plugin. When `app/read` omits that plugin's ownership, Vasudev uses
 the `plugin/installed` snapshot and reads only the exact configured plugin's
 details to keep its apps denied. This check never installs, enables, or
 authenticates the plugin.
 
-OpenClaw does not install unknown apps or let the model authorize new plugin
+Vasudev does not install unknown apps or let the model authorize new plugin
 installs. Owner-approved plugin installation refreshes the target runtime
 inventory. Missing inventory methods, authentication errors, transport
 failures, and connector refresh failures fail closed.
@@ -215,15 +215,15 @@ path. See [Automations](/automation/cron-jobs) for run history and failure handl
 
 ## Environment isolation
 
-For local stdio app-server launches, OpenClaw sets `CODEX_HOME` to a
+For local stdio app-server launches, Vasudev sets `CODEX_HOME` to a
 per-agent directory so Codex config, auth/account files, plugin cache/data,
 and native thread state do not read or write the operator's personal
-`~/.codex` by default. OpenClaw preserves the normal process `HOME`;
+`~/.codex` by default. Vasudev preserves the normal process `HOME`;
 Codex-run subprocesses can still find user-home config and tokens, and
 Codex may discover shared `$HOME/.agents/skills` and
 `$HOME/.agents/plugins/marketplace.json` entries. With
-`appServer.homeScope: "user"`, OpenClaw instead uses the native user Codex
-home and its existing account without injecting an OpenClaw auth profile.
+`appServer.homeScope: "user"`, Vasudev instead uses the native user Codex
+home and its existing account without injecting a Vasudev auth profile.
 
 If a deployment needs additional environment isolation, add those
 variables to `appServer.clearEnv`:
@@ -246,7 +246,7 @@ variables to `appServer.clearEnv`:
 ```
 
 `appServer.clearEnv` only affects the spawned Codex app-server child
-process. OpenClaw removes `CODEX_HOME` and `HOME` from this list during
+process. Vasudev removes `CODEX_HOME` and `HOME` from this list during
 local launch normalization: `CODEX_HOME` stays pointed at the selected
 agent or user scope, and `HOME` stays inherited so subprocesses can use
 normal user-home state.

@@ -61,7 +61,7 @@ export async function collectProjectCloneShapeHealthFindings(
         checkId: CHECK_ID,
         severity: "warning",
         message: "Skipped project clone inspection: the project registry is unreadable.",
-        fixHint: "Restore access to the project registry and rerun openclaw doctor.",
+        fixHint: "Restore access to the project registry and rerun vasudev doctor.",
       },
     ];
   }
@@ -120,7 +120,7 @@ export async function collectProjectCloneShapeHealthFindings(
             )
             .flatMap(unset),
           "git repack -a -d",
-          "Rerun openclaw doctor. If history or objects remain missing, recover them from the original repository.",
+          "Rerun vasudev doctor. If history or objects remain missing, recover them from the original repository.",
         ].join("\n"),
       });
     } catch {
@@ -130,7 +130,7 @@ export async function collectProjectCloneShapeHealthFindings(
         path: project.repoRoot,
         message: `Skipped project clone ${project.displayName} (${project.id}): repository is missing, unreadable, or Git inspection did not complete.`,
         fixHint:
-          "Check the clone path, permissions, and Git installation, then rerun openclaw doctor.",
+          "Check the clone path, permissions, and Git installation, then rerun vasudev doctor.",
       });
     }
   }

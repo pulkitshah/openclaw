@@ -1,6 +1,6 @@
 ---
 title: "v2026.8.1: Maintenance changes (part 2 of 8)"
-description: "Part 2 of the 6,016 routine maintenance changes in OpenClaw v2026.8.1, with a source link for each one."
+description: "Part 2 of the 6,016 routine maintenance changes in Vasudev v2026.8.1, with a source link for each one."
 ---
 
 Maintenance changes 753 to 1,504 of 6,016. See [Maintainer and Internal Changes](/releases/2026.8.1/maintainer-and-internal-changes) for the other categories and the remaining parts.
@@ -521,7 +521,7 @@ Maintenance changes 753 to 1,504 of 6,016. See [Maintainer and Internal Changes]
 - Preserve versioned filenames for stable closeout assets [#107047](https://github.com/openclaw/openclaw/pull/107047)
 - Privatize computer-tool implementation helpers [#107048](https://github.com/openclaw/openclaw/pull/107048)
 - Add a final CI gate that survives unrelated main updates [#107050](https://github.com/openclaw/openclaw/pull/107050)
-- Centralize OpenClaw version ordering on SemVer [#107051](https://github.com/openclaw/openclaw/pull/107051)
+- Centralize Vasudev version ordering on SemVer [#107051](https://github.com/openclaw/openclaw/pull/107051)
 - Accelerate the session-status test suite [#107054](https://github.com/openclaw/openclaw/pull/107054)
 - Keep attempt lifecycle helpers private [#107055](https://github.com/openclaw/openclaw/pull/107055)
 - Use native p-limit concurrency APIs [#107056](https://github.com/openclaw/openclaw/pull/107056)

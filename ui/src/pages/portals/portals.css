@@ -195,7 +195,7 @@
 
 .portals-empty__note {
   margin-top: var(--space-2);
-  color: var(--warn);
+  color: var(--warn-text);
   font-size: var(--control-ui-text-sm);
 }
 

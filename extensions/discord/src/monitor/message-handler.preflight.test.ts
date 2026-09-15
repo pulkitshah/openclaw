@@ -453,7 +453,7 @@ describe("preflightDiscordMessage", () => {
       author: {
         id: "relay-bot-1",
         bot: true,
-        username: "OpenClaw",
+        username: "Vasudev",
       },
     });
 
@@ -1410,7 +1410,7 @@ describe("preflightDiscordMessage", () => {
               id: "m-openclaw-parent",
               channelId,
               content: "parent message",
-              author: { id: "openclaw-bot", bot: true, username: "OpenClaw" },
+              author: { id: "openclaw-bot", bot: true, username: "Vasudev" },
             }),
           }
         : {}),
@@ -1457,7 +1457,7 @@ describe("preflightDiscordMessage", () => {
     const channelId = "channel-bot-reply-inactive-pattern";
     const guildId = "guild-bot-reply-inactive-pattern";
     const botUserId = "123456789012345678";
-    const mentionedBotUser = { id: botUserId, username: "OpenClaw" };
+    const mentionedBotUser = { id: botUserId, username: "Vasudev" };
     const message = createDiscordMessage({
       id: `m-bot-reply-inactive-${content.length}`,
       channelId,
@@ -1563,7 +1563,7 @@ describe("preflightDiscordMessage", () => {
       accepted: true,
       botId: "123456789012345678",
       hydrate: { content: "<@123456789012345678> take over", native: true },
-      expectedText: "prior context\n@OpenClaw take over",
+      expectedText: "prior context\n@Vasudev take over",
     },
     {
       contents: ["prior context", "<@123456789012345678> missing content"],
@@ -1612,7 +1612,7 @@ describe("preflightDiscordMessage", () => {
             ? [
                 {
                   id: botId,
-                  username: "OpenClaw",
+                  username: "Vasudev",
                   discriminator: "0",
                   global_name: null,
                   avatar: null,
@@ -1802,7 +1802,7 @@ describe("preflightDiscordMessage", () => {
       get: vi.fn(async () => ({
         id: message.id,
         content: message.content,
-        mentions: [{ id: botId, username: "OpenClaw", bot: true }],
+        mentions: [{ id: botId, username: "Vasudev", bot: true }],
         mention_roles: [],
         mention_everyone: false,
       })),
@@ -2469,7 +2469,7 @@ describe("preflightDiscordMessage", () => {
         id: "m-current-bot",
         channelId,
         content: "earlier answer",
-        author: { id: "openclaw-bot", bot: true, username: "OpenClaw" },
+        author: { id: "openclaw-bot", bot: true, username: "Vasudev" },
       }),
     });
 
@@ -3288,7 +3288,7 @@ describe("shouldIgnoreBoundThreadWebhookMessage", () => {
       author: {
         id: "relay-bot-1",
         bot: true,
-        username: "OpenClaw",
+        username: "Vasudev",
       },
     });
     const result = await preflightDiscordMessage({

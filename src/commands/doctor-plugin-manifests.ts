@@ -165,7 +165,7 @@ export function legacyPluginManifestContractMigrationToHealthFinding(
     target: migration.pluginId,
     requirement: "contracts-capability-keys",
     fixHint:
-      "Run `openclaw doctor --fix` to rewrite legacy plugin manifest capability keys under contracts.*.",
+      "Run `vasudev doctor --fix` to rewrite legacy plugin manifest capability keys under contracts.*.",
   };
 }
 

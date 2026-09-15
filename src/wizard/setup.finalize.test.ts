@@ -159,7 +159,7 @@ vi.mock("../infra/windows-gateway-firewall-diagnostics.js", () => ({
   formatWindowsGatewayFirewallGuidance: (params: { bind?: string }) =>
     params.bind === "lan"
       ? [
-          "Windows firewall: if another device cannot connect to the LAN URL, run `openclaw gateway status --deep` from this Windows host.",
+          "Windows firewall: if another device cannot connect to the LAN URL, run `vasudev gateway status --deep` from this Windows host.",
         ]
       : [],
 }));
@@ -623,7 +623,7 @@ describe("finalizeSetupWizard", () => {
     expectNoteNotContains(prompter, "Web UI:");
     expectNoteNotContains(prompter, gatewayToken);
     expect(prompter.outro).toHaveBeenCalledWith(
-      "OpenClaw is ready. When you're ready: openclaw dashboard",
+      "Vasudev is ready. When you're ready: vasudev dashboard",
     );
     expect(runTui).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -669,7 +669,7 @@ describe("finalizeSetupWizard", () => {
       expectNoteNotContains(prompter, gatewayToken);
     }
     if (!enabled) {
-      expect(prompter.outro).toHaveBeenCalledWith("OpenClaw is ready.");
+      expect(prompter.outro).toHaveBeenCalledWith("Vasudev is ready.");
     }
   });
 
@@ -917,7 +917,7 @@ describe("finalizeSetupWizard", () => {
     expect(runTui).toHaveBeenCalledWith(expect.objectContaining({ message: undefined }));
     expectNoteTitleNotCalled(prompter, "Model auth missing");
     expectNoteNotContains(prompter, "No credentials are configured");
-    expectNoteNotContains(prompter, "openclaw configure --section model");
+    expectNoteNotContains(prompter, "vasudev configure --section model");
   });
 
   it("hatches without a seed and omits setup advice for an incompatible model route", async () => {
@@ -939,7 +939,7 @@ describe("finalizeSetupWizard", () => {
     expect(runTui).toHaveBeenCalledWith(expect.objectContaining({ message: undefined }));
     expectNoteTitleNotCalled(prompter, "Model auth missing");
     expectNoteNotContains(prompter, "No credentials are configured");
-    expectNoteNotContains(prompter, "openclaw configure --section model");
+    expectNoteNotContains(prompter, "vasudev configure --section model");
   });
 
   it("does not resend the bootstrap hatch message on setup reruns", async () => {
@@ -1000,7 +1000,7 @@ describe("finalizeSetupWizard", () => {
     await finalizeSetupWizard(createFinalizeArgs("quickstart", { prompter }));
 
     expect(prompter.outro).toHaveBeenCalledWith(
-      "Onboarding complete. Use the dashboard link above to control OpenClaw.",
+      "Onboarding complete. Use the dashboard link above to control Vasudev.",
     );
     expect(runTui).toHaveBeenCalledOnce();
     expect(vi.mocked(prompter.outro).mock.invocationCallOrder[0]).toBeLessThan(
@@ -1239,10 +1239,10 @@ describe("finalizeSetupWizard", () => {
     expect(prompter.outro).toHaveBeenCalledWith(
       expect.stringContaining("managed Mock Platform Service setup failed"),
     );
-    expectNoteContains(prompter, "openclaw gateway status --deep", "Gateway");
-    expectNoteContains(prompter, "openclaw gateway install --force", "Gateway");
-    expectNoteNotContains(prompter, "openclaw gateway run");
-    expectNoteNotContains(prompter, "openclaw gateway restart");
+    expectNoteContains(prompter, "vasudev gateway status --deep", "Gateway");
+    expectNoteContains(prompter, "vasudev gateway install --force", "Gateway");
+    expectNoteNotContains(prompter, "vasudev gateway run");
+    expectNoteNotContains(prompter, "vasudev gateway restart");
   });
 
   it.each([
@@ -1261,11 +1261,11 @@ describe("finalizeSetupWizard", () => {
     );
 
     expectNoteContains(prompter, "managed Mock Platform Service", "Gateway");
-    expectNoteContains(prompter, "openclaw gateway status --deep", "Gateway");
-    expectNoteContains(prompter, "openclaw gateway restart", "Gateway");
-    expectNoteNotContains(prompter, "openclaw gateway run");
-    expectNoteNotContains(prompter, "openclaw onboard --install-daemon");
-    expectNoteNotContains(prompter, "openclaw gateway install --force");
+    expectNoteContains(prompter, "vasudev gateway status --deep", "Gateway");
+    expectNoteContains(prompter, "vasudev gateway restart", "Gateway");
+    expectNoteNotContains(prompter, "vasudev gateway run");
+    expectNoteNotContains(prompter, "vasudev onboard --install-daemon");
+    expectNoteNotContains(prompter, "vasudev gateway install --force");
   });
 
   it("localizes managed service recovery at the finalize boundary", async () => {
@@ -1282,8 +1282,8 @@ describe("finalizeSetupWizard", () => {
 
       expectNoteContains(prompter, "托管的 Mock Platform Service 在设置后仍无法访问", "Gateway");
       expectNoteContains(prompter, "检查服务状态和日志", "Gateway");
-      expectNoteContains(prompter, "openclaw gateway restart", "Gateway");
-      expectNoteNotContains(prompter, "openclaw gateway run");
+      expectNoteContains(prompter, "vasudev gateway restart", "Gateway");
+      expectNoteNotContains(prompter, "vasudev gateway run");
     });
   });
 
@@ -1360,7 +1360,7 @@ describe("finalizeSetupWizard", () => {
         expect(isContainerEnvironment).not.toHaveBeenCalled();
         expectNoteContains(
           prompter,
-          "OpenClaw gateway lifecycle is managed by an external supervisor",
+          "Vasudev gateway lifecycle is managed by an external supervisor",
           "Gateway",
         );
         expectNoteNotContains(prompter, "Systemd user services are not available");
@@ -1394,10 +1394,10 @@ describe("finalizeSetupWizard", () => {
         expect(isContainerEnvironment).not.toHaveBeenCalled();
         expect(startGatewayServer).not.toHaveBeenCalled();
         expectNoteContains(prompter, "Use that supervisor to start the gateway.", "Gateway");
-        expectNoteNotContains(prompter, "openclaw gateway run");
-        expectNoteNotContains(prompter, "openclaw onboard --install-daemon");
+        expectNoteNotContains(prompter, "vasudev gateway run");
+        expectNoteNotContains(prompter, "vasudev onboard --install-daemon");
         expect(prompter.outro).toHaveBeenCalledWith(
-          "Gateway not detected yet. OpenClaw gateway lifecycle is managed by an external " +
+          "Gateway not detected yet. Vasudev gateway lifecycle is managed by an external " +
             "supervisor (OPENCLAW_SUPERVISOR_MODE=external). Use that supervisor to start the " +
             "gateway.",
         );
@@ -1548,7 +1548,7 @@ describe("finalizeSetupWizard", () => {
       .flatMap((writer) => writer.mock.calls.flat())
       .join("\n");
     expect(terminalOutput).toContain("http://127.0.0.1:18789");
-    expect(terminalOutput).toContain("openclaw dashboard --no-open");
+    expect(terminalOutput).toContain("vasudev dashboard --no-open");
     for (const output of [terminalOutput, runtimeOutput]) {
       expect(output).not.toContain("session-token");
       expect(output).not.toContain("#token=");
@@ -2143,7 +2143,7 @@ describe("finalizeSetupWizard", () => {
     expectNoteContains(prompter, "Setup was run without Gateway service install", "Gateway");
     expectNoteTitleNotCalled(prompter, "Dashboard ready");
     expect(prompter.outro).toHaveBeenCalledWith(
-      "Gateway not detected yet. Start now: openclaw gateway run",
+      "Gateway not detected yet. Start now: vasudev gateway run",
     );
   });
 

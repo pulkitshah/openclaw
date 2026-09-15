@@ -47,7 +47,7 @@ suite.define(() => {
               };
             };
             if (!app.runtime) {
-              throw new Error("OpenClaw application runtime is unavailable");
+              throw new Error("Vasudev application runtime is unavailable");
             }
             app.runtime.context.navigate("chat", { pathname: targetPathname });
           }, pathname);

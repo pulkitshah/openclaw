@@ -34,8 +34,8 @@ describe("failover user copy", () => {
 
   it("renders only the allowlisted selected-profile code", () => {
     expect(renderFailoverCodeUserCopy("selected_auth_profile_unavailable")).toBe(
-      "The selected auth profile is unavailable in this agent's OpenClaw credential store. " +
-        "Import or migrate that credential into the agent, select another configured profile, or run `openclaw configure`, then retry.",
+      "The selected auth profile is unavailable in this agent's Vasudev credential store. " +
+        "Import or migrate that credential into the agent, select another configured profile, or run `vasudev configure`, then retry.",
     );
     expect(renderFailoverCodeUserCopy("plugin_selected_profile_unavailable")).toBeUndefined();
     expect(
@@ -152,7 +152,7 @@ describe("failover user copy", () => {
         replayPrevented: true,
       }),
     ).toBe(
-      "⚠️ CLI turn (routing openai/gpt-5.6-sol): timed out after 90s (overall turn limit). The gateway is unaffected. It also stopped 2 CLI background tasks and 1 active CLI tool call; that work shares the parent CLI process. Effects may be partial; check before retrying. OpenClaw did not replay this turn automatically. For long work, use a detached OpenClaw sub-agent (no run timeout by default), or raise `agents.defaults.timeoutSeconds`.",
+      "⚠️ CLI turn (routing openai/gpt-5.6-sol): timed out after 90s (overall turn limit). The gateway is unaffected. It also stopped 2 CLI background tasks and 1 active CLI tool call; that work shares the parent CLI process. Effects may be partial; check before retrying. Vasudev did not replay this turn automatically. For long work, use a detached Vasudev sub-agent (no run timeout by default), or raise `agents.defaults.timeoutSeconds`.",
     );
   });
 

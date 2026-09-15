@@ -1,4 +1,4 @@
-// Temp home test helpers create isolated OpenClaw home directories for plugin tests.
+// Temp home test helpers create isolated Vasudev home directories for plugin tests.
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";

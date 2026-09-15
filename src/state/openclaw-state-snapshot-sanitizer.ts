@@ -1,4 +1,4 @@
-// Removes transient runtime state from restorable OpenClaw database snapshots.
+// Removes transient runtime state from restorable Vasudev database snapshots.
 import type { DatabaseSync } from "node:sqlite";
 import { tryParsePersistedExecApprovals } from "../infra/exec-approvals-config.js";
 import type { ExecApprovalsFile } from "../infra/exec-approvals-core.js";

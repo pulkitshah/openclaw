@@ -18,15 +18,15 @@ openclaw resume <query>
 openclaw resume --handoff <payload>
 ```
 
-With no query, OpenClaw displays up to 50 sessions active in the last seven
-days. With a query, an exact session key wins; otherwise OpenClaw requires a
+With no query, Vasudev displays up to 50 sessions active in the last seven
+days. With a query, an exact session key wins; otherwise Vasudev requires a
 unique substring or fuzzy match across session keys, display names, and labels.
 
 The picker omits bare `global` rows because they do not identify an owning
 agent. To attach one, pass a fully qualified key such as
 `openclaw resume agent:main:global`.
 
-If a query is ambiguous, OpenClaw prints the matching candidates and exits with
+If a query is ambiguous, Vasudev prints the matching candidates and exits with
 status 1. If no recent session matches, it suggests the picker and
 [`openclaw sessions`](/cli/sessions), then exits with status 1.
 
@@ -59,7 +59,7 @@ the active port recorded by a running Gateway, which takes precedence over the
 configured or default `gateway.port`.
 
 An explicit target normally requires an explicit `--token` or `--password`;
-OpenClaw does not borrow credentials or a TLS pin from a different configured
+Vasudev does not borrow credentials or a TLS pin from a different configured
 target. `resume` has one narrow exception for a handoff copied from the Control
 UI: when its Gateway URL byte-for-byte matches a canonical target of the current
 profile, it may reuse that profile's configured interactive auth, SecretRef,
@@ -72,7 +72,7 @@ local Gateway certificate fingerprint, and an exact configured remote target
 may reuse `gateway.remote.tlsFingerprint`; a public-origin target never inherits
 the local listener's pin. Pass `--tls-fingerprint` explicitly when that public
 origin needs a pin. A host, port, path, profile, query, or fragment mismatch
-fails closed under the normal explicit-target policy. OpenClaw never scans
+fails closed under the normal explicit-target policy. Vasudev never scans
 other profiles for a match. Handoff connections also ignore ambient
 `OPENCLAW_GATEWAY_TOKEN` and `OPENCLAW_GATEWAY_PASSWORD` fallback, so shell
 credentials for another Gateway cannot cross into the selected target. Explicit
@@ -93,11 +93,11 @@ credential, or bootstrap credential, and the browser does not execute it.
 
 The Control UI does not offer this command when the selected Gateway URL uses a
 query string. Gateway authentication and stored device scope are origin-based,
-not query-aware, so OpenClaw never strips or copies that query into a
+not query-aware, so Vasudev never strips or copies that query into a
 credential-free handoff. Use a manually authenticated CLI target with explicit
 `--token` or `--password`, or configure a queryless Gateway URL.
 
-Run the command in an already configured OpenClaw terminal. The terminal
+Run the command in an already configured Vasudev terminal. The terminal
 authenticates independently. Before opening the TUI, `resume` asks that Gateway
 to resolve the qualified key and uses the returned canonical key. A deleted or
 stale session stops with guidance to copy a fresh command; it never starts a new
@@ -105,7 +105,7 @@ session. The Gateway's session access controls remain authoritative. This flow
 continues an existing session; it does not delegate first-use authentication
 from the browser.
 
-If OpenClaw reports an invalid `--handoff` payload, return to the session's
+If Vasudev reports an invalid `--handoff` payload, return to the session's
 Control UI menu and copy a fresh command. Do not edit or reuse a truncated
 payload.
 

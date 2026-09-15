@@ -299,9 +299,9 @@ const VoiceCallRealtimeConfigSchema = z
     streamPath: z.string().min(1).optional(),
     /** System instructions passed to the realtime provider. */
     instructions: z.string().default(DEFAULT_VOICE_CALL_REALTIME_INSTRUCTIONS),
-    /** Tool policy for the shared OpenClaw agent consult tool. */
+    /** Tool policy for the shared Vasudev agent consult tool. */
     toolPolicy: VoiceCallRealtimeToolPolicySchema.default("safe-read-only"),
-    /** Guidance for when the realtime model should call the OpenClaw agent consult tool. */
+    /** Guidance for when the realtime model should call the Vasudev agent consult tool. */
     consultPolicy: VoiceCallRealtimeConsultPolicySchema.default("auto"),
     /** Optional thinking level override for the regular agent behind realtime consults. */
     consultThinkingLevel: VoiceCallRealtimeConsultThinkingLevelSchema.optional(),

@@ -46,10 +46,10 @@ const CORNER_CASES: readonly CornerCase[] = [
     superelliptical: "12.5px",
   },
   {
-    circular: "14px",
+    circular: "18px",
     markup: '<div class="card">Card</div>',
     selector: ".card",
-    superelliptical: "17.5px",
+    superelliptical: "22.5px",
   },
   {
     // Real DOM shape from option-card.ts: .option-card__choice is a button
@@ -64,16 +64,16 @@ const CORNER_CASES: readonly CornerCase[] = [
     superelliptical: "25px",
   },
   {
-    circular: "14px",
+    circular: "18px",
     markup: "",
     selector: ".option-card__choice",
-    superelliptical: "17.5px",
+    superelliptical: "22.5px",
   },
   {
-    circular: "14px",
+    circular: "18px",
     markup: '<div class="exec-approval-card">Approval</div>',
     selector: ".exec-approval-card",
-    superelliptical: "17.5px",
+    superelliptical: "22.5px",
   },
   {
     circular: "20px",
@@ -94,10 +94,10 @@ const CORNER_CASES: readonly CornerCase[] = [
     superelliptical: "12.5px",
   },
   {
-    circular: "14px",
+    circular: "18px",
     markup: '<div class="settings-group">Group</div>',
     selector: ".settings-group",
-    superelliptical: "17.5px",
+    superelliptical: "22.5px",
   },
   {
     // Real DOM shape from chat-composer-slash-menu.ts: .slash-menu-item is a
@@ -147,11 +147,11 @@ const CORNER_CASES: readonly CornerCase[] = [
   {
     // The search bar rounds only its bottom corners. Probe bottom-left to
     // verify its radius and shape stay aligned with the adjacent card.
-    circular: "14px",
+    circular: "18px",
     corner: "bottomLeft",
     markup: '<div class="agent-chat__search-bar"><input type="text" /></div>',
     selector: ".agent-chat__search-bar",
-    superelliptical: "17.5px",
+    superelliptical: "22.5px",
   },
 ];
 
@@ -216,7 +216,7 @@ const CIRCULAR_SHAPE = expect.stringMatching(/^(?:round|superellipse\(1\))$/);
 // that never opted into it.
 const ROOT_RADIUS_TOKENS = {
   "--radius": "10px",
-  "--radius-lg": "14px",
+  "--radius-lg": "18px",
   "--radius-sm": "6px",
   "--radius-xl": "20px",
 } as const;

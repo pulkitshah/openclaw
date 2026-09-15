@@ -178,7 +178,7 @@ Options:
 
 Set `OPENCLAW_WRAPPER` to an executable wrapper file to use it instead of the
 selected runtime and CLI entrypoint. The wrapper receives `node run` and the
-connection arguments; it must launch OpenClaw and forward those arguments.
+connection arguments; it must launch Vasudev and forward those arguments.
 
 If installation reports a runtime probe failure, check the executable and
 working directory named in the error. For example, when switching users with
@@ -295,7 +295,7 @@ Run `openclaw devices list` again before approval.
 
 The headless node separates its client instance ID from the signed device
 identity that the Gateway uses for pairing and routing. This state lives in the
-OpenClaw state directory (`~/.openclaw` by default, or `$OPENCLAW_STATE_DIR`
+Vasudev state directory (`~/.openclaw` by default, or `$OPENCLAW_STATE_DIR`
 when set):
 
 | State                                                                   | Purpose                                                                                                                          |
@@ -333,7 +333,7 @@ The two request IDs are distinct. An applicable trusted-CIDR policy can
 auto-approve the first-time device-pairing step; command-surface approval remains
 a separate check.
 
-Older OpenClaw releases stored node-host state in `node.json`, the signed
+Older Vasudev releases stored node-host state in `node.json`, the signed
 identity in `identity/device.json`, and paired auth in
 `identity/device-auth.json`. Stop the node host and run
 `openclaw doctor --fix` once; Doctor claims each retired source, validates it,
@@ -351,7 +351,7 @@ it contains the device keypair and auth tokens.
 - [Exec approvals](/tools/exec-approvals)
 - `openclaw approvals --node <id|name|ip>` (edit from the Gateway)
 
-For approved async node exec, OpenClaw prepares a canonical `systemRunPlan`
+For approved async node exec, Vasudev prepares a canonical `systemRunPlan`
 before prompting. The later approved `system.run` forward reuses that stored
 plan, so edits to command/cwd/session fields after the approval request was
 created are rejected instead of changing what the node executes.

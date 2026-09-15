@@ -1155,7 +1155,7 @@ describe("sendMessageTelegram", () => {
       message_id: 1498,
       date: 1_779_394_741,
       chat: { id: chatId, type: "supergroup", title: "QA forum" },
-      from: { id: 42, is_bot: true, first_name: "OpenClaw" },
+      from: { id: 42, is_bot: true, first_name: "Vasudev" },
       text: "Reply in General",
     });
 
@@ -5953,7 +5953,7 @@ describe("editMessageTelegram", () => {
         message_id: 902,
         message_thread_id: 77,
         date: 1_779_394_740,
-        from: { id: 42, is_bot: true, first_name: "OpenClaw" },
+        from: { id: 42, is_bot: true, first_name: "Vasudev" },
         [testCase.field]: "outdated content",
       },
     });
@@ -5963,7 +5963,7 @@ describe("editMessageTelegram", () => {
       message_thread_id: 77,
       date: 1_779_394_740,
       edit_date: 1_779_394_750,
-      from: { id: 42, is_bot: true, first_name: "OpenClaw" },
+      from: { id: 42, is_bot: true, first_name: "Vasudev" },
       [testCase.field]: "authoritative edited content",
     };
     if (testCase.editMode === "caption") {
@@ -6001,7 +6001,7 @@ describe("editMessageTelegram", () => {
       historyKey,
       limit: 50,
       entry: {
-        sender: "OpenClaw (you)",
+        sender: "Vasudev (you)",
         body: "original response",
         messageId: "902",
         timestamp: 1_779_394_740_000,
@@ -6026,7 +6026,7 @@ describe("editMessageTelegram", () => {
           historyKey,
           limit: 50,
           entry: {
-            sender: "OpenClaw (you)",
+            sender: "Vasudev (you)",
             body: record.text ?? "<media>",
             messageId: String(record.messageId),
             timestamp: record.timestamp ?? 0,
@@ -6038,7 +6038,7 @@ describe("editMessageTelegram", () => {
       message_id: 902,
       message_thread_id: 77,
       date: 1_779_394_740,
-      from: { id: 42, is_bot: true, first_name: "OpenClaw" },
+      from: { id: 42, is_bot: true, first_name: "Vasudev" },
       text: "authoritative edited response",
     });
 

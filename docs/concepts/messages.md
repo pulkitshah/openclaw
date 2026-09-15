@@ -28,7 +28,7 @@ See [Configuration](/gateway/configuration) for the full schema.
 
 ## Inbound dedupe
 
-Channels can redeliver the same message after a reconnect. OpenClaw keeps an in-memory cache keyed by agent scope, channel route (channel + peer + account + thread), and message id, so a redelivered message does not trigger a second agent run. The cache entry expires after 20 minutes or once 5000 entries are tracked, whichever comes first.
+Channels can redeliver the same message after a reconnect. Vasudev keeps an in-memory cache keyed by agent scope, channel route (channel + peer + account + thread), and message id, so a redelivered message does not trigger a second agent run. The cache entry expires after 20 minutes or once 5000 entries are tracked, whichever comes first.
 
 ## Inbound debouncing
 
@@ -53,7 +53,7 @@ Rapid consecutive text messages from the same sender can be batched into one age
 - Control commands (stop/abort/status, etc.) bypass debouncing so they dispatch immediately.
 - For non-forwarded Telegram text, a near-limit fragment starts a separate batch and flushes earlier ordinary text from the same sender and conversation. This preserves order without merging the two batches.
 - Disabled by default: `messages.inbound.debounceMs` has no built-in default, so debouncing only activates once you set it (globally or per channel).
-- iMessage follows the same generic debounce policy. `imsg` 0.13.1 and newer coalesces Apple URL-preview split-sends before OpenClaw receives them, so no iMessage-specific debounce setting is needed.
+- iMessage follows the same generic debounce policy. `imsg` 0.13.1 and newer coalesces Apple URL-preview split-sends before Vasudev receives them, so no iMessage-specific debounce setting is needed.
 
 Changes to `messages.inbound.debounceMs` and `messages.inbound.byChannel` apply without
 reconnecting Discord, Feishu, iMessage, Mattermost, Microsoft Teams, Signal, Slack,
@@ -128,7 +128,7 @@ Channel plugins may preserve ordering, debounce input, and apply transport backp
 
 Once a turn is durably accepted, an unexpected failure before its answer produces a compact error reply in direct chats and explicitly addressed conversations where automatic replies are enabled. Progress acknowledgments do not replace that final outcome. The turn remains failed and is not replayed as a new inbound message; delivery policies and replies already sent through the message tool still apply.
 
-With the OpenClaw runtime, an assistant turn that errors or is aborted after producing partial text, without tool calls, appears as a short failure marker in the next model request. Its unfinished text is not replayed, and the stored failed turn stays unchanged. Empty and placeholder-only failures remain excluded; failed tool calls keep their existing pairing rules. The marker does not establish whether an earlier action completed.
+With the Vasudev runtime, an assistant turn that errors or is aborted after producing partial text, without tool calls, appears as a short failure marker in the next model request. Its unfinished text is not replayed, and the stored failed turn stays unchanged. Empty and placeholder-only failures remain excluded; failed tool calls keep their existing pairing rules. The marker does not establish whether an earlier action completed.
 
 ## Streaming, chunking, and batching
 
@@ -161,17 +161,17 @@ Details: [Configuration](/gateway/config-agents/messages-and-talk#messages) and 
 
 ## Silent replies
 
-The silent token `NO_REPLY` (case-insensitive, so `no_reply` also matches) means "do not deliver a user-visible reply." When a turn also has pending tool media, such as generated TTS audio, OpenClaw strips the silent text but still delivers the media attachment.
+The silent token `NO_REPLY` (case-insensitive, so `no_reply` also matches) means "do not deliver a user-visible reply." When a turn also has pending tool media, such as generated TTS audio, Vasudev strips the silent text but still delivers the media attachment.
 
 Silence policy resolves by conversation type:
 
-- Direct conversations never receive `NO_REPLY` prompt guidance. If a direct run accidentally returns a bare silent token, OpenClaw suppresses it instead of rewriting or delivering it.
+- Direct conversations never receive `NO_REPLY` prompt guidance. If a direct run accidentally returns a bare silent token, Vasudev suppresses it instead of rewriting or delivering it.
 - Groups/channels allow silence by default. In `message_tool` visible-reply mode, silence means the model does not call `message(action=send)`.
 - Internal orchestration allows silence by default.
 
 Defaults live under `agents.defaults.silentReply`; `surfaces.<id>.silentReply` can override group/internal policy per surface.
 
-OpenClaw also uses silent replies for generic internal runner failures in non-direct chats, so groups/channels do not see gateway error boilerplate. Classified failures with user-facing recovery copy, such as missing auth, rate-limit, or overload notices, can still be delivered. Direct chats show compact failure copy by default; raw runner details show only when `/verbose full` is enabled.
+Vasudev also uses silent replies for generic internal runner failures in non-direct chats, so groups/channels do not see gateway error boilerplate. Classified failures with user-facing recovery copy, such as missing auth, rate-limit, or overload notices, can still be delivered. Direct chats show compact failure copy by default; raw runner details show only when `/verbose full` is enabled.
 
 Bare silent replies are dropped on all surfaces, so parent sessions stay quiet instead of rewriting sentinel text into fallback chatter.
 

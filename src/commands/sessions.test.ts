@@ -277,7 +277,7 @@ describe("sessionsCommand", () => {
     cleanupStore(store);
 
     const row = logs.find((line) => line.includes("agent:main:main")) ?? "";
-    expect(row).toContain("OpenClaw Default");
+    expect(row).toContain("Vasudev Default");
     expect(row).toContain("0.0k/1000k (0%)");
   });
 

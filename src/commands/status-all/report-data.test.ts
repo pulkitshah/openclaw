@@ -204,7 +204,7 @@ describe("buildStatusAllReportData", () => {
         "npm update 9999.1.1",
       );
       expect(report.overviewRows.find((row) => row.Item === "Update")?.Value).toContain("behind 2");
-      const success = "✅ OpenClaw updated to 2026.9.2 (from 2026.9.1).";
+      const success = "✅ Vasudev updated to 2026.9.2 (from 2026.9.1).";
       expect(
         report.overviewRows.filter((row) => ["Update run", "Update restart"].includes(row.Item)),
       ).toEqual([
@@ -212,8 +212,7 @@ describe("buildStatusAllReportData", () => {
           ? [
               {
                 Item: "Update run",
-                Value:
-                  history === "active" ? "⬆️ OpenClaw update in progress: verifying." : success,
+                Value: history === "active" ? "⬆️ Vasudev update in progress: verifying." : success,
               },
             ]
           : []),
@@ -223,7 +222,7 @@ describe("buildStatusAllReportData", () => {
                 Item: "Update restart",
                 Value:
                   history === "mixed-sentinel"
-                    ? "⚠️ OpenClaw update failed: restart-unhealthy."
+                    ? "⚠️ Vasudev update failed: restart-unhealthy."
                     : success,
               },
             ]

@@ -41,10 +41,10 @@ describe("resolveMissingOfficialExternalChannelPluginRepairHint", () => {
       channelId: "feishu",
       label: "Feishu",
       installSpec: "@openclaw/feishu",
-      installCommand: "openclaw plugins install @openclaw/feishu",
-      doctorFixCommand: "openclaw doctor --fix",
+      installCommand: "vasudev plugins install @openclaw/feishu",
+      doctorFixCommand: "vasudev doctor --fix",
       repairHint:
-        "Install the official external plugin with: openclaw plugins install @openclaw/feishu, or run: openclaw doctor --fix.",
+        "Install the official external plugin with: vasudev plugins install @openclaw/feishu, or run: vasudev doctor --fix.",
     });
   });
 
@@ -106,7 +106,7 @@ describe("resolveMissingOfficialExternalChannelPluginRepairHint", () => {
       channelId: "whatsapp",
       label: "WhatsApp",
       installSpec: "@openclaw/whatsapp",
-      installCommand: "openclaw plugins install @openclaw/whatsapp",
+      installCommand: "vasudev plugins install @openclaw/whatsapp",
     });
   });
 
@@ -154,7 +154,7 @@ describe("resolveExternalPluginRuntimeDependencyRepairHint", () => {
     {
       name: "names the official install command for the package that owns the id",
       candidate: { pluginId: "discord", packageName: "@openclaw/discord" },
-      expected: "openclaw plugins install @openclaw/discord",
+      expected: "vasudev plugins install @openclaw/discord",
     },
     {
       name: "withholds the official install command from a foreign package reusing the id",

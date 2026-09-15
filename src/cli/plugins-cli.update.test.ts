@@ -360,32 +360,32 @@ describe("plugins cli update", () => {
     ["preview", "missing-plugin", ["--dry-run"], undefined, undefined, "openclaw"],
     ["object-name", "constructor", [], undefined, undefined, "openclaw"],
     ["npm-spec", "@acme/missing-plugin@beta", [], undefined, undefined, "openclaw"],
-    ["profile", "missing-plugin", [], "work", undefined, "openclaw --profile work"],
+    ["profile", "missing-plugin", [], "work", undefined, "vasudev --profile work"],
     [
       "profile preview",
       "missing-plugin",
       ["--dry-run"],
       "work",
       undefined,
-      "openclaw --profile work",
+      "vasudev --profile work",
     ],
-    ["container", "missing-plugin", [], undefined, "demo", "openclaw --container demo"],
+    ["container", "missing-plugin", [], undefined, "demo", "vasudev --container demo"],
     [
       "container preview",
       "missing-plugin",
       ["--dry-run"],
       undefined,
       "demo",
-      "openclaw --container demo",
+      "vasudev --container demo",
     ],
-    ["container before profile", "missing-plugin", [], "work", "demo", "openclaw --container demo"],
+    ["container before profile", "missing-plugin", [], "work", "demo", "vasudev --container demo"],
     [
       "container before profile preview",
       "missing-plugin",
       ["--dry-run"],
       "work",
       "demo",
-      "openclaw --container demo",
+      "vasudev --container demo",
     ],
   ] as const)(
     "rejects untracked update target with %s guidance",
@@ -1893,7 +1893,7 @@ describe("plugins cli update", () => {
     });
     expect(pluginsCliRuntimeLogs.join("\n")).toContain("Plugin update committed");
     expect(pluginsCliRuntimeLogs).toContain("Updated alpha -> 1.1.0");
-    expect(pluginsCliRuntimeLogs.join("\n")).toContain("Run openclaw plugins doctor");
+    expect(pluginsCliRuntimeLogs.join("\n")).toContain("Run vasudev plugins doctor");
     expectOfflineNoticeLogged();
   });
 
@@ -1981,7 +1981,7 @@ describe("plugins cli update", () => {
     await expectSkippedClawHubPluginUpdate({
       code: "clawhub_security_unavailable",
       message:
-        'Skipped demo ClawHub update: ClawHub security data for "@openclaw/plugin-demo@1.1.0" is unavailable, so OpenClaw left the existing installed plugin unchanged. Try again later or choose a different version.',
+        'Skipped demo ClawHub update: ClawHub security data for "@openclaw/plugin-demo@1.1.0" is unavailable, so Vasudev left the existing installed plugin unchanged. Try again later or choose a different version.',
       expectedLog: "security data",
     });
   });

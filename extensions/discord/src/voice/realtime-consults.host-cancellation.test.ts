@@ -5,7 +5,7 @@ type AgentResult = { payloads: Array<{ text: string }> };
 
 const cancelledResult = {
   status: "cancelled",
-  message: "OpenClaw cancelled this consult before completion. Do not restart it.",
+  message: "Vasudev cancelled this consult before completion. Do not restart it.",
 };
 
 defineDiscordVoiceTests(

@@ -8,7 +8,7 @@ read_when:
 ---
 
 How installed plugins point `package.json` at source and built entries, and
-the order OpenClaw resolves them in. Part of the
+the order Vasudev resolves them in. Part of the
 [Plugin entry points](/plugins/sdk-entrypoints) reference.
 
 ## Package entries
@@ -35,7 +35,7 @@ built entries:
   (entries pair positionally). `runtimeSetupEntry` requires `setupEntry`.
 - If a `runtimeExtensions`/`runtimeSetupEntry` artifact is declared but
   missing, installation fails and discovery reports a packaging error for that
-  entry; OpenClaw does not silently fall back to source.
+  entry; Vasudev does not silently fall back to source.
 - Without an explicit runtime entry, package discovery through
   `plugins.load.paths` or global roots looks for matching JavaScript peers under
   `dist/` first, then beside the TypeScript source entry. For `src/` entries,

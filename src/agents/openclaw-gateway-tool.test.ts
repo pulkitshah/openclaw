@@ -1,4 +1,4 @@
-// Verifies the read-only OpenClaw gateway tool schema and config reads.
+// Verifies the read-only Vasudev gateway tool schema and config reads.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GatewayClientRequestError } from "../gateway/client.js";
 import { createGatewayTool } from "./tools/gateway-tool.js";

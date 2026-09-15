@@ -49,6 +49,6 @@ export async function verifyGatewayStartReadiness(params: {
   );
   params.fail(
     `Gateway start timed out after ${Math.round(deadlineMs / 1000)}s waiting for /healthz and /readyz.`,
-    [formatCliCommand("openclaw gateway status --deep"), formatCliCommand("openclaw doctor")],
+    [formatCliCommand("vasudev gateway status --deep"), formatCliCommand("vasudev doctor")],
   );
 }

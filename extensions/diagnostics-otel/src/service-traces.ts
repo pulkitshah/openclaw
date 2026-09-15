@@ -80,7 +80,7 @@ export function createDiagnosticsTraceRuntime(tracer: Tracer) {
     metadata.trusted ? normalizeTraceContext(evt.trace) : undefined;
   // Internal-dispatcher events are linkable on their own; everything else defers to
   // the shared trusted-trace-context rule, which also accepts an untrusted payload
-  // whose trace context came from OpenClaw-owned scope (metadata.trustedTraceContext).
+  // whose trace context came from Vasudev-owned scope (metadata.trustedTraceContext).
   const internalOrTrustedTraceContext = (
     evt: DiagnosticEventPayload,
     metadata: DiagnosticEventMetadata,

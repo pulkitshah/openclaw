@@ -30,7 +30,7 @@ enablement, timeouts, and `spawnSessions`.
     `sessions_spawn` with `thread: true` (and optionally `mode: "session"`).
   </Step>
   <Step title="Bind">
-    OpenClaw creates or binds a thread to that session target in the active channel.
+    Vasudev creates or binds a thread to that session target in the active channel.
   </Step>
   <Step title="Route follow-ups">
     Replies and follow-up messages in that thread route to the bound session.
@@ -83,7 +83,7 @@ that would run unsandboxed.
 
 Use `agents_list` to see which agent ids are currently allowed for
 `sessions_spawn`. The response includes each listed agent's effective
-model and embedded runtime metadata so callers can distinguish OpenClaw, Codex
+model and embedded runtime metadata so callers can distinguish Vasudev, Codex
 app-server, and other configured native runtimes.
 
 `allowAgents` entries must point at configured agent ids in `agents.entries.*`.

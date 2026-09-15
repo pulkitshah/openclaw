@@ -218,7 +218,7 @@ describe("Codex usage after runtime fallback", () => {
     });
   }
 
-  it("shows Codex rate-limit usage for a Codex-bound session on OpenClaw Default", async () => {
+  it("shows Codex rate-limit usage for a Codex-bound session on Vasudev Default", async () => {
     const text = await renderFallbackStatus("codex");
 
     expect(text).toContain("📊 Usage: 5h 75% left");

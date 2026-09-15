@@ -568,7 +568,7 @@ describe("matrix CLI verification commands", () => {
 
     expect(listMatrixVerificationsMock).toHaveBeenCalledWith({ accountId: "default", cfg: {} });
     expect(consoleLogMock).toHaveBeenCalledWith("Verification id: incoming-1");
-    expect(consoleLogMock).toHaveBeenCalledWith("Initiated by OpenClaw: no");
+    expect(consoleLogMock).toHaveBeenCalledWith("Initiated by Vasudev: no");
   });
 
   it("sanitizes remote Matrix verification metadata before printing it", async () => {
@@ -965,14 +965,14 @@ describe("matrix CLI verification commands", () => {
     listMatrixOwnDevicesMock.mockResolvedValue([
       {
         deviceId: "A7hWr\u001B[31mQ70ea",
-        displayName: "OpenClaw\u001B[2J Gateway",
+        displayName: "Vasudev\u001B[2J Gateway",
         lastSeenIp: "127.0.0.1\u009B2J",
         lastSeenTs: 1_741_507_200_000,
         current: true,
       },
       {
         deviceId: "BritdXC6iL",
-        displayName: "OpenClaw Gateway",
+        displayName: "Vasudev Gateway",
         lastSeenIp: null,
         lastSeenTs: null,
         current: false,
@@ -982,16 +982,16 @@ describe("matrix CLI verification commands", () => {
 
     expect(listMatrixOwnDevicesMock).toHaveBeenCalledWith({ accountId: "poe", cfg: {} });
     expect(console.log).toHaveBeenCalledWith("Account: poe");
-    expect(console.log).toHaveBeenCalledWith("- A7hWrQ70ea (current, OpenClaw Gateway)");
+    expect(console.log).toHaveBeenCalledWith("- A7hWrQ70ea (current, Vasudev Gateway)");
     expect(console.log).toHaveBeenCalledWith("  Last IP: 127.0.0.1");
-    expect(console.log).toHaveBeenCalledWith("- BritdXC6iL (OpenClaw Gateway)");
+    expect(console.log).toHaveBeenCalledWith("- BritdXC6iL (Vasudev Gateway)");
   });
 
   it("omits invalid matrix device last seen timestamps", async () => {
     listMatrixOwnDevicesMock.mockResolvedValue([
       {
         deviceId: "DEVICE123",
-        displayName: "OpenClaw Gateway",
+        displayName: "Vasudev Gateway",
         lastSeenIp: "127.0.0.1",
         lastSeenTs: 8_700_000_000_000_000,
         current: true,
@@ -1000,7 +1000,7 @@ describe("matrix CLI verification commands", () => {
     await runMatrixCli(["matrix", "devices", "list", "--account", "poe"]);
 
     expect(console.log).toHaveBeenCalledWith("Account: poe");
-    expect(console.log).toHaveBeenCalledWith("- DEVICE123 (current, OpenClaw Gateway)");
+    expect(console.log).toHaveBeenCalledWith("- DEVICE123 (current, Vasudev Gateway)");
     expect(console.log).toHaveBeenCalledWith("  Last IP: 127.0.0.1");
     expect(
       consoleLogMock.mock.calls.some(([message]) => String(message).startsWith("  Last seen:")),
@@ -1012,14 +1012,14 @@ describe("matrix CLI verification commands", () => {
       before: [
         {
           deviceId: "A7hWrQ70ea",
-          displayName: "OpenClaw Gateway",
+          displayName: "Vasudev Gateway",
           lastSeenIp: "127.0.0.1",
           lastSeenTs: 1_741_507_200_000,
           current: true,
         },
         {
           deviceId: "BritdXC6iL",
-          displayName: "OpenClaw Gateway",
+          displayName: "Vasudev Gateway",
           lastSeenIp: null,
           lastSeenTs: null,
           current: false,
@@ -1031,7 +1031,7 @@ describe("matrix CLI verification commands", () => {
       remainingDevices: [
         {
           deviceId: "A7hWrQ70ea",
-          displayName: "OpenClaw Gateway",
+          displayName: "Vasudev Gateway",
           lastSeenIp: "127.0.0.1",
           lastSeenTs: 1_741_507_200_000,
           current: true,
@@ -1044,7 +1044,7 @@ describe("matrix CLI verification commands", () => {
       accountId: "poe",
       cfg: {},
     });
-    expect(console.log).toHaveBeenCalledWith("Deleted stale OpenClaw devices: BritdXC6iL");
+    expect(console.log).toHaveBeenCalledWith("Deleted stale Vasudev devices: BritdXC6iL");
     expect(console.log).toHaveBeenCalledWith("Current device: A7hWrQ70ea");
     expect(console.log).toHaveBeenCalledWith("Remaining devices: 1");
   });
@@ -1071,7 +1071,7 @@ describe("matrix CLI verification commands", () => {
     expect(replaceArg.afterWrite).toEqual({ mode: "auto" });
     expect(console.log).toHaveBeenCalledWith("Saved matrix account: ops");
     expect(console.log).toHaveBeenCalledWith(
-      "Bind this account to an agent: openclaw agents bind --agent <id> --bind matrix:ops",
+      "Bind this account to an agent: vasudev agents bind --agent <id> --bind matrix:ops",
     );
   });
 
@@ -1525,14 +1525,14 @@ describe("matrix CLI verification commands", () => {
     listMatrixOwnDevicesMock.mockResolvedValue([
       {
         deviceId: "BritdXC6iL",
-        displayName: "OpenClaw Gateway",
+        displayName: "Vasudev Gateway",
         lastSeenIp: null,
         lastSeenTs: null,
         current: false,
       },
       {
         deviceId: "du314Zpw3A",
-        displayName: "OpenClaw Gateway",
+        displayName: "Vasudev Gateway",
         lastSeenIp: null,
         lastSeenTs: null,
         current: true,
@@ -1552,7 +1552,7 @@ describe("matrix CLI verification commands", () => {
     );
     expect(console.log).toHaveBeenCalledWith("Backup version: 7");
     expect(console.log).toHaveBeenCalledWith(
-      "Matrix device hygiene warning: stale OpenClaw devices detected (BritdXC6iL). Run openclaw matrix devices prune-stale --account ops.",
+      "Matrix device hygiene warning: stale Vasudev devices detected (BritdXC6iL). Run openclaw matrix devices prune-stale --account ops.",
     );
   });
 
@@ -1632,7 +1632,7 @@ describe("matrix CLI verification commands", () => {
       displayName: "Main Bot",
     });
     expect(console.log).toHaveBeenCalledWith(
-      "Bind this account to an agent: openclaw agents bind --agent <id> --bind matrix:main-bot",
+      "Bind this account to an agent: vasudev agents bind --agent <id> --bind matrix:main-bot",
     );
   });
 
@@ -1834,7 +1834,7 @@ describe("matrix CLI verification commands", () => {
       expectedExitCode: 1,
       expectedLogs: [
         "Device issue: current Matrix device is missing from the homeserver device list",
-        "- This Matrix device is no longer listed on the homeserver. Create a new OpenClaw Matrix device with openclaw matrix account add --homeserver '<url>' --user-id '<@user:server>' --password '<password>' --device-name OpenClaw-Gateway. If you use token auth, create a fresh Matrix access token in your Matrix client or admin UI, then run openclaw matrix account add --homeserver '<url>' --access-token '<token>'.",
+        "- This Matrix device is no longer listed on the homeserver. Create a new Vasudev Matrix device with openclaw matrix account add --homeserver '<url>' --user-id '<@user:server>' --password '<password>' --device-name Vasudev-Gateway. If you use token auth, create a fresh Matrix access token in your Matrix client or admin UI, then run openclaw matrix account add --homeserver '<url>' --access-token '<token>'.",
       ],
     },
     {

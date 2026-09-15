@@ -103,7 +103,7 @@ async function resolveInstalledAcpPackageBinPath(
 }
 
 async function resolveInstalledCodexAcpBinPath(): Promise<string | undefined> {
-  // Keep OpenClaw's isolated CODEX_HOME wrapper, but launch the plugin-local
+  // Keep Vasudev's isolated CODEX_HOME wrapper, but launch the plugin-local
   // Codex ACP adapter when the package dependency is available.
   return await resolveInstalledAcpPackageBinPath(CODEX_ACP_PACKAGE, CODEX_ACP_BIN);
 }
@@ -653,7 +653,7 @@ if (openClawCodexConfigs.length > 0) {
         typeof parsedOpenClawCodexConfig !== "object" ||
         Array.isArray(parsedOpenClawCodexConfig)
       ) {
-        throw new Error("invalid OpenClaw Codex config");
+        throw new Error("invalid Vasudev Codex config");
       }
       existingCodexConfig = mergeCodexConfig(existingCodexConfig, parsedOpenClawCodexConfig);
     } catch {
@@ -669,7 +669,7 @@ if (openClawCodexConfigs.length > 0) {
 function buildClaudeAcpWrapperScript(installedBinPath?: string): string {
   return buildAdapterWrapperScript({
     displayName: "Claude",
-    // This package is patched in OpenClaw; fallback must not float to an unpatched newer release.
+    // This package is patched in Vasudev; fallback must not float to an unpatched newer release.
     packageSpec: `${CLAUDE_ACP_PACKAGE}@${CLAUDE_ACP_PACKAGE_VERSION}`,
     binName: CLAUDE_ACP_BIN,
     installedBinPath,

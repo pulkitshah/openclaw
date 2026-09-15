@@ -353,7 +353,7 @@ describe("classifyLookupFailure", () => {
     expect(lookupFailedDenialSuffix("credentials")).toMatch(
       /check gateway configuration and credentials/i,
     );
-    expect(lookupFailedDenialSuffix("unknown")).toMatch(/inspect OpenClaw logs/i);
+    expect(lookupFailedDenialSuffix("unknown")).toMatch(/inspect Vasudev logs/i);
     expect(lookupFailedDenialSuffix("unknown")).not.toMatch(/credentials|retry/i);
   });
 });

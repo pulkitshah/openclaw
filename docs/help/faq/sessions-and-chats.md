@@ -35,7 +35,7 @@ read_when:
 
   </Accordion>
 
-  <Accordion title="Is there a way to make a team of OpenClaw instances (one CEO and many agents)?">
+  <Accordion title="Is there a way to make a team of Vasudev instances (one CEO and many agents)?">
     Yes, via **multi-agent routing** and **sub-agents**: one coordinator agent plus several worker agents with their own workspaces and models.
 
     This is best seen as a fun experiment - it is token-heavy and often less efficient than one bot with separate sessions. The typical model is one bot you talk to, with different sessions for parallel work, spawning sub-agents when needed.
@@ -55,7 +55,7 @@ read_when:
 
   </Accordion>
 
-  <Accordion title="How do I completely reset OpenClaw but keep it installed?">
+  <Accordion title="How do I completely reset Vasudev but keep it installed?">
     ```bash
     openclaw reset
     ```
@@ -115,7 +115,7 @@ read_when:
   </Accordion>
 
   <Accordion title='Do I need to add a "bot account" to a WhatsApp group?'>
-    No. OpenClaw runs on **your own account** - if you are in the group, OpenClaw can see it. By default, group replies are blocked until you allow senders (`groupPolicy: "allowlist"`).
+    No. Vasudev runs on **your own account** - if you are in the group, Vasudev can see it. By default, group replies are blocked until you allow senders (`groupPolicy: "allowlist"`).
 
     To restrict group replies to only you:
 
@@ -151,7 +151,7 @@ read_when:
 
   </Accordion>
 
-  <Accordion title="Why does OpenClaw not reply in a group?">
+  <Accordion title="Why does Vasudev not reply in a group?">
     Two common causes: mention gating is on by default (you must @mention the bot, or match `mentionPatterns`), or you configured `channels.whatsapp.groups` without `"*"` and the group is not allowlisted.
 
     See [Groups](/channels/groups) and [Group messages](/channels/group-messages).

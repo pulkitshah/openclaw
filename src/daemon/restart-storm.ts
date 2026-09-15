@@ -6,7 +6,7 @@ import type { GatewayServiceEnv } from "./service-types.js";
 const RESTART_WINDOW_MS = 10 * 60 * 1000;
 const RESTART_THRESHOLD = 3;
 const MAX_HISTORY_BYTES = 128 * 1024;
-const WARNING_PREFIX = "openclaw gateway restart-storm warning ";
+const WARNING_PREFIX = "vasudev gateway restart-storm warning ";
 
 export type GatewayForcedRestartSummary = {
   count: number;
@@ -54,7 +54,7 @@ export function readGatewayForcedRestartSummary(
           summary.lastWarningAt = at;
         }
       } else if (
-        /^openclaw gateway lifecycle source=cli action=restart mode=(?:kickstart|bootout)(?: |$)/.test(
+        /^vasudev gateway lifecycle source=cli action=restart mode=(?:kickstart|bootout)(?: |$)/.test(
           body,
         )
       ) {
@@ -101,8 +101,8 @@ export async function warnAboutGatewayRestartStorm(
     `Gateway restart storm: ${summary.count} external CLI restarts in 10 minutes.`,
     likelyJobs.length > 0
       ? `Likely stray launchd jobs: ${likelyJobs.join(", ")}.`
-      : "Check for a stray keepalive launchd job invoking openclaw gateway restart.",
-    "Run openclaw gateway status to inspect jobs and openclaw doctor --fix to remove eligible stray jobs.",
+      : "Check for a stray keepalive launchd job invoking vasudev gateway restart.",
+    "Run vasudev gateway status to inspect jobs and vasudev doctor --fix to remove eligible stray jobs.",
   ].join(" ");
   try {
     fs.appendFileSync(

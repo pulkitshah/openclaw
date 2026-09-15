@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/codex",
   "version": "2026.9.4",
-  "description": "OpenClaw Codex app-server harness and native session supervision plugin.",
+  "description": "Vasudev Codex app-server harness and native session supervision plugin.",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

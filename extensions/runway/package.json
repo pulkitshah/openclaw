@@ -2,7 +2,7 @@
   "name": "@openclaw/runway-provider",
   "version": "2026.9.4",
   "private": true,
-  "description": "OpenClaw Runway video provider plugin",
+  "description": "Vasudev Runway video provider plugin",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

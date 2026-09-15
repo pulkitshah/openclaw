@@ -42,8 +42,8 @@ describe("configureCommandFromSectionsArg", () => {
     // The hint must point at real subcommands, not the wizard itself.
     const message = runtime.error.mock.calls[0]?.[0] as string;
     expect(message).toContain("requires an interactive terminal (TTY)");
-    expect(message).toContain(formatCliCommand("openclaw config set"));
-    expect(message).toContain(formatCliCommand("openclaw config validate"));
+    expect(message).toContain(formatCliCommand("vasudev config set"));
+    expect(message).toContain(formatCliCommand("vasudev config validate"));
     // The wizard must never start on a non-TTY.
     expect(runConfigureWizardMock).not.toHaveBeenCalled();
   });
@@ -119,7 +119,7 @@ describe("configureCommandFromSectionsArg", () => {
 
     expect(runtime.exit).toHaveBeenCalledWith(1);
     expect(runtime.error.mock.calls[0]?.[0]).toBe(
-      "Invalid --section: bogus. Expected one of: workspace, model, web, gateway, daemon, channels, plugins, skills, health. Run openclaw configure without --section to use the full wizard.",
+      "Invalid --section: bogus. Expected one of: workspace, model, web, gateway, daemon, channels, plugins, skills, health. Run vasudev configure without --section to use the full wizard.",
     );
     expect(runConfigureWizardMock).not.toHaveBeenCalled();
   });

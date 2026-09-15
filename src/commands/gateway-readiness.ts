@@ -132,15 +132,15 @@ function printGatewayNotReadyHints(
   canStartService = true,
 ): void {
   runtime.log(reason);
-  runtime.log("Run `openclaw gateway status --deep` for details.");
+  runtime.log("Run `vasudev gateway status --deep` for details.");
   if (!canStartService) {
     runtime.log(
       "Use the owning environment or supervisor to start or repair the selected Gateway.",
     );
     return;
   }
-  runtime.log("Run `openclaw gateway start` to start a managed gateway.");
-  runtime.log("Run `openclaw gateway run` for a foreground gateway.");
+  runtime.log("Run `vasudev gateway start` to start a managed gateway.");
+  runtime.log("Run `vasudev gateway run` for a foreground gateway.");
 }
 
 async function confirmRecovery(params: {

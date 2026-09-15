@@ -14,7 +14,7 @@ pnpm openclaw qa slack
 ```
 
 Targets one real private Slack channel with two distinct bots: a driver bot
-controlled by the harness and a SUT bot started by the child OpenClaw gateway
+controlled by the harness and a SUT bot started by the child Vasudev gateway
 through the bundled Slack plugin.
 
 Required env when `--credential-source env`:

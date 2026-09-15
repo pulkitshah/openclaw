@@ -1243,7 +1243,7 @@ describe("plugins cli install", () => {
     ).rejects.toThrow("__exit__:1");
 
     expect(runtimeErrors.at(-1)).toContain("--link is not supported with --marketplace.");
-    expect(runtimeErrors.at(-1)).toContain("openclaw plugins install --link <path> --force");
+    expect(runtimeErrors.at(-1)).toContain("vasudev plugins install --link <path> --force");
     expect(installPluginFromMarketplaceMock).not.toHaveBeenCalled();
   });
 
@@ -1306,7 +1306,7 @@ describe("plugins cli install", () => {
     ).rejects.toThrow("__exit__:1");
 
     expect(runtimeErrors.at(-1)).toContain(
-      "Config invalid; run `openclaw doctor --fix` before installing plugins.",
+      "Config invalid; run `vasudev doctor --fix` before installing plugins.",
     );
     expect(installPluginFromMarketplaceMock).not.toHaveBeenCalled();
     expect(installPluginFromNpmSpecMock).not.toHaveBeenCalled();
@@ -2452,7 +2452,7 @@ describe("plugins cli install", () => {
     expect(installPluginFromClawHubMock).not.toHaveBeenCalled();
   });
 
-  it("uses bundled OpenClaw package specs instead of pinning stale managed npm overrides", async () => {
+  it("uses bundled Vasudev package specs instead of pinning stale managed npm overrides", async () => {
     primeSuccessfulPluginPersistence("discord");
     const bundledPath = "/app/dist/extensions/discord";
     findBundledPluginSourceMock.mockImplementation((params: unknown) => {
@@ -2489,7 +2489,7 @@ describe("plugins cli install", () => {
     expect(record.spec).toBe("@openclaw/discord@2026.5.20");
     expect(record.sourcePath).toBe(bundledPath);
     expect(record.installPath).toBe(bundledPath);
-    expect(runtimeLogsContain("ships with the current OpenClaw build")).toBe(true);
+    expect(runtimeLogsContain("ships with the current Vasudev build")).toBe(true);
     expect(runtimeLogsContain("npm:@openclaw/discord@2026.5.20")).toBe(true);
   });
 
@@ -2734,7 +2734,7 @@ describe("plugins cli install", () => {
     ).rejects.toThrow("__exit__:1");
 
     expect(installPluginFromGitSpecMock).not.toHaveBeenCalled();
-    expect(runtimeErrors.at(-1)).toContain("openclaw plugins install git:<repo>@<ref> --force");
+    expect(runtimeErrors.at(-1)).toContain("vasudev plugins install git:<repo>@<ref> --force");
   });
 
   it("accepts the deprecated unsafe flag for marketplace installs", async () => {
@@ -2909,9 +2909,9 @@ describe("plugins cli install", () => {
 
   it.each([
     ["default", undefined, undefined, "openclaw"],
-    ["profile", "work", undefined, "openclaw --profile work"],
-    ["container", undefined, "demo", "openclaw --container demo"],
-    ["container before profile", "work", "demo", "openclaw --container demo"],
+    ["profile", "work", undefined, "vasudev --profile work"],
+    ["container", undefined, "demo", "vasudev --container demo"],
+    ["container before profile", "work", "demo", "vasudev --container demo"],
   ] as const)(
     "preserves %s context in duplicate-install recovery guidance",
     async (_name, profile, container, prefix) => {
@@ -3166,7 +3166,7 @@ describe("plugins cli install", () => {
   it("does not fall back to npm when explicit ClawHub rejects a real package", async () => {
     installPluginFromClawHubMock.mockResolvedValue({
       ok: false,
-      error: 'Use "openclaw skills install demo" instead.',
+      error: 'Use "vasudev skills install demo" instead.',
       code: "skill_package",
     });
 
@@ -3175,7 +3175,7 @@ describe("plugins cli install", () => {
     );
 
     expect(installPluginFromNpmSpecMock).not.toHaveBeenCalled();
-    expect(runtimeErrors.at(-1)).toContain('Use "openclaw skills install demo" instead.');
+    expect(runtimeErrors.at(-1)).toContain('Use "vasudev skills install demo" instead.');
   });
 
   it("falls back to installing hook packs from npm specs", async () => {

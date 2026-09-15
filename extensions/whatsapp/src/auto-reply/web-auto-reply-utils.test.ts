@@ -72,7 +72,7 @@ describe("isBotMentionedFromTargets", () => {
     // gate to false before mentionPatterns were evaluated, silently dropping
     // messages like "marlow, look at @SomeoneElse's message".
     const msg = makeMsg({
-      body: "@OpenClaw please help",
+      body: "@Vasudev please help",
       mentionedJids: ["19998887777@s.whatsapp.net"],
       selfE164: "+15551234567",
       selfJid: "15551234567@s.whatsapp.net",

@@ -1,4 +1,4 @@
-// Installs OpenClaw-owned transport and diagnostic policy before package helpers;
+// Installs Vasudev-owned transport and diagnostic policy before package helpers;
 // direct imports need the same wiring as the process-default stream facade.
 import { configureAiTransportHost } from "@openclaw/ai";
 import { configureProviderErrorRedactor } from "@openclaw/ai/diagnostics";

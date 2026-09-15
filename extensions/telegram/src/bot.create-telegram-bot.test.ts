@@ -611,7 +611,7 @@ describe("createTelegramBot", () => {
     const botInfo = {
       id: 123456,
       is_bot: true,
-      first_name: "OpenClaw",
+      first_name: "Vasudev",
       username: "openclaw_bot",
       can_join_groups: true,
       can_read_all_group_messages: false,
@@ -1685,7 +1685,7 @@ describe("createTelegramBot", () => {
     installTelegramTopicStateForTest();
     const chatId = nextForumCacheChatId();
     const topic = {
-      chat: { id: chatId, type: "supergroup", title: "OpenClaw Ops", is_forum: true },
+      chat: { id: chatId, type: "supergroup", title: "Vasudev Ops", is_forum: true },
       message_thread_id: 99,
       is_topic_message: true,
     };
@@ -1749,7 +1749,7 @@ describe("createTelegramBot", () => {
   ])("native stop preserves a pending fragment from $scope", async ({ senderId, threadId }) => {
     installTelegramTopicStateForTest();
     const chatId = nextForumCacheChatId();
-    const chat = { id: chatId, type: "supergroup", title: "OpenClaw Ops", is_forum: true };
+    const chat = { id: chatId, type: "supergroup", title: "Vasudev Ops", is_forum: true };
     loadConfig.mockReturnValue({
       commands: { native: true, allowFrom: { telegram: ["42"] } },
       messages: { inbound: { byChannel: { telegram: 3000 } } },
@@ -2625,7 +2625,7 @@ describe("createTelegramBot", () => {
           ctx: {
             update: { update_id: 104 },
             message: {
-              chat: { id: chatId, type: "supergroup", title: "OpenClaw Ops" },
+              chat: { id: chatId, type: "supergroup", title: "Vasudev Ops" },
               text,
               date: 1736380804,
               message_id: 104,
@@ -2641,7 +2641,7 @@ describe("createTelegramBot", () => {
           ctx: {
             update: { update_id: 105 },
             message: {
-              chat: { id: chatId, type: "supergroup", title: "OpenClaw Ops" },
+              chat: { id: chatId, type: "supergroup", title: "Vasudev Ops" },
               text: "stop",
               date: 1736380805,
               message_id: 105,
@@ -3047,7 +3047,7 @@ describe("createTelegramBot", () => {
     expect(replySpy).not.toHaveBeenCalled();
     expect(sendMessageSpy).toHaveBeenCalledWith(
       1234,
-      "Only an OpenClaw owner can sign in here. Ask the owner to connect this provider or grant you owner access.",
+      "Only a Vasudev owner can sign in here. Ask the owner to connect this provider or grant you owner access.",
       {},
     );
   });
@@ -3273,7 +3273,7 @@ describe("createTelegramBot", () => {
       const pairingText = String(sendMessageSpy.mock.calls.at(0)?.[1]);
       expect(pairingText, testCase.name).toContain(`Your Telegram user id: ${senderId}`);
       expect(pairingText, testCase.name).toContain("Pairing code:");
-      expect(pairingText, testCase.name).toContain("openclaw pairing approve telegram");
+      expect(pairingText, testCase.name).toContain("vasudev pairing approve telegram");
       expectRecordFields(
         sendMessageSpy.mock.calls.at(0)?.[2],
         { parse_mode: "HTML" },
@@ -3481,16 +3481,16 @@ describe("createTelegramBot", () => {
         chat: { id: 1234, type: "private", first_name: "Harold" },
         message_id: 1884,
         date: 1736380800,
-        from: { id: 7, is_bot: true, first_name: "OpenClaw", username: "openclaw_bot" },
+        from: { id: 7, is_bot: true, first_name: "Vasudev", username: "openclaw_bot" },
         pinned_message: {
           message_id: 1883,
           date: 1736380799,
           chat: { id: 1234, type: "private", first_name: "Harold" },
-          from: { id: 7, is_bot: true, first_name: "OpenClaw", username: "openclaw_bot" },
+          from: { id: 7, is_bot: true, first_name: "Vasudev", username: "openclaw_bot" },
           text: "Binding: Review pull request 54118 (openclaw)",
         },
       },
-      me: { id: 7, is_bot: true, first_name: "OpenClaw", username: "openclaw_bot" },
+      me: { id: 7, is_bot: true, first_name: "Vasudev", username: "openclaw_bot" },
       getFile: async () => ({ download: async () => new Uint8Array() }),
     });
 
@@ -3753,13 +3753,13 @@ describe("createTelegramBot", () => {
 
     await handler({
       message: {
-        chat: { id: chatId, type: "supergroup", title: "OpenClaw Ops" },
+        chat: { id: chatId, type: "supergroup", title: "Vasudev Ops" },
         message_id: 1884,
         date: 1736380800,
-        from: { id: 7, is_bot: true, first_name: "OpenClaw", username: "openclaw_bot" },
+        from: { id: 7, is_bot: true, first_name: "Vasudev", username: "openclaw_bot" },
         text: "approval card update",
       },
-      me: { id: 7, is_bot: true, first_name: "OpenClaw", username: "openclaw_bot" },
+      me: { id: 7, is_bot: true, first_name: "Vasudev", username: "openclaw_bot" },
       getFile: async () => ({ download: async () => new Uint8Array() }),
     });
 

@@ -7,9 +7,9 @@ read_when:
 title: "Hosted desk"
 ---
 
-A **hosted desk** is an always-on Linux machine in the cloud that runs your OpenClaw Gateway with a real, headed browser attached. Duties that click through a real site keep running on their own schedule, on mail, or on demand — even while your laptop is closed. The Control UI and SSH are reachable only over your own [Tailscale](/gateway/tailscale) network; a desk configured for Gmail push also exposes one webhook route to the public internet (see [Gmail push per desk](#gmail-push-per-desk) below).
+A **hosted desk** is an always-on Linux machine in the cloud that runs your Vasudev Gateway with a real, headed browser attached. Duties that click through a real site keep running on their own schedule, on mail, or on demand — even while your laptop is closed. The Control UI and SSH are reachable only over your own [Tailscale](/gateway/tailscale) network; a desk configured for Gmail push also exposes one webhook route to the public internet (see [Gmail push per desk](#gmail-push-per-desk) below).
 
-One desk runs one Gateway. It is the same OpenClaw you already use, just running on a machine that never sleeps.
+One desk runs one Gateway. It is the same Vasudev you already use, just running on a machine that never sleeps.
 
 ## What it costs
 

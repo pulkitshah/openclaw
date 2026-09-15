@@ -99,7 +99,7 @@ function buildUnknownNodePairRequestIdMessage(
       lines.push("No pending node pairing requests are currently visible.");
     }
   }
-  lines.push(`Run ${formatCliCommand("openclaw nodes pending")} to inspect current requests.`);
+  lines.push(`Run ${formatCliCommand("vasudev nodes pending")} to inspect current requests.`);
   const connectionReminder = formatConnectionFlagReminder(opts);
   if (connectionReminder) {
     lines.push(connectionReminder);
@@ -233,7 +233,7 @@ export function registerNodesPairingCommands(nodes: Command) {
           const name = normalizeOptionalString(opts.name) ?? "";
           if (!name) {
             throw new Error(
-              `--name must not be empty. Run ${formatCliCommand("openclaw nodes list")} to see paired nodes, then rerun with --name <displayName>.`,
+              `--name must not be empty. Run ${formatCliCommand("vasudev nodes list")} to see paired nodes, then rerun with --name <displayName>.`,
             );
           }
           const nodeId = await resolveCliNodeId(opts, normalizeOptionalString(opts.node) ?? "");

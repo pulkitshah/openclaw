@@ -2,11 +2,11 @@
 summary: "Supported Node.js versions, SQLite requirements, platform limits, and release history"
 title: "Node.js compatibility"
 read_when:
-  - You need to check which Node.js versions OpenClaw supports
+  - You need to check which Node.js versions Vasudev supports
   - You want to understand a Node.js minimum version or platform support change
 ---
 
-This reference covers supported Node.js lines, why the minimum versions exist, and how they changed across OpenClaw releases. For installation steps, see [Node.js](/install/node); for macOS companion app requirements, see [macOS](/platforms/macos).
+This reference covers supported Node.js lines, why the minimum versions exist, and how they changed across Vasudev releases. For installation steps, see [Node.js](/install/node); for macOS companion app requirements, see [macOS](/platforms/macos).
 
 ## Supported versions
 
@@ -30,7 +30,7 @@ Installers retain the numeric Node requirement and add the probe as a second gat
 
 ## Why the floors exist
 
-The **SQLite WAL-reset corruption bug** requires a safe loaded library: SQLite **3.51.3+**, **3.50.7+ within 3.50.x**, or **3.44.6+ within 3.44.x**. OpenClaw validates the library actually loaded because Node builds linked to shared system SQLite can use a different version from Node's own metadata.
+The **SQLite WAL-reset corruption bug** requires a safe loaded library: SQLite **3.51.3+**, **3.50.7+ within 3.50.x**, or **3.44.6+ within 3.44.x**. Vasudev validates the library actually loaded because Node builds linked to shared system SQLite can use a different version from Node's own metadata.
 
 Separately, the **`node:sqlite` TEXT decoder** in Node 22.23.x, 24.15.0, 25.9.0, and 26.0.0 silently truncates values at embedded NUL characters. The first fixed releases are Node 24.16.0 and 26.1.0; a WAL-safe SQLite library does not fix this decoder. Node 23 was excluded earlier for incompatible `node:sqlite` behavior.
 
@@ -40,7 +40,7 @@ Official Node 24+ binaries require **macOS 13.5+**, so macOS 11 through 13.4 no 
 
 Supported Node lines have no official **Linux ARMv7** builds. Use a 64-bit operating system on compatible ARM hardware, or another supported host.
 
-On RPM-based distributions, the installer preserves a supported distro-owned Node package that links unsafe system SQLite and provisions a separate user-space runtime for OpenClaw.
+On RPM-based distributions, the installer preserves a supported distro-owned Node package that links unsafe system SQLite and provisions a separate user-space runtime for Vasudev.
 
 ## What the installer provisions
 

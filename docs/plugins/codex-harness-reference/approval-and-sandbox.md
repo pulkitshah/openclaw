@@ -2,7 +2,7 @@
 summary: "YOLO and guardian approval presets, and sandboxed native execution paths"
 read_when:
   - You are choosing between YOLO and guardian approval
-  - You are running Codex native execution inside an OpenClaw sandbox
+  - You are running Codex native execution inside a Vasudev sandbox
   - You are placing Codex execution on a node or cloud worker
 title: "Codex approval and sandbox modes"
 sidebarTitle: "Approval and sandbox"
@@ -15,11 +15,11 @@ The approval and sandbox posture of a Codex turn, and where native execution run
 Local stdio app-server sessions default to YOLO mode:
 `approvalPolicy: "never"`, `approvalsReviewer: "user"`, and
 `sandbox: "danger-full-access"`. This trusted local operator posture lets
-unattended OpenClaw turns and heartbeats make progress without native approval
+unattended Vasudev turns and heartbeats make progress without native approval
 prompts that nobody is around to answer.
 
 If Codex's local system requirements file disallows implicit YOLO approval,
-reviewer, or sandbox values, OpenClaw treats the implicit default as guardian
+reviewer, or sandbox values, Vasudev treats the implicit default as guardian
 instead and selects allowed guardian permissions. `tools.exec.mode: "auto"`
 also forces guardian-reviewed Codex approvals and does not preserve unsafe
 legacy `approvalPolicy: "never"` or `sandbox: "danger-full-access"` overrides;
@@ -53,23 +53,23 @@ values are allowed. Individual policy fields override `mode`. The older
 `guardian_subagent` reviewer value is still accepted as a compatibility alias,
 but new configs should use `auto_review`.
 
-When an OpenClaw sandbox is active, the local Codex app-server process still
-runs on the Gateway host. OpenClaw therefore disables Codex native Code Mode,
+When a Vasudev sandbox is active, the local Codex app-server process still
+runs on the Gateway host. Vasudev therefore disables Codex native Code Mode,
 user MCP servers, and app-backed plugin execution for that turn instead of
-treating Codex host-side sandboxing as equivalent to the OpenClaw sandbox
-backend. Shell access is exposed through OpenClaw sandbox-backed dynamic tools
+treating Codex host-side sandboxing as equivalent to the Vasudev sandbox
+backend. Shell access is exposed through Vasudev sandbox-backed dynamic tools
 such as `sandbox_exec` and `sandbox_process` when the normal exec/process tools
 are available.
 
 <Note>
-On Docker-backed OpenClaw sandbox hosts (`agents.defaults.sandbox.mode` set to
+On Docker-backed Vasudev sandbox hosts (`agents.defaults.sandbox.mode` set to
 a Docker backend), `openclaw doctor` probes whether the host allows the
 unprivileged user (and, when Docker sandbox network egress is disabled,
 network) namespaces that nested Codex `bwrap` needs for `workspace-write`
 shell execution inside the sandbox container. A failed probe usually surfaces
 as `bwrap: setting up uid map: Permission denied` or
 `bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted` on
-Ubuntu/AppArmor hosts. Fix the reported host namespace policy for the OpenClaw
+Ubuntu/AppArmor hosts. Fix the reported host namespace policy for the Vasudev
 service user and restart the gateway; prefer a scoped AppArmor profile for the
 service process over the host-wide
 `kernel.apparmor_restrict_unprivileged_userns=0` fallback, and do not grant
@@ -78,10 +78,10 @@ broader Docker container privileges just to satisfy nested `bwrap`.
 
 ## Sandboxed native execution
 
-The stable default is fail-closed: active OpenClaw sandboxing disables native
+The stable default is fail-closed: active Vasudev sandboxing disables native
 Codex execution surfaces that would otherwise run from the Codex app-server
 host. Use `appServer.experimental.sandboxExecServer: true` only when you want
-to try Codex's remote environment support with OpenClaw's sandbox backend.
+to try Codex's remote environment support with Vasudev's sandbox backend.
 This preview path uses the pinned Codex `0.153.4` app-server.
 
 ```json5
@@ -103,19 +103,19 @@ This preview path uses the pinned Codex `0.153.4` app-server.
 }
 ```
 
-When the flag is on and the current OpenClaw session is sandboxed, OpenClaw
+When the flag is on and the current Vasudev session is sandboxed, Vasudev
 starts a local loopback exec-server backed by the active sandbox, registers it
 with Codex app-server, and starts the Codex thread and turn with that
-OpenClaw-owned environment. If the app-server cannot register the environment,
+Vasudev-owned environment. If the app-server cannot register the environment,
 the run fails closed instead of silently falling back to host execution.
 
 Sandboxed process output streams as ordered stdout, stderr, or PTY
-notifications. OpenClaw retains only a bounded recent-output buffer for polling
+notifications. Vasudev retains only a bounded recent-output buffer for polling
 and replay, so long-running processes cannot grow the app-server bridge without
 limit. Process exit and cleanup remain tied to the sandbox-owned process.
 
 This preview path is local-only. A remote WebSocket app-server cannot reach
-the loopback exec-server unless it is running on the same host, so OpenClaw
+the loopback exec-server unless it is running on the same host, so Vasudev
 rejects that combination.
 
 Node-backed `remote-exec` placement on a paired device or enrolled Crabbox
@@ -138,7 +138,7 @@ or GitHub credentials. A lost node connection terminates the attempt and
 process instead of resuming it. Each node-backed attempt uses its own Gateway
 app-server client because Codex can register a remote environment but cannot
 remove one from a running app-server. The node exec-server does not consume an
-OpenClaw worker slot. HTTP requests containing authentication, cookies, API
+Vasudev worker slot. HTTP requests containing authentication, cookies, API
 keys, or other credential-bearing headers are rejected before reaching the
 node; use a Gateway-owned authenticated request or a credential-free endpoint
 instead.

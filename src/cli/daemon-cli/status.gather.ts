@@ -600,7 +600,7 @@ export async function gatherDaemonStatus(
               pluginVersionRestartReadiness = {
                 status: "unresolved",
                 reason:
-                  "Gateway service command is unavailable, so the post-restart OpenClaw version is unknown.",
+                  "Gateway service command is unavailable, so the post-restart Vasudev version is unknown.",
                 ...(runningGatewayVersion ? { runningGatewayVersion } : {}),
               };
             } else {
@@ -609,7 +609,7 @@ export async function gatherDaemonStatus(
                 pluginVersionRestartReadiness = {
                   status: "unresolved",
                   reason:
-                    "Gateway service package version is unavailable, so the post-restart OpenClaw version is unknown.",
+                    "Gateway service package version is unavailable, so the post-restart Vasudev version is unknown.",
                   ...(runningGatewayVersion ? { runningGatewayVersion } : {}),
                 };
               } else {
@@ -668,7 +668,7 @@ export async function gatherDaemonStatus(
       runtime: runtime?.inspectionFailure
         ? {
             ...runtime,
-            detail: `${runtime.detail}; retry with openclaw gateway status --deep`,
+            detail: `${runtime.detail}; retry with vasudev gateway status --deep`,
           }
         : runtime,
       configAudit,

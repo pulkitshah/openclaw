@@ -75,5 +75,5 @@ openclaw-board-document {
 }
 
 .board-document__state--error {
-  color: var(--danger);
+  color: var(--danger-text);
 }

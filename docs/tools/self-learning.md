@@ -1,7 +1,7 @@
 ---
 summary: "Turn corrections and successful work into reusable skills through Skill Workshop"
 read_when:
-  - You want OpenClaw to learn reusable procedures from completed conversations
+  - You want Vasudev to learn reusable procedures from completed conversations
   - You are choosing between off, propose, and auto self-learning modes
   - You need to understand self-learning safety, cost, privacy, or troubleshooting
 title: "Self-learning"
@@ -42,7 +42,7 @@ Every learning decision comes from a model reviewing real evidence, not a
 template or pattern-matching path. The conversation and skill files are evidence,
 not permission to resume tasks or execute the procedures under review.
 
-After substantial work, OpenClaw can run one detached background review to find
+After substantial work, Vasudev can run one detached background review to find
 a reusable recovery technique or a stable procedure that would remove at least
 two future model or tool round trips. Deep turns the user interrupted qualify
 too: the wrong path and its correction are exactly the evidence worth keeping.
@@ -70,7 +70,7 @@ retain separate candidates. Experience reviews use one Workshop slot within the
 [shared background work budget](/concepts/queue#background-work).
 The foreground answer never waits for the model's review.
 
-OpenClaw records where the completed turn ends, then reads its full model context
+Vasudev records where the completed turn ends, then reads its full model context
 asynchronously after the quiet period. The reviewer connects earlier requirements
 and corrections with observed results across that retained conversation, even
 when the latest turn is routine. Later messages are excluded. If the saved

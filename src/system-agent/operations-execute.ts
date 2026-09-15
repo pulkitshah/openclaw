@@ -33,7 +33,7 @@ import { executePluginInstall } from "./plugin-install.js";
 
 const loadOverviewModule = async () => await import("./overview.js");
 
-/** Execute a parsed OpenClaw operation after applying approval gates and audit logging. */
+/** Execute a parsed Vasudev operation after applying approval gates and audit logging. */
 export async function executeSystemAgentOperation(
   operation: SystemAgentOperation,
   runtime: RuntimeEnv,
@@ -240,14 +240,14 @@ export async function executeSystemAgentOperation(
       return { applied: false };
     }
     case "channel-setup":
-      // Channel setup is a multi-step wizard; only interactive OpenClaw (TUI
+      // Channel setup is a multi-step wizard; only interactive Vasudev (TUI
       // chat bridge or the gateway chat) can host it. One-shot mode points at
       // the guided paths.
       runtime.log(
         [
           `Connecting ${operation.channel} needs an interactive session.`,
-          "Run `openclaw setup` and say `connect " + operation.channel + "`,",
-          "or run `openclaw channels add` for the terminal wizard.",
+          "Run `vasudev setup` and say `connect " + operation.channel + "`,",
+          "or run `vasudev channels add` for the terminal wizard.",
         ].join("\n"),
       );
       return { applied: false };
@@ -255,8 +255,8 @@ export async function executeSystemAgentOperation(
       runtime.log(
         [
           "Skills setup needs an interactive session.",
-          "Run `openclaw setup` and say `configure skills`,",
-          "or run `openclaw configure --section skills` for the terminal wizard.",
+          "Run `vasudev setup` and say `configure skills`,",
+          "or run `vasudev configure --section skills` for the terminal wizard.",
         ].join("\n"),
       );
       return { applied: false };
@@ -264,8 +264,8 @@ export async function executeSystemAgentOperation(
       runtime.log(
         [
           "Web search setup needs an interactive session.",
-          "Run `openclaw setup` and say `configure search`,",
-          "or run `openclaw configure --section web` for the masked terminal wizard.",
+          "Run `vasudev setup` and say `configure search`,",
+          "or run `vasudev configure --section web` for the masked terminal wizard.",
         ].join("\n"),
       );
       return { applied: false };
@@ -273,8 +273,8 @@ export async function executeSystemAgentOperation(
       runtime.log(
         [
           "Gateway configuration needs an interactive session.",
-          "Run `openclaw setup` and say `configure gateway`,",
-          "or run `openclaw configure --section gateway` for the masked terminal wizard.",
+          "Run `vasudev setup` and say `configure gateway`,",
+          "or run `vasudev configure --section gateway` for the masked terminal wizard.",
         ].join("\n"),
       );
       return { applied: false };
@@ -283,36 +283,36 @@ export async function executeSystemAgentOperation(
         [
           "Memory import needs an interactive session.",
           "Open the Memory page in the Control UI,",
-          "or run `openclaw onboard` for the terminal wizard.",
+          "or run `vasudev onboard` for the terminal wizard.",
         ].join("\n"),
       );
       return { applied: false };
     case "model-setup":
       runtime.log(
         [
-          "Changing model providers must happen outside the inference session that powers OpenClaw.",
-          "Stop the OpenClaw host through whatever started it. Run `openclaw onboard` on the machine running OpenClaw: it stages credentials, live-tests the candidate route, and saves only a passing setup. Then restart the host.",
+          "Changing model providers must happen outside the inference session that powers Vasudev.",
+          "Stop the Vasudev host through whatever started it. Run `vasudev onboard` on the machine running Vasudev: it stages credentials, live-tests the candidate route, and saves only a passing setup. Then restart the host.",
         ].join("\n"),
       );
       return { applied: false };
     case "model-accounts":
       runtime.log(
-        "Manage your personal accounts in Settings → Profile → Connected accounts, or run `openclaw models accounts list` / `openclaw models accounts login <provider>`. Check the Gateway, person, and Personal scope before signing in. Nothing has changed. Enter credentials only in the protected sign-in controls, never in chat.",
+        "Manage your personal accounts in Settings → Profile → Connected accounts, or run `vasudev models accounts list` / `vasudev models accounts login <provider>`. Check the Gateway, person, and Personal scope before signing in. Nothing has changed. Enter credentials only in the protected sign-in controls, never in chat.",
       );
       return { applied: false };
     case "open-setup": {
       const command =
         operation.target === "guided"
-          ? "openclaw onboard"
+          ? "vasudev onboard"
           : operation.target === "classic"
-            ? "openclaw onboard --classic"
+            ? "vasudev onboard --classic"
             : operation.target === "channels"
-              ? `openclaw channels add${operation.channel ? ` --channel ${operation.channel}` : ""}`
+              ? `vasudev channels add${operation.channel ? ` --channel ${operation.channel}` : ""}`
               : operation.target === "search"
-                ? "openclaw configure --section web"
-                : "openclaw configure --section gateway";
+                ? "vasudev configure --section web"
+                : "vasudev configure --section gateway";
       runtime.log(
-        `This session cannot host an interactive wizard. Run \`${command}\` on the machine running OpenClaw.`,
+        `This session cannot host an interactive wizard. Run \`${command}\` on the machine running Vasudev.`,
       );
       return { applied: false };
     }
@@ -358,8 +358,8 @@ export async function executeSystemAgentOperation(
     case "plugin-uninstall": {
       if (await isPluginBackingDefaultInferenceRoute(operation.pluginId)) {
         const message = [
-          `Uninstalling ${operation.pluginId} could remove the provider behind OpenClaw's own active inference route.`,
-          `Removing it has to happen with OpenClaw stopped: run \`openclaw plugins uninstall ${operation.pluginId}\` on the machine running it.`,
+          `Uninstalling ${operation.pluginId} could remove the provider behind Vasudev's own active inference route.`,
+          `Removing it has to happen with Vasudev stopped: run \`vasudev plugins uninstall ${operation.pluginId}\` on the machine running it.`,
         ].join("\n");
         runtime.log(message);
         return { applied: false, message };
@@ -386,7 +386,7 @@ export async function executeSystemAgentOperation(
           // command's asynchronous preparation starts.
           if (await isPluginBackingDefaultInferenceRoute(operation.pluginId)) {
             throw new Error(
-              `Uninstall aborted: ${operation.pluginId} now backs the active inference route. Removing it has to happen with OpenClaw stopped: run \`openclaw plugins uninstall ${operation.pluginId}\` on the machine running it.`,
+              `Uninstall aborted: ${operation.pluginId} now backs the active inference route. Removing it has to happen with Vasudev stopped: run \`vasudev plugins uninstall ${operation.pluginId}\` on the machine running it.`,
             );
           }
           await ctx.commit(() =>
@@ -417,7 +417,7 @@ export async function executeSystemAgentOperation(
       }
       if (operation.model?.trim()) {
         throw new Error(
-          "OpenClaw cannot save an explicit per-agent model until that new route can be live-tested. Retry without `model`; the new agent inherits the verified default, then use `set_default_model` with agentId to live-test and save its own model.",
+          "Vasudev cannot save an explicit per-agent model until that new route can be live-tested. Retry without `model`; the new agent inherits the verified default, then use `set_default_model` with agentId to live-test and save its own model.",
         );
       }
       return await applyPersistentOperation({
@@ -513,7 +513,7 @@ export async function executeSystemAgentOperation(
     }
     case "doctor-fix":
       runtime.log(
-        "Doctor repairs can change the inference route that powers this session, so they run with OpenClaw stopped: `openclaw doctor --fix` on the machine running it.",
+        "Doctor repairs can change the inference route that powers this session, so they run with Vasudev stopped: `vasudev doctor --fix` on the machine running it.",
       );
       return { applied: false };
     case "status": {

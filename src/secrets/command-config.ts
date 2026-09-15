@@ -1,4 +1,4 @@
-/** Collects and analyzes command-scoped secret assignments from OpenClaw config. */
+/** Collects and analyzes command-scoped secret assignments from Vasudev config. */
 import { getAuthoredConfigSecretRef, resolveConfigSecretRef } from "../config/resolution-facts.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 import { resolveSecretInputRef } from "../config/types.secrets.js";

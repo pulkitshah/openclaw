@@ -16,8 +16,8 @@ describe("buildCredentialSafetyPrompt", () => {
     expect(lines[0]).toContain("For user-requested login or pairing in a group");
     expect(lines[0]).toContain("only to the requesting user in private");
     expect(lines[0]).toContain("then acknowledge in the group without them");
-    expect(prompt.includes("openclaw channels add <channel>")).toBe(terminalSetup);
-    expect(prompt.includes("openclaw configure")).toBe(terminalSetup);
+    expect(prompt.includes("vasudev channels add <channel>")).toBe(terminalSetup);
+    expect(prompt.includes("vasudev configure")).toBe(terminalSetup);
     expect(prompt).not.toContain("legacy-secrets-tool");
   });
 });

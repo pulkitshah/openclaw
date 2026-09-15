@@ -9,7 +9,7 @@ read_when:
 title: "Firecrawl"
 ---
 
-OpenClaw can use **Firecrawl** in three ways:
+Vasudev can use **Firecrawl** in three ways:
 
 - as the `web_search` provider
 - as explicit plugin tools: `firecrawl_search` and `firecrawl_scrape`
@@ -78,7 +78,7 @@ Notes:
 - Firecrawl search requests default to a 30-second timeout; `firecrawl_search`'s `timeoutSeconds` parameter overrides it per call.
 
 Both Firecrawl `web_search` providers and `firecrawl_search` use
-`tools.web.search.cacheTtlMinutes` for OpenClaw's local result cache (default: 15
+`tools.web.search.cacheTtlMinutes` for Vasudev's local result cache (default: 15
 minutes). Set it to `0` to bypass cache reads and writes. A shorter TTL limits
 reuse of existing entries; a longer TTL does not extend their original expiry.
 This setting does not change Firecrawl's upstream scrape caching.
@@ -114,7 +114,7 @@ This setting does not change Firecrawl's upstream scrape caching.
 
 Notes:
 
-- The explicitly selected Firecrawl `web_fetch` fallback works without an API key. When configured, OpenClaw sends `plugins.entries.firecrawl.config.webFetch.apiKey` or `FIRECRAWL_API_KEY` for higher limits.
+- The explicitly selected Firecrawl `web_fetch` fallback works without an API key. When configured, Vasudev sends `plugins.entries.firecrawl.config.webFetch.apiKey` or `FIRECRAWL_API_KEY` for higher limits.
 - Choosing Firecrawl during onboarding or `openclaw configure --section web` enables the plugin and selects Firecrawl for `web_fetch` unless another fetch provider is already configured.
 - `firecrawl_scrape` requires an API key.
 - `maxAgeMs` controls how old cached results can be (ms). Default is 172,800,000 ms (2 days).
@@ -127,7 +127,7 @@ Notes:
 
 ### Self-hosted Firecrawl
 
-Set `plugins.entries.firecrawl.config.webSearch.baseUrl`, `plugins.entries.firecrawl.config.webFetch.baseUrl`, or `FIRECRAWL_BASE_URL` when you run Firecrawl yourself. OpenClaw accepts `http://` only for loopback, private-network, `.local`, `.internal`, or `.localhost` targets. Public custom hosts are rejected so Firecrawl API keys are not sent to arbitrary endpoints by accident.
+Set `plugins.entries.firecrawl.config.webSearch.baseUrl`, `plugins.entries.firecrawl.config.webFetch.baseUrl`, or `FIRECRAWL_BASE_URL` when you run Firecrawl yourself. Vasudev accepts `http://` only for loopback, private-network, `.local`, `.internal`, or `.localhost` targets. Public custom hosts are rejected so Firecrawl API keys are not sent to arbitrary endpoints by accident.
 
 ## Firecrawl plugin tools
 
@@ -176,7 +176,7 @@ Firecrawl's `proxy` mode controls bot circumvention (`basic`, `stealth`, or `aut
 2. Configured fetch provider, such as Firecrawl (when selected, or auto-detected from configured credentials)
 3. Basic HTML cleanup (last fallback)
 
-The selection knob is `tools.web.fetch.provider`. If you omit it, OpenClaw auto-detects the first ready web-fetch provider from available credentials. The official Firecrawl plugin provides that fallback.
+The selection knob is `tools.web.fetch.provider`. If you omit it, Vasudev auto-detects the first ready web-fetch provider from available credentials. The official Firecrawl plugin provides that fallback.
 
 ## Related
 

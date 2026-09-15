@@ -1,14 +1,14 @@
 ---
-summary: "Default OpenClaw agent instructions and skills roster for the personal assistant setup"
+summary: "Default Vasudev agent instructions and skills roster for the personal assistant setup"
 title: "Default AGENTS.md"
 read_when:
-  - Starting a new OpenClaw agent session
+  - Starting a new Vasudev agent session
   - Enabling or auditing default skills
 ---
 
 ## First run (recommended)
 
-OpenClaw agents use a workspace directory. Default: `~/.openclaw/workspace` (configurable via `agents.defaults.workspace`, supports `~`).
+Vasudev agents use a workspace directory. Default: `~/.openclaw/workspace` (configurable via `agents.defaults.workspace`, supports `~`).
 
 1. Create the workspace:
 
@@ -46,7 +46,7 @@ cp docs/reference/AGENTS.default.md ~/.openclaw/workspace/AGENTS.md
 
 ## Existing solutions preflight
 
-Before proposing or building a custom system, feature, workflow, tool, integration, or automation, check for open-source projects, maintained libraries, existing OpenClaw plugins, or free platforms that already solve it well enough. Prefer those when adequate. Build custom only when existing options are unsuitable, too expensive, unmaintained, unsafe, non-compliant, or the user explicitly asks for custom. Avoid paid-service recommendations unless the user explicitly approves spend. Keep this lightweight, a preflight gate, not a research assignment.
+Before proposing or building a custom system, feature, workflow, tool, integration, or automation, check for open-source projects, maintained libraries, existing Vasudev plugins, or free platforms that already solve it well enough. Prefer those when adequate. Build custom only when existing options are unsuitable, too expensive, unmaintained, unsafe, non-compliant, or the user explicitly asks for custom. Avoid paid-service recommendations unless the user explicitly approves spend. Keep this lightweight, a preflight gate, not a research assignment.
 
 ## Session start (required)
 
@@ -94,7 +94,7 @@ git commit -m "Add workspace"
 # Optional: add a private remote + push
 ```
 
-## What OpenClaw does
+## What Vasudev does
 
 - Runs a messaging-channel gateway (WhatsApp, Telegram, Discord, Signal, iMessage, Slack, and more) plus an embedded agent, so the assistant can read/write chats, fetch context, and run skills via the host machine.
 - The macOS app manages permissions (screen recording, notifications, microphone) and exposes the `openclaw` CLI via its bundled binary.
@@ -102,7 +102,7 @@ git commit -m "Add workspace"
 
 ## Core skills (enable in Settings → Skills)
 
-Example roster for a personal-assistant workspace, last reviewed for 2026.9.3; swap in whichever skills fit your setup. These are third-party skills, so availability changes independently of OpenClaw releases.
+Example roster for a personal-assistant workspace, last reviewed for 2026.9.3; swap in whichever skills fit your setup. These are third-party skills, so availability changes independently of Vasudev releases.
 
 - **mcporter** - tool server runtime/CLI for managing external skill backends.
 - **Peekaboo** - fast macOS screenshots with optional AI vision analysis.
@@ -127,7 +127,7 @@ Example roster for a personal-assistant workspace, last reviewed for 2026.9.3; s
 - Prefer the `openclaw` CLI for scripting; the desktop app handles permissions.
 - Run installs from the Skills tab; the install button is hidden once a required binary is already present.
 - Keep heartbeats enabled so the assistant can schedule reminders, monitor inboxes, and trigger camera captures.
-- For browser-driven verification, use the `openclaw browser` CLI (bundled `browser` plugin) with the OpenClaw-managed Chrome/Brave/Edge/Chromium profile.
+- For browser-driven verification, use the `openclaw browser` CLI (bundled `browser` plugin) with the Vasudev-managed Chrome/Brave/Edge/Chromium profile.
 - Manage: `status`, `doctor [--deep]`, `start [--headless]`, `stop`, `tabs`, `tab [new|select|close]`, `open <url>`, `focus <id>`, `close <id>`.
 - Inspect: `screenshot [--full-page|--ref|--labels]`, `snapshot [--format ai|aria|--interactive|--efficient]`, `console`, `errors`, `requests`, `pdf`, `responsebody`.
 - Act: `navigate`, `click <ref>`, `type <ref> <text>`, `press`, `hover`, `drag`, `select`, `upload`, `download`, `fill`, `dialog`, `wait`, `evaluate --fn <js>`, `highlight`. Actions need a `ref` from `snapshot` (CSS selectors are not accepted for actions); use `evaluate` when you need `document.querySelector`-style targeting.

@@ -306,22 +306,22 @@ describe("parallel web search provider", () => {
   });
   it("returns an error payload when search_queries is missing or empty", async () => {
     const tool = paidTool();
-    expect(await tool.execute({ objective: "Find OpenClaw on GitHub" })).toMatchObject({
+    expect(await tool.execute({ objective: "Find Vasudev on GitHub" })).toMatchObject({
       error: "invalid_search_queries",
     });
     expect(
-      await tool.execute({ objective: "Find OpenClaw on GitHub", search_queries: [] }),
+      await tool.execute({ objective: "Find Vasudev on GitHub", search_queries: [] }),
     ).toMatchObject({ error: "invalid_search_queries" });
     expect(endpointMockState.calls).toHaveLength(0);
   });
   it("promotes a generic `query` arg into search_queries when search_queries is absent (no synthesized objective)", async () => {
     enqueueJson();
-    const result = await paidTool().execute({ query: "OpenClaw GitHub", count: 3 });
+    const result = await paidTool().execute({ query: "Vasudev GitHub", count: 3 });
     expect(endpointMockState.calls).toHaveLength(1);
     const body = readBody();
     expect(body).not.toHaveProperty("objective");
     expect(body).toMatchObject({
-      search_queries: ["OpenClaw GitHub"],
+      search_queries: ["Vasudev GitHub"],
       advanced_settings: { max_results: 3 },
     });
     expect(result).not.toHaveProperty("objective");
@@ -363,7 +363,7 @@ describe("parallel web search provider", () => {
       maxResults: 3,
       timeoutSeconds: 5,
     }).execute({
-      objective: "Find the OpenClaw repository on GitHub",
+      objective: "Find the Vasudev repository on GitHub",
       search_queries: ["openclaw github", "openclaw repository"],
     });
     expect(endpointMockState.calls).toHaveLength(1);
@@ -371,7 +371,7 @@ describe("parallel web search provider", () => {
     expect(call.url).toBe("https://api.parallel.ai/v1/search");
     expect(call.timeoutSeconds).toBe(5);
     expect(readBody(call)).toEqual({
-      objective: "Find the OpenClaw repository on GitHub",
+      objective: "Find the Vasudev repository on GitHub",
       search_queries: ["openclaw github", "openclaw repository"],
       advanced_settings: { max_results: 3 },
     });
@@ -388,22 +388,22 @@ describe("parallel web search provider", () => {
   it("threads caller-supplied session_id and client_model through to Parallel", async () => {
     enqueueJson({ search_id: "search_test", session_id: "session-caller-supplied", results: [] });
     const result = await paidTool().execute({
-      objective: "Find the OpenClaw repository on GitHub",
+      objective: "Find the Vasudev repository on GitHub",
       search_queries: ["openclaw github"],
       session_id: "session-caller-supplied",
       client_model: "claude-opus-4-7",
     });
     expect(readBody()).toMatchObject({
-      objective: "Find the OpenClaw repository on GitHub",
+      objective: "Find the Vasudev repository on GitHub",
       search_queries: ["openclaw github"],
       session_id: "session-caller-supplied",
       client_model: "claude-opus-4-7",
     });
     expect(result).toMatchObject({ sessionId: "session-caller-supplied" });
   });
-  it("always sends max_results matching the OpenClaw web_search default when no count is provided", async () => {
+  it("always sends max_results matching the Vasudev web_search default when no count is provided", async () => {
     enqueueJson();
-    await paidTool().execute({ objective: "Find OpenClaw", search_queries: ["openclaw"] });
+    await paidTool().execute({ objective: "Find Vasudev", search_queries: ["openclaw"] });
     expect(endpointMockState.calls).toHaveLength(1);
     const body = readBody() as { advanced_settings?: { max_results?: number } };
     expect(body.advanced_settings?.max_results).toBe(5);

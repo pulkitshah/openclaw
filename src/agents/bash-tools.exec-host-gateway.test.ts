@@ -2608,7 +2608,7 @@ Command: ${command}`;
 
     const result = await runGatewayAllowlist({
       command:
-        "openclaw config get security.audit.suppressions; openclaw config set security.audit.suppressions '[]'",
+        "openclaw config get security.audit.suppressions; vasudev config set security.audit.suppressions '[]'",
       security: "full",
       ask: "on-miss",
     });
@@ -2636,7 +2636,7 @@ Command: ${command}`;
 
     const result = await runGatewayAllowlist({
       command:
-        "openclaw config get security.audit.suppressions; openclaw config set security.audit.suppressions '[]'",
+        "openclaw config get security.audit.suppressions; vasudev config set security.audit.suppressions '[]'",
       security: "full",
       ask: "on-miss",
     });
@@ -2652,12 +2652,12 @@ Command: ${command}`;
       allowlistSatisfied: false,
       segments: [
         {
-          raw: "openclaw config get security.audit.suppressions",
+          raw: "vasudev config get security.audit.suppressions",
           resolution: null,
           argv: ["openclaw", "config", "get", "security.audit.suppressions"],
         },
         {
-          raw: "openclaw config patch --stdin <<'EOF'",
+          raw: "vasudev config patch --stdin <<'EOF'",
           resolution: null,
           argv: ["openclaw", "config", "patch", "--stdin"],
         },
@@ -2672,7 +2672,7 @@ Command: ${command}`;
     });
 
     const result = await runGatewayAllowlist({
-      command: `openclaw config get security.audit.suppressions; openclaw config patch --stdin <<'EOF'
+      command: `vasudev config get security.audit.suppressions; vasudev config patch --stdin <<'EOF'
 {"security":{"audit":{"suppressions":[]}}}
 EOF`,
       security: "full",
@@ -2796,7 +2796,7 @@ EOF`,
         "Codex diagnostics sent to OpenAI servers:",
         "Session 1",
         "Channel: telegram",
-        "OpenClaw session id: `session-1`",
+        "Vasudev session id: `session-1`",
         "Codex thread id: `thread-1`",
       ].join("\n"),
     );

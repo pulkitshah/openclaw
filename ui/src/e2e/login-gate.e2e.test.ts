@@ -432,12 +432,12 @@ suite.define(() => {
       await failure.waitFor({ timeout: 10_000 });
       const command = failure
         .locator(".login-gate__command")
-        .filter({ hasText: "openclaw gateway auth-token --show" });
+        .filter({ hasText: "vasudev gateway auth-token --show" });
       await command.click();
 
       await expect
         .poll(() => page.evaluate(() => navigator.clipboard.readText()))
-        .toBe("openclaw gateway auth-token --show");
+        .toBe("vasudev gateway auth-token --show");
       expect(await command.locator(".chat-copy-btn").getAttribute("aria-label")).toBe("Copied!");
     } finally {
       await closeContext(context);

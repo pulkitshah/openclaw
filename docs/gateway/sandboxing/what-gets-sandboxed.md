@@ -19,7 +19,7 @@ the selected model's tool-result budget; no partial filename is returned.
 Custom backends can provide `SandboxFsBridge.readDirectory({ filePath, cwd,
 signal })`, returning `{ name, isDirectory }` entries from their permitted
 filesystem roots. The method is optional for older plugins: `ls` is hidden when
-it is absent, and OpenClaw does not fall back to reading the host filesystem.
+it is absent, and Vasudev does not fall back to reading the host filesystem.
 
 Not sandboxed:
 

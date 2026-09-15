@@ -265,7 +265,7 @@ describe("dashboardCommand bind selection", () => {
 
     expect(mocks.ensureGatewayReadyForOperation).not.toHaveBeenCalled();
     expect(mocks.issueDeviceBootstrapToken).not.toHaveBeenCalled();
-    expect(runtime.error).toHaveBeenCalledWith(expect.stringContaining("openclaw doctor --fix"));
+    expect(runtime.error).toHaveBeenCalledWith(expect.stringContaining("vasudev doctor --fix"));
     expect(runtime.exit).toHaveBeenCalledWith(1);
   });
 

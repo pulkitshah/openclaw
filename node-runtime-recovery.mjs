@@ -691,7 +691,7 @@ export async function recoverNodeRuntime({
   let nodePath = recoveryRoot
     ? await resolveUpdatedNodeRuntime(recoveryRoot, { allowInstall: false, env })
     : null;
-  let reason = "cached OpenClaw runtime";
+  let reason = "cached Vasudev runtime";
   const currentNode = realNodePath(process.execPath);
   if (!nodePath) {
     const seen = new Set([currentNode]);
@@ -715,7 +715,7 @@ export async function recoverNodeRuntime({
   }
   if (!nodePath && allowInstall && recoveryRoot) {
     nodePath = await resolveUpdatedNodeRuntime(recoveryRoot, { env });
-    reason = "private OpenClaw runtime";
+    reason = "private Vasudev runtime";
   }
   if (!nodePath) {
     return false;

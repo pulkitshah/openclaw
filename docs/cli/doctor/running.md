@@ -39,7 +39,7 @@ before rerunning Doctor.
 
 If the shared state database uses a newer schema, Doctor refuses before offering
 an interactive update because update admission also needs that database. Run
-Doctor from the OpenClaw install that wrote the state, or another compatible
+Doctor from the Vasudev install that wrote the state, or another compatible
 build. A readable shared database still permits an interactive source update
 when agent databases use newer schemas; if the update does not take over,
 Doctor checks all database schemas again before diagnostics or repair. See
@@ -72,7 +72,7 @@ an independent operator to run Doctor from a shell outside triage.
 
 Read-only database snapshots and initial integrity scans have a 30-second
 execution limit per database. A timeout names the database and asks you to stop
-its Gateway service and other OpenClaw processes before retrying. If all writers
+its Gateway service and other Vasudev processes before retrying. If all writers
 are stopped, inspect storage performance and the reported database; a timeout
 does not prove corruption.
 
@@ -125,7 +125,7 @@ If migration or config repair cannot finish, Doctor leaves the stopped service
 stopped and reports an incomplete repair with exit code 1. When state requires
 manual recovery, the diagnosis names its path and the next action:
 
-- **Unsupported canonical workspace version:** use an OpenClaw build that supports
+- **Unsupported canonical workspace version:** use a Vasudev build that supports
   that version. Preserve the shared database unchanged.
 - **Unreadable or conflicting exec policy:** stop the Gateway and node hosts,
   then reconcile the named legacy file or interrupted claim with a verified copy

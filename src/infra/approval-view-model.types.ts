@@ -106,7 +106,7 @@ export type PluginApprovalExpiredView = PluginApprovalViewBase & {
   phase: "expired";
 };
 
-/** Shared presentation fields for OpenClaw system change approvals. */
+/** Shared presentation fields for Vasudev system change approvals. */
 export type SystemAgentApprovalViewBase = ApprovalViewBase & {
   approvalKind: "system-agent";
   agentId?: string | null;

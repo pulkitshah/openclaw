@@ -77,7 +77,7 @@ export type RuntimeBackendEntry = ReturnType<
 
 export async function initializeCacheProbeGitWorkspace(workspaceDir: string): Promise<void> {
   await execFileAsync("git", ["init", "--quiet", workspaceDir]);
-  await execFileAsync("git", ["-C", workspaceDir, "config", "user.name", "OpenClaw Tests"]);
+  await execFileAsync("git", ["-C", workspaceDir, "config", "user.name", "Vasudev Tests"]);
   await execFileAsync("git", [
     "-C",
     workspaceDir,
@@ -284,7 +284,7 @@ export async function verifyCliBackendAnnounceOrdering({
       deliver: false,
       timeout: 240,
       message: [
-        "Run this exact OpenClaw CLI-backed completion announcement scenario. Use tool calls, not prose.",
+        "Run this exact Vasudev CLI-backed completion announcement scenario. Use tool calls, not prose.",
         `Call sessions_spawn exactly once with taskName=cli_announce_${announceNonce.toLowerCase()} and task=${JSON.stringify(`Reply exactly ${announceChildToken} and nothing else.`)}.`,
         `After sessions_spawn returns status=accepted, call ${CLI_ANNOUNCE_BARRIER_TOOL_NAME} exactly once with no arguments.`,
         `After that tool returns, reply exactly ${announceParentToken}.`,

@@ -33,7 +33,7 @@ const COMPILE_CACHE_DISABLED_RESPAWNED_ENV = "OPENCLAW_COMPILE_CACHE_DISABLED_RE
 const ensureSupportedRuntimeVersion = async () => {
   if (process.versions.bun) {
     // Bun >=1.4 (Rust rewrite) ships node:sqlite; feature-probe instead of
-    // rejecting Bun outright so capable Bun builds can run OpenClaw.
+    // rejecting Bun outright so capable Bun builds can run Vasudev.
     let hasNodeSqlite;
     try {
       hasNodeSqlite = Boolean(process.getBuiltinModule?.("node:sqlite"));
@@ -432,7 +432,10 @@ function tryOutputLauncherVersion(argv) {
     }
     const version = resolveLauncherVersion();
     const commit = resolveLauncherCommit();
-    process.stdout.write(commit ? `OpenClaw ${version} (${commit})\n` : `OpenClaw ${version}\n`);
+    // Literal product name, not an import from src/brand.ts: this launcher
+    // answers `--version` without loading any TypeScript. Pinned against
+    // PRODUCT_NAME by test/brand/version-fast-path.test.ts.
+    process.stdout.write(commit ? `Vasudev ${version} (${commit})\n` : `Vasudev ${version}\n`);
     return true;
   } catch {
     return false;

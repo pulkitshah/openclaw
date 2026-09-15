@@ -37,7 +37,7 @@ describe("public Control UI previews", () => {
       expect(response.status).toBe(200);
       expect(response.headers.get("content-type")).toContain("text/html");
       const html = await response.text();
-      expect(html).toContain('<meta property="og:title" content="OpenClaw dashboard">');
+      expect(html).toContain('<meta property="og:title" content="Vasudev dashboard">');
       expect(html).toContain(`content="https://gateway.example.test${basePath}/share/card.png"`);
       expect(html).toContain(`href="${basePath}/dashboard/example/private-name"`);
       expect(html).not.toMatch(/secret-value|private-draft|<script|openclaw-app/);

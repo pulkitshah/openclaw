@@ -189,7 +189,7 @@ export function resolveLoginFailureFeedback(
       // `approve --latest` only previews the newest pending request and prints the
       // exact approve command; without a request id the steps say to run that too.
       primaryCommand: pairing.requestId
-        ? `openclaw devices approve ${pairing.requestId}`
+        ? `vasudev devices approve ${pairing.requestId}`
         : "openclaw devices approve --latest",
       stepKeys: [
         ...(pairing.requestId ? [] : ["login.failure.pairing.stepLatest"]),

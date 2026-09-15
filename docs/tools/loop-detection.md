@@ -8,7 +8,7 @@ read_when:
   - You hit `compaction_loop_persisted` aborts after a context-overflow retry
 ---
 
-OpenClaw has two cooperating guardrails against repetitive tool-call patterns,
+Vasudev has two cooperating guardrails against repetitive tool-call patterns,
 both configured under `tools.loopDetection`:
 
 1. **Loop detection** (`enabled`) - disabled by default. Watches the rolling
@@ -134,11 +134,11 @@ so a no-config user still gets the protection.
 
 ## Logs and expected behavior
 
-When a loop is detected, OpenClaw logs a loop event and either warns or blocks
+When a loop is detected, Vasudev logs a loop event and either warns or blocks
 the next tool-cycle depending on severity, protecting against runaway token
 spend and lockups while preserving normal tool access.
 
-- Warnings come first. On OpenClaw-executed tool calls, a short system note is
+- Warnings come first. On Vasudev-executed tool calls, a short system note is
   appended to the affected tool result so the model can change approach before
   a critical block. Warnings share the diagnostic log's rate limit, rather than
   appearing on every repeated call. The raw outcome is recorded before the note

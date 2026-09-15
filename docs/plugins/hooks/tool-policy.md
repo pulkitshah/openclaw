@@ -250,7 +250,7 @@ by `before_tool_call`. Omit the matcher to retain match-all behavior.
 
 ### Exec environment hook
 
-`resolve_exec_env` lets plugins contribute environment variables to OpenClaw
+`resolve_exec_env` lets plugins contribute environment variables to Vasudev
 `exec` tool invocations before the command runs. It is not a hook for every
 harness-native shell. It receives:
 
@@ -282,7 +282,7 @@ Each handler receives the message returned by the previous handler.
 `before_message_write` can return `{ message }` or `{ block: true }` to prevent
 that transcript write. Blocking persistence is not a tool-execution veto.
 
-These hooks operate on OpenClaw-owned transcript writes. They do not rewrite
+These hooks operate on Vasudev-owned transcript writes. They do not rewrite
 Codex-native tool records; see
 [Codex transcript boundaries](/plugins/codex-harness-runtime#compaction-and-transcript-mirror).
 
@@ -290,7 +290,7 @@ Tool results can include structured `details` for UI rendering, diagnostics,
 media routing, or plugin-owned metadata. Treat `details` as runtime metadata,
 not prompt content:
 
-- OpenClaw strips `toolResult.details` before provider replay and compaction
+- Vasudev strips `toolResult.details` before provider replay and compaction
   input so metadata does not become model context.
 - Persisted session entries keep only bounded `details`. Oversized details are
   replaced with a compact summary and `persistedDetailsTruncated: true`.

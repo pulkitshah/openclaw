@@ -24,7 +24,7 @@ export function isSharedAuthStoreOwner(params: {
 }
 
 export function formatSharedAuthStoreOwnerDeleteError(agentId: string): string {
-  return `Agent "${agentId}" owns the legacy shared auth store and cannot be deleted. Run openclaw doctor --fix to migrate shared auth, then retry.`;
+  return `Agent "${agentId}" owns the legacy shared auth store and cannot be deleted. Run vasudev doctor --fix to migrate shared auth, then retry.`;
 }
 
 export function isInheritedAuthStoreOwner(cfg: OpenClawConfig, agentId: string): boolean {

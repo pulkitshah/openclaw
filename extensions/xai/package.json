@@ -2,7 +2,7 @@
   "name": "@openclaw/xai-plugin",
   "version": "2026.9.4",
   "private": true,
-  "description": "OpenClaw xAI plugin",
+  "description": "Vasudev xAI plugin",
   "type": "module",
   "dependencies": {
     "typebox": "1.3.27",

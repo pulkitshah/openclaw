@@ -19,7 +19,7 @@ function createProps(overrides: Partial<MemoryViewProps> = {}): MemoryViewProps 
     activeTab: "settings",
     onTabChange: vi.fn(),
     engineOptions: [
-      { id: "memory-core", label: "OpenClaw Memory", available: true },
+      { id: "memory-core", label: "Vasudev Memory", available: true },
       { id: "memory-lancedb", label: "Memory LanceDB", available: true },
     ],
     engineSelection: { kind: "auto", engineId: "memory-core" },
@@ -99,7 +99,7 @@ describe("renderMemory", () => {
 
       expect(header?.querySelector(".page-title")?.textContent).toBe("Memory");
       expect(header?.querySelector(".page-subtitle")?.textContent).toContain(
-        "Choose how OpenClaw stores, searches, and maintains agent memory.",
+        "Choose how Vasudev stores, searches, and maintains agent memory.",
       );
       expect(header?.querySelector(".memory-hub-tabs")).not.toBeNull();
       expect(container.textContent).not.toContain("Agent view");
@@ -145,13 +145,13 @@ describe("renderMemory", () => {
   it("reports whether the engine came from config or from the slot default", () => {
     const auto = renderInto(createProps());
     expect(auto.textContent).toContain("falls back to its default owner");
-    expect(auto.textContent).toContain("Using default: OpenClaw Memory");
+    expect(auto.textContent).toContain("Using default: Vasudev Memory");
 
     const pinned = renderInto(
       createProps({ engineSelection: { kind: "pinned", engineId: "memory-core" } }),
     );
     expect(pinned.textContent).toContain("pinned in config");
-    expect(pinned.textContent).toContain("Default: OpenClaw Memory");
+    expect(pinned.textContent).toContain("Default: Vasudev Memory");
   });
 
   it("keeps a configured missing engine selected and labels it unavailable", () => {

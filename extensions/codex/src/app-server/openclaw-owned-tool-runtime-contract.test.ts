@@ -75,7 +75,7 @@ function expectAfterToolCall(
   expectHookContext(call[1], contextFields);
 }
 
-describe("OpenClaw-owned tool runtime contract — Codex app-server adapter", () => {
+describe("Vasudev-owned tool runtime contract — Codex app-server adapter", () => {
   afterEach(() => {
     resetOpenClawOwnedToolHooks();
   });

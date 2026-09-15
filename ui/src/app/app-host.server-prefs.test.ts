@@ -18,7 +18,7 @@ type ShellServerPreferencesState = {
   reconcileServerUiPrefs: (runtimeConfig: ApplicationContext["runtimeConfig"]) => void;
 };
 
-describe("OpenClaw shell locale preferences", () => {
+describe("Vasudev shell locale preferences", () => {
   beforeEach(() => {
     vi.stubGlobal("localStorage", createStorageMock());
     resetServerUiPrefsSync();

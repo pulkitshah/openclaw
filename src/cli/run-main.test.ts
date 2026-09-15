@@ -444,7 +444,7 @@ describe("resolveMissingPluginCommandMessage", () => {
         commandResolvers(browserCommandAliasRegistry),
       ),
     ).toBe(
-      'The `openclaw browser` command is unavailable because `plugins.allow` excludes "browser". Add "browser" to `plugins.allow` if you want that bundled plugin CLI surface.',
+      'The `vasudev browser` command is unavailable because `plugins.allow` excludes "browser". Add "browser" to `plugins.allow` if you want that bundled plugin CLI surface.',
     );
   });
 
@@ -460,7 +460,7 @@ describe("resolveMissingPluginCommandMessage", () => {
         },
       }),
     ).toBe(
-      "The `openclaw browser` command is unavailable because `plugins.entries.browser.enabled=false`. Re-enable that entry if you want the bundled plugin CLI surface.",
+      "The `vasudev browser` command is unavailable because `plugins.entries.browser.enabled=false`. Re-enable that entry if you want the bundled plugin CLI surface.",
     );
   });
 
@@ -492,7 +492,7 @@ describe("resolveMissingPluginCommandMessage", () => {
       commandResolvers(memoryCoreCommandAliasRegistry),
     );
     expect(message).toBe(
-      '"dreaming" is a runtime slash command (/dreaming), not a CLI command. It is provided by the "memory-core" plugin. Use `openclaw memory` for related CLI operations, or `/dreaming` in a chat session.',
+      '"dreaming" is a runtime slash command (/dreaming), not a CLI command. It is provided by the "memory-core" plugin. Use `vasudev memory` for related CLI operations, or `/dreaming` in a chat session.',
     );
   });
 
@@ -541,7 +541,7 @@ describe("resolveMissingPluginCommandMessage", () => {
 
     expect(message).toContain('"voice-call" plugin');
     expect(message).toContain("disabled by default");
-    expect(message).toContain("openclaw plugins enable voice-call");
+    expect(message).toContain("vasudev plugins enable voice-call");
   });
 
   it("prefers CLI ownership for plugins that also register a slash command", () => {
@@ -552,7 +552,7 @@ describe("resolveMissingPluginCommandMessage", () => {
     );
 
     expect(message).toBe(
-      'The `openclaw workboard` command is provided by the "workboard" plugin, but that bundled plugin is disabled by default. Run `openclaw plugins enable workboard` to enable that CLI surface.',
+      'The `openclaw workboard` command is provided by the "workboard" plugin, but that bundled plugin is disabled by default. Run `vasudev plugins enable workboard` to enable that CLI surface.',
     );
   });
 

@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/kilocode-provider",
   "version": "2026.9.4",
-  "description": "OpenClaw Kilo Gateway provider plugin.",
+  "description": "Vasudev Kilo Gateway provider plugin.",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

@@ -230,7 +230,7 @@ export async function resolveLmstudioRuntimeApiKey(params: {
       [
         "LM Studio API key is required.",
         `Set models.providers.lmstudio.apiKey (for example "${envMarker}")`,
-        `or run "${formatCliCommand("openclaw models auth login --provider lmstudio")}".`,
+        `or run "${formatCliCommand("vasudev models auth login --provider lmstudio")}".`,
       ].join(" "),
     );
   };

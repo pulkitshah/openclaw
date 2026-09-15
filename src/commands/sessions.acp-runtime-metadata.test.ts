@@ -158,7 +158,7 @@ describe("session ACP runtime metadata", () => {
     expect(agentRuntime.source).not.toBe("session-key");
   });
 
-  it("preserves locked Codex ownership ahead of stale OpenClaw session metadata", () => {
+  it("preserves locked Codex ownership ahead of stale Vasudev session metadata", () => {
     const agentRuntime = resolveModelAgentRuntimeMetadata({
       cfg: {
         agents: {

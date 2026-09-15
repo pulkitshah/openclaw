@@ -108,7 +108,7 @@ type OpenClawExecServerLease = {
   cleanupTasks: Set<Promise<void>>;
 };
 
-/** Locally interpreted exec-server protocol backed by an OpenClaw sandbox. */
+/** Locally interpreted exec-server protocol backed by a Vasudev sandbox. */
 export type OpenClawExecServer = OpenClawExecServerLease & {
   backend: NonNullable<SandboxContext["backend"]>;
   fsBridge: NonNullable<SandboxContext["fsBridge"]>;

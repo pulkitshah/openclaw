@@ -1,5 +1,5 @@
 /**
- * Dispatches embedded attempts to native harness or OpenClaw backend execution.
+ * Dispatches embedded attempts to native harness or Vasudev backend execution.
  */
 import {
   runAgentHarnessAttempt,

@@ -426,7 +426,7 @@ function collectLegacyAuthSourceFindings(params: {
         severity: source.kind === "auth-state" ? "info" : "warn",
         file: source.path,
         jsonPath: "<root>",
-        message: `Retired auth source ${source.kind} is present; run openclaw doctor --fix to migrate and archive it.`,
+        message: `Retired auth source ${source.kind} is present; run vasudev doctor --fix to migrate and archive it.`,
       });
     }
   }

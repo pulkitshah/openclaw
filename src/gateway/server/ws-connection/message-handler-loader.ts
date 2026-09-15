@@ -40,7 +40,7 @@ export function attachGatewayWsMessageHandlerOnDemand(params: GatewayWsMessageHa
           restartCommand: staleInstall.restartCommand,
         });
         params.logWsControl.error(
-          `failed to load ws message handler because the OpenClaw installation changed while the Gateway was running conn=${params.connId}; run: ${staleInstall.restartCommand}; error: ${formattedError}`,
+          `failed to load ws message handler because the Vasudev installation changed while the Gateway was running conn=${params.connId}; run: ${staleInstall.restartCommand}; error: ${formattedError}`,
         );
         params.close(1011, GATEWAY_STALE_INSTALL_CLOSE_REASON);
         return;

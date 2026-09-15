@@ -464,7 +464,7 @@ describe("collectSmsStartupWarnings", () => {
         publicWebhookUrl: "https://sms_gateway.example.com/webhooks/sms",
       }),
     ).toContain(
-      "- SMS: publicWebhookUrl must be a properly encoded absolute HTTP(S) URL with a valid hostname, no embedded credentials, and remain within OpenClaw's 4,000-character callback safety limit; OpenClaw will omit the per-message delivery callback until fixed.",
+      "- SMS: publicWebhookUrl must be a properly encoded absolute HTTP(S) URL with a valid hostname, no embedded credentials, and remain within Vasudev's 4,000-character callback safety limit; Vasudev will omit the per-message delivery callback until fixed.",
     );
   });
 });

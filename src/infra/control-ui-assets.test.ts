@@ -310,7 +310,7 @@ if (process.exitCode === 0) {
         expect(result.assets.indexPath).toBe(indexPath);
       } else {
         expect(result.message).toContain(indexPath);
-        expect(result.message).toContain("Reinstall OpenClaw");
+        expect(result.message).toContain("Reinstall Vasudev");
       }
       expect(state.runCommandWithTimeout).not.toHaveBeenCalled();
     },
@@ -325,7 +325,7 @@ if (process.exitCode === 0) {
     ).resolves.toEqual({
       ok: false,
       built: false,
-      message: `Missing Control UI assets at ${indexPath}. Reinstall OpenClaw to restore bundled Control UI assets.`,
+      message: `Missing Control UI assets at ${indexPath}. Reinstall Vasudev to restore bundled Control UI assets.`,
     });
   });
 
@@ -337,7 +337,7 @@ if (process.exitCode === 0) {
     await expect(ensureControlUiAssetsBuilt(undefined, { root })).resolves.toEqual({
       ok: false,
       built: false,
-      message: `Incomplete Control UI assets at ${indexPath} (missing assets/startup.js). Reinstall OpenClaw to restore bundled Control UI assets.`,
+      message: `Incomplete Control UI assets at ${indexPath} (missing assets/startup.js). Reinstall Vasudev to restore bundled Control UI assets.`,
     });
     expect(state.runCommandWithTimeout).not.toHaveBeenCalled();
   });
@@ -581,7 +581,7 @@ if (process.exitCode === 0) {
   });
 
   it("prefers packaged app Control UI assets in Contents/Resources", () => {
-    const execPath = abs("fixtures/OpenClaw.app/Contents/MacOS/OpenClaw");
+    const execPath = abs("fixtures/OpenClaw.app/Contents/MacOS/Vasudev");
     const bundledUiDir = abs("fixtures/OpenClaw.app/Contents/Resources/control-ui");
     setFile(path.join(bundledUiDir, "index.html"), "<html></html>\n");
 

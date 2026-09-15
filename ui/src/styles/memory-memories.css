@@ -63,7 +63,7 @@
 
 .memory-memories__detail-error {
   margin: 0;
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: var(--control-ui-text-sm);
 }
 

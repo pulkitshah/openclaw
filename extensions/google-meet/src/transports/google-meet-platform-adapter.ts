@@ -147,7 +147,7 @@ export const GOOGLE_MEET_PLATFORM_ADAPTER = MeetingPlatformAdapter.create<
       category: "browser-control-unavailable",
       reason: "browser-control-unavailable",
       message:
-        "Open the OpenClaw browser profile, finish Google Meet login, admission, or permission prompts, then retry.",
+        "Open the Vasudev browser profile, finish Google Meet login, admission, or permission prompts, then retry.",
     }),
     buildLeaveScript: meetLeaveScript,
     captions: {

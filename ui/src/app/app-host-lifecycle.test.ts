@@ -14,7 +14,7 @@ type ShellLifecycle = {
 
 afterEach(resetAppHostTestGlobals);
 
-describe("OpenClaw shell event lifecycle", () => {
+describe("Vasudev shell event lifecycle", () => {
   it("retires host, window, and document actions on disconnect and reconnects once", () => {
     const shell = document.createElement("openclaw-app-shell") as ShellChromeHost & ShellLifecycle;
     const navigate = vi.spyOn(shell, "navigate").mockImplementation(() => {});

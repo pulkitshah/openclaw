@@ -93,7 +93,7 @@ Applies to the paid `parallel` provider only; `parallel-free` always uses
 
 Set `plugins.entries.parallel.config.webSearch.baseUrl` to route paid
 requests through a compatible proxy or alternate endpoint (for example, the
-Cloudflare AI Gateway). OpenClaw normalizes bare hosts by prepending
+Cloudflare AI Gateway). Vasudev normalizes bare hosts by prepending
 `https://` and appends `/v1/search` unless the path already ends there. The
 resolved endpoint is part of the search cache key, so results from different
 endpoints are never shared.
@@ -141,18 +141,18 @@ family alias.
   content.
 - Result excerpts come back as the `excerpts` array and are also joined into
   `description` for compatibility with the generic `web_search` contract.
-- Both providers return a `session_id`; OpenClaw surfaces it as `sessionId` in
+- Both providers return a `session_id`; Vasudev surfaces it as `sessionId` in
   the tool payload so callers can group follow-up searches. A
   Parallel-generated session id (one the caller did not supply) is excluded
   from the cache entry, since unrelated tasks with identical queries should
   not inherit it.
 - `searchId`, `warnings`, and `usage` from Parallel are passed through when
   present.
-- OpenClaw always forwards a resolved result count to Parallel as
+- Vasudev always forwards a resolved result count to Parallel as
   `advanced_settings.max_results` (`parallel`) or applies `count`
   client-side after Parallel's fixed-size response (`parallel-free`). The
   caller's `count` arg wins, then `tools.web.search.maxResults`, otherwise
-  OpenClaw's generic `web_search` default (5) -- Parallel's own API defaults
+  Vasudev's generic `web_search` default (5) -- Parallel's own API defaults
   to 10.
 - Results are cached for 15 minutes by default (`cacheTtlMinutes`).
 - `parallel-free` mints a fresh `session_id` per call via its MCP handshake

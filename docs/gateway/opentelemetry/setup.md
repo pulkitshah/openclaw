@@ -3,7 +3,7 @@ summary: "Install and enable diagnostics-otel, see which processes export, check
 title: "Set up OpenTelemetry export"
 sidebarTitle: "Setup"
 read_when:
-  - You want to send OpenClaw model usage, message flow, or session metrics to an OpenTelemetry collector
+  - You want to send Vasudev model usage, message flow, or session metrics to an OpenTelemetry collector
   - You need to know whether a Gateway run, a one-shot local run, or `openclaw agent exec` exports telemetry
   - You are checking exporter health, or turning the export pipeline off
 ---

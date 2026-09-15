@@ -1179,7 +1179,7 @@ describe("agents.update", () => {
                 [
                   "# IDENTITY.md - Agent Identity",
                   "",
-                  "- **Name:** C-3PO (Clawd's Third Protocol Observer)",
+                  "- **Name:** C-3PO (Vasu's Third Protocol Observer)",
                   "- **Creature:** Flustered Protocol Droid",
                   "",
                   "## Role",
@@ -3099,7 +3099,7 @@ describe("agents.delete", () => {
     await promise;
 
     expectRespondErrorContaining(respond, "owns the legacy shared auth store");
-    expectRespondErrorContaining(respond, "openclaw doctor --fix");
+    expectRespondErrorContaining(respond, "vasudev doctor --fix");
     expect(mocks.writeConfigFile).not.toHaveBeenCalled();
   });
 

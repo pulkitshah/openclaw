@@ -1,8 +1,8 @@
 ---
-summary: "ComfyUI workflow image, video, and music generation setup in OpenClaw"
+summary: "ComfyUI workflow image, video, and music generation setup in Vasudev"
 title: "ComfyUI"
 read_when:
-  - You want to use local ComfyUI workflows with OpenClaw
+  - You want to use local ComfyUI workflows with Vasudev
   - You want to use Comfy Cloud with image, video, or music workflows
   - You need the comfy plugin config keys
 ---
@@ -14,7 +14,7 @@ openclaw plugins install @openclaw/comfy-provider
 openclaw gateway restart
 ```
 
-The plugin is entirely workflow-driven: OpenClaw does not map generic `size`,
+The plugin is entirely workflow-driven: Vasudev does not map generic `size`,
 `aspectRatio`, `resolution`, `durationSeconds`, or TTS-style controls onto
 your graph.
 
@@ -46,7 +46,7 @@ Choose between running ComfyUI on your own machine or using Comfy Cloud.
         Make sure your local ComfyUI instance is running (defaults to `http://127.0.0.1:8188`).
       </Step>
       <Step title="Prepare your workflow JSON">
-        Export or create a ComfyUI workflow JSON file. Note the node IDs for the prompt input node and the output node you want OpenClaw to read from.
+        Export or create a ComfyUI workflow JSON file. Note the node IDs for the prompt input node and the output node you want Vasudev to read from.
       </Step>
       <Step title="Configure the provider">
         Set `mode: "local"` and point at your workflow file. Minimal image example:
@@ -72,7 +72,7 @@ Choose between running ComfyUI on your own machine or using Comfy Cloud.
         ```
       </Step>
       <Step title="Set the default model">
-        Point OpenClaw at the `comfy/workflow` model for the capability you configured:
+        Point Vasudev at the `comfy/workflow` model for the capability you configured:
 
         ```json5
         {
@@ -321,7 +321,7 @@ The `image` and `video` sections also support a reference-image input node:
     Comfy video workflows support text-to-video and image-to-video through the configured graph.
 
     <Note>
-    OpenClaw does not pass input videos into Comfy workflows. Only text prompts and single reference images are supported as inputs.
+    Vasudev does not pass input videos into Comfy workflows. Only text prompts and single reference images are supported as inputs.
     </Note>
 
   </Accordion>
@@ -356,7 +356,7 @@ The `image` and `video` sections also support a reference-image input node:
     }
     ```
 
-    OpenClaw treats that legacy shape as the image workflow config. You do not need to migrate immediately, but the nested `image` / `video` / `music` sections are recommended for new setups. If you only use image generation, the legacy flat config and the new nested `image` section are functionally equivalent.
+    Vasudev treats that legacy shape as the image workflow config. You do not need to migrate immediately, but the nested `image` / `video` / `music` sections are recommended for new setups. If you only use image generation, the legacy flat config and the new nested `image` section are functionally equivalent.
 
   </Accordion>
 

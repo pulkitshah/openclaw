@@ -41,7 +41,7 @@ describe("maybeOfferUpdateBeforeDoctor", () => {
     await expect(runOffer({ root: "/repo/link", confirm })).resolves.toEqual({ updated: false });
 
     expect(confirm).toHaveBeenCalledWith({
-      message: "Update OpenClaw from git before running doctor?",
+      message: "Update Vasudev from git before running doctor?",
       initialValue: true,
     });
     expect(mocks.note).not.toHaveBeenCalledWith(
@@ -201,7 +201,7 @@ describe("maybeOfferUpdateBeforeDoctor", () => {
         }),
       );
       expect(mocks.note).toHaveBeenCalledWith(
-        "Restarted the running gateway service after updating OpenClaw.",
+        "Restarted the running gateway service after updating Vasudev.",
         "Update",
       );
     },
@@ -259,7 +259,7 @@ describe("maybeOfferUpdateBeforeDoctor", () => {
       if (outcome === "healthy") {
         expect(runtime.exit).not.toHaveBeenCalled();
         expect(mocks.note).toHaveBeenCalledWith(
-          "Restarted the running gateway service after updating OpenClaw.",
+          "Restarted the running gateway service after updating Vasudev.",
           "Update",
         );
         expect(mocks.waitForHealthyRestart.mock.invocationCallOrder[0]).toBeLessThan(
@@ -275,7 +275,7 @@ describe("maybeOfferUpdateBeforeDoctor", () => {
           expect.stringContaining("Update completed, but gateway service restart failed"),
         );
         expect(mocks.note).not.toHaveBeenCalledWith(
-          "Restarted the running gateway service after updating OpenClaw.",
+          "Restarted the running gateway service after updating Vasudev.",
           "Update",
         );
       }
@@ -500,7 +500,7 @@ describe("maybeOfferUpdateBeforeDoctor", () => {
       expect.stringContaining("source checkout may be partially mutated"),
       "Update",
     );
-    expect(mocks.note).toHaveBeenCalledWith(expect.stringContaining("openclaw triage"), "Update");
+    expect(mocks.note).toHaveBeenCalledWith(expect.stringContaining("vasudev triage"), "Update");
     expect(mocks.triageCommand).toHaveBeenCalledOnce();
   });
 
@@ -615,7 +615,7 @@ describe("maybeOfferUpdateBeforeDoctor", () => {
     expect(mocks.triageCommand).toHaveBeenCalledOnce();
     expect(mocks.note).toHaveBeenCalledWith(expect.stringContaining(`(${reason})`), "Update");
     expect(mocks.note).toHaveBeenCalledWith(
-      expect.stringContaining("Run `openclaw triage` on this machine"),
+      expect.stringContaining("Run `vasudev triage` on this machine"),
       "Update",
     );
     if (reason === "state-migration-started") {
@@ -652,7 +652,7 @@ describe("maybeOfferUpdateBeforeDoctor", () => {
     const recoveryNote = mocks.note.mock.calls.find((call) =>
       String(call[0]).includes("rollback-checkout-dirty"),
     )?.[0];
-    expect(recoveryNote).toContain("Run `openclaw triage` on this machine");
+    expect(recoveryNote).toContain("Run `vasudev triage` on this machine");
     expect(recoveryNote).not.toContain("remains stopped");
     expect(recoveryNote).not.toContain("Keep the gateway stopped");
   });
@@ -675,7 +675,7 @@ describe("maybeOfferUpdateBeforeDoctor", () => {
     );
 
     expect(mocks.note).toHaveBeenCalledWith(
-      expect.stringContaining("Run `openclaw --profile work triage`"),
+      expect.stringContaining("Run `vasudev --profile work triage`"),
       "Update",
     );
   });

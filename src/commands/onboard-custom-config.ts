@@ -187,7 +187,7 @@ export type CustomApiResult = {
   providerIdRenamedFrom?: string;
 };
 
-/** Inputs used to persist a custom provider in the OpenClaw config. */
+/** Inputs used to persist a custom provider in the Vasudev config. */
 type ApplyCustomApiConfigParams = {
   config: OpenClawConfig;
   baseUrl: string;

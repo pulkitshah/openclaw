@@ -141,7 +141,7 @@ describe("plugin peer links", () => {
     expect(failures[0]?.packageDir).toBe(unreadableDir);
   });
 
-  it("audits missing managed npm openclaw peer links without relinking", async () => {
+  it("audits missing managed npm vasudev peer links without relinking", async () => {
     const npmRoot = makeTempDir();
     const packageDir = path.join(npmRoot, "node_modules", "peer-plugin");
     fs.mkdirSync(packageDir, { recursive: true });
@@ -194,7 +194,7 @@ describe("plugin peer links", () => {
     },
   );
 
-  it("replaces an existing real openclaw package directory", async () => {
+  it("replaces an existing real vasudev package directory", async () => {
     const root = makeTempDir();
     const packageDir = path.join(root, "peer-plugin");
     const existingOpenClawDir = path.join(packageDir, "node_modules", "openclaw");

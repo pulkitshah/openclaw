@@ -133,7 +133,7 @@ Validation:
 Notes:
 
 - `file` provider supports `mode: "json"` and `mode: "singleValue"` (`id` must be `"value"` in singleValue mode).
-- File and exec provider paths fail closed when Windows ACL verification is unavailable. Use paths whose ACLs OpenClaw can verify; there is no provider-level bypass.
+- File and exec provider paths fail closed when Windows ACL verification is unavailable. Use paths whose ACLs Vasudev can verify; there is no provider-level bypass.
 - `exec` provider requires an absolute `command` path and uses protocol payloads on stdin/stdout.
 - Symlink command paths are rejected. Configure the resolved absolute binary path instead; it must not be group- or world-writable and, on POSIX, must be owned by the current user.
 - If `trustedDirs` is configured, the command path (after `~` expansion) must be inside an approved directory; symlinked commands are rejected before this check, so the configured path itself is what `trustedDirs` constrains.
@@ -195,8 +195,8 @@ Split config into multiple files:
 - Nested includes: up to 10 levels deep.
 - Paths: resolved relative to the including file, but must stay inside the top-level config directory (`dirname` of `openclaw.json`). Absolute/`../` forms are allowed only when they still resolve inside that boundary. Set `OPENCLAW_INCLUDE_ROOTS` (absolute paths) to allow additional roots outside the config directory.
 - Limits: paths must not contain null bytes and must be strictly shorter than 4096 characters before and after resolution; each included file is capped at 2 MB.
-- OpenClaw-owned writes whose changed keys are all owned by one single-file include at an object-key path write through to the deepest owning include. This supports top-level sections and nested object-map entries, including numeric object keys, while leaving `openclaw.json` intact. Write-through only targets include files inside the top-level config directory; includes admitted through `OPENCLAW_INCLUDE_ROOTS` stay read-only for OpenClaw-owned writes.
-- Root includes (every section of a config whose root object authors `$include`), actual array-entry includes, include arrays, sibling overrides, files shared by multiple logical paths, changes spanning ownership boundaries, nested includes beneath a merged same-path or ancestor owner, and includes whose own file still authors a nested `$include` directive are read-only for OpenClaw-owned writes; those writes fail closed instead of flattening the config.
+- Vasudev-owned writes whose changed keys are all owned by one single-file include at an object-key path write through to the deepest owning include. This supports top-level sections and nested object-map entries, including numeric object keys, while leaving `openclaw.json` intact. Write-through only targets include files inside the top-level config directory; includes admitted through `OPENCLAW_INCLUDE_ROOTS` stay read-only for Vasudev-owned writes.
+- Root includes (every section of a config whose root object authors `$include`), actual array-entry includes, include arrays, sibling overrides, files shared by multiple logical paths, changes spanning ownership boundaries, nested includes beneath a merged same-path or ancestor owner, and includes whose own file still authors a nested `$include` directive are read-only for Vasudev-owned writes; those writes fail closed instead of flattening the config.
 - `openclaw doctor --fix` writes through the same boundary; a run that mixes a root-owned repair with an include-owned repair is refused as a whole; that refused write leaves every file unchanged (earlier writes in the same run stay saved), and Doctor names the boundary to repair by hand, plus the included file or files when the root file authors that boundary's `$include` (an agent-roster boundary is named without its file).
 - Errors: clear messages for missing files, parse errors, circular includes, invalid path format, and excessive length.
 

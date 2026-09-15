@@ -18,7 +18,7 @@ export const buzzSetupPlugin: ChannelPlugin<ResolvedBuzzAccount> = {
     selectionLabel: "Buzz",
     docsPath: "/channels/buzz",
     docsLabel: "buzz",
-    blurb: "Connect OpenClaw agents to Buzz team rooms.",
+    blurb: "Connect Vasudev agents to Buzz team rooms.",
     markdownCapable: true,
     order: 56,
   },

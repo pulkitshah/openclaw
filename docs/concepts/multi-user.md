@@ -1,14 +1,14 @@
 ---
 summary: "How session ownership, presence, and human mentions work when several people operate one agent"
 read_when:
-  - You share one OpenClaw agent with other operators
+  - You share one Vasudev agent with other operators
   - You want to hand a session to another person or agent, or filter sessions by owner
   - You want to mention a person or find mentions addressed to you
   - You are deciding whether one shared agent provides enough isolation
 title: "Multi-user mode"
 ---
 
-Multi-user mode lets several trusted people operate the same OpenClaw agent. It adds session ownership, participant history, live presence, and owner filtering. A team can then tell who started work, who is responsible for it now, and who has been involved.
+Multi-user mode lets several trusted people operate the same Vasudev agent. It adds session ownership, participant history, live presence, and owner filtering. A team can then tell who started work, who is responsible for it now, and who has been involved.
 
 ## Trust boundary
 
@@ -63,7 +63,7 @@ Creator source follows scheduled jobs and inherited creation policies. A require
 
 Each person can sign in to a model account for their Gateway profile. New sessions they start prefer that account instead of the Gateway default. Available providers and sign-in methods come from the Gateway's provider plugins. Selecting an account does not guarantee that every turn bills that account.
 
-There are two sign-ins: the Gateway identifies **you**, then the provider authorizes **your model account**. CLI and web UI use the same personal account store on the selected Gateway. A shared server does not turn personal sign-in into shared credentials. System/agent credentials are a separate scope, managed through `models auth` on the machine running that OpenClaw installation.
+There are two sign-ins: the Gateway identifies **you**, then the provider authorizes **your model account**. CLI and web UI use the same personal account store on the selected Gateway. A shared server does not turn personal sign-in into shared credentials. System/agent credentials are a separate scope, managed through `models auth` on the machine running that Vasudev installation.
 
 ### Account concepts
 
@@ -104,7 +104,7 @@ Chat status and model listings identify a selected personal credential as **pers
 
 The CLI uses the same Gateway operations through [`openclaw models accounts`](/cli/models#personal-model-accounts). Run `openclaw models accounts login` to choose a provider and method, or supply `login <provider> --method <id>` directly. Use `list` to inspect saved accounts. Each command shows the selected Gateway, verified person, and Personal scope. It targets that person, not `--agent` or the operating-system username.
 
-Ask OpenClaw (Custodian) requires administrator access and a working configured inference route. Ask it to manage your personal model accounts, or enter `model accounts`. In the Control UI it opens **Settings → Profile → Connected accounts**. In a terminal it gives the CLI commands. If Custodian is unavailable, open **Connected accounts** or use the CLI directly. The handoff makes no change by itself. Complete sign-in in the protected controls or hidden terminal prompt, never in the conversation. Delegated agent requests cannot open or complete the human sign-in flow.
+Ask Vasudev (Custodian) requires administrator access and a working configured inference route. Ask it to manage your personal model accounts, or enter `model accounts`. In the Control UI it opens **Settings → Profile → Connected accounts**. In a terminal it gives the CLI commands. If Custodian is unavailable, open **Connected accounts** or use the CLI directly. The handoff makes no change by itself. Complete sign-in in the protected controls or hidden terminal prompt, never in the conversation. Delegated agent requests cannot open or complete the human sign-in flow.
 
 ### Where credentials are stored
 
@@ -114,7 +114,7 @@ Administrators can still create shared profiles through the CLI (`openclaw model
 
 ### Pin and default rules
 
-When a linked person creates a session, OpenClaw captures their default as that session's auth selection. The selection has the same strength as a `/model ...@profile` pin. This happens before an initial message is dispatched, including when creation and the first message are separate requests. Sessions first created by turn admission capture the default at that admission. The pin is **session-sticky**: other people steering into that session use its selected account, and forks inherit it. An explicit `/model ...@profile -s` pin outranks the link. A fresh personal selection must belong to the authenticated human making it. Knowing another person's account id is not permission to select it. Agent- and channel-originated turns do not create personal links. For runtimes using OpenClaw's auth fallback planner, the ordered shared profiles for the same provider remain failover candidates if the pinned account fails. This matches the behavior of an explicit pin. Claude CLI requires its selected account and does not substitute shared profiles or its native login when that account cannot be used.
+When a linked person creates a session, Vasudev captures their default as that session's auth selection. The selection has the same strength as a `/model ...@profile` pin. This happens before an initial message is dispatched, including when creation and the first message are separate requests. Sessions first created by turn admission capture the default at that admission. The pin is **session-sticky**: other people steering into that session use its selected account, and forks inherit it. An explicit `/model ...@profile -s` pin outranks the link. A fresh personal selection must belong to the authenticated human making it. Knowing another person's account id is not permission to select it. Agent- and channel-originated turns do not create personal links. For runtimes using Vasudev's auth fallback planner, the ordered shared profiles for the same provider remain failover candidates if the pinned account fails. This matches the behavior of an explicit pin. Claude CLI requires its selected account and does not substitute shared profiles or its native login when that account cannot be used.
 
 **Use Gateway defaults for new chats**, CLI `clear-default`, and API `users.unlinkAuthProfile` affect future sessions only. Changing a default does not repin existing chats, including unpinned chats using shared credentials. Adopting or forking an existing chat does not apply the current participant's default, and changing providers does not silently select their personal account. Expand the **Account** category in the model menu to make that explicit choice. Clearing a default neither deletes the saved credential nor revokes a provider token. Revoke it with the provider if existing sessions must stop using it. Links and existing session credentials follow verified profile merges, but an explicit unlink on the surviving profile is not reversed by a merge.
 
@@ -141,7 +141,7 @@ The Control UI keeps ownership and presence visually distinct:
 
 When several people watch the same session, the transcript also shows a live typing indicator above the composer. Someone typing in the Control UI streams their draft text into the indicator bubble as they type. Other typists show a three-dot bubble. Drafts are ephemeral presence. They are never persisted. They never enter the session transcript or the model's context. They fade a moment after the typist pauses or sends.
 
-When the loaded session list contains fewer than two distinct owner identities and no session has recorded outside participants, OpenClaw hides all ownership and owner-filter chrome. A single-user gateway therefore looks unchanged.
+When the loaded session list contains fewer than two distinct owner identities and no session has recorded outside participants, Vasudev hides all ownership and owner-filter chrome. A single-user gateway therefore looks unchanged.
 
 ## People cards
 
@@ -201,7 +201,7 @@ Catalog listings and progress updates recheck current session visibility for eac
 
 Turn sender attribution is best-effort. Steering can merge input into an active turn, so the transcript cannot always represent each person's contribution as a separate turn. Participant history records that an actor prompted the session, not which words were theirs.
 
-Participant identity is separate from a display name and from authorization. An authenticated Gateway profile, an OpenClaw agent, and a remote sender remain distinct even when their IDs match. Channel plugins supply the remote identity domain and identifier kind when they can prove them. Otherwise, OpenClaw retains an unresolved observation. It does not guess a profile from a sender ID, local account label, or UUID shape. Profile merges resolve through the existing profile aliases. An accepted input updates an already retained current profile row, or a retained alias when no current row exists, even at the 32-record admission bound. Historical rows keep their raw IDs. This does not rewrite transcripts or other agent databases.
+Participant identity is separate from a display name and from authorization. An authenticated Gateway profile, a Vasudev agent, and a remote sender remain distinct even when their IDs match. Channel plugins supply the remote identity domain and identifier kind when they can prove them. Otherwise, Vasudev retains an unresolved observation. It does not guess a profile from a sender ID, local account label, or UUID shape. Profile merges resolve through the existing profile aliases. An accepted input updates an already retained current profile row, or a retained alias when no current row exists, even at the 32-record admission bound. Historical rows keep their raw IDs. This does not rewrite transcripts or other agent databases.
 
 Profile participation records accepted externally authored input, including accepted steering into an active turn and session-targeted interactive input. Synthetic runs, internal messages, and bot or ambient work do not establish personal profile activity. A participant record is an aggregate, not an exact replay-safe lifetime input count. Reset preserves the logical session's participants. Deleting the session removes them, even when transcript archives are retained.
 
@@ -211,7 +211,7 @@ The schema-18 migration, which first ships in v2026.8.1, preserves historical me
 
 New transcript messages keep qualified sender identity separate from display names. Only qualified profile senders get profile portraits, person Activity links, or recognition as the signed-in person, and only their messages clear that profile's typing indicator. A matching channel sender ID is not enough. Write hooks can redact sender identity, but cannot replace it with another trusted identity. Suggestion attribution identifies the suggestion's author rather than the operator who accepts it.
 
-Older or otherwise unqualified messages retain their saved text and sender labels, with initials instead of inferred profile portraits and no person Activity link. OpenClaw does not rewrite those messages or reconstruct their authors from UUIDs, profile lookups, or participant history. This can remove profile presentation from an older message that really was profile-authored, because it did not record enough evidence to establish that fact. Transcript attribution, participant aggregates, and creator-based access decisions remain separate contracts. Attribution and participation never grant session access.
+Older or otherwise unqualified messages retain their saved text and sender labels, with initials instead of inferred profile portraits and no person Activity link. Vasudev does not rewrite those messages or reconstruct their authors from UUIDs, profile lookups, or participant history. This can remove profile presentation from an older message that really was profile-authored, because it did not record enough evidence to establish that fact. Transcript attribution, participant aggregates, and creator-based access decisions remain separate contracts. Attribution and participation never grant session access.
 
 GitHub-backed sign-in through Cloudflare Access or Tailscale Serve automatically verifies the person's GitHub account under **Settings → Profile → Identity**. Public `Co-authored-by` credit remains a separate **Git co-author credit** toggle, on by default for verified accounts. Attribution uses that preference plus the durable profile participant records described above, not display names or the four-person facepile projection. See [User model](/concepts/user-model#gateway-profile-and-github-credit) for privacy, eligibility, bounds, account changes, and disabling future credit.
 

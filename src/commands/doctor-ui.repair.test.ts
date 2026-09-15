@@ -131,7 +131,7 @@ describe("Control UI doctor repair owner", () => {
         expect(mocks.note).not.toHaveBeenCalled();
       } else {
         expect(mocks.note).toHaveBeenCalledWith(
-          expect.stringContaining("Reinstall OpenClaw to restore bundled Control UI assets."),
+          expect.stringContaining("Reinstall Vasudev to restore bundled Control UI assets."),
           expect.any(String),
         );
       }

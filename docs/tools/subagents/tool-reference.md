@@ -43,8 +43,8 @@ session to confirm the effective tool list.
 
 - **Model:** native sub-agents inherit the caller unless you set `agents.defaults.subagents.model` (or per-agent `agents.entries.*.subagents.model`). ACP runtime spawns use the same configured subagent model when present; otherwise the ACP harness keeps its own default. An explicit `sessions_spawn.model` still wins.
 - **Thinking:** native sub-agents inherit the caller's active turn, including one-shot thinking overrides, unless you set `agents.defaults.subagents.thinking` (or per-agent `agents.entries.*.subagents.thinking`). ACP runtime spawns also apply `agents.defaults.models["provider/model"].params.thinking` for the selected model. An explicit `sessions_spawn.thinking` still wins.
-- **Run timeout:** pass `runTimeoutSeconds` to set a timeout for a specific native, ACP, or visible sub-agent run. When omitted, OpenClaw uses `agents.defaults.subagents.runTimeoutSeconds` if configured; otherwise it falls back to `0` (no timeout). An explicit `0` disables the timeout for that run.
-- **Process lifetime:** a detached OpenClaw sub-agent has its own run lifecycle. A background task created inside an external CLI backend is different: it shares the parent CLI subprocess and stops if that parent reaches `agents.defaults.timeoutSeconds`.
+- **Run timeout:** pass `runTimeoutSeconds` to set a timeout for a specific native, ACP, or visible sub-agent run. When omitted, Vasudev uses `agents.defaults.subagents.runTimeoutSeconds` if configured; otherwise it falls back to `0` (no timeout). An explicit `0` disables the timeout for that run.
+- **Process lifetime:** a detached Vasudev sub-agent has its own run lifecycle. A background task created inside an external CLI backend is different: it shares the parent CLI subprocess and stops if that parent reaches `agents.defaults.timeoutSeconds`.
 - **Task delivery:** hidden and visible native sub-agents receive their delegated task in a `[Subagent Task]` message appended after any forked history. The message identifies the current child assignment and treats inherited conversation as background context. The hidden sub-agent system prompt carries runtime rules and routing context, not a duplicate of the task.
 
 Accepted native sub-agent spawns report their actual initialized `context`
@@ -55,7 +55,7 @@ the provider prefix when the ref has one.
 
 ### Delegation prompt mode
 
-`agents.defaults.subagents.delegationMode` controls prompt guidance only; it does not change tool policy or enforce delegation. With no explicit setting, OpenClaw uses `prefer` in each agent's main session and `suggest` in every other session.
+`agents.defaults.subagents.delegationMode` controls prompt guidance only; it does not change tool policy or enforce delegation. With no explicit setting, Vasudev uses `prefer` in each agent's main session and `suggest` in every other session.
 
 - `suggest`: keep the standard prompt nudge to use sub-agents for larger or slower work.
 - `prefer`: tell the agent to stay responsive and delegate anything more involved than a direct reply through `sessions_spawn`.
@@ -130,7 +130,7 @@ In either mode, internal QA, research, coding, review, and test lanes use ordina
   `"delete"` archives the session immediately after announce (still keeps the transcript via rename).
 </ParamField>
 <ParamField path="expectsCompletionMessage" type="boolean" default="true">
-  Set `false` for fire-and-forget children. When the child finishes, OpenClaw skips the completion handoff to the requester (no announce or steer turn), records the delivery as not required, and still runs child cleanup. Inspect such children with `subagents` or `sessions_history`. `collect: true` always uses `false`.
+  Set `false` for fire-and-forget children. When the child finishes, Vasudev skips the completion handoff to the requester (no announce or steer turn), records the delivery as not required, and still runs child cleanup. Inspect such children with `subagents` or `sessions_history`. `collect: true` always uses `false`.
 </ParamField>
 <ParamField path="sandbox" type='"inherit" | "require"' default="inherit">
   `require` rejects the spawn unless the target child runtime is sandboxed.
@@ -189,7 +189,7 @@ because they already have control meanings.
 Ends the current model turn and waits for announced child completion events
 to arrive as the next message. Use it when the requester needs results from
 announcing children before answering. It does not collect Swarm results:
-collectors require `agents_wait`, or an awaited `agents.run()` in OpenClaw
+collectors require `agents_wait`, or an awaited `agents.run()` in Vasudev
 Code Mode, and do not send completion notifications.
 
 `sessions_yield` is the waiting primitive for announced completions. Do not replace it with polling
@@ -237,7 +237,7 @@ context is asking for its own audience, so it runs as a separate sibling and
 delivers there instead. The paused run stays resumable, and a later default
 follow-up still continues it.
 
-When active children exist, OpenClaw injects a compact runtime-generated
+When active children exist, Vasudev injects a compact runtime-generated
 `Active Subagents` prompt block into normal turns so the requester can see
 the current child sessions, run ids, statuses, labels, tasks, and
 `taskName` aliases without polling. The task and label fields in that

@@ -155,7 +155,7 @@ describe("GatewayChatClient", () => {
       expect(onConnectError).toHaveBeenCalledExactlyOnceWith(connectError);
       expect(connectError.message).toContain("Pairing request sent.");
       expect(connectError.message).toContain("Control UI (Settings -> Devices)");
-      expect(connectError.message).toContain("openclaw devices approve --latest");
+      expect(connectError.message).toContain("vasudev devices approve --latest");
       expect(connectError.details).toEqual({ code: "PAIRING_REQUIRED", requestId: "pair-1" });
       expect(onDisconnected).not.toHaveBeenCalled();
 

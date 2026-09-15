@@ -1,6 +1,6 @@
 import { describeFailoverError, resolveFailoverStatus } from "../agents/failover-error.js";
 // OpenAI-compatible error helpers.
-// Converts OpenClaw failover/sampling errors to OpenAI-style HTTP responses.
+// Converts Vasudev failover/sampling errors to OpenAI-style HTTP responses.
 import type { FailoverReason } from "../agents/failover/signal.js";
 
 type OpenAiCompatError = {

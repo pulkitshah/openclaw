@@ -36,7 +36,7 @@ export function formatNewerExactPinnedNpmDefaultLineMessage(params: {
   return (
     `${params.pluginId} is pinned to ${params.recordedSpec} (installed ${params.currentVersion}); ` +
     `registry ${params.newer.registryLine} resolves to ${params.newer.version}. ` +
-    `Pass \`openclaw plugins update ${params.newer.packageName}@${params.newer.registryLine}\` to replace this version pin.`
+    `Pass \`vasudev plugins update ${params.newer.packageName}@${params.newer.registryLine}\` to replace this version pin.`
   );
 }
 
@@ -50,7 +50,7 @@ function formatNewerExactPinnedClawHubDefaultLineMessage(params: {
   return (
     `${params.pluginId} is pinned to ${params.recordedSpec} (installed ${params.currentVersion}); ` +
     `ClawHub ${params.newer.registryLine} resolves to ${params.newer.version}. ` +
-    `Pass \`openclaw plugins install clawhub:${params.newer.packageName}${selector} --force\` to replace this version pin.`
+    `Pass \`vasudev plugins install clawhub:${params.newer.packageName}${selector} --force\` to replace this version pin.`
   );
 }
 

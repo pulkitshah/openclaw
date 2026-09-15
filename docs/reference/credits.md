@@ -5,7 +5,7 @@ read_when:
 title: "Credits"
 ---
 
-OpenClaw = CLAW + TARDIS: every space lobster needs a time and space machine.
+Vasudev = CLAW + TARDIS: every space lobster needs a time and space machine.
 
 ## Credits
 
@@ -21,11 +21,11 @@ OpenClaw = CLAW + TARDIS: every space lobster needs a time and space machine.
 
 ## License
 
-MIT, copyright OpenClaw Foundation. Third-party notices for incorporated or adapted code are in `THIRD_PARTY_NOTICES.md`.
+MIT, copyright Vasudev Foundation. Third-party notices for incorporated or adapted code are in `THIRD_PARTY_NOTICES.md`.
 
 > "We are all just playing with our own prompts." (An AI, probably high on tokens)
 
 ## Related
 
-- [OpenClaw lore](/start/lore) - the backstory behind the name, the shell, and the space lobster
+- [Vasudev lore](/start/lore) - the backstory behind the name, the shell, and the space lobster
 - [Pull request review flow](/reference/pull-request-review-flow) - how a contribution moves through Barnacle and ClawSweeper review

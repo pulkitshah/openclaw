@@ -1,5 +1,5 @@
 ---
-summary: "Adds Hugging Face model provider support to OpenClaw."
+summary: "Adds Hugging Face model provider support to Vasudev."
 read_when:
   - You are installing, configuring, or auditing the huggingface plugin
 title: "Hugging Face plugin reference"
@@ -10,12 +10,12 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-Adds Hugging Face model provider support to OpenClaw.
+Adds Hugging Face model provider support to Vasudev.
 
 ## Distribution
 
 - Package: `@openclaw/huggingface-provider`
-- Install route: included in OpenClaw
+- Install route: included in Vasudev
 
 ## Surface
 

@@ -307,7 +307,7 @@ describe("browser navigation guard", () => {
       lookupFn,
     });
     await expect(result).rejects.toThrow("URL-embedded credentials are not supported");
-    await expect(result).rejects.toThrow("openclaw browser set credentials");
+    await expect(result).rejects.toThrow("vasudev browser set credentials");
     await expect(result).rejects.not.toThrow("secret");
     expect(lookupFn).not.toHaveBeenCalled();
   });

@@ -111,7 +111,7 @@ describe("cron process output", () => {
       if (kind === "error") {
         expect(result.stdout).toBe("");
         expect(result.stderr).toContain(
-          "Automation not found: missing-job. Run `openclaw cron list` to see recent automation ids.",
+          "Automation not found: missing-job. Run `vasudev cron list` to see recent automation ids.",
         );
         return;
       }

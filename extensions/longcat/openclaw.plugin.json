@@ -2,7 +2,7 @@
   "id": "longcat",
   "categories": ["models"],
   "name": "LongCat",
-  "description": "OpenClaw LongCat provider plugin.",
+  "description": "Vasudev LongCat provider plugin.",
   "doctorContract": {
     "configRepair": true
   },

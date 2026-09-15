@@ -214,7 +214,7 @@ describe("formatCliParseErrorOutput", () => {
       args: ["system", "heartbeat", "last", "--unknown"],
       root: "system",
       children: ["heartbeat", "last"],
-      message: 'OpenClaw does not recognize option "--unknown".',
+      message: 'Vasudev does not recognize option "--unknown".',
       machineOutput: isSystemMachineOutput,
     },
   ])("keeps $name parse failures machine-readable by default", async (testCase) => {
@@ -383,7 +383,7 @@ describe("formatCliParseErrorOutput", () => {
 
           expect(error).toBeInstanceOf(CommanderError);
           expect((error as CommanderError).exitCode).toBe(0);
-          expect(stdout).toContain("Usage: openclaw cron get");
+          expect(stdout).toContain("Usage: vasudev cron get");
           expect(isJsonOutputModeActive(process.argv)).toBe(false);
         },
         { machineOutput: true, restoreChanges: true },
@@ -520,9 +520,9 @@ describe("formatCliParseErrorOutput", () => {
       argv: ["node", "openclaw", "pairng", "--json"],
     });
 
-    expect(error.message).toBe('OpenClaw does not know the command "pairng".');
+    expect(error.message).toBe('Vasudev does not know the command "pairng".');
     expect(error.humanOutput).toBe(
-      'OpenClaw does not know the command "pairng".\nDid you mean this?\n  openclaw pairing\nTry: openclaw --help\nPlugin command? openclaw plugins list\nDocs: https://docs.openclaw.ai/cli\n',
+      'Vasudev does not know the command "pairng".\nDid you mean this?\n  vasudev pairing\nTry: openclaw --help\nPlugin command? vasudev plugins list\nDocs: https://docs.openclaw.ai/cli\n',
     );
   });
 
@@ -533,9 +533,9 @@ describe("formatCliParseErrorOutput", () => {
       commandNames: ["list"],
     });
 
-    expect(error.message).toBe('OpenClaw sessions has no command "lst".');
+    expect(error.message).toBe('Vasudev sessions has no command "lst".');
     expect(error.message).not.toMatch(/^error:/i);
-    expect(error.humanOutput).toContain("Did you mean this?\n  openclaw sessions list\n");
+    expect(error.humanOutput).toContain("Did you mean this?\n  vasudev sessions list\n");
   });
 
   it("explains unknown commands with root help and plugin hints", () => {
@@ -544,7 +544,7 @@ describe("formatCliParseErrorOutput", () => {
     });
 
     expect(output).toBe(
-      'OpenClaw does not know the command "wat".\nTry: openclaw --help\nPlugin command? openclaw plugins list\nDocs: https://docs.openclaw.ai/cli\n',
+      'Vasudev does not know the command "wat".\nTry: openclaw --help\nPlugin command? vasudev plugins list\nDocs: https://docs.openclaw.ai/cli\n',
     );
   });
 
@@ -555,7 +555,7 @@ describe("formatCliParseErrorOutput", () => {
     });
 
     expect(output).toBe(
-      'OpenClaw webhooks has no command "list".\nTry: openclaw webhooks --help\nDocs: https://docs.openclaw.ai/cli\n',
+      'Vasudev webhooks has no command "list".\nTry: openclaw webhooks --help\nDocs: https://docs.openclaw.ai/cli\n',
     );
   });
 
@@ -567,7 +567,7 @@ describe("formatCliParseErrorOutput", () => {
     });
 
     expect(output).toBe(
-      'OpenClaw webhooks has no command "gmial".\nDid you mean this?\n  openclaw webhooks gmail\nTry: openclaw webhooks --help\nDocs: https://docs.openclaw.ai/cli\n',
+      'Vasudev webhooks has no command "gmial".\nDid you mean this?\n  openclaw webhooks gmail\nTry: openclaw webhooks --help\nDocs: https://docs.openclaw.ai/cli\n',
     );
   });
 
@@ -580,7 +580,7 @@ describe("formatCliParseErrorOutput", () => {
 
     expect(error.code).toBe("commander.unknownCommand");
     expect(output).toBe(
-      'OpenClaw sessions has no command "lst".\nDid you mean this?\n  openclaw sessions list\nTry: openclaw sessions --help\nDocs: https://docs.openclaw.ai/cli\n',
+      'Vasudev sessions has no command "lst".\nDid you mean this?\n  vasudev sessions list\nTry: vasudev sessions --help\nDocs: https://docs.openclaw.ai/cli\n',
     );
   });
 
@@ -593,7 +593,7 @@ describe("formatCliParseErrorOutput", () => {
 
     expect(error.code).toBe("commander.unknownCommand");
     expect(output).toBe(
-      'OpenClaw config has no command "gett".\nDid you mean this?\n  openclaw config get\nTry: openclaw config --help\nDocs: https://docs.openclaw.ai/cli\n',
+      'Vasudev config has no command "gett".\nDid you mean this?\n  vasudev config get\nTry: vasudev config --help\nDocs: https://docs.openclaw.ai/cli\n',
     );
   });
 
@@ -608,7 +608,7 @@ describe("formatCliParseErrorOutput", () => {
     expect(error.exitCode).toBe(1);
     expect(stdout).toBe("");
     expect(output).toBe(
-      'OpenClaw sessions has no command "lst".\nDid you mean this?\n  openclaw sessions list\nTry: openclaw sessions --help\nDocs: https://docs.openclaw.ai/cli\n',
+      'Vasudev sessions has no command "lst".\nDid you mean this?\n  vasudev sessions list\nTry: vasudev sessions --help\nDocs: https://docs.openclaw.ai/cli\n',
     );
   });
 
@@ -622,7 +622,7 @@ describe("formatCliParseErrorOutput", () => {
     expect(error.code).toBe("commander.helpDisplayed");
     expect(error.exitCode).toBe(0);
     expect(output).toBe("");
-    expect(stdout).toContain("Usage: openclaw sessions list [options]");
+    expect(stdout).toContain("Usage: vasudev sessions list [options]");
   });
 
   it("suggests aliases from the live child command tree", async () => {
@@ -633,7 +633,7 @@ describe("formatCliParseErrorOutput", () => {
     });
 
     expect(error.code).toBe("commander.unknownCommand");
-    expect(output).toContain("Did you mean this?\n  openclaw cron remove\n");
+    expect(output).toContain("Did you mean this?\n  vasudev cron remove\n");
   });
 
   it("keeps excess arguments on a matched lazy subcommand", async () => {
@@ -645,7 +645,7 @@ describe("formatCliParseErrorOutput", () => {
 
     expect(error.code).toBe("commander.excessArguments");
     expect(output).toBe(
-      "Too many arguments for this command.\nTry: openclaw sessions list --help\n",
+      "Too many arguments for this command.\nTry: vasudev sessions list --help\n",
     );
   });
 
@@ -655,7 +655,7 @@ describe("formatCliParseErrorOutput", () => {
     });
 
     expect(output).toBe(
-      'OpenClaw does not know the command "upate".\nDid you mean this?\n  openclaw update\nTry: openclaw --help\nPlugin command? openclaw plugins list\nDocs: https://docs.openclaw.ai/cli\n',
+      'Vasudev does not know the command "upate".\nDid you mean this?\n  vasudev update\nTry: openclaw --help\nPlugin command? vasudev plugins list\nDocs: https://docs.openclaw.ai/cli\n',
     );
   });
 
@@ -664,7 +664,7 @@ describe("formatCliParseErrorOutput", () => {
       argv: ["node", "openclaw", "upgrade"],
     });
 
-    expect(output).toContain("Did you mean this?\n  openclaw update\n");
+    expect(output).toContain("Did you mean this?\n  vasudev update\n");
   });
 
   it("preserves active profile context in command suggestions", () => {
@@ -675,7 +675,7 @@ describe("formatCliParseErrorOutput", () => {
         argv: ["node", "openclaw", "doctr"],
       });
 
-      expect(output).toContain("Did you mean this?\n  openclaw --profile work doctor\n");
+      expect(output).toContain("Did you mean this?\n  vasudev --profile work doctor\n");
     } finally {
       if (originalProfile === undefined) {
         delete process.env.OPENCLAW_PROFILE;
@@ -691,7 +691,7 @@ describe("formatCliParseErrorOutput", () => {
     });
 
     expect(output).toBe(
-      'OpenClaw does not recognize option "--wat".\nTry: openclaw channels status --help\n',
+      'Vasudev does not recognize option "--wat".\nTry: vasudev channels status --help\n',
     );
   });
 
@@ -700,9 +700,7 @@ describe("formatCliParseErrorOutput", () => {
       argv: ["node", "openclaw", "plugins", "install"],
     });
 
-    expect(output).toBe(
-      'Missing required argument "name".\nTry: openclaw plugins install --help\n',
-    );
+    expect(output).toBe('Missing required argument "name".\nTry: vasudev plugins install --help\n');
   });
 
   it.each([
@@ -714,7 +712,7 @@ describe("formatCliParseErrorOutput", () => {
     {
       name: "unclassified Commander diagnostic",
       raw: "error: option '--timeout <ms>' argument missing\n",
-      message: "OpenClaw could not parse this command: option '--timeout <ms>' argument missing",
+      message: "Vasudev could not parse this command: option '--timeout <ms>' argument missing",
     },
   ])("preserves the complete ordinary $name diagnostic", ({ raw, message }) => {
     expect(
@@ -722,7 +720,7 @@ describe("formatCliParseErrorOutput", () => {
         argv: ["node", "openclaw", "nodes", "invoke"],
         commandPath: ["nodes", "invoke"],
       }),
-    ).toBe(`${message}\nTry: openclaw nodes invoke --help\n`);
+    ).toBe(`${message}\nTry: vasudev nodes invoke --help\n`);
   });
 
   it("prefers the parsed Commander path over option-like argv values", () => {
@@ -732,7 +730,7 @@ describe("formatCliParseErrorOutput", () => {
     });
 
     expect(output).toBe(
-      'OpenClaw does not recognize option "--wat".\nTry: openclaw plugins list --help\n',
+      'Vasudev does not recognize option "--wat".\nTry: vasudev plugins list --help\n',
     );
   });
 });

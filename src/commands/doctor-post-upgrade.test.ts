@@ -213,7 +213,7 @@ describe("runPostUpgradeProbes — plugin.entry_unresolved", () => {
           code: "plugin.entry_unresolved",
           plugin: "broken",
           entry: "missing-package.json",
-          message: expect.stringContaining("openclaw plugins registry --refresh"),
+          message: expect.stringContaining("vasudev plugins registry --refresh"),
         }),
       ]);
       const line = stderrSpy.mock.calls.map(([value]) => String(value)).join("");
@@ -243,7 +243,7 @@ describe("runPostUpgradeProbes — plugin.entry_unresolved", () => {
           code: "plugin.entry_unresolved",
           plugin: "broken",
           entry: "package.json",
-          message: expect.stringContaining("openclaw plugins registry --refresh"),
+          message: expect.stringContaining("vasudev plugins registry --refresh"),
         }),
       ]);
       expect(stderrSpy).toHaveBeenCalled();
@@ -667,7 +667,7 @@ describe("runPostUpgradeProbes — plugin.version_drift", () => {
                 code: "plugin.version_drift",
                 level: "warn",
                 plugin: id,
-                message: expect.stringContaining(`openclaw plugins update ${id}`),
+                message: expect.stringContaining(`vasudev plugins update ${id}`),
               }),
             ]
           : [],

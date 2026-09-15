@@ -302,7 +302,7 @@ function makeIsolatedBot(params?: {
     botInfo: {
       id: 123,
       is_bot: true,
-      first_name: "OpenClaw",
+      first_name: "Vasudev",
       username: "openclaw_bot",
       has_topics_enabled: false,
     } as NonNullable<ConstructorParameters<typeof TelegramPollingSession>[0]["botInfo"]>,
@@ -1045,7 +1045,7 @@ describe("TelegramPollingSession", () => {
         const botInfo = {
           id: 123,
           is_bot: true,
-          first_name: "OpenClaw",
+          first_name: "Vasudev",
           username: "openclaw_bot",
           has_topics_enabled: topicsEnabled,
         } as NonNullable<ConstructorParameters<typeof TelegramPollingSession>[0]["botInfo"]>;
@@ -3986,12 +3986,12 @@ describe("TelegramPollingSession", () => {
       expect(createTelegramTransport).toHaveBeenCalledTimes(1);
       expect(transport1.close).toHaveBeenCalledOnce();
       expect(transport2.close).toHaveBeenCalledOnce();
-      expectLogIncludes(log, "Another OpenClaw gateway, script, or Telegram poller");
+      expectLogIncludes(log, "Another Vasudev gateway, script, or Telegram poller");
       expect(
         statusPatches(setStatus).some(
           (patch) =>
             patch.connected === false &&
-            String(patch.lastError).includes("Another OpenClaw gateway"),
+            String(patch.lastError).includes("Another Vasudev gateway"),
         ),
       ).toBe(true);
     } finally {

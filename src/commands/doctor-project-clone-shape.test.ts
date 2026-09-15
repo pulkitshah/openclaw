@@ -49,7 +49,7 @@ describe("doctor project clone shape", () => {
         );
         const source = state.path("source");
         await git(state.root, "init", "-b", "main", source);
-        await git(source, "config", "user.name", "OpenClaw Test");
+        await git(source, "config", "user.name", "Vasudev Test");
         await git(source, "config", "user.email", "test@example.invalid");
         for (const content of ["first", "second"]) {
           await fs.writeFile(path.join(source, "README.md"), `${content}\n`);

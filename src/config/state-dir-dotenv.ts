@@ -42,7 +42,7 @@ function unwrapMatchingLiteralQuotes(value: string): string {
 export function isUnresolvedShellReference(value: string): boolean {
   const candidate = unwrapMatchingLiteralQuotes(value.trim());
   // Match only values whose entire content is a shell variable reference:
-  //   $VAR_NAME          (simple reference, OpenClaw env-var style)
+  //   $VAR_NAME          (simple reference, Vasudev env-var style)
   //   ${VAR_NAME}        (brace-form reference)
   //   $(command)         (command substitution)
   // A real credential that merely contains a $ (e.g. "abc$2!", "$100") is NOT matched.
@@ -58,7 +58,7 @@ type ParsedStateDirDotEnv = {
   entries: Record<string, string>;
   /**
    * Keys that were dropped because their entire value was an unresolved shell
-   * reference ($VAR, ${VAR}, or $(cmd)). These are still OpenClaw-managed keys:
+   * reference ($VAR, ${VAR}, or $(cmd)). These are still Vasudev-managed keys:
    * a previously generated env file may carry a stale literal reference for them
    * that must be removed on re-stage rather than preserved as an operator secret.
    */
@@ -97,7 +97,7 @@ function parseStateDirDotEnvContent(content: string | Buffer): ParsedStateDirDot
  * Read and parse the state-dir `.env`, returning both the persisted entries and
  * the keys that were skipped because they held unresolved shell references. The
  * skipped keys are surfaced so generated service env files can remove stale
- * literal references for keys OpenClaw previously managed.
+ * literal references for keys Vasudev previously managed.
  */
 export function readStateDirDotEnvFromStateDir(stateDir: string): ParsedStateDirDotEnv {
   const dotEnvPath = path.join(stateDir, ".env");

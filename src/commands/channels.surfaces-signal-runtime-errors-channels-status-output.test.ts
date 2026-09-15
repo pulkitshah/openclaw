@@ -41,7 +41,7 @@ describe("channels command", () => {
     const lines = formatGatewayChannelsStatusLines({ channelAccounts: {} });
 
     expect(lines).toContain(
-      "- no configured chat channels (run `openclaw channels list --all` to see installable channels)",
+      "- no configured chat channels (run `vasudev channels list --all` to see installable channels)",
     );
   });
 

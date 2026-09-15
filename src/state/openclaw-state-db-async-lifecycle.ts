@@ -46,7 +46,7 @@ export function createOpenClawStateDatabaseAsyncLifecycle() {
     [...seals].some((held) => held.record === undefined || overlaps(held.record, record));
   const assertOpen = (record: IdentityRecord) => {
     if (isSealed(record)) {
-      throw new Error("OpenClaw state database read admission is closed");
+      throw new Error("Vasudev state database read admission is closed");
     }
   };
   const resolve = (pathname: string, preparedIdentity?: DatabasePathIdentity): IdentityRecord => {
@@ -172,7 +172,7 @@ export function createOpenClawStateDatabaseAsyncLifecycle() {
         assertCurrent() {
           assertOpen(record);
           if (records.get(record.identity.key) !== record || record.generation !== generation) {
-            throw new Error("OpenClaw state database read admission changed");
+            throw new Error("Vasudev state database read admission changed");
           }
         },
       };
@@ -235,7 +235,7 @@ export function createOpenClawStateDatabaseAsyncLifecycle() {
         if (errors.length > 1) {
           throw createSqliteLifecycleAggregateError(
             errors,
-            "OpenClaw state resource drainage failed",
+            "Vasudev state resource drainage failed",
             errors[0],
           );
         }

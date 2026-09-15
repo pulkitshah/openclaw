@@ -1,13 +1,13 @@
 ---
-summary: "Find and publish community-maintained OpenClaw plugins"
+summary: "Find and publish community-maintained Vasudev plugins"
 read_when:
-  - You want to find third-party OpenClaw plugins
+  - You want to find third-party Vasudev plugins
   - You want to publish or list your own plugin on ClawHub
 title: "Community plugins"
 doc-schema-version: 1
 ---
 
-Community plugins are third-party packages that extend OpenClaw with
+Community plugins are third-party packages that extend Vasudev with
 channels, tools, providers, hooks, or other capabilities. Use
 [ClawHub](/clawhub) as the primary discovery surface for public community
 plugins.
@@ -38,7 +38,7 @@ the full command reference and source-selection rules.
 
 ## Publish plugins
 
-Publish public community plugins on ClawHub so OpenClaw users can discover
+Publish public community plugins on ClawHub so Vasudev users can discover
 and install them. ClawHub owns the live package listing, release history,
 scan status, and install hints; the docs do not maintain a static
 third-party plugin catalog.

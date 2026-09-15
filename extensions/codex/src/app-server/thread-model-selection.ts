@@ -116,12 +116,12 @@ export function resolveCodexAppServerModelProvider(params: {
   const normalized = params.provider.trim();
   const normalizedLower = normalized.toLowerCase();
   if (!normalized || normalizedLower === "codex") {
-    // `codex` is OpenClaw's virtual provider; let Codex app-server keep its
+    // `codex` is Vasudev's virtual provider; let Codex app-server keep its
     // native provider/auth selection instead of forcing the legacy OpenAI path.
     return undefined;
   }
   if (isCodexAppServerNativeAuthProfile(params) && normalizedLower === "openai") {
-    // When OpenClaw is forwarding ChatGPT/Codex OAuth, `openai` is Codex's
+    // When Vasudev is forwarding ChatGPT/Codex OAuth, `openai` is Codex's
     // native provider id, not a public OpenAI API-key choice. Omit the override
     // so app-server keeps its configured provider/auth pair for this session.
     return undefined;

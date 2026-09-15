@@ -271,7 +271,7 @@ describe("worker workspace recovery transcript reporting", () => {
         customType: WORKSPACE_RECOVERY_FAILURE_TRANSCRIPT_TYPE,
         display: true,
         content: expect.stringMatching(
-          /^Cloud workspace recovery attempt failed: snapshot rejected token=.*OpenClaw preserved the result and will retry\.$/u,
+          /^Cloud workspace recovery attempt failed: snapshot rejected token=.*Vasudev preserved the result and will retry\.$/u,
         ),
       });
       expect(JSON.stringify(firstEvents[0])).not.toContain(secret);

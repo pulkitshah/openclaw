@@ -309,6 +309,6 @@ export function formatDuelingScopesWarning(
   return (
     `detected BOTH a user-scope (${user.unitPath}) and a system-scope (${system.unitPath}) ` +
     `gateway unit bound to port ${port}; they will SIGTERM each other in a restart loop. ` +
-    `Run \`openclaw doctor\` interactively to inspect both scopes and review supported cleanup.`
+    `Run \`vasudev doctor\` interactively to inspect both scopes and review supported cleanup.`
   );
 }

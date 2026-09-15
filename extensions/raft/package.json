@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/raft",
   "version": "2026.9.4",
-  "description": "OpenClaw Raft channel plugin for Raft CLI wake bridges.",
+  "description": "Vasudev Raft channel plugin for Raft CLI wake bridges.",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

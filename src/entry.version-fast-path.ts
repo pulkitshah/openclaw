@@ -55,7 +55,12 @@ export function tryHandleRootVersionFastPath(
   resolveVersion()
     .then(({ VERSION, resolveCommitHash }) => {
       const commit = resolveCommitHash({ moduleUrl: deps.moduleUrl ?? import.meta.url });
-      output(commit ? `OpenClaw ${VERSION} (${commit})` : `OpenClaw ${VERSION}`);
+      // The product name is spelled literally here, not imported from
+      // ../brand.ts: this path exists to answer `--version` before the CLI
+      // module graph loads, and pulling in another module defeats that.
+      // test/brand/version-fast-path.test.ts pins the literal against
+      // PRODUCT_NAME so the two can never drift.
+      output(commit ? `Vasudev ${VERSION} (${commit})` : `Vasudev ${VERSION}`);
       exit(0);
     })
     .catch(onError);

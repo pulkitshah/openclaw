@@ -301,13 +301,13 @@ export class OpenClawFilePreviewModal extends OpenClawLitElement {
     .chat-copy-btn[data-copy-state="error"] {
       border-color: var(--danger-subtle);
       background: var(--danger-subtle);
-      color: var(--danger);
+      color: var(--danger-text);
     }
 
     .chat-copy-btn[data-copy-state="copied"] {
       border-color: var(--ok-subtle);
       background: var(--ok-subtle);
-      color: var(--ok);
+      color: var(--ok-text);
     }
 
     .chips {
@@ -336,7 +336,7 @@ export class OpenClawFilePreviewModal extends OpenClawLitElement {
     .chip.ok {
       background: color-mix(in srgb, var(--ok) 12%, transparent);
       border-color: color-mix(in srgb, var(--ok) 30%, transparent);
-      color: var(--ok);
+      color: var(--ok-text);
     }
 
     .detail-body {

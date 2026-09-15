@@ -61,7 +61,7 @@ async function writeOldDocumentBuild(root: string): Promise<void> {
         small { color: #94a3b8; } button { margin: 32px 0; padding: 12px 18px; }
         #route { border-left: 4px solid #4ade80; padding: 12px; }
       </style></head><body><main>
-      <small>OpenClaw update recovery proof</small><h1>Old document is still open</h1>
+      <small>Vasudev update recovery proof</small><h1>Old document is still open</h1>
       <button type="button">Open Activity</button><div id="route">Activity not loaded yet</div>
       <script type="module" src="/assets/app-old.js"></script>
       </main></body></html>`,

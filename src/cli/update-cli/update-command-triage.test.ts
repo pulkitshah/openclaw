@@ -577,7 +577,7 @@ describe("update failure triage boundary", () => {
     expect(defaultRuntime.error).toHaveBeenCalledWith(
       expect.stringContaining("Saved update failure:"),
     );
-    expect(defaultRuntime.error).toHaveBeenCalledWith(expect.stringContaining("openclaw triage"));
+    expect(defaultRuntime.error).toHaveBeenCalledWith(expect.stringContaining("vasudev triage"));
     expect(defaultRuntime.writeJson).not.toHaveBeenCalled();
   });
 

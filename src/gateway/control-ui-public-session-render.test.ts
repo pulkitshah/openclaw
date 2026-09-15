@@ -49,7 +49,7 @@ describe("public session document", () => {
       },
       { role: "assistant", content: "NO_REPLY" },
       { role: "assistant", content: "HEARTBEAT_OK" },
-      { role: "user", content: "[OpenClaw heartbeat poll]" },
+      { role: "user", content: "[Vasudev heartbeat poll]" },
       {
         role: "user",
         provenance: { kind: "external_user" },

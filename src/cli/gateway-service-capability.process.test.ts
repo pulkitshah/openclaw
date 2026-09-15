@@ -107,7 +107,7 @@ describe("candidate service capability startup", () => {
       }
       const version = fixture.run(["--version"]);
       expect(version.status, version.stderr).toBe(0);
-      expect(version.stdout).toMatch(/^OpenClaw /u);
+      expect(version.stdout).toMatch(/^Vasudev /u);
       expect(snapshotState(fixture.stateDir)).toEqual(before);
       const database = new DatabaseSync(fixture.databasePath, { readOnly: true });
       try {

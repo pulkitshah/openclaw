@@ -1,13 +1,13 @@
 ---
-summary: "Recover from failed OpenClaw updates in the Control UI or CLI"
+summary: "Recover from failed Vasudev updates in the Control UI or CLI"
 read_when:
-  - An OpenClaw update failed
+  - A Vasudev update failed
   - The Gateway did not report a final update result
 title: "Update troubleshooting"
 ---
 
 Failed updates enter built-in triage after update recovery settles. In an
-interactive terminal, OpenClaw shows the selected agent, saved prompt path when
+interactive terminal, Vasudev shows the selected agent, saved prompt path when
 available, and use of your own account/tokens, then asks before launching
 [triage](/cli/triage). Enter or `y` proceeds, `n` preserves diagnostics and prints
 handoff commands, and no answer within 30 seconds proceeds as Yes with a notice.
@@ -16,14 +16,14 @@ terminal, it prepares diagnostics and handoff commands without launching an
 agent. The original update failure and exit status remain authoritative;
 diagnostics do not turn a failed update into a successful one.
 
-In the Control UI, a failed attempt opens **Ask OpenClaw** with its recorded
+In the Control UI, a failed attempt opens **Ask Vasudev** with its recorded
 details and asks it to investigate before retrying. A lost connection or
 verification timeout is presented as an unknown outcome. The tab remembers the
 latest 32 investigated attempt identities, scoped to their Gateway and profile.
 Status checks, switching between those scopes, and reloading the same tab do not
 automatically send those investigations again. If the browser cannot read or
 save that history, the failure details remain visible without an automatic
-diagnostic request. Ask OpenClaw manually or run `openclaw triage` on the host.
+diagnostic request. Ask Vasudev manually or run `openclaw triage` on the host.
 If the Gateway or agent is
 unavailable, use `openclaw triage` on the Gateway host. Automatic diagnosis keeps
 your unsent composer draft, including when its conversation session must restart.
@@ -38,13 +38,13 @@ can also replace it. Intentional cancellations, already-current installs, and
 updates still in progress do not start triage.
 
 For a final failed attempt, **Report update failure** is separate from **Retry**
-and **Ask OpenClaw**. It previews a bounded report containing the OpenClaw
+and **Ask Vasudev**. It previews a bounded report containing the Vasudev
 version, platform, update target, failed phase, sanitized diagnostics, and
 verified rollback outcome. The report excludes secrets, tokens, chat content,
 raw logs, private absolute paths, and recovery commands. Nothing is submitted
-until an administrator confirms that preview. OpenClaw then uses the existing
+until an administrator confirms that preview. Vasudev then uses the existing
 GitHub CLI issue flow. Fallback and pending outcomes retain the sanitized report
-locally; a confirmed issue keeps only its durable issue URL. OpenClaw first makes
+locally; a confirmed issue keeps only its durable issue URL. Vasudev first makes
 a silent, read-only request with the active `github.com` account. A missing CLI
 or a failed, unavailable, or timed-out authentication check returns a prefilled
 issue link without starting issue creation. In the Control UI, an interrupted
@@ -158,7 +158,7 @@ See [Rollback](/install/updating#rollback).
 Collect the following without posting credentials, raw config, or unredacted
 process output:
 
-- OpenClaw version and install type;
+- Vasudev version and install type;
 - update timestamp, target, phase, and reason code from Settings → Updates;
 - the bounded failure detail shown by **View details**;
 - `openclaw update status --json`;

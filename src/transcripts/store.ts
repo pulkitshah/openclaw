@@ -270,7 +270,7 @@ export class TranscriptsStore {
       const stat = await fs.lstat(filePath);
       if (stat.isSymbolicLink() || !stat.isFile()) {
         throw new Error(
-          `legacy transcript artifacts require migration before writing ${sessionDir}; run openclaw doctor --fix`,
+          `legacy transcript artifacts require migration before writing ${sessionDir}; run vasudev doctor --fix`,
         );
       }
       const actualHash = await sha256File(filePath);
@@ -283,7 +283,7 @@ export class TranscriptsStore {
       expectedHashes ??= await this.expectedExportHashes(session);
       if (expectedHashes[canonicalName] !== actualHash) {
         throw new Error(
-          `legacy transcript artifacts require migration before writing ${sessionDir}; run openclaw doctor --fix`,
+          `legacy transcript artifacts require migration before writing ${sessionDir}; run vasudev doctor --fix`,
         );
       }
       repairedHashes[canonicalName] = actualHash;

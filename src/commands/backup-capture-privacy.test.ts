@@ -447,9 +447,9 @@ describe("private update capture exclusion", () => {
             databases: [database],
             gitEnv: {
               ...process.env,
-              GIT_AUTHOR_NAME: "OpenClaw Test",
+              GIT_AUTHOR_NAME: "Vasudev Test",
               GIT_AUTHOR_EMAIL: "test@example.invalid",
-              GIT_COMMITTER_NAME: "OpenClaw Test",
+              GIT_COMMITTER_NAME: "Vasudev Test",
               GIT_COMMITTER_EMAIL: "test@example.invalid",
             },
           });
@@ -544,7 +544,7 @@ describe("private update capture exclusion", () => {
         }),
       );
       for (const key of ["GIT_AUTHOR_NAME", "GIT_COMMITTER_NAME"]) {
-        vi.stubEnv(key, "OpenClaw Test");
+        vi.stubEnv(key, "Vasudev Test");
       }
       for (const key of ["GIT_AUTHOR_EMAIL", "GIT_COMMITTER_EMAIL"]) {
         vi.stubEnv(key, "test@example.invalid");

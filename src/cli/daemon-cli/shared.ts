@@ -50,7 +50,7 @@ export function resolveDaemonInstallBlockMessage(
   if (process.platform === "linux" && hasSudoToRootSystemdUserManagerMismatch(env)) {
     return (
       "Gateway install blocked: Refusing a sudo-to-root systemd user-service install because " +
-      "OpenClaw state and service files would belong to root while systemctl targets the " +
+      "Vasudev state and service files would belong to root while systemctl targets the " +
       "invoking user's manager. Rerun the same command without sudo. If [unsafe-permissions] " +
       "blocked the non-sudo command, repair the reported directory with `chmod go-w <path>` " +
       "and retry; do not use sudo or --force to bypass it. " +
@@ -176,10 +176,10 @@ export function renderGatewayServiceStartHints(env: NodeJS.ProcessEnv = process.
   const profile = env.OPENCLAW_PROFILE;
   const installHint =
     resolveDaemonInstallBlockMessage("gateway", env) ??
-    formatCliCommand("openclaw gateway install", env);
+    formatCliCommand("vasudev gateway install", env);
   return buildPlatformServiceStartHints({
     installHint,
-    startCommand: formatCliCommand("openclaw gateway start", env),
+    startCommand: formatCliCommand("vasudev gateway start", env),
     launchAgentPlistPath: `~/Library/LaunchAgents/${resolveGatewayLaunchAgentLabel(profile)}.plist`,
     systemdServiceName: resolveGatewaySystemdServiceName(profile),
     windowsTaskName: resolveGatewayWindowsTaskName(profile),

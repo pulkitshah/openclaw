@@ -1,4 +1,4 @@
-// OpenClaw probe tests cover timeout handling and probe result formatting.
+// Vasudev probe tests cover timeout handling and probe result formatting.
 import { MAX_TIMER_TIMEOUT_MS } from "@openclaw/normalization-core/number-coercion";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { probeGatewayUrl, probeLocalCommand } from "./probes.js";

@@ -269,7 +269,7 @@ export async function appendStatusAllDiagnosis(params: {
       const gatewayPidCount = countGatewayListenerPids(params.portUsage);
       if (gatewayPidCount > 1) {
         lines.push(
-          `  ${muted(`${gatewayPidCount} OpenClaw gateway processes appear to be listening on port ${params.port}; stop stale gateway processes before trusting channel health.`)}`,
+          `  ${muted(`${gatewayPidCount} Vasudev gateway processes appear to be listening on port ${params.port}; stop stale gateway processes before trusting channel health.`)}`,
         );
       }
       for (const line of formatPortDiagnostics(params.portUsage)) {
@@ -280,7 +280,7 @@ export async function appendStatusAllDiagnosis(params: {
         `  ${muted("Detected dual-stack loopback listeners (127.0.0.1 + ::1) for one gateway process.")}`,
       );
     } else if (expectedGatewayListeners) {
-      lines.push(`  ${muted("Detected OpenClaw Gateway listener on the configured port.")}`);
+      lines.push(`  ${muted("Detected Vasudev Gateway listener on the configured port.")}`);
     }
   }
 
@@ -344,7 +344,7 @@ export async function appendStatusAllDiagnosis(params: {
       emitUnavailableDiagnostics({
         label: "Telemetry exporters",
         detail: `Exporter diagnostics failed: ${params.exporterDiagnostics.error}`,
-        retry: "openclaw gateway stability --type telemetry.exporter",
+        retry: "vasudev gateway stability --type telemetry.exporter",
       });
     }
   }
@@ -392,7 +392,7 @@ export async function appendStatusAllDiagnosis(params: {
       emitUnavailableDiagnostics({
         label: "Inbound delivery telemetry",
         detail: "Delivery diagnostics returned an invalid response.",
-        retry: "openclaw gateway stability",
+        retry: "vasudev gateway stability",
       });
     }
   } else if (
@@ -403,7 +403,7 @@ export async function appendStatusAllDiagnosis(params: {
     emitUnavailableDiagnostics({
       label: "Inbound delivery telemetry",
       detail: `Delivery diagnostics failed: ${params.deliveryDiagnostics.error}`,
-      retry: "openclaw gateway stability",
+      retry: "vasudev gateway stability",
     });
   }
 

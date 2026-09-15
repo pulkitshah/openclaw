@@ -23,7 +23,7 @@ export const DEFAULT_GMAIL_SERVE_PATH = "/gmail-pubsub";
 export const DEFAULT_GMAIL_MAX_BYTES = 20_000;
 export const DEFAULT_GMAIL_RENEW_MINUTES = 12 * 60;
 const DEFAULT_HOOKS_PATH = "/hooks";
-// OpenClaw handles inbound mail; override gog's narrower SPAM,TRASH default.
+// Vasudev handles inbound mail; override gog's narrower SPAM,TRASH default.
 const GMAIL_WATCH_EXCLUDED_LABELS = "SPAM,TRASH,DRAFT,SENT";
 const GMAIL_WATCH_SENSITIVE_FLAGS = new Set(["--token", "--hook-url", "--hook-token"]);
 let gogBin: string | undefined;

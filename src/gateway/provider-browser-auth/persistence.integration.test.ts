@@ -181,7 +181,7 @@ describe("provider browser HTTP callback persistence", () => {
         const receipt = await response.text();
         if (outcome === "complete") {
           expect(receipt).toContain("Sign-in response received.");
-          expect(receipt).toContain("Return to OpenClaw for the sign-in result.");
+          expect(receipt).toContain("Return to Vasudev for the sign-in result.");
         }
         expect(loadPersistedAuthProfileStore()?.profiles).toEqual({
           "other:retained": retainedProfile,

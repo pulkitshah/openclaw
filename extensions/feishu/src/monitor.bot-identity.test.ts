@@ -30,7 +30,7 @@ describe("Feishu bot identity recovery", () => {
       .mockResolvedValueOnce({ botOpenId: "ou_cached", source: "cache" })
       .mockResolvedValueOnce({
         botOpenId: "ou_provider",
-        botName: "OpenClaw QA",
+        botName: "Vasudev QA",
         source: "provider",
       });
     const runtime = {
@@ -68,7 +68,7 @@ describe("Feishu bot identity recovery", () => {
     expect(setFeishuBotIdentityStateMock).toHaveBeenCalledTimes(1);
     expect(setFeishuBotIdentityStateMock).toHaveBeenLastCalledWith("person-2", {
       botOpenId: "ou_provider",
-      botName: "OpenClaw QA",
+      botName: "Vasudev QA",
     });
   });
 });

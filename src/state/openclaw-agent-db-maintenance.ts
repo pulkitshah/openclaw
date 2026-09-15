@@ -28,14 +28,12 @@ export function assertOpenClawAgentDatabaseOwner(
   const agentId = normalizeAgentId(options.agentId);
   const metadata = readExistingAgentSchemaMeta(database);
   if (!metadata) {
-    throw new Error(
-      `OpenClaw agent database ${options.pathname} has no schema ownership metadata.`,
-    );
+    throw new Error(`Vasudev agent database ${options.pathname} has no schema ownership metadata.`);
   }
   assertExistingAgentSchemaOwner(metadata, agentId, options.pathname);
   if (metadata.agentId !== agentId) {
     throw new Error(
-      `OpenClaw agent database ${options.pathname} belongs to agent ${metadata.agentId}; requested agent ${agentId}.`,
+      `Vasudev agent database ${options.pathname} belongs to agent ${metadata.agentId}; requested agent ${agentId}.`,
     );
   }
   return metadata;
@@ -51,7 +49,7 @@ export function assertOpenClawAgentDatabaseForMaintenance(
   const userVersion = readSqliteUserVersion(database);
   if (userVersion > OPENCLAW_AGENT_SCHEMA_VERSION) {
     throw createNewerSqliteSchemaVersionError(
-      "OpenClaw agent database",
+      "Vasudev agent database",
       options.pathname,
       userVersion,
       OPENCLAW_AGENT_SCHEMA_VERSION,
@@ -59,12 +57,12 @@ export function assertOpenClawAgentDatabaseForMaintenance(
   }
   if (userVersion !== OPENCLAW_AGENT_SCHEMA_VERSION) {
     throw new Error(
-      `OpenClaw agent database ${options.pathname} uses schema version ${userVersion}; run openclaw doctor --fix before compacting it.`,
+      `Vasudev agent database ${options.pathname} uses schema version ${userVersion}; run vasudev doctor --fix before compacting it.`,
     );
   }
   if (metadata.schemaVersion !== OPENCLAW_AGENT_SCHEMA_VERSION) {
     throw new Error(
-      `OpenClaw agent database ${options.pathname} metadata schema version ${metadata.schemaVersion ?? "invalid"} does not match ${OPENCLAW_AGENT_SCHEMA_VERSION}; run openclaw doctor --fix before compacting it.`,
+      `Vasudev agent database ${options.pathname} metadata schema version ${metadata.schemaVersion ?? "invalid"} does not match ${OPENCLAW_AGENT_SCHEMA_VERSION}; run vasudev doctor --fix before compacting it.`,
     );
   }
   assertOpenClawAgentSchemaContains(database, options.pathname, OPENCLAW_AGENT_SCHEMA_SQL);

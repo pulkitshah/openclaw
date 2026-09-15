@@ -1,5 +1,5 @@
 // OpenAI-compatible embeddings HTTP endpoint.
-// Bridges /v1/embeddings requests to configured OpenClaw memory providers.
+// Bridges /v1/embeddings requests to configured Vasudev memory providers.
 import { Buffer } from "node:buffer";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import {
@@ -40,7 +40,7 @@ import {
   resolveOpenAiCompatibleHttpOperatorScopes,
 } from "./http-utils.js";
 
-// OpenAI-compatible `/v1/embeddings` bridge. It maps OpenClaw agent/model
+// OpenAI-compatible `/v1/embeddings` bridge. It maps Vasudev agent/model
 // routing onto configured memory embedding providers while preserving the
 // response shape expected by OpenAI SDK clients.
 type OpenAiEmbeddingsHttpOptions = {

@@ -36,7 +36,7 @@ function expectConflictWarning() {
     .join("\n");
   expect(warnings).toContain("changed");
   expect(warnings).toContain("These config fixes were not written.");
-  expect(warnings).toMatch(/rerun "openclaw doctor"/i);
+  expect(warnings).toMatch(/rerun "vasudev doctor"/i);
   expect(noteMock.mock.calls.some(([, title]) => title === "Doctor changes")).toBe(false);
 }
 

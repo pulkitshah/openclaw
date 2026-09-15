@@ -175,7 +175,7 @@ export class SkillProposalDraftMissingError extends Error {
     options?: ErrorOptions,
   ) {
     super(
-      `Skill proposal draft is missing: ${proposalId}. Run openclaw doctor --fix for recovery.`,
+      `Skill proposal draft is missing: ${proposalId}. Run vasudev doctor --fix for recovery.`,
       options,
     );
   }
@@ -404,7 +404,7 @@ export async function updateSkillProposalRecord(params: {
         )
       ) {
         throw new Error(
-          "Skill proposal has unfinished apply recovery. Run openclaw doctor --fix and restore the files it identifies before retrying.",
+          "Skill proposal has unfinished apply recovery. Run vasudev doctor --fix and restore the files it identifies before retrying.",
         );
       }
       if (params.invalidateRollback) {

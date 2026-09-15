@@ -14,7 +14,7 @@ import { isRawCopilotModelRun } from "./attempt-mode.js";
 import type { AttemptParamsLike } from "./attempt-types.js";
 
 const COPILOT_HARNESS_IDENTITY =
-  "You are a personal agent running inside OpenClaw. Your available OpenClaw capabilities are policy-filtered for this turn; use only the exact tools exposed to you.";
+  "You are a personal agent running inside Vasudev. Your available Vasudev capabilities are policy-filtered for this turn; use only the exact tools exposed to you.";
 
 export function buildCopilotPromptGuidance(params: {
   attempt: AttemptParamsLike;

@@ -105,7 +105,7 @@ export async function prepareCodexAttemptPrompt(context: CodexAttemptContext) {
           message.content.some((part) => part.type === "image"))
       ) {
         throw new CodexContextAttachmentError(
-          "Saved attachments require a newer OpenClaw host. Update the Gateway and Codex plugin together, then retry.",
+          "Saved attachments require a newer Vasudev host. Update the Gateway and Codex plugin together, then retry.",
         );
       }
       return { images: [] };

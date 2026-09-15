@@ -5,7 +5,7 @@ import {
 } from "./runtime-resolution.js";
 
 describe("resolveRequestStreamTransportOverrides", () => {
-  it("marks non-empty request stream parameters for OpenClaw routing", () => {
+  it("marks non-empty request stream parameters for Vasudev routing", () => {
     expect(resolveRequestStreamTransportOverrides({ maxTokens: 64 })).toBe("present");
   });
 

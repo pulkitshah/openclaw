@@ -2,11 +2,11 @@
 summary: "IRC plugin setup, access controls, and troubleshooting"
 title: IRC
 read_when:
-  - You want to connect OpenClaw to IRC channels or DMs
+  - You want to connect Vasudev to IRC channels or DMs
   - You are configuring IRC allowlists, group policy, or mention gating
 ---
 
-Use IRC when you want OpenClaw in classic channels (`#room`) and direct messages.
+Use IRC when you want Vasudev in classic channels (`#room`) and direct messages.
 Install the official IRC plugin, then configure it under `channels.irc`.
 
 ## Quick start
@@ -44,9 +44,9 @@ Prefer a private IRC server for bot coordination. If you intentionally use a pub
 
 ## Inbound durability
 
-OpenClaw writes each accepted IRC `PRIVMSG` to its durable ingress queue before normal policy checks and agent dispatch. Pending or retryable messages survive a Gateway restart and remain serialized per channel or direct-message peer.
+Vasudev writes each accepted IRC `PRIVMSG` to its durable ingress queue before normal policy checks and agent dispatch. Pending or retryable messages survive a Gateway restart and remain serialized per channel or direct-message peer.
 
-IRC does not provide a replayable delivery ID or resend messages missed by a disconnected client. OpenClaw therefore assigns a local ID that is stable only within the current TCP connection. The queue protects the local accept-to-dispatch window; it cannot recover a message that never reached OpenClaw or deduplicate a server resend across connections.
+IRC does not provide a replayable delivery ID or resend messages missed by a disconnected client. Vasudev therefore assigns a local ID that is stable only within the current TCP connection. The queue protects the local accept-to-dispatch window; it cannot recover a message that never reached Vasudev or deduplicate a server resend across connections.
 
 ## Connection settings
 
@@ -93,7 +93,7 @@ openclaw message send --channel irc --target '#openclaw' --message 'Hello from O
 
 ## Security defaults
 
-- IRC uses raw TCP/TLS sockets outside OpenClaw operator-managed forward proxy routing. In deployments that require all egress through that forward proxy, set `channels.irc.enabled=false` unless direct IRC egress is explicitly approved.
+- IRC uses raw TCP/TLS sockets outside Vasudev operator-managed forward proxy routing. In deployments that require all egress through that forward proxy, set `channels.irc.enabled=false` unless direct IRC egress is explicitly approved.
 - `channels.irc.dmPolicy` defaults to `"pairing"`: unknown DM senders get a pairing code you approve with `openclaw pairing approve irc <code>`.
 - `channels.irc.groupPolicy` defaults to `"allowlist"`.
 - With `groupPolicy="allowlist"`, set `channels.irc.groups` to define allowed channels.
@@ -144,7 +144,7 @@ Example (allow anyone in `#openclaw` to talk to the bot):
 
 ## Reply triggering (mentions)
 
-Even if a channel is allowed (via `groupPolicy` + `groups`) and the sender is allowed, OpenClaw defaults to **mention-gating** in group contexts. The bot counts as mentioned when the message contains the connected bot nick or matches your configured mention patterns.
+Even if a channel is allowed (via `groupPolicy` + `groups`) and the sender is allowed, Vasudev defaults to **mention-gating** in group contexts. The bot counts as mentioned when the message contains the connected bot nick or matches your configured mention patterns.
 
 That means you may see logs like `drop channel … (missing-mention)` unless the message includes a mention pattern that matches the bot.
 

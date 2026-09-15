@@ -1,12 +1,12 @@
 ---
-summary: "Use Gradium text-to-speech in OpenClaw"
+summary: "Use Gradium text-to-speech in Vasudev"
 read_when:
   - You want Gradium for text-to-speech
   - You need Gradium API key, voice, or directive token configuration
 title: "Gradium"
 ---
 
-[Gradium](https://gradium.ai) is a text-to-speech provider for OpenClaw. It renders standard audio replies (WAV), voice-note-compatible Opus output, and 8 kHz u-law audio for telephony surfaces.
+[Gradium](https://gradium.ai) is a text-to-speech provider for Vasudev. It renders standard audio replies (WAV), voice-note-compatible Opus output, and 8 kHz u-law audio for telephony surfaces.
 
 | Property      | Value                                |
 | ------------- | ------------------------------------ |
@@ -116,7 +116,7 @@ Output format is selected by target surface; the provider does not synthesize ot
 
 ## Auto-select order
 
-Among configured TTS providers, Gradium's auto-select order is `30`. See [Text-to-Speech](/tools/tts) for how OpenClaw picks the active provider when `tts.provider` is not pinned.
+Among configured TTS providers, Gradium's auto-select order is `30`. See [Text-to-Speech](/tools/tts) for how Vasudev picks the active provider when `tts.provider` is not pinned.
 
 ## Related
 

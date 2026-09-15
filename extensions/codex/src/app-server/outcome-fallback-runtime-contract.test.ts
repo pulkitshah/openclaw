@@ -104,7 +104,7 @@ afterEach(async () => {
 });
 
 describe("Outcome/fallback runtime contract - Codex app-server adapter", () => {
-  it("preserves an empty terminal turn for OpenClaw-owned fallback classification", async () => {
+  it("preserves an empty terminal turn for Vasudev-owned fallback classification", async () => {
     const projector = await createProjector();
     await projector.handleNotification(
       forCurrentTurn("turn/completed", {
@@ -145,7 +145,7 @@ describe("Outcome/fallback runtime contract - Codex app-server adapter", () => {
   });
 
   it.each(["item/reasoning/summaryTextDelta", "item/reasoning/textDelta"] as const)(
-    "preserves typed reasoning-only terminal turns from %s for OpenClaw-owned fallback classification",
+    "preserves typed reasoning-only terminal turns from %s for Vasudev-owned fallback classification",
     async (method) => {
       const projector = await createProjector();
       await projector.handleNotification(
@@ -207,7 +207,7 @@ describe("Outcome/fallback runtime contract - Codex app-server adapter", () => {
     },
   );
 
-  it("preserves planning-only terminal turns for OpenClaw-owned fallback classification", async () => {
+  it("preserves planning-only terminal turns for Vasudev-owned fallback classification", async () => {
     const projector = await createProjector();
     await projector.handleNotification(
       forCurrentTurn("item/plan/delta", {

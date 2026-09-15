@@ -460,7 +460,7 @@ describe.skipIf(process.platform === "win32")("packaged QA bootstrap lifetime", 
     const error = await bounded(starting);
     expect(error).toBeInstanceOf(AggregateError);
     const diagnostic = inspect(error, { depth: null });
-    expect(diagnostic).toContain("OpenClaw CLI exited 17");
+    expect(diagnostic).toContain("Vasudev CLI exited 17");
     expect(diagnostic).toContain("process tree remained alive");
     expect(ready!.submittedKey).toMatch(/^sk-qa-mock-[a-f0-9]{32}$/u);
     expect(diagnostic).not.toContain(ready!.submittedKey);

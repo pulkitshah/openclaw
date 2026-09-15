@@ -210,7 +210,7 @@ async function runRegister(output: ReefCliOutput, options: RegisterOptions): Pro
   ) {
     return await fail(
       output,
-      `This OpenClaw state already holds the Reef identity @${identity.handle} on ${identity.relayUrl}. Re-register the same handle and relay.`,
+      `This Vasudev state already holds the Reef identity @${identity.handle} on ${identity.relayUrl}. Re-register the same handle and relay.`,
     );
   }
   const requestedHandle = explicitHandle ?? identity?.handle;
@@ -394,7 +394,7 @@ async function runRegister(output: ReefCliOutput, options: RegisterOptions): Pro
   emit(output, { status: "registered", handle, relayUrl, fingerprint: printed }, [
     `Registered @${handle} on ${relayUrl}.`,
     `Safety fingerprint (share out of band): ${printed}`,
-    "Restart the gateway to connect: openclaw gateway restart",
+    "Restart the gateway to connect: vasudev gateway restart",
   ]);
 }
 

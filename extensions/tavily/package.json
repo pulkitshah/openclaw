@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/tavily-plugin",
   "version": "2026.9.4",
-  "description": "OpenClaw Tavily plugin",
+  "description": "Vasudev Tavily plugin",
   "type": "module",
   "dependencies": {
     "typebox": "1.3.27"

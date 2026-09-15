@@ -63,7 +63,7 @@ export async function createAgentTeam(
   return await withConfigMutationExclusive(async (lockedConfig) => {
     const snapshot = await readConfigFileSnapshot();
     if (!snapshot.valid) {
-      return { status: "error", message: "Cannot create a team from an invalid OpenClaw config." };
+      return { status: "error", message: "Cannot create a team from an invalid Vasudev config." };
     }
     if (
       Object.hasOwn(params, "expectedConfigHash") &&

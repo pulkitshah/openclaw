@@ -31,7 +31,7 @@ describe("worktree Git size estimates", () => {
     const origin = path.join(root, "origin.git");
     const clone = path.join(root, "clone");
     await git(root, "init", "--template=", "-b", "main", source);
-    await git(source, "config", "user.name", "OpenClaw Test");
+    await git(source, "config", "user.name", "Vasudev Test");
     await git(source, "config", "user.email", "openclaw-test@example.invalid");
     await git(source, "config", "commit.gpgSign", "false");
     await fs.writeFile(path.join(source, "base.txt"), "base\n");

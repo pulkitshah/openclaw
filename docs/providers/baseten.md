@@ -2,11 +2,11 @@
 summary: "Baseten setup for Inkling and hosted Model APIs"
 title: "Baseten"
 read_when:
-  - You want to run Thinking Machines Lab's Inkling in OpenClaw
+  - You want to run Thinking Machines Lab's Inkling in Vasudev
   - You want one OpenAI-compatible API for Baseten's hosted models
 ---
 
-[Baseten Model APIs](https://docs.baseten.co/inference/model-apis/overview) provide hosted, OpenAI-compatible access to frontier models. The official external plugin uses authenticated discovery, so OpenClaw follows the complete model set enabled for your Baseten account. Its offline fallback contains every Model API available when this OpenClaw release was built.
+[Baseten Model APIs](https://docs.baseten.co/inference/model-apis/overview) provide hosted, OpenAI-compatible access to frontier models. The official external plugin uses authenticated discovery, so Vasudev follows the complete model set enabled for your Baseten account. Its offline fallback contains every Model API available when this Vasudev release was built.
 
 | Property        | Value                                                    |
 | --------------- | -------------------------------------------------------- |
@@ -66,7 +66,7 @@ export BASETEN_API_KEY=...
 
 ## Inkling
 
-[Thinking Machines Lab's Inkling](https://thinkingmachines.ai/news/introducing-inkling/) is the default model. In OpenClaw it supports text and image input, tool calling, and structured tool schemas. It also supports configurable reasoning effort, a 1.048M-token context window, and up to 32k output tokens:
+[Thinking Machines Lab's Inkling](https://thinkingmachines.ai/news/introducing-inkling/) is the default model. In Vasudev it supports text and image input, tool calling, and structured tool schemas. It also supports configurable reasoning effort, a 1.048M-token context window, and up to 32k output tokens:
 
 ```json5
 {
@@ -100,10 +100,10 @@ The authenticated live catalog is authoritative. These rows keep setup and model
 | `baseten/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B` | text        |    202k |       202k |
 | `baseten/openai/gpt-oss-120b`                      | text        |    128k |       128k |
 
-All bundled models support tool calling and reasoning. OpenClaw maps its thinking levels to models with native `reasoning_effort`. Baseten's opt-in GLM, Kimi, and Nemotron models default to thinking off. Most expose a binary off/on control. GLM 5.2 exposes off, high, and max. OpenClaw sends these choices through Baseten's `chat_template_args.enable_thinking` control and, for GLM 5.2, the validated top-level `reasoning_effort` parameter.
+All bundled models support tool calling and reasoning. Vasudev maps its thinking levels to models with native `reasoning_effort`. Baseten's opt-in GLM, Kimi, and Nemotron models default to thinking off. Most expose a binary off/on control. GLM 5.2 exposes off, high, and max. Vasudev sends these choices through Baseten's `chat_template_args.enable_thinking` control and, for GLM 5.2, the validated top-level `reasoning_effort` parameter.
 
 <Note>
-Baseten can add, remove, or change Model APIs independently of OpenClaw releases. The plugin refreshes model ids, context limits, output limits, and input, cached-input, and output pricing from the authenticated API. It retains model-specific OpenClaw transport policy.
+Baseten can add, remove, or change Model APIs independently of Vasudev releases. The plugin refreshes model ids, context limits, output limits, and input, cached-input, and output pricing from the authenticated API. It retains model-specific Vasudev transport policy.
 </Note>
 
 ## Manual config
@@ -152,7 +152,7 @@ If the Gateway runs as a daemon (launchd, systemd, Docker), make sure `BASETEN_A
     Choosing providers, model refs, and failover behavior.
   </Card>
   <Card title="Thinking modes" href="/tools/thinking" icon="brain">
-    Select OpenClaw reasoning effort levels.
+    Select Vasudev reasoning effort levels.
   </Card>
   <Card title="Models CLI" href="/cli/models" icon="terminal">
     List, inspect, and select discovered models.

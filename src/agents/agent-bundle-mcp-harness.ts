@@ -417,7 +417,7 @@ export async function materializeRequesterScopedMcpToolsForHarnessRunCore(
     // Requester-scoped tools run as dynamic tools, so every prompt-required MCP
     // call passes the same per-call approval gate as the configured path before
     // the bridge dispatches it — whenever the caller provides an approval
-    // channel. OpenClaw's own requester turns always provide one. Callers that
+    // channel. Vasudev's own requester turns always provide one. Callers that
     // pass no approval callback keep their pre-gate behavior: tools stay
     // registered on both surfaces and dispatch ungated, so a caller's tool
     // surface never silently loses availability across upgrades.

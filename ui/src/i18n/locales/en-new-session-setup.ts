@@ -30,12 +30,12 @@ const enNewSessionSetup = {
       "Native CLI host unavailable. Check that the CLI is installed and the node is connected with its fresh-start command approved, then retry the catalog.",
     terminalDisabled: "Enable CLI agents and terminals in Gateway settings to start a native CLI.",
     terminalPlacementUnsupported:
-      "Native CLI sessions use a specific host, not OpenClaw worker placement. Reset this draft and choose a native host.",
+      "Native CLI sessions use a specific host, not Vasudev worker placement. Reset this draft and choose a native host.",
     terminalNeedsFolder: "Pick a folder before starting in a terminal.",
     noSessionHosts: "No session hosts are paired. Connect a machine with session hosting enabled.",
     deviceUnavailable: "Device unavailable. Reconnect it and try again.",
     sessionHostingDisabled:
-      "Session hosting is disabled. Run openclaw connect --service --session-host on the device.",
+      "Session hosting is disabled. Run vasudev connect --service --session-host on the device.",
     deviceCapacityUnavailable:
       "Worker capacity is unavailable. Restart the device session host and try again.",
     deviceNoSlots: "No worker slots are available. Wait for a slot or pick another device.",

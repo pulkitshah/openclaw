@@ -478,7 +478,7 @@ describe("loadConfigForInstall", () => {
           {
             path: "tools.web.search.provider",
             message:
-              'web_search provider is not available: brave (install or enable plugin "brave", then run openclaw doctor --fix)',
+              'web_search provider is not available: brave (install or enable plugin "brave", then run vasudev doctor --fix)',
           },
         ],
       }),
@@ -968,7 +968,7 @@ describe("loadConfigForInstall", () => {
       loadConfigForInstall({
         rawSpec: "alpha",
       }),
-    ).rejects.toThrow("Config invalid; run `openclaw doctor --fix` before installing plugins.");
+    ).rejects.toThrow("Config invalid; run `vasudev doctor --fix` before installing plugins.");
   });
 
   it("throws when invalid snapshot parsed is empty", async () => {
@@ -980,7 +980,7 @@ describe("loadConfigForInstall", () => {
     );
 
     await expect(loadConfigForInstall(discordNpmRequest)).rejects.toThrow(
-      "Config file could not be parsed; run `openclaw doctor` to repair it.",
+      "Config file could not be parsed; run `vasudev doctor` to repair it.",
     );
   });
 
@@ -988,7 +988,7 @@ describe("loadConfigForInstall", () => {
     readConfigFileSnapshotMock.mockResolvedValue(makeSnapshot({ exists: false, parsed: {} }));
 
     await expect(loadConfigForInstall(discordNpmRequest)).rejects.toThrow(
-      "Config file could not be parsed; run `openclaw doctor` to repair it.",
+      "Config file could not be parsed; run `vasudev doctor` to repair it.",
     );
   });
 });

@@ -27,7 +27,7 @@ import {
 export async function updateWizardCommand(opts: UpdateWizardOptions = {}): Promise<void> {
   if (!process.stdin.isTTY) {
     defaultRuntime.error(
-      "Update wizard requires a TTY. Use `openclaw update --channel <stable|extended-stable|beta|dev>` instead.",
+      "Update wizard requires a TTY. Use `vasudev update --channel <stable|extended-stable|beta|dev>` instead.",
     );
     defaultRuntime.exit(1);
     return;

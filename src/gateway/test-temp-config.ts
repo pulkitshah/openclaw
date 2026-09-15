@@ -34,7 +34,7 @@ function canonicalizeTempConfigForTest(cfg: unknown): unknown {
   return next;
 }
 
-/** Writes a temp OpenClaw config, installs it as runtime state, then restores globals. */
+/** Writes a temp Vasudev config, installs it as runtime state, then restores globals. */
 export async function withTempConfig(params: {
   cfg: unknown;
   run: () => Promise<void>;

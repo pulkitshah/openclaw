@@ -320,7 +320,7 @@ describe("onboarding authored config persistence", () => {
         if (boundary === "locked") {
           expect(failure).toBeUndefined();
           expect(result?.sessionMigrationWarnings).toEqual([
-            expect.stringMatching(/incomplete.*openclaw doctor --fix/),
+            expect.stringMatching(/incomplete.*vasudev doctor --fix/),
           ]);
         } else {
           expect.soft(failure).toEqual(new Error("admitted run authority is no longer active"));

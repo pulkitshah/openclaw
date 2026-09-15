@@ -204,7 +204,7 @@ function requireContinuableNodeRecord(record: CodexSessionCatalogSession): void 
   }
   if (record.status === "idle" || record.status === "notLoaded") {
     // The node App Server is a passive catalog reader, so stored native Codex
-    // sessions normally report notLoaded. Node resume serializes OpenClaw turns.
+    // sessions normally report notLoaded. Node resume serializes Vasudev turns.
     return;
   }
   if (record.status === "active") {

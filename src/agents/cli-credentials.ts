@@ -72,7 +72,7 @@ type ExecSyncFn = typeof execSync;
 
 export function resolveCodexCliHomePath(codexHome?: string, env: NodeJS.ProcessEnv = process.env) {
   const configured = codexHome ?? env.CODEX_HOME;
-  // External CLI state belongs to the OS user, not OpenClaw's relocatable
+  // External CLI state belongs to the OS user, not Vasudev's relocatable
   // home. Otherwise an isolated OPENCLAW_HOME hides an already logged-in CLI.
   const home = resolveOsHomeRelativePath(configured || "~/.codex", { env });
   try {

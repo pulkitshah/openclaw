@@ -37,7 +37,7 @@ function makeEmptySessionStore(): TestSessionStore {
 }
 
 const DOCUMENTED_OPENCLAW_BRIDGE_COMMAND =
-  "env OPENCLAW_HIDE_BANNER=1 OPENCLAW_SUPPRESS_NOTES=1 openclaw acp --url ws://127.0.0.1:18789 --token-file ~/.openclaw/gateway.token --session agent:main:main";
+  "env OPENCLAW_HIDE_BANNER=1 OPENCLAW_SUPPRESS_NOTES=1 vasudev acp --url ws://127.0.0.1:18789 --token-file ~/.openclaw/gateway.token --session agent:main:main";
 const CODEX_ACP_COMMAND = "npx @agentclientprotocol/codex-acp@1.10.0";
 const CODEX_ACP_WRAPPER_COMMAND = `node "/tmp/openclaw/acpx/codex-acp-wrapper.mjs"`;
 const CODEX_ACP_WRAPPER_COMMAND_WITH_LEASE = `${CODEX_ACP_WRAPPER_COMMAND} ${OPENCLAW_ACPX_LEASE_ID_ARG} lease-close ${OPENCLAW_GATEWAY_INSTANCE_ID_ARG} gateway-test`;
@@ -110,7 +110,7 @@ function makeRuntime(
       cwd: "/tmp",
       sessionStore: baseStore as unknown as AcpSessionStore,
       agentRegistry: {
-        resolve: (agentName: string) => (agentName === "openclaw" ? "openclaw acp" : agentName),
+        resolve: (agentName: string) => (agentName === "openclaw" ? "vasudev acp" : agentName),
         list: () => ["codex", "openclaw"],
       },
       permissionMode: "approve-reads",
@@ -367,7 +367,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     }
   });
 
-  it("adds the OpenClaw session key to both managed tools MCP bridges", () => {
+  it("adds the Vasudev session key to both managed tools MCP bridges", () => {
     const baseStore: TestSessionStore = makeEmptySessionStore();
     const { runtime } = makeRuntime(baseStore, {
       pluginToolsMcpBridgeEnabled: true,
@@ -414,7 +414,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     });
   });
 
-  it("keeps managed OpenClaw tools MCP delegates reachable for fresh sessions", async () => {
+  it("keeps managed Vasudev tools MCP delegates reachable for fresh sessions", async () => {
     const baseStore: TestSessionStore = makeEmptySessionStore();
     const { runtime } = makeRuntime(baseStore, {
       openclawToolsMcpBridgeEnabled: true,
@@ -442,7 +442,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     expect(exposedRuntime.resolveManagedToolsDelegateForSession(target)).toBe(firstDelegate);
   });
 
-  it("uses the no-MCP delegate for startup probes when the OpenClaw tools bridge is enabled", async () => {
+  it("uses the no-MCP delegate for startup probes when the Vasudev tools bridge is enabled", async () => {
     const baseStore: TestSessionStore = makeEmptySessionStore();
     const { runtime, delegate, bridgeSafeDelegate } = makeRuntime(baseStore, {
       openclawToolsMcpBridgeEnabled: true,
@@ -469,10 +469,10 @@ describe("AcpxRuntime fresh reset wrapper", () => {
   it.each([
     { wrapperRoot: "/tmp/openclaw/acpx", command: CODEX_ACP_WRAPPER_COMMAND },
     {
-      wrapperRoot: String.raw`C:\OpenClaw State\acpx`,
+      wrapperRoot: String.raw`C:\Vasudev State\acpx`,
       command: [
         String.raw`C:\Program Files\node.exe`,
-        String.raw`C:\OpenClaw State\acpx\codex-acp-wrapper.mjs`,
+        String.raw`C:\Vasudev State\acpx\codex-acp-wrapper.mjs`,
       ],
     },
   ])(
@@ -718,7 +718,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     expect(leaseStore.store.markState).not.toHaveBeenCalledWith(expect.any(String), "lost");
   });
 
-  it("normalizes OpenClaw Codex model ids for ACP startup", async () => {
+  it("normalizes Vasudev Codex model ids for ACP startup", async () => {
     const baseStore: TestSessionStore = makeEmptySessionStore();
     const { runtime, delegate } = makeRuntime(baseStore, {
       agentRegistry: {
@@ -750,7 +750,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
 
   it.each([
     {
-      name: "strips the OpenClaw Anthropic provider prefix for Claude ACP startup",
+      name: "strips the Vasudev Anthropic provider prefix for Claude ACP startup",
       model: "anthropic/claude-sonnet-4-6",
       expectedModel: "claude-sonnet-4-6",
     },
@@ -761,7 +761,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     },
     {
       // Issue #121034: Bedrock rejects provider-qualified refs.
-      name: "strips the OpenClaw Bedrock provider prefix for Claude ACP startup",
+      name: "strips the Vasudev Bedrock provider prefix for Claude ACP startup",
       model: "amazon-bedrock/global.anthropic.claude-sonnet-5",
       expectedModel: "global.anthropic.claude-sonnet-5",
     },
@@ -772,7 +772,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     },
     {
       // Bare inference-profile ids and ARNs are native Bedrock values the SDK
-      // accepts as-is; only the documented OpenClaw prefixes may be stripped.
+      // accepts as-is; only the documented Vasudev prefixes may be stripped.
       name: "preserves native Bedrock inference-profile ids",
       model: "global.anthropic.claude-sonnet-5",
       expectedModel: "global.anthropic.claude-sonnet-5",
@@ -1141,7 +1141,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     },
   );
 
-  it("disables delegate prompt timeout for OpenClaw-managed turns", async () => {
+  it("disables delegate prompt timeout for Vasudev-managed turns", async () => {
     const baseStore: TestSessionStore = {
       load: vi.fn(async () => ({
         acpxRecordId: "agent:codex:acp:test",
@@ -1318,7 +1318,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
       OPENCLAW_CODEX_CONFIG_ARG,
       '{"model":"gpt-5.4","model_reasoning_effort":"medium"}',
     ]);
-    expect(testing.isCodexAcpCommand("openclaw acp")).toBe(false);
+    expect(testing.isCodexAcpCommand("vasudev acp")).toBe(false);
   });
 
   it("passes gpt-5.5 Codex ACP startup through instead of blocking it", async () => {
@@ -1709,7 +1709,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
 
   it.each([
     {
-      name: "normalizes OpenClaw-qualified Codex ACP model controls",
+      name: "normalizes Vasudev-qualified Codex ACP model controls",
       value: "openai/gpt-5.4",
     },
     { name: "passes bare Codex ACP model controls through", value: "gpt-5.4" },
@@ -2078,7 +2078,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
         `Node.EXE "C:/Users/runner/AppData/Local/Temp/openclaw/acpx/claude-agent-acp-wrapper.mjs"`,
       ),
     ).toBe(true);
-    expect(testing.isClaudeAcpCommand("openclaw acp")).toBe(false);
+    expect(testing.isClaudeAcpCommand("vasudev acp")).toBe(false);
     expect(testing.isClaudeAcpCommand("npx @agentclientprotocol/codex-acp")).toBe(false);
   });
 
@@ -2217,7 +2217,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     }
   });
 
-  it("cleans up OpenClaw-owned ACPX process trees after close", async () => {
+  it("cleans up Vasudev-owned ACPX process trees after close", async () => {
     const baseStore: TestSessionStore = {
       load: vi.fn(async () => ({
         acpxRecordId: "agent:codex:acp:binding:test",
@@ -4002,7 +4002,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     expect(bridgeEnsure).not.toHaveBeenCalled();
   });
 
-  it("routes handle-based follow-up calls for openclaw sessions through the bridge-safe delegate", async () => {
+  it("routes handle-based follow-up calls for vasudev sessions through the bridge-safe delegate", async () => {
     const baseStore: TestSessionStore = makeEmptySessionStore();
 
     const { runtime, delegate, bridgeSafeDelegate } = makeRuntime(baseStore, {
@@ -4027,7 +4027,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     expect(defaultStatus).not.toHaveBeenCalled();
   });
 
-  it("keeps MCP-enabled routing when the openclaw agent is overridden to a non-bridge adapter", async () => {
+  it("keeps MCP-enabled routing when the vasudev agent is overridden to a non-bridge adapter", async () => {
     const baseStore: TestSessionStore = makeEmptySessionStore();
 
     const { runtime, delegate, bridgeSafeDelegate } = makeRuntime(baseStore, {
@@ -4065,7 +4065,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     const { runtime, delegate, bridgeSafeDelegate } = makeRuntime(baseStore, {
       mcpServers: [{ name: "tools", command: "mcp-tools" }] as never,
       agentRegistry: {
-        resolve: (agentName: string) => (agentName === "codex" ? "openclaw acp" : agentName),
+        resolve: (agentName: string) => (agentName === "codex" ? "vasudev acp" : agentName),
         list: () => ["codex", "openclaw"],
       },
     });
@@ -4198,7 +4198,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
 
     const { runtime, delegate, bridgeSafeDelegate } = makeRuntime(baseStore, {
       mcpServers: [{ name: "tools", command: "mcp-tools" }] as never,
-      probeAgent: "  OpenClaw  ",
+      probeAgent: "  Vasudev  ",
       agentRegistry: {
         resolve: (agentName: string) =>
           agentName === "openclaw" ? DOCUMENTED_OPENCLAW_BRIDGE_COMMAND : agentName,

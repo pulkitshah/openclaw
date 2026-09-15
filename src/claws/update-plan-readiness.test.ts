@@ -130,7 +130,7 @@ describe("buildClawUpdatePlan readiness", () => {
     });
   });
 
-  it("accepts an owned plugin upgrade declared through the OpenClaw profile", async () => {
+  it("accepts an owned plugin upgrade declared through the Vasudev profile", async () => {
     const current = await createUpdatePlanFixture(tempDirs.make("openclaw-claw-profile-upgrade-"));
     const parsed = parseClawManifest({
       ...current.manifest,

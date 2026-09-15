@@ -1083,7 +1083,7 @@ describe("compactEmbeddedAgentSessionDirect hooks", () => {
     } as never);
     selectAgentHarnessForPreparedModelProvidersMock.mockReturnValue({
       id: "openclaw",
-      label: "OpenClaw test harness",
+      label: "Vasudev test harness",
       supports: () => ({ supported: true }),
       runAttempt: vi.fn(),
     } as never);
@@ -2817,7 +2817,7 @@ describe("compactEmbeddedAgentSessionDirect hooks", () => {
     });
   });
 
-  it("preserves direct OpenAI API-key compaction when OpenClaw runtime is active", async () => {
+  it("preserves direct OpenAI API-key compaction when Vasudev runtime is active", async () => {
     resolveAgentHarnessPolicyMock.mockReturnValue({ runtime: "openclaw" });
 
     const result = await compactEmbeddedAgentSessionDirect({
@@ -5440,7 +5440,7 @@ describe("compactEmbeddedAgentSession hooks (ownsCompaction engine)", () => {
     }
   });
 
-  it("preserves concrete OpenClaw pins over explicit Codex policy for queued compaction", async () => {
+  it("preserves concrete Vasudev pins over explicit Codex policy for queued compaction", async () => {
     resolveAgentHarnessPolicyMock.mockReturnValue({
       runtime: "codex",
       runtimeSource: "model",

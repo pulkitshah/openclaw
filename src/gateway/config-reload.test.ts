@@ -3162,7 +3162,7 @@ describe("startGatewayConfigReloader", () => {
     await harness.reloader.stop();
   });
 
-  it("does not duplicate another OpenClaw process's journaled write", async () => {
+  it("does not duplicate another Vasudev process's journaled write", async () => {
     const initialConfig = makeGatewayPortConfig(18789);
     const nextConfig = makeGatewayPortConfig(18790);
     const harness = createReloaderHarness(

@@ -2,12 +2,12 @@
 summary: "Featherless AI setup, model selection, and tool calling"
 title: "Featherless AI"
 read_when:
-  - You want to use Featherless AI with OpenClaw
+  - You want to use Featherless AI with Vasudev
   - You need the Featherless API key env var or model ref format
 ---
 
 [Featherless AI](https://featherless.ai) serves open models through an
-OpenAI-compatible API. OpenClaw installs Featherless as an official external
+OpenAI-compatible API. Vasudev installs Featherless as an official external
 provider plugin and keeps the built-in catalog small while accepting exact
 model ids from Featherless at runtime.
 
@@ -61,7 +61,7 @@ openclaw models list --provider featherless
 ## Default model
 
 The plugin uses `Qwen/Qwen3-32B` as the setup default because Featherless
-documents native tool calling for the Qwen 3 family. OpenClaw configures its
+documents native tool calling for the Qwen 3 family. Vasudev configures its
 32,768-token context window, a conservative 4,096-token output limit, and
 Qwen chat-template thinking controls.
 
@@ -87,7 +87,7 @@ Use the exact Featherless model id after the `featherless/` provider prefix:
 }
 ```
 
-OpenClaw deliberately does not copy Featherless's full public model index into
+Vasudev deliberately does not copy Featherless's full public model index into
 the picker. The index is large and does not expose enough structured capability
 metadata to classify every text, vision, embedding, and reasoning model safely.
 Unknown ids therefore resolve with conservative text-only, non-reasoning

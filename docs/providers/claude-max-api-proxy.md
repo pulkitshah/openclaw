@@ -7,7 +7,7 @@ read_when:
 title: "Claude Max API proxy"
 ---
 
-**claude-max-api-proxy** is a community npm package (not an OpenClaw plugin) that
+**claude-max-api-proxy** is a community npm package (not a Vasudev plugin) that
 exposes a Claude Max/Pro subscription as an OpenAI-compatible API endpoint, so
 you can point any OpenAI-compatible tool at your subscription instead of an
 Anthropic API key.
@@ -25,7 +25,7 @@ paused). See Anthropic's [Agent SDK plan
 article](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan),
 the [Pro/Max](https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan)
 and [Team/Enterprise](https://support.claude.com/en/articles/11845131-use-claude-code-with-your-team-or-enterprise-plan)
-plan articles, and [Anthropic provider](/providers/anthropic) for OpenClaw's
+plan articles, and [Anthropic provider](/providers/anthropic) for Vasudev's
 own Claude CLI billing notes.
 </Warning>
 
@@ -86,8 +86,8 @@ response back in OpenAI format.
     ```
 
   </Step>
-  <Step title="Configure OpenClaw">
-    Point OpenClaw at the proxy as a custom OpenAI-compatible endpoint:
+  <Step title="Configure Vasudev">
+    Point Vasudev at the proxy as a custom OpenAI-compatible endpoint:
 
     ```json5
     {
@@ -109,7 +109,7 @@ response back in OpenAI format.
 </Steps>
 
 <Note>
-The model ids below are the proxy's own catalog, not OpenClaw's Anthropic
+The model ids below are the proxy's own catalog, not Vasudev's Anthropic
 model refs. Each id maps to a Claude Code CLI model alias (`opus`, `sonnet`,
 `haiku`), so the underlying model shifts whenever Anthropic updates that
 alias in the CLI. Check the proxy's current README before relying on a
@@ -126,7 +126,7 @@ specific mapping.
 
 <AccordionGroup>
   <Accordion title="Proxy-style OpenAI-compatible notes">
-    This uses OpenClaw's generic custom `/v1` OpenAI-compatible route, the same
+    This uses Vasudev's generic custom `/v1` OpenAI-compatible route, the same
     path as any other self-hosted OpenAI-compatible backend:
 
     - Native OpenAI-only request shaping does not apply.
@@ -135,7 +135,7 @@ specific mapping.
       [Anthropic provider fast mode](/providers/anthropic#advanced-configuration)).
     - No Responses `store`, prompt-cache hints, or OpenAI reasoning-compat
       payload shaping.
-    - OpenClaw's OpenAI/Codex attribution headers (`originator`, `version`,
+    - Vasudev's OpenAI/Codex attribution headers (`originator`, `version`,
       `User-Agent`) are only sent on native `api.openai.com` OAuth traffic, not
       on custom `OPENAI_BASE_URL` targets like this proxy.
 
@@ -189,7 +189,7 @@ For native Anthropic integration with Claude CLI or API keys, see [Anthropic pro
 
 <CardGroup cols={2}>
   <Card title="Anthropic provider" href="/providers/anthropic" icon="bolt">
-    Native OpenClaw integration with Claude CLI or API keys.
+    Native Vasudev integration with Claude CLI or API keys.
   </Card>
   <Card title="OpenAI provider" href="/providers/openai" icon="robot">
     For OpenAI/Codex subscriptions.

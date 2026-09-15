@@ -12,7 +12,7 @@ grounded-response providers, rather than returning a ranked result list.
 
 ## Setup
 
-The `moonshot` plugin does not ship with OpenClaw; install it first.
+The `moonshot` plugin does not ship with Vasudev; install it first.
 
 <Steps>
   <Step title="Install the plugin">
@@ -85,10 +85,10 @@ Kimi `baseUrl` to override this inheritance.
 
 ## Grounding requirement
 
-OpenClaw only returns a Kimi `web_search` result after Moonshot's response
+Vasudev only returns a Kimi `web_search` result after Moonshot's response
 includes native web-search grounding evidence, such as a `$web_search` tool-call
 replay, `search_results`, or citation URLs. If Kimi answers directly with no
-grounding (for example "I cannot browse the internet"), OpenClaw returns a
+grounding (for example "I cannot browse the internet"), Vasudev returns a
 `kimi_web_search_ungrounded` error instead of treating that text as a search
 result. Retry the query, switch to a structured provider such as Brave, or use
 `web_fetch` / the browser tool when you already have a target URL.

@@ -316,7 +316,7 @@ export function startPty(command: string, args: string[], opts: PtyStartOptions)
   });
 }
 
-/** Uses OpenClaw's runtime PTY adapter so Bun exercises the Node sidecar it ships with. */
+/** Uses Vasudev's runtime PTY adapter so Bun exercises the Node sidecar it ships with. */
 export async function startRuntimePty(
   command: string,
   args: string[],

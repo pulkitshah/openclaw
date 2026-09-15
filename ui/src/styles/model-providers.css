@@ -235,7 +235,7 @@
 
 .model-providers__profile-logout:hover:not(:disabled),
 .model-providers__profile-logout:focus-visible {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 @container provider-profiles (max-width: 640px) {

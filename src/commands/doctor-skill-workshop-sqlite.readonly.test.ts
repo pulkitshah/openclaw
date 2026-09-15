@@ -207,7 +207,7 @@ describe("read-only Skill Workshop migration inspection", () => {
         expect(finding.message).toContain(blocked!.id);
         expect(finding.message).toContain(blocked!.target.skillDir);
         expect(finding.message).not.toContain(eligible!.id);
-        expect(finding.fixHint).not.toContain("Run `openclaw doctor --fix`");
+        expect(finding.fixHint).not.toContain("Run `vasudev doctor --fix`");
         expect(finding.fixHint).toContain("migration warnings");
       }
     });
@@ -289,7 +289,7 @@ describe("read-only Skill Workshop migration inspection", () => {
         if (result.findings.length > 0) {
           const finding = result.findings[0]!;
           expect(finding.severity).toBe("warning");
-          expect(finding.fixHint?.includes("Run `openclaw doctor --fix`")).toBe(automatic);
+          expect(finding.fixHint?.includes("Run `vasudev doctor --fix`")).toBe(automatic);
           expect(finding.fixHint).not.toContain("retire legacy backup roots");
           if (preserved > 0) {
             expect(finding.message).toContain(`${preserved} preserved`);

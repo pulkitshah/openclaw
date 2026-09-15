@@ -140,7 +140,7 @@ async function dispatchAuthLogout(
   }
   expect(payload).toHaveProperty(
     "warning",
-    "Credentials were removed, but the Gateway has not confirmed applying the change. Run `openclaw gateway restart` to apply it.",
+    "Credentials were removed, but the Gateway has not confirmed applying the change. Run `vasudev gateway restart` to apply it.",
   );
 }
 

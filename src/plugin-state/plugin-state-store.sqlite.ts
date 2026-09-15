@@ -1,4 +1,4 @@
-// Plugin state SQLite helpers persist plugin state in the OpenClaw state database.
+// Plugin state SQLite helpers persist plugin state in the Vasudev state database.
 import type { DatabaseSync } from "node:sqlite";
 import { toUSVString } from "node:util";
 import { err, ok, type Result } from "@openclaw/normalization-core/result";
@@ -96,10 +96,10 @@ function wrapPluginStateError(
   if (fallbackCode === "PLUGIN_STATE_OPEN_FAILED") {
     if (isSqliteSchemaVersionError(error)) {
       publicMessage +=
-        "\nThe state database uses a newer schema. Run an OpenClaw build that supports it.";
+        "\nThe state database uses a newer schema. Run a Vasudev build that supports it.";
     } else if (error instanceof Error && isTerminalSqliteIntegrityError(error)) {
       publicMessage +=
-        "\nDatabase integrity verification failed. Restore or repair the state database, then run openclaw doctor --fix.";
+        "\nDatabase integrity verification failed. Restore or repair the state database, then run vasudev doctor --fix.";
     }
   }
   return createPluginStateError({

@@ -6,7 +6,7 @@ read_when:
   - You need a read-only health report for CI or preflight automation
 ---
 
-Run `openclaw doctor` to repair and migrate an OpenClaw install. This page covers the
+Run `openclaw doctor` to repair and migrate a Vasudev install. This page covers the
 command, its automation flags, and the read-only lint mode.
 
 ## Quick start

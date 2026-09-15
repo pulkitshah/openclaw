@@ -136,7 +136,7 @@ async function promptResumeSession(
   const choices = buildSessionChoices(sessions);
   if (choices.length === 0) {
     throw new Error(
-      "No recent sessions found. Run `openclaw sessions` to inspect sessions or `openclaw tui` to start one.",
+      "No recent sessions found. Run `vasudev sessions` to inspect sessions or `vasudev tui` to start one.",
     );
   }
   const selected = await selectStyled({
@@ -168,7 +168,7 @@ function reportResumeFailure(
   }
   defaultRuntime.error(`No recent session matched ${JSON.stringify(query)}.`);
   defaultRuntime.error(
-    "Run `openclaw resume` to choose from recent sessions or `openclaw sessions` to inspect all sessions.",
+    "Run `openclaw resume` to choose from recent sessions or `vasudev sessions` to inspect all sessions.",
   );
 }
 

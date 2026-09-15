@@ -409,7 +409,7 @@ describe("loadSettings default gateway URL derivation", () => {
       token: "",
       sessionKey: "agent:test_old:main",
       lastActiveSessionKey: "agent:test_old:main",
-      selectedAgentId: " OpenClaw ",
+      selectedAgentId: " Vasudev ",
       theme: "claw",
       themeMode: "system",
       chatShowThinking: true,

@@ -70,7 +70,7 @@ fails because authentication is missing, the Control UI makes one same-origin re
 Existing credentials are tried first. Explicit credentials, remote Gateway selections,
 pairing failures, and rejected credentials do not trigger this recovery.
 
-This endpoint belongs to the deployment's authenticated proxy or handoff service. OpenClaw
+This endpoint belongs to the deployment's authenticated proxy or handoff service. Vasudev
 does not expose an unauthenticated credential issuer. The service must independently verify
 the browser's identity and authorization before using the host's `openclaw dashboard --json`
 handoff. Return only its single-use browser credential:

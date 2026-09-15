@@ -229,7 +229,7 @@ Defaults when omitted:
 | `images.maxRedirects`    | 3         |
 | `images.timeoutMs`       | 10s       |
 
-HEIC/HEIF `input_image` sources are normalized to JPEG before provider delivery through the shared OpenClaw image processor (Rastermill), which falls back to a system converter (`sips`, ImageMagick, GraphicsMagick, or ffmpeg) for formats needing external codec support.
+HEIC/HEIF `input_image` sources are normalized to JPEG before provider delivery through the shared Vasudev image processor (Rastermill), which falls back to a system converter (`sips`, ImageMagick, GraphicsMagick, or ffmpeg) for formats needing external codec support.
 
 Security note: URL allowlists are enforced before fetch and on redirect hops. Allowlisting a hostname does not bypass private/internal IP blocking. For internet-exposed gateways, apply network egress controls in addition to app-level guards. See [Security](/gateway/security).
 
@@ -253,7 +253,7 @@ Disconnecting the HTTP client cancels active source-URL downloads and the agent 
 
 ## Usage
 
-`usage` is populated when the underlying provider reports token counts. OpenClaw normalizes common OpenAI-style aliases before those counters reach downstream status/session surfaces, including `input_tokens` / `output_tokens` and `prompt_tokens` / `completion_tokens`.
+`usage` is populated when the underlying provider reports token counts. Vasudev normalizes common OpenAI-style aliases before those counters reach downstream status/session surfaces, including `input_tokens` / `output_tokens` and `prompt_tokens` / `completion_tokens`.
 
 ## Errors
 

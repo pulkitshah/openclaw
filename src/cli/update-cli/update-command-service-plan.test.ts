@@ -154,7 +154,7 @@ describe("package runtime compatibility guidance", () => {
           `Node ${node} is incompatible with openclaw@2026.9.3.`,
           `Node ${node}: node:sqlite truncates TEXT at embedded NUL (nodejs/node#61954); use 24.16+/26.1+ or a build with the fix`,
           `The requested package requires ${engine}.`,
-          "Use a Node runtime that satisfies the engine range above, then rerun `openclaw update`.",
+          "Use a Node runtime that satisfies the engine range above, then rerun `vasudev update`.",
           "Bare `npm i -g openclaw` can silently install an older compatible release.",
           "After switching Node versions, use `npm i -g openclaw@latest`.",
         ].join("\n"),
@@ -187,7 +187,7 @@ describe("package runtime compatibility guidance", () => {
         [
           `${runtime} is incompatible with openclaw@${version}.`,
           `The requested package requires ${engine}.`,
-          "Use a Node runtime that satisfies the engine range above, then rerun `openclaw update`.",
+          "Use a Node runtime that satisfies the engine range above, then rerun `vasudev update`.",
           "Bare `npm i -g openclaw` can silently install an older compatible release.",
           "After switching Node versions, use `npm i -g openclaw@latest`.",
         ].join("\n"),

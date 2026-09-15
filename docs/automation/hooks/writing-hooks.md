@@ -65,7 +65,7 @@ route replies, such as a direct message to the bot. Expect **Reset hook ran.**
 in that conversation and `[reset-greeting] reset hook ran` in Gateway logs.
 `/reset` triggers the same example. Normal command authorization still applies.
 
-Use an ordinary OpenClaw conversation, not an ACP-bound thread; bound sessions
+Use an ordinary Vasudev conversation, not an ACP-bound thread; bound sessions
 delegate reset handling to their owning runtime. Do not use Control UI/webchat
 or a `sessions.reset` RPC as the chat-reply check:
 those paths do not deliver this hook's `event.messages` to the UI. The log marker

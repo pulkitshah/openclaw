@@ -608,7 +608,7 @@ describe.runIf(nativeIntegrationEnabled)("schtasks Windows integration", () => {
             // Source aliases belong to the checkout, even when the task runs outside it.
             TSX_TSCONFIG_PATH: path.resolve("tsconfig.json"),
           },
-          description: `OpenClaw CI Scheduled Task integration ${id}`,
+          description: `Vasudev CI Scheduled Task integration ${id}`,
         });
 
         const failedProcesses = await waitForGatewayTaskSupervisorProcesses({

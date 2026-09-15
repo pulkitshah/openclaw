@@ -18,7 +18,7 @@ const SESSION_CANONICAL_KEY_MIGRATION_REQUIRED = "SESSION_CANONICAL_KEY_MIGRATIO
 const SESSION_CANONICAL_KEY_MIGRATION_WARNING =
   "Memory search is unavailable because the session catalog requires canonical-key migration.";
 const SESSION_CANONICAL_KEY_MIGRATION_ACTION =
-  "Stop the Gateway and run openclaw doctor --fix, then restart the Gateway and retry memory_search.";
+  "Stop the Gateway and run vasudev doctor --fix, then restart the Gateway and retry memory_search.";
 
 type MemorySearchManagerResult = Awaited<
   ReturnType<(typeof import("./memory/index.js"))["getMemorySearchManager"]>
@@ -109,7 +109,7 @@ export function buildMemorySearchUnavailableResult(
   // error can read exactly like this tool's timeout.
   const isSearchDeadline = overrides?.deadline === true;
   const deadlineAction = overrides?.agentId
-    ? `Retry memory_search after a short wait: a memory-corpus timeout pauses retries for up to a minute. If memory-corpus timeouts persist, run: openclaw memory status --deep --agent ${overrides.agentId}, and rebuild with openclaw memory index --force --agent ${overrides.agentId} only if it reports the index dirty or incomplete`
+    ? `Retry memory_search after a short wait: a memory-corpus timeout pauses retries for up to a minute. If memory-corpus timeouts persist, run: vasudev memory status --deep --agent ${overrides.agentId}, and rebuild with vasudev memory index --force --agent ${overrides.agentId} only if it reports the index dirty or incomplete`
     : "Retry memory_search after a short wait. If memory-corpus timeouts persist, inspect this agent's memory index before rebuilding it.";
   const warning =
     overrides?.warning ??
@@ -118,7 +118,7 @@ export function buildMemorySearchUnavailableResult(
       : isQuotaError
         ? "Memory search is unavailable because the embedding provider quota is exhausted."
         : isMissingNodeSqlite
-          ? "Memory search is unavailable because this OpenClaw Node runtime does not provide SQLite support."
+          ? "Memory search is unavailable because this Vasudev Node runtime does not provide SQLite support."
           : isSearchDeadline
             ? "Memory search did not finish within its time limit."
             : "Memory search is unavailable due to an embedding/provider error.");
@@ -129,7 +129,7 @@ export function buildMemorySearchUnavailableResult(
       : isQuotaError
         ? "Top up or switch embedding provider, then retry memory_search."
         : isMissingNodeSqlite
-          ? "Run OpenClaw with a Node runtime that includes node:sqlite, then retry memory_search."
+          ? "Run Vasudev with a Node runtime that includes node:sqlite, then retry memory_search."
           : isSearchDeadline
             ? deadlineAction
             : "Check embedding provider configuration and retry memory_search.");

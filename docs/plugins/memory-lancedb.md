@@ -21,7 +21,7 @@ a memory store outside the default built-in memory backend.
 openclaw plugins install @openclaw/memory-lancedb
 ```
 
-The plugin is published to npm; it is not bundled into the OpenClaw runtime
+The plugin is published to npm; it is not bundled into the Vasudev runtime
 image. Installing it writes the plugin entry, enables it, and switches
 `plugins.slots.memory` to `memory-lancedb`. If another plugin currently owns
 the memory slot, that plugin is disabled with a warning.
@@ -140,7 +140,7 @@ base64-encoded float32 responses, so both response shapes work without config.
 
 ### Dimensions
 
-OpenClaw has a built-in dimension for `text-embedding-3-small` (1536) and
+Vasudev has a built-in dimension for `text-embedding-3-small` (1536) and
 `text-embedding-3-large` (3072) only. Any other model needs an explicit
 `embedding.dimensions` so LanceDB can create the vector column, for example
 ZhiPu `embedding-3` at 2048 dimensions:

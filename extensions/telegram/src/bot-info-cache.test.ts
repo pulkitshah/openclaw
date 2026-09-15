@@ -15,7 +15,7 @@ const BOT_INFO_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const botInfo: TelegramBotInfo = {
   id: 123456,
   is_bot: true,
-  first_name: "OpenClaw",
+  first_name: "Vasudev",
   username: "openclaw_bot",
   can_join_groups: true,
   can_read_all_group_messages: false,

@@ -300,7 +300,7 @@ export function assertQaLiveCodexAuthAvailable(params: {
     [
       "QA live-frontier cannot run Codex-backed OpenAI models inside an isolated QA agent because no portable Codex auth is available.",
       "Set OPENAI_API_KEY or OPENCLAW_LIVE_OPENAI_KEY for an API-key fallback, or set CODEX_HOME to a logged-in Codex CLI home.",
-      "Host OpenClaw OAuth refresh profiles are not copied into QA temp stores.",
+      "Host Vasudev OAuth refresh profiles are not copied into QA temp stores.",
     ].join(" "),
   );
 }

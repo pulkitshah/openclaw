@@ -40,7 +40,7 @@ function prepareResult(
 }
 
 function formatLoadFailure(pluginId: string, detail: string): string {
-  return `Deferred legacy session-key migration for channel owner "${pluginId}": ${detail}. Restore or reinstall the plugin setup entry, then rerun openclaw doctor --fix`;
+  return `Deferred legacy session-key migration for channel owner "${pluginId}": ${detail}. Restore or reinstall the plugin setup entry, then rerun vasudev doctor --fix`;
 }
 
 function resolveLegacySessionSurface(moduleExport: unknown): BundledChannelLegacySessionSurface {

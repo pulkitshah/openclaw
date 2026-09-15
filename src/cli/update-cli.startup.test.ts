@@ -24,6 +24,6 @@ it("keeps update help available without loading execution dependencies", async (
       code: "commander.helpDisplayed",
       exitCode: 0,
     });
-    expect(output).toContain(`Usage: openclaw update${leaf ? ` ${leaf}` : ""} [options]`);
+    expect(output).toContain(`Usage: vasudev update${leaf ? ` ${leaf}` : ""} [options]`);
   }
 });

@@ -218,7 +218,7 @@ describe("noteSecurityWarnings gateway exposure", () => {
         severity: "critical",
         title: "CRITICAL",
         detail: expect.stringContaining("without authentication"),
-        remediation: expect.stringContaining("openclaw doctor --fix"),
+        remediation: expect.stringContaining("vasudev doctor --fix"),
       }),
     ]);
 
@@ -228,13 +228,13 @@ describe("noteSecurityWarnings gateway exposure", () => {
       [
         '- CRITICAL: Gateway bound to "lan" (0.0.0.0) without authentication.',
         "  Anyone on your network (or internet if port-forwarded) can fully control your agent.",
-        "  Fix: openclaw config set gateway.bind loopback",
+        "  Fix: vasudev config set gateway.bind loopback",
         "  Safer remote access: keep bind loopback and use Tailscale Serve/Funnel or an SSH tunnel.",
         "  Example tunnel: ssh -N -L 18789:127.0.0.1:18789 user@gateway-host",
         "  Docs: https://docs.openclaw.ai/gateway/remote",
-        "  Fix: openclaw doctor --fix to generate a token",
-        "  Or set token directly: openclaw config set gateway.auth.mode token",
-        "- Run: openclaw security audit --deep",
+        "  Fix: vasudev doctor --fix to generate a token",
+        "  Or set token directly: vasudev config set gateway.auth.mode token",
+        "- Run: vasudev security audit --deep",
       ].join("\n"),
     );
   });
@@ -410,7 +410,7 @@ describe("noteSecurityWarnings gateway exposure", () => {
     const message = lastMessage();
     expect(message).toContain("disables approval forwarding only");
     expect(message).toContain("state/openclaw.sqlite#exec_approvals_config");
-    expect(message).toContain("openclaw approvals get --gateway");
+    expect(message).toContain("vasudev approvals get --gateway");
   });
 
   it("explains how to renew inactive generated exec approvals", async () => {
@@ -436,7 +436,7 @@ describe("noteSecurityWarnings gateway exposure", () => {
           (candidate) => candidate.checkId === "doctor.exec_approvals_require_cwd_renewal",
         );
         expect(finding?.detail).toContain("1 older generated approval is inactive");
-        expect(finding?.remediation).toContain("openclaw doctor --fix");
+        expect(finding?.remediation).toContain("vasudev doctor --fix");
         expect(finding?.remediation).toContain('choose "Always allow here"');
         expect(finding?.remediation).toContain("Manual allowlist rules are unchanged");
       },
@@ -506,7 +506,7 @@ describe("noteSecurityWarnings gateway exposure", () => {
     const message = lastMessage();
     expect(message).toContain("plaintext secret-bearing config fields");
     expect(message).toContain("models.providers.openai.apiKey");
-    expect(message).toContain("openclaw secrets audit --check");
+    expect(message).toContain("vasudev secrets audit --check");
   });
 
   it("warns when sensitive model provider headers are stored as plaintext in config", async () => {
@@ -610,7 +610,7 @@ describe("noteSecurityWarnings gateway exposure", () => {
     expect(message).toContain('tools.exec.mode="full"');
     expect(message).toContain('defaults.security="allowlist"');
     expect(message).toContain("stricter side wins");
-    expect(message).not.toContain("OpenClaw default");
+    expect(message).not.toContain("Vasudev default");
   });
 
   it("attributes broader host policy warnings to wildcard agent entries", async () => {
@@ -811,7 +811,7 @@ describe("noteSecurityWarnings gateway exposure", () => {
     const message = lastMessage();
     expect(message).toContain("[secrets]");
     expect(message).toContain("failed to resolve account");
-    expect(message).toContain("Run: openclaw security audit --deep");
+    expect(message).toContain("Run: vasudev security audit --deep");
   });
 
   it("keeps intentional Discord open groupPolicy below the update lint error threshold", async () => {

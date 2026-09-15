@@ -8,7 +8,7 @@ title: "Channel sessions and bindings"
 sidebarTitle: "Sessions and bindings"
 ---
 
-Map provider conversation ids onto OpenClaw sessions, and own the route and
+Map provider conversation ids onto Vasudev sessions, and own the route and
 binding rules that go with them. Part of the [Building channel
 plugins](/plugins/sdk-channel-plugins) guide.
 
@@ -129,7 +129,7 @@ deadline and its reason, preferring idle expiration on ties; omitted deadlines
 are disabled. The plugin still owns timestamp validation and duration defaults.
 
 Preserve opaque plugin ownership metadata when projecting binding records.
-Plugin-owned targets do not require an OpenClaw agent id; use
+Plugin-owned targets do not require a Vasudev agent id; use
 `isPluginOwnedSessionBindingRecord(...)` from
 `openclaw/plugin-sdk/conversation-binding-runtime` to distinguish them from
 agent-owned targets before resolving an agent.

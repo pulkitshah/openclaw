@@ -110,7 +110,7 @@ function rollbackStoreWrites(
   if (errors.length > 0) {
     throw new AggregateError(
       errors,
-      "Could not confirm rollback of protected provider credentials; run openclaw doctor --fix before retrying.",
+      "Could not confirm rollback of protected provider credentials; run vasudev doctor --fix before retrying.",
     );
   }
 }
@@ -178,7 +178,7 @@ function materializeProviderAuthProfiles(params: {
         });
       } catch (error) {
         throw new Error(
-          "Could not write the protected secret store. Check the OpenClaw state-directory permissions and retry; the auth profile was not changed.",
+          "Could not write the protected secret store. Check the Vasudev state-directory permissions and retry; the auth profile was not changed.",
           { cause: error },
         );
       }

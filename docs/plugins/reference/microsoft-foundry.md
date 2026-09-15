@@ -1,5 +1,5 @@
 ---
-summary: "Adds Microsoft Foundry model provider support to OpenClaw."
+summary: "Adds Microsoft Foundry model provider support to Vasudev."
 read_when:
   - You are installing, configuring, or auditing the microsoft-foundry plugin
 title: "Microsoft Foundry plugin reference"
@@ -10,12 +10,12 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-Adds Microsoft Foundry model provider support to OpenClaw.
+Adds Microsoft Foundry model provider support to Vasudev.
 
 ## Distribution
 
 - Package: `@openclaw/microsoft-foundry`
-- Install route: included in OpenClaw
+- Install route: included in Vasudev
 
 ## Surface
 
@@ -31,7 +31,7 @@ Adds Microsoft Foundry model provider support to OpenClaw.
 - A Microsoft Foundry or Azure AI Foundry resource with deployments.
 - API-key auth through `AZURE_OPENAI_API_KEY` or a configured provider API key.
 - For Entra ID auth, install the Azure CLI and run `az login` before
-  onboarding. OpenClaw refreshes Microsoft Foundry runtime tokens through
+  onboarding. Vasudev refreshes Microsoft Foundry runtime tokens through
   `az account get-access-token`.
 
 ## Chat models
@@ -41,7 +41,7 @@ Microsoft Foundry chat deployments use the provider model ref
 and deployments with the Azure CLI, then writes the selected deployment name to
 the model config.
 
-OpenClaw uses the Foundry `/openai/v1` endpoint for supported OpenAI-compatible
+Vasudev uses the Foundry `/openai/v1` endpoint for supported OpenAI-compatible
 chat APIs:
 
 - GPT, `o*`, `computer-use-preview`, and DeepSeek-V4 model families default to
@@ -56,7 +56,7 @@ Anthropic Claude deployments in Microsoft Foundry use the Anthropic Messages
 API shape, not the OpenAI-compatible `/openai/v1` shape. Configure those as a
 custom `anthropic-messages` provider until the Microsoft Foundry plugin grows a
 native Anthropic runtime. When the Foundry deployment name differs from the
-Claude model ID, set `params.canonicalModelId` on the model entry so OpenClaw
+Claude model ID, set `params.canonicalModelId` on the model entry so Vasudev
 can apply model-specific wire contracts, map `/think off` correctly, and
 preserve signed thinking safely.
 
@@ -96,7 +96,7 @@ Prompt-only generation calls Microsoft Foundry's MAI generations endpoint:
 
 Prompt-only generation can use a custom deployment name with just the Foundry
 endpoint configured. For image edits with a custom deployment name, select the
-deployment through onboarding or include model metadata so OpenClaw can verify
+deployment through onboarding or include model metadata so Vasudev can verify
 that the deployment is backed by `MAI-Image-2.5-Flash` or `MAI-Image-2.5`.
 
 MAI image constraints:

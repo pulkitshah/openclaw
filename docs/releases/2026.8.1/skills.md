@@ -13,7 +13,7 @@ Skill Workshop brings proposals, checks, decisions, and applied history into one
 
 [Creating a skill](/tools/creating-skills) now follows one guided path from choosing how it should be invoked through adding supporting files, saving it, and validating the result. The checker understands supported invocation metadata and catches problems such as an overlong description before anything is written.
 
-OpenClaw now reports malformed metadata, unreadable files, oversized instructions, and shadowed copies against the skill that caused them, while continuing to load valid skills around it. In a persistent Gateway session, edits to canonical and managed-worktree skills are available on the next turn, and required skill instructions are read in full.
+Vasudev now reports malformed metadata, unreadable files, oversized instructions, and shadowed copies against the skill that caused them, while continuing to load valid skills around it. In a persistent Gateway session, edits to canonical and managed-worktree skills are available on the next turn, and required skill instructions are read in full.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -134,7 +134,7 @@ Every decision stays bound to the exact proposal revision you reviewed, so a lat
 
 <Accordion title="How Skills Improve Over Time">
 
-OpenClaw can turn substantial work and durable corrections into reusable skills, then improve the Workshop-created skills that actually shaped a run. New and unconfigured installations start in `auto`, while upgrades keep their existing choice. `off` disables automatic repair, `propose` queues changes for review, and `auto` can create or update Workshop-owned skills with targeted patches or a same-turn repair. The conversation already in progress keeps the version it loaded until the next turn.
+Vasudev can turn substantial work and durable corrections into reusable skills, then improve the Workshop-created skills that actually shaped a run. New and unconfigured installations start in `auto`, while upgrades keep their existing choice. `off` disables automatic repair, `propose` queues changes for review, and `auto` can create or update Workshop-owned skills with targeted patches or a same-turn repair. The conversation already in progress keeps the version it loaded until the next turn.
 
 Skills you wrote and shared skills owned elsewhere remain yours. [Automatic learning](/tools/self-learning) can suggest improvements to them, but it cannot rewrite or remove them on its own, and explicit `/learn` or past-work scans also produce proposals for review.
 

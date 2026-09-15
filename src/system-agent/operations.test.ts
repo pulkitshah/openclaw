@@ -450,7 +450,7 @@ describe("system agent operations", () => {
     await expect(fs.access(path.join(tempDir, "audit", "system-agent.jsonl"))).rejects.toThrow();
   });
 
-  it("reserves the normalized OpenClaw agent identity before any write or audit", async () => {
+  it("reserves the normalized system-agent identity before any write or audit", async () => {
     const tempDir = useOperationStateDir("openclaw-agent-id-reserved-");
     const { runtime, lines } = createSystemAgentTestRuntime();
     const createAgent = vi.fn();
@@ -480,7 +480,7 @@ describe("system agent operations", () => {
       status: "error" as const,
       reason: "legacy-session-migration-required" as const,
       agentId: "main",
-      message: "Run openclaw doctor --fix before creating main.",
+      message: "Run vasudev doctor --fix before creating main.",
     }));
 
     await expect(
@@ -489,7 +489,7 @@ describe("system agent operations", () => {
         runtime,
         { approved: true, deps: { createAgent } },
       ),
-    ).rejects.toThrow("Run openclaw doctor --fix before creating main.");
+    ).rejects.toThrow("Run vasudev doctor --fix before creating main.");
 
     expect(createAgent).toHaveBeenCalledWith({
       name: "main",
@@ -800,7 +800,7 @@ describe("system agent operations", () => {
       }),
       // Denylisted roots cite their documented escalation; route paths point
       // at the verified set_default_model/onboard flows.
-    ).rejects.toThrow(/openclaw onboard|trusted shell/);
+    ).rejects.toThrow(/vasudev onboard|trusted shell/);
 
     expect(runConfigSet).not.toHaveBeenCalled();
     expect(lines.join("\n")).not.toContain("[openclaw] running:");
@@ -868,7 +868,7 @@ describe("system agent operations", () => {
         runtime,
         { approved: true, deps: { runConfigSet } },
       ),
-    ).rejects.toThrow("openclaw onboard");
+    ).rejects.toThrow("vasudev onboard");
     expect(runConfigSet).not.toHaveBeenCalled();
 
     // The same routing field on a non-default agent is an approved write.
@@ -907,7 +907,7 @@ describe("system agent operations", () => {
         runtime,
         { approved: true, deps: { runConfigSet } },
       ),
-    ).rejects.toThrow("openclaw onboard");
+    ).rejects.toThrow("vasudev onboard");
     expect(runConfigSet).not.toHaveBeenCalled();
 
     const result = await executeSystemAgentOperation(
@@ -1088,6 +1088,6 @@ describe("system agent operations", () => {
     });
     expect(runPluginUninstall).not.toHaveBeenCalled();
     expect(lines.join("\n")).toContain("could remove the provider behind");
-    expect(lines.join("\n")).toContain("openclaw plugins uninstall openclaw-demo");
+    expect(lines.join("\n")).toContain("vasudev plugins uninstall openclaw-demo");
   });
 });

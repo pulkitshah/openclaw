@@ -60,7 +60,7 @@ describe("Doctor gateway owner repair", () => {
       expect(repairMergedGatewayOwnerProfile({ ...options, shouldRepair: false })).toMatchObject({
         repaired: false,
         changes: [],
-        warnings: [expect.stringContaining("openclaw doctor --fix")],
+        warnings: [expect.stringContaining("vasudev doctor --fix")],
       });
       expect(profileState(options)).toEqual(before);
       expect(readUserProfileAliasRevision()).toBe(aliasRevision);

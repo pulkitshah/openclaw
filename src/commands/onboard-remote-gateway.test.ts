@@ -264,7 +264,7 @@ describe("runRemoteGatewayInferenceOnboarding", () => {
       secret: "selected-password",
     },
   ])(
-    "pins $label across detect, activate, verify, OpenClaw, and in-process TUI",
+    "pins $label across detect, activate, verify, Vasudev, and in-process TUI",
     async ({ auth, secret }) => {
       const localConfig = makeLocalConfig();
       const localConfigBefore = structuredClone(localConfig);
@@ -673,7 +673,7 @@ describe("runRemoteGatewayInferenceOnboarding", () => {
       verification: { ok: true, modelRef: "openai/other", latencyMs: 100 },
       error: "Gateway verified openai/other, not the activated claude-cli/opus",
     },
-  ])("fails closed on $label before OpenClaw", async ({ verification, error }) => {
+  ])("fails closed on $label before Vasudev", async ({ verification, error }) => {
     const localConfig = makeLocalConfig();
     const localConfigBefore = structuredClone(localConfig);
     const methods: string[] = [];
@@ -806,7 +806,7 @@ describe("runRemoteGatewayInferenceOnboarding", () => {
               ? "authenticated-profile"
               : (options.deviceIdentity?.deviceId ?? `connection:${++connections}`);
           if (chatOwner && chatOwner !== owner) {
-            throw new Error("OpenClaw session belongs to another caller.");
+            throw new Error("Vasudev session belongs to another caller.");
           }
           chatOwner = owner;
           return {
@@ -845,7 +845,7 @@ describe("runRemoteGatewayInferenceOnboarding", () => {
         "openclaw.chat",
         "openclaw.chat",
       ]);
-      expect(prompter.outro).toHaveBeenCalledWith("OpenClaw setup paused.");
+      expect(prompter.outro).toHaveBeenCalledWith("Vasudev setup paused.");
       expect(runTui).not.toHaveBeenCalled();
     },
   );

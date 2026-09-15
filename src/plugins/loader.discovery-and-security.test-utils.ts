@@ -1111,8 +1111,8 @@ describe("loadOpenClawPlugins", () => {
     expect(openAllowWarning).toBeDefined();
     expect(openAllowWarning).toContain('"warn-open-allow-remediation"');
     expect(openAllowWarning).toContain('"plugins": { "allow": [');
-    expect(openAllowWarning).toContain("openclaw plugins list --enabled --verbose");
-    expect(openAllowWarning).toContain("openclaw plugins inspect warn-open-allow-remediation");
+    expect(openAllowWarning).toContain("vasudev plugins list --enabled --verbose");
+    expect(openAllowWarning).toContain("vasudev plugins inspect warn-open-allow-remediation");
   });
 
   it("distinguishes load permission from capability trust in the untracked-provenance warning", () => {
@@ -1142,11 +1142,11 @@ describe("loadOpenClawPlugins", () => {
       const untrackedWarning = warnings.find(
         (msg) =>
           msg.includes("warn-untracked-remediation") &&
-          msg.includes("OpenClaw can't verify where this plugin came from"),
+          msg.includes("Vasudev can't verify where this plugin came from"),
       );
       expect(untrackedWarning).toBeDefined();
-      expect(untrackedWarning).toContain("OpenClaw can't verify where this plugin came from");
-      expect(untrackedWarning).toContain("openclaw plugins inspect warn-untracked-remediation");
+      expect(untrackedWarning).toContain("Vasudev can't verify where this plugin came from");
+      expect(untrackedWarning).toContain("vasudev plugins inspect warn-untracked-remediation");
       expect(untrackedWarning).toContain(
         "plugins.allow lets it load, but does not make it trusted",
       );
@@ -1157,10 +1157,10 @@ describe("loadOpenClawPlugins", () => {
       const diagnostic = registry.diagnostics.find(
         (entry) =>
           entry.pluginId === "warn-untracked-remediation" &&
-          entry.message.includes("OpenClaw can't verify where this plugin came from"),
+          entry.message.includes("Vasudev can't verify where this plugin came from"),
       );
-      expect(diagnostic?.message).toContain("OpenClaw can't verify where this plugin came from");
-      expect(diagnostic?.message).toContain("openclaw plugins inspect warn-untracked-remediation");
+      expect(diagnostic?.message).toContain("Vasudev can't verify where this plugin came from");
+      expect(diagnostic?.message).toContain("vasudev plugins inspect warn-untracked-remediation");
       expect(diagnostic?.message).toContain(
         "plugins.allow lets it load, but does not make it trusted",
       );
@@ -1197,8 +1197,8 @@ describe("loadOpenClawPlugins", () => {
     expect(message).toContain("plugins.allow is empty");
     expect(message).toContain("(+2 more)");
     expect(message).not.toContain('"plugins": { "allow": [');
-    expect(message).toContain("openclaw plugins list --enabled --verbose");
-    expect(message).toContain("openclaw plugins inspect <id>");
+    expect(message).toContain("vasudev plugins list --enabled --verbose");
+    expect(message).toContain("vasudev plugins inspect <id>");
   });
 
   it("handles workspace-discovered plugins according to trust and precedence", () => {
@@ -1623,7 +1623,7 @@ describe("loadOpenClawPlugins", () => {
         warnings.filter(
           (message) =>
             message.includes("trusted-plugin") &&
-            message.includes("OpenClaw can't verify where this plugin came from"),
+            message.includes("Vasudev can't verify where this plugin came from"),
         ),
       ).toEqual([]);
     });
@@ -1771,7 +1771,7 @@ describe("loadOpenClawPlugins", () => {
         registry,
         level: "warn",
         pluginId: "rogue",
-        message: "OpenClaw can't verify where this plugin came from",
+        message: "Vasudev can't verify where this plugin came from",
       });
     });
   });

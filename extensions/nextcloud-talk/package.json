@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/nextcloud-talk",
   "version": "2026.9.4",
-  "description": "OpenClaw Nextcloud Talk channel plugin for conversations.",
+  "description": "Vasudev Nextcloud Talk channel plugin for conversations.",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

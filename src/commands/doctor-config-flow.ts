@@ -162,7 +162,7 @@ export async function loadAndMaybeMigrateDoctorConfig(params: {
   const shouldRepair = params.options.repair === true || params.options.yes === true;
   let preflight = await withProgress(
     {
-      label: "Checking OpenClaw state…",
+      label: "Checking Vasudev state…",
       enabled: params.options.nonInteractive !== true && params.options.json !== true,
       delayMs: 200,
     },
@@ -243,7 +243,7 @@ export async function loadAndMaybeMigrateDoctorConfig(params: {
   let openAICodexAuthProfileIdMap: ReadonlyMap<string, string> | undefined;
   let modelRetirementRepairRan = false;
   let retiredModelRefConfig: Pick<OpenClawConfig, "agents" | "models"> | undefined;
-  const doctorFixCommand = formatCliCommand("openclaw doctor --fix");
+  const doctorFixCommand = formatCliCommand("vasudev doctor --fix");
   const changesPanelSink = createDoctorChangesPanelSink(shouldRepair);
   const applyConfigMutation = (
     mutation: DoctorConfigMutationResult & { warnings?: string[] },

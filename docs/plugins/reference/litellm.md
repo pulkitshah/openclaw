@@ -1,5 +1,5 @@
 ---
-summary: "Adds LiteLLM model provider support to OpenClaw."
+summary: "Adds LiteLLM model provider support to Vasudev."
 read_when:
   - You are installing, configuring, or auditing the litellm plugin
 title: "LiteLLM plugin reference"
@@ -10,12 +10,12 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-Adds LiteLLM model provider support to OpenClaw.
+Adds LiteLLM model provider support to Vasudev.
 
 ## Distribution
 
 - Package: `@openclaw/litellm-provider`
-- Install route: included in OpenClaw
+- Install route: included in Vasudev
 
 ## Surface
 

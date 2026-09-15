@@ -182,7 +182,7 @@ export type CodeModeConfig =
   | boolean
   | "auto"
   | {
-      /** OpenClaw Code Mode default, overridden by per-model codeMode. Default: false; "auto" engages catalog-preferred models. */
+      /** Vasudev Code Mode default, overridden by per-model codeMode. Default: false; "auto" engages catalog-preferred models. */
       enabled?: boolean | "auto";
       /** Guest runtime. Only quickjs-wasi is supported. */
       runtime?: "quickjs-wasi";
@@ -542,7 +542,7 @@ export type ToolsConfig = {
   fs?: FsToolsConfig;
   /** Runtime loop detection for repetitive/ stuck tool-call patterns. */
   loopDetection?: ToolLoopDetectionConfig;
-  /** Compact large OpenClaw, MCP, and client tool catalogs behind search/call tools. */
+  /** Compact large Vasudev, MCP, and client tool catalogs behind search/call tools. */
   toolSearch?: ToolSearchConfig;
   /** Global Code Mode defaults and limits; agent/model settings can override activation. */
   codeMode?: CodeModeConfig;

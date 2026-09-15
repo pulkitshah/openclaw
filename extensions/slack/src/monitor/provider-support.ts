@@ -379,7 +379,7 @@ export function createSlackBoltApp(params: {
     ignoreSelf: false,
     // Bolt eagerly starts an auth.test promise in the constructor when token
     // verification is enabled. Invalid tokens can reject before any listener
-    // consumes that promise, tripping OpenClaw's fatal unhandled-rejection path.
+    // consumes that promise, tripping Vasudev's fatal unhandled-rejection path.
     tokenVerificationEnabled: false,
     ...(appReceiver ? { receiver: appReceiver } : {}),
   });

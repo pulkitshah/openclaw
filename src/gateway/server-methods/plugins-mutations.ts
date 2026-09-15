@@ -109,7 +109,7 @@ export const pluginMutationHandlers: GatewayRequestHandlers = {
     (params, lifecycle, client) => {
       if (pluginInstallRequiresLocalHost(params) && !client?.internal?.isLocalClient) {
         throw new ManagedPluginLifecycleError(
-          "Local plugin artifacts require a connection from the Gateway host. Run `openclaw plugins install` on that host.",
+          "Local plugin artifacts require a connection from the Gateway host. Run `vasudev plugins install` on that host.",
         );
       }
       return installManagedPlugin({ request: params, ...lifecycle });

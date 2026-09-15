@@ -106,8 +106,8 @@ export function applyNonInteractiveGatewayConfig(params: {
       normalizeOptionalString(existingGateway?.customBindHost ?? ""),
     );
     if (customBindHostIssue) {
-      const setCommand = formatCliCommand("openclaw config set gateway.customBindHost <ipv4>");
-      const interactiveCommand = formatCliCommand("openclaw onboard");
+      const setCommand = formatCliCommand("vasudev config set gateway.customBindHost <ipv4>");
+      const interactiveCommand = formatCliCommand("vasudev onboard");
       rejectOnboardingOption(
         opts,
         runtime,
@@ -169,7 +169,7 @@ export function applyNonInteractiveGatewayConfig(params: {
         rejectOnboardingOption(
           opts,
           runtime,
-          `Environment variable "${gatewayTokenRefEnv}" is missing or empty. Export it first, then rerun ${formatCliCommand("openclaw onboard --non-interactive")}.`,
+          `Environment variable "${gatewayTokenRefEnv}" is missing or empty. Export it first, then rerun ${formatCliCommand("vasudev onboard --non-interactive")}.`,
         );
         return null;
       }

@@ -79,7 +79,7 @@ async function detectOpenClawGitCheckout(root: string): Promise<"git" | "not-git
     : "not-git";
 }
 
-/** Offers to update OpenClaw before doctor when running interactively from an updatable install. */
+/** Offers to update Vasudev before doctor when running interactively from an updatable install. */
 export async function maybeOfferUpdateBeforeDoctor(params: {
   runtime: RuntimeEnv;
   options: DoctorOptions;
@@ -101,7 +101,7 @@ export async function maybeOfferUpdateBeforeDoctor(params: {
   const git = await detectOpenClawGitCheckout(params.root);
   if (git === "git") {
     const shouldUpdate = await params.confirm({
-      message: "Update OpenClaw from git before running doctor?",
+      message: "Update Vasudev from git before running doctor?",
       initialValue: true,
     });
     if (!shouldUpdate) {
@@ -489,10 +489,10 @@ export async function maybeOfferUpdateBeforeDoctor(params: {
           assertCurrent();
           if (activated !== "ok") {
             throw new Error(
-              "Gateway restart was not verified; run `openclaw gateway status --deep` before restarting manually.",
+              "Gateway restart was not verified; run `vasudev gateway status --deep` before restarting manually.",
             );
           }
-          note("Restarted the running gateway service after updating OpenClaw.", "Update");
+          note("Restarted the running gateway service after updating Vasudev.", "Update");
         } catch (err) {
           if (
             err instanceof UpdateCommandRecoveryPendingError ||
@@ -586,7 +586,7 @@ export async function maybeOfferUpdateBeforeDoctor(params: {
     note(
       [
         "This install is not a git checkout.",
-        `Run \`${formatCliCommand("openclaw update")}\` to update via your package manager (npm/pnpm), then rerun doctor.`,
+        `Run \`${formatCliCommand("vasudev update")}\` to update via your package manager (npm/pnpm), then rerun doctor.`,
       ].join("\n"),
       "Update",
     );

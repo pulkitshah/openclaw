@@ -264,9 +264,10 @@ suite.define(() => {
         };
       });
 
-      // Every theme also declares the mono face: base.css --mono names
-      // JetBrains Mono for code spans regardless of the active family.
-      const expectedFaces = [...new Set([...faces, "jetbrains-mono"])];
+      // Only the selected faces are linked through the typeface loader now: the
+      // mono face base.css --mono names is Space Mono, which index.html links
+      // before first paint with no openclaw-typeface- id of its own.
+      const expectedFaces = [...new Set(faces)];
       if (report.buildId !== null) {
         expect(report.buildId).not.toBe("");
       }
@@ -278,12 +279,12 @@ suite.define(() => {
       );
       expect(report.bodyFontFamily).toBe(body);
       expect(report.chatFontFamily).toBe(chat);
-      expect(report.codeFontFamily).toBe("JetBrains Mono");
+      expect(report.codeFontFamily).toBe("Space Mono");
       // Serif chat faces opt out of the app-wide `antialiased` thinning
       // (applyChatFontSmoothing) so their hairlines stay crisp.
       expect(report.chatFontSmoothing).toBe(chatSmoothing);
-      // Mono glyphs on the page pull the always-declared JetBrains Mono face.
-      expect(new Set(report.loaded)).toEqual(new Set([body, chat, "JetBrains Mono"]));
+      // Mono glyphs on the page pull the always-declared Space Mono face.
+      expect(new Set(report.loaded)).toEqual(new Set([body, chat, "Space Mono"]));
       expect(themeRequests.every((entry) => entry.endsWith(" 200"))).toBe(true);
 
       await captureTypography(page, `${theme}-chat-dark`);

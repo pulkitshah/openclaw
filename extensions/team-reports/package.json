@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/team-reports",
   "version": "2026.9.4",
-  "description": "OpenClaw team activity reports plugin (GitHub org + Discord activity with model summaries)",
+  "description": "Vasudev team activity reports plugin (GitHub org + Discord activity with model summaries)",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

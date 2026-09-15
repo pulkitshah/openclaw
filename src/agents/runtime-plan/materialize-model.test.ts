@@ -84,7 +84,7 @@ describe("materializePreparedRuntimeModel", () => {
         }),
       ).rejects.toMatchObject({
         reason: "model_not_found",
-        message: expect.stringContaining("openclaw doctor --fix"),
+        message: expect.stringContaining("vasudev doctor --fix"),
       });
       expect(resolveModel).toHaveBeenCalledTimes(mode === "resolved" ? 1 : 0);
 

@@ -1,15 +1,15 @@
 ---
 title: "v2026.8.1: The New Web UI"
-description: "The rebuilt Control UI puts conversations at the centre of OpenClaw, with files, approvals, settings, and live work close to the conversation."
+description: "The rebuilt Control UI puts conversations at the centre of Vasudev, with files, approvals, settings, and live work close to the conversation."
 ---
 
-The rebuilt [Control UI](/web/control-ui) puts conversations at the centre of OpenClaw, with files, approvals, settings, and live work close to the conversation so you can set up a Claw, follow what it is doing, and keep working without bouncing between separate tools.
+The rebuilt [Control UI](/web/control-ui) puts conversations at the centre of Vasudev, with files, approvals, settings, and live work close to the conversation so you can set up a Claw, follow what it is doing, and keep working without bouncing between separate tools.
 
 <AccordionGroup>
 
 <Accordion title="Navigation and sidebar">
 
-The [web-based experience](/web/control-ui) in OpenClaw now feels more familiar to anyone who uses apps like ChatGPT, Claude, Gemini, or Perplexity, with conversations in the sidebar and the one you are working in at the centre instead of opening on a separate Overview page. Settings and Inbox keep setup details and alerts out of the way until you need them, while conversations and new-session drafts can open in real browser tabs or windows.
+The [web-based experience](/web/control-ui) in Vasudev now feels more familiar to anyone who uses apps like ChatGPT, Claude, Gemini, or Perplexity, with conversations in the sidebar and the one you are working in at the centre instead of opening on a separate Overview page. Settings and Inbox keep setup details and alerts out of the way until you need them, while conversations and new-session drafts can open in real browser tabs or windows.
 
 The sidebar can stay completely flat or group conversations by project, person, or your own custom groups, folds worktrees back into their original project, and remembers its width, which makes it feel a lot less like developer tooling when you are moving between a lot of work.
 
@@ -30,7 +30,7 @@ The sidebar can stay completely flat or group conversations by project, person, 
 - Expand child sessions in the Control UI sidebar [#108838](https://github.com/openclaw/openclaw/pull/108838)
 - Streamline Control UI sidebar navigation [#109694](https://github.com/openclaw/openclaw/pull/109694)
 - Reorganize the Control sidebar around agents and work zones [#110259](https://github.com/openclaw/openclaw/pull/110259)
-- Keep the OpenClaw custodian reachable after onboarding [#110269](https://github.com/openclaw/openclaw/pull/110269)
+- Keep the Vasudev custodian reachable after onboarding [#110269](https://github.com/openclaw/openclaw/pull/110269)
 - Customize the sidebar with reordered pages, pinned chats, and icons [#110682](https://github.com/openclaw/openclaw/pull/110682)
 - Rename chat creation to threads and simplify the sidebar [#110933](https://github.com/openclaw/openclaw/pull/110933)
 - Show sessions that need attention in the sidebar [#111035](https://github.com/openclaw/openclaw/pull/111035)
@@ -42,7 +42,7 @@ The sidebar can stay completely flat or group conversations by project, person, 
 - Align the sidebar and simplify owner presence [#123938](https://github.com/openclaw/openclaw/pull/123938)
 - Make session references clickable with previews [#125014](https://github.com/openclaw/openclaw/pull/125014)
 - improve(ui): unify sidebar footer and issues panel [#125070](https://github.com/openclaw/openclaw/pull/125070)
-- Explain Control UI alerts through Ask OpenClaw [#126155](https://github.com/openclaw/openclaw/pull/126155)
+- Explain Control UI alerts through Ask Vasudev [#126155](https://github.com/openclaw/openclaw/pull/126155)
 - Compact mobile Control UI chat header [#126788](https://github.com/openclaw/openclaw/pull/126788)
 - feat(ui): search sessions and catalogs from command palette [#128356](https://github.com/openclaw/openclaw/pull/128356)
 - feat(ui): open sessions in real browser tabs and keep sidebar visibility per-tab [#128474](https://github.com/openclaw/openclaw/pull/128474)
@@ -188,7 +188,7 @@ The sidebar can stay completely flat or group conversations by project, person, 
 
 Starting a [new conversation](/concepts/session) is now a proper setup screen instead of a blank chat that inherits whatever defaults happen to be active. Before anything begins, you can choose the agent, model, reasoning level, opening message or image, workspace, and the computer that should run it, then use groups, transcript search, status, and batch actions to manage the work later.
 
-Worktree conversations open immediately with the original message while naming, checkout, and setup continue. If a remote start fails, the submitted prompt and attachments stay visible with a same-session Retry or a read-only Check delivery action, and later messages wait until OpenClaw knows what happened instead of risking a duplicate or sending out of order.
+Worktree conversations open immediately with the original message while naming, checkout, and setup continue. If a remote start fails, the submitted prompt and attachments stay visible with a same-session Retry or a read-only Check delivery action, and later messages wait until Vasudev knows what happened instead of risking a duplicate or sending out of order.
 
 Supported Codex conversations can branch from an earlier message without changing the original, and explicit forks can use more than 100,000 tokens when the selected child model can safely accept that context. Automatic thread and subagent forks keep the 100,000-token limit.
 
@@ -279,7 +279,7 @@ Supported Codex conversations can branch from an earlier message without changin
 
 - Control UI catalog sessions select in place and resume Claude Desktop work [#106074](https://github.com/openclaw/openclaw/pull/106074)
 - Add reasoning selection to new cloud sessions [#108679](https://github.com/openclaw/openclaw/pull/108679)
-- Create session groups in an OpenClaw dialog [#121249](https://github.com/openclaw/openclaw/pull/121249)
+- Create session groups in a Vasudev dialog [#121249](https://github.com/openclaw/openclaw/pull/121249)
 - Guard session deletion against same-key replacements [#124097](https://github.com/openclaw/openclaw/pull/124097)
 - Explain why a new session cannot start yet [#124613](https://github.com/openclaw/openclaw/pull/124613)
 - Show progress cards from titled chat session links [#125733](https://github.com/openclaw/openclaw/pull/125733)
@@ -329,7 +329,7 @@ Supported Codex conversations can branch from an earlier message without changin
 - Use the selected model for managed-worktree titles [#124902](https://github.com/openclaw/openclaw/pull/124902)
 - Add sidebar menus for child sessions [#125033](https://github.com/openclaw/openclaw/pull/125033)
 - Show clean prose in session list previews [#125113](https://github.com/openclaw/openclaw/pull/125113)
-- Hide OpenClaw-managed Codex sessions from the native catalog [#125424](https://github.com/openclaw/openclaw/pull/125424)
+- Hide Vasudev-managed Codex sessions from the native catalog [#125424](https://github.com/openclaw/openclaw/pull/125424)
 - Harden shared session menus and hovercards [#125478](https://github.com/openclaw/openclaw/pull/125478)
 - Simplify remote New Session setup [#125720](https://github.com/openclaw/openclaw/pull/125720)
 - Restore composite session link hovercards [#125968](https://github.com/openclaw/openclaw/pull/125968)
@@ -444,7 +444,7 @@ One of the more useful additions is `/btw`, which opens a separate multi-turn co
 - Inspect chat images in an accessible in-app lightbox [#112442](https://github.com/openclaw/openclaw/pull/112442)
 - Show queued messages across Control UI [#112649](https://github.com/openclaw/openclaw/pull/112649)
 - Add a session rail and read-only session companion [#113698](https://github.com/openclaw/openclaw/pull/113698)
-- Let Ask OpenClaw understand the current Control UI page [#114943](https://github.com/openclaw/openclaw/pull/114943)
+- Let Ask Vasudev understand the current Control UI page [#114943](https://github.com/openclaw/openclaw/pull/114943)
 - Add a composer menu for session capabilities [#115800](https://github.com/openclaw/openclaw/pull/115800)
 - Expand truncated assistant messages inline [#117936](https://github.com/openclaw/openclaw/pull/117936)
 - Add searchable model and separate effort pickers [#120495](https://github.com/openclaw/openclaw/pull/120495)
@@ -577,7 +577,7 @@ One of the more useful additions is `/btw`, which opens a separate multi-turn co
 - Preserve strongest-first model ordering after live discovery [#115406](https://github.com/openclaw/openclaw/pull/115406)
 - Preserve provider model ranking in startup catalogs [#115425](https://github.com/openclaw/openclaw/pull/115425)
 - Hide credential profiles from Control UI model labels [#115480](https://github.com/openclaw/openclaw/pull/115480)
-- Keep startup errors beside the Ask OpenClaw composer [#115720](https://github.com/openclaw/openclaw/pull/115720)
+- Keep startup errors beside the Ask Vasudev composer [#115720](https://github.com/openclaw/openclaw/pull/115720)
 - Keep message-hide confirmations inside the viewport [#115928](https://github.com/openclaw/openclaw/pull/115928)
 - Harden Control UI chat and session interactions [#115967](https://github.com/openclaw/openclaw/pull/115967)
 - fix(gateway): deliver queued WebChat replies after source completion [#116649](https://github.com/openclaw/openclaw/pull/116649)
@@ -734,7 +734,7 @@ One of the more useful additions is `/btw`, which opens a separate multi-turn co
 
 **Documentation**
 
-- Document Ask OpenClaw context, docking, and guided setup [#115182](https://github.com/openclaw/openclaw/pull/115182)
+- Document Ask Vasudev context, docking, and guided setup [#115182](https://github.com/openclaw/openclaw/pull/115182)
 - Document the composer capability menu [#115858](https://github.com/openclaw/openclaw/pull/115858)
 
 </details>
@@ -892,11 +892,11 @@ Once a turn finishes, intermediate commentary and tools fold into a **Worked for
 
 <Accordion title="Files, Git, browser, and terminal">
 
-OpenClaw can now keep the work beside the conversation instead of making you bounce between tools. On supported administrator connections, you can open and edit eligible existing text or Markdown files from Chat, and if a Claw changes the same file while you are working, the editor stops with a conflict instead of overwriting the newer version. The Changes panel shows branch commits and working-tree edits, while eligible GitHub checkouts add pull-request status, CI summaries, and a link to start a pull request on GitHub.
+Vasudev can now keep the work beside the conversation instead of making you bounce between tools. On supported administrator connections, you can open and edit eligible existing text or Markdown files from Chat, and if a Claw changes the same file while you are working, the editor stops with a conflict instead of overwriting the newer version. The Changes panel shows branch commits and working-tree edits, while eligible GitHub checkouts add pull-request status, CI summaries, and a link to start a pull request on GitHub.
 
 A [docked Browser panel](/tools/browser) can navigate, click, type, scroll, inspect elements, and mark up a screenshot before attaching that screenshot and page context to the conversation, but it requires advertised browser support and an administrator connection, and whatever appears in the page or capture may be sensitive.
 
-Chat, Details, and Discussion can sit in resizable columns or merge into tabs, while the dashboard, [terminal](/tools/exec), and desktop can open in focused views when you need more room. The file editor still cannot create or delete files, Changes stays read-only, and Create PR hands off to GitHub rather than submitting inside OpenClaw.
+Chat, Details, and Discussion can sit in resizable columns or merge into tabs, while the dashboard, [terminal](/tools/exec), and desktop can open in focused views when you need more room. The file editor still cannot create or delete files, Changes stays read-only, and Create PR hands off to GitHub rather than submitting inside Vasudev.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -1262,7 +1262,7 @@ On a [multi-user Gateway](/concepts/multi-user), a conversation now keeps its cr
 
 People can manage their own display name and avatar, and permitted Online cards can show what someone is working on without exposing IP addresses or conversations the viewer cannot open. These controls make collaboration understandable, but they are not tenant isolation or a security boundary, and revoked access can briefly look available until the UI refreshes or the Gateway rejects the action.
 
-Incognito is off by default and deliberately narrower. Its conversation stays in process memory, does not write the normal transcript or automatic OpenClaw memory to disk, and disappears when the Gateway restarts, but the model provider still receives the messages, tools can still write files or affect external services, content-free audit metadata remains, and whoever operates the Gateway can see live work.
+Incognito is off by default and deliberately narrower. Its conversation stays in process memory, does not write the normal transcript or automatic Vasudev memory to disk, and disappears when the Gateway restarts, but the model provider still receives the messages, tools can still write files or affect external services, content-free audit metadata remains, and whoever operates the Gateway can see live work.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -1567,7 +1567,7 @@ The [Control UI](/web/control-ui) now reaches Chat faster. In a simulated defaul
 
 It also stays lighter the longer you leave it open. Hidden panels stop fetching data they do not show, retained state is bounded, and returning to a conversation repeats less rendering.
 
-Reconnects reject stale responses and keep the right conversation selected as the connection changes. If the page bundle loads but never renders, OpenClaw now shows recovery guidance and a Try again action, while interrupted updates reconcile with the replacement Gateway and confirm success only after it reports the expected version.
+Reconnects reject stale responses and keep the right conversation selected as the connection changes. If the page bundle loads but never renders, Vasudev now shows recovery guidance and a Try again action, while interrupted updates reconcile with the replacement Gateway and confirm success only after it reports the expected version.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>

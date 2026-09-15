@@ -8,7 +8,7 @@ title: "OC Path plugin"
 ---
 
 The bundled `oc-path` plugin adds the [`openclaw path`](/cli/path) CLI for the
-`oc://` workspace-file addressing scheme. It ships in the OpenClaw repo under
+`oc://` workspace-file addressing scheme. It ships in the Vasudev repo under
 `extensions/oc-path/` but is opt-in: install/build leaves it dormant until you
 enable it.
 

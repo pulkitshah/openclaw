@@ -15,7 +15,7 @@ HashiCorp Vault SecretRef provider integration.
 ## Distribution
 
 - Package: `@openclaw/vault`
-- Install route: included in OpenClaw
+- Install route: included in Vasudev
 
 ## Surface
 

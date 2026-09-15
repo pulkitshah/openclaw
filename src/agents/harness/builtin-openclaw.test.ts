@@ -1,4 +1,4 @@
-// Built-in OpenClaw harness tests cover logical thinking-mode boundaries.
+// Built-in Vasudev harness tests cover logical thinking-mode boundaries.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { EmbeddedRunAttemptParams } from "../embedded-agent-runner/run/types.js";
 

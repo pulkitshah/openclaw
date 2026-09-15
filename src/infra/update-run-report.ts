@@ -51,7 +51,7 @@ export function renderUpdateRunNotice(
   const target = run.after.version ?? run.target.version;
   const to = target ? bounded(target, 120) : undefined;
   if (kind === "ack") {
-    return `⬆️ Updating OpenClaw ${from ?? "the current version"} → ${to ?? "the latest release"}. The gateway stays available while the update is validated; you'll get a message here when it finishes.`;
+    return `⬆️ Updating Vasudev ${from ?? "the current version"} → ${to ?? "the latest release"}. The gateway stays available while the update is validated; you'll get a message here when it finishes.`;
   }
   if (kind === "activating" || kind === "parking") {
     return `⏳ Restarting the gateway now${from && to ? ` (v${from} → v${to})` : ""}…`;
@@ -68,7 +68,7 @@ function bounded(text: string, limit: number): string {
 
 function recoveryHints(run: ReportInput, nextAction?: string): string[] {
   if (run.status === "running") {
-    return ["Check progress with openclaw update status."];
+    return ["Check progress with vasudev update status."];
   }
   if (run.status !== "failed") {
     return [];
@@ -99,7 +99,7 @@ function recoveryHints(run: ReportInput, nextAction?: string): string[] {
     );
   }
   if (!nextAction) {
-    hints.push("Run openclaw triage to diagnose and repair the failed update.");
+    hints.push("Run vasudev triage to diagnose and repair the failed update.");
   }
   return hints;
 }
@@ -119,23 +119,23 @@ export function renderUpdateRunReport(
   switch (run.status) {
     case "succeeded":
       headline = after
-        ? `✅ OpenClaw updated to ${after}${before ? ` (from ${before})` : ""}.`
-        : "✅ OpenClaw updated.";
+        ? `✅ Vasudev updated to ${after}${before ? ` (from ${before})` : ""}.`
+        : "✅ Vasudev updated.";
       break;
     case "failed":
       headline =
         run.reason === LEGACY_UPDATE_RUN_EXPIRED_REASON
-          ? `ℹ️ OpenClaw update abandoned: ${reason}.`
-          : `⚠️ OpenClaw update failed: ${reason}.${running ? ` The gateway is running ${running}.` : ""}`;
+          ? `ℹ️ Vasudev update abandoned: ${reason}.`
+          : `⚠️ Vasudev update failed: ${reason}.${running ? ` The gateway is running ${running}.` : ""}`;
       break;
     case "skipped":
-      headline = `ℹ️ OpenClaw update skipped: ${reason}.`;
+      headline = `ℹ️ Vasudev update skipped: ${reason}.`;
       break;
     case "rolled-back":
-      headline = `↩️ OpenClaw update rolled back to ${after ?? running ?? before ?? "the previous version"}: ${reason}.`;
+      headline = `↩️ Vasudev update rolled back to ${after ?? running ?? before ?? "the previous version"}: ${reason}.`;
       break;
     case "running":
-      headline = `⬆️ OpenClaw update in progress: ${run.phase}.`;
+      headline = `⬆️ Vasudev update in progress: ${run.phase}.`;
       break;
   }
   headline = bounded(headline, 500);
@@ -232,11 +232,11 @@ export function renderUpdateRunReport(
     run.status === "failed" && repairStopReason === "requester-revoked"
       ? nextAction
         ? "Repair stopped because the chat requester is no longer a command owner. Further recovery requires a current command owner."
-        : "Repair stopped because the chat requester is no longer a command owner. A current command owner must start a new update, or the operator can run openclaw triage locally."
+        : "Repair stopped because the chat requester is no longer a command owner. A current command owner must start a new update, or the operator can run vasudev triage locally."
       : run.status === "failed" && repairStopReason === "repair-requires-config-change"
         ? nextAction
           ? "Doctor could not promote config changes. Review the named keys and writer refusal before continuing recovery."
-          : "Doctor could not promote config changes. Review the named keys and writer refusal, then run openclaw doctor --fix under your own authority, or openclaw triage."
+          : "Doctor could not promote config changes. Review the named keys and writer refusal, then run vasudev doctor --fix under your own authority, or vasudev triage."
         : undefined;
   const hints =
     run.status === "running"

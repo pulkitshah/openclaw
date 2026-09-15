@@ -85,7 +85,7 @@ export async function agentsSetIdentityCommand(
   const wantsIdentityFile = Boolean(opts.fromIdentity || identityFileRaw || !hasExplicitIdentity);
   const normalizedAgent = opts.agent === undefined ? null : normalizeAgentIdStrict(opts.agent);
   if (normalizedAgent && !normalizedAgent.ok) {
-    failAgentIdentity(`Agent "${opts.agent}" not found. Create it with \`openclaw agents add\`.`);
+    failAgentIdentity(`Agent "${opts.agent}" not found. Create it with \`vasudev agents add\`.`);
   }
   let agentId = normalizedAgent?.value;
 
@@ -125,7 +125,7 @@ export async function agentsSetIdentityCommand(
   const resolvedAgentIds = listAgentIds(cfg).map((id) => normalizeAgentId(id));
   if (!resolvedAgentIds.includes(resolvedAgentId)) {
     failAgentIdentity(
-      `Agent "${resolvedAgentId}" not found. Create it with \`openclaw agents add\`.`,
+      `Agent "${resolvedAgentId}" not found. Create it with \`vasudev agents add\`.`,
     );
   }
   let identityFromFile: AgentIdentityFile | null = null;
@@ -214,7 +214,7 @@ export async function agentsSetIdentityCommand(
   if (locatorDiffers && workspaceLocatorDir) {
     runtime.log(`Workspace locator: ${sanitizeTerminalText(shortenHomePath(workspaceLocatorDir))}`);
     runtime.log(
-      `Stored workspace unchanged. Relocate with ${formatCliCommand(`openclaw config set agents.entries.${resolvedAgentId}.workspace ${quoteCliArg(workspaceLocatorDir)}`)}.`,
+      `Stored workspace unchanged. Relocate with ${formatCliCommand(`vasudev config set agents.entries.${resolvedAgentId}.workspace ${quoteCliArg(workspaceLocatorDir)}`)}.`,
     );
   } else if (identitySourceDiffers && identitySourceDir) {
     runtime.log(`Identity source: ${sanitizeTerminalText(shortenHomePath(identitySourceDir))}`);

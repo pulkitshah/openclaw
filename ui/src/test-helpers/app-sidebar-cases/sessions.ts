@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { GatewayBrowserClient } from "../../api/gateway.ts";
+import { FEATURES } from "../../app/brand.ts";
 import type { SidebarSessionSortMode } from "../../components/app-sidebar-session-types.ts";
 import {
   createContext,
@@ -128,6 +129,16 @@ describe("AppSidebar session pagination", () => {
 });
 
 describe("AppSidebar lobster outcome wiring", () => {
+  // The pet only perches in a build that ships LobsterDex, and this wiring is
+  // its contract, so these cases turn the feature on.
+  beforeEach(() => {
+    FEATURES.lobsterDex = true;
+  });
+
+  afterEach(() => {
+    FEATURES.lobsterDex = false;
+  });
+
   it.each([
     ["panel", "failed", "error"],
     ["panel", "killed", "aborted"],

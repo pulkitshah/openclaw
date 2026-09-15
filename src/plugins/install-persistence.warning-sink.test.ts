@@ -95,7 +95,7 @@ describe("plugin install persistence warning audiences", () => {
 
     expect(next.plugins?.entries?.workboard).toEqual({ enabled: false });
     expect(warn).toHaveBeenCalledExactlyOnceWith(
-      'Installed plugin "workboard" without enabling it because it requires configuration first. Configure it, then run `openclaw plugins enable workboard`.',
+      'Installed plugin "workboard" without enabling it because it requires configuration first. Configure it, then run `vasudev plugins enable workboard`.',
     );
     expect(pluginsCliRuntimeLogs.join("\n")).toContain("requires configuration first");
     expect(pluginsCliRuntimeLogs).toContain("Installed plugin: workboard");

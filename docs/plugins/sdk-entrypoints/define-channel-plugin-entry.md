@@ -66,7 +66,7 @@ Callbacks run per registration mode (full table under
   command metadata, and normal CLI registration stays compatible with full
   plugin loads.
 - `registerFull` runs only for `"full"` and `"tool-discovery"`. For
-  `"tool-discovery"` it runs _instead of_ channel registration: OpenClaw
+  `"tool-discovery"` it runs _instead of_ channel registration: Vasudev
   skips `registerChannel`/`setRuntime` entirely and calls the full-runtime
   callback followed by the capability callback. Keep tool registration in
   `registerFull` and capability providers in `registerCapabilities`.
@@ -74,11 +74,11 @@ Callbacks run per registration mode (full table under
   `"tool-discovery"`. Register inert advertised providers here so read-only
   capability discovery can find them without starting sockets, clients,
   workers, or services.
-- Discovery registration is non-activating, not import-free: OpenClaw may
+- Discovery registration is non-activating, not import-free: Vasudev may
   evaluate the trusted plugin entry and channel plugin module to build the
   snapshot. Keep top-level imports side-effect-free and put sockets,
   clients, workers, and services behind `"full"`-only paths.
-- Like `definePluginEntry`, `configSchema` can be a lazy factory; OpenClaw
+- Like `definePluginEntry`, `configSchema` can be a lazy factory; Vasudev
   memoizes the resolved schema on first access.
 
 CLI registration:
@@ -86,7 +86,7 @@ CLI registration:
 - Use `api.registerCli(..., { descriptors: [...] })` for plugin-owned root
   CLI commands you want lazy-loaded without disappearing from the root CLI
   parse tree. Descriptor names must match letters, numbers, hyphen, and
-  underscore, starting with a letter or number; OpenClaw rejects other
+  underscore, starting with a letter or number; Vasudev rejects other
   shapes and strips terminal control sequences from descriptions before
   rendering help. Cover every top-level command root the registrar exposes,
   and declare the same name, description, and subcommand marker in the
@@ -105,7 +105,7 @@ CLI registration:
   they land under `openclaw nodes` (equivalent to
   `registerCli(registrar, { parentPath: ["nodes"], ... })`).
 - For other nested plugin commands, add `parentPath` and register commands
-  on the `program` object passed to the registrar; OpenClaw resolves it to
+  on the `program` object passed to the registrar; Vasudev resolves it to
   the parent command before calling the plugin.
 - For channel plugins, register CLI descriptors from `registerCliMetadata`
   and keep `registerFull` focused on runtime-only work.

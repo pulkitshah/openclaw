@@ -11,30 +11,30 @@ const delegationTools: CodexDynamicToolSpec[] = [
   {
     type: "function",
     name: "sessions_spawn",
-    description: "Spawn an OpenClaw session",
+    description: "Spawn a Vasudev session",
     inputSchema: { type: "object" },
   },
   {
     type: "function",
     name: "sessions_send",
-    description: "Send to an OpenClaw session",
+    description: "Send to a Vasudev session",
     inputSchema: { type: "object" },
   },
   {
     type: "function",
     name: "subagents",
-    description: "List OpenClaw subagents",
+    description: "List Vasudev subagents",
     inputSchema: { type: "object" },
   },
   {
     type: "namespace",
     name: CODEX_OPENCLAW_DIRECT_DYNAMIC_TOOL_NAMESPACE,
-    description: "Direct OpenClaw tools",
+    description: "Direct Vasudev tools",
     tools: [
       {
         type: "function",
         name: "sessions_yield",
-        description: "Yield for OpenClaw session events",
+        description: "Yield for Vasudev session events",
         inputSchema: { type: "object" },
       },
     ],
@@ -144,8 +144,8 @@ describe("buildDeveloperInstructions credential routing", () => {
       dynamicTools,
     });
 
-    expect(instructions.includes("openclaw channels add <channel>")).toBe(terminalSetup);
-    expect(instructions.includes("openclaw configure")).toBe(terminalSetup);
+    expect(instructions.includes("vasudev channels add <channel>")).toBe(terminalSetup);
+    expect(instructions.includes("vasudev configure")).toBe(terminalSetup);
     expect(instructions).toContain("only to the requesting user in private");
     expect(instructions).toContain("then acknowledge in the group without them");
   });
@@ -214,7 +214,7 @@ describe("buildDeveloperInstructions UI presentation guidance", () => {
         {
           type: "namespace",
           name: "openclaw",
-          description: "OpenClaw tools",
+          description: "Vasudev tools",
           tools: uiTools.map((tool) => ({ ...tool, deferLoading: true })),
         },
       ],

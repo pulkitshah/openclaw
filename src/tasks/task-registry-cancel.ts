@@ -128,7 +128,7 @@ export async function cancelTaskById(params: {
       const owner = getTaskRunOwner(task);
       if (!owner) {
         return notCancelled(
-          "Task has no live run owner. Use openclaw tasks audit to inspect its state.",
+          "Task has no live run owner. Use vasudev tasks audit to inspect its state.",
         );
       }
       const result = await owner.cancel(cancellationError);

@@ -38,7 +38,7 @@ function createStubTransport(baseUrl = "http://127.0.0.1:43123") {
           enabled: true,
           baseUrl,
           botUserId: "openclaw",
-          botDisplayName: "OpenClaw QA",
+          botDisplayName: "Vasudev QA",
           allowFrom: ["*"],
           pollTimeoutMs: 250,
         },

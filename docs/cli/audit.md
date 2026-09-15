@@ -77,7 +77,7 @@ openclaw audit --kind message --direction outbound --channel telegram --json
 
 The CLI queries the versioned activity RPC so one command shows the complete
 configured ledger. Text output shows time, kind, direction, channel, status,
-agent, run, and action. Missing message provenance renders as `-`; OpenClaw
+agent, run, and action. Missing message provenance renders as `-`; Vasudev
 does not invent agent or run ids. Tool actions also show the tool name. JSON
 output includes `nextCursor` when another page exists. Pass that value to
 `--cursor` to continue without reordering records that arrive during paging.
@@ -106,7 +106,7 @@ activity list. One match resolves directly. Multiple matches return
 openclaw audit --execution <execution-id> --explain
 ```
 
-OpenClaw never silently selects the first or latest execution. The exact text
+Vasudev never silently selects the first or latest execution. The exact text
 view renders these sections:
 
 1. **Identity**: trust domain, invoker, ingress, agent principal, agent
@@ -214,7 +214,7 @@ Plugin, node, and worker receipts use the same coverage vocabulary:
 - A plugin node policy that returns without its supplied node callback is
   `unknown` with `node.action_callback` missing.
 - An action performed wholly inside an ACP or other external native runtime
-  without an OpenClaw pre-action callback produces an ACP-owner `unsupported`
+  without a Vasudev pre-action callback produces an ACP-owner `unsupported`
   receipt after admitted prompt submission, with `native.action_callback`
   missing. It does not claim a side effect. Add an authoritative native-action
   callback to the adapter to provide stronger evidence; transcript or task text

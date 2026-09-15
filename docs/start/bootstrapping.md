@@ -15,7 +15,7 @@ onboarding, on the agent's first real turn.
 ## What happens
 
 On the first run against a brand-new workspace (default `~/.openclaw/workspace`),
-OpenClaw:
+Vasudev:
 
 - Seeds `AGENTS.md`, `SOUL.md`, `IDENTITY.md`, `USER.md`, and `BOOTSTRAP.md`. Environment-specific tool notes belong in the `## Tools` section of `AGENTS.md`.
 - Has the agent follow a capped four-beat birth sequence: it asks what you want
@@ -41,7 +41,7 @@ diverged from its starter template, or a `memory/` folder exists.
 
 ## Embedded and local model runs
 
-For embedded or local-model runs, OpenClaw keeps `BOOTSTRAP.md` out of the
+For embedded or local-model runs, Vasudev keeps `BOOTSTRAP.md` out of the
 privileged system context. On the primary interactive first run it still
 passes the file contents through the user prompt, so models that don't
 reliably call the `read` tool can still complete the ritual. If the current

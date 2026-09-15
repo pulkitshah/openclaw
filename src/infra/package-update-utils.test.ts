@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { comparePackageUpdateVersions, isPackageVersionDowngrade } from "./package-update-utils.js";
 
 describe("comparePackageUpdateVersions", () => {
-  it("orders OpenClaw release versions ahead of their prereleases", () => {
+  it("orders Vasudev release versions ahead of their prereleases", () => {
     expect(comparePackageUpdateVersions("2026.7.2-beta.5", "2026.7.1-1")).toBeGreaterThan(0);
     expect(comparePackageUpdateVersions("2026.7.1-1", "2026.7.2-beta.5")).toBeLessThan(0);
   });

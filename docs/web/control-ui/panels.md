@@ -1,8 +1,8 @@
 ---
-summary: "Ask OpenClaw, the Home dock, the operator terminal, and the browser panel"
+summary: "Ask Vasudev, the Home dock, the operator terminal, and the browser panel"
 read_when:
   - Opening a terminal or browser beside a conversation
-  - Using Ask OpenClaw for setup and repair
+  - Using Ask Vasudev for setup and repair
   - Using the Home dock
 title: "Panels and docks"
 sidebarTitle: "Panels and docks"
@@ -10,11 +10,11 @@ sidebarTitle: "Panels and docks"
 
 Surfaces that dock beside the current page instead of replacing it.
 
-## OpenClaw system care
+## Vasudev system care
 
-Open **Settings → Ask OpenClaw** to talk to the system setup and repair agent. To open it alongside your current page, click **Home** in the sidebar footer and select the **Ask OpenClaw** tab, or use the **Ask OpenClaw** command-palette action. The full page and dockable panel share one machine-wide conversation whose durable history lives on the Gateway. Closing the UI never cancels a turn; reopening Ask OpenClaw shows the completed conversation. The panel docks on the right or bottom, remembers its placement and size in the browser profile, and hides itself while the full page is open.
+Open **Settings → Ask Vasudev** to talk to the system setup and repair agent. To open it alongside your current page, click **Home** in the sidebar footer and select the **Ask Vasudev** tab, or use the **Ask Vasudev** command-palette action. The full page and dockable panel share one machine-wide conversation whose durable history lives on the Gateway. Closing the UI never cancels a turn; reopening Ask Vasudev shows the completed conversation. The panel docks on the right or bottom, remembers its placement and size in the browser profile, and hides itself while the full page is open.
 
-If no AI provider is configured, Ask OpenClaw offers **Connect an AI provider**. If a configured runtime fails to start or verify, the conversation stays visible with the actual error and **Retry**. Sending stays disabled until verification succeeds. Retry checks the runtime without resending your earlier message or clearing your draft.
+If no AI provider is configured, Ask Vasudev offers **Connect an AI provider**. If a configured runtime fails to start or verify, the conversation stays visible with the actual error and **Retry**. Sending stays disabled until verification succeeds. Retry checks the runtime without resending your earlier message or clearing your draft.
 
 Each chat message carries the Control UI page you are currently viewing as an untrusted ambient hint, so requests like "configure this channel" or "why is this page empty?" resolve against the page you are looking at.
 
@@ -24,11 +24,11 @@ For Gateway setup, say `configure gateway` to choose the port, bind address, tok
 
 Say `import memory` to copy detected local memory into the existing default agent workspace. This flow does not change config or import credentials or skills, needs no Gateway restart, and distinguishes confirmed imports, nothing to import, provider failures, and failures where some files may already have been copied. Finish onboarding first if the default workspace does not exist. See [Import assistant memory](/web/control-ui/settings#import-assistant-memory) for the broader page that can target another agent or replace existing imports, and [`openclaw setup`](/cli/openclaw) for the operation and approval contract.
 
-Outside onboarding, this page can show at most one dismissible event chip per visit. It stays silent for routine Gateway traffic and reacts only to health snapshots that report a disabled configuration reloader, a configured channel disconnect/degradation, a failed channel probe, or unavailable channel credentials. A newer event replaces the pending chip only when it is more severe; dismissing or using the chip silences event prompts for that visit. Clicking the chip sends its diagnosis question as a real `openclaw.chat` message, so the transcript records the request and OpenClaw performs the diagnosis. Onboarding never shows these event chips.
+Outside onboarding, this page can show at most one dismissible event chip per visit. It stays silent for routine Gateway traffic and reacts only to health snapshots that report a disabled configuration reloader, a configured channel disconnect/degradation, a failed channel probe, or unavailable channel credentials. A newer event replaces the pending chip only when it is more severe; dismissing or using the chip silences event prompts for that visit. Clicking the chip sends its diagnosis question as a real `openclaw.chat` message, so the transcript records the request and Vasudev performs the diagnosis. Onboarding never shows these event chips.
 
 ## Home dock
 
-Use the **Home** button in the sidebar footer to open the selected agent's main conversation alongside your current page. Home and Ask OpenClaw share the dock. When the same Home conversation is already open as the page, the dock stays hidden rather than showing it twice.
+Use the **Home** button in the sidebar footer to open the selected agent's main conversation alongside your current page. Home and Ask Vasudev share the dock. When the same Home conversation is already open as the page, the dock stays hidden rather than showing it twice.
 
 Home can include a bounded, quoted work-context reference with your message. That reference belongs to the page's agent and session, not merely the Home conversation receiving it, and stays current when session titles or visible files change. It is reference data, not permission to access another conversation; you can remove it before sending.
 
@@ -48,7 +48,7 @@ Re-enabling allows fresh sessions; closed sessions do not return. Reload the
 Control UI page to pick up the updated content security policy.
 
 <Warning>
-The terminal is an unconfined host shell and inherits the Gateway process environment. Disable it with `gateway.terminal.enabled: false` on deployments where admin operators should not get a host shell. OpenClaw refuses terminal sessions for agents with `sandbox.mode: "all"`; changing an active agent to that mode closes its existing and in-flight terminal sessions.
+The terminal is an unconfined host shell and inherits the Gateway process environment. Disable it with `gateway.terminal.enabled: false` on deployments where admin operators should not get a host shell. Vasudev refuses terminal sessions for agents with `sandbox.mode: "all"`; changing an active agent to that mode closes its existing and in-flight terminal sessions.
 </Warning>
 
 Use **Ctrl + backtick** to toggle the **Terminal** tab in the selected Chat pane's unified side panel. You can also open **Terminal** from the panel's **+** menu. The shared panel docks right or bottom, resizes with the browser viewport, can expand over the Chat pane, and keeps multiple shell tabs. The dock remains available for ad-hoc operator shells. Starting a native CLI from **New session**, or opening a Claude Code or Codex catalog session in the terminal, opens the [main terminal page](/web/urls#terminal-urls), keeping the sidebar and application chrome while replacing the composer. See [Gateway configuration](/gateway/configuration-reference#gateway) for `gateway.terminal.enabled` and the optional `gateway.terminal.shell` override.
@@ -59,7 +59,7 @@ The unified panel also hosts **Browser**, **Files**, **Tasks**, **Review**, **Si
 
 Owner-authorized, unsandboxed agents can use the `terminal` tool to list, read, resize, or close terminals an operator already opened from the same Chat session's Terminal panel. Agents cannot open shells, and access remains exact-session scoped: an agent cannot inspect or control standalone operator terminals or terminals belonging to another session. Terminal input follows the effective session and host-exec permission policy: **Full access** (`full`, or YOLO) sends it immediately; **Guarded** (`guarded`) and **Workspace** (`workspace`, including accept-only or Guardian-reviewed flows) require an explicit, one-time approval for that exact input; **Read only** (`read-only`) or `tools.exec.mode: "deny"` forbids input entirely. Approving one input never grants unrestricted access to the terminal.
 
-Drag one or more files onto the active terminal, or use the paperclip button to choose files. OpenClaw stages each file on the machine that owns the PTY and pastes shell-quoted absolute paths at the cursor; it never presses Enter or executes the input. A compact batch indicator shows the current file and completed count. Cancel stops the remaining batch without pasting paths; a failed transfer stays visible so you can retry from that file without re-uploading completed files. Choose **Insert uploaded paths** to finish a failed batch using only its completed files, then select any remaining files separately. If the batch stays open until its early uploads may have expired, cancel it and choose the files again.
+Drag one or more files onto the active terminal, or use the paperclip button to choose files. Vasudev stages each file on the machine that owns the PTY and pastes shell-quoted absolute paths at the cursor; it never presses Enter or executes the input. A compact batch indicator shows the current file and completed count. Cancel stops the remaining batch without pasting paths; a failed transfer stays visible so you can retry from that file without re-uploading completed files. Choose **Insert uploaded paths** to finish a failed batch using only its completed files, then select any remaining files separately. If the batch stays open until its early uploads may have expired, cancel it and choose the files again.
 
 Images, PDFs, archives, and other file types are accepted up to 16 MiB per file. New uploads must fit within shared limits of 256 MiB and 64 files per staging directory, including files from other terminal tabs and previous processes. When either limit is reached, move or remove staged files, or wait for cleanup, then retry. Existing unexpired files are not evicted to make room, including uploads retained above these limits after an upgrade. Staged files use a private system-temporary directory on POSIX hosts (directory mode `0700`, file mode `0600`) or a directory under the user-profile ACL boundary on Windows, plus a 24-hour cleanup timer, so move or copy anything you need to keep.
 
@@ -71,7 +71,7 @@ Path insertion supports PowerShell, `cmd.exe`, and recognized POSIX shells (`sh`
 
 Paired-node Codex, Claude Code, OpenCode, and Pi terminals also support uploaded-path insertion, including Windows paths with spaces and apostrophes. The inserted input remains editable and is never automatically submitted.
 
-Claude Code and Codex sessions discovered in the sessions sidebar open their native CLI in the main terminal page. In **Settings › Chat**, set **Open Codex/Claude threads in** to **Terminal** to make a normal row click open `codex resume` or `claude --resume`; the default remains the read-only OpenClaw viewer. A row's right-click or kebab menu always offers both choices, and the viewer header includes **Open in terminal** when that session is eligible.
+Claude Code and Codex sessions discovered in the sessions sidebar open their native CLI in the main terminal page. In **Settings › Chat**, set **Open Codex/Claude threads in** to **Terminal** to make a normal row click open `codex resume` or `claude --resume`; the default remains the read-only Vasudev viewer. A row's right-click or kebab menu always offers both choices, and the viewer header includes **Open in terminal** when that session is eligible.
 
 Catalog-opening requests already queued by an older version finish once in the dock after upgrading. New requests use the main terminal page; the page does not persist catalog-opening intents.
 

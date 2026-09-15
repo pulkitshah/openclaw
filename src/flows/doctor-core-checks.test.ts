@@ -552,8 +552,8 @@ describe("CORE_HEALTH_CHECKS", () => {
                   "Anyone on your network can fully control your agent.",
                 ].join("\n"),
                 remediation: [
-                  "Fix: openclaw config set gateway.bind loopback",
-                  "Fix: openclaw doctor --fix to generate a token",
+                  "Fix: vasudev config set gateway.bind loopback",
+                  "Fix: vasudev doctor --fix to generate a token",
                 ].join("\n"),
               },
             ];
@@ -583,8 +583,8 @@ describe("CORE_HEALTH_CHECKS", () => {
         message: 'CRITICAL: Gateway bound to "lan" (0.0.0.0) without authentication.',
         fixHint: [
           "Anyone on your network can fully control your agent.",
-          "Fix: openclaw config set gateway.bind loopback",
-          "Fix: openclaw doctor --fix to generate a token",
+          "Fix: vasudev config set gateway.bind loopback",
+          "Fix: vasudev doctor --fix to generate a token",
         ].join("\n"),
       }),
     ]);
@@ -616,7 +616,7 @@ describe("CORE_HEALTH_CHECKS", () => {
       expect.arrayContaining([
         expect.stringContaining("Codex plugin is disabled by config"),
         "Codex app-server command override includes inline arguments.",
-        "Custom Codex app-server command bypasses OpenClaw's managed exact-version binary.",
+        "Custom Codex app-server command bypasses Vasudev's managed exact-version binary.",
         "Explicit native Codex model routes cannot reproduce authored request transport parameters.",
       ]),
     );
@@ -625,7 +625,7 @@ describe("CORE_HEALTH_CHECKS", () => {
       target: "openai/gpt-5.5",
       requirement: "Codex plugin enabled for routes that use the Codex runtime.",
       fixHint:
-        "Enable plugins.entries.codex and plugin loading, and remove codex from plugins.deny; or set the affected OpenAI models to an OpenClaw runtime policy.",
+        "Enable plugins.entries.codex and plugin loading, and remove codex from plugins.deny; or set the affected OpenAI models to a Vasudev runtime policy.",
     });
   });
 
@@ -858,7 +858,7 @@ describe("CORE_HEALTH_CHECKS", () => {
         severity: "warning",
         message: expect.stringContaining("Gateway token SecretRef could not be resolved:"),
         fixHint:
-          "Run `openclaw doctor --allow-exec` to verify exec SecretRefs during doctor, or `openclaw secrets audit --allow-exec` to audit all exec SecretRefs.",
+          "Run `vasudev doctor --allow-exec` to verify exec SecretRefs during doctor, or `vasudev secrets audit --allow-exec` to audit all exec SecretRefs.",
       }),
     );
   });
@@ -1020,7 +1020,7 @@ describe("CORE_HEALTH_CHECKS", () => {
           severity,
           target: source,
           message: `Configured model "${source}" is a legacy reference. Doctor can migrate it to "${target}".`,
-          fixHint: `Run \`openclaw doctor --fix\` to migrate this model reference to "${target}".`,
+          fixHint: `Run \`vasudev doctor --fix\` to migrate this model reference to "${target}".`,
         }),
       );
     }

@@ -96,7 +96,7 @@ describe("1Password SecretRef setup", () => {
     ]);
   });
 
-  it("builds arbitrary known OpenClaw and auth-profile targets", async () => {
+  it("builds arbitrary known Vasudev and auth-profile targets", async () => {
     const plan = await createSetupPlan([
       "--target",
       "channels.telegram.botToken=op://openclaw/Telegram/botToken",
@@ -124,7 +124,7 @@ describe("1Password SecretRef setup", () => {
   });
 
   it("encodes native 1Password refs with spaces and selectors", async () => {
-    const nativeRef = "op://Personal/OpenClaw QA API Key/password?attribute=value%20one";
+    const nativeRef = "op://Personal/Vasudev QA API Key/password?attribute=value%20one";
     const plan = await createSetupPlan(["--provider-key", `openai=${nativeRef}`]);
     expect(plan.targets[0]).toMatchObject({
       providerId: "openai",
@@ -190,9 +190,9 @@ describe("1Password SecretRef setup", () => {
       const output = await runSetup(planPath, ["--openai-id", "op://openclaw/OpenAI/credential"]);
       expect(output).toContain("openclaw onepassword secretref status");
       expect(output).toContain(
-        `openclaw secrets apply --from '${canonicalPlanPath}' --dry-run --allow-exec`,
+        `vasudev secrets apply --from '${canonicalPlanPath}' --dry-run --allow-exec`,
       );
-      expect(output).toContain(`openclaw secrets apply --from '${canonicalPlanPath}' --allow-exec`);
+      expect(output).toContain(`vasudev secrets apply --from '${canonicalPlanPath}' --allow-exec`);
     } finally {
       await fs.rm(tempDir, { recursive: true, force: true });
     }

@@ -112,7 +112,7 @@ describe("doctor registered npm plugin host links", () => {
 
       expect(fs.lstatSync(staleHostDir).isSymbolicLink()).toBe(true);
       expect(fs.realpathSync(staleHostDir)).toBe(fs.realpathSync(process.cwd()));
-      expect(vi.mocked(note).mock.calls.join("\n")).toContain("OpenClaw host peer link");
+      expect(vi.mocked(note).mock.calls.join("\n")).toContain("Vasudev host peer link");
     },
   );
 

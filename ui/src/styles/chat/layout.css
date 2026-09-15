@@ -2105,11 +2105,11 @@ openclaw-chat-video-player {
 }
 
 .chat-swarm__task-icon--done {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .chat-swarm__task-icon--failed {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .chat-swarm__task-name {
@@ -2188,7 +2188,7 @@ openclaw-chat-video-player {
   width: 18px;
   height: 18px;
   place-items: center;
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .chat-pr[data-state="draft"] .chat-pr__icon {
@@ -2196,7 +2196,7 @@ openclaw-chat-video-player {
 }
 
 .chat-pr[data-state="closed"] .chat-pr__icon {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .chat-pr[data-state="merged"] .chat-pr__icon {
@@ -2261,11 +2261,11 @@ button.chat-pr__diff {
 }
 
 .chat-pr__additions {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .chat-pr__deletions {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .chat-pr__checks {
@@ -2274,15 +2274,15 @@ button.chat-pr__diff {
 }
 
 .chat-pr__checks[data-checks="passing"] {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .chat-pr__checks[data-checks="pending"] {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .chat-pr__checks[data-checks="failing"] {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .chat-pr__checks-pill {
@@ -2402,7 +2402,7 @@ button.chat-pr__diff {
 .chat-pr__warning {
   display: grid;
   place-items: center;
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 .chat-pr__create {
@@ -2441,7 +2441,7 @@ button.chat-pr__diff {
 }
 
 .chat-pr__publication-outcome[data-state="failed"] {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .chat-pr__dismiss {
@@ -2734,7 +2734,7 @@ button.chat-pr__diff {
 /* Interrupted floats at the composer owner so terminal feedback never becomes
    transcript content or changes the message viewport geometry. */
 .agent-chat__run-status--interrupted {
-  color: var(--warn);
+  color: var(--warn-text);
 }
 
 @media (max-width: 640px), (max-width: 932px) and (max-height: 500px) and (orientation: landscape) {
@@ -2894,13 +2894,13 @@ button.chat-pr__diff {
     min-width: var(--chat-mobile-row-target-size);
     height: var(--chat-mobile-row-target-size);
     background: color-mix(in srgb, var(--danger) 14%, transparent);
-    color: var(--danger);
+    color: var(--danger-text);
   }
 
   .agent-chat__input--chat .chat-send-btn--stop > svg {
     width: var(--chat-mobile-row-stop-icon-size);
     height: var(--chat-mobile-row-stop-icon-size);
-    color: var(--danger);
+    color: var(--danger-text);
     fill: currentColor;
     stroke: none;
   }

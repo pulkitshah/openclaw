@@ -48,7 +48,7 @@ export function normalizePluginToolMatcher(matcher: unknown): PluginToolMatcher 
       NON_CANONICAL_TOOL_MATCHER_NAMES.has(canonicalToolName) ||
       NON_CANONICAL_TOOL_MATCHER_NAMES.has(toolName.trim())
     ) {
-      throw new TypeError("tool hook matcher entries must use canonical OpenClaw tool ids");
+      throw new TypeError("tool hook matcher entries must use canonical Vasudev tool ids");
     }
     normalized.add(canonicalToolName);
   }

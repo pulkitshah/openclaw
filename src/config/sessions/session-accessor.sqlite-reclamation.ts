@@ -528,7 +528,7 @@ export async function runSqliteSessionReclamation(params: {
         {
           errors: workerResult.cleanupWarnings ?? [],
           path: params.plan.databaseOptions.path,
-          recovery: "restart OpenClaw before deleting the owning agent",
+          recovery: "restart Vasudev before deleting the owning agent",
         },
       );
     } else if (workerResult.cleanupWarnings?.length) {

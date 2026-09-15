@@ -1,14 +1,14 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "name": "OpenClaw",
+  "name": "Vasudev",
   "description": "Self-hosted gateway that connects Discord, Google Chat, iMessage, Matrix, Microsoft Teams, Signal, Slack, Telegram, WhatsApp, Zalo, and more to AI coding agents. Run one Gateway process on your own machine and message your AI assistant from anywhere.",
   "theme": "mint",
   "icons": {
     "library": "lucide"
   },
   "logo": {
-    "light": "/assets/pixel-lobster.svg",
-    "dark": "/assets/pixel-lobster.svg"
+    "light": "/assets/orb.svg",
+    "dark": "/assets/orb.svg"
   },
   "fonts": {
     "body": {
@@ -18,11 +18,11 @@
       "family": "DM Sans"
     }
   },
-  "favicon": "/assets/pixel-lobster.svg",
+  "favicon": "/assets/orb.svg",
   "colors": {
-    "primary": "#D84A31",
-    "dark": "#E05540",
-    "light": "#F5654A"
+    "primary": "#8a2be2",
+    "dark": "#8a2be2",
+    "light": "#a58bf0"
   },
   "styling": {
     "codeblocks": {
@@ -1282,7 +1282,7 @@
     },
     {
       "source": "/ci/openclaw-performance",
-      "destination": "/ci/scheduled-workflows#openclaw-performance"
+      "destination": "/ci/scheduled-workflows#vasudev-performance"
     },
     {
       "source": "/ci/full-release-validation",

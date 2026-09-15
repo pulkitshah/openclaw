@@ -202,7 +202,7 @@ function resolveRecoveryOutcome(
 ): string {
   if (result.recovery?.serviceRestartSafe === true) {
     if (result.recovery.service === "failed") {
-      return "runtime files verified; Gateway restart failed. Run `openclaw gateway status --deep` before restarting manually.";
+      return "runtime files verified; Gateway restart failed. Run `vasudev gateway status --deep` before restarting manually.";
     }
     return "verified safe to restart";
   }
@@ -303,11 +303,11 @@ export async function prepareUpdateFailureReport(
   const phase = resolveFailedPhase(input.result, steps, context);
   const recovery = resolveRecoveryOutcome(input.result, context);
   const bodyWithoutMarker = [
-    "# OpenClaw update failure report",
+    "# Vasudev update failure report",
     "",
-    "This report was explicitly reviewed and confirmed in OpenClaw.",
+    "This report was explicitly reviewed and confirmed in Vasudev.",
     "",
-    `- OpenClaw version: ${version}`,
+    `- Vasudev version: ${version}`,
     `- Platform: ${platform}`,
     `- Node version: ${sanitizeReportField(process.versions.node ?? "unknown", context)}`,
     `- Update target: ${target}`,
@@ -324,8 +324,8 @@ export async function prepareUpdateFailureReport(
     .digest("hex")}`;
   const body = truncateUtf8Prefix(
     bodyWithoutMarker.replace(
-      "This report was explicitly reviewed and confirmed in OpenClaw.\n",
-      `This report was explicitly reviewed and confirmed in OpenClaw.\n\n<!-- ${reconciliationMarker} -->\n`,
+      "This report was explicitly reviewed and confirmed in Vasudev.\n",
+      `This report was explicitly reviewed and confirmed in Vasudev.\n\n<!-- ${reconciliationMarker} -->\n`,
     ),
     UPDATE_REPORT_BODY_MAX_BYTES,
   );

@@ -137,7 +137,7 @@ describe("Doctor report process output", () => {
     expect(fs.readFileSync(configPath)).toEqual(configBefore);
     expect(result.status, `${result.stderr}\n${result.stdout}`).toBe(1);
     expect(`${result.stderr}\n${result.stdout}`).toContain(
-      "Doctor refused update-time schema repair driven by OpenClaw 2026.9.2",
+      "Doctor refused update-time schema repair driven by Vasudev 2026.9.2",
     );
   });
 
@@ -195,7 +195,7 @@ describe("Doctor report process output", () => {
       "Deferred legacy agent/session migration: select an agent owner",
     );
     expect(refusedOutput).toContain("No listed legacy source was removed.");
-    expect(refusedOutput).toContain('rerun "openclaw doctor --fix"');
+    expect(refusedOutput).toContain('rerun "vasudev doctor --fix"');
     expect(fs.readFileSync(configPath)).toEqual(configBefore);
     expect(fs.readFileSync(workspaceSource)).toEqual(workspaceBefore);
     expect(fs.readFileSync(tuiSource)).toEqual(tuiBefore);
@@ -259,7 +259,7 @@ describe("Doctor report process output", () => {
     expect(result.signal, output).toBeNull();
     expect(result.status, output).toBe(1);
     expect(output).toContain("Legacy session store requires migration");
-    expect(output).toContain("openclaw doctor --fix");
+    expect(output).toContain("vasudev doctor --fix");
     expect(output).not.toContain("Doctor complete.");
     expect(fs.readFileSync(storePath)).toEqual(original);
     expect(JSON.parse(fs.readFileSync(configPath, "utf8"))).toMatchObject({

@@ -2,7 +2,7 @@
 summary: "Shared-state compaction plus targeted session SQLite inspection, import, and recovery"
 title: "SQLite maintenance and session migration"
 read_when:
-  - You are compacting or verifying an OpenClaw SQLite database
+  - You are compacting or verifying a Vasudev SQLite database
   - You are importing, validating, or recovering legacy session history
 ---
 
@@ -40,7 +40,7 @@ The command:
    database is reported as `skipped` and exits successfully.
 2. Validates the current supported schema version and
    `schema_meta.role = "global"` before checkpointing or changing the file.
-3. Requires a non-busy `wal_checkpoint(TRUNCATE)`. Stop any remaining OpenClaw
+3. Requires a non-busy `wal_checkpoint(TRUNCATE)`. Stop any remaining Vasudev
    process and retry if the checkpoint is busy.
 4. Sets `auto_vacuum` to `INCREMENTAL`, runs a full `VACUUM`, and checkpoints
    again.
@@ -54,9 +54,9 @@ fail-closed and has no separate success field. SQLite reports `auto_vacuum` as
 `0` for none, `1` for full, and `2` for incremental.
 
 Compaction fails without mutation when the schema is old, newer than the
-running OpenClaw build, or belongs to an agent database. Run
+running Vasudev build, or belongs to an agent database. Run
 `openclaw doctor --fix` first for an older shared-state schema. Restore a
-compatible backup or upgrade OpenClaw for a newer schema.
+compatible backup or upgrade Vasudev for a newer schema.
 
 ## Session SQLite migration
 
@@ -99,7 +99,7 @@ copy and a rewritten intermediate file.
 
 For large histories, plan space for the original JSON/JSONL files, the temporary
 SQLite spool, and the destination database and WAL at the same time. Keep free
-space on both the system temporary volume and the volume holding OpenClaw state;
+space on both the system temporary volume and the volume holding Vasudev state;
 the resulting SQLite database can be larger than the original JSONL. Streaming
 reduces whole-history memory pressure, but individual records are still parsed
 in memory and SQLite also uses native memory. Do not size a host from the JSONL

@@ -66,7 +66,7 @@ Every new archive records a structured reason automatically. Explicit archive ac
 
 Normal Gateway writes flow through the session accessor, which serializes per-agent SQLite mutations through the runtime writer path. Runtime code should prefer the accessor helpers in `src/config/sessions/session-accessor.ts`; legacy `sessions.json` helpers are migration and offline-maintenance tools. When a Gateway is reachable, non-dry-run `openclaw sessions cleanup` and `openclaw agents delete` delegate store mutations to the Gateway so cleanup joins the same writer queue; `--store <path>` is the explicit offline repair path for a selected legacy store and always stays local (as does `--dry-run`). `maxEntries` cleanup is batched for production-sized stores, so the unarchived population may briefly exceed the configured cap before the next high-water cleanup rewrites it down. Reads never prune or cap entries during Gateway startup - only writes or `openclaw sessions cleanup --enforce` do, and the latter also applies the cap immediately and prunes old unreferenced legacy transcript, checkpoint, and trajectory artifacts even with no disk budget configured.
 
-OpenClaw no longer creates automatic `sessions.json.bak.*` rotation backups during Gateway writes. The current schema rejects the legacy `session.maintenance.rotateBytes` key, and `openclaw doctor --fix` removes it from older configs.
+Vasudev no longer creates automatic `sessions.json.bak.*` rotation backups during Gateway writes. The current schema rejects the legacy `session.maintenance.rotateBytes` key, and `openclaw doctor --fix` removes it from older configs.
 
 Migration recovery originals and exact pre-Doctor recovery files are separate
 from ordinary session retention: they are excluded from the live session disk
@@ -151,7 +151,7 @@ database size therefore shrinks gradually; readers can delay reclamation.
 Use Doctor's offline `compact` operation when a full rewrite is needed.
 
 If an archive is missing or its recorded size or hash does not match, reading
-or restoring that transcript fails explicitly. OpenClaw does not substitute an
+or restoring that transcript fails explicitly. Vasudev does not substitute an
 empty transcript. Restore the matching file from a backup, or restore a
 complete supported database backup; a checksum cannot reconstruct deleted
 bytes. Keep independent backups before enabling extraction.
@@ -177,7 +177,7 @@ table, so lowering the schema marker is not a downgrade procedure.
 
 ### Downgrading After The SQLite Flip
 
-Stop the Gateway and back up its state. Using the current SQLite-capable OpenClaw
+Stop the Gateway and back up its state. Using the current SQLite-capable Vasudev
 version, restore archived legacy session stores and transcript artifacts before
 starting an older file-backed version:
 
@@ -204,7 +204,7 @@ disposal; see [Pre-update backups](/install/updating#before-updating-create-a-ve
 Restore does not export changes made only in SQLite after migration. Sessions
 created after the SQLite flip are SQLite-only and will not appear to an older
 file-backed runtime. If you re-upgrade after a downgrade, run the Doctor
-inspection and validation sequence again so OpenClaw can verify restored legacy
+inspection and validation sequence again so Vasudev can verify restored legacy
 artifacts before importing.
 
 ## Cron sessions and run logs

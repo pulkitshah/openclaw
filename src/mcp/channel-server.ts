@@ -2,7 +2,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { createChannelMcpRuntime } from "./channel-server-runtime.js";
 
 /**
- * MCP stdio server assembly for OpenClaw channel conversations.
+ * MCP stdio server assembly for Vasudev channel conversations.
  *
  * This module wires config, the Gateway bridge, protocol notifications, and
  * registered tools into a lifecycle that callers can either embed or serve.

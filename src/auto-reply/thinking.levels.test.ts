@@ -561,7 +561,7 @@ describe("listThinkingLevels", () => {
     ).toEqual(["off", "minimal", "low", "medium", "high"]);
   });
 
-  it("honors provider-owned thinking maps before compat and derives OpenClaw Ultra", () => {
+  it("honors provider-owned thinking maps before compat and derives Vasudev Ultra", () => {
     const catalog = [
       {
         provider: "custom",
@@ -661,7 +661,7 @@ describe("listThinkingLevels", () => {
     ).toBe(true);
   });
 
-  it("uses advanced catalog efforts and derives OpenClaw Ultra from Max", () => {
+  it("uses advanced catalog efforts and derives Vasudev Ultra from Max", () => {
     const catalog = [
       {
         provider: "myazure",
@@ -706,7 +706,7 @@ describe("listThinkingLevels", () => {
     expect(listThinkingLevels("myazure", "gpt-5.6-sol", catalog, "codex")).not.toContain("ultra");
   });
 
-  it("preserves catalog-advertised Ultra for non-OpenClaw runtimes", () => {
+  it("preserves catalog-advertised Ultra for non-Vasudev runtimes", () => {
     const catalog = [
       {
         provider: "myazure",

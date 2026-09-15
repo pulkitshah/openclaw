@@ -17,7 +17,7 @@ function sanitizeRuntimeId(value: string): string {
   return `openclaw-mxc-${slug || "sandbox"}-${hash}`;
 }
 
-/** Factory function called by OpenClaw when sandbox.backend=mxc. */
+/** Factory function called by Vasudev when sandbox.backend=mxc. */
 export function createMxcSandboxBackendFactory(config: MxcConfig) {
   return async function createMxcSandboxBackend(
     params: CreateSandboxBackendParams,

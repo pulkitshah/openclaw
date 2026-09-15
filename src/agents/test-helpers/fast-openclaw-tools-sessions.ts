@@ -1,5 +1,5 @@
 /**
- * Fast OpenClaw sessions-tool mocks.
+ * Fast Vasudev sessions-tool mocks.
  *
  * Stubs unrelated tool factories so sessions/subagent registration tests import cheaply.
  */

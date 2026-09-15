@@ -14,7 +14,7 @@ Which tool policies push a Codex turn onto the restricted native surface. Part o
 
 The Codex harness evaluates the effective tool policy for every turn. It marks
 the turn policy-restricted when any explicit policy would otherwise leave a
-Codex-native capability outside the OpenClaw policy boundary.
+Codex-native capability outside the Vasudev policy boundary.
 
 Restriction sources include global, provider, agent, group, sender, sandbox,
 subagent, inherited, scheduled/runtime, and per-run tool policies. A finite
@@ -34,22 +34,22 @@ tts, video_generate, web_fetch, x_search
 ```
 
 A policy containing only those denies stays on the normal Codex native surface;
-the harness applies the named OpenClaw denial directly. Any other deny fails
+the harness applies the named Vasudev denial directly. Any other deny fails
 closed into the restricted surface. For example, `tools.deny: ["nodes"]`
 restricts the native surface because `nodes` is not in the audited set.
 
 Policy-restricted turns have no Codex environment selection or native Code Mode.
-OpenClaw disables inherited and configured MCP servers, attests that they remain
+Vasudev disables inherited and configured MCP servers, attests that they remain
 disabled, disables native hook relays, and applies the effective policy to its
 dynamic tools. A temporary restriction on an existing session uses a transient
 Codex thread and preserves the unrestricted binding for later resume.
 
 Ring zero is not a configurable policy profile. It is the host-scoped system
-agent path used by OpenClaw setup and repair flows. The host must activate the
+agent path used by Vasudev setup and repair flows. The host must activate the
 system-agent authority and provide the exact single-tool allowlist
 `["openclaw"]`. Ring zero applies the restricted tool surface plus host-authored
 base instructions and zero project-document budget. It also suppresses
-OpenClaw's `AGENTS.md` developer-instruction carrier, so ambient workspace
+Vasudev's `AGENTS.md` developer-instruction carrier, so ambient workspace
 instructions cannot enter the setup/repair turn.
 
 Message-only source replies also use the restricted tool surface. Lightweight

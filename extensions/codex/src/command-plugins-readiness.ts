@@ -108,7 +108,7 @@ export function describeCodexHostedAppsSupport(support: CodexHostedAppsSupport):
     case "disabled":
       return "Hosted apps are disabled in this Codex runtime. Check its effective apps feature configuration.";
     case "unsupported":
-      return "Hosted app support is unknown: this Codex version cannot report the required feature state. Update to OpenClaw's supported Codex version.";
+      return "Hosted app support is unknown: this Codex version cannot report the required feature state. Update to Vasudev's supported Codex version.";
     default:
       return "Hosted app support is unknown. Check /codex account and retry this command.";
   }
@@ -311,7 +311,7 @@ export function formatCodexPluginReadiness(
     `Catalog: ${catalog === "blocked" ? "blocked by marketplace policy" : catalog}`,
     `Bundle: ${summary ? (summary.installed ? "installed" : "not installed") : "unknown"}`,
     `Codex plugin: ${summary ? (summary.enabled ? "enabled" : "disabled") : "unknown"}`,
-    `OpenClaw app access: ${readiness.openClawEnabled ? "enabled" : "disabled"} (shared Codex plugin configuration; takes effect on your next message).`,
+    `Vasudev app access: ${readiness.openClawEnabled ? "enabled" : "disabled"} (shared Codex plugin configuration; takes effect on your next message).`,
     ...(hasApps ? [describeCodexHostedAppsSupport(readiness.hostedSupport)] : []),
   ];
   if (catalog === "blocked") {
@@ -404,7 +404,7 @@ export function formatCodexPluginReadiness(
       }
       blocks.push({
         type: "text",
-        text: "Flags reflect Codex's runtime snapshot; status does not refresh hosted tools. After connecting, /codex plugins refresh refreshes hosted inventory for the current Codex account/runtime, across all apps. Use Check status separately to inspect this plugin without refreshing. OpenClaw app-access changes take effect on your next message; use /new or /reset after connecting.",
+        text: "Flags reflect Codex's runtime snapshot; status does not refresh hosted tools. After connecting, /codex plugins refresh refreshes hosted inventory for the current Codex account/runtime, across all apps. Use Check status separately to inspect this plugin without refreshing. Vasudev app-access changes take effect on your next message; use /new or /reset after connecting.",
       });
       blocks.push({
         type: "buttons",
@@ -453,7 +453,7 @@ async function readEvidence<T>(read: () => Promise<T>): Promise<Evidence<T>> {
 
 function describeUnavailableEvidence(reason: "unsupported" | "request_failed"): string {
   return reason === "unsupported"
-    ? "This Codex app-server does not support the required status method. Update to OpenClaw's supported Codex version."
+    ? "This Codex app-server does not support the required status method. Update to Vasudev's supported Codex version."
     : "Codex status could not be read. Check Codex sign-in and connectivity, then run this command again.";
 }
 

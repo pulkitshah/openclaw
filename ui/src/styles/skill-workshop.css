@@ -28,7 +28,7 @@
 }
 
 .sw-skill-changes .chat-diffstat__add {
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .sw-skill-changes .chat-diffstat__del {
@@ -878,7 +878,7 @@
 .sw-evaluation__badge.is-pass,
 .sw-evaluation__badge.is-completed {
   border-color: color-mix(in srgb, var(--ok) 46%, var(--border));
-  color: var(--ok);
+  color: var(--ok-text);
 }
 
 .sw-evaluation__badge.is-revise,
@@ -891,7 +891,7 @@
 .sw-evaluation__badge.is-error,
 .sw-evaluation__severity.is-critical {
   border-color: color-mix(in srgb, var(--danger) 46%, var(--border));
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .sw-evaluation__summary,
@@ -909,7 +909,7 @@
 }
 
 .sw-evaluation__error {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .sw-evaluation__findings,
@@ -1217,7 +1217,7 @@
 }
 
 .sw-btn--danger {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .sw-detail__meta-link {

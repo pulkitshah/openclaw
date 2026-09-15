@@ -5,7 +5,7 @@
     "configRepair": true
   },
   "name": "Tlon/Urbit",
-  "description": "OpenClaw Tlon/Urbit channel plugin for chat workflows.",
+  "description": "Vasudev Tlon/Urbit channel plugin for chat workflows.",
   "activation": {
     "onStartup": false
   },

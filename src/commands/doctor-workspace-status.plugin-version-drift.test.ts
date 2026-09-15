@@ -86,7 +86,7 @@ describe("official Codex plugin version drift doctor evidence", () => {
     try {
       noteWorkspaceStatus(config, { pluginVersionReadiness: readiness });
       expect(noteSpy).toHaveBeenCalledWith(
-        expect.stringContaining("Running Gateway: OpenClaw 2026.5.30"),
+        expect.stringContaining("Running Gateway: Vasudev 2026.5.30"),
         "Plugin restart readiness",
       );
     } finally {
@@ -109,7 +109,7 @@ describe("official Codex plugin version drift doctor evidence", () => {
       expect.objectContaining({
         requirement: "plugin-version-gateway-restart",
         message: expect.stringContaining(`running Gateway is ${runningGatewayVersion}`),
-        fixHint: "openclaw gateway restart",
+        fixHint: "vasudev gateway restart",
       }),
     ]);
 
@@ -117,7 +117,7 @@ describe("official Codex plugin version drift doctor evidence", () => {
     try {
       noteWorkspaceStatus(config, { pluginVersionReadiness: readiness });
       expect(noteSpy).toHaveBeenCalledWith(
-        expect.stringContaining(`Running Gateway: OpenClaw ${runningGatewayVersion}`),
+        expect.stringContaining(`Running Gateway: Vasudev ${runningGatewayVersion}`),
         "Plugin restart readiness",
       );
     } finally {
@@ -158,11 +158,11 @@ describe("official Codex plugin version drift doctor evidence", () => {
         {
           checkId: "core/doctor/workspace-status",
           severity: "warning",
-          message: `Plugin codex is ${installedVersion}, but a Gateway restart will load OpenClaw ${gatewayVersion}.`,
+          message: `Plugin codex is ${installedVersion}, but a Gateway restart will load Vasudev ${gatewayVersion}.`,
           path: "plugins.entries.codex",
           target: "codex",
           requirement: "plugin-version-drift",
-          fixHint: "openclaw plugins update @openclaw/codex@2026.6.1 && openclaw gateway restart",
+          fixHint: "vasudev plugins update @openclaw/codex@2026.6.1 && vasudev gateway restart",
         },
       ]);
 
@@ -176,13 +176,13 @@ describe("official Codex plugin version drift doctor evidence", () => {
         );
         expect(driftNotes).toHaveLength(1);
         expect(driftNotes[0]?.[0]).toContain(
-          `1 active official plugin not on post-restart OpenClaw ${gatewayVersion}`,
+          `1 active official plugin not on post-restart Vasudev ${gatewayVersion}`,
         );
         expect(driftNotes[0]?.[0]).toContain(
           `codex: ${installedVersion} (npm) -> expected ${gatewayVersion}`,
         );
-        expect(driftNotes[0]?.[0]).toContain("openclaw plugins update @openclaw/codex@2026.6.1");
-        expect(driftNotes[0]?.[0]).toContain("openclaw gateway restart");
+        expect(driftNotes[0]?.[0]).toContain("vasudev plugins update @openclaw/codex@2026.6.1");
+        expect(driftNotes[0]?.[0]).toContain("vasudev gateway restart");
       } finally {
         noteSpy.mockRestore();
       }

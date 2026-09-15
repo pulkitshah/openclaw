@@ -1,4 +1,4 @@
-/** Reads Agent/Codex/Claude/Cursor bundle manifests into OpenClaw plugin manifest metadata. */
+/** Reads Agent/Codex/Claude/Cursor bundle manifests into Vasudev plugin manifest metadata. */
 import path from "node:path";
 import {
   normalizeLowercaseStringOrEmpty,
@@ -41,7 +41,7 @@ type BundlePluginManifest = {
   version?: string;
   skills: string[];
   settingsFiles?: string[];
-  // Only include hook roots that OpenClaw can execute via HOOK.md + handler files.
+  // Only include hook roots that Vasudev can execute via HOOK.md + handler files.
   hooks: string[];
   bundleFormat: PluginBundleFormat;
   activation?: PluginManifestActivation;
@@ -505,7 +505,7 @@ export function detectBundleManifestFormat(
   if (pluginCacheExistsSync(path.join(rootDir, PLUGIN_MANIFEST_FILENAME))) {
     return null;
   }
-  // Client-specific bundle dirs and native OpenClaw manifests take precedence;
+  // Client-specific bundle dirs and native Vasudev manifests take precedence;
   // the portable root manifest is the fallback when neither is present.
   if (pluginCacheExistsSync(path.join(rootDir, AGENT_BUNDLE_MANIFEST_RELATIVE_PATH))) {
     const agentManifest = loadBundleManifestFile({

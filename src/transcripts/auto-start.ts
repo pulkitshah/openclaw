@@ -287,7 +287,7 @@ function startTranscriptsAutoStartEntry(
       // Log diagnostics only, never the tool content or captured meeting notes.
       if (typeof details.summaryExportError === "string") {
         warnings.push(
-          `summary saved; export failed intendedSummaryPath=${formatAutoStopDiagnostic(details.intendedSummaryPath)}: ${formatAutoStopDiagnostic(details.summaryExportError)}. Correct the export destination, then run openclaw transcripts path <session> or openclaw transcripts show <session>.`,
+          `summary saved; export failed intendedSummaryPath=${formatAutoStopDiagnostic(details.intendedSummaryPath)}: ${formatAutoStopDiagnostic(details.summaryExportError)}. Correct the export destination, then run vasudev transcripts path <session> or vasudev transcripts show <session>.`,
         );
       }
       if (typeof details.providerStopError === "string") {

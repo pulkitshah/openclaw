@@ -138,7 +138,7 @@ export function createManagedHandoffLeaseStore(
     };
     const parsed = managedHandoffBootSchema.safeParse(boot);
     if (!parsed.success) {
-      throw new Error("OS boot identity unavailable; run openclaw triage manually");
+      throw new Error("OS boot identity unavailable; run vasudev triage manually");
     }
     return parsed.data;
   }
@@ -190,7 +190,7 @@ export function createManagedHandoffLeaseStore(
     const payload = parseManagedHandoffLeasePayload(value.payload_json);
     if (!payload || !text.safeParse(value.owner).success) {
       throw new Error(
-        "existing managed handoff lease is incompatible; retain diagnostics and run openclaw triage manually",
+        "existing managed handoff lease is incompatible; retain diagnostics and run vasudev triage manually",
       );
     }
     return {

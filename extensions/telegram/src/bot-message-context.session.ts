@@ -1,4 +1,5 @@
 // Telegram plugin module implements bot message context.session behavior.
+import { PRODUCT_NAME } from "openclaw/plugin-sdk/brand";
 import {
   type BuildChannelInboundEventContextParams,
   type BuildChannelInboundEventContextAsyncParams,
@@ -750,7 +751,7 @@ export async function buildTelegramInboundContextPayload(params: {
       historyLimit: isGroup ? historyLimit : dmHistoryLimit,
       beforeTimestampMs: options?.receivedAtMs ?? (msg.date ? msg.date * 1000 : undefined),
       minTimestampMs: options?.promptContextMinTimestampMs,
-      senderLabels: { assistant: "OpenClaw", user: "User" },
+      senderLabels: { assistant: PRODUCT_NAME, user: "User" },
     },
     access: {
       commands: {

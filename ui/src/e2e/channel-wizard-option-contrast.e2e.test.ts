@@ -61,7 +61,7 @@ suite.define(() => {
                   {
                     value: "primary",
                     label: "Primary iMessage connection",
-                    hint: "The main iMessage connection for this OpenClaw gateway",
+                    hint: "The main iMessage connection for this Vasudev gateway",
                   },
                   {
                     value: "another",

@@ -65,7 +65,7 @@ export async function refreshRunningGatewayAuthState(
   }
   runtime.error(
     localTarget === true
-      ? `Warning: Model auth changes were saved, but the ${gatewayConnected ? "running" : "local"} Gateway could not refresh them. Run \`openclaw gateway restart\` to apply the saved changes.`
+      ? `Warning: Model auth changes were saved, but the ${gatewayConnected ? "running" : "local"} Gateway could not refresh them. Run \`vasudev gateway restart\` to apply the saved changes.`
       : "Warning: Model auth changes were saved, but the configured Gateway could not be identified or refreshed. Apply the auth change on the Gateway host, or restart it there.",
   );
   return gatewayConnected ? "gateway-rejected" : "gateway-unreachable";

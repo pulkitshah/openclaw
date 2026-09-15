@@ -551,7 +551,7 @@ describe("buildServiceEnvironment", () => {
     }
   });
 
-  it("sets the OpenClaw-owned launchd marker for macOS gateway services", () => {
+  it("sets the Vasudev-owned launchd marker for macOS gateway services", () => {
     const env = buildServiceEnvironment({
       env: { HOME: "/Users/user" },
       port: 18789,
@@ -811,7 +811,7 @@ describe("buildNodeServiceEnvironment", () => {
     expect(env).not.toHaveProperty("OPENCLAW_SERVICE_VERSION");
   });
 
-  it("sets the OpenClaw-owned launchd marker for macOS node services", () => {
+  it("sets the Vasudev-owned launchd marker for macOS node services", () => {
     const env = buildNodeServiceEnvironment({
       env: { HOME: "/Users/user" },
       platform: "darwin",

@@ -2713,7 +2713,7 @@ describe("agentCommand – LiveSessionModelSwitchError retry", () => {
     },
   );
 
-  it("does not treat backend CLI session id as OpenClaw session identity", async () => {
+  it("does not treat backend CLI session id as Vasudev session identity", async () => {
     setupSingleAttemptFallback();
     setupStoredSession();
     const result = makeSuccessResult("openai", "gpt-5.4") as ReturnType<
@@ -2757,7 +2757,7 @@ describe("agentCommand – LiveSessionModelSwitchError retry", () => {
     expect(state.updateSessionStoreAfterAgentRunMock).toHaveBeenCalledTimes(1);
   });
 
-  it("forwards an explicit OpenClaw runtime override into fallback and attempt execution", async () => {
+  it("forwards an explicit Vasudev runtime override into fallback and attempt execution", async () => {
     setupSingleAttemptFallback();
     state.runtimeConfigMock = {
       agents: {

@@ -2,7 +2,7 @@
   "name": "@openclaw/admin-http-rpc",
   "version": "2026.9.4",
   "private": true,
-  "description": "OpenClaw admin HTTP RPC endpoint",
+  "description": "Vasudev admin HTTP RPC endpoint",
   "type": "module",
   "devDependencies": {
     "@openclaw/plugin-sdk": "workspace:*"

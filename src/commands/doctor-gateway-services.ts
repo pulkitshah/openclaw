@@ -298,7 +298,7 @@ async function resolveSystemdServiceRewriteBlock(
     return undefined;
   }
   issues.splice(0, issues.length, ...issues.filter((issue) => !isExecStartRepairIssue(issue)));
-  return `Gateway service ${unitName} is running; skipped command/entrypoint rewrites and leaving supervisor metadata unchanged. Stop the service first or use \`openclaw gateway install --force\` when you want to replace the active launcher.`;
+  return `Gateway service ${unitName} is running; skipped command/entrypoint rewrites and leaving supervisor metadata unchanged. Stop the service first or use \`vasudev gateway install --force\` when you want to replace the active launcher.`;
 }
 
 async function filterInactiveExtraGatewayServices(
@@ -342,7 +342,7 @@ export function extraGatewayServiceToHealthFinding(service: ExtraGatewayService)
     target: service.label,
     fixHint:
       service.legacy === true
-        ? "Run `openclaw doctor` interactively to review legacy gateway services and confirm supported cleanup."
+        ? "Run `vasudev doctor` interactively to review legacy gateway services and confirm supported cleanup."
         : "Run a single gateway per machine unless this extra gateway is intentional.",
   };
 }
@@ -569,7 +569,7 @@ export async function maybeRepairGatewayServiceConfig(
   const sourceCheckoutWarning = serviceLayout?.entrypointSourceCheckout
     ? [
         `Gateway service entrypoint resolves to a source checkout: ${serviceLayout.packageRootReal ?? serviceLayout.packageRoot ?? serviceLayout.entrypointReal ?? serviceLayout.entrypoint}.`,
-        "Run `openclaw gateway install --force` from the intended package install to replace the gateway service definition.",
+        "Run `vasudev gateway install --force` from the intended package install to replace the gateway service definition.",
       ].join("\n")
     : null;
 
@@ -767,7 +767,7 @@ export async function maybeRepairGatewayServiceConfig(
     })
   ) {
     note(
-      "Update-mode doctor detected gateway service drift but left the live systemd unit unchanged. Review the service file and run `openclaw gateway install --force` when you want OpenClaw to rewrite its managed unit; operator-owned drop-ins remain unchanged.",
+      "Update-mode doctor detected gateway service drift but left the live systemd unit unchanged. Review the service file and run `vasudev gateway install --force` when you want Vasudev to rewrite its managed unit; operator-owned drop-ins remain unchanged.",
       "Gateway service config",
     );
     return cfg;
@@ -794,7 +794,7 @@ export async function maybeRepairGatewayServiceConfig(
   if (!repair) {
     if (!emittedSourceCheckoutWarning) {
       note(
-        "Run `openclaw gateway install --force` when you want to replace the gateway service definition.",
+        "Run `vasudev gateway install --force` when you want to replace the gateway service definition.",
         "Gateway service config",
       );
     }
@@ -1087,7 +1087,7 @@ export async function maybeResolveDuelingSystemdGatewayScopes(
   const { user, system } = installation;
   note(
     [
-      "Both a user-scope and a system-scope OpenClaw gateway unit are installed:",
+      "Both a user-scope and a system-scope Vasudev gateway unit are installed:",
       `- user:   ${user.unitPath}`,
       `- system: ${system.unitPath}`,
       "They bind the same port and will SIGTERM each other in a restart loop.",

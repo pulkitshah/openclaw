@@ -1,5 +1,5 @@
 ---
-summary: "Launch self-contained OpenClaw HTML widgets inside Discord Activities"
+summary: "Launch self-contained Vasudev HTML widgets inside Discord Activities"
 read_when:
   - Setting up or troubleshooting Discord Activity widgets
 title: "Discord Activities"
@@ -11,8 +11,8 @@ The feature is off by default. `show_widget` remains one core-owned tool. When `
 
 ## Prerequisites
 
-- an existing [OpenClaw Discord bot](/channels/discord)
-- a public HTTPS hostname that reaches the OpenClaw gateway
+- an existing [Vasudev Discord bot](/channels/discord)
+- a public HTTPS hostname that reaches the Vasudev gateway
 - permission to configure Activities and OAuth2 for the bot's Discord application
 
 Any HTTPS reverse proxy or tunnel works. A named Cloudflare Tunnel provides a stable hostname without exposing the gateway port directly.
@@ -57,7 +57,7 @@ Keep normal gateway authentication enabled. Only the Activity prefix is public, 
     Open **OAuth2** in the Developer Portal. Discord requires at least one redirect URI, so add a local placeholder such as the loopback address if the application has none yet; the Embedded App SDK handles the Activity return flow. Copy or reset the application client secret. Treat it as a credential: do not paste it into chat, logs, or a committed configuration file.
   </Step>
 
-  <Step title="Configure OpenClaw">
+  <Step title="Configure Vasudev">
     Add one block to the Discord account that should offer widgets:
 
     ```json5
@@ -92,7 +92,7 @@ Core validates and wraps the widget document before handing it to Discord. The p
 
 - OAuth identifies the Discord user before widget metadata is returned.
 - Discord's Get Activity Instance API must confirm that the OAuth user is present in the current Activity instance. The instance channel must match the channel where the widget was posted.
-- Everyone who Discord permits into that channel can open its widgets. To narrow the audience, use Discord channel permissions. OpenClaw command and DM allowlists do not grant or remove access to already-posted channel content.
+- Everyone who Discord permits into that channel can open its widgets. To narrow the audience, use Discord channel permissions. Vasudev command and DM allowlists do not grant or remove access to already-posted channel content.
 - OAuth sessions expire after 15 minutes. Widget document capabilities expire after 60 seconds and work once.
 - Widgets expire after seven days, with at most 64 retained per Discord plugin instance.
 - Widget HTML is authored by your agent and should be treated as trusted content. Do not embed secrets you would not want a buggy widget to expose.
@@ -107,7 +107,7 @@ The public Activity shell and token-exchange route become reachable through your
 
 - confirm the tunnel is running and routes to the gateway's actual bind port
 - confirm the Developer Portal target includes `/discord/activity`
-- restart the gateway after changing Discord or OpenClaw configuration
+- restart the gateway after changing Discord or Vasudev configuration
 - confirm the Discord bot token and Activities client secret both resolve in the running gateway; incomplete credentials keep `/discord/activity` externally hidden behind the normal 404
 
 ### Discord opens a blank page or reports `blocked:csp`
@@ -120,8 +120,8 @@ Widget network requests are intentionally blocked. Inline all CSS, JavaScript, i
 
 ### “Widget unavailable”
 
-Launch the button from the channel where the agent posted it. OpenClaw tracks launches server-side when clicked, so a fresh launch record can resolve the exact widget even when Discord omits or mangles the button's custom ID. When neither the custom ID nor a launch record resolves, OpenClaw opens the most recently posted live widget in that channel. Older widgets remain addressable through buttons that preserve their custom ID.
+Launch the button from the channel where the agent posted it. Vasudev tracks launches server-side when clicked, so a fresh launch record can resolve the exact widget even when Discord omits or mangles the button's custom ID. When neither the custom ID nor a launch record resolves, Vasudev opens the most recently posted live widget in that channel. Older widgets remain addressable through buttons that preserve their custom ID.
 
 ### “You cannot launch Activities in this channel”
 
-Discord does not launch Activities from forum-style channels. OpenClaw rejects the Activity component delivery there instead of posting a button that cannot work. Ask for the widget from a regular text channel instead.
+Discord does not launch Activities from forum-style channels. Vasudev rejects the Activity component delivery there instead of posting a button that cannot work. Ask for the widget from a regular text channel instead.

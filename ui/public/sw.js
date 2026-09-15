@@ -1,6 +1,10 @@
 // OpenClaw Control – Service Worker
 // Handles offline caching and push notifications.
 
+// Notification fallback title. Mirrors PRODUCT_NAME in ui/src/app/brand.ts: the
+// worker ships as a static public file with no module graph, so it cannot import
+// the brand module. Cache keys deliberately keep the internal `openclaw` stem.
+const PRODUCT_NAME = "Vasudev";
 const CACHE_PREFIX = "openclaw-control-";
 const EMBEDDED_CACHE_VERSION = "__OPENCLAW_CONTROL_UI_BUILD_ID__";
 const URL_CACHE_VERSION = new URL(self.location.href).searchParams
@@ -144,10 +148,10 @@ self.addEventListener("push", (event) => {
   try {
     data = event.data.json();
   } catch {
-    data = { title: "OpenClaw", body: event.data.text() };
+    data = { title: PRODUCT_NAME, body: event.data.text() };
   }
 
-  const title = data.title || "OpenClaw";
+  const title = data.title || PRODUCT_NAME;
   const options = {
     body: data.body || "",
     icon: "./apple-touch-icon.png",

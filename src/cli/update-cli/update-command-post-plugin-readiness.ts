@@ -22,7 +22,7 @@ function readinessWarning(
     message: finding.message,
     guidance: [
       finding.fixHint ??
-        `Resolve this finding, then rerun \`openclaw doctor --lint --only ${finding.checkId}\`.`,
+        `Resolve this finding, then rerun \`vasudev doctor --lint --only ${finding.checkId}\`.`,
     ],
     ...(finding.source ? { pluginId: finding.source } : {}),
   };
@@ -41,7 +41,7 @@ function createPostPluginReadinessExecutionFailure(
       {
         reason,
         message: "Updated plugin readiness checks could not be completed before restart.",
-        guidance: ["Run `openclaw update repair` to retry post-update readiness checks."],
+        guidance: ["Run `vasudev update repair` to retry post-update readiness checks."],
       },
     ],
   };
@@ -65,7 +65,7 @@ export async function applyPostPluginUpdateReadiness(params: {
   if (!entryPath) {
     return createPostPluginReadinessExecutionFailure(
       params.pluginUpdate,
-      "Updated OpenClaw entrypoint not found for post-plugin readiness checks",
+      "Updated Vasudev entrypoint not found for post-plugin readiness checks",
     );
   }
   const args = [entryPath, "doctor", "--lint", "--json", "--severity-min", "error"];

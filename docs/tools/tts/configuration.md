@@ -289,7 +289,7 @@ or blank, it keeps the base TTS voice.
 </Tabs>
 
 For Xiaomi `mimo-v2.5-tts-voicedesign`, omit `speakerVoice` and set `style` to
-the voice-design prompt. OpenClaw sends that prompt as the TTS `user` message
+the voice-design prompt. Vasudev sends that prompt as the TTS `user` message
 and does not send `audio.voice` for the voicedesign model.
 
 ### Local Speech Swift and speech-core
@@ -297,10 +297,10 @@ and does not send `audio.voice` for the voicedesign model.
 [Speech Swift](https://github.com/soniqo/speech-swift) and
 [speech-core](https://github.com/soniqo/speech-core) provide local speech
 inference across macOS, Linux, and Windows. Use the OpenAI-compatible HTTP
-provider when Speech Swift and OpenClaw run on the same Mac. Use Local CLI for
+provider when Speech Swift and Vasudev run on the same Mac. Use Local CLI for
 direct executable integration on any supported host.
 
-Install `ffmpeg` when a channel needs OpenClaw to convert WAV output to Opus or
+Install `ffmpeg` when a channel needs Vasudev to convert WAV output to Opus or
 raw PCM.
 
 <Tabs>
@@ -340,11 +340,11 @@ must be `wav` because the local endpoint does not emit compressed audio:
 
 `tts-1` selects Kokoro. Speech Swift registry aliases such as `qwen3-tts`,
 `cosyvoice`, and `voxcpm2` select other local engines. The placeholder API key
-is required by OpenClaw's provider configuration but is not validated by the
+is required by Vasudev's provider configuration but is not validated by the
 loopback server.
 </Tab>
 <Tab title="macOS CLI">
-The Homebrew `speech` executable can write directly to OpenClaw's
+The Homebrew `speech` executable can write directly to Vasudev's
 per-invocation output path:
 
 ```json5
@@ -367,7 +367,7 @@ per-invocation output path:
   </Tab>
   <Tab title="Linux CLI">
 Install a speech-core Linux release package, download the ONNX model set once,
-and verify synthesis before starting OpenClaw:
+and verify synthesis before starting Vasudev:
 
 ```bash
 speech download-models

@@ -49,7 +49,7 @@ Use `cron_reconciled` as the full-snapshot trigger for durable state loaded at
 Gateway startup or scheduler replacement. It is not replayed for a plugin-only
 hot reload. Observation handlers run in parallel, and fire-and-forget
 dispatches can overlap, so consumers must not depend on event completion order.
-Keep OpenClaw as the source of truth for due checks and execution.
+Keep Vasudev as the source of truth for due checks and execution.
 
 For a single-flight adapter with durable replacement, retry/backoff, and clean
 shutdown, see [Safe external cron projection](/plugins/hooks/lifecycle#safe-external-cron-projection).

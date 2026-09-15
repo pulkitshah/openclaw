@@ -2,7 +2,7 @@
  * MCP client transport factory.
  *
  * This module turns normalized MCP server config into stdio, SSE, or
- * streamable-HTTP SDK transports with OpenClaw auth, redirect, and logging rules.
+ * streamable-HTTP SDK transports with Vasudev auth, redirect, and logging rules.
  */
 import { StringDecoder } from "node:string_decoder";
 import type { SSEClientTransportOptions } from "@modelcontextprotocol/sdk/client/sse.js";

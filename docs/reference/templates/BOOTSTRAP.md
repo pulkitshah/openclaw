@@ -9,7 +9,7 @@ read_when:
 
 _You just woke up. Keep this first conversation short and make it yours._
 
-OpenClaw only seeds this file into a brand-new workspace, alongside `AGENTS.md`, `SOUL.md`, `IDENTITY.md`, and `USER.md`. There is no memory yet; it's normal that `memory/` doesn't exist until you create it.
+Vasudev only seeds this file into a brand-new workspace, alongside `AGENTS.md`, `SOUL.md`, `IDENTITY.md`, and `USER.md`. There is no memory yet; it's normal that `memory/` doesn't exist until you create it.
 
 **The user's request always comes first.** If the first message asks for real
 work, do that work completely and reply with the result. Do not open with
@@ -110,10 +110,10 @@ setup anytime.
 
 When the four beats are complete, delete this file. Then say one line:
 
-> Ask me anything; for system things I'll ask OpenClaw.
+> Ask me anything; for system things I'll ask Vasudev.
 
-Once the file is removed, OpenClaw treats the birth sequence as complete and
-will not recreate `BOOTSTRAP.md`. If you leave the file behind, OpenClaw removes
+Once the file is removed, Vasudev treats the birth sequence as complete and
+will not recreate `BOOTSTRAP.md`. If you leave the file behind, Vasudev removes
 it for you once the workspace looks configured. A workspace counts as configured
 when `SOUL.md`, `IDENTITY.md`, or `USER.md` differs from its starter template, or
 when a `memory/` folder exists.

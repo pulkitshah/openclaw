@@ -2378,7 +2378,7 @@ describe("runDoctorSessionSqlite", () => {
     );
     const failureReport = fs.readFileSync(failureReportPath, "utf-8");
     expect(failureReport).toContain("sqlite_compact_failed");
-    expect(failureReport).toContain("openclaw doctor --session-sqlite recover --github-issue");
+    expect(failureReport).toContain("vasudev doctor --session-sqlite recover --github-issue");
     expect(failureReport).not.toContain("supersecret");
     const after = new sqlite.DatabaseSync(sqlitePath);
     try {
@@ -2509,7 +2509,7 @@ describe("runDoctorSessionSqlite", () => {
         )((event) => {
           events.push(event);
         }),
-      ).toThrow(/stop active session writers and rerun `openclaw doctor --fix`/);
+      ).toThrow(/stop active session writers and rerun `vasudev doctor --fix`/);
       expect(events).toEqual([]);
     } finally {
       statSpy.mockRestore();
@@ -2535,7 +2535,7 @@ describe("runDoctorSessionSqlite", () => {
 
     try {
       await expect(importLegacyStore(store)).rejects.toThrow(
-        /stop active session writers and rerun `openclaw doctor --fix`/,
+        /stop active session writers and rerun `vasudev doctor --fix`/,
       );
       expect(fs.existsSync(store.transcriptPath)).toBe(true);
     } finally {
@@ -3001,7 +3001,7 @@ describe("runDoctorSessionSqlite", () => {
       mutate: (database: DatabaseSync) => {
         database.exec(`PRAGMA user_version = ${OPENCLAW_AGENT_SCHEMA_VERSION - 1};`);
       },
-      message: /run openclaw doctor --fix before compacting/iu,
+      message: /run vasudev doctor --fix before compacting/iu,
     },
   ])("rejects $label before compaction", async ({ mutate, message }) => {
     const { sqlitePath, store } = await createImportedStoreForCompaction();
@@ -5251,7 +5251,7 @@ describe("runDoctorSessionSqlite", () => {
       const receiptJson = fs.readFileSync(manifestPath, "utf8");
       expect(receiptJson).not.toContain(`stable sanitized report v${manifestVersion}`);
       expect(receiptJson).not.toContain("github.com/openclaw/openclaw/issues/");
-      expect(receiptJson).not.toContain("openclaw doctor");
+      expect(receiptJson).not.toContain("vasudev doctor");
       expect(receiptJson).not.toContain('"body"');
       expect(receiptJson).not.toContain("?body=");
       expect(fs.readFileSync(failureMarkdownPath, "utf8")).toBe(

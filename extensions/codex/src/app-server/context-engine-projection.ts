@@ -1,6 +1,6 @@
 import { IMAGE_BLOCK_TOKENS } from "openclaw/plugin-sdk/agent-core";
 /**
- * Projects OpenClaw context-engine assemblies into Codex prompt text while
+ * Projects Vasudev context-engine assemblies into Codex prompt text while
  * preserving safety boundaries and redacting tool payloads.
  */
 import {
@@ -33,7 +33,7 @@ export type CodexProjectedContextRange = {
   end: number;
 };
 
-const CONTEXT_HEADER = "OpenClaw assembled context for this turn:";
+const CONTEXT_HEADER = "Vasudev assembled context for this turn:";
 const CONTEXT_OPEN = "<conversation_context>";
 const CONTEXT_CLOSE = "</conversation_context>";
 const REQUEST_HEADER = "Current user request:";
@@ -72,7 +72,7 @@ export function isCodexDurableCustomMessage(message: AgentMessage): boolean {
   );
 }
 
-/** Projects assembled OpenClaw context-engine messages into Codex prompt inputs. */
+/** Projects assembled Vasudev context-engine messages into Codex prompt inputs. */
 export async function projectContextEngineAssemblyForCodex(params: {
   assembledMessages: AgentMessage[];
   originalHistoryMessages: AgentMessage[];

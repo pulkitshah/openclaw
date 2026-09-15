@@ -1,7 +1,7 @@
 /**
  * Simple completion transport preparation.
  *
- * Registers provider-specific stream functions and rewrites models that need OpenClaw-managed transport semantics.
+ * Registers provider-specific stream functions and rewrites models that need Vasudev-managed transport semantics.
  */
 import { randomUUID } from "node:crypto";
 import type { Api, Model, StreamFn, StreamOptions } from "@openclaw/llm-core";
@@ -153,7 +153,7 @@ function prepareCodexSimpleTransportModel<TApi extends Api>(
   }
 
   // Static Codex provider catalogs intentionally omit credentials; the simple
-  // completion path must use OpenClaw's transport so resolved request auth is applied.
+  // completion path must use Vasudev's transport so resolved request auth is applied.
   const transportModel = projectModel(model, {
     baseUrl: normalizeCodexResponsesBaseUrlForOpenAISdk(model.baseUrl),
   });

@@ -27,7 +27,7 @@ export function registerOpenClawAgentDatabaseIdentity(db: DatabaseSync): void {
 export function readOpenClawAgentDatabaseIdentity(database: AgentDatabaseOwner) {
   const prepared = identities.get(database.db);
   if (prepared === undefined) {
-    throw new Error("OpenClaw agent database identity was not prepared at open");
+    throw new Error("Vasudev agent database identity was not prepared at open");
   }
   return prepared;
 }
@@ -54,7 +54,7 @@ export function createOpenClawAgentDatabaseClaim(
     isCurrent,
     assertCurrent: () => {
       if (!isCurrent()) {
-        throw new Error("OpenClaw agent database claim is no longer current");
+        throw new Error("Vasudev agent database claim is no longer current");
       }
     },
     release: () => {

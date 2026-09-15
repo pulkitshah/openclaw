@@ -822,7 +822,7 @@ describe("Codex /codex plugins subcommand", () => {
     );
 
     expect(result.text).toContain("bundle was installed in Codex");
-    expect(result.text).toContain("OpenClaw app access is configured");
+    expect(result.text).toContain("Vasudev app access is configured");
     expect(result.text).toContain("1 app still requires connector authentication in ChatGPT");
     expect(result.text).toContain("Installation does not confirm app connections");
     expect(result.text).toContain(installUrl);

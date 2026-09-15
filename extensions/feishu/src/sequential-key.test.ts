@@ -92,7 +92,7 @@ describe("getFeishuSequentialKey", () => {
       {
         key: "@_bot_1",
         id: { open_id: "ou_bot_1" },
-        name: "OpenClaw",
+        name: "Vasudev",
       },
     ];
 

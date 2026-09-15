@@ -575,7 +575,7 @@ describe("buildEmbeddedRunPayloads tool-error warnings", () => {
     const payloads = buildPayloads({
       lastToolError: {
         toolName: "gateway_exec",
-        error: "OpenClaw dynamic tool call aborted.",
+        error: "Vasudev dynamic tool call aborted.",
         executionStarted: true,
       },
       runAborted: true,

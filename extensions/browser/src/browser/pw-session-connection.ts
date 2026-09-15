@@ -441,7 +441,7 @@ export async function connectBrowser(
         if (!relay && !resolvedEndpoint && !configuredIsWebSocket) {
           if (hasUrlCredentials) {
             // Playwright preserves explicit headers across HTTP discovery redirects.
-            // Keep credentialed discovery in OpenClaw's guarded fetch path instead.
+            // Keep credentialed discovery in Vasudev's guarded fetch path instead.
             throw new Error(
               "Authenticated CDP HTTP endpoint did not expose a usable WebSocket URL.",
             );

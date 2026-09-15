@@ -6,7 +6,7 @@ read_when:
 title: "SenseAudio"
 ---
 
-SenseAudio transcribes inbound audio and voice-note attachments through OpenClaw's shared `tools.media.audio` pipeline. OpenClaw posts multipart audio to the OpenAI-compatible transcription endpoint and injects the returned text as `{{Transcript}}` plus an `[Audio]` block.
+SenseAudio transcribes inbound audio and voice-note attachments through Vasudev's shared `tools.media.audio` pipeline. Vasudev posts multipart audio to the OpenAI-compatible transcription endpoint and injects the returned text as `{{Transcript}}` plus an `[Audio]` block.
 
 | Property      | Value                                            |
 | ------------- | ------------------------------------------------ |
@@ -48,7 +48,7 @@ SenseAudio transcribes inbound audio and voice-note attachments through OpenClaw
     ```
   </Step>
   <Step title="Send a voice note">
-    Send an audio message through any connected channel. OpenClaw uploads the
+    Send an audio message through any connected channel. Vasudev uploads the
     audio to SenseAudio and uses the transcript in the reply pipeline.
   </Step>
 </Steps>
@@ -64,7 +64,7 @@ SenseAudio transcribes inbound audio and voice-note attachments through OpenClaw
 | `headers`  | `tools.media.models[].headers`  | Extra request headers               |
 
 <Note>
-SenseAudio is batch STT only in OpenClaw. [Voice Call](/plugins/voice-call)
+SenseAudio is batch STT only in Vasudev. [Voice Call](/plugins/voice-call)
 realtime transcription continues to use providers with streaming STT support.
 </Note>
 

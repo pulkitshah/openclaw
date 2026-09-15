@@ -51,7 +51,7 @@ async function resolveAuthOrderContext(
   const rawProvider = opts.provider?.trim();
   if (!rawProvider) {
     throw new Error(
-      `Missing --provider. Run ${formatCliCommand("openclaw models auth list")} to see saved provider profiles.`,
+      `Missing --provider. Run ${formatCliCommand("vasudev models auth list")} to see saved provider profiles.`,
     );
   }
   const provider = normalizeProviderId(rawProvider);
@@ -106,7 +106,7 @@ export async function modelsAuthOrderClearCommand(
   });
   if (!updated) {
     throw new Error(
-      `Failed to update auth state; the auth state lock may be busy. Wait a moment and rerun ${formatCliCommand("openclaw models auth order clear --provider " + provider)}.`,
+      `Failed to update auth state; the auth state lock may be busy. Wait a moment and rerun ${formatCliCommand("vasudev models auth order clear --provider " + provider)}.`,
     );
   }
 
@@ -131,7 +131,7 @@ export async function modelsAuthOrderSetCommand(
   const requested = normalizeStringEntries(opts.order ?? []);
   if (requested.length === 0) {
     throw new Error(
-      `Missing profile ids. Run ${formatCliCommand("openclaw models auth list --provider " + provider)} to choose one or more profile ids.`,
+      `Missing profile ids. Run ${formatCliCommand("vasudev models auth list --provider " + provider)} to choose one or more profile ids.`,
     );
   }
 
@@ -139,7 +139,7 @@ export async function modelsAuthOrderSetCommand(
     const cred = store.profiles[profileId];
     if (!cred) {
       throw new Error(
-        `Auth profile "${profileId}" not found in ${shortenHomePath(agentDir)}. Run ${formatCliCommand("openclaw models auth list --provider " + provider)} to see saved profiles.`,
+        `Auth profile "${profileId}" not found in ${shortenHomePath(agentDir)}. Run ${formatCliCommand("vasudev models auth list --provider " + provider)} to see saved profiles.`,
       );
     }
     if (
@@ -157,7 +157,7 @@ export async function modelsAuthOrderSetCommand(
   });
   if (!updated) {
     throw new Error(
-      `Failed to update auth state; the auth state lock may be busy. Wait a moment and rerun ${formatCliCommand("openclaw models auth order set --provider " + provider + " <profileIds...>")}.`,
+      `Failed to update auth state; the auth state lock may be busy. Wait a moment and rerun ${formatCliCommand("vasudev models auth order set --provider " + provider + " <profileIds...>")}.`,
     );
   }
 

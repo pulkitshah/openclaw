@@ -262,7 +262,7 @@ export const execApprovalsHandlers: GatewayRequestHandlers = {
       respond,
       command: "system.execApprovals.set",
       // Host-native nodes own a different policy model. Preserve that model at
-      // the node boundary instead of pretending it is an OpenClaw approvals file.
+      // the node boundary instead of pretending it is a Vasudev approvals file.
       commandParams: (parsedParams) =>
         "native" in parsedParams
           ? { ...parsedParams.native, baseHash: parsedParams.baseHash }

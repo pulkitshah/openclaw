@@ -135,7 +135,7 @@ export function createGatewayTool(options?: {
     name: "gateway",
     description: allowConfigReads
       ? "Read gateway config/schema. update.run: owner-only update on explicit user request; restart + completion notice automatic. Never via shell."
-      : "Update OpenClaw with update.run, only on an explicit owner request. Restart and completion notice are automatic. Never via shell.",
+      : "Update Vasudev with update.run, only on an explicit owner request. Restart and completion notice are automatic. Never via shell.",
     parameters: allowConfigReads ? GatewayToolSchema : GatewayUpdateToolSchema,
     execute: async (_toolCallId, args, signal) => {
       const params = args as Record<string, unknown>;
@@ -150,7 +150,7 @@ export function createGatewayTool(options?: {
           return jsonResult({
             ok: false,
             code: "owner_required",
-            message: `Only the OpenClaw owner can start an update from chat. ${hint}`,
+            message: `Only the Vasudev owner can start an update from chat. ${hint}`,
           });
         }
         // Routing comes from the admitted caller, never model-authored destinations or credentials.

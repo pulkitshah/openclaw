@@ -836,7 +836,7 @@ describe("Where chip", () => {
           headlessReconnectCommand: "openclaw node restart",
         } as const,
       ],
-      reason: /openclaw update.*openclaw node restart/i,
+      reason: /openclaw update.*vasudev node restart/i,
     },
   ])("disables automatic selection with an actionable reason when $name", ({ issues, reason }) => {
     const container = renderPicker(false, undefined, {

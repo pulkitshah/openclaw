@@ -67,14 +67,14 @@ export async function noteMacDisabledGatewayLaunchAgent(env: NodeJS.ProcessEnv =
     [
       `Gateway LaunchAgent ${label} is installed but unloaded and disabled in launchd.`,
       "A terminated update helper can leave it disabled across logins. Doctor does not automatically re-enable it.",
-      `After verifying the installation is safe to run, use ${labelEnv}${formatCliCommand("openclaw gateway start", env)} to re-enable and start it. Keep the same state/config overrides.`,
-      `If an update was interrupted or installation safety is uncertain, run ${formatCliCommand("openclaw update", env)} or ${formatCliCommand("openclaw doctor", env)} and ${formatCliCommand("openclaw triage", env)} before starting it.`,
+      `After verifying the installation is safe to run, use ${labelEnv}${formatCliCommand("vasudev gateway start", env)} to re-enable and start it. Keep the same state/config overrides.`,
+      `If an update was interrupted or installation safety is uncertain, run ${formatCliCommand("vasudev update", env)} or ${formatCliCommand("vasudev doctor", env)} and ${formatCliCommand("vasudev triage", env)} before starting it.`,
     ].join("\n"),
     "Gateway (macOS)",
   );
 }
 
-/** Returns a warning for stale OpenClaw updater launchd jobs left after interrupted updates. */
+/** Returns a warning for stale Vasudev updater launchd jobs left after interrupted updates. */
 async function collectMacStaleOpenClawUpdateLaunchdJobsWarning(): Promise<string | null> {
   if (process.platform !== "darwin") {
     return null;
@@ -86,7 +86,7 @@ async function collectMacStaleOpenClawUpdateLaunchdJobsWarning(): Promise<string
   }
 
   return [
-    "- Stale OpenClaw updater launchd job(s) detected.",
+    "- Stale Vasudev updater launchd job(s) detected.",
     ...jobs.map((job) => {
       const exitStatus =
         job.lastExitStatus !== undefined ? `, last exit ${job.lastExitStatus}` : "";
@@ -95,7 +95,7 @@ async function collectMacStaleOpenClawUpdateLaunchdJobsWarning(): Promise<string
     }),
     "- Fix after confirming no update is running:",
     "  launchctl remove <label>",
-    `  ${formatCliCommand("openclaw gateway restart")}`,
+    `  ${formatCliCommand("vasudev gateway restart")}`,
   ].join("\n");
 }
 
@@ -209,7 +209,7 @@ export async function collectGatewayPlatformWarnings(
           issue.detail ? `${issue.message} (${issue.detail})` : issue.message,
           // Structured Doctor keeps this second line in fixHint, so triage
           // message truncation cannot discard the supported repair command.
-          `Run ${formatCliCommand("openclaw gateway install --force")} only after verification; inspect drop-ins separately.`,
+          `Run ${formatCliCommand("vasudev gateway install --force")} only after verification; inspect drop-ins separately.`,
         ].join("\n"),
       );
   }

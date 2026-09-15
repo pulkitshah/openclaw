@@ -6,20 +6,20 @@ read_when:
 title: "RPC adapters"
 ---
 
-OpenClaw integrates external CLIs via JSON-RPC. Two patterns are used today.
+Vasudev integrates external CLIs via JSON-RPC. Two patterns are used today.
 
 ## Pattern A: HTTP daemon (signal-cli)
 
 - `signal-cli` runs as a daemon with JSON-RPC over HTTP.
 - Event stream is SSE (`/api/v1/events`).
 - Health probe: `/api/v1/check`.
-- OpenClaw owns lifecycle when `channels.signal.transport.kind="managed-native"` (the default).
+- Vasudev owns lifecycle when `channels.signal.transport.kind="managed-native"` (the default).
 
 See [Signal](/channels/signal) for setup and endpoints.
 
 ## Pattern B: stdio child process (imsg)
 
-- OpenClaw spawns `imsg rpc` as a child process for [iMessage](/channels/imessage).
+- Vasudev spawns `imsg rpc` as a child process for [iMessage](/channels/imessage).
 - JSON-RPC is line-delimited over stdin/stdout (one JSON object per line).
 - No TCP port, no daemon required.
 

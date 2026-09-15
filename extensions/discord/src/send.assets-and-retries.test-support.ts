@@ -118,7 +118,7 @@ export function registerSendAssetsAndRetriesTests(deps: SendAssetsAndRetriesDeps
         {
           guildId: "g1",
           name: "openclaw_wave",
-          description: "OpenClaw waving",
+          description: "Vasudev waving",
           tags: "👋",
           mediaUrl: "file:///tmp/wave.png",
         },
@@ -127,7 +127,7 @@ export function registerSendAssetsAndRetriesTests(deps: SendAssetsAndRetriesDeps
       expect(requestPath(postMock as unknown as MockCallSource)).toBe(Routes.guildStickers("g1"));
       const stickerBody = requestBody(postMock as unknown as MockCallSource);
       expect(stickerBody.name).toBe("openclaw_wave");
-      expect(stickerBody.description).toBe("OpenClaw waving");
+      expect(stickerBody.description).toBe("Vasudev waving");
       expect(stickerBody.tags).toBe("👋");
       const files = stickerBody.files as Array<{ name?: string; contentType?: string }>;
       expect(files).toHaveLength(1);

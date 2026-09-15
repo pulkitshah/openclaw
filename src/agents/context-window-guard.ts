@@ -114,7 +114,7 @@ export function formatContextWindowWarningMessage(params: {
   }
   if (params.guard.source === "modelsConfig") {
     return (
-      `${base}; OpenClaw is using the configured model context limit for this model, ` +
+      `${base}; Vasudev is using the configured model context limit for this model, ` +
       `so raise contextWindow/contextTokens if it is set too low`
     );
   }
@@ -138,14 +138,14 @@ export function formatContextWindowBlockMessage(params: {
   }
   if (params.guard.source === "modelsConfig") {
     return (
-      `${base} OpenClaw is using the configured model context limit for this model. ` +
+      `${base} Vasudev is using the configured model context limit for this model. ` +
       `Raise contextWindow/contextTokens or choose a larger model.`
     );
   }
   return (
     `${base} This looks like a local model endpoint. ` +
     `Raise the server/model context limit or choose a larger model. ` +
-    `OpenClaw local/self-hosted runs work best at ${params.guard.warnBelowTokens}+ tokens.`
+    `Vasudev local/self-hosted runs work best at ${params.guard.warnBelowTokens}+ tokens.`
   );
 }
 

@@ -1,4 +1,4 @@
-// Implements channel-scoped tailing of the OpenClaw log file.
+// Implements channel-scoped tailing of the Vasudev log file.
 import { parseStrictPositiveInteger } from "@openclaw/normalization-core/number-coercion";
 import { normalizeLowercaseStringOrEmpty } from "@openclaw/normalization-core/string-coerce";
 import { theme } from "../../../packages/terminal-core/src/theme.js";

@@ -405,7 +405,7 @@ describe("sanitizeSessionMessagesImages", () => {
 
   describe("thought_signature stripping", () => {
     it("strips msg_-prefixed thought_signature from assistant message content blocks", async () => {
-      // msg_ values are OpenClaw message ids, not provider signatures.
+      // msg_ values are Vasudev message ids, not provider signatures.
       const input = castAgentMessages([
         {
           role: "assistant",

@@ -109,7 +109,7 @@ Portals proxy only the selected development server on the Gateway host or a node
 ## Limitations
 
 - Older node bundles without portal-stream support cannot open worker portals. Update the node bundle, or move the session back to the Gateway with `sessions.move`.
-- SSH-backed `remote-exec` placements, including Codex sessions, do not run the OpenClaw worker tool loop, so the `portal` tool does not apply there. Move the session back to the Gateway with `sessions.move` when a Gateway-hosted portal is needed.
+- SSH-backed `remote-exec` placements, including Codex sessions, do not run the Vasudev worker tool loop, so the `portal` tool does not apply there. Move the session back to the Gateway with `sessions.move` when a Gateway-hosted portal is needed.
 - A proxy or tunnel in front of the Gateway does not automatically expose portal listener ports. The Control UI detects this and shows a reachable URL with retry guidance instead of mounting a dead iframe.
 - The prefix isolates cookies forwarded to each target; it does not create separate browser cookie jars. Browser-side code can see non-`HttpOnly` cookies for sibling portals on the same hostname through `document.cookie`. Use `HttpOnly` for sensitive application cookies. Applications that manage cookies in browser code must account for the prefix; unprefixed cookies written directly by browser code are not forwarded to the target.
 

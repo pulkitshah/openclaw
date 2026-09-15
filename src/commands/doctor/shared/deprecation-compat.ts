@@ -377,7 +377,7 @@ const DOCTOR_DEPRECATION_COMPAT_RECORDS = [
     replacement: "mcp.servers.*.transport",
     docsPath: "/cli/mcp",
     notes:
-      "OpenClaw stores transport names; CLI backends receive their own type fields through runtime adapters.",
+      "Vasudev stores transport names; CLI backends receive their own type fields through runtime adapters.",
   }),
   removalPendingCompatRecord("doctor-gateway-bind-host-aliases", {
     owner: "gateway",

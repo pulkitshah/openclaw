@@ -287,7 +287,7 @@ describe("memory_search real manager", () => {
     },
   );
 
-  it("attributes a persisted provenance mismatch to OpenClaw", async () => {
+  it("attributes a persisted provenance mismatch to Vasudev", async () => {
     const cfg = fixture.createConfig({
       provider: "none",
       vectorEnabled: false,
@@ -317,9 +317,9 @@ describe("memory_search real manager", () => {
       unavailable: true,
       error: "index provenance classifier changed",
       warning:
-        "Tell the user: memory search is paused because this OpenClaw version changed the memory index format (index provenance classifier changed); no configuration change is needed.",
+        "Tell the user: memory search is paused because this Vasudev version changed the memory index format (index provenance classifier changed); no configuration change is needed.",
       action:
-        "Tell the user to run: openclaw memory status --index --agent main. Rebuilding uses keyword indexing only and does not call an embedding provider.",
+        "Tell the user to run: vasudev memory status --index --agent main. Rebuilding uses keyword indexing only and does not call an embedding provider.",
     });
     expect(fixture.provider.embedQueryCalls).toBe(0);
   });
@@ -353,7 +353,7 @@ describe("memory_search real manager", () => {
         throw new Error("memory_search tool missing");
       }
       const action =
-        "Tell the user to run: openclaw memory status --index --agent main. Rebuilding may call the configured embedding provider and can incur provider cost.";
+        "Tell the user to run: vasudev memory status --index --agent main. Rebuilding may call the configured embedding provider and can incur provider cost.";
       const primary = await tool.execute("paused-primary", { query: "alpha" });
       expect(primary.details).toMatchObject({
         disabled: true,
@@ -710,11 +710,11 @@ describe("memory_search real manager", () => {
     });
     const expected = {
       unavailable: true,
-      error: expect.stringContaining("openclaw doctor --fix"),
+      error: expect.stringContaining("vasudev doctor --fix"),
       warning:
         "Memory search is unavailable because the session catalog requires canonical-key migration.",
       action:
-        "Stop the Gateway and run openclaw doctor --fix, then restart the Gateway and retry memory_search.",
+        "Stop the Gateway and run vasudev doctor --fix, then restart the Gateway and retry memory_search.",
     };
 
     expect(first.details).toMatchObject(expected);

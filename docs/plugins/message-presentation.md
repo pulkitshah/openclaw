@@ -8,7 +8,7 @@ read_when:
   - Debugging provider-specific card/block/component rendering regressions
 ---
 
-Message presentation is OpenClaw's shared contract for rich outbound chat UI.
+Message presentation is Vasudev's shared contract for rich outbound chat UI.
 It lets agents, CLI commands, approval flows, and plugins describe the message
 intent once, while each channel plugin renders the best native shape it can.
 
@@ -150,7 +150,7 @@ Button semantics:
   the approval service; they must not parse `/approve` command text or infer
   kind from the ID.
 - `action.type: "question"` identifies one choice for a live, runtime-authored
-  `ask_user` question. Like `approval`, this is an OpenClaw runtime action;
+  `ask_user` question. Like `approval`, this is a Vasudev runtime action;
   agents and plugins must not synthesize question IDs. Telegram, Discord,
   Slack, Mattermost, and LINE direct chats map it to transport-private native
   callbacks and resolve the choice through the Gateway. When the question becomes answered,
@@ -175,7 +175,7 @@ Button semantics:
   and LINE keep the visible text route.
 - `action.type: "url"` opens a normal link.
 - `action.type: "web-app"` launches a channel-native web app. Set `url` for a
-  URL-backed app or `widgetId` for an OpenClaw-hosted widget whose launch
+  URL-backed app or `widgetId` for a Vasudev-hosted widget whose launch
   mechanics are owned by the channel; at least one is required. When both are
   present, a channel can prefer its native hosted-widget launch and use the URL
   where that mechanism is unavailable.

@@ -240,7 +240,7 @@ async function resolveGatewayOwnerStatus(
     }
     if (role === "agent-embedded") {
       // The role covers every direct embedded surface (agent --local, agent exec,
-      // local TUI, and CLI model probes), so validate the owning OpenClaw process
+      // local TUI, and CLI model probes), so validate the owning Vasudev process
       // instead of baking one command spelling into stale-lock recovery.
       return isOpenClawArgv(args) ? "alive" : "dead";
     }
@@ -433,7 +433,7 @@ export async function acquireGatewayLock(
         }
         if (!waited && deadlineMs > startedAt && role === "gateway") {
           log.warn(
-            `waiting for gateway-lifecycle ownership held by another OpenClaw process, up to ${Math.ceil((deadlineMs - startedAt) / 1000)} s`,
+            `waiting for gateway-lifecycle ownership held by another Vasudev process, up to ${Math.ceil((deadlineMs - startedAt) / 1000)} s`,
           );
         }
         waited = true;
@@ -697,7 +697,7 @@ async function acquireLockFile(
   const ownerPid = lastPayload?.pid ? ` (pid ${lastPayload.pid})` : "";
   const owner =
     lastPayload?.role === "agent-embedded"
-      ? `another embedded OpenClaw state writer is active${ownerPid}`
+      ? `another embedded Vasudev state writer is active${ownerPid}`
       : lastPayload?.role && lastPayload.role !== "gateway"
         ? `state directory is locked by ${lastPayload.role}${ownerPid}`
         : `gateway already running${ownerPid}`;

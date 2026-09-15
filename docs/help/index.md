@@ -22,7 +22,7 @@ Fastest path to unstuck, by symptom:
 
 ## Diagnostics
 
-- [Environment variables](/help/environment) - where OpenClaw loads env vars and precedence
+- [Environment variables](/help/environment) - where Vasudev loads env vars and precedence
 - [Diagnostics flags](/diagnostics/flags) - runtime diagnostics and verbose modes
 - [Node and tsx startup errors](/help/debugging#node-and-tsx-startup-errors) - capture runtime versions and the stack trace for startup failures
 
@@ -35,6 +35,6 @@ Fastest path to unstuck, by symptom:
 
 ## Community and meta
 
-- [OpenClaw lore](/start/lore) - the story
+- [Vasudev lore](/start/lore) - the story
 - [Docs hubs](/start/hubs) - how this documentation is organized
 - [Docs directory](/start/docs-directory) - full file map

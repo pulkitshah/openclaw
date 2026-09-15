@@ -39,7 +39,7 @@ headless wall-clock deadline. A checkpoint does not reset that wall deadline.
 When the shell `exec` tool is available, use it for heavier computation
 and keep guest JavaScript focused on coordinating tools and processing results.
 
-If code mode is enabled but QuickJS-WASI cannot load, OpenClaw fails closed
+If code mode is enabled but QuickJS-WASI cannot load, Vasudev fails closed
 for that run; it does not silently expose normal tools as a fallback. This
 holds for `true` and for `"auto"` runs where the model resolves as preferred:
 an engaged run never silently falls back to broad direct tool exposure.
@@ -114,9 +114,9 @@ preferred tier came from evaluations on the first-party endpoints, and those
 runs have not been repeated per reseller. Promoting one of those rows is a
 deliberate, evidence-backed change rather than an oversight.
 
-For OpenAI models, the flag matters only when the run resolves to the OpenClaw
+For OpenAI models, the flag matters only when the run resolves to the Vasudev
 embedded agent runtime. Default OpenAI routing uses the Codex-style harness
-surface, where OpenClaw code mode does not apply; the catalog flag never
+surface, where Vasudev code mode does not apply; the catalog flag never
 changes that routing decision.
 
 ### Choosing when to enable
@@ -142,7 +142,7 @@ final model request is assembled:
 
 1. Resolve the agent, model, provider, sandbox, channel, sender, and run
    policy.
-2. Build the effective OpenClaw tool list, adding eligible plugin, MCP, and
+2. Build the effective Vasudev tool list, adding eligible plugin, MCP, and
    client tools.
 3. Apply allow/deny policy.
 4. Resolve activation using the [agent and model precedence](/tools/code-mode/quickstart#override-one-model).
@@ -156,7 +156,7 @@ final model request is assembled:
 
 Runs that intentionally have no tools (raw model calls, `disableTools: true`,
 or an empty `tools.allow` list) do not activate the code-mode surface even
-when `tools.codeMode.enabled: true` is configured. Code mode and OpenClaw Tool
+when `tools.codeMode.enabled: true` is configured. Code mode and Vasudev Tool
 Search are mutually exclusive for a run; if code mode activates, Tool Search's
 compaction does not.
 

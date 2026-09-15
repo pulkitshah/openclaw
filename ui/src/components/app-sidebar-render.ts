@@ -9,9 +9,9 @@ import {
   type SidebarZoneEntry,
 } from "../app-navigation.ts";
 import { isRouteId, isSessionRouteId } from "../app-route-paths.ts";
+import { PRODUCT_NAME } from "../app/brand.ts";
 import type { NativeGateway, NativeGatewaysSnapshot } from "../app/native-gateways.runtime.ts";
 import { isHomePanelAvailable } from "../app/panel-availability.ts";
-import { controlUiPublicAssetPath } from "../app/public-assets.ts";
 import { readPresenceEntries, resolveCurrentSelfUser } from "../app/user-profile.ts";
 import { CONTROL_UI_BUILD_INFO } from "../build-info.ts";
 import { t } from "../i18n/index.ts";
@@ -59,6 +59,8 @@ import {
   resolveSidebarConnectionStatus,
 } from "./session-row-badges.ts";
 import { formatSidebarBuildSubtitle } from "./sidebar-build-chip-format.ts";
+import "./vasu-orb.ts";
+import "./vasu-wordmark.ts";
 
 export type AppSidebarRenderHost = AppSidebarSessionNavigationElement & {
   activePluginTabId: string;
@@ -131,7 +133,7 @@ function renderSidebarAgentCard(host: AppSidebarRenderHost) {
 }
 
 function renderSidebarWorkspaceHeader(host: AppSidebarRenderHost) {
-  const name = readSidebarNativeGateway()?.name.trim() || "OpenClaw";
+  const name = readSidebarNativeGateway()?.name.trim() || PRODUCT_NAME;
   const menuOpen = host.sidebarMenus.agentMenuPosition !== null;
   return html`
     <div class="sidebar-workspace-header">
@@ -161,15 +163,16 @@ function renderSidebarWorkspaceHeader(host: AppSidebarRenderHost) {
           }
         }}
       >
-        <img
-          class="sidebar-workspace-header__mark"
-          src=${controlUiPublicAssetPath("favicon.svg", host.basePath)}
-          alt=""
-          aria-hidden="true"
-        />
+        <vasu-orb class="sidebar-workspace-header__mark" size="20"></vasu-orb>
         <span class="sidebar-agent-card__text">
           <span class="sidebar-agent-card__name">
-            <span class="sidebar-agent-card__name-text">${name}</span>
+            <span class="sidebar-agent-card__name-text"
+              >${
+                name === PRODUCT_NAME
+                  ? html`<vasu-wordmark size="sm" beside-orb></vasu-wordmark>`
+                  : name
+              }</span
+            >
             <span class="sidebar-agent-card__chevron" aria-hidden="true"
               >${icons.chevronsUpDown}</span
             >

@@ -538,10 +538,10 @@ describe("modelsAuthLoginCommand", () => {
       "Auth profile: openai:user@example.com (openai/oauth)",
     );
     expect(runtime.log).toHaveBeenCalledWith(
-      "Default model available: openai/gpt-5.5 (current default unchanged; run openclaw models set openai/gpt-5.5 to apply)",
+      "Default model available: openai/gpt-5.5 (current default unchanged; run vasudev models set openai/gpt-5.5 to apply)",
     );
     expect(runtime.log).toHaveBeenCalledWith(
-      "Tip: Codex-capable models can use native Codex web search. Configure the `web_search` tool with `openclaw configure --section web`. Docs: https://docs.openclaw.ai/tools/web",
+      "Tip: Codex-capable models can use native Codex web search. Configure the `web_search` tool with `vasudev configure --section web`. Docs: https://docs.openclaw.ai/tools/web",
     );
     expect(mocks.callGateway).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -660,7 +660,7 @@ describe("modelsAuthLoginCommand", () => {
         }),
       );
       expect(runtime.error).toHaveBeenCalledWith(
-        `Warning: Model auth changes were saved, but the ${target} Gateway could not refresh them. Run \`openclaw gateway restart\` to apply the saved changes.`,
+        `Warning: Model auth changes were saved, but the ${target} Gateway could not refresh them. Run \`vasudev gateway restart\` to apply the saved changes.`,
       );
     },
   );
@@ -1012,8 +1012,8 @@ describe("modelsAuthLoginCommand", () => {
       [
         "Scope: System / agent",
         "Agent: coder",
-        "Location: the machine running OpenClaw",
-        "For personal model accounts on a Gateway, run openclaw models accounts login --help.",
+        "Location: the machine running Vasudev",
+        "For personal model accounts on a Gateway, run vasudev models accounts login --help.",
       ].join("\n"),
       "Provider sign-in",
     );
@@ -1373,7 +1373,7 @@ describe("modelsAuthLoginCommand", () => {
     });
     expect(currentConfig.auth).toBeUndefined();
     expect(runtime.log).toHaveBeenCalledWith(
-      "Default model available: openai/gpt-5.5 (current default unchanged; run openclaw models set openai/gpt-5.5 to apply)",
+      "Default model available: openai/gpt-5.5 (current default unchanged; run vasudev models set openai/gpt-5.5 to apply)",
     );
   });
 
@@ -1506,7 +1506,7 @@ describe("modelsAuthLoginCommand", () => {
     await expect(
       modelsAuthLoginCommand({ provider: "openai", force: true }, runtime),
     ).rejects.toThrow(
-      'Could not clear cached profiles for "openai" before re-login: auth store is busy; close other OpenClaw commands using this state directory and retry',
+      'Could not clear cached profiles for "openai" before re-login: auth store is busy; close other Vasudev commands using this state directory and retry',
     );
 
     expect(runtime.error).not.toHaveBeenCalled();
@@ -1555,7 +1555,7 @@ describe("modelsAuthLoginCommand", () => {
     const runtime = createRuntime();
 
     await expect(modelsAuthLoginCommand({ provider: "anthropic" }, runtime)).rejects.toThrow(
-      'Unknown provider "anthropic". Loaded providers: openai. Verify plugins via `openclaw plugins list --json`.',
+      'Unknown provider "anthropic". Loaded providers: openai. Verify plugins via `vasudev plugins list --json`.',
     );
   });
 
@@ -1580,7 +1580,7 @@ describe("modelsAuthLoginCommand", () => {
     await modelsAuthLoginCommand({ provider: "claude-cli" }, runtime);
 
     expect(prompter.note).toHaveBeenCalledWith(
-      'Provider "claude-cli" uses its own CLI login. Select a provider with an OpenClaw auth flow.',
+      'Provider "claude-cli" uses its own CLI login. Select a provider with a Vasudev auth flow.',
       "Provider auth",
     );
     expect(prompter.select).toHaveBeenCalledWith(
@@ -1665,14 +1665,12 @@ describe("modelsAuthLoginCommand", () => {
       },
       agentDir: "/tmp/openclaw/agents/main",
     });
+    expect(runtime.log).toHaveBeenCalledWith("Anthropic setup-token auth is supported in Vasudev.");
     expect(runtime.log).toHaveBeenCalledWith(
-      "Anthropic setup-token auth is supported in OpenClaw.",
+      "Vasudev prefers Claude CLI reuse when it is available on the host.",
     );
     expect(runtime.log).toHaveBeenCalledWith(
-      "OpenClaw prefers Claude CLI reuse when it is available on the host.",
-    );
-    expect(runtime.log).toHaveBeenCalledWith(
-      "Anthropic staff told us this OpenClaw path is allowed again.",
+      "Anthropic staff told us this Vasudev path is allowed again.",
     );
   });
 
@@ -1735,7 +1733,7 @@ describe("modelsAuthLoginCommand", () => {
     );
 
     expect(validateMessages).toEqual([
-      "That looks like an OpenAI API key. Use openclaw models auth paste-api-key --provider openai for API-key auth.",
+      "That looks like an OpenAI API key. Use vasudev models auth paste-api-key --provider openai for API-key auth.",
     ]);
     expect(mocks.upsertAuthProfileWithLock).not.toHaveBeenCalled();
     expect(mocks.updateConfig).not.toHaveBeenCalled();
@@ -1885,7 +1883,7 @@ describe("modelsAuthLoginCommand", () => {
     );
 
     expect(validateMessages).toEqual([
-      "That looks like token or OAuth material, not an OpenAI API key. Use openclaw models auth paste-token --provider openai for token auth material.",
+      "That looks like token or OAuth material, not an OpenAI API key. Use vasudev models auth paste-token --provider openai for token auth material.",
     ]);
     expect(mocks.upsertAuthProfileWithLock).not.toHaveBeenCalled();
     expect(mocks.updateConfig).not.toHaveBeenCalled();
@@ -1898,7 +1896,7 @@ describe("modelsAuthLoginCommand", () => {
     await expect(
       modelsAuthPasteTokenCommand({ provider: "openai", agent: "missing" }, runtime),
     ).rejects.toThrow(
-      'Unknown agent id "missing". Use "openclaw agents list" to see configured agents.',
+      'Unknown agent id "missing". Use "vasudev agents list" to see configured agents.',
     );
 
     expect(mocks.clackPassword).not.toHaveBeenCalled();

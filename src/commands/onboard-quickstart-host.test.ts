@@ -87,9 +87,9 @@ describe("runQuickstartForegroundGateway", () => {
       expect(h.runtime.log).toHaveBeenCalledWith("Dashboard: http://127.0.0.1:19431/dashboard/");
       expect(h.runtime.log).toHaveBeenCalledWith(expect.stringContaining("Ctrl+C"));
       expect(h.runtime.log).toHaveBeenCalledWith(
-        expect.stringContaining("openclaw gateway install"),
+        expect.stringContaining("vasudev gateway install"),
       );
-      expect(h.runtime.log).toHaveBeenCalledWith(expect.stringContaining("openclaw dashboard"));
+      expect(h.runtime.log).toHaveBeenCalledWith(expect.stringContaining("vasudev dashboard"));
 
       h.gateway.resolve();
       await host;

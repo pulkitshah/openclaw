@@ -243,7 +243,7 @@ async function readPersistedInstallRecord(stateDir: string) {
   }
 }
 
-describe("openclaw plugins install ClawHub E2E", () => {
+describe("vasudev plugins install ClawHub E2E", () => {
   it("reports successful installs and repeat updates after persisting the install record", async () => {
     const testServer = await startClawHubServer();
     const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-plugin-telemetry-e2e-"));
@@ -309,7 +309,7 @@ describe("openclaw plugins install ClawHub E2E", () => {
     {
       label: "version gateway",
       options: { artifactCompatibility: { minGatewayVersion: "9999.0.0" } },
-      error: "requires OpenClaw >=9999.0.0",
+      error: "requires Vasudev >=9999.0.0",
     },
   ])(
     "rejects incompatible $label metadata before trust and download",

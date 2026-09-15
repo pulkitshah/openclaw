@@ -26,7 +26,7 @@ Managed and external llama.cpp servers for GGUF chat and embeddings.
 
 ## Default text model
 
-During interactive setup, OpenClaw installs a pinned, verified `llama-server`
+During interactive setup, Vasudev installs a pinned, verified `llama-server`
 and offers Gemma 4 E4B IT Q4_K_M as an approximately 5.0 GB download. The model
 offer requires at least 16 GiB of total RAM. Existing cached models are still
 detected on smaller machines.

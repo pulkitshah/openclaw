@@ -1,7 +1,7 @@
 {
   "name": "@openclaw/novita-provider",
   "version": "2026.9.4",
-  "description": "OpenClaw NovitaAI provider plugin",
+  "description": "Vasudev NovitaAI provider plugin",
   "repository": {
     "type": "git",
     "url": "https://github.com/openclaw/openclaw"

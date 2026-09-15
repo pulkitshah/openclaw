@@ -9,13 +9,13 @@ title: "Mantis Slack desktop runbook"
 ---
 
 [Mantis](/concepts/mantis) Slack desktop QA is the real-UI lane for Slack-class
-bugs that need a Linux desktop, VNC rescue, Slack Web, a real OpenClaw gateway,
+bugs that need a Linux desktop, VNC rescue, Slack Web, a real Vasudev gateway,
 screenshots, videos, and a PR evidence comment. Use it when unit tests or the
 headless Slack live lane cannot prove the bug.
 
 ## Terms
 
-- **Mantis** - the OpenClaw system that runs these scenarios and publishes visual
+- **Mantis** - the Vasudev system that runs these scenarios and publishes visual
   CI evidence and a PR comment.
 - **Crabbox** - the `openclaw/crabbox` service that supplies warmed Linux
   machines, leases, and VNC access.
@@ -35,7 +35,7 @@ Mantis uses three storage layers:
 - **Warm lease state** - owned by the current operator session. Can hold a
   logged-in browser profile, `/var/cache/crabbox/pnpm`, and a prepared source
   checkout while the lease is alive.
-- **Mantis artifacts** - owned by the OpenClaw run. Live under
+- **Mantis artifacts** - owned by the Vasudev run. Live under
   `.artifacts/qa-e2e/mantis/...`. GitHub Actions uploads them and the Mantis
   GitHub App comments inline evidence on the PR.
 
@@ -169,12 +169,12 @@ also reuses `/var/cache/crabbox/pnpm` when present.
 - `crabbox.warmup` - cloud provider boot, desktop/browser readiness, SSH.
 - `crabbox.inspect` - lease metadata lookup.
 - `credentials.prepare` - Convex credential lease acquisition.
-- `crabbox.remote_run` - sync, browser launch, OpenClaw install/build or
+- `crabbox.remote_run` - sync, browser launch, Vasudev install/build or
   hydrate validation, gateway startup, screenshot, and video capture.
 - `artifacts.copy` - rsync back from the VM.
 
 `crabbox.remote_run` can show `accepted` when Crabbox returns a non-zero
-remote status but Mantis copied metadata proving either the OpenClaw gateway
+remote status but Mantis copied metadata proving either the Vasudev gateway
 setup completed or the Slack QA command itself exited successfully. Treat
 `accepted` as pass-with-explanation, not a failed scenario.
 

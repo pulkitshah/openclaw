@@ -97,7 +97,7 @@ export async function updateStatusCommand(opts: UpdateStatusOptions): Promise<vo
     },
   ];
 
-  defaultRuntime.log(theme.heading("OpenClaw update status"));
+  defaultRuntime.log(theme.heading("Vasudev update status"));
   defaultRuntime.log("");
   for (const finding of runtimeFindings) {
     const color =
@@ -147,7 +147,7 @@ export async function updateStatusCommand(opts: UpdateStatusOptions): Promise<vo
       }
       if (abandonedRun) {
         defaultRuntime.log(
-          "Abandoned update detected; the Gateway will reconcile its recorded outcome. Run openclaw update repair to reconcile it now.",
+          "Abandoned update detected; the Gateway will reconcile its recorded outcome. Run vasudev update repair to reconcile it now.",
         );
       }
       const report = renderUpdateRunReport(run);

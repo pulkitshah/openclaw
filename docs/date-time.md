@@ -6,7 +6,7 @@ read_when:
 title: "Date and time"
 ---
 
-OpenClaw uses the configured **user timezone** for message envelopes, system events, and
+Vasudev uses the configured **user timezone** for message envelopes, system events, and
 the system prompt. When `agents.defaults.userTimezone` is unset, those surfaces use the
 host timezone. Provider timestamps are preserved so tools keep their native semantics.
 When the agent needs the exact current time and `session_status` is available, it runs that tool.
@@ -83,7 +83,7 @@ System: [2026-01-12 12:19:17 PST] Model switched.
 
 ## Time format detection
 
-Rendered clock values follow the operating system and locale preference. OpenClaw
+Rendered clock values follow the operating system and locale preference. Vasudev
 detects 12-hour or 24-hour display on macOS and Windows, then falls back to locale
 formatting. The detected value is cached per process.
 

@@ -299,7 +299,7 @@ export const formatCronLookupMiss = (jobId: string) =>
   formatLookupMiss({
     noun: "Automation",
     value: sanitizeTerminalText(jobId),
-    listCommand: "openclaw cron list",
+    listCommand: "vasudev cron list",
     valueLabel: "automation id",
   });
 

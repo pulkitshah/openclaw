@@ -32,7 +32,7 @@ describe("Git ref mutation ownership", () => {
     await requireGit(root, ["init", "--quiet", "-b", "main"]);
     await requireGit(root, [
       "-c",
-      "user.name=OpenClaw Test",
+      "user.name=Vasudev Test",
       "-c",
       "user.email=test@localhost",
       "-c",
@@ -435,7 +435,7 @@ describe("Git checkout discovery", () => {
     const repo = path.join(root, "repo");
     const linked = path.join(root, "linked");
     expect((await runGit(root, ["init", "-b", "main", repo])).code).toBe(0);
-    expect((await runGit(repo, ["config", "user.name", "OpenClaw Test"])).code).toBe(0);
+    expect((await runGit(repo, ["config", "user.name", "Vasudev Test"])).code).toBe(0);
     expect(
       (await runGit(repo, ["config", "user.email", "openclaw-test@example.invalid"])).code,
     ).toBe(0);

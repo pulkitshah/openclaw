@@ -59,7 +59,7 @@ export function migrateLegacyUpdateCheckState(params: {
       // Without canonical state, starting the scheduler would reset rollout and retry timing.
       return canonical === undefined
         ? undefined
-        : `Skipped unreadable legacy update-check state; kept canonical update timing. Run openclaw doctor --fix to retry. ${params.detected.sourcePath}: ${String(error)}`;
+        : `Skipped unreadable legacy update-check state; kept canonical update timing. Run vasudev doctor --fix to retry. ${params.detected.sourcePath}: ${String(error)}`;
     },
     migrate(_db, state) {
       const options = { env: { ...process.env, OPENCLAW_STATE_DIR: params.stateDir } };

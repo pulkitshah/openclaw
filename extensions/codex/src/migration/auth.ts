@@ -435,7 +435,7 @@ export async function buildCodexAuthItems(params: {
         sensitive: true,
         reason: CODEX_REASON_AUTH_STORAGE_NOT_IMPORTABLE,
         message:
-          "No supported Codex credential could be imported. Continue with sign-in to connect OpenClaw.",
+          "No supported Codex credential could be imported. Continue with sign-in to connect Vasudev.",
         details: {
           provider: OPENAI_PROVIDER_ID,
           credentialKind,

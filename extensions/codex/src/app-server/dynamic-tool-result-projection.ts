@@ -2,7 +2,7 @@ import type { CodexDynamicToolRuntimeResponse } from "./dynamic-tool-response-st
 import type { CodexAppServerEventProjector } from "./event-projector.js";
 import type { CodexDynamicToolCallParams, CodexDynamicToolCallResponse } from "./protocol.js";
 
-/** Project one OpenClaw dynamic-tool response with its executed mutation identity. */
+/** Project one Vasudev dynamic-tool response with its executed mutation identity. */
 export function recordCodexDynamicToolResult(
   projector: CodexAppServerEventProjector | undefined,
   call: CodexDynamicToolCallParams,

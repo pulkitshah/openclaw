@@ -415,7 +415,7 @@ describe("session target resolution", () => {
     );
 
     await expect(resolveSessionTarget({ raw: "a1166b81" })).rejects.toThrow(
-      /No session found: a1166b81[\s\S]*openclaw sessions list/u,
+      /No session found: a1166b81[\s\S]*vasudev sessions list/u,
     );
   });
 
@@ -446,7 +446,7 @@ describe("session target resolution", () => {
       }),
     );
     await expect(resolveSessionTarget({ raw: "gateway.example/main/a1166b81" })).rejects.toThrow(
-      "openclaw devices approve --latest",
+      "vasudev devices approve --latest",
     );
 
     callGatewayMock.mockRejectedValueOnce(
@@ -457,7 +457,7 @@ describe("session target resolution", () => {
       }),
     );
     await expect(resolveSessionTarget({ raw: "gateway.example/main/a1166b81" })).rejects.toThrow(
-      "openclaw devices rotate --device <deviceId> --role operator",
+      "vasudev devices rotate --device <deviceId> --role operator",
     );
   });
 
@@ -475,7 +475,7 @@ describe("session target resolution", () => {
     } catch (caught) {
       pairingError = caught;
     }
-    expect(String(pairingError)).toContain("openclaw devices approve --latest");
+    expect(String(pairingError)).toContain("vasudev devices approve --latest");
     expect(String(pairingError)).not.toContain("Could not reach gateway");
 
     callGatewayMock.mockRejectedValueOnce(
@@ -492,7 +492,7 @@ describe("session target resolution", () => {
       tokenError = caught;
     }
     expect(String(tokenError)).toContain(
-      "openclaw devices rotate --device <deviceId> --role operator",
+      "vasudev devices rotate --device <deviceId> --role operator",
     );
     expect(String(tokenError)).not.toContain("Could not reach gateway");
   });

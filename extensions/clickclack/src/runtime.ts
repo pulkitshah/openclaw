@@ -1,5 +1,5 @@
 /**
- * Runtime store for host-provided OpenClaw services used by the ClickClack
+ * Runtime store for host-provided Vasudev services used by the ClickClack
  * bundled plugin.
  */
 import { createPluginRuntimeStore } from "openclaw/plugin-sdk/runtime-store";

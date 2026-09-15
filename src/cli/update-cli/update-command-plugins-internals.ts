@@ -130,10 +130,10 @@ export function createPluginUpdateWarning(params: {
 }): PluginUpdateWarning {
   const command = formatCliCommand(
     params.kind === "load"
-      ? "openclaw doctor --fix"
+      ? "vasudev doctor --fix"
       : params.pluginId
-        ? `openclaw plugins update ${params.pluginId}`
-        : "openclaw update repair",
+        ? `vasudev plugins update ${params.pluginId}`
+        : "vasudev update repair",
     params.env,
   );
   const nextAction = `Run \`${command}\` to ${params.kind === "load" ? "check and repair the load problem" : "retry"}.`;
@@ -197,8 +197,8 @@ export function buildInvalidConfigPostCoreUpdateResult(): {
   result: PostCorePluginUpdateResult;
 } {
   const guidance = [
-    "Run `openclaw doctor` to inspect the config validation errors.",
-    "Once the config parses, rerun `openclaw update repair`.",
+    "Run `vasudev doctor` to inspect the config validation errors.",
+    "Once the config parses, rerun `vasudev update repair`.",
   ];
   const message =
     "Plugin post-update convergence skipped because the config is invalid; refusing to restart the gateway with an unverified plugin set.";

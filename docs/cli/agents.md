@@ -81,7 +81,7 @@ leave skills unchanged.
 Role delegation settings are also applied. A standalone chief of staff targets the
 standard specialist ids; use the team command to create and wire all four agents.
 Unknown roles are rejected with the available role names. A workspace with an
-unfinished bootstrap cannot adopt a role. OpenClaw checks completion before
+unfinished bootstrap cannot adopt a role. Vasudev checks completion before
 adding role files; rejected adoption leaves workspace files and agent config
 unchanged. Complete its bootstrap or choose a new workspace.
 
@@ -182,9 +182,9 @@ You can also add bindings when creating an agent:
 openclaw agents add work --workspace ~/.openclaw/workspace-work --bind telegram:* --bind discord:*
 ```
 
-If you omit `accountId` (`--bind <channel>`), OpenClaw resolves it from plugin setup hooks, forced account binding, or the channel's configured account count.
+If you omit `accountId` (`--bind <channel>`), Vasudev resolves it from plugin setup hooks, forced account binding, or the channel's configured account count.
 
-If you omit `--agent` for `bind` or `unbind`, OpenClaw targets the current default agent.
+If you omit `--agent` for `bind` or `unbind`, Vasudev targets the current default agent.
 
 ### `--bind` format
 
@@ -198,7 +198,7 @@ If you omit `--agent` for `bind` or `unbind`, OpenClaw targets the current defau
 
 - A stored binding without `accountId` matches the literal `default` account key only.
 - `accountId: "*"` is the channel-wide fallback (all accounts) and is less specific than an explicit account binding.
-- If the same agent already has a matching channel binding without `accountId`, and you later bind with an explicit or resolved `accountId`, OpenClaw upgrades that existing binding in place instead of adding a duplicate.
+- If the same agent already has a matching channel binding without `accountId`, and you later bind with an explicit or resolved `accountId`, Vasudev upgrades that existing binding in place instead of adding a duplicate.
 
 Examples:
 

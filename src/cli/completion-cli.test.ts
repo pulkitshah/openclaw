@@ -230,7 +230,7 @@ _openclaw_root_completion
 
     expect(script).toContain("if ($commandPath -eq 'gateway') {");
     expect(script).toContain("if ($commandPath -eq 'gateway status') {");
-    expect(script).not.toContain("if ($commandPath -eq 'openclaw gateway') {");
+    expect(script).not.toContain("if ($commandPath -eq 'vasudev gateway') {");
     expect(script).toContain("$completions = @('status','restart','--force','-t','--token')");
     expect(script).not.toContain("'-t,'");
   });
@@ -279,8 +279,8 @@ _openclaw_root_completion
   });
 
   itWithPowerShell.each([
-    ["a long shell flag", "openclaw completion --shell f"],
-    ["a short shell flag", "openclaw completion -s f"],
+    ["a long shell flag", "vasudev completion --shell f"],
+    ["a short shell flag", "vasudev completion -s f"],
   ])("completes validated values in real PowerShell after %s", async (_name, commandLine) => {
     expect(
       await powerShellCompletion.complete(createDocumentedCompletionProgram(), commandLine),
@@ -310,11 +310,11 @@ _openclaw_root_completion
   });
 
   itWithPowerShell.each([
-    ["an ordinary prefix", "openclaw --value al", ["alpha"]],
-    ["a literal asterisk", "openclaw --value a*", ["'a*literal'"]],
-    ["a literal opening bracket", "openclaw --value a[", ["'a[bracket]'"]],
-    ["a case-insensitive literal asterisk", "openclaw --value A*", ["'a*literal'"]],
-    ["an inline literal asterisk", "openclaw --value=a*", ["--value='a*literal'"]],
+    ["an ordinary prefix", "vasudev --value al", ["alpha"]],
+    ["a literal asterisk", "vasudev --value a*", ["'a*literal'"]],
+    ["a literal opening bracket", "vasudev --value a[", ["'a[bracket]'"]],
+    ["a case-insensitive literal asterisk", "vasudev --value A*", ["'a*literal'"]],
+    ["an inline literal asterisk", "vasudev --value=a*", ["--value='a*literal'"]],
   ])("matches real PowerShell choices with %s", async (_name, commandLine, expected) => {
     const program = new Command().name("openclaw");
     program.addOption(
@@ -372,7 +372,7 @@ _openclaw_root_completion
     async () => {
       const completions = await powerShellCompletion.complete(
         createDocumentedCompletionProgram(),
-        "openclaw completion -",
+        "vasudev completion -",
       );
 
       expect(completions).toEqual(
@@ -390,11 +390,11 @@ _openclaw_root_completion
   );
 
   itWithPowerShell.each([
-    ["a long flag", "openclaw gateway --token secret st"],
-    ["a short flag", "openclaw gateway -t secret st"],
-    ["an inline long value", "openclaw gateway --token=secret st"],
-    ["an inline short value", "openclaw gateway -t=secret st"],
-    ["a preceding boolean flag", "openclaw gateway --force --token secret st"],
+    ["a long flag", "vasudev gateway --token secret st"],
+    ["a short flag", "vasudev gateway -t secret st"],
+    ["an inline long value", "vasudev gateway --token=secret st"],
+    ["an inline short value", "vasudev gateway -t=secret st"],
+    ["a preceding boolean flag", "vasudev gateway --force --token secret st"],
   ])("keeps real PowerShell nested completions after %s", async (_name, commandLine) => {
     expect(await powerShellCompletion.complete(createCompletionProgram(), commandLine)).toEqual([
       "status",
@@ -440,22 +440,22 @@ _openclaw_root_completion
   });
 
   itWithFish.each([
-    ["a separate long root option", "openclaw --profile work g"],
-    ["an inline long root option", "openclaw --profile=work g"],
-    ["a separate short root option", "openclaw -p work g"],
-    ["an inline short root option", "openclaw -p=work g"],
-    ["an attached short root option", "openclaw -pwork g"],
-    ["a separate log-level root option", "openclaw --log-level debug g"],
-    ["an inline log-level root option", "openclaw --log-level=debug g"],
-    ["a separate container root option", "openclaw --container local g"],
-    ["an inline container root option", "openclaw --container=local g"],
-    ["repeated root options", "openclaw --profile first --profile second g"],
+    ["a separate long root option", "vasudev --profile work g"],
+    ["an inline long root option", "vasudev --profile=work g"],
+    ["a separate short root option", "vasudev -p work g"],
+    ["an inline short root option", "vasudev -p=work g"],
+    ["an attached short root option", "vasudev -pwork g"],
+    ["a separate log-level root option", "vasudev --log-level debug g"],
+    ["an inline log-level root option", "vasudev --log-level=debug g"],
+    ["a separate container root option", "vasudev --container local g"],
+    ["an inline container root option", "vasudev --container=local g"],
+    ["repeated root options", "vasudev --profile first --profile second g"],
     [
       "mixed value-taking root options",
-      "openclaw --profile work --log-level debug --container local g",
+      "vasudev --profile work --log-level debug --container local g",
     ],
-    ["a preceding boolean root option", "openclaw -v --profile work g"],
-    ["a root option value named like a command", "openclaw --profile gateway g"],
+    ["a preceding boolean root option", "vasudev -v --profile work g"],
+    ["a root option value named like a command", "vasudev --profile gateway g"],
   ])("completes root commands in real Fish after %s", (_name, commandLine) => {
     const program = createCompletionProgram()
       .option("-p, --profile <name>", "Profile")
@@ -466,10 +466,10 @@ _openclaw_root_completion
   });
 
   itWithFish.each([
-    ["a separate long root option", "openclaw --profile work --p"],
-    ["an inline long root option", "openclaw --profile=work --p"],
-    ["a separate short root option", "openclaw -p work --p"],
-    ["repeated root options", "openclaw --profile first --profile second --p"],
+    ["a separate long root option", "vasudev --profile work --p"],
+    ["an inline long root option", "vasudev --profile=work --p"],
+    ["a separate short root option", "vasudev -p work --p"],
+    ["repeated root options", "vasudev --profile first --profile second --p"],
   ])("completes root options in real Fish after %s", (_name, commandLine) => {
     const program = createCompletionProgram().option("-p, --profile <name>", "Profile");
 
@@ -477,22 +477,22 @@ _openclaw_root_completion
   });
 
   itWithFish.each([
-    ["the exact nested command", "openclaw gateway status -"],
-    ["a separate long option value", "openclaw gateway --token secret status -"],
-    ["a separate short option value", "openclaw gateway -t secret status -"],
-    ["an inline long option value", "openclaw gateway --token=secret status -"],
-    ["an inline short option value", "openclaw gateway -t=secret status -"],
-    ["a parent boolean option", "openclaw gateway --force status -"],
+    ["the exact nested command", "vasudev gateway status -"],
+    ["a separate long option value", "vasudev gateway --token secret status -"],
+    ["a separate short option value", "vasudev gateway -t secret status -"],
+    ["an inline long option value", "vasudev gateway --token=secret status -"],
+    ["an inline short option value", "vasudev gateway -t=secret status -"],
+    ["a parent boolean option", "vasudev gateway --force status -"],
   ])("keeps real Fish completions scoped after %s", (_name, commandLine) => {
     expect(runGeneratedFishCompletion(createCompletionProgram(), commandLine)).toEqual(["--json"]);
   });
 
   itWithFish.each([
-    ["a positional argument", "openclaw gateway status query -"],
-    ["multiple positional arguments", "openclaw gateway status first second -"],
-    ["a positional argument named like a sibling", "openclaw gateway status restart -"],
-    ["a long option and positional argument", "openclaw gateway --token secret status query -"],
-    ["an inline option and positional argument", "openclaw gateway --token=secret status query -"],
+    ["a positional argument", "vasudev gateway status query -"],
+    ["multiple positional arguments", "vasudev gateway status first second -"],
+    ["a positional argument named like a sibling", "vasudev gateway status restart -"],
+    ["a long option and positional argument", "vasudev gateway --token secret status query -"],
+    ["an inline option and positional argument", "vasudev gateway --token=secret status query -"],
   ])("keeps real Fish leaf options after %s", (_name, commandLine) => {
     const program = createCompletionProgram();
     const gateway = program.commands.find((command) => command.name() === "gateway");
@@ -507,16 +507,16 @@ _openclaw_root_completion
 
   itWithFish("preserves documented short and long completion flags in real Fish", () => {
     expect(
-      runGeneratedFishCompletion(createDocumentedCompletionProgram(), "openclaw completion -"),
+      runGeneratedFishCompletion(createDocumentedCompletionProgram(), "vasudev completion -"),
     ).toEqual(
       expect.arrayContaining(["-s", "--shell", "-i", "--install", "-y", "--yes", "--write-state"]),
     );
   });
 
   itWithFish.each([
-    ["a separated long optional value", "openclaw --color a", "always"],
-    ["a separated short optional value", "openclaw -c n", "never"],
-    ["an attached long optional value", "openclaw --color=a", "--color=always"],
+    ["a separated long optional value", "vasudev --color a", "always"],
+    ["a separated short optional value", "vasudev -c n", "never"],
+    ["an attached long optional value", "vasudev --color=a", "--color=always"],
   ])("completes real Fish Commander choices after %s", (_name, commandLine, expected) => {
     const program = new Command()
       .name("openclaw")
@@ -526,8 +526,8 @@ _openclaw_root_completion
   });
 
   itWithFish.each([
-    ["a long shell flag", "openclaw completion --shell f"],
-    ["a short shell flag", "openclaw completion -s f"],
+    ["a long shell flag", "vasudev completion --shell f"],
+    ["a short shell flag", "vasudev completion -s f"],
   ])("completes validated values in real Fish after %s", (_name, commandLine) => {
     expect(runGeneratedFishCompletion(createDocumentedCompletionProgram(), commandLine)).toEqual([
       "fish",
@@ -786,7 +786,7 @@ _openclaw_root_completion
       ]);
       expect(
         runGeneratedBashCompletion(program, ["openclaw", "completion", "--shell", "=", "f"], {
-          line: "openclaw completion --shell=f",
+          line: "vasudev completion --shell=f",
         }),
       ).toEqual(["fish"]);
       expect(runGeneratedBashCompletion(program, ["openclaw", "completion", "-sf"])).toEqual([
@@ -873,11 +873,11 @@ _openclaw_root_completion
   });
 
   itWithPowerShell.each([
-    ["a separate option value", "openclaw completion --shell f", "fish"],
-    ["an attached option value", "openclaw completion --shell=f", "--shell=fish"],
-    ["an attached short option value", "openclaw completion -sf", "-sfish"],
-    ["a short-option cluster value", "openclaw completion -ysf", "-ysfish"],
-    ["a separated short-option cluster value", "openclaw completion -ys f", "fish"],
+    ["a separate option value", "vasudev completion --shell f", "fish"],
+    ["an attached option value", "vasudev completion --shell=f", "--shell=fish"],
+    ["an attached short option value", "vasudev completion -sf", "-sfish"],
+    ["a short-option cluster value", "vasudev completion -ysf", "-ysfish"],
+    ["a separated short-option cluster value", "vasudev completion -ys f", "fish"],
   ])("completes PowerShell Commander choices after %s", async (_name, commandLine, expected) => {
     expect(
       await powerShellCompletion.complete(createDocumentedCompletionProgram(), commandLine),
@@ -888,16 +888,16 @@ _openclaw_root_completion
     expect(
       await powerShellCompletion.complete(
         createDocumentedCompletionProgram(),
-        "openclaw completion -ys",
+        "vasudev completion -ys",
       ),
     ).toEqual(["-yszsh", "-ysbash", "-yspowershell", "-ysfish"]);
   });
 
   itWithPowerShell.each([
-    ["a spaced choice", "openclaw --theme l", "'light blue'"],
-    ["an attached spaced choice", "openclaw --theme=l", "--theme='light blue'"],
-    ["an apostrophe", "openclaw --theme Bob", "'Bob''s green'"],
-    ["a backtick", "openclaw --theme p", "'path`name'"],
+    ["a spaced choice", "vasudev --theme l", "'light blue'"],
+    ["an attached spaced choice", "vasudev --theme=l", "--theme='light blue'"],
+    ["an apostrophe", "vasudev --theme Bob", "'Bob''s green'"],
+    ["a backtick", "vasudev --theme p", "'path`name'"],
   ])("quotes %s in real PowerShell completion text", async (_name, commandLine, expected) => {
     const program = new Command()
       .name("openclaw")
@@ -914,10 +914,8 @@ _openclaw_root_completion
         .addOption(new Option("-c, --color [when]").choices(["always", "never"]))
         .option("-v, --verbose", "Verbose output");
 
-      expect(await powerShellCompletion.complete(program, "openclaw --color a")).toEqual([
-        "always",
-      ]);
-      expect(await powerShellCompletion.complete(program, "openclaw --color --v")).toEqual([
+      expect(await powerShellCompletion.complete(program, "vasudev --color a")).toEqual(["always"]);
+      expect(await powerShellCompletion.complete(program, "vasudev --color --v")).toEqual([
         "--verbose",
       ]);
     },

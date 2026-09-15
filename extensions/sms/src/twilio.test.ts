@@ -368,7 +368,7 @@ describe("Twilio SMS helpers", () => {
     expect(resolveTwilioStatusCallbackUrl("   ")).toBe("");
   });
 
-  it("enforces OpenClaw's defensive 4,000-character status callback cap", () => {
+  it("enforces Vasudev's defensive 4,000-character status callback cap", () => {
     const prefix = "https://gateway.example.com/webhooks/sms?x=";
     const suffix = "#rp=ct,rt,5xx&rt=5000&rc=1";
     const paddingLength = 4_000 - prefix.length - suffix.length;

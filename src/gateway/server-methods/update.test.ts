@@ -200,7 +200,7 @@ describe("update.run acknowledgement", () => {
           channel: "slack",
           to: "C0123ABC",
           threadId: "1234567890.123456",
-          message: `⬆️ Updating OpenClaw 1.0.0 → ${managed ? "2.0.0" : "the latest release"}. The gateway stays available while the update is validated; you'll get a message here when it finishes.`,
+          message: `⬆️ Updating Vasudev 1.0.0 → ${managed ? "2.0.0" : "the latest release"}. The gateway stays available while the update is validated; you'll get a message here when it finishes.`,
           deliveryIntentId: expect.stringMatching(/^update-run-ack:/),
         }),
       );
@@ -226,7 +226,7 @@ describe("update.run acknowledgement", () => {
     expect(sendGatewayLifecycleNoticeMock).toHaveBeenLastCalledWith(
       expect.objectContaining({
         to: "C0456DEF",
-        message: expect.stringContaining("⚠️ OpenClaw update failed: build-failed."),
+        message: expect.stringContaining("⚠️ Vasudev update failed: build-failed."),
       }),
     );
   });
@@ -582,7 +582,7 @@ describe("update.run restart scheduling", () => {
     expect(run).toMatchObject({ status: "failed", reason: "unexpected-error" });
     expect(payload?.message).toBe(run?.origin.nextAction);
     expect(summarizeUpdateRunResponse(payload).next).toContain(
-      "Run openclaw update status after the gateway restarts.",
+      "Run vasudev update status after the gateway restarts.",
     );
   });
 
@@ -621,9 +621,7 @@ describe("update.run restart scheduling", () => {
       expect(payload?.handoff).toBeUndefined();
       expect(sendGatewayLifecycleNoticeMock).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          message: expect.stringContaining(
-            "OpenClaw update failed: managed-service-handoff-failed",
-          ),
+          message: expect.stringContaining("Vasudev update failed: managed-service-handoff-failed"),
         }),
       );
     },
@@ -931,8 +929,8 @@ describe("update.run restart scheduling", () => {
       status: "unavailable",
       command: "openclaw update --yes --timeout 1800",
       message:
-        "OpenClaw updates cannot safely run inside the live gateway process without a managed-service handoff.\n" +
-        "Stop the foreground Gateway, run `openclaw update --yes --timeout 1800` from a shell, then launch the Gateway again. For a managed deployment, use its host's stop, update, and restart workflow.",
+        "Vasudev updates cannot safely run inside the live gateway process without a managed-service handoff.\n" +
+        "Stop the foreground Gateway, run `vasudev update --yes --timeout 1800` from a shell, then launch the Gateway again. For a managed deployment, use its host's stop, update, and restart workflow.",
     });
   });
 

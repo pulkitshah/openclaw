@@ -31,7 +31,7 @@ type SlackProgressDiffStat = NonNullable<ChannelProgressDraftCompositorSnapshot[
 
 function buildSessionSources(url: string): NonNullable<TaskUpdateChunk["sources"]> {
   // The live Slack API requires url_source; @slack/types 3.0.0 still declares the old `url` tag.
-  return [{ type: "url_source", url, text: "Open in OpenClaw" }] as unknown as NonNullable<
+  return [{ type: "url_source", url, text: "Open in Vasudev" }] as unknown as NonNullable<
     TaskUpdateChunk["sources"]
   >;
 }
@@ -410,7 +410,7 @@ export function buildSlackProgressCardBlocks(params: {
         {
           type: "button",
           action_id: SLACK_SESSION_LINK_ACTION_ID,
-          text: { type: "plain_text", text: "Open in OpenClaw" },
+          text: { type: "plain_text", text: "Open in Vasudev" },
           url: params.sessionUrl,
         },
       ],

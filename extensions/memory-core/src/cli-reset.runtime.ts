@@ -59,11 +59,11 @@ export async function runMemoryReset(opts: MemoryResetCommandOptions): Promise<v
       });
       defaultRuntime.log(
         changed
-          ? `Memory index reset (${agentId}). Sessions preserved. Rebuild with: openclaw memory index --agent ${agentId}`
+          ? `Memory index reset (${agentId}). Sessions preserved. Rebuild with: vasudev memory index --agent ${agentId}`
           : `No memory index to reset (${agentId}).`,
       );
       defaultRuntime.log(
-        `Reset does not shrink the database file. To reclaim space, back up data and stop the Gateway and other writers, then run: openclaw doctor --session-sqlite compact --session-sqlite-agent ${agentId}`,
+        `Reset does not shrink the database file. To reclaim space, back up data and stop the Gateway and other writers, then run: vasudev doctor --session-sqlite compact --session-sqlite-agent ${agentId}`,
       );
     } finally {
       closeMemoryDatabase(db);
