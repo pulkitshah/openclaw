@@ -1,5 +1,6 @@
 // Implements trajectory export command packaging for the active session agent.
 import { createExecTool } from "../../agents/bash-tools.js";
+import { applyCliDisplayName } from "../../cli/command-format.js";
 import { formatErrorMessage } from "../../infra/errors.js";
 import type { ReplyPayload } from "../types.js";
 import { formatCommandExecResult, formatCommandExecText } from "./command-exec-result.js";
@@ -184,7 +185,10 @@ function buildTrajectoryExportExecRequest(
   const args = ["sessions", "export-trajectory", "--request-json-base64", encodedRequest, "--json"];
   return {
     ...buildCurrentOpenClawCliExecRequest(args),
-    displayCommand: ["openclaw", ...args].join(" "),
+    // Assembled from argv, so no literal can carry the product spelling; the
+    // display-name owner supplies it. The spawned command above keeps the real
+    // binary.
+    displayCommand: applyCliDisplayName(["openclaw", ...args].join(" ")),
     encodedRequest,
     request,
   };
