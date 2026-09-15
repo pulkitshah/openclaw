@@ -65,7 +65,7 @@ automaticSetup.addEventListener("change", () => {
 useLocal.addEventListener("click", () => {
   void showResult(
     () => chrome.runtime.sendMessage({ type: "setNativeBootstrapEnabled", enabled: true }),
-    "Looking for local OpenClaw…",
+    "Looking for local Vasudev…",
   );
 });
 accessMode.addEventListener("change", () => {

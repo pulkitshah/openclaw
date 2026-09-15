@@ -610,15 +610,15 @@ export function createTabAccessPolicy({ chromeApi = chrome, isSelectedTab, getGr
       throw new Error(`tab ${tabId} access was revoked`);
     }
     if (state.reason === "paused") {
-      throw new Error(`tab ${tabId} is paused for OpenClaw`);
+      throw new Error(`tab ${tabId} is paused for Vasudev`);
     }
     if (state.reason === "not-selected") {
-      throw new Error(`tab ${tabId} is not in the OpenClaw tab group`);
+      throw new Error(`tab ${tabId} is not in the Vasudev tab group`);
     }
     if (state.reason === "incognito") {
-      throw new Error(`tab ${tabId} is incognito and unavailable to OpenClaw`);
+      throw new Error(`tab ${tabId} is incognito and unavailable to Vasudev`);
     }
-    throw new Error(`tab ${tabId} is restricted or unavailable to OpenClaw`);
+    throw new Error(`tab ${tabId} is restricted or unavailable to Vasudev`);
   }
 
   async function listAccessibleTabs({ allowDuringTransition = false } = {}) {
@@ -675,7 +675,7 @@ export function createTabAccessPolicy({ chromeApi = chrome, isSelectedTab, getGr
     if (!eligibilityForTab(tab, controlledBlank).eligible) {
       deniedTabIds.delete(tabId);
       invalidateTab(tabId);
-      throw new Error(`tab ${tabId} is restricted or unavailable to OpenClaw`);
+      throw new Error(`tab ${tabId} is restricted or unavailable to Vasudev`);
     }
     await mutateStorage(persistDeniedIds);
   }
