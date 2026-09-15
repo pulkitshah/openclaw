@@ -1655,36 +1655,56 @@ describe("handleControlUiHttpRequest", () => {
           expect(parsed.terminalEnabled).toBe(true);
           expect(parsed.cliAgentsEnabled).toBe(enabled !== false);
           expect(parsed.automaticallyFetchFavicons).toBe(true);
-          expect(parsed.communityInvite).toBe(true);
+          expect(parsed.communityInvite).toBe(false);
           expect(parsed.devGitBranch).toBeUndefined();
         },
       });
     },
   );
 
-  it.each(["automaticallyFetchFavicons", "communityInvite"] as const)(
-    "projects an explicit %s opt-out into bootstrap config",
-    async (key) => {
-      await withControlUiRoot({
-        fn: async (tmp) => {
-          const { res, end } = makeMockHttpResponse();
-          const handled = await handleControlUiHttpRequest(
-            { url: CONTROL_UI_BOOTSTRAP_CONFIG_PATH, method: "GET" } as IncomingMessage,
-            res,
-            {
-              root: { kind: "resolved", path: tmp },
-              config: {
-                gateway: { controlUi: { [key]: false } },
-              },
+  it("projects an explicit automaticallyFetchFavicons opt-out into bootstrap config", async () => {
+    await withControlUiRoot({
+      fn: async (tmp) => {
+        const { res, end } = makeMockHttpResponse();
+        const handled = await handleControlUiHttpRequest(
+          { url: CONTROL_UI_BOOTSTRAP_CONFIG_PATH, method: "GET" } as IncomingMessage,
+          res,
+          {
+            root: { kind: "resolved", path: tmp },
+            config: {
+              gateway: { controlUi: { automaticallyFetchFavicons: false } },
             },
-          );
+          },
+        );
 
-          expect(handled).toBe(true);
-          expect(parseBootstrapPayload(end)[key]).toBe(false);
-        },
-      });
-    },
-  );
+        expect(handled).toBe(true);
+        expect(parseBootstrapPayload(end).automaticallyFetchFavicons).toBe(false);
+      },
+    });
+  });
+
+  // The invitation points at the upstream project's Discord, so it ships off and
+  // only an explicit opt-in turns it on.
+  it("projects an explicit communityInvite opt-in into bootstrap config", async () => {
+    await withControlUiRoot({
+      fn: async (tmp) => {
+        const { res, end } = makeMockHttpResponse();
+        const handled = await handleControlUiHttpRequest(
+          { url: CONTROL_UI_BOOTSTRAP_CONFIG_PATH, method: "GET" } as IncomingMessage,
+          res,
+          {
+            root: { kind: "resolved", path: tmp },
+            config: {
+              gateway: { controlUi: { communityInvite: true } },
+            },
+          },
+        );
+
+        expect(handled).toBe(true);
+        expect(parseBootstrapPayload(end).communityInvite).toBe(true);
+      },
+    });
+  });
 
   it("omits the assistant agent id without a config snapshot", async () => {
     await withControlUiRoot({
