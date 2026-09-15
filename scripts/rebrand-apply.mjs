@@ -291,6 +291,17 @@ const TREE_SCOPED_PROTECTED_TOKEN_RULES = [
     pathPattern: /^src\/daemon\//,
     pattern: /\bOpenClaw (?:Gateway|Node)\b/g,
   },
+  {
+    // The same tree also *executes* and *detects* the binary: a generated unit's
+    // ExecStart, a Startup-folder launcher's command line, and the launchd plist
+    // and rc-file fixtures the extra-service scan matches all name the installed
+    // binary, which is still `openclaw`. Displayed remediation in this tree
+    // reaches the user through `formatCliCommand`, which the alias rewrite covers
+    // separately.
+    name: "daemon-binary-invocation",
+    pathPattern: /^src\/daemon\//,
+    pattern: /\bopenclaw(?= (?:gateway|node)\b)/g,
+  },
 ];
 
 function protectedTokenRulesFor(relativePath) {
@@ -450,7 +461,12 @@ const SPAWN_CALLEES = new Set([
 // property with this shape is a header value read by a remote service, not
 // copy: it identifies this client on third-party dashboards, billing records
 // and rate-limit buckets.
-const HTTP_HEADER_NAME_RE = /^[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)+$/;
+// Canonical HTTP header casing, which requires the leading segment to start
+// upper-case. Deliberately not case-insensitive: a lowercase hyphenated key is
+// far more likely to be an ordinary discriminant whose value is real copy
+// (`{ "newer-schema": "a newer OpenClaw build" }` in
+// src/infra/startup-maintenance-required.ts) than a header.
+const HTTP_HEADER_NAME_RE = /^[A-Z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)+$/;
 
 // A SCREAMING_SNAKE property key means the value is an environment variable's
 // value, not display copy: `{ OPENCLAW_WINDOWS_TASK_NAME: "OpenClaw Gateway" }`

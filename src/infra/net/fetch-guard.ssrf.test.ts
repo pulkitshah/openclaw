@@ -1488,7 +1488,7 @@ describe("fetchWithSsrFGuard hardening", () => {
 
     expect(headers).toEqual({
       accept: "application/json",
-      "user-agent": "OpenClaw-Test/1.0",
+      "user-agent": "Vasudev-Test/1.0",
     });
   });
 

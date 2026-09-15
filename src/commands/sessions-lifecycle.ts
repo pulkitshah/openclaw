@@ -93,8 +93,8 @@ function notFoundResult(key: string, agent?: string): SessionsLifecycleResult {
 const WORKTREE_PRESERVATION_REASON_COPY = {
   "owner-mismatch": "registered to another owner",
   busy: "still in use by a live run or another cleanup",
-  "foreign-lock": "Git reports a lock owned outside OpenClaw",
-  "snapshot-failed": "OpenClaw could not create a safety snapshot",
+  "foreign-lock": "Git reports a lock owned outside Vasudev",
+  "snapshot-failed": "Vasudev could not create a safety snapshot",
   "cleanup-failed": "cleanup did not finish normally",
 } as const satisfies Record<WorktreePreservationReason, string>;
 

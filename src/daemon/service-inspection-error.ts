@@ -7,9 +7,9 @@ const SERVICE_INSPECTION_MESSAGES = {
   "launchd-gui-domain-unavailable":
     "The launchd GUI domain is unavailable for this account. Manage its LaunchAgent from the target user's logged-in macOS desktop session.",
   "launchd-system-domain-unavailable":
-    "The launchd system domain cannot be queried by this account. Ask root to inspect it with sudo launchctl print system/<label>. OpenClaw manages user LaunchAgents, not custom system LaunchDaemons.",
+    "The launchd system domain cannot be queried by this account. Ask root to inspect it with sudo launchctl print system/<label>. Vasudev manages user LaunchAgents, not custom system LaunchDaemons.",
   "launchd-system-owned":
-    "The Gateway label belongs to a system LaunchDaemon. OpenClaw manages user LaunchAgents; the custom system daemon belongs to its deployment owner.",
+    "The Gateway label belongs to a system LaunchDaemon. Vasudev manages user LaunchAgents; the custom system daemon belongs to its deployment owner.",
 } as const;
 
 const EXTERNAL_SERVICE_RECOVERY =
