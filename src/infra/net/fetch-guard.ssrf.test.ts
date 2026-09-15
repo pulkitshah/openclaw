@@ -242,7 +242,7 @@ describe("fetchWithSsrFGuard hardening", () => {
   const CROSS_ORIGIN_REDIRECT_PRESERVED_HEADERS = [
     ["accept", "application/json"],
     ["content-type", "application/json"],
-    ["user-agent", "Vasudev-Test/1.0"],
+    ["user-agent", "OpenClaw-Test/1.0"],
   ] as const;
 
   const createPublicLookup = (): LookupFn =>
@@ -1488,7 +1488,7 @@ describe("fetchWithSsrFGuard hardening", () => {
 
     expect(headers).toEqual({
       accept: "application/json",
-      "user-agent": "Vasudev-Test/1.0",
+      "user-agent": "OpenClaw-Test/1.0",
     });
   });
 

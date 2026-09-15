@@ -12,6 +12,20 @@ const PROFILE_FLAG_RE = /(?:^|\s)--profile(?:\s|=|$)/;
 const DEV_FLAG_RE = /(?:^|\s)--dev(?:\s|$)/;
 const UPDATE_RE = /^(?:\s+--(?:dev|no-color|(?:profile|log-level)[=\s]+\S+))*\s+update(?:\s|$)/;
 const CONTAINER_HINT_RE = /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}$/;
+// Owner of the *displayed* binary name. A command assembled from argv (the
+// update handoff builds one from `resolveUpdateCliArgv`) cannot carry the
+// product spelling in a literal, so normalizing it here is what keeps every
+// displayed command on-brand instead of scattering the alias through call
+// sites. Both names are real bins, so the rendered command still runs.
+const CLI_DISPLAY_NAME = "vasudev";
+const CLI_BINARY_TOKEN_RE = /^((?:pnpm|npm|bunx|npx)\s+)?openclaw\b/;
+
+function withDisplayBinaryName(command: string): string {
+  return command.replace(
+    CLI_BINARY_TOKEN_RE,
+    (_match, runner) => `${runner ?? ""}${CLI_DISPLAY_NAME}`,
+  );
+}
 
 /** Add active root options to a displayed command without duplicating explicit flags. */
 export function formatCliCommand(
@@ -21,11 +35,11 @@ export function formatCliCommand(
   const rawContainer = env.OPENCLAW_CONTAINER_HINT?.trim();
   const container = rawContainer && CONTAINER_HINT_RE.test(rawContainer) ? rawContainer : undefined;
   const profile = normalizeProfileName(env.OPENCLAW_PROFILE);
-  if (!container && !profile) {
-    return command;
-  }
   if (!CLI_PREFIX_RE.test(command)) {
     return command;
+  }
+  if (!container && !profile) {
+    return withDisplayBinaryName(command);
   }
   const additions: string[] = [];
   if (
@@ -39,7 +53,9 @@ export function formatCliCommand(
     additions.push(`--profile ${profile}`);
   }
   if (additions.length === 0) {
-    return command;
+    return withDisplayBinaryName(command);
   }
-  return command.replace(CLI_PREFIX_RE, (match) => `${match} ${additions.join(" ")}`);
+  return withDisplayBinaryName(
+    command.replace(CLI_PREFIX_RE, (match) => `${match} ${additions.join(" ")}`),
+  );
 }

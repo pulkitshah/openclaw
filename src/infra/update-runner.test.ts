@@ -1103,7 +1103,7 @@ describe("runGatewayUpdate", () => {
         if (
           options?.cwd &&
           preflightPrefixPattern.test(options.cwd) &&
-          key === "pnpm vasudev config validate --json"
+          key === "pnpm openclaw config validate --json"
         ) {
           return { code: 1, stderr: invalidConfig };
         }

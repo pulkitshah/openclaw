@@ -702,6 +702,8 @@ describe("formatCliCommand", () => {
         OPENCLAW_CONTAINER_HINT: "demo",
         OPENCLAW_PROFILE: "work",
       }),
-    ).toBe(`${prefix} --container demo ${command}`);
+      // formatCliCommand owns the displayed binary name, so the rendered
+      // command spells the product even when the caller passed `openclaw`.
+    ).toBe(`${prefix.replace("openclaw", "vasudev")} --container demo ${command}`);
   });
 });

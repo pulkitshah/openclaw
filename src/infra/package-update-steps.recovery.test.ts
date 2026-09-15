@@ -823,7 +823,7 @@ describe("package update recovery safety", () => {
           });
           expect(
             result.steps.find((step) => step.name === "global install swap")?.stdoutTail,
-          ).toContain("restored previous vasudev package and affected launchers");
+          ).toContain("restored previous openclaw package and affected launchers");
           expect(
             result.steps.find((step) => step.name === "global install swap")?.stdoutTail,
           ).toContain("candidate Doctor may have changed persistent state");

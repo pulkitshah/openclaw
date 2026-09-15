@@ -730,7 +730,11 @@ function collectCommentRanges(sourceFile) {
  * spell "OpenClaw" at a word boundary; see `isStructuralStringLiteral`.
  */
 export function rewriteTypeScriptContent(content, relativePath) {
-  const scriptKind = relativePath.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
+  const scriptKind = relativePath.endsWith(".tsx")
+    ? ts.ScriptKind.TSX
+    : relativePath.endsWith(".mjs")
+      ? ts.ScriptKind.JS
+      : ts.ScriptKind.TS;
   const sourceFile = ts.createSourceFile(
     relativePath,
     content,
@@ -863,6 +867,23 @@ const EXCLUDED_LITERALS_BY_FILE = new Map([
     new Set(['"OpenClaw"']),
   ],
   [
+    // The exact command key the dev-channel update spawns; the mock matches it
+    // verbatim to inject a failing config validation.
+    "src/infra/update-runner.test.ts",
+    new Set(['"pnpm openclaw config validate --json"']),
+  ],
+  [
+    // A User-Agent fixture, echoed back by the redirect-header helper under test.
+    "src/infra/net/fetch-guard.ssrf.test.ts",
+    new Set(['"OpenClaw-Test/1.0"']),
+  ],
+  [
+    // `${params.packageName}` is the npm package name, still `openclaw`, so the
+    // recovery line this pins is not copy.
+    "src/infra/package-update-steps.recovery.test.ts",
+    new Set(['"restored previous openclaw package and affected launchers"']),
+  ],
+  [
     // The `MM-API-Source` header value this client sends to MiniMax. The
     // producer's own literal is protected by the header-value rule; the
     // assertion argument is not reachable by it.
@@ -907,6 +928,9 @@ function isUnderTypeScriptAwarePrefix(relativePath) {
 }
 
 function isTypeScriptAwareTarget(relativePath, { includeTests = false } = {}) {
+  if (ROOT_LAUNCHER_FILES.includes(relativePath)) {
+    return true;
+  }
   if (!/\.tsx?$/.test(relativePath)) {
     return false;
   }
@@ -983,7 +1007,10 @@ export function rewriteFileContent(relativePath, content, { includeTests = false
   if (JSON_KEYS_BY_BASENAME.has(basename)) {
     return rewriteJsonManifestContent(content, basename);
   }
-  if (/\.tsx?$/.test(relativePath) && isUnderTypeScriptAwarePrefix(relativePath)) {
+  if (
+    (/\.tsx?$/.test(relativePath) && isUnderTypeScriptAwarePrefix(relativePath)) ||
+    ROOT_LAUNCHER_FILES.includes(relativePath)
+  ) {
     // A test/fixture file (outside an explicit `--tests` run), or a file on
     // the cross-boundary exclusion list, must never be touched by any pass,
     // including a fallback to the plain-text one below.
@@ -1000,6 +1027,18 @@ export function rewriteFileContent(relativePath, content, { includeTests = false
 // Bonjour advertised name). Task 3 already migrated these to read
 // PRODUCT_NAME from the brand module; they are kept in the allowlist so the
 // guard catches any future literal-string regression.
+// The root launchers run before any TypeScript loads, and they print to the
+// user: the unsupported-Node refusal, the Node-runtime recovery reason, and the
+// `--version` fast path. They are rewritten with the same TypeScript-aware pass
+// (the compiler API parses `.mjs` as JavaScript), so identifiers and module
+// specifiers in them are as safe as anywhere else.
+const ROOT_LAUNCHER_FILES = [
+  "openclaw.mjs",
+  "node-runtime-recovery.mjs",
+  "node-runtime-update.mjs",
+  "node-version.mjs",
+];
+
 const SINGLE_FILE_TARGETS = [
   "src/channels/plugins/pairing-message.ts",
   "extensions/telegram/src/bot-message-context.session.ts",
@@ -1129,6 +1168,9 @@ export function collectTargetFiles(cwd, { includeTests = false } = {}) {
     }
   }
   for (const file of SINGLE_FILE_TARGETS) {
+    files.add(file);
+  }
+  for (const file of ROOT_LAUNCHER_FILES) {
     files.add(file);
   }
   return [...files].sort((left, right) => left.localeCompare(right));
