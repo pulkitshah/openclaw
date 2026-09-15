@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { PRODUCT_NAME } from "../src/brand.ts";
 import type { PluginManifest as RuntimePluginManifest } from "../src/plugins/manifest-types.js";
 import type { PackageManifest as RuntimePackageManifest } from "../src/plugins/package-manifest.js";
 import { collectExcludedPackagedExtensionDirs } from "./lib/packaged-extension-dirs.mts";
@@ -253,12 +254,12 @@ function resolveDescription({ manifest, packageJson }: PluginSourceEntry) {
   if (channels.length > 0) {
     const channelLabel = displayList(channels);
     const channelNoun = channelLabel.toLowerCase().includes("channel") ? "" : " channel";
-    return `Adds the ${channelLabel}${channelNoun} surface for sending and receiving OpenClaw messages.`;
+    return `Adds the ${channelLabel}${channelNoun} surface for sending and receiving ${PRODUCT_NAME} messages.`;
   }
 
   const providers = Array.isArray(manifest.providers) ? manifest.providers : [];
   if (providers.length > 0) {
-    return `Adds ${displayList(providers)} model provider support to OpenClaw.`;
+    return `Adds ${displayList(providers)} model provider support to ${PRODUCT_NAME}.`;
   }
 
   const contracts = Object.keys(manifest.contracts ?? {}).toSorted((left, right) =>
@@ -290,7 +291,7 @@ function resolveDescription({ manifest, packageJson }: PluginSourceEntry) {
   }
 
   const packageDescription = normalizePackageDescription(packageJson.description);
-  return packageDescription ? `${packageDescription}.` : "Provides an OpenClaw plugin.";
+  return packageDescription ? `${packageDescription}.` : `Provides an ${PRODUCT_NAME} plugin.`;
 }
 
 function pushUniqueDocLink(values: DocLink[], value: DocLink | null) {
@@ -381,13 +382,13 @@ function resolveInstallRoute(packageJson: PluginPackageJson, status: PluginStatu
   if (status === "core") {
     // Explicit bundle ownership describes the current install surface; release flags may stage future publication.
     if (packageJson.openclaw?.build?.bundledDist === true) {
-      return "included in OpenClaw";
+      return `included in ${PRODUCT_NAME}`;
     }
     const release = packageJson.openclaw?.release;
     if (release?.publishToClawHub === true || release?.publishToNpm === true) {
-      return `included in OpenClaw, and also from ${resolveInstallRoute(packageJson, "external")}`;
+      return `included in ${PRODUCT_NAME}, and also from ${resolveInstallRoute(packageJson, "external")}`;
     }
-    return "included in OpenClaw";
+    return `included in ${PRODUCT_NAME}`;
   }
   const install = packageJson.openclaw?.install;
   const release = packageJson.openclaw?.release;
@@ -543,16 +544,16 @@ ${renderSurface(record.surface)}${manualBlock ? `\n\n${manualBlock}` : ""}${rela
 function renderReferenceIndex(records: PluginRecord[]) {
   const referenceCount = records.filter(hasGeneratedReferencePage).length;
   return `---
-summary: "Pointer to the generated OpenClaw plugin reference pages"
+summary: "Pointer to the generated ${PRODUCT_NAME} plugin reference pages"
 read_when:
-  - You need a reference page for a specific OpenClaw plugin
+  - You need a reference page for a specific ${PRODUCT_NAME} plugin
   - You are auditing plugin docs coverage
 title: "Plugin reference"
 ---
 
 ${GENERATED_NOTICE}
 
-This section holds one reference page for each OpenClaw plugin. Each page states
+This section holds one reference page for each ${PRODUCT_NAME} plugin. Each page states
 the package, the install route, and the surface the plugin adds.
 
 This page is a pointer, not the index. The browsable list of all
@@ -562,7 +563,7 @@ and description.
 
 ## How this page is built
 
-OpenClaw generates this page from the top-level
+${PRODUCT_NAME} generates this page from the top-level
 \`extensions/*/openclaw.plugin.json\` manifests. Package metadata enriches
 entries when \`package.json\` is present. Regenerate the page with:
 
@@ -720,7 +721,7 @@ function renderDocument(records: PluginRecord[]) {
   };
 
   return `---
-summary: "Generated inventory of OpenClaw plugins shipped in core, published externally, or kept source-only"
+summary: "Generated inventory of ${PRODUCT_NAME} plugins shipped in core, published externally, or kept source-only"
 read_when:
   - You are deciding whether a plugin ships in the core npm package or installs separately
   - You are updating bundled plugin package metadata or release automation
@@ -730,7 +731,7 @@ title: "Plugin inventory"
 
 ${GENERATED_NOTICE}
 
-This page lists every OpenClaw plugin with its package, install route, and
+This page lists every ${PRODUCT_NAME} plugin with its package, install route, and
 description. Operators use it to find a plugin and to see whether that plugin
 needs a separate install. Maintainers use it to check bundled plugin metadata
 and release automation.
@@ -738,7 +739,7 @@ and release automation.
 ## Definitions
 
 - **Core npm package:** built into the \`openclaw\` npm package and available without a separate plugin install.
-- **Official external package:** OpenClaw-maintained plugin omitted from the core npm package, kept in this official inventory, and installed on demand through ClawHub and/or npm.
+- **Official external package:** ${PRODUCT_NAME}-maintained plugin omitted from the core npm package, kept in this official inventory, and installed on demand through ClawHub and/or npm.
 - **Source checkout only:** repo-local plugin omitted from published npm artifacts and not advertised as an installable package.
 
 Source checkouts are different from npm installs: after \`pnpm install\`, bundled
@@ -748,7 +749,7 @@ dependencies are available.
 ## Install a plugin
 
 Use the install route in each entry to decide whether install is needed. Plugins
-that say \`included in OpenClaw\` are already present in the core package.
+that say \`included in ${PRODUCT_NAME}\` are already present in the core package.
 Official external packages need one install, then a Gateway restart.
 
 For example, Discord is an official external package:
@@ -788,7 +789,7 @@ ${renderInventoryList(groups.source)}
 
 ## How this page is built
 
-OpenClaw generates this page from the top-level
+${PRODUCT_NAME} generates this page from the top-level
 \`extensions/*/openclaw.plugin.json\` manifests and the root npm package
 \`files\` exclusions. Optional \`package.json\` metadata enriches package and
 distribution details. Regenerate the page with:

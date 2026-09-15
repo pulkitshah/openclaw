@@ -198,7 +198,7 @@ function renderLicences(props: AboutProps) {
     <details
       class="about-licences"
       @toggle=${(event: Event) => {
-        if ((event.currentTarget as HTMLDetailsElement).open) {
+        if (event.currentTarget instanceof HTMLDetailsElement && event.currentTarget.open) {
           props.onOpenLicences();
         }
       }}

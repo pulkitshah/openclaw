@@ -31,8 +31,12 @@ const ORB_MOODS = {
 
 export type VasuOrbMoodInput = keyof typeof ORB_MOODS;
 
+/** Callers hand in a plain string, so the lookup happens over the widened map
+ * instead of asserting the name into `VasuOrbMoodInput`. */
+const ORB_MOOD_LOOKUP: ReadonlyMap<string, VasuOrbMood> = new Map(Object.entries(ORB_MOODS));
+
 function resolveMood(mood: string): VasuOrbMood {
-  return ORB_MOODS[mood as VasuOrbMoodInput] ?? "idle";
+  return ORB_MOOD_LOOKUP.get(mood) ?? "idle";
 }
 
 /** The Vasudev brand mark. The orb is CSS, not artwork: the signature gradient

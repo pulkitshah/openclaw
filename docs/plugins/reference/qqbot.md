@@ -1,5 +1,5 @@
 ---
-summary: "Vasudev QQ Bot channel plugin for group and direct-message workflows."
+summary: "OpenClaw QQ Bot channel plugin for group and direct-message workflows."
 read_when:
   - You are installing, configuring, or auditing the qqbot plugin
 title: "QQ Bot plugin reference"
@@ -10,7 +10,7 @@ Run `pnpm plugins:inventory:gen` to rebuild it. Hand-written text survives only
 between the openclaw-plugin-reference:manual-start and
 openclaw-plugin-reference:manual-end comment markers. -->
 
-Vasudev QQ Bot channel plugin for group and direct-message workflows.
+OpenClaw QQ Bot channel plugin for group and direct-message workflows.
 
 ## Distribution
 
