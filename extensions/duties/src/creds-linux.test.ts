@@ -65,8 +65,11 @@ describe("createLinuxCredStore", () => {
       ).not.toHaveLength(0);
       expect(await store.get("site.password")).toBe("value");
     } finally {
-      if (previous === undefined) delete process.env.OPENCLAW_STATE_DIR;
-      else process.env.OPENCLAW_STATE_DIR = previous;
+      if (previous === undefined) {
+        delete process.env.OPENCLAW_STATE_DIR;
+      } else {
+        process.env.OPENCLAW_STATE_DIR = previous;
+      }
     }
   });
 
@@ -74,6 +77,8 @@ describe("createLinuxCredStore", () => {
     const f = await fixture();
     const store = createLinuxCredStore(f);
     await Promise.all(["a", "b", "c", "d"].map((k) => store.set(k, `v-${k}`)));
-    for (const k of ["a", "b", "c", "d"]) expect(await store.get(k)).toBe(`v-${k}`);
+    for (const k of ["a", "b", "c", "d"]) {
+      expect(await store.get(k)).toBe(`v-${k}`);
+    }
   });
 });

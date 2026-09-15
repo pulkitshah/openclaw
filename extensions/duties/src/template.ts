@@ -1,6 +1,6 @@
 import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 
-export type TemplateSlot = {
+type TemplateSlot = {
   name: string;
   kind: "text" | "rows" | "prose";
   description: string;
@@ -56,105 +56,189 @@ export function validateTemplate(
   input: unknown,
 ): { ok: true; template: Template } | { ok: false; errors: string[] } {
   const errors: string[] = [];
-  if (!isRecord(input)) return { ok: false, errors: ["template must be an object"] };
-  if (typeof input.id !== "string" || !ID_RE.test(input.id))
+  if (!isRecord(input)) {
+    return { ok: false, errors: ["template must be an object"] };
+  }
+  if (typeof input.id !== "string" || !ID_RE.test(input.id)) {
     errors.push("id must be a kebab-case slug");
-  if (typeof input.name !== "string" || !input.name.trim()) errors.push("name is required");
-  if (input.kind !== "pdf" && input.kind !== "message") errors.push("kind must be pdf or message");
-  if (typeof input.html !== "string" || !input.html.trim()) errors.push("html is required");
-  if (typeof input.updatedAt !== "number") errors.push("updatedAt must be a number");
+  }
+  if (typeof input.name !== "string" || !input.name.trim()) {
+    errors.push("name is required");
+  }
+  if (input.kind !== "pdf" && input.kind !== "message") {
+    errors.push("kind must be pdf or message");
+  }
+  if (typeof input.html !== "string" || !input.html.trim()) {
+    errors.push("html is required");
+  }
+  if (typeof input.updatedAt !== "number") {
+    errors.push("updatedAt must be a number");
+  }
   const declared = new Map<string, TemplateSlot>();
-  if (!Array.isArray(input.slots)) errors.push("slots must be an array");
-  else {
+  if (!Array.isArray(input.slots)) {
+    errors.push("slots must be an array");
+  } else {
     input.slots.forEach((slot, idx) => {
       if (!isRecord(slot) || typeof slot.name !== "string" || !NAME_RE.test(slot.name)) {
         errors.push(`slots[${idx}]: name must match ${NAME_RE.source}`);
         return;
       }
-      if (slot.kind !== "text" && slot.kind !== "rows" && slot.kind !== "prose")
+      if (slot.kind !== "text" && slot.kind !== "rows" && slot.kind !== "prose") {
         errors.push(`slot "${slot.name}": kind must be text, rows or prose`);
-      if (typeof slot.description !== "string")
+      }
+      if (typeof slot.description !== "string") {
         errors.push(`slot "${slot.name}": description is required`);
+      }
       if (
         slot.kind === "rows" &&
         (!Array.isArray(slot.columns) ||
           slot.columns.length === 0 ||
           slot.columns.some((c) => typeof c !== "string" || !NAME_RE.test(c)))
-      )
+      ) {
         errors.push(`slot "${slot.name}": rows slots need at least one column`);
-      if (declared.has(slot.name)) errors.push(`slot "${slot.name}" is declared twice`);
+      }
+      if (declared.has(slot.name)) {
+        errors.push(`slot "${slot.name}" is declared twice`);
+      }
       // SAFETY: name, kind, description and (for rows) columns were checked above; a failing check already pushed an error.
-      declared.set(slot.name, slot as unknown as TemplateSlot);
+      declared.set(slot.name, slot as TemplateSlot);
     });
   }
   if (typeof input.html === "string") {
     const html = input.html;
     const slotRefs = new Set<string>();
-    for (const m of html.matchAll(SLOT_RE)) if (m[1]) slotRefs.add(m[1]);
+    for (const m of html.matchAll(SLOT_RE)) {
+      if (m[1]) {
+        slotRefs.add(m[1]);
+      }
+    }
     const rowsMatches = [...html.matchAll(ROWS_RE)];
     const rowsRefs = new Set<string>();
-    for (const m of rowsMatches) if (m[1]) rowsRefs.add(m[1]);
+    for (const m of rowsMatches) {
+      if (m[1]) {
+        rowsRefs.add(m[1]);
+      }
+    }
 
     for (const name of slotRefs) {
       const slot = declared.get(name);
-      if (!slot) errors.push(`html uses undeclared slot "${name}"`);
-      else if (slot.kind === "rows")
+      if (!slot) {
+        errors.push(`html uses undeclared slot "${name}"`);
+      } else if (slot.kind === "rows") {
         errors.push(`slot "${name}" is a rows slot: use {{#rows:${name}}}…{{/rows:${name}}}`);
+      }
     }
     for (const name of rowsRefs) {
       const slot = declared.get(name);
-      if (!slot) errors.push(`html uses undeclared slot "${name}"`);
-      else if (slot.kind !== "rows")
+      if (!slot) {
+        errors.push(`html uses undeclared slot "${name}"`);
+      } else if (slot.kind !== "rows") {
         errors.push(`slot "${name}" is not a rows slot: use {{slot:${name}}}`);
+      }
     }
-    for (const name of declared.keys())
-      if (!slotRefs.has(name) && !rowsRefs.has(name))
+    for (const name of declared.keys()) {
+      if (!slotRefs.has(name) && !rowsRefs.has(name)) {
         errors.push(`slot "${name}" is declared but not used in html`);
+      }
+    }
 
     for (const m of rowsMatches) {
       const name = m[1];
       const slot = name ? declared.get(name) : undefined;
-      if (slot?.kind !== "rows") continue;
+      if (slot?.kind !== "rows") {
+        continue;
+      }
       const body = m[2] ?? "";
       for (const cm of body.matchAll(COL_RE)) {
         const col = cm[1];
-        if (col && !(slot.columns ?? []).includes(col))
+        if (col && !(slot.columns ?? []).includes(col)) {
           errors.push(`rows slot "${name}" has no column "${col}"`);
+        }
       }
     }
-    for (const cm of html.replaceAll(ROWS_RE, "").matchAll(COL_RE))
+    for (const cm of html.replaceAll(ROWS_RE, "").matchAll(COL_RE)) {
       errors.push(`${cm[0]} is only valid inside a rows block`);
+    }
   }
-  if (errors.length) return { ok: false, errors };
-  // SAFETY: every Template field (id, name, kind, html, updatedAt, slots) was validated above.
-  return { ok: true, template: input as unknown as Template };
+  if (errors.length) {
+    return { ok: false, errors };
+  }
+  // Parses the validated record into a Template field by field instead of reinterpreting the
+  // whole blob: `slots` comes from `declared`, which by this point holds exactly one validated
+  // TemplateSlot per entry in `input.slots`, in the same order.
+  return {
+    ok: true,
+    template: {
+      // SAFETY: typeof/ID_RE-checked above.
+      id: input.id as string,
+      // SAFETY: typeof/non-empty-checked above.
+      name: input.name as string,
+      // SAFETY: checked to be "pdf" or "message" above.
+      kind: input.kind as Template["kind"],
+      // SAFETY: typeof/non-empty-checked above.
+      html: input.html as string,
+      slots: [...declared.values()],
+      // SAFETY: typeof-checked above.
+      updatedAt: input.updatedAt as number,
+    },
+  };
 }
 
 export function validateBrand(
   input: unknown,
 ): { ok: true; brand: Brand } | { ok: false; errors: string[] } {
   const errors: string[] = [];
-  if (!isRecord(input)) return { ok: false, errors: ["brand must be an object"] };
-  if (typeof input.name !== "string" || !input.name.trim()) errors.push("name is required");
+  if (!isRecord(input)) {
+    return { ok: false, errors: ["brand must be an object"] };
+  }
+  if (typeof input.name !== "string" || !input.name.trim()) {
+    errors.push("name is required");
+  }
   for (const field of BRAND_FIELDS) {
-    if (field === "name") continue;
-    if (input[field] !== undefined && typeof input[field] !== "string")
+    if (field === "name") {
+      continue;
+    }
+    if (input[field] !== undefined && typeof input[field] !== "string") {
       errors.push(`${field} must be a string`);
+    }
   }
   if (
     typeof input.logoDataUrl === "string" &&
     input.logoDataUrl &&
     !input.logoDataUrl.startsWith("data:image/")
-  )
+  ) {
     errors.push("logoDataUrl must be a data:image/... URL");
+  }
   // 700,000 base64 characters ≈ 512 KB of decoded image bytes — matches the client-side cap in
   // `browser/index.ts`'s `saveBrand`, applied here too since this is the RPC's only real gate.
-  if (typeof input.logoDataUrl === "string" && input.logoDataUrl.length > 700_000)
+  if (typeof input.logoDataUrl === "string" && input.logoDataUrl.length > 700_000) {
     errors.push("logoDataUrl is too large (max 512 KB image)");
-  if (typeof input.updatedAt !== "number") errors.push("updatedAt must be a number");
-  if (errors.length) return { ok: false, errors };
-  // SAFETY: name, every optional string field, logoDataUrl's shape and updatedAt were validated above.
-  return { ok: true, brand: input as unknown as Brand };
+  }
+  if (typeof input.updatedAt !== "number") {
+    errors.push("updatedAt must be a number");
+  }
+  if (errors.length) {
+    return { ok: false, errors };
+  }
+  // Parses the validated record into a Brand field by field instead of reinterpreting the whole
+  // blob: each optional field above was checked to be a string (or absent) by the BRAND_FIELDS
+  // loop, so it is only copied over when present.
+  return {
+    ok: true,
+    brand: {
+      // SAFETY: typeof/non-empty-checked above.
+      name: input.name as string,
+      // SAFETY: typeof-checked (when present) by the BRAND_FIELDS loop above.
+      ...(input.logoDataUrl !== undefined ? { logoDataUrl: input.logoDataUrl as string } : {}),
+      ...(input.primary !== undefined ? { primary: input.primary as string } : {}),
+      ...(input.accent !== undefined ? { accent: input.accent as string } : {}),
+      ...(input.phone !== undefined ? { phone: input.phone as string } : {}),
+      ...(input.email !== undefined ? { email: input.email as string } : {}),
+      ...(input.footer !== undefined ? { footer: input.footer as string } : {}),
+      // SAFETY: typeof-checked above.
+      updatedAt: input.updatedAt as number,
+    },
+  };
 }
 
 /** Deterministic substitution: no logic, no partial output. Every declared slot must be present
@@ -176,14 +260,27 @@ export function renderTemplate(
         const missingCols = cols.filter((col) =>
           value.some((row) => row[col] === undefined || row[col] === null),
         );
-        if (missingCols.length) for (const col of missingCols) missing.push(`${slot.name}.${col}`);
-        else rows.set(slot.name, value);
-      } else missing.push(slot.name);
-    } else if (typeof value === "string" && value.trim()) text.set(slot.name, value);
-    else if (typeof value === "number") text.set(slot.name, String(value));
-    else missing.push(slot.name);
+        if (missingCols.length) {
+          for (const col of missingCols) {
+            missing.push(`${slot.name}.${col}`);
+          }
+        } else {
+          rows.set(slot.name, value);
+        }
+      } else {
+        missing.push(slot.name);
+      }
+    } else if (typeof value === "string" && value.trim()) {
+      text.set(slot.name, value);
+    } else if (typeof value === "number") {
+      text.set(slot.name, String(value));
+    } else {
+      missing.push(slot.name);
+    }
   }
-  if (missing.length) return { ok: false, missing };
+  if (missing.length) {
+    return { ok: false, missing };
+  }
   let output = template.html.replaceAll(ROWS_RE, (_whole, name: string, body: string) =>
     (rows.get(name) ?? [])
       .map((row) => body.replaceAll(COL_RE, (_c, col: string) => esc(stringifyCell(row[col]))))
@@ -201,7 +298,9 @@ export function renderTemplate(
 }
 
 function stringifyCell(value: unknown): string {
-  if (value === undefined || value === null) return "";
+  if (value === undefined || value === null) {
+    return "";
+  }
   return typeof value === "string"
     ? value
     : typeof value === "number"

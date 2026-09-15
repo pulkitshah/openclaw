@@ -153,7 +153,9 @@ describe("creds (linux)", () => {
     const map = new Map<string, string>();
     return {
       async get(key) {
-        if (!map.has(key)) throw new Error(`no credential stored for ${key}`);
+        if (!map.has(key)) {
+          throw new Error(`no credential stored for ${key}`);
+        }
         return map.get(key)!;
       },
       async set(key, value) {

@@ -31,8 +31,7 @@ export type DeskHealth = {
 
 /** Overridable for a desk whose state lives somewhere other than the default system path (tests,
  *  and any future non-standard install). */
-export const DESK_HEALTH_PATH =
-  process.env.DUTIES_DESK_HEALTH ?? "/var/lib/openclaw/desk-health.json";
+const DESK_HEALTH_PATH = process.env.DUTIES_DESK_HEALTH ?? "/var/lib/openclaw/desk-health.json";
 
 function numberField(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
@@ -80,7 +79,9 @@ export async function readDeskHealth(filePath = DESK_HEALTH_PATH): Promise<DeskH
   try {
     const raw = await readFile(filePath, "utf8");
     const parsed: unknown = JSON.parse(raw);
-    if (!isRecord(parsed)) return { hosted: false };
+    if (!isRecord(parsed)) {
+      return { hosted: false };
+    }
     return toDeskHealth(parsed);
   } catch {
     return { hosted: false };

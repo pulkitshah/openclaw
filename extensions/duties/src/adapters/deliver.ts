@@ -39,7 +39,7 @@ export type RouteResolver = (
   origin: RunOrigin | undefined,
 ) => Promise<DeliverRoute>;
 
-export const NO_OWNER_TARGET = "no owner target configured — set it on the Duties page";
+const NO_OWNER_TARGET = "no owner target configured — set it on the Duties page";
 
 /**
  * Whether a run's origin is the OWNER'S OWN direct chat — the one origin whose conversation may
@@ -57,9 +57,13 @@ function ownerChatRoute(
   owner: { channel: string; target: string },
   sessionRoute: (origin: RunOrigin) => DeliverRoute | undefined,
 ): DeliverRoute | undefined {
-  if (origin?.kind !== "chat") return undefined;
+  if (origin?.kind !== "chat") {
+    return undefined;
+  }
   const route = sessionRoute(origin);
-  if (!route) return undefined;
+  if (!route) {
+    return undefined;
+  }
   return route.channel === owner.channel && route.to === owner.target ? route : undefined;
 }
 
@@ -97,7 +101,9 @@ export function createAskSessionResolver(params: {
 }): (origin: RunOrigin | undefined) => Promise<string> {
   return async (origin) => {
     const target = await params.ownerTarget();
-    if (!target) throw new Error(NO_OWNER_TARGET);
+    if (!target) {
+      throw new Error(NO_OWNER_TARGET);
+    }
     if (ownerChatRoute(origin, target, params.sessionRoute) && origin?.sessionKey) {
       return origin.sessionKey;
     }
@@ -126,7 +132,9 @@ export function createOwnerRouteResolver(params: {
 }): (origin: RunOrigin | undefined) => Promise<DeliverRoute> {
   return async (origin) => {
     const target = await params.ownerTarget();
-    if (!target) throw new Error(NO_OWNER_TARGET);
+    if (!target) {
+      throw new Error(NO_OWNER_TARGET);
+    }
     return (
       ownerChatRoute(origin, target, params.sessionRoute) ?? {
         channel: target.channel,
@@ -144,16 +152,22 @@ export function createRouteResolver(params: {
 }): RouteResolver {
   const owner = async (): Promise<DeliverRoute> => {
     const target = await params.ownerTarget();
-    if (!target) throw new Error(NO_OWNER_TARGET);
+    if (!target) {
+      throw new Error(NO_OWNER_TARGET);
+    }
     return { channel: target.channel, to: target.target };
   };
   return async (to, channel, origin) => {
-    if (to === "owner") return owner();
+    if (to === "owner") {
+      return owner();
+    }
     if (to === "trigger") {
       const route = origin?.kind === "chat" ? params.sessionRoute(origin) : undefined;
       return route ?? owner();
     }
-    if (!channel) throw new Error(`deliver to "${to}" needs a channel`);
+    if (!channel) {
+      throw new Error(`deliver to "${to}" needs a channel`);
+    }
     return { channel, to };
   };
 }
@@ -174,14 +188,18 @@ export function sessionRouteFromStore(
   origin: RunOrigin,
   deps: { getEntry?: typeof getSessionEntry } = {},
 ): DeliverRoute | undefined {
-  if (!origin.sessionKey) return undefined;
+  if (!origin.sessionKey) {
+    return undefined;
+  }
   const getEntry = deps.getEntry ?? getSessionEntry;
   const entry = getEntry({
     sessionKey: origin.sessionKey,
     ...(origin.agentId ? { agentId: origin.agentId } : {}),
   });
   const ctx = deliveryContextFromSession(entry);
-  if (!ctx?.channel || !ctx.to) return undefined;
+  if (!ctx?.channel || !ctx.to) {
+    return undefined;
+  }
   return {
     channel: ctx.channel,
     to: ctx.to,
@@ -194,7 +212,7 @@ export function sessionRouteFromStore(
  *  `id` is the question RECORD id (`question.request`'s own id), not the per-question id inside
  *  it — that is what the channel's callback data carries and what `question.get`/`question.resolve`
  *  take. */
-export type DeliverQuestion = { id: string; options: readonly string[] };
+type DeliverQuestion = { id: string; options: readonly string[] };
 
 export type DeliverAdapter = {
   send(params: {
@@ -241,7 +259,9 @@ export function canRenderQuestionCard(options: readonly string[]): boolean {
 }
 
 function questionCard(question: DeliverQuestion): Record<string, unknown> | undefined {
-  if (!canRenderQuestionCard(question.options)) return undefined;
+  if (!canRenderQuestionCard(question.options)) {
+    return undefined;
+  }
   const options = question.options.map((option) => option.trim());
   return {
     presentation: {
@@ -269,9 +289,12 @@ function errorMessage(error: unknown): string {
 type PayloadOutcomeLike = { index: number; status: string; error?: unknown; reason?: string };
 
 function describePayloadOutcome(outcome: PayloadOutcomeLike): string {
-  if (outcome.status === "failed")
+  if (outcome.status === "failed") {
     return `#${outcome.index} failed: ${errorMessage(outcome.error)}`;
-  if (outcome.status === "suppressed") return `#${outcome.index} suppressed: ${outcome.reason}`;
+  }
+  if (outcome.status === "suppressed") {
+    return `#${outcome.index} suppressed: ${outcome.reason}`;
+  }
   return `#${outcome.index} ${outcome.status}`;
 }
 
@@ -299,7 +322,7 @@ export function createDeliverAdapter(params: {
           {
             ...(text ? { text } : {}),
             ...(files?.length ? { mediaUrls: files } : {}),
-            ...(card ?? {}),
+            ...card,
           },
         ],
       });

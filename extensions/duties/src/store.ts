@@ -43,8 +43,12 @@ export type RunFile = {
  * it and a multi-agent one has nothing to resolve it to.
  */
 export function runSessionKey(origin: RunOrigin | undefined): string {
-  if (origin?.sessionKey) return origin.sessionKey;
-  if (origin?.agentId) return `agent:${origin.agentId}:main`;
+  if (origin?.sessionKey) {
+    return origin.sessionKey;
+  }
+  if (origin?.agentId) {
+    return `agent:${origin.agentId}:main`;
+  }
   return "main";
 }
 export type StepEvidence = {
@@ -223,7 +227,7 @@ export class DutyStore {
     let merged: DutiesSettings = {};
     if (store.update) {
       await store.update("default", (cur) => {
-        merged = { ...(cur ?? {}), ...patch };
+        merged = { ...cur, ...patch };
         return merged;
       });
       return merged;
@@ -245,11 +249,15 @@ export class DutyStore {
     const store = this.stores.runs;
     if (store.update) {
       const applied = await store.update(id, (cur) => (cur ? { ...cur, ...patch } : undefined));
-      if (!applied) return undefined;
+      if (!applied) {
+        return undefined;
+      }
       return store.lookup(id);
     }
     const current = await store.lookup(id);
-    if (!current) return undefined;
+    if (!current) {
+      return undefined;
+    }
     const next = { ...current, ...patch };
     await store.register(id, next);
     return next;
@@ -262,11 +270,15 @@ export class DutyStore {
       const applied = await store.update(id, (cur) =>
         cur ? { ...cur, steps: [...cur.steps, step] } : undefined,
       );
-      if (!applied) return undefined;
+      if (!applied) {
+        return undefined;
+      }
       return store.lookup(id);
     }
     const current = await store.lookup(id);
-    if (!current) return undefined;
+    if (!current) {
+      return undefined;
+    }
     const next = { ...current, steps: [...current.steps, step] };
     await store.register(id, next);
     return next;
@@ -279,11 +291,15 @@ export class DutyStore {
       const applied = await store.update(id, (cur) =>
         cur ? { ...cur, files: [...(cur.files ?? []), file] } : undefined,
       );
-      if (!applied) return undefined;
+      if (!applied) {
+        return undefined;
+      }
       return store.lookup(id);
     }
     const current = await store.lookup(id);
-    if (!current) return undefined;
+    if (!current) {
+      return undefined;
+    }
     const next = { ...current, files: [...(current.files ?? []), file] };
     await store.register(id, next);
     return next;
@@ -314,14 +330,18 @@ export class DutyStore {
     const entries = await store.entries();
     let count = 0;
     for (const { key, value } of entries) {
-      if (value.status !== "running" && value.status !== "queued") continue;
+      if (value.status !== "running" && value.status !== "queued") {
+        continue;
+      }
       if (store.update) {
         const applied = await store.update(key, (cur) =>
           cur && (cur.status === "running" || cur.status === "queued")
             ? { ...cur, status: "lost", endedAt: Date.now() }
             : undefined,
         );
-        if (applied) count += 1;
+        if (applied) {
+          count += 1;
+        }
         continue;
       }
       await store.register(key, { ...value, status: "lost", endedAt: Date.now() });

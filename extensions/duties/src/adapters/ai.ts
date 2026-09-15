@@ -26,7 +26,7 @@ type Request = <T = unknown>(method: string, params: Record<string, unknown>) =>
 export function createAiAdapter(params: { request: Request; sessionKey: string }): AiAdapter {
   return {
     async extract({ instruction, input, schema }) {
-      const result = await params.request<unknown>("tools.invoke", {
+      const result = await params.request("tools.invoke", {
         name: "llm-task",
         sessionKey: params.sessionKey,
         args: { prompt: instruction, input, schema },
@@ -38,7 +38,9 @@ export function createAiAdapter(params: { request: Request; sessionKey: string }
           (typeof error?.type === "string" && error.type) ||
           (typeof error?.code === "string" && error.code) ||
           "tool call failed";
-        if (result.requiresApproval) throw new Error(`ai step needs approval: ${message}`);
+        if (result.requiresApproval) {
+          throw new Error(`ai step needs approval: ${message}`);
+        }
         throw new Error(`ai step failed: ${message}`);
       }
       return parseToolJson(isRecord(result) ? result.output : undefined);
@@ -55,7 +57,9 @@ export function createAiAdapter(params: { request: Request; sessionKey: string }
 function parseToolJson(result: unknown): Record<string, unknown> {
   if (isRecord(result)) {
     const details = isRecord(result.details) ? result.details : undefined;
-    if (details && "json" in details) return parseToolJson(details.json);
+    if (details && "json" in details) {
+      return parseToolJson(details.json);
+    }
     const content = result.content;
     if (Array.isArray(content)) {
       const text = content
@@ -70,7 +74,9 @@ function parseToolJson(result: unknown): Record<string, unknown> {
   if (typeof result === "string") {
     const trimmed = result.trim().replace(/^```(?:json)?\s*|\s*```$/gu, "");
     const parsed: unknown = JSON.parse(trimmed);
-    if (isRecord(parsed)) return parsed;
+    if (isRecord(parsed)) {
+      return parsed;
+    }
   }
   throw new Error("ai step returned no JSON object");
 }

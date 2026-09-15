@@ -20,7 +20,9 @@ export async function renderTemplatePreview(params: {
   data?: Record<string, unknown>;
 }): Promise<{ path: string; bytes: number; previewPath?: string }> {
   const template = await params.store.getTemplate(params.id);
-  if (!template) throw new Error(`no template "${params.id}"`);
+  if (!template) {
+    throw new Error(`no template "${params.id}"`);
+  }
   if (template.kind !== "pdf") {
     throw new Error(
       `template "${template.id}" is a ${template.kind} template; preview renders pdf templates only`,
@@ -31,7 +33,9 @@ export async function renderTemplatePreview(params: {
     params.data ?? placeholderData(template),
     await params.store.getBrand(),
   );
-  if (!rendered.ok) throw new Error(`slot "${rendered.missing[0]}" could not be filled`);
+  if (!rendered.ok) {
+    throw new Error(`slot "${rendered.missing[0]}" could not be filled`);
+  }
   // Named like anything else the owner is shown, and marked a preview so a file that reaches them
   // out of context cannot be mistaken for a document a run actually produced and sent.
   const name =

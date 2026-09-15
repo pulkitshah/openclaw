@@ -16,8 +16,8 @@ export type Request = <T = unknown>(method: string, params: Record<string, unkno
  * only the value handed to `createAiAdapter`/`createAskAdapter`/`createBrowserAdapter` needs to be
  * told it also satisfies `Request`.
  */
-export function asRequest<M extends (...args: never[]) => unknown>(mock: M): Request {
+export function asRequest(mock: (...args: never[]) => unknown): Request {
   // SAFETY: `mock` is always one of this suite's `vi.fn(...)` request fixtures, driven only by
   // the adapter under test with the same method/params shapes the fixture was written against.
-  return mock as unknown as Request;
+  return mock as Request;
 }

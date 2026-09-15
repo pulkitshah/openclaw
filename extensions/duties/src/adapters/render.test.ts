@@ -141,7 +141,9 @@ describe("createRenderAdapter", () => {
     const failure = await createRenderAdapter({ server, browser })
       .toPdf("<p/>", "/nonexistent/x.pdf")
       .catch((error: unknown) => error);
-    if (!(failure instanceof Error)) throw new Error("toPdf should have rejected");
+    if (!(failure instanceof Error)) {
+      throw new Error("toPdf should have rejected");
+    }
     expect(failure.message).toMatch(
       /^render page not served at http:\/\/127\.0\.0\.1:19001\/plugins\/duties\/render\/[0-9a-f-]+ \(got 404 Not Found\)$/u,
     );
@@ -164,7 +166,9 @@ describe("createRenderAdapter", () => {
     const failure = await createRenderAdapter({ server, browser })
       .toPdf("<p/>", "/nonexistent/x.pdf")
       .catch((error: unknown) => error);
-    if (!(failure instanceof Error)) throw new Error("toPdf should have rejected");
+    if (!(failure instanceof Error)) {
+      throw new Error("toPdf should have rejected");
+    }
     expect(failure.message).toContain("(got Sign in to continue)");
     expect(browser.pdf).not.toHaveBeenCalled();
   });
@@ -237,7 +241,9 @@ describe("createRenderAdapter", () => {
     const failure = await createRenderAdapter({ server, browser })
       .toPdf("<p/>", "/nonexistent/x.pdf")
       .catch((error: unknown) => error);
-    if (!(failure instanceof Error)) throw new Error("toPdf should have rejected");
+    if (!(failure instanceof Error)) {
+      throw new Error("toPdf should have rejected");
+    }
     expect(failure.message).toMatch(
       /^could not open the render page at http:\/\/127\.0\.0\.1:19001\/plugins\/duties\/render\/[0-9a-f-]+: net::ERR_CONNECTION_REFUSED$/u,
     );
@@ -262,7 +268,9 @@ describe("createRenderAdapter", () => {
     const failure = await createRenderAdapter({ server, browser })
       .toPdf("<p/>", "/nonexistent/x.pdf")
       .catch((error: unknown) => error);
-    if (!(failure instanceof Error)) throw new Error("toPdf should have rejected");
+    if (!(failure instanceof Error)) {
+      throw new Error("toPdf should have rejected");
+    }
     expect(failure.message).toContain("browser.ssrfPolicy.allowedHostnames");
     expect(failure.message).toContain("127.0.0.1");
   });

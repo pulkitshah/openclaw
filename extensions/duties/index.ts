@@ -100,9 +100,13 @@ export default definePluginEntry({
     // owner routing — reads it through here instead. Same shape other bundled plugins use
     // (extensions/discord/src/activities/register.ts:22, extensions/memory-lancedb/index.ts:165).
     const currentConfig = (): OpenClawConfig => {
-      if (!api.runtime.config?.current) return api.config;
-      // SAFETY: `config.current()` returns a DeepReadonly view of the very same OpenClawConfig shape `api.config` already has, and every consumer here only reads from it.
-      return api.runtime.config.current() as unknown as OpenClawConfig;
+      if (!api.runtime.config?.current) {
+        return api.config;
+      }
+      // SAFETY: matches the single-assertion pattern other runtime.config.current() callers use
+      // (e.g. src/plugins/registry-api.ts, src/plugin-sdk/migration.ts) — every consumer here
+      // only reads from the result.
+      return api.runtime.config.current() as OpenClawConfig;
     };
     const store = DutyStore.open(api);
     const events = createDutiesEventService();
@@ -265,7 +269,7 @@ export default definePluginEntry({
       api,
       store,
       runs,
-      emit: events.emit,
+      emit: (name, payload) => events.emit(name, payload),
       creds: {
         set: (key, value) => credSet(key, value),
         delete: (key) => credDelete(key),

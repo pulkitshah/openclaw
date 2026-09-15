@@ -12,10 +12,18 @@ type JsonPrimitive = string | number | boolean | null;
 type BoundedJson = JsonPrimitive | BoundedJson[] | { [key: string]: BoundedJson };
 
 function isBoundedJson(value: unknown): value is BoundedJson {
-  if (value === null || typeof value === "boolean" || typeof value === "string") return true;
-  if (typeof value === "number") return Number.isFinite(value);
-  if (Array.isArray(value)) return value.every(isBoundedJson);
-  if (typeof value !== "object") return false;
+  if (value === null || typeof value === "boolean" || typeof value === "string") {
+    return true;
+  }
+  if (typeof value === "number") {
+    return Number.isFinite(value);
+  }
+  if (Array.isArray(value)) {
+    return value.every(isBoundedJson);
+  }
+  if (typeof value !== "object") {
+    return false;
+  }
   return Object.values(value).every(isBoundedJson);
 }
 
@@ -28,6 +36,7 @@ function isBoundedJson(value: unknown): value is BoundedJson {
  * the result's type with a guard instead of a cast.
  */
 function toBoundedJson(payload: Record<string, unknown>): BoundedJson | undefined {
+  // oxlint-disable-next-line unicorn/prefer-structured-clone -- JSON.stringify drops undefined-valued keys, which structuredClone would keep; the guard below relies on that.
   const roundTripped: unknown = JSON.parse(JSON.stringify(payload));
   return isBoundedJson(roundTripped) ? roundTripped : undefined;
 }
@@ -60,7 +69,9 @@ export function createDutiesEventService(): OpenClawPluginService & {
       logger = undefined;
     },
     emit(name, payload) {
-      if (!gatewayEvents) return;
+      if (!gatewayEvents) {
+        return;
+      }
       try {
         const bounded = toBoundedJson(payload);
         if (bounded === undefined) {

@@ -41,10 +41,11 @@ export function createLinuxCredStore(opts?: {
         `no credential keyfile at ${keyfilePath} — create it as root with 32 random bytes, readable by the service user`,
       );
     }
-    if (raw.length < 16)
+    if (raw.length < 16) {
       throw new Error(
         `credential keyfile at ${keyfilePath} is too short (need at least 16 bytes; a desk's cloud-init writes 32 random ones)`,
       );
+    }
     return Buffer.from(hkdfSync("sha256", raw, "", "openclaw-duties-creds", 32));
   };
 
@@ -61,8 +62,8 @@ export function createLinuxCredStore(opts?: {
       throw new Error("credential store is corrupt or was written with another keyfile");
     }
     const iv = blob.subarray(MAGIC.length, MAGIC.length + IV_BYTES);
-    const tag = blob.subarray(blob.length - 16);
-    const data = blob.subarray(MAGIC.length + IV_BYTES, blob.length - 16);
+    const tag = blob.subarray(-16);
+    const data = blob.subarray(MAGIC.length + IV_BYTES, -16);
     try {
       const decipher = createDecipheriv("aes-256-gcm", key, iv);
       decipher.setAuthTag(tag);
@@ -103,21 +104,27 @@ export function createLinuxCredStore(opts?: {
   };
 
   const assertKey = (key: string) => {
-    if (!KEY_RE.test(key)) throw new Error("invalid credential key");
+    if (!KEY_RE.test(key)) {
+      throw new Error("invalid credential key");
+    }
   };
 
   return {
     async get(key) {
       assertKey(key);
       const map = await readMap();
-      if (!Object.hasOwn(map, key)) throw new Error(`no credential stored for ${key}`);
+      if (!Object.hasOwn(map, key)) {
+        throw new Error(`no credential stored for ${key}`);
+      }
       return map[key] ?? "";
     },
     set(key, value) {
       assertKey(key);
       // Same message the platform-independent caller uses (creds.ts credSet), so a direct store
       // user and the dispatcher never report one condition two ways.
-      if (!value) throw new Error("credential value must not be empty");
+      if (!value) {
+        throw new Error("credential value must not be empty");
+      }
       return locked(async () => {
         const map = await readMap();
         map[key] = value;
@@ -128,7 +135,9 @@ export function createLinuxCredStore(opts?: {
       assertKey(key);
       return locked(async () => {
         const map = await readMap();
-        if (!Object.hasOwn(map, key)) return false;
+        if (!Object.hasOwn(map, key)) {
+          return false;
+        }
         delete map[key];
         await writeMap(map);
         return true;

@@ -22,6 +22,22 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+/** Coerces a Duty-authored param/output value to text without relying on Object's default
+ *  `toString` ("[object Object]"): an object or array is JSON-encoded instead, so a
+ *  misconfigured non-string value stays informative rather than silently misleading. */
+function coerceParamText(value: unknown): string {
+  if (value === undefined || value === null) {
+    return "";
+  }
+  if (typeof value === "string") {
+    return value;
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  return JSON.stringify(value);
+}
+
 /**
  * Resolves every string leaf of a param, through arrays and plain objects rather than only at the
  * top level. An `ai` step's `params.input` is routinely an object or an array — that is how a
@@ -39,10 +55,14 @@ async function resolveTree(
   value: unknown,
   resolveString: (text: string) => Promise<string>,
 ): Promise<unknown> {
-  if (typeof value === "string") return resolveString(value);
+  if (typeof value === "string") {
+    return resolveString(value);
+  }
   if (Array.isArray(value)) {
     const out: unknown[] = [];
-    for (const item of value) out.push(await resolveTree(item, resolveString));
+    for (const item of value) {
+      out.push(await resolveTree(item, resolveString));
+    }
     return out;
   }
   if (isRecord(value)) {
@@ -84,7 +104,7 @@ export type AskAdapter = {
 };
 /** The templates a `template` step renders, read through the store rather than handed in whole, so
  *  an edit on the Duties page is picked up by the next run without rebuilding the deps. */
-export type TemplateSource = {
+type TemplateSource = {
   get(id: string): Promise<Template | undefined>;
   brand(): Promise<Brand | undefined>;
 };
@@ -128,15 +148,24 @@ export type RunOutcome = {
   targetId?: string;
 };
 
-class StopSignal {
-  constructor(readonly reason: string) {}
+// Both extend Error (rather than being plain classes) so every internal `throw` in this file
+// throws a real Error, per the "only-throw-error" lint contract; `message` comes from `Error`
+// itself, set via `super()`, so reading `.message` on a caught signal is unchanged.
+class StopSignal extends Error {
+  constructor(readonly reason: string) {
+    super(reason);
+    this.name = "StopSignal";
+  }
 }
-class HaltSignal {
+class HaltSignal extends Error {
   constructor(
     readonly outcome: RunOutcome["status"],
     readonly stepId: string,
-    readonly message: string,
-  ) {}
+    message: string,
+  ) {
+    super(message);
+    this.name = "HaltSignal";
+  }
 }
 
 const MASK = "••••••";
@@ -168,16 +197,22 @@ export async function runDuty(
   /** Every tab this run drove (the handed-in one included): all are closed at the end, except
    *  the current tab when `keepOpen` hands it to the next stage. */
   const ownedTabs = new Set<string>();
-  if (targetId) ownedTabs.add(targetId);
+  if (targetId) {
+    ownedTabs.add(targetId);
+  }
   let reachedStop = false;
   const trackedCred = async (key: string): Promise<string> => {
     const value = await deps.cred(key);
-    if (value.length >= 4) secrets.add(value);
+    if (value.length >= 4) {
+      secrets.add(value);
+    }
     return value;
   };
   const redact = (text: string): string => {
     let result = text;
-    for (const secret of secrets) result = result.split(secret).join(MASK);
+    for (const secret of secrets) {
+      result = result.split(secret).join(MASK);
+    }
     return result;
   };
   const ctx = () => ({ out: outputs, in: options.inputs });
@@ -202,7 +237,9 @@ export async function runDuty(
       }),
     );
   const requireTab = (): string => {
-    if (!targetId) throw new Error("no browser tab: add an open step first");
+    if (!targetId) {
+      throw new Error("no browser tab: add an open step first");
+    }
     return targetId;
   };
 
@@ -223,27 +260,38 @@ export async function runDuty(
   };
 
   const evalCond = async (cond: Cond): Promise<boolean> => {
-    if ("visible" in cond) return deps.browser.isVisible(requireTab(), cond.visible);
-    if ("equals" in cond)
+    if ("visible" in cond) {
+      return deps.browser.isVisible(requireTab(), cond.visible);
+    }
+    if ("equals" in cond) {
       return (await resolve(cond.equals[0])) === (await resolve(cond.equals[1]));
-    if ("url_matches" in cond)
+    }
+    if ("url_matches" in cond) {
       return new RegExp(cond.url_matches, "iu").test(await deps.browser.url(requireTab()));
+    }
     return new RegExp(cond.text_matches, "iu").test(await deps.browser.text(requireTab()));
   };
 
   const runCheck = async (check: Check): Promise<string | undefined> => {
     const tab = requireTab();
-    if (check.visible && !(await deps.browser.isVisible(tab, check.visible)))
+    if (check.visible && !(await deps.browser.isVisible(tab, check.visible))) {
       return `expected ${describeTarget(check.visible)} to be visible`;
-    if (check.url_matches && !new RegExp(check.url_matches, "iu").test(await deps.browser.url(tab)))
+    }
+    if (
+      check.url_matches &&
+      !new RegExp(check.url_matches, "iu").test(await deps.browser.url(tab))
+    ) {
       return `url did not match ${check.url_matches}`;
+    }
     if (
       check.text_matches &&
       !new RegExp(check.text_matches, "iu").test(await deps.browser.text(tab))
-    )
+    ) {
       return `page text did not match ${check.text_matches}`;
-    if (check.non_empty && !String(outputs[check.non_empty] ?? "").trim())
+    }
+    if (check.non_empty && !coerceParamText(outputs[check.non_empty]).trim()) {
       return `output ${check.non_empty} is empty`;
+    }
     return undefined;
   };
 
@@ -253,21 +301,29 @@ export async function runDuty(
    *  every step had already run — with a message naming neither the step nor the key. An unset key
    *  resolves the same way an explicit `undefined` did wherever `{{out:key}}` reads it. */
   const save = (step: Step, value: unknown) => {
-    if (!step.saveAs) return;
+    if (!step.saveAs) {
+      return;
+    }
     if (Array.isArray(step.saveAs)) {
       const resultRecord = isRecord(value) ? value : undefined;
       for (const key of step.saveAs) {
         const saved = resultRecord?.[key];
-        if (saved !== undefined) outputs[key] = saved;
+        if (saved !== undefined) {
+          outputs[key] = saved;
+        }
       }
-    } else if (value !== undefined) outputs[step.saveAs] = value;
+    } else if (value !== undefined) {
+      outputs[step.saveAs] = value;
+    }
   };
 
   const runStep = async (step: Step): Promise<void> => {
-    if (deps.isCancelled?.()) throw new HaltSignal("cancelled", step.id, "cancelled");
+    if (deps.isCancelled?.()) {
+      throw new HaltSignal("cancelled", step.id, "cancelled");
+    }
     const startedAt = now();
-    let summary = "";
-    let usedCred = false;
+    let summary: string;
+    let usedCred: boolean;
     const budget = step.timeoutMs;
     try {
       if (step.kind === "browser") {
@@ -288,16 +344,23 @@ export async function runDuty(
           await deps.browser.navigate(requireTab(), url, budget);
           summary = url;
         } else if (action === "click") {
-          if (!step.target) throw new Error("click needs a target");
+          if (!step.target) {
+            throw new Error("click needs a target");
+          }
           await deps.browser.click(requireTab(), step.target, budget);
           summary = describeTarget(step.target);
         } else if (action === "fill" || action === "select") {
-          if (!step.target) throw new Error(`${action} needs a target`);
-          const raw = String(step.params.value ?? "");
+          if (!step.target) {
+            throw new Error(`${action} needs a target`);
+          }
+          const raw = coerceParamText(step.params.value);
           usedCred = /\{\{cred:/u.test(raw);
           const value = await resolveSecret(raw);
-          if (action === "fill") await deps.browser.fill(requireTab(), step.target, value, budget);
-          else await deps.browser.select(requireTab(), step.target, value, budget);
+          if (action === "fill") {
+            await deps.browser.fill(requireTab(), step.target, value, budget);
+          } else {
+            await deps.browser.select(requireTab(), step.target, value, budget);
+          }
           summary = `${describeTarget(step.target)} ← ${usedCred ? MASK : value}`;
         } else if (action === "press") {
           const key = String(await resolve(step.params.key));
@@ -338,43 +401,49 @@ export async function runDuty(
         save(step, result);
         summary = Object.keys(result).join(", ");
       } else if (step.kind === "ask") {
-        // SAFETY: options is authored duty config; a missing/non-array value falls back to an empty list.
-        const options_ = (step.params.options as string[] | undefined) ?? [];
+        // SAFETY: askOptions is authored duty config; a missing/non-array value falls back to an empty list.
+        const askOptions = (step.params.options as string[] | undefined) ?? [];
         const question = String(await resolve(step.params.question));
         let result: Awaited<ReturnType<AskAdapter["ask"]>>;
         try {
           result = await deps.ask.ask({
             stepId: step.id,
             question,
-            header: String(step.params.header ?? step.label).slice(0, 12),
-            options: options_,
+            header: coerceParamText(step.params.header ?? step.label).slice(0, 12),
+            options: askOptions,
             timeoutMs: step.timeoutMs,
             onAsked: (questionId) => deps.onWaiting?.({ questionId, stepId: step.id }),
           });
         } finally {
           deps.onWaiting?.(undefined);
         }
-        if (deps.isCancelled?.()) throw new HaltSignal("cancelled", step.id, "cancelled");
-        if (result.status !== "answered")
+        if (deps.isCancelled?.()) {
+          throw new HaltSignal("cancelled", step.id, "cancelled");
+        }
+        if (result.status !== "answered") {
           throw new HaltSignal(
             result.status === "cancelled" ? "cancelled" : "blocked",
             step.id,
             `no answer to "${step.label}"`,
           );
+        }
         save(step, result.answer);
         summary = result.note ? `${result.answer} (${result.note})` : result.answer;
       } else if (step.kind === "template") {
         const templateId = String(step.params.template);
         const template = await deps.templates.get(templateId);
-        if (!template) throw new Error(`unknown template "${templateId}"`);
+        if (!template) {
+          throw new Error(`unknown template "${templateId}"`);
+        }
         // `renderTemplate` escapes by the template's own kind (a message body is left literal), so
         // a step's `format` may only restate that kind: printing a message template would serve its
         // unescaped text to the browser as HTML, and texting a pdf template would send raw markup.
         const format = typeof step.params.format === "string" ? step.params.format : template.kind;
-        if (format !== template.kind)
+        if (format !== template.kind) {
           throw new Error(
             `template "${template.id}" is a ${template.kind} template; format "${format}" is not allowed`,
           );
+        }
         // SAFETY: validateDuty validated params.fill as an object of { from } | { ai }.
         const fill = step.params.fill as Record<string, { from: string } | { ai: string }>;
         let aiName: string | undefined;
@@ -384,13 +453,16 @@ export async function runDuty(
         // DIFFERENT slot's missing-value error. The template is the authority on its own slots.
         const declared = new Set(template.slots.map((slot) => slot.name));
         const undeclared = Object.keys(fill).filter((name) => !declared.has(name));
-        if (undeclared.length)
+        if (undeclared.length) {
           throw new Error(
             `template "${template.id}" has no slot(s) ${undeclared.join(", ")} (declared: ${[...declared].join(", ") || "none"})`,
           );
+        }
         for (const slot of template.slots) {
           const spec = fill[slot.name];
-          if (!spec) continue;
+          if (!spec) {
+            continue;
+          }
           if ("from" in spec) {
             const raw = String(await resolveWithFiles(spec.from));
             data[slot.name] = slot.kind === "rows" ? parseRows(raw) : raw;
@@ -398,10 +470,11 @@ export async function runDuty(
             // A rows slot needs an array of row objects; the ai call answers one string per slot,
             // so `{ ai }` on a rows slot can never succeed — and surfaced as the generic
             // `slot "x" could not be filled`, which names neither the cause nor the fix.
-            if (slot.kind === "rows")
+            if (slot.kind === "rows") {
               throw new Error(
                 `slot "${slot.name}" is a rows slot: fill it with { from } from a step that produced the rows, not { ai }`,
               );
+            }
             aiSlots.push({ name: slot.name, instruction: spec.ai });
           }
         }
@@ -438,13 +511,19 @@ export async function runDuty(
           });
           // Only declared slots are copied into the data, so the reserved name key can never be
           // mistaken for one.
-          for (const s of aiSlots) if (filled[s.name] !== undefined) data[s.name] = filled[s.name];
+          for (const s of aiSlots) {
+            if (filled[s.name] !== undefined) {
+              data[s.name] = filled[s.name];
+            }
+          }
           if (wantsAiName && typeof filled[AI_FILENAME_KEY] === "string") {
             aiName = filled[AI_FILENAME_KEY];
           }
         }
         const rendered = renderTemplate(template, data, await deps.templates.brand());
-        if (!rendered.ok) throw new Error(`slot "${rendered.missing[0]}" could not be filled`);
+        if (!rendered.ok) {
+          throw new Error(`slot "${rendered.missing[0]}" could not be filled`);
+        }
         if (format === "message") {
           save(step, rendered.output);
           summary = rendered.output.slice(0, 120);
@@ -493,10 +572,11 @@ export async function runDuty(
         // bypassed) still cannot mail out an arbitrary readable file.
         const produced = new Set(files.map((f) => f.path));
         for (const candidate of paths) {
-          if (!produced.has(candidate))
+          if (!produced.has(candidate)) {
             throw new Error(
               `deliver can only attach a file this run produced; use {{file:<stepId>}} naming an earlier template step`,
             );
+          }
         }
         await deps.deliver.send({ route, ...(text !== undefined ? { text } : {}), files: paths });
         summary = `→ ${route.channel}:${maskTarget(route.to)}`;
@@ -511,7 +591,9 @@ export async function runDuty(
       }
       if (step.check) {
         const problem = await runCheck(step.check);
-        if (problem) throw new Error(problem);
+        if (problem) {
+          throw new Error(problem);
+        }
       }
       record({
         stepId: step.id,
@@ -529,7 +611,9 @@ export async function runDuty(
     } catch (error) {
       // A cancelled run stopped on the owner's instruction, not on a step outcome: the run's own
       // `cancelled` status carries that, so no step evidence row is written for it.
-      if (error instanceof HaltSignal && error.outcome === "cancelled") throw error;
+      if (error instanceof HaltSignal && error.outcome === "cancelled") {
+        throw error;
+      }
       // Wider than the success-path gate on purpose: when an `ai` read or an `ask` fails, the page
       // the run was looking at IS the evidence. `template`/`deliver` failures are the exception —
       // they never look at a tab, so a screenshot there is just an unrelated page.
@@ -550,7 +634,9 @@ export async function runDuty(
         ? error
         : new HaltSignal("failed", step.id, errorMessage(error));
     }
-    if (options.toStepId === step.id) throw new StopSignal("");
+    if (options.toStepId === step.id) {
+      throw new StopSignal("");
+    }
   };
 
   const walk = async (nodes: DutyNode[]): Promise<void> => {
@@ -579,7 +665,9 @@ export async function runDuty(
         // and its taken branch have now run, so `toStepId` stops here. Checking this only after a
         // regular step meant naming a gate ran the whole Duty instead, which on a booking flow is
         // the difference between reviewing a page and clicking past the point of no return.
-        if (options.toStepId && options.toStepId === node.id) throw new StopSignal("");
+        if (options.toStepId && options.toStepId === node.id) {
+          throw new StopSignal("");
+        }
         continue;
       }
       if (node.kind === "stop") {
@@ -609,7 +697,9 @@ export async function runDuty(
   }
   const keptTab = options.keepOpen ? targetId : undefined;
   for (const tab of ownedTabs) {
-    if (tab !== keptTab) await deps.browser.close(tab).catch(() => {});
+    if (tab !== keptTab) {
+      await deps.browser.close(tab).catch(() => {});
+    }
   }
   return {
     status,
@@ -634,8 +724,11 @@ function parseRows(raw: string): unknown {
 }
 
 export function describeTarget(target: Target): string {
-  if (target.role || target.name)
+  if (target.role || target.name) {
     return `${target.role ?? ""}${target.name ? ` "${target.name}"` : ""}`.trim();
-  if (target.text) return `text "${target.text}"`;
+  }
+  if (target.text) {
+    return `text "${target.text}"`;
+  }
   return target.css ?? "?";
 }

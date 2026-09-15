@@ -527,6 +527,16 @@ const config = {
     // asserted by the focused Beam mirror tests; production wires only the service.
     "extensions/beam/src/mirror.ts": ["exports", "types"],
     "src/infra/heartbeat-wake.ts": ["exports"],
+    // Focused Duties tests consume these explicit seams; production code uses
+    // the surrounding runtime helpers (or, for cli.ts, only the Commander action) rather than
+    // importing the exports directly.
+    "extensions/duties/src/adapters/browser.ts": ["exports"],
+    "extensions/duties/src/adapters/render.ts": ["exports"],
+    // buildDutiesSetup's own SetupConfigFacts/SetupResult types are unused-in-production too,
+    // since production never imports buildDutiesSetup itself (only the Commander action does).
+    "extensions/duties/src/cli.ts": ["exports", "types"],
+    "extensions/duties/src/creds.ts": ["exports"],
+    "extensions/duties/src/files.ts": ["exports"],
   },
   workspaces: {
     ".": {

@@ -9,13 +9,17 @@ function memoryKeyed<T>() {
       map.set(key, value);
     },
     async registerIfAbsent(key: string, value: T) {
-      if (map.has(key)) return false;
+      if (map.has(key)) {
+        return false;
+      }
       map.set(key, value);
       return true;
     },
     async update(key: string, fn: (cur: T | undefined) => T | undefined) {
       const next = fn(map.get(key));
-      if (next === undefined) return false;
+      if (next === undefined) {
+        return false;
+      }
       map.set(key, next);
       return true;
     },
@@ -42,7 +46,10 @@ function memoryKeyed<T>() {
 /** Same as memoryKeyed(), but with `update` spied so tests can assert the atomic path was used. */
 function spyKeyed<T>() {
   const base = memoryKeyed<T>();
-  return { ...base, update: vi.fn(base.update) };
+  return {
+    ...base,
+    update: vi.fn((key: string, fn: (cur: T | undefined) => T | undefined) => base.update(key, fn)),
+  };
 }
 
 /** A keyed store lacking `update`, to prove DutyStore still works via the lookup+register fallback. */

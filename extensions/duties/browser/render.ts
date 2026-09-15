@@ -22,8 +22,23 @@ export type DeskStatusView = DeskHealth & {
   queued: number;
 };
 
+/** Coerces an arbitrary value to text before escaping it, without relying on Object's default
+ *  `toString` ("[object Object]"): an object or array is JSON-encoded instead. */
+function textOf(value: unknown): string {
+  if (value === undefined || value === null) {
+    return "";
+  }
+  if (typeof value === "string") {
+    return value;
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  return JSON.stringify(value);
+}
+
 function esc(value: unknown): string {
-  return String(value ?? "")
+  return textOf(value)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -31,7 +46,9 @@ function esc(value: unknown): string {
 }
 
 function fmtWhen(ms: number | undefined): string {
-  if (typeof ms !== "number" || !Number.isFinite(ms)) return "";
+  if (typeof ms !== "number" || !Number.isFinite(ms)) {
+    return "";
+  }
   return new Date(ms).toISOString().replace("T", " ").slice(0, 16);
 }
 
@@ -86,12 +103,24 @@ function runStatusPill(status: RunStatus): string {
 }
 
 function kindLabel(kind: string): string {
-  if (kind === "ai") return "AI";
-  if (kind === "browser.evaluate") return "Script";
-  if (kind === "when") return "When";
-  if (kind === "stop") return "Stop";
-  if (kind === "template") return "Template";
-  if (kind === "deliver") return "Deliver";
+  if (kind === "ai") {
+    return "AI";
+  }
+  if (kind === "browser.evaluate") {
+    return "Script";
+  }
+  if (kind === "when") {
+    return "When";
+  }
+  if (kind === "stop") {
+    return "Stop";
+  }
+  if (kind === "template") {
+    return "Template";
+  }
+  if (kind === "deliver") {
+    return "Deliver";
+  }
   return kind;
 }
 
@@ -127,8 +156,12 @@ function renderNode(node: DutyNode, counter: { n: number }): string {
 // ---------- Board ----------
 
 function triggerChipLabel(trigger: DutyTrigger): string {
-  if (trigger.kind === "mail") return `Mail: ${trigger.match}`;
-  if (trigger.kind === "chat") return `Chat: ${trigger.match}`;
+  if (trigger.kind === "mail") {
+    return `Mail: ${trigger.match}`;
+  }
+  if (trigger.kind === "chat") {
+    return `Chat: ${trigger.match}`;
+  }
   return "Manual";
 }
 
@@ -148,7 +181,9 @@ function newestUnresolvedRun(runs: readonly DutyRun[]): DutyRun | undefined {
   const newestPerDuty = new Map<string, DutyRun>();
   for (const run of runs) {
     const seen = newestPerDuty.get(run.dutyId);
-    if (!seen || run.startedAt > seen.startedAt) newestPerDuty.set(run.dutyId, run);
+    if (!seen || run.startedAt > seen.startedAt) {
+      newestPerDuty.set(run.dutyId, run);
+    }
   }
   return [...newestPerDuty.values()]
     .filter((r) => r.status === "failed" || r.status === "blocked")
@@ -195,7 +230,9 @@ const MAIL_CHECKS: ReadonlyArray<{ key: keyof MailStatus; label: string }> = [
 /** Four ✓/✗ checks plus the last dispatch; the setup instruction only appears once one of the
  *  four is missing, since a fully wired mail trigger needs nothing further from the owner. */
 function mailHealthLine(status: MailStatus | undefined): string {
-  if (!status) return `<p class="muted small">Loading…</p>`;
+  if (!status) {
+    return `<p class="muted small">Loading…</p>`;
+  }
   const marks = MAIL_CHECKS.map(
     ({ key, label }) =>
       `<span class="mcheck ${status[key] ? "ok" : "bad"}">${status[key] ? "✓" : "✗"} ${esc(label)}</span>`,
@@ -242,8 +279,12 @@ const DESK_STALE_AFTER_MS = 5 * 60_000;
 
 function deskLoadLine(desk: DeskHealth): string {
   const parts: string[] = [];
-  if (typeof desk.load1 === "number") parts.push(`load ${desk.load1.toFixed(2)}`);
-  if (typeof desk.memFreeMb === "number") parts.push(`${desk.memFreeMb} MB free`);
+  if (typeof desk.load1 === "number") {
+    parts.push(`load ${desk.load1.toFixed(2)}`);
+  }
+  if (typeof desk.memFreeMb === "number") {
+    parts.push(`${desk.memFreeMb} MB free`);
+  }
   return parts.join(" · ");
 }
 
@@ -251,14 +292,24 @@ function deskLoadLine(desk: DeskHealth): string {
  *  when the file carries no usable `at` (or one in the future — a clock that has just been set),
  *  since "unknown age" must not read as "fresh". */
 function deskAgeLabel(at: number | undefined, nowMs: number): string {
-  if (typeof at !== "number" || !Number.isFinite(at)) return "";
+  if (typeof at !== "number" || !Number.isFinite(at)) {
+    return "";
+  }
   const ageMs = nowMs - at;
-  if (ageMs < 0) return "";
+  if (ageMs < 0) {
+    return "";
+  }
   const minutes = Math.floor(ageMs / 60_000);
-  if (minutes < 1) return "checked just now";
-  if (minutes < 60) return `checked ${minutes}m ago`;
+  if (minutes < 1) {
+    return "checked just now";
+  }
+  if (minutes < 60) {
+    return `checked ${minutes}m ago`;
+  }
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `checked ${hours}h ago`;
+  if (hours < 24) {
+    return `checked ${hours}h ago`;
+  }
   return `checked ${Math.floor(hours / 24)}d ago`;
 }
 
@@ -388,7 +439,9 @@ function triggerRow(trigger: DutyTrigger): string {
  *  masked there and must stay that way here. */
 function deliveredToNote(run: DutyRun): string | undefined {
   const delivered = run.steps.find((s) => s.kind === "deliver" && s.status === "ok");
-  if (!delivered) return undefined;
+  if (!delivered) {
+    return undefined;
+  }
   return `Delivered to ${delivered.summary.replace(/^→\s*/u, "")}`;
 }
 
@@ -455,9 +508,15 @@ function stepEvidenceRow(step: StepEvidence): string {
 }
 
 function formatBytes(bytes: number): string {
-  if (!Number.isFinite(bytes) || bytes < 0) return "";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (!Number.isFinite(bytes) || bytes < 0) {
+    return "";
+  }
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
@@ -490,7 +549,9 @@ export type NowShot = { stepId: string; imageDataUrl?: string };
  *  history). A step kind with no screenshot (e.g. `ask`, `deliver`) says so instead of an empty
  *  image. */
 function nowPanel(run: DutyRun, now: NowShot | undefined): string {
-  if (run.status !== "running" && run.status !== "queued") return "";
+  if (run.status !== "running" && run.status !== "queued") {
+    return "";
+  }
   const newest = run.steps.at(-1);
   const label = newest ? esc(newest.label) : "Starting…";
   let body: string;
@@ -595,8 +656,9 @@ function pluralSlots(count: number): string {
  *  `template.html`, so it is shown inline behind a `<details>` toggle instead: no Gateway round
  *  trip needed or offered. */
 function templateBody(template: Template): string {
-  if (template.kind === "pdf")
+  if (template.kind === "pdf") {
     return `<div class="tplpreview" data-tpl-preview-for="${esc(template.id)}" hidden></div>`;
+  }
   return `<details class="tpltext"><summary>Message text</summary><pre class="raw">${esc(template.html)}</pre></details>`;
 }
 

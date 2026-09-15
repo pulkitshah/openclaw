@@ -54,8 +54,12 @@ describe("createBrowserAdapter", () => {
   it("opens a tab, fills by css selector, and clicks by resolved ref", async () => {
     const request = vi.fn(async (_m: string, params: Record<string, unknown>) => {
       const path = params.path as string;
-      if (path === "/tabs/open") return { targetId: "T1" };
-      if (path === "/snapshot") return { refs: REFS };
+      if (path === "/tabs/open") {
+        return { targetId: "T1" };
+      }
+      if (path === "/snapshot") {
+        return { refs: REFS };
+      }
       return { ok: true };
     });
     const b = createBrowserAdapter({ request: asRequest(request), profile: "chrome" });
@@ -95,7 +99,9 @@ describe("createBrowserAdapter", () => {
   it("checks css visibility via a real /act wait probe, not the locate short-circuit", async () => {
     const request = vi.fn(async (_m: string, params: Record<string, unknown>) => {
       const body = params.body as { kind?: string; selector?: string } | undefined;
-      if (body?.kind === "wait" && body.selector === "#missing") throw new Error("timed out");
+      if (body?.kind === "wait" && body.selector === "#missing") {
+        throw new Error("timed out");
+      }
       return { ok: true };
     });
     const b = createBrowserAdapter({ request: asRequest(request), profile: "chrome" });
@@ -120,7 +126,9 @@ describe("createBrowserAdapter", () => {
       const path = params.path as string;
       if (path === "/snapshot") {
         const query = params.query as { interactive?: string };
-        if (query.interactive === "true") return { refs: {} };
+        if (query.interactive === "true") {
+          return { refs: {} };
+        }
         return { refs: { h1: { role: "heading", name: "Welcome" } } };
       }
       return { ok: true };
@@ -131,9 +139,9 @@ describe("createBrowserAdapter", () => {
       ([, p]) => (p as { path?: string }).path === "/snapshot",
     );
     expect(snapshotCalls).toHaveLength(2);
-    expect((snapshotCalls[0]?.[1] as { query: { interactive?: string } }).query.interactive).toBe(
-      "true",
-    );
+    expect(
+      (snapshotCalls[0]?.[1] as { query: { interactive?: string } } | undefined)?.query.interactive,
+    ).toBe("true");
     expect(snapshotCalls[1]?.[1]).not.toHaveProperty("query.interactive");
     const clickBody = request.mock.calls.find(
       ([, p]) => (p.body as { kind?: string })?.kind === "click",
@@ -147,7 +155,9 @@ describe("createBrowserAdapter", () => {
       if (body?.kind === "evaluate" && body.fn === "() => null") {
         return { ok: true, targetId: "T1", url: "https://x", result: null };
       }
-      if (body?.kind === "evaluate") return { ok: true, targetId: "T1", url: "https://x" };
+      if (body?.kind === "evaluate") {
+        return { ok: true, targetId: "T1", url: "https://x" };
+      }
       return { ok: true };
     });
     const b = createBrowserAdapter({ request: asRequest(request), profile: "chrome" });
@@ -209,9 +219,13 @@ describe("createBrowserAdapter", () => {
   it("retries an idempotent read once on a transport failure and reports the retry", async () => {
     let snapshots = 0;
     const request = vi.fn(async (_m: string, params: Record<string, unknown>) => {
-      if ((params.path as string) !== "/snapshot") return { ok: true };
+      if ((params.path as string) !== "/snapshot") {
+        return { ok: true };
+      }
       snapshots += 1;
-      if (snapshots === 1) throw new Error("connectOverCDP: Timeout 9000ms exceeded");
+      if (snapshots === 1) {
+        throw new Error("connectOverCDP: Timeout 9000ms exceeded");
+      }
       return { refs: REFS };
     });
     const b = createBrowserAdapter({ request: asRequest(request), profile: "chrome" });
@@ -224,7 +238,9 @@ describe("createBrowserAdapter", () => {
   it("does not retry a read whose failure is a page-side wait timeout", async () => {
     let snapshots = 0;
     const request = vi.fn(async (_m: string, params: Record<string, unknown>) => {
-      if ((params.path as string) !== "/snapshot") return { ok: true };
+      if ((params.path as string) !== "/snapshot") {
+        return { ok: true };
+      }
       snapshots += 1;
       throw new Error("act wait timed out after 20000ms");
     });

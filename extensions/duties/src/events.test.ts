@@ -6,8 +6,12 @@ import type { RunEvent } from "./run-service.js";
  * (`isPluginJsonValue`, `src/plugins/host-hook-json.ts`), so a payload passing this check would
  * also pass the host's bounded-JSON validation. */
 function assertNoUndefinedValues(value: unknown, path = "$"): void {
-  if (value === undefined) throw new Error(`${path} is undefined`);
-  if (value === null || typeof value !== "object") return;
+  if (value === undefined) {
+    throw new Error(`${path} is undefined`);
+  }
+  if (value === null || typeof value !== "object") {
+    return;
+  }
   if (Array.isArray(value)) {
     value.forEach((entry, index) => assertNoUndefinedValues(entry, `${path}[${index}]`));
     return;
@@ -36,7 +40,7 @@ describe("createDutiesEventService", () => {
   it("captures gatewayEvents on start and forwards emit with { scope: 'operator.read' }", () => {
     const emit = vi.fn();
     const service = createDutiesEventService();
-    service.start(contextWith({ emit }));
+    void service.start(contextWith({ emit }));
 
     service.emit("changed", { dutyId: "d1" });
 
@@ -47,8 +51,8 @@ describe("createDutiesEventService", () => {
     const emit = vi.fn();
     const service = createDutiesEventService();
     const context = contextWith({ emit });
-    service.start(context);
-    service.stop?.(context);
+    void service.start(context);
+    void service.stop?.(context);
 
     service.emit("changed", { dutyId: "d1" });
 
@@ -60,7 +64,7 @@ describe("createDutiesEventService", () => {
       assertNoUndefinedValues(payload);
     });
     const service = createDutiesEventService();
-    service.start(contextWith({ emit }));
+    void service.start(contextWith({ emit }));
 
     const event: RunEvent = {
       type: "run",
@@ -96,7 +100,7 @@ describe("createDutiesEventService", () => {
       throw new Error("boom");
     });
     const service = createDutiesEventService();
-    service.start(contextWith({ emit }));
+    void service.start(contextWith({ emit }));
 
     expect(() => service.emit("changed", { dutyId: "d1" })).not.toThrow();
     expect(emit).toHaveBeenCalledOnce();

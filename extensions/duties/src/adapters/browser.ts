@@ -121,9 +121,15 @@ export function resolveRef(refs: RefsMap, target: Target): { ref?: string; match
   if (target.role || target.name || target.text) {
     for (const [ref, info] of Object.entries(refs)) {
       const name = info.name ?? "";
-      if (target.role && info.role.toLowerCase() !== target.role.toLowerCase()) continue;
-      if (target.name && name.toLowerCase() !== target.name.toLowerCase()) continue;
-      if (target.text && !name.toLowerCase().includes(target.text.toLowerCase())) continue;
+      if (target.role && info.role.toLowerCase() !== target.role.toLowerCase()) {
+        continue;
+      }
+      if (target.name && name.toLowerCase() !== target.name.toLowerCase()) {
+        continue;
+      }
+      if (target.text && !name.toLowerCase().includes(target.text.toLowerCase())) {
+        continue;
+      }
       matches.push(ref);
     }
   }
@@ -131,7 +137,9 @@ export function resolveRef(refs: RefsMap, target: Target): { ref?: string; match
 }
 
 async function sleep(ms: number): Promise<void> {
-  await new Promise<void>((resolve) => setTimeout(resolve, ms));
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 export function createBrowserAdapter(params: {
@@ -162,13 +170,17 @@ export function createBrowserAdapter(params: {
     path: string,
     opts: { query?: Record<string, unknown>; body?: unknown; timeoutMs?: number } = {},
   ): Promise<T> => {
-    if (!RETRYABLE_READ_PATHS.has(path)) return sendOnce<T>(method, path, opts);
+    if (!RETRYABLE_READ_PATHS.has(path)) {
+      return sendOnce<T>(method, path, opts);
+    }
     for (let attempt = 0; ; attempt += 1) {
       try {
         return await sendOnce<T>(method, path, opts);
       } catch (error) {
         const backoff = READ_RETRY_BACKOFF_MS[attempt];
-        if (backoff === undefined || !isRetryableReadError(error)) throw error;
+        if (backoff === undefined || !isRetryableReadError(error)) {
+          throw error instanceof Error ? error : new Error(errorText(error));
+        }
         await sleep(backoff);
         retryNotes.push(`retried ${path.slice(1)} ${RETRY_ORDINAL[attempt]}`);
       }
@@ -203,14 +215,18 @@ export function createBrowserAdapter(params: {
     target: Target,
   ): Promise<{ ref?: string; matches: string[] }> => {
     const first = resolveRef(await snapshotRefs(targetId, true), target);
-    if (first.ref || first.matches.length > 1) return first;
+    if (first.ref || first.matches.length > 1) {
+      return first;
+    }
     const isInteractiveRole = target.role
       ? INTERACTIVE_ROLES.has(target.role.toLowerCase())
       : false;
     const targetHasOnlyText = Boolean(target.text) && !target.role && !target.name;
     if (first.matches.length === 0 && (!isInteractiveRole || targetHasOnlyText)) {
       const second = resolveRef(await snapshotRefs(targetId, false), target);
-      if (second.matches.length > 0) return second;
+      if (second.matches.length > 0) {
+        return second;
+      }
     }
     return first;
   };
@@ -220,12 +236,18 @@ export function createBrowserAdapter(params: {
     target: Target,
   ): Promise<{ ref?: string; selector?: string }> => {
     if (!target.role && !target.name && !target.text) {
-      if (target.css) return { selector: target.css };
+      if (target.css) {
+        return { selector: target.css };
+      }
       throw new Error(`${describeTarget(target)}: target needs a role, name, text, or css`);
     }
     const { ref, matches } = await resolveTarget(targetId, target);
-    if (ref) return { ref };
-    if (target.css) return { selector: target.css };
+    if (ref) {
+      return { ref };
+    }
+    if (target.css) {
+      return { selector: target.css };
+    }
     throw new Error(
       matches.length > 1
         ? `${describeTarget(target)}: ${matches.length} matches (ambiguous)`
@@ -267,7 +289,7 @@ export function createBrowserAdapter(params: {
 
   return {
     drainRetryNotes() {
-      return retryNotes.splice(0, retryNotes.length);
+      return retryNotes.splice(0);
     },
     async open(url, timeoutMs) {
       const r = await call<{ targetId: string }>("POST", "/tabs/open", {
@@ -284,7 +306,9 @@ export function createBrowserAdapter(params: {
         const { ref } = await resolveTarget(targetId, target);
         return Boolean(ref);
       }
-      if (!target.css) return false;
+      if (!target.css) {
+        return false;
+      }
       try {
         await act(
           targetId,
@@ -295,8 +319,10 @@ export function createBrowserAdapter(params: {
       } catch (error) {
         // Only the probe's own wait timeout means "the element is absent". A transport failure
         // reported as "not visible" is what re-runs a login on an already signed-in session.
-        if (isWaitTimeout(error)) return false;
-        throw error;
+        if (isWaitTimeout(error)) {
+          return false;
+        }
+        throw error instanceof Error ? error : new Error(errorText(error));
       }
     },
     async click(targetId, target, timeoutMs) {
@@ -372,10 +398,14 @@ export function createBrowserAdapter(params: {
     },
     screenshotPath,
     async screenshot(targetId) {
-      if (!params.blobs) return undefined;
+      if (!params.blobs) {
+        return undefined;
+      }
       // One owner for the capture itself; this method only decides where the bytes are kept.
       const file = await screenshotPath(targetId);
-      if (!file) return undefined;
+      if (!file) {
+        return undefined;
+      }
       const bytes = await readFile(file);
       const ext = extname(file).toLowerCase();
       const contentType = ext === ".jpg" || ext === ".jpeg" ? "image/jpeg" : "image/png";
@@ -389,8 +419,9 @@ export function createBrowserAdapter(params: {
         body: { targetId },
         timeoutMs: 60_000,
       });
-      if (typeof r.path !== "string" || !r.path)
+      if (typeof r.path !== "string" || !r.path) {
         throw new Error("browser did not return a pdf path");
+      }
       return r.path;
     },
   };
