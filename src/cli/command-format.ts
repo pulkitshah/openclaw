@@ -1,4 +1,5 @@
 // Formats CLI command examples with active container/profile hints when they apply.
+import { CLI_DISPLAY_NAME } from "../brand.js";
 import { normalizeProfileName } from "./profile-utils.js";
 
 // Both published bin names (see package.json's `bin` map). Displayed commands
@@ -13,14 +14,15 @@ const DEV_FLAG_RE = /(?:^|\s)--dev(?:\s|$)/;
 const UPDATE_RE = /^(?:\s+--(?:dev|no-color|(?:profile|log-level)[=\s]+\S+))*\s+update(?:\s|$)/;
 const CONTAINER_HINT_RE = /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}$/;
 // Owner of the *displayed* binary name. A command assembled from argv (the
-// update handoff builds one from `resolveUpdateCliArgv`) cannot carry the
-// product spelling in a literal, so normalizing it here is what keeps every
-// displayed command on-brand instead of scattering the alias through call
-// sites. Both names are real bins, so the rendered command still runs.
-const CLI_DISPLAY_NAME = "vasudev";
+// update handoff builds one from `resolveUpdateCliArgv`) or rendered by
+// Commander (the `Usage:` line) cannot carry the product spelling in a
+// literal, so normalizing it here is what keeps every displayed command
+// on-brand instead of scattering the alias through call sites. Both names
+// are real bins, so the rendered command still runs.
 const CLI_BINARY_TOKEN_RE = /^((?:pnpm|npm|bunx|npx)\s+)?openclaw\b/;
 
-function withDisplayBinaryName(command: string): string {
+/** Swap a leading real-binary token for the displayed product alias. */
+export function applyCliDisplayName(command: string): string {
   return command.replace(
     CLI_BINARY_TOKEN_RE,
     (_match, runner) => `${runner ?? ""}${CLI_DISPLAY_NAME}`,
@@ -39,7 +41,7 @@ export function formatCliCommand(
     return command;
   }
   if (!container && !profile) {
-    return withDisplayBinaryName(command);
+    return applyCliDisplayName(command);
   }
   const additions: string[] = [];
   if (
@@ -53,9 +55,9 @@ export function formatCliCommand(
     additions.push(`--profile ${profile}`);
   }
   if (additions.length === 0) {
-    return withDisplayBinaryName(command);
+    return applyCliDisplayName(command);
   }
-  return withDisplayBinaryName(
+  return applyCliDisplayName(
     command.replace(CLI_PREFIX_RE, (match) => `${match} ${additions.join(" ")}`),
   );
 }

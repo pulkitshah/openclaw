@@ -1,6 +1,7 @@
-import { Command, CommanderError } from "commander";
+import { CommanderError } from "commander";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
+import { OpenClawCommand } from "./program/openclaw-command.js";
 import { registerTelemetryCli } from "./telemetry-cli.js";
 
 const mocks = await vi.hoisted(async () => {
@@ -46,7 +47,7 @@ const payload = {
 function createTelemetryProgram() {
   const stdout: string[] = [];
   const stderr: string[] = [];
-  const program = new Command()
+  const program = new OpenClawCommand()
     .name("openclaw")
     .exitOverride()
     .configureOutput({
@@ -229,7 +230,7 @@ describe("telemetry cli", () => {
       await expect(
         program.parseAsync(["telemetry", ...args], { from: "user" }),
       ).rejects.toMatchObject({ exitCode: 0 });
-      expect(stdout.join("")).toContain(`Usage: openclaw ${usage}`);
+      expect(stdout.join("")).toContain(`Usage: vasudev ${usage}`);
       expect(stderr).toEqual([]);
       expect(mocks.getRuntimeConfig).not.toHaveBeenCalled();
       expect(mocks.transformConfigFileWithRetry).not.toHaveBeenCalled();

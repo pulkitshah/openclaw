@@ -1,5 +1,6 @@
 // Commander subclass that preserves the exact failing command for parse-error guidance.
-import { Command, CommanderError, type ErrorOptions } from "commander";
+import { Command, CommanderError, type ErrorOptions, type Help } from "commander";
+import { applyCliDisplayName } from "../command-format.js";
 import { applyResolvedCommandOutputMode, isJsonOutputModeActive } from "../json-output-mode.js";
 import {
   getCommanderErrorCommandNames,
@@ -23,6 +24,17 @@ declare module "commander" {
 export class OpenClawCommand extends Command {
   override createCommand(name?: string): Command {
     return new OpenClawCommand(name);
+  }
+
+  // Commander builds the `Usage:` line from the root command's registered name,
+  // which stays the real binary (`CLI_NAME`) because completion registration and
+  // process titles key off it. Displayed help is a product surface, so the usage
+  // line goes through the shared display-name owner instead.
+  override createHelp(): Help {
+    const help = super.createHelp();
+    const renderCommandUsage = help.commandUsage.bind(help);
+    help.commandUsage = (cmd) => applyCliDisplayName(renderCommandUsage(cmd));
+    return help;
   }
 
   override error(message: string, errorOptions?: ErrorOptions): never {

@@ -522,7 +522,7 @@ describe("formatCliParseErrorOutput", () => {
 
     expect(error.message).toBe('Vasudev does not know the command "pairng".');
     expect(error.humanOutput).toBe(
-      'Vasudev does not know the command "pairng".\nDid you mean this?\n  vasudev pairing\nTry: openclaw --help\nPlugin command? vasudev plugins list\nDocs: https://docs.openclaw.ai/cli\n',
+      'Vasudev does not know the command "pairng".\nDid you mean this?\n  vasudev pairing\nTry: vasudev --help\nPlugin command? vasudev plugins list\nDocs: https://docs.openclaw.ai/cli\n',
     );
   });
 
@@ -544,7 +544,7 @@ describe("formatCliParseErrorOutput", () => {
     });
 
     expect(output).toBe(
-      'Vasudev does not know the command "wat".\nTry: openclaw --help\nPlugin command? vasudev plugins list\nDocs: https://docs.openclaw.ai/cli\n',
+      'Vasudev does not know the command "wat".\nTry: vasudev --help\nPlugin command? vasudev plugins list\nDocs: https://docs.openclaw.ai/cli\n',
     );
   });
 
@@ -555,7 +555,7 @@ describe("formatCliParseErrorOutput", () => {
     });
 
     expect(output).toBe(
-      'Vasudev webhooks has no command "list".\nTry: openclaw webhooks --help\nDocs: https://docs.openclaw.ai/cli\n',
+      'Vasudev webhooks has no command "list".\nTry: vasudev webhooks --help\nDocs: https://docs.openclaw.ai/cli\n',
     );
   });
 
@@ -567,7 +567,7 @@ describe("formatCliParseErrorOutput", () => {
     });
 
     expect(output).toBe(
-      'Vasudev webhooks has no command "gmial".\nDid you mean this?\n  openclaw webhooks gmail\nTry: openclaw webhooks --help\nDocs: https://docs.openclaw.ai/cli\n',
+      'Vasudev webhooks has no command "gmial".\nDid you mean this?\n  vasudev webhooks gmail\nTry: vasudev webhooks --help\nDocs: https://docs.openclaw.ai/cli\n',
     );
   });
 
@@ -655,7 +655,7 @@ describe("formatCliParseErrorOutput", () => {
     });
 
     expect(output).toBe(
-      'Vasudev does not know the command "upate".\nDid you mean this?\n  vasudev update\nTry: openclaw --help\nPlugin command? vasudev plugins list\nDocs: https://docs.openclaw.ai/cli\n',
+      'Vasudev does not know the command "upate".\nDid you mean this?\n  vasudev update\nTry: vasudev --help\nPlugin command? vasudev plugins list\nDocs: https://docs.openclaw.ai/cli\n',
     );
   });
 

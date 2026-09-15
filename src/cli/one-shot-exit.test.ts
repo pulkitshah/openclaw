@@ -504,8 +504,10 @@ describe("one-shot CLI exit", () => {
     const runtimeSnapshotUrl = new URL("../config/runtime-snapshot.ts", import.meta.url).href;
     const argvInvocationUrl = new URL("./argv-invocation.ts", import.meta.url).href;
     const proxyCliUrl = new URL("./proxy-cli.ts", import.meta.url).href;
+    const openclawCommandUrl = new URL("./program/openclaw-command.ts", import.meta.url).href;
     const script = `
-      import { Command, CommanderError } from "commander";
+      import { CommanderError } from "commander";
+      import { OpenClawCommand } from ${JSON.stringify(openclawCommandUrl)};
       import { setRuntimeConfigSnapshot } from ${JSON.stringify(runtimeSnapshotUrl)};
       import { resolveCliArgvInvocation } from ${JSON.stringify(argvInvocationUrl)};
       import { registerProxyCli } from ${JSON.stringify(proxyCliUrl)};
@@ -515,7 +517,7 @@ describe("one-shot CLI exit", () => {
       const argv = ["node", "openclaw", "proxy", "validate", ...${JSON.stringify(args)}];
       await runCliWithExitFinalization({
         run: async () => {
-          const program = new Command().enablePositionalOptions().exitOverride();
+          const program = new OpenClawCommand().enablePositionalOptions().exitOverride();
           registerProxyCli(program);
           try {
             await program.parseAsync(argv);
@@ -552,7 +554,7 @@ describe("one-shot CLI exit", () => {
         }),
       );
     } else {
-      expect(result.stdout).toContain("Usage: openclaw proxy validate");
+      expect(result.stdout).toContain("Usage: vasudev proxy validate");
     }
   });
 

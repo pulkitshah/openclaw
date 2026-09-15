@@ -2,7 +2,7 @@
 import type { Command } from "commander";
 import { formatDocsLink } from "../../../packages/terminal-core/src/links.js";
 import { isRich, theme } from "../../../packages/terminal-core/src/theme.js";
-import { PRODUCT_NAME } from "../../brand.js";
+import { CLI_DISPLAY_NAME, PRODUCT_NAME } from "../../brand.js";
 import { resolveCommitHash } from "../../infra/git-commit.js";
 import { formatConsoleDiagnosticBlock } from "../../logging/json-console-line.js";
 import { escapeRegExp } from "../../utils.js";
@@ -18,7 +18,9 @@ import { getCoreCliCommandsWithSubcommands } from "./core-command-descriptors.js
 import { formatCliParseErrorOutput } from "./error-output.js";
 import { getSubCliCommandsWithSubcommands } from "./subcli-descriptors.js";
 
-const CLI_NAME_PATTERN = escapeRegExp(CLI_NAME);
+// Root help is matched after `OpenClawCommand` has rendered the usage line,
+// so the banner hint keys off the displayed alias, not the real binary.
+const CLI_DISPLAY_NAME_PATTERN = escapeRegExp(CLI_DISPLAY_NAME);
 const ROOT_COMMANDS_WITH_SUBCOMMANDS = new Set([
   ...getCoreCliCommandsWithSubcommands(),
   ...getSubCliCommandsWithSubcommands(),
@@ -34,7 +36,7 @@ const EXAMPLES = [
   ["vasudev doctor --fix", "Repair common config, service, plugin, and channel problems."],
   ["vasudev channels add", "Add or update a chat channel account with guided prompts."],
   ["vasudev channels status", "See connected messaging accounts and login state."],
-  ["openclaw --dev gateway", "Run a dev Gateway (isolated state/config) on ws://127.0.0.1:19001."],
+  ["vasudev --dev gateway", "Run a dev Gateway (isolated state/config) on ws://127.0.0.1:19001."],
   ["vasudev gateway run --force", "Start the Gateway and replace anything bound to its port."],
   ["vasudev models status", "Show model/provider auth health before running agents."],
   ["vasudev plugins list", "Inspect enabled, disabled, and installed plugins."],
@@ -52,7 +54,7 @@ export function formatProgramHelpOutput(str: string): string {
   // Commander emits plain section labels; decorate them after command-specific help renders.
   let output = str;
   const isRootHelp = new RegExp(
-    `^Usage:\\s+${CLI_NAME_PATTERN}\\s+\\[options\\]\\s+\\[command\\]\\s*$`,
+    `^Usage:\\s+${CLI_DISPLAY_NAME_PATTERN}\\s+\\[options\\]\\s+\\[command\\]\\s*$`,
     "m",
   ).test(output);
   if (isRootHelp && /^Commands:/m.test(output)) {

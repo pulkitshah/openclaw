@@ -68,7 +68,9 @@ describe("configureProgramHelp", () => {
   });
 
   function makeProgramWithCommands() {
-    const program = new Command();
+    // `buildProgram` always roots the real CLI at `OpenClawCommand`, whose help
+    // renders the displayed product alias in the usage line.
+    const program = new OpenClawCommand();
     program.command("models").description("models");
     program.command("status").description("status");
     return program;

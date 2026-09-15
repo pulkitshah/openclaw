@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { Command, CommanderError } from "commander";
+import { CommanderError } from "commander";
 import * as tar from "tar";
 import { afterEach, describe, expect, it } from "vitest";
 import { useAutoCleanupTempDirTracker } from "../../test/helpers/temp-dir.js";
@@ -16,6 +16,7 @@ import {
 } from "./cli-process-child.test-helpers.js";
 import { registerCoreCliByName } from "./program/command-registry.js";
 import { createProgramContext } from "./program/context.js";
+import { OpenClawCommand } from "./program/openclaw-command.js";
 import { registerSubCliByName } from "./program/register.subclis.js";
 
 const tempDirs = useAutoCleanupTempDirTracker(afterEach);
@@ -204,7 +205,7 @@ describe("CLI help process exit", () => {
     });
 
     expect(result.stderr).toBe("");
-    expect(result.stdout).toContain("Usage: openclaw [options] [command]");
+    expect(result.stdout).toContain("Usage: vasudev [options] [command]");
     expect(() => parseJsonLines(result.stdout)).toThrow();
   });
 
@@ -238,7 +239,7 @@ describe("CLI help process exit", () => {
     async ({ group, usageCommand, registry }) => {
       let stdout = "";
       let stderr = "";
-      const program = new Command()
+      const program = new OpenClawCommand()
         .name("openclaw")
         .exitOverride()
         .configureOutput({
@@ -262,7 +263,7 @@ describe("CLI help process exit", () => {
       expect(parseResult).toBeInstanceOf(CommanderError);
       expect(parseResult).toMatchObject({ code: "commander.helpDisplayed", exitCode: 0 });
       expect(stderr).toBe("");
-      expect(stdout).toContain(`Usage: openclaw ${usageCommand} [options] [command]`);
+      expect(stdout).toContain(`Usage: vasudev ${usageCommand} [options] [command]`);
     },
   );
 
@@ -273,7 +274,7 @@ describe("CLI help process exit", () => {
     let stdout = "";
     let stderr = "";
     let actionStarted = false;
-    const program = new Command()
+    const program = new OpenClawCommand()
       .name("openclaw")
       .exitOverride()
       .configureOutput({
