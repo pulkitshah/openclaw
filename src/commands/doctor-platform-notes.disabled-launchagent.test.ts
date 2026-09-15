@@ -50,7 +50,7 @@ describe("Doctor disabled LaunchAgent diagnosis", () => {
       profile: "staging",
       label: "ai.openclaw.staging",
       override: undefined,
-      command: "openclaw --profile staging gateway start",
+      command: "vasudev --profile staging gateway start",
     },
     {
       profile: undefined,

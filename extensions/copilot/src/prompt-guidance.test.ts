@@ -41,7 +41,7 @@ describe("buildCopilotPromptGuidance", () => {
       const guidance = buildGuidance({ disableTools }, tools);
 
       expect(guidance?.includes("vasudev channels add <channel>")).toBe(terminalSetup);
-      expect(guidance?.includes("openclaw configure")).toBe(terminalSetup);
+      expect(guidance?.includes("vasudev configure")).toBe(terminalSetup);
       expect(guidance).toContain("only to the requesting user in private");
       expect(guidance).toContain("then acknowledge in the group without them");
     },

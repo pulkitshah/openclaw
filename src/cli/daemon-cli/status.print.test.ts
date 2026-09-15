@@ -737,7 +737,7 @@ describe("printDaemonStatus", () => {
 
     expectMockLineContains(runtime.error, "macOS has no usable GUI session");
     expectMockLineContains(runtime.error, "logged-in macOS GUI session");
-    expectMockLineContains(runtime.error, "openclaw --profile work gateway restart");
+    expectMockLineContains(runtime.error, "vasudev --profile work gateway restart");
   });
 
   it.each([

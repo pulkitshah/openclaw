@@ -2909,9 +2909,9 @@ describe("plugins cli install", () => {
 
   it.each([
     ["default", undefined, undefined, "openclaw"],
-    ["profile", "work", undefined, "openclaw --profile work"],
-    ["container", undefined, "demo", "openclaw --container demo"],
-    ["container before profile", "work", "demo", "openclaw --container demo"],
+    ["profile", "work", undefined, "vasudev --profile work"],
+    ["container", undefined, "demo", "vasudev --container demo"],
+    ["container before profile", "work", "demo", "vasudev --container demo"],
   ] as const)(
     "preserves %s context in duplicate-install recovery guidance",
     async (_name, profile, container, prefix) => {

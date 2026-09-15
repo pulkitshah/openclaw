@@ -39,12 +39,12 @@ describe("resolveGatewaySystemdServiceName", () => {
 describe("resolveGatewayWindowsTaskName", () => {
   it("returns default task name when no profile is set", () => {
     const result = resolveGatewayWindowsTaskName();
-    expect(result).toBe("Vasudev Gateway");
+    expect(result).toBe("OpenClaw Gateway");
   });
 
   it("returns profile-specific task name when profile is set", () => {
     const result = resolveGatewayWindowsTaskName("dev");
-    expect(result).toBe("Vasudev Gateway (dev)");
+    expect(result).toBe("OpenClaw Gateway (dev)");
   });
 });
 
@@ -63,7 +63,7 @@ describe("resolveGatewayNativeServiceIdentityConflict", () => {
     {
       platform: "win32" as const,
       envKey: "OPENCLAW_WINDOWS_TASK_NAME",
-      value: "Vasudev Gateway",
+      value: "OpenClaw Gateway",
     },
   ])("rejects $envKey overrides for named profiles on $platform", ({ platform, envKey, value }) => {
     expect(
@@ -111,19 +111,19 @@ describe("resolveGatewayProfileSuffix", () => {
 
 describe("resolveGatewayServiceDescription", () => {
   it("returns default description when no profile", () => {
-    expect(resolveGatewayServiceDescription({ env: {} })).toBe("Vasudev Gateway");
+    expect(resolveGatewayServiceDescription({ env: {} })).toBe("OpenClaw Gateway");
   });
 
   it("includes profile when set", () => {
     expect(resolveGatewayServiceDescription({ env: { OPENCLAW_PROFILE: "work" } })).toBe(
-      "Vasudev Gateway (profile: work)",
+      "OpenClaw Gateway (profile: work)",
     );
   });
 
   it("ignores legacy install-time version metadata", () => {
     expect(
       resolveGatewayServiceDescription({ env: { OPENCLAW_SERVICE_VERSION: "2026.1.10" } }),
-    ).toBe("Vasudev Gateway");
+    ).toBe("OpenClaw Gateway");
   });
 
   it("prefers explicit description override", () => {

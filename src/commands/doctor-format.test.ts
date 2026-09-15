@@ -13,7 +13,7 @@ describe("buildGatewayRuntimeHints", () => {
     );
 
     expect(hints.join("\n")).toContain("logged-in macOS GUI session");
-    expect(hints.join("\n")).toContain("openclaw --profile work gateway restart");
+    expect(hints.join("\n")).toContain("vasudev --profile work gateway restart");
   });
 
   it("surfaces suspicious systemd cgroup hygiene with inspection commands", () => {
@@ -76,15 +76,15 @@ describe("buildGatewayRuntimeHints", () => {
   it.each([
     {
       env: { OPENCLAW_PROFILE: "blue" },
-      command: "openclaw --profile blue gateway",
+      command: "vasudev --profile blue gateway",
     },
     {
       env: { OPENCLAW_CONTAINER_HINT: "sandbox" },
-      command: "openclaw --container sandbox gateway",
+      command: "vasudev --container sandbox gateway",
     },
     {
       env: { OPENCLAW_PROFILE: "blue", OPENCLAW_CONTAINER_HINT: "sandbox" },
-      command: "openclaw --container sandbox gateway",
+      command: "vasudev --container sandbox gateway",
     },
   ])("preserves the active target in systemd recovery commands: $command", ({ env, command }) => {
     const hints = buildGatewayRuntimeHints(

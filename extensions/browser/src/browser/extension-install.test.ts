@@ -711,7 +711,7 @@ describe("native host registration", () => {
         state: "owned",
         extensionIds: registration.extensionIds,
       });
-      expect(brokenRegistration.issue).toContain("openclaw browser extension install");
+      expect(brokenRegistration.issue).toContain("vasudev browser extension install");
       expect(brokenRegistration.issue.length).toBeLessThan(200);
       expect(broken.issues).toEqual([`Chromium: ${brokenRegistration.issue}`]);
       expect(JSON.stringify(broken)).not.toMatch(/pairingString|token|Bearer|runtime's version/u);

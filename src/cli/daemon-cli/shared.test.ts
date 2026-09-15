@@ -38,7 +38,7 @@ describe("renderGatewayServiceStartHints", () => {
 
     expect(hints[0]).toContain("Nix mode detected; service install is disabled.");
     expect(hints.slice(1)).toEqual(existingHints.slice(1));
-    expect(hints).toContain("openclaw --profile work gateway start");
+    expect(hints).toContain("vasudev --profile work gateway start");
   });
 
   it.each([
@@ -51,8 +51,8 @@ describe("renderGatewayServiceStartHints", () => {
     {
       name: "a named profile",
       profile: "work",
-      installCommand: "openclaw --profile work gateway install",
-      startCommand: "openclaw --profile work gateway start",
+      installCommand: "vasudev --profile work gateway install",
+      startCommand: "vasudev --profile work gateway start",
     },
   ])(
     "recommends managed service commands for $name",

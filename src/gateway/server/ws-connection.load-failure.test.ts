@@ -65,14 +65,14 @@ describe("WebSocket message handler load failures", () => {
       expect.stringContaining("Vasudev installation changed while the Gateway was running"),
     );
     expect(logWsControl.error).toHaveBeenCalledWith(
-      expect.stringContaining("openclaw --profile r13 gateway restart"),
+      expect.stringContaining("vasudev --profile r13 gateway restart"),
     );
     expect(logWsControl.warn).toHaveBeenCalledWith(
       expect.stringContaining("closed before connect"),
       expect.objectContaining({
         cause: "message-handler-load-failed",
         staleInstall: true,
-        restartCommand: "openclaw --profile r13 gateway restart",
+        restartCommand: "vasudev --profile r13 gateway restart",
       }),
     );
   });

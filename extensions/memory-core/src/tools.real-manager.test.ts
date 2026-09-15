@@ -710,7 +710,7 @@ describe("memory_search real manager", () => {
     });
     const expected = {
       unavailable: true,
-      error: expect.stringContaining("openclaw doctor --fix"),
+      error: expect.stringContaining("vasudev doctor --fix"),
       warning:
         "Memory search is unavailable because the session catalog requires canonical-key migration.",
       action:

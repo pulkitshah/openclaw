@@ -660,7 +660,7 @@ describe("renderUpdates", () => {
           recovery.querySelectorAll<HTMLButtonElement>("button")[1]?.click();
           expect(onCheckStatus).toHaveBeenCalledOnce();
           expect(onUpdateNow).toHaveBeenCalledOnce();
-          expect(row("CLI fallback").querySelector("code")?.textContent).toBe("openclaw triage");
+          expect(row("CLI fallback").querySelector("code")?.textContent).toBe("vasudev triage");
         } else {
           expect(container.textContent).not.toContain("Retry update");
         }

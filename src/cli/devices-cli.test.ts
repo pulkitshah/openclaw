@@ -180,8 +180,8 @@ function mockApprovedReplacement() {
 const requireRecord = createRequireRecord("object", "label-not-object");
 const approvalCommandContexts = [
   ["default", undefined, undefined, "openclaw"],
-  ["profile", "work", undefined, "openclaw --profile work"],
-  ["container", "work", "demo", "openclaw --container demo"],
+  ["profile", "work", undefined, "vasudev --profile work"],
+  ["container", "work", "demo", "vasudev --container demo"],
 ] as const;
 
 const nodeApprovalLabelCases = [
@@ -1058,7 +1058,7 @@ describe("devices cli local fallback", () => {
       (error: unknown) => String(error),
     );
     expect(failure).toContain("superseded by a newer pending request");
-    expect(failure).toContain("openclaw --profile work devices approve req-default");
+    expect(failure).toContain("vasudev --profile work devices approve req-default");
     expect(failure).not.toContain("OPENCLAW_PROFILE");
     expect(failure).not.toContain("--token");
     expect(readRuntimeOutput()).not.toContain(fallbackNotice);
@@ -1166,7 +1166,7 @@ describe("devices cli list", () => {
       if (operatorLabel?.trim()) {
         expect(output.split("\n")).toContain(`  android-node  ${expectedName}`);
       }
-      expect(output).toContain("openclaw --profile work nodes approve node-req-1");
+      expect(output).toContain("vasudev --profile work nodes approve node-req-1");
       expect(output).toContain("Reuse the same connection options when rerunning: --url, --token.");
       expect(output).not.toContain("gateway-user");
       expect(output).not.toContain("url-secret");
@@ -1356,8 +1356,8 @@ describe("devices cli help", () => {
     const devices = program.commands.find((cmd) => cmd.name() === "devices");
     const joinCode = devices?.commands.find((cmd) => cmd.name() === "join-code");
 
-    expect(devices?.description()).toContain("openclaw qr");
-    expect(joinCode?.description()).toContain("openclaw qr");
+    expect(devices?.description()).toContain("vasudev qr");
+    expect(joinCode?.description()).toContain("vasudev qr");
   });
 });
 

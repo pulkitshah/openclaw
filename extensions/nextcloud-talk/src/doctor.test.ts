@@ -91,7 +91,7 @@ describe("nextcloud-talk doctor", () => {
             },
           },
         } as never,
-        doctorFixCommand: "openclaw doctor --fix",
+        doctorFixCommand: "vasudev doctor --fix",
       }),
     ).resolves.toEqual([
       '- channels.nextcloud-talk.default: Nextcloud Talk bot "Vasudev" (1) is missing the response feature (features=9); outbound replies will fail.',
@@ -125,7 +125,7 @@ describe("nextcloud-talk doctor", () => {
           },
         },
       } as never,
-      doctorFixCommand: "openclaw doctor --fix",
+      doctorFixCommand: "vasudev doctor --fix",
       env,
     });
 

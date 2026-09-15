@@ -159,7 +159,7 @@ suite.define(() => {
           .getByText("⚠️ Vasudev update failed: global-install-failed.", { exact: true })
           .first()
           .waitFor();
-        expect(await dialog.textContent()).toContain("openclaw triage");
+        expect(await dialog.textContent()).toContain("vasudev triage");
         expect(await dialog.textContent()).toContain("Package install did not verify on disk.");
         expect(await gateway.getRequests("update.run")).toHaveLength(1);
         expect(await gateway.getRequests("openclaw.chat")).toHaveLength(0);

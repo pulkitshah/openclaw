@@ -117,7 +117,7 @@ describe("Cloud worker snapshots", () => {
       expect(classless.textContent).toContain("aws · linux · Warm images off");
       expect(classless.textContent).not.toContain("Unlabeled");
       expect(snapshots.textContent).toContain("Needs migration");
-      expect(snapshots.textContent).toContain("openclaw doctor --fix");
+      expect(snapshots.textContent).toContain("vasudev doctor --fix");
       expect(
         [...snapshots.querySelectorAll(".settings-summary dd")].map((entry) => entry.textContent),
       ).toEqual(["2", "1", "1", "4"]);

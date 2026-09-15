@@ -110,7 +110,7 @@ function makeRuntime(
       cwd: "/tmp",
       sessionStore: baseStore as unknown as AcpSessionStore,
       agentRegistry: {
-        resolve: (agentName: string) => (agentName === "openclaw" ? "openclaw acp" : agentName),
+        resolve: (agentName: string) => (agentName === "openclaw" ? "vasudev acp" : agentName),
         list: () => ["codex", "openclaw"],
       },
       permissionMode: "approve-reads",
@@ -1318,7 +1318,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
       OPENCLAW_CODEX_CONFIG_ARG,
       '{"model":"gpt-5.4","model_reasoning_effort":"medium"}',
     ]);
-    expect(testing.isCodexAcpCommand("openclaw acp")).toBe(false);
+    expect(testing.isCodexAcpCommand("vasudev acp")).toBe(false);
   });
 
   it("passes gpt-5.5 Codex ACP startup through instead of blocking it", async () => {
@@ -2078,7 +2078,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
         `Node.EXE "C:/Users/runner/AppData/Local/Temp/openclaw/acpx/claude-agent-acp-wrapper.mjs"`,
       ),
     ).toBe(true);
-    expect(testing.isClaudeAcpCommand("openclaw acp")).toBe(false);
+    expect(testing.isClaudeAcpCommand("vasudev acp")).toBe(false);
     expect(testing.isClaudeAcpCommand("npx @agentclientprotocol/codex-acp")).toBe(false);
   });
 
@@ -4065,7 +4065,7 @@ describe("AcpxRuntime fresh reset wrapper", () => {
     const { runtime, delegate, bridgeSafeDelegate } = makeRuntime(baseStore, {
       mcpServers: [{ name: "tools", command: "mcp-tools" }] as never,
       agentRegistry: {
-        resolve: (agentName: string) => (agentName === "codex" ? "openclaw acp" : agentName),
+        resolve: (agentName: string) => (agentName === "codex" ? "vasudev acp" : agentName),
         list: () => ["codex", "openclaw"],
       },
     });

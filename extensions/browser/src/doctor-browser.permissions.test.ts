@@ -94,7 +94,7 @@ describe("general Doctor browser profile permission boundary", () => {
         }
         if (installed) {
           expect(notes).toContain("native bootstrap was not inspected");
-          expect(notes).toContain("openclaw browser extension status --json");
+          expect(notes).toContain("vasudev browser extension status --json");
           expect(notes).not.toContain("not fully registered");
         }
       }
@@ -116,6 +116,6 @@ describe("general Doctor browser profile permission boundary", () => {
     expect(result.status).toBe("skipped");
     expect(result.reason).toContain("Doctor does not inspect personal browser profiles");
     expect(result.warnings.join("\n")).toContain("native-host repair skipped");
-    expect(result.warnings.join("\n")).toContain("openclaw browser extension install");
+    expect(result.warnings.join("\n")).toContain("vasudev browser extension install");
   });
 });

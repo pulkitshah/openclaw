@@ -2328,7 +2328,7 @@ describe("update-startup", () => {
             releaseHandoff = () => {
               const handoff = {
                 pid: 12345,
-                command: "openclaw update --yes --channel beta",
+                command: "vasudev update --yes --channel beta",
                 logPath: "/tmp/late-handoff.log",
                 handoffId: "late-handoff",
                 installRoot: "/opt/openclaw",
@@ -2773,7 +2773,7 @@ describe("update-startup", () => {
         forced: false,
         reason: "managed-service-handoff-failed",
         message: expect.stringContaining("ENOENT"),
-        triage: expect.stringContaining(triageFails ? "openclaw triage" : triageResult.hint),
+        triage: expect.stringContaining(triageFails ? "vasudev triage" : triageResult.hint),
       });
       expect(log.info).toHaveBeenCalledWith(
         "update campaign ended",
@@ -2786,7 +2786,7 @@ describe("update-startup", () => {
       expect((await terminalSentinels.at(-1))?.payload).toMatchObject({
         kind: "update",
         status: "error",
-        doctorHint: expect.stringContaining(triageFails ? "openclaw triage" : triageResult.hint),
+        doctorHint: expect.stringContaining(triageFails ? "vasudev triage" : triageResult.hint),
         stats: { reason: "managed-service-handoff-failed" },
       });
       expect(runUpdateFailureTriageMock).toHaveBeenCalledOnce();

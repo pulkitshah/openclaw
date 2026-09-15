@@ -355,7 +355,7 @@ describe("update status abandoned-run reporting", () => {
         reason: "legacy-driver-expired",
       });
       expect(output).toContain("treated as abandoned after 24 h");
-      expect(output).toContain("openclaw update");
+      expect(output).toContain("vasudev update");
       expect(findActiveUpdateRun()).toBeUndefined();
       // A later read must still surface the advisory after the terminal write.
       await updateStatusCommand({ json: true });
@@ -465,7 +465,7 @@ describe("update status abandoned-run reporting", () => {
     } else {
       const output = runtime.log.mock.calls.map(([line]) => String(line)).join("\n");
       expect(output).toContain("Abandoned update detected;");
-      expect(output).toContain("openclaw update repair");
+      expect(output).toContain("vasudev update repair");
       expect(output).not.toContain("update in progress:");
       expect(output).not.toContain("update failed:");
     }

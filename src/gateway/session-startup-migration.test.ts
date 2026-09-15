@@ -189,7 +189,7 @@ describe("runStartupSessionMigration", () => {
       fs.writeFileSync(storePath, original);
 
       await expect(runStartupSessionMigration({ cfg, env, log: makeLog() })).rejects.toThrow(
-        "openclaw --profile migration doctor --fix",
+        "vasudev --profile migration doctor --fix",
       );
       expect(fs.readFileSync(storePath, "utf8")).toBe(original);
       expect(fs.existsSync(path.join(stateDir, "session-sqlite-migration-runs"))).toBe(false);

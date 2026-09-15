@@ -145,7 +145,7 @@ describe("buildDeveloperInstructions credential routing", () => {
     });
 
     expect(instructions.includes("vasudev channels add <channel>")).toBe(terminalSetup);
-    expect(instructions.includes("openclaw configure")).toBe(terminalSetup);
+    expect(instructions.includes("vasudev configure")).toBe(terminalSetup);
     expect(instructions).toContain("only to the requesting user in private");
     expect(instructions).toContain("then acknowledge in the group without them");
   });

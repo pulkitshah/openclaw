@@ -30,8 +30,8 @@ const MISSING_SERVICE_PROGRAM = "/openclaw-test-missing-runtime/node";
 const SERVICE_REPAIR_COMMAND_CASES = [
   ["Gateway", "", "", "vasudev gateway", "restart"],
   ["Node", "", "", "vasudev node", "install --force"],
-  ["Node", "work", "", "openclaw --profile work node", "install --force"],
-  ["Node", "work", "demo", "openclaw --container demo node", "install --force"],
+  ["Node", "work", "", "vasudev --profile work node", "install --force"],
+  ["Node", "work", "demo", "vasudev --container demo node", "install --force"],
 ] as const;
 const createGatewayLifecycleMutationAudit = vi.fn(
   (params: { action: string; source?: string }) => (mutation: { mode: string; pid?: number }) =>

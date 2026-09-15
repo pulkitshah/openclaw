@@ -428,6 +428,14 @@ const SPAWN_CALLEES = new Set([
 // and rate-limit buckets.
 const HTTP_HEADER_NAME_RE = /^[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)+$/;
 
+// A SCREAMING_SNAKE property key means the value is an environment variable's
+// value, not display copy: `{ OPENCLAW_WINDOWS_TASK_NAME: "OpenClaw Gateway" }`
+// is the name of a service already installed on the machine (see
+// src/daemon/constants.ts, excluded for the same reason), and
+// `{ OPENCLAW_BOT_NAME: "OpenClaw" }` is what the process reads back. Renaming
+// one side of an environment handshake breaks it.
+const ENV_VAR_KEY_RE = /^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+$/;
+
 function callExpressionCalleeName(expression) {
   if (ts.isIdentifier(expression)) {
     return expression.text;
@@ -507,6 +515,34 @@ function isStructuralStringLiteral(node) {
   ) {
     return true;
   }
+  // Walk out of an expression that only *computes* the property's value (a
+  // ternary picking a profile-qualified label, a template building it, a
+  // concatenation) so the key still governs the literals inside it.
+  let valueNode = node;
+  let valueParent = valueNode.parent;
+  while (
+    valueParent &&
+    (ts.isConditionalExpression(valueParent) ||
+      ts.isTemplateExpression(valueParent) ||
+      ts.isTemplateSpan(valueParent) ||
+      ts.isParenthesizedExpression(valueParent) ||
+      (ts.isBinaryExpression(valueParent) &&
+        valueParent.operatorToken.kind === ts.SyntaxKind.PlusToken))
+  ) {
+    valueNode = valueParent;
+    valueParent = valueNode.parent;
+  }
+  if (
+    valueParent &&
+    ts.isPropertyAssignment(valueParent) &&
+    valueParent.initializer === valueNode
+  ) {
+    const key = valueParent.name;
+    const keyText = ts.isStringLiteral(key) || ts.isIdentifier(key) ? key.text : undefined;
+    if (keyText && (HTTP_HEADER_NAME_RE.test(keyText) || ENV_VAR_KEY_RE.test(keyText))) {
+      return true;
+    }
+  }
   if (ts.isPropertyAssignment(parent) && parent.initializer === node) {
     const key = parent.name;
     const keyText = ts.isStringLiteral(key)
@@ -514,7 +550,7 @@ function isStructuralStringLiteral(node) {
       : ts.isIdentifier(key)
         ? key.text
         : undefined;
-    if (keyText && HTTP_HEADER_NAME_RE.test(keyText)) {
+    if (keyText && (HTTP_HEADER_NAME_RE.test(keyText) || ENV_VAR_KEY_RE.test(keyText))) {
       return true;
     }
   }
@@ -721,6 +757,9 @@ const CROSS_BOUNDARY_EXCLUDED_FILES = new Set([
   // Documents the real `\OpenClaw Gateway` task path that `schtasks /query`
   // prints, which the parser strips by exact prefix.
   "src/daemon/inspect.ts",
+  // Tests the generators above and nothing else, so every occurrence is the
+  // same OS service identity.
+  "src/daemon/constants.test.ts",
 ]);
 
 // Individual string literals (matched by their exact source text, quotes
@@ -752,6 +791,24 @@ const EXCLUDED_LITERALS_BY_FILE = new Map([
     // Same `serviceName` contract as bounded-turn.ts.
     "extensions/codex/src/app-server/thread-requests.ts",
     new Set(['"OpenClaw"']),
+  ],
+  [
+    // The canonical Windows task name these cases assert `applyCliProfileEnv`
+    // drops when switching profiles. src/daemon/constants.ts owns the label and
+    // is excluded, so the expectation has to pin its real output; the assertion
+    // argument is not reachable by the env-var key rule.
+    "src/cli/profile.test.ts",
+    new Set(['"OpenClaw Node"', '"OpenClaw Gateway"']),
+  ],
+  [
+    // The generated Windows task name inside the restart helper's PowerShell
+    // script. src/daemon/constants.ts owns the label and is excluded, so these
+    // expectations pin its real output.
+    "src/cli/update-cli/restart-helper.test.ts",
+    new Set([
+      "\"$taskName = 'OpenClaw Gateway'\"",
+      "\"$taskName = 'OpenClaw Gateway (production)'\"",
+    ]),
   ],
   [
     // Test input, not copy: `"OpenClaw"` normalizes to `openclaw`, which is the

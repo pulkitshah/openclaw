@@ -293,8 +293,8 @@ describe("maybeRestartService", () => {
         if (pluginOnly) {
           const retry =
             change === "initial-plugin-unavailable"
-              ? "openclaw --container service-box doctor --fix"
-              : "openclaw --profile service-profile doctor --fix";
+              ? "vasudev --container service-box doctor --fix"
+              : "vasudev --profile service-profile doctor --fix";
           expect(result.pluginWarnings).toEqual([
             expect.objectContaining({
               pluginId: "fixture",

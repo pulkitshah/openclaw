@@ -27,8 +27,8 @@ const run = LedgerRecordSchema.parse({
     sessionKey: "agent:main:main",
     deliveryContext: { channel: "telegram", to: "chat", accountId: "default", threadId: "1" },
     campaignId: "campaign-1",
-    doctorHint: "openclaw doctor",
-    nextAction: "openclaw update status",
+    doctorHint: "vasudev doctor",
+    nextAction: "vasudev update status",
   },
   target: { channel: "dev", tag: "latest", kind: "git", version: "2026.9.1", sha: "abcdef" },
   before: { version: "2026.8.1", sha: null, buildId: null },
@@ -45,7 +45,7 @@ const run = LedgerRecordSchema.parse({
     pluginErrors: [],
     channelsReady: true,
     noticeDelivered: true,
-    doctorHint: "openclaw doctor",
+    doctorHint: "vasudev doctor",
   },
   repair: [
     {

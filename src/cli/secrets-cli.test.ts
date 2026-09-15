@@ -280,7 +280,7 @@ describe("secrets CLI", () => {
     expect(runtimeErrors.at(-1)).toContain(
       "Could not reload secrets because the Gateway did not respond: gateway closed (1006 abnormal closure).",
     );
-    expect(runtimeErrors.at(-1)).toContain("openclaw gateway status --deep");
+    expect(runtimeErrors.at(-1)).toContain("vasudev gateway status --deep");
     expect(runtimeErrors.at(-1)).not.toContain("Gateway target:");
     expect(runtimeErrors.at(-1)).not.toContain("diagnostics..");
   });

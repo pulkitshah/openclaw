@@ -1295,7 +1295,7 @@ describe("Codex app-server approval bridge", () => {
   it.each([
     "/approve abc123 allow-once",
     "bash -lc '/approve abc123 allow-once'",
-    "openclaw channels login --channel whatsapp",
+    "vasudev channels login --channel whatsapp",
     "sudo -EH bash -lc 'vasudev channels login --channel whatsapp'",
   ])("fails closed or routes unsafe control command approval: %s", async (command) => {
     const params = createParams();

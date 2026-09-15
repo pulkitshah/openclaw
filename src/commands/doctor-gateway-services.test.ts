@@ -1545,7 +1545,7 @@ describe("maybeRepairGatewayServiceConfig", () => {
     mocks.readCommand.mockResolvedValue({
       programArguments: gatewayProgramArguments,
       environment: {
-        OPENCLAW_WINDOWS_TASK_NAME: "Vasudev Gateway Work",
+        OPENCLAW_WINDOWS_TASK_NAME: "OpenClaw Gateway Work",
       },
     });
     mocks.auditGatewayServiceConfig.mockResolvedValue(

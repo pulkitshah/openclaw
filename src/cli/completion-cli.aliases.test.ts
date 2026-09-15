@@ -18,11 +18,11 @@ afterAll(async () => {
 // Aliases are typeable commands, so every shell must preserve their nested command paths.
 describe("completion-cli command aliases", () => {
   itWithFish.each([
-    ["a canonical root command", "openclaw --profile work inf", "infer"],
-    ["an aliased root command", "openclaw --profile work cap", "capability"],
-    ["an inline profile and alias", "openclaw --profile=work cap", "capability"],
-    ["an alias-shaped profile value", "openclaw --profile capability cap", "capability"],
-    ["a repeated profile and alias", "openclaw --profile first --profile second cap", "capability"],
+    ["a canonical root command", "vasudev --profile work inf", "infer"],
+    ["an aliased root command", "vasudev --profile work cap", "capability"],
+    ["an inline profile and alias", "vasudev --profile=work cap", "capability"],
+    ["an alias-shaped profile value", "vasudev --profile capability cap", "capability"],
+    ["a repeated profile and alias", "vasudev --profile first --profile second cap", "capability"],
   ])("completes real Fish root aliases after %s", (_name, commandLine, expected) => {
     expect(runGeneratedFishCompletion(createAliasedCompletionProgram(), commandLine)).toContain(
       expected,
@@ -137,11 +137,11 @@ describe("completion-cli command aliases", () => {
   });
 
   itWithPowerShell.each([
-    ["a global option", "openclaw --profile work cron create --a"],
+    ["a global option", "vasudev --profile work cron create --a"],
     ["an inline global option", "vasudev --profile=work cron create --a"],
-    ["repeated global options", "openclaw --profile first --profile second cron create --a"],
+    ["repeated global options", "vasudev --profile first --profile second cron create --a"],
     ["an inherited option after the parent", "vasudev cron --profile work create --a"],
-    ["the canonical nested command", "openclaw --profile work cron add --a"],
+    ["the canonical nested command", "vasudev --profile work cron add --a"],
   ])("completes real PowerShell nested aliases after %s", async (_name, commandLine) => {
     expect(
       await powerShellCompletion.complete(createAliasedCompletionProgram(), commandLine),

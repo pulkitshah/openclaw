@@ -133,7 +133,7 @@ describe("registered gateway platform notes", () => {
       bundle: { kind: "skipped" },
       redaction: { env: process.env, stateDir: path.join(home, ".openclaw-upgrade-proof") },
     });
-    expect(prompt).toContain("openclaw --profile upgrade-proof gateway install --force");
+    expect(prompt).toContain("vasudev --profile upgrade-proof gateway install --force");
     expect(prompt).toContain("drop-ins separately");
     expect(execSystemctlUserMock.mock.calls[0]?.[1]).toContain(
       "openclaw-gateway-upgrade-proof.service",

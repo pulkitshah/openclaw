@@ -774,7 +774,7 @@ describe("Codex app-server elicitation bridge", () => {
     };
     expect(approvalRequest.title).toBe("Computer Use approval");
     expect(approvalRequest.description).toContain("MCP server: computer-use");
-    expect(approvalRequest.description).not.toContain("openclaw mcp configure");
+    expect(approvalRequest.description).not.toContain("vasudev mcp configure");
     expect(approvalRequest.description).not.toContain("\u009b");
   });
 

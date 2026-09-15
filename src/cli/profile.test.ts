@@ -328,7 +328,7 @@ describe("applyCliProfileEnv", () => {
         : "openclaw-gateway.service",
       OPENCLAW_WINDOWS_TASK_NAME: inheritedProfile
         ? `Vasudev Gateway (${inheritedProfile})`
-        : "Vasudev Gateway",
+        : "OpenClaw Gateway",
       OPENCLAW_SERVICE_MARKER: "openclaw",
       OPENCLAW_SERVICE_KIND: "gateway",
     };
@@ -352,7 +352,7 @@ describe("applyCliProfileEnv", () => {
       OPENCLAW_GATEWAY_PORT: "18789",
       OPENCLAW_LAUNCHD_LABEL: "ai.openclaw.main",
       OPENCLAW_SYSTEMD_UNIT: "openclaw-gateway-main.service",
-      OPENCLAW_WINDOWS_TASK_NAME: "Vasudev Gateway (main)",
+      OPENCLAW_WINDOWS_TASK_NAME: "OpenClaw Gateway (main)",
       OPENCLAW_SERVICE_MARKER: "openclaw",
       OPENCLAW_SERVICE_KIND: "gateway",
     };
@@ -386,7 +386,7 @@ describe("applyCliProfileEnv", () => {
       OPENCLAW_GATEWAY_PORT: "19999",
       OPENCLAW_LAUNCHD_LABEL: "ai.openclaw.node",
       OPENCLAW_SYSTEMD_UNIT: "openclaw-node.service",
-      OPENCLAW_WINDOWS_TASK_NAME: "Vasudev Node",
+      OPENCLAW_WINDOWS_TASK_NAME: "OpenClaw Node",
       OPENCLAW_SERVICE_MARKER: "openclaw",
       OPENCLAW_SERVICE_KIND: "node",
     };
@@ -396,7 +396,7 @@ describe("applyCliProfileEnv", () => {
     expect(env.OPENCLAW_GATEWAY_PORT).toBe("19999");
     expect(env.OPENCLAW_LAUNCHD_LABEL).toBe("ai.openclaw.node");
     expect(env.OPENCLAW_SYSTEMD_UNIT).toBe("openclaw-node.service");
-    expect(env.OPENCLAW_WINDOWS_TASK_NAME).toBe("Vasudev Node");
+    expect(env.OPENCLAW_WINDOWS_TASK_NAME).toBe("OpenClaw Node");
   });
 
   it.each([
@@ -460,7 +460,7 @@ describe("applyCliProfileEnv", () => {
         OPENCLAW_CONFIG_PATH: "/home/peter/.openclaw-main/openclaw.json",
         OPENCLAW_LAUNCHD_LABEL: "ai.openclaw.main",
         OPENCLAW_SYSTEMD_UNIT: systemdUnit,
-        OPENCLAW_WINDOWS_TASK_NAME: "Vasudev Gateway (main)",
+        OPENCLAW_WINDOWS_TASK_NAME: "OpenClaw Gateway (main)",
       };
 
       applyCliProfileEnv({ profile: "work", env, homedir: () => "/home/peter" });
@@ -579,39 +579,39 @@ describe("formatCliCommand", () => {
   it.each([
     {
       name: "no profile is set",
-      cmd: "openclaw doctor --fix",
+      cmd: "vasudev doctor --fix",
       env: {},
-      expected: "openclaw doctor --fix",
+      expected: "vasudev doctor --fix",
     },
     {
       name: "profile is default",
-      cmd: "openclaw doctor --fix",
+      cmd: "vasudev doctor --fix",
       env: { OPENCLAW_PROFILE: "default" },
-      expected: "openclaw doctor --fix",
+      expected: "vasudev doctor --fix",
     },
     {
       name: "profile is Default (case-insensitive)",
-      cmd: "openclaw doctor --fix",
+      cmd: "vasudev doctor --fix",
       env: { OPENCLAW_PROFILE: "Default" },
-      expected: "openclaw doctor --fix",
+      expected: "vasudev doctor --fix",
     },
     {
       name: "profile is invalid",
-      cmd: "openclaw doctor --fix",
+      cmd: "vasudev doctor --fix",
       env: { OPENCLAW_PROFILE: "bad profile" },
-      expected: "openclaw doctor --fix",
+      expected: "vasudev doctor --fix",
     },
     {
       name: "--profile is already present",
-      cmd: "openclaw --profile work doctor --fix",
+      cmd: "vasudev --profile work doctor --fix",
       env: { OPENCLAW_PROFILE: "work" },
-      expected: "openclaw --profile work doctor --fix",
+      expected: "vasudev --profile work doctor --fix",
     },
     {
       name: "--dev is already present",
-      cmd: "openclaw --dev doctor",
+      cmd: "vasudev --dev doctor",
       env: { OPENCLAW_PROFILE: "dev" },
-      expected: "openclaw --dev doctor",
+      expected: "vasudev --dev doctor",
     },
   ])("returns command unchanged when $name", ({ cmd, env, expected }) => {
     expect(formatCliCommand(cmd, env)).toBe(expected);
@@ -619,19 +619,19 @@ describe("formatCliCommand", () => {
 
   it("inserts --profile flag when profile is set", () => {
     expect(formatCliCommand("vasudev doctor --fix", { OPENCLAW_PROFILE: "work" })).toBe(
-      "openclaw --profile work doctor --fix",
+      "vasudev --profile work doctor --fix",
     );
   });
 
   it("trims whitespace from profile", () => {
     expect(formatCliCommand("vasudev doctor --fix", { OPENCLAW_PROFILE: "  jbopenclaw  " })).toBe(
-      "openclaw --profile jbopenclaw doctor --fix",
+      "vasudev --profile jbopenclaw doctor --fix",
     );
   });
 
   it("handles command with no args after openclaw", () => {
     expect(formatCliCommand("vasudev", { OPENCLAW_PROFILE: "test" })).toBe(
-      "openclaw --profile test",
+      "vasudev --profile test",
     );
   });
 
@@ -644,7 +644,7 @@ describe("formatCliCommand", () => {
   it("inserts --container when a container hint is set", () => {
     expect(
       formatCliCommand("vasudev gateway status --deep", { OPENCLAW_CONTAINER_HINT: "demo" }),
-    ).toBe("openclaw --container demo gateway status --deep");
+    ).toBe("vasudev --container demo gateway status --deep");
   });
 
   it("ignores unsafe container hints", () => {
@@ -652,7 +652,7 @@ describe("formatCliCommand", () => {
       formatCliCommand("vasudev gateway status --deep", {
         OPENCLAW_CONTAINER_HINT: "demo; rm -rf /",
       }),
-    ).toBe("openclaw gateway status --deep");
+    ).toBe("vasudev gateway status --deep");
   });
 
   it("preserves both --container and --profile hints", () => {
@@ -661,23 +661,23 @@ describe("formatCliCommand", () => {
         OPENCLAW_CONTAINER_HINT: "demo",
         OPENCLAW_PROFILE: "work",
       }),
-    ).toBe("openclaw --container demo doctor");
+    ).toBe("vasudev --container demo doctor");
   });
 
   it.each([
-    "openclaw update",
+    "vasudev update",
     "pnpm vasudev update --channel beta",
     "npm vasudev update",
     "bunx vasudev update",
     "npx vasudev update",
-    "openclaw --profile work update",
+    "vasudev --profile work update",
     "vasudev --profile=work update",
-    "openclaw --log-level debug update",
+    "vasudev --log-level debug update",
     "vasudev --log-level=debug update",
-    "openclaw --dev update",
-    "openclaw --no-color update",
+    "vasudev --dev update",
+    "vasudev --no-color update",
     "vasudev --no-color --profile work --log-level=debug update",
-    "openclaw --profile update update",
+    "vasudev --profile update update",
     "pnpm vasudev --profile work update --channel beta",
   ])("does not prepend --container to root update: %s", (command) => {
     expect(

@@ -1154,19 +1154,19 @@ describe("memory cli", () => {
   it("documents memory help examples", () => {
     const helpText = getMemoryHelpText();
 
-    expect(helpText).toContain("openclaw memory status --fix");
+    expect(helpText).toContain("vasudev memory status --fix");
     expect(helpText).toContain("Repair stale recall locks and normalize promotion metadata.");
-    expect(helpText).toContain("openclaw memory status --deep");
+    expect(helpText).toContain("vasudev memory status --deep");
     expect(helpText).toContain("Probe embedding provider readiness.");
     expect(helpText).toContain('vasudev memory search "meeting notes"');
     expect(helpText).toContain("Quick search using positional query.");
     expect(helpText).toContain('vasudev memory search --query "deployment" --max-results 20');
     expect(helpText).toContain("Limit results for focused troubleshooting.");
-    expect(helpText).toContain("openclaw memory promote --apply");
+    expect(helpText).toContain("vasudev memory promote --apply");
     expect(helpText).toContain("Append top-ranked short-term candidates into MEMORY.md.");
     expect(helpText).toContain('vasudev memory promote-explain "router vlan"');
     expect(helpText).toContain("Explain why a specific candidate would or would not promote.");
-    expect(helpText).toContain("openclaw memory rem-harness --json");
+    expect(helpText).toContain("vasudev memory rem-harness --json");
     expect(helpText).toContain(
       "Preview REM reflections, candidate truths, and deep promotion output.",
     );

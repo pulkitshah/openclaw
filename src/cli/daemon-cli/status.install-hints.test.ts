@@ -259,7 +259,7 @@ describe("eligible status recovery", () => {
       }),
       async (accountHome, print) => {
         print(await createStatus("missing-unit", accountHome), { json: false });
-        expect(humanOutput()).toContain("openclaw --profile work gateway install");
+        expect(humanOutput()).toContain("vasudev --profile work gateway install");
         expect(humanOutput()).not.toContain("service management skipped");
       },
     );

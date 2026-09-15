@@ -198,13 +198,13 @@ describe("openclaw-mcp-servers-card", () => {
     const docs = expectDefined(card.querySelector('[data-mcp-name="docs"]'), "docs row");
     expect(docs.textContent).toContain("https://mcp.example.com/mcp?keep=visible&token=***");
     expect(docs.textContent).toContain("sse · oauth · tool filter · TLS verify off");
-    expect(docs.textContent).toContain("openclaw mcp login docs");
+    expect(docs.textContent).toContain("vasudev mcp login docs");
     expect(docs.textContent).not.toContain("test-token");
 
     const local = expectDefined(card.querySelector('[data-mcp-name="local"]'), "local row");
     expect(local.textContent).toContain("node");
     expect(local.textContent).toContain("stdio · parallel · mTLS");
-    expect(local.textContent).toContain("openclaw mcp probe local");
+    expect(local.textContent).toContain("vasudev mcp probe local");
     expect(local.textContent).not.toContain("server.js");
     expect(local.textContent).not.toContain("test-token");
 

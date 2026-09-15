@@ -237,7 +237,7 @@ describe("renderMemoryOverview", () => {
     const container = renderOverview({ kind: "ready", payload }, undefined, { onProbeEmbeddings });
 
     expect(container.textContent).toContain("Embedding readiness has not been checked yet.");
-    expect(container.textContent).not.toContain("openclaw memory status --deep");
+    expect(container.textContent).not.toContain("vasudev memory status --deep");
     const testButton = [...container.querySelectorAll<HTMLButtonElement>("button")].find(
       (button) => button.textContent?.trim() === "Test",
     );

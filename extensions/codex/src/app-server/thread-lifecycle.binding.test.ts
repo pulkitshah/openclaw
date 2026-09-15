@@ -1622,7 +1622,7 @@ describe("Codex app-server thread lifecycle bindings", () => {
     expect(resumeConfig).toMatchObject({
       config: { "features.hooks": true, "hooks.PreToolUse": [] },
     });
-    expect(JSON.stringify(resumeConfig)).not.toContain("openclaw hooks relay");
+    expect(JSON.stringify(resumeConfig)).not.toContain("vasudev hooks relay");
   });
 
   it("cold-resumes a warm thread when final config adds an image-generation deny", async () => {

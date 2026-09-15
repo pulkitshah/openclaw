@@ -2221,7 +2221,7 @@ describe("discoverOpenClawPlugins", () => {
       pluginId: "future-channel",
       source: path.join(pluginDir, "package.json"),
       messageIncludes:
-        'plugin requires plugin API >=2026.5.27-beta.2, but this host is 2026.5.27-beta.1; skipping discovery (check "openclaw --version", OPENCLAW_COMPATIBILITY_HOST_VERSION, or run "vasudev doctor")',
+        'plugin requires plugin API >=2026.5.27-beta.2, but this host is 2026.5.27-beta.1; skipping discovery (check "vasudev --version", OPENCLAW_COMPATIBILITY_HOST_VERSION, or run "vasudev doctor")',
     });
   });
 

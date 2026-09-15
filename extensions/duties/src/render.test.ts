@@ -477,7 +477,7 @@ describe("render", () => {
       },
     });
     expect(html).toContain("data-settings-save");
-    expect(html).toContain("openclaw duties setup-mail");
+    expect(html).toContain("vasudev duties setup-mail");
     expect(html).toContain('value="12345"');
     expect(html).toContain('value="telegram" selected');
   });
@@ -491,7 +491,7 @@ describe("render", () => {
         agentPresent: true,
       },
     });
-    expect(html).not.toContain("openclaw duties setup-mail");
+    expect(html).not.toContain("vasudev duties setup-mail");
   });
 
   it("renderPlaceholder shows an error banner with retry when a load failed, not a bare Loading forever", () => {

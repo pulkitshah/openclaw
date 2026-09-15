@@ -112,7 +112,7 @@ describe("block HTML islands", () => {
         "# Inner heading",
         "",
         "```bash",
-        "openclaw doctor",
+        "vasudev doctor",
         "```",
         "",
         "> inner quote",

@@ -61,13 +61,13 @@ describe("skills-cli", () => {
         name: "named profile",
         profile: "work",
         container: "",
-        prefix: "openclaw --profile work",
+        prefix: "vasudev --profile work",
       },
       {
         name: "managed container",
         profile: "",
         container: "demo",
-        prefix: "openclaw --container demo",
+        prefix: "vasudev --container demo",
       },
       {
         name: "default profile",
@@ -105,8 +105,8 @@ describe("skills-cli", () => {
       for (const output of outputs) {
         expect(() => JSON.parse(output)).not.toThrow();
         expect(output).not.toContain("Tip:");
-        expect(output).not.toContain("openclaw --profile");
-        expect(output).not.toContain("openclaw --container");
+        expect(output).not.toContain("vasudev --profile");
+        expect(output).not.toContain("vasudev --container");
       }
     });
   });

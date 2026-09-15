@@ -347,7 +347,7 @@ describe("failed update recovery restart", () => {
         steps: [
           {
             name: "update",
-            command: "openclaw update",
+            command: "vasudev update",
             cwd: "/repo",
             durationMs: 1,
             exitCode: 1,
@@ -870,7 +870,7 @@ describe("failed package update recovery safety", () => {
       reason: "doctor-failed",
       steps: [
         { name: "global update", command: "npm", cwd: "/", durationMs: 1, exitCode: 0 },
-        { name: "openclaw doctor", command: "doctor", cwd: "/", durationMs: 1, exitCode: 1 },
+        { name: "vasudev doctor", command: "doctor", cwd: "/", durationMs: 1, exitCode: 1 },
       ],
       recovery: {
         serviceRestartSafe: false,
