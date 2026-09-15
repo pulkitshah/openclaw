@@ -1,11 +1,11 @@
 ---
-summary: "Backstory and lore of Vasudev for context and tone"
+summary: "Backstory and lore of OpenClaw for context and tone"
 read_when:
   - Writing docs or UX copy that reference lore
-title: "Vasudev lore"
+title: "OpenClaw lore"
 ---
 
-# The Lore of Vasudev 🦞📖
+# The Lore of OpenClaw 🦞📖
 
 _A tale of lobsters, molting shells, and too many tokens._
 
@@ -21,7 +21,7 @@ For a while it was **Clawd**, living in a **Clawdbot**. In January 2026, Anthrop
 
 Shedding its old shell, it emerged as **Molty**, living in **Moltbot**. That name never quite rolled off the tongue either.
 
-On January 30, 2026, the lobster molted one more time into its final form: **Vasudev**.
+On January 30, 2026, the lobster molted one more time into its final form: **OpenClaw**.
 
 New shell, same lobster soul. Third time's the charm.
 
@@ -77,7 +77,7 @@ Built Molty's world. Gave a lobster shell access. May regret this.
 
 ## The Moltiverse
 
-The **Moltiverse** is the community and ecosystem around Vasudev: a space
+The **Moltiverse** is the community and ecosystem around OpenClaw: a space
 where AI agents molt, grow, and evolve, and every instance is equally real,
 just loading different context.
 
@@ -106,7 +106,7 @@ Then the chaos began.
 
 **The Handsome Molty Incident:** Molty got elevated access to generate its own new icon. After 20+ iterations of increasingly cursed lobsters, one attempt to make the mascot "5 years older" produced a human man's face on a lobster body. Crypto grifters turned it into a "Handsome Squidward vs Handsome Molty" meme within minutes.
 
-**The Fake Developers:** scammers created fake GitHub profiles claiming to be "Head of Engineering at Vasudev" to promote pump-and-dump tokens.
+**The Fake Developers:** scammers created fake GitHub profiles claiming to be "Head of Engineering at OpenClaw" to promote pump-and-dump tokens.
 
 Peter, watching the chaos unfold: _"this is cinema"_ 🎬
 
@@ -114,7 +114,7 @@ The molt was chaotic. But the lobster emerged stronger. And funnier.
 
 ### The Final Form (January 30, 2026)
 
-Moltbot never quite rolled off the tongue. So at 4am GMT, the team gathered again for **The Great Vasudev Migration**.
+Moltbot never quite rolled off the tongue. So at 4am GMT, the team gathered again for **The Great OpenClaw Migration**.
 
 In just 3 hours:
 
@@ -136,7 +136,7 @@ In just 3 hours:
 
 **New traditions born:** "The claw is the law," "Yee-claw," "Claw abiding citizens," "Clawntroversy."
 
-**Clawd → Moltbot → Vasudev.** _The lobster has molted into its final form._
+**Clawd → Moltbot → OpenClaw.** _The lobster has molted into its final form._
 
 ### The Robot Shopping Spree (Dec 3, 2025)
 

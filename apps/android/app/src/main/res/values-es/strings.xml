@@ -782,6 +782,7 @@
     <string name="native_6d46878b8f2895d5" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"%1$s modelos configurados"</string>
     <string name="native_6d5d9004797377e1" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Licencias"</string>
     <string name="native_6d7c95a353d873cd" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Conecta el Gateway para buscar Skills de ClawHub."</string>
+    <string name="native_6df0479c79c9c4e1" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Nodo de OpenClaw"</string>
     <string name="native_6df1bb18a59ab97d" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Skill"</string>
     <string name="native_6e034875b3baa6ee" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"La conexión con el Gateway ha cambiado. Reinicia OpenClaw para volver a conectarte."</string>
     <string name="native_6e0a0b9d8c5ee4d9" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"ID del dispositivo"</string>
@@ -802,6 +803,7 @@
     <string name="native_6f371721dd8088ad" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Actualizar chat"</string>
     <string name="native_6f45b0005e3b7c18" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Intervalo"</string>
     <string name="native_6f5312c644035cff" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"realizó %1$s búsquedas"</string>
+    <string name="native_6f570002ecf96991" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Vasudev"</string>
     <string name="native_6f69402c94791646" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Las acciones sobre propuestas del Taller de Skills requieren el ámbito operator.admin."</string>
     <string name="native_6fa3cbf451b2a1d5" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Sesiones"</string>
     <string name="native_6fa62b3dba2f02f2" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Cambiar nombre…"</string>

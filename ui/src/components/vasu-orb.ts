@@ -8,7 +8,7 @@ const DEFAULT_SIZE = 27;
 /** What the mark is doing. The orb is also the product's status light — the
  * mascot element it replaced carried a live mood — so these four states own the
  * animation, and `data-mood` on the orb body selects it. */
-export type VasuOrbMood = "idle" | "thinking" | "error" | "sleeping";
+type VasuOrbMood = "idle" | "thinking" | "error" | "sleeping";
 
 /** Every mood name callers pass, mapped onto the four states. The mascot
  * surfaces (channels, custodian, assistant panel) keep their own vocabulary, so
@@ -29,7 +29,7 @@ const ORB_MOODS = {
   off: "sleeping",
 } as const satisfies Record<string, VasuOrbMood>;
 
-export type VasuOrbMoodInput = keyof typeof ORB_MOODS;
+type VasuOrbMoodInput = keyof typeof ORB_MOODS;
 
 /** Callers hand in a plain string, so the lookup happens over the widened map
  * instead of asserting the name into `VasuOrbMoodInput`. */

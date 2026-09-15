@@ -782,6 +782,7 @@
     <string name="native_6d46878b8f2895d5" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"구성된 모델 %1$s개"</string>
     <string name="native_6d5d9004797377e1" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"라이선스"</string>
     <string name="native_6d7c95a353d873cd" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"ClawHub Skills를 검색하려면 Gateway에 연결하세요."</string>
+    <string name="native_6df0479c79c9c4e1" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"OpenClaw 노드"</string>
     <string name="native_6df1bb18a59ab97d" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"스킬"</string>
     <string name="native_6e034875b3baa6ee" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Gateway 연결이 변경되었습니다. 다시 연결하려면 OpenClaw를 다시 시작하세요."</string>
     <string name="native_6e0a0b9d8c5ee4d9" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"기기 ID"</string>
@@ -802,6 +803,7 @@
     <string name="native_6f371721dd8088ad" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"채팅 새로고침"</string>
     <string name="native_6f45b0005e3b7c18" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"간격"</string>
     <string name="native_6f5312c644035cff" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"검색 %1$s회 실행함"</string>
+    <string name="native_6f570002ecf96991" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Vasudev"</string>
     <string name="native_6f69402c94791646" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"스킬 워크숍 제안 작업에는 operator.admin 권한 범위가 필요합니다."</string>
     <string name="native_6fa3cbf451b2a1d5" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"세션"</string>
     <string name="native_6fa62b3dba2f02f2" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"이름 변경…"</string>

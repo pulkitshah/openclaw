@@ -782,6 +782,7 @@
     <string name="native_6d46878b8f2895d5" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"%1$s مدل پیکربندی‌شده"</string>
     <string name="native_6d5d9004797377e1" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"مجوزها"</string>
     <string name="native_6d7c95a353d873cd" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"برای جستجوی Skills در ClawHub، به Gateway متصل شوید."</string>
+    <string name="native_6df0479c79c9c4e1" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"گره OpenClaw"</string>
     <string name="native_6df1bb18a59ab97d" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"مهارت"</string>
     <string name="native_6e034875b3baa6ee" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"اتصال Gateway تغییر کرده است. برای اتصال مجدد، OpenClaw را دوباره راه‌اندازی کنید."</string>
     <string name="native_6e0a0b9d8c5ee4d9" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"شناسهٔ دستگاه"</string>
@@ -802,6 +803,7 @@
     <string name="native_6f371721dd8088ad" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"تازه‌سازی گفتگو"</string>
     <string name="native_6f45b0005e3b7c18" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"فاصلهٔ زمانی"</string>
     <string name="native_6f5312c644035cff" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"%1$s جستجو انجام داد"</string>
+    <string name="native_6f570002ecf96991" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Vasudev"</string>
     <string name="native_6f69402c94791646" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"عملیات پیشنهاد در کارگاه مهارت به سطح دسترسی operator.admin نیاز دارد."</string>
     <string name="native_6fa3cbf451b2a1d5" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"جلسه‌ها"</string>
     <string name="native_6fa62b3dba2f02f2" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"تغییر نام…"</string>

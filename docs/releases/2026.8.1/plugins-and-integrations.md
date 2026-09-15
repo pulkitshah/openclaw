@@ -5,7 +5,7 @@ description: "Admins can browse, search, install, enable, disable, and remove pl
 
 Admins can now browse, search, install, enable, disable, and remove [plugins](/plugins/manage-plugins) from the Control UI, while the same hub can install curated ClawHub skills and add vetted [MCP connectors](/cli/mcp). Managed installs pause for source review where needed, roll failed changes back to a retryable state, and repair stale or incomplete records without throwing away healthy configuration. Plugin updates also keep work already in flight on the version it started with, then move later work to the replacement only after it loads successfully.
 
-ClawHub installs carry the selected publisher, version, scan state, and source across desktop and mobile, MCP servers recover independently when a connection or catalog changes, and plugin authors get typed Gateway and SDK contracts for building against Vasudev. Vendor-neutral Agent Plugins can bring skills and supported MCP servers together with scoped storage, giving integrations a clearer path from package to running system.
+ClawHub installs carry the selected publisher, version, scan state, and source across desktop and mobile, MCP servers recover independently when a connection or catalog changes, and plugin authors get typed Gateway and SDK contracts for building against OpenClaw. Vendor-neutral Agent Plugins can bring skills and supported MCP servers together with scoped storage, giving integrations a clearer path from package to running system.
 
 <AccordionGroup>
 
@@ -202,9 +202,9 @@ Skill updates protect local and concurrent edits unless an operator explicitly f
 - Add native Skills management across iOS and macOS [#105814](https://github.com/openclaw/openclaw/pull/105814)
 - Add human-authored CLAW.md manifests [#111391](https://github.com/openclaw/openclaw/pull/111391)
 - Install external skills.sh catalog references [#112751](https://github.com/openclaw/openclaw/pull/112751)
-- Separate portable Claw identity from Vasudev policy [#112773](https://github.com/openclaw/openclaw/pull/112773)
+- Separate portable Claw identity from OpenClaw policy [#112773](https://github.com/openclaw/openclaw/pull/112773)
 - Let CLAW.md carry a portable agent prompt [#113454](https://github.com/openclaw/openclaw/pull/113454)
-- Add portable Vasudev profiles and native Claw bootstrap [#115237](https://github.com/openclaw/openclaw/pull/115237)
+- Add portable OpenClaw profiles and native Claw bootstrap [#115237](https://github.com/openclaw/openclaw/pull/115237)
 - Export reviewed first-run instructions with a Claw package [#115371](https://github.com/openclaw/openclaw/pull/115371)
 - Add plugin requirements to schema-v1 Claw profiles [#115962](https://github.com/openclaw/openclaw/pull/115962)
 - Add an experimental local Claw authoring lifecycle [#117037](https://github.com/openclaw/openclaw/pull/117037)
@@ -285,9 +285,9 @@ Skill updates protect local and concurrent edits unless an operator explicitly f
 
 <Accordion title="Loading and updating plugins">
 
-[Plugin updates](/plugins/architecture) now preserve one runtime generation for work already underway. Accepted messages, completions, and workers finish with the plugin version they started with, and later work moves to the replacement only after it has loaded successfully. If a live reload fails, Vasudev restores the last active commands, providers, hooks, memory, and other registrations.
+[Plugin updates](/plugins/architecture) now preserve one runtime generation for work already underway. Accepted messages, completions, and workers finish with the plugin version they started with, and later work moves to the replacement only after it has loaded successfully. If a live reload fails, OpenClaw restores the last active commands, providers, hooks, memory, and other registrations.
 
-Vasudev also reuses prepared plugin metadata and runtimes across turns instead of rebuilding the same setup each time, while health shows failed activation, cleanup, or background services directly. A known plugin-owned failure can be quarantined without taking healthy plugins or all of Vasudev offline, while invalid configuration, failed migrations, ambiguous ownership, and unverifiable state still stop activation.
+OpenClaw also reuses prepared plugin metadata and runtimes across turns instead of rebuilding the same setup each time, while health shows failed activation, cleanup, or background services directly. A known plugin-owned failure can be quarantined without taking healthy plugins or all of OpenClaw offline, while invalid configuration, failed migrations, ambiguous ownership, and unverifiable state still stop activation.
 
 Context-engine plugins remain selected on fresh turns and can advance durable state through long sessions by applying limits to the accepted turn instead of all accumulated history. Existing v1 engines keep their full-history contract until they adopt the newer interface, and a single accepted turn above 8 MiB or 20,000 events still stops.
 
@@ -439,7 +439,7 @@ Context-engine plugins remain selected on fresh turns and can advance durable st
 
 <Accordion title="MCP servers and apps">
 
-[MCP servers](/cli/mcp) can now recover their connection and catalog after late startup, transport loss, a server restart, or a changed tool list without restarting Vasudev or taking healthy servers down with them. Tool results retain structured data, screenshots, audio, resources, recovery guidance, and real error state. A call that first discovers an expired stateful session still fails once without replay because it may already have changed something.
+[MCP servers](/cli/mcp) can now recover their connection and catalog after late startup, transport loss, a server restart, or a changed tool list without restarting OpenClaw or taking healthy servers down with them. Tool results retain structured data, screenshots, audio, resources, recovery guidance, and real error state. A call that first discovers an expired stateful session still fails once without replay because it may already have changed something.
 
 Local MCP sign-in can finish in the browser, save and verify the credential, and resume a newly started authorization after a process restart. Shared operator sign-in remains the default, while supported HTTP MCP servers can opt into per-person OAuth that keeps each credential attached to the trusted channel, bot account, and sender. Remote and headless operators keep the manual code path, and this first per-person mode does not add private sign-in delivery, automatic turn resumption, or Control UI account management.
 
@@ -475,7 +475,7 @@ MCP Apps remain opt-in and can show supported interactive server interfaces afte
 - Complete MCP OAuth login after browser approval [#120431](https://github.com/openclaw/openclaw/pull/120431)
 - Recover node-hosted MCP catalogs and sessions live [#125092](https://github.com/openclaw/openclaw/pull/125092)
 - Prevent stale MCP catalogs and silent tool failures [#125564](https://github.com/openclaw/openclaw/pull/125564)
-- Mark resolved Vasudev tool failures as MCP errors [#126472](https://github.com/openclaw/openclaw/pull/126472)
+- Mark resolved OpenClaw tool failures as MCP errors [#126472](https://github.com/openclaw/openclaw/pull/126472)
 - Clean up stale MCP processes after session reset or deletion [#93559](https://github.com/openclaw/openclaw/pull/93559)
 - Make MCP OAuth credentials work in CLI and local Codex runtimes [#96120](https://github.com/openclaw/openclaw/pull/96120)
 - Suppress responses for MCP notifications [#101730](https://github.com/openclaw/openclaw/pull/101730)
@@ -538,11 +538,11 @@ MCP Apps remain opt-in and can show supported interactive server interfaces afte
 
 <Accordion title="Building plugins and integrations">
 
-Developers [building a Gateway client](/gateway/protocol) or embedding Vasudev now have typed protocol schemas, runtime validation, authentication, reconnect, readiness, timeout, and browser or Node entry-point guidance. The Gateway protocol and reference client are prepared as calendar-versioned npm packages and become installable when the release train publishes them.
+Developers [building a Gateway client](/gateway/protocol) or embedding OpenClaw now have typed protocol schemas, runtime validation, authentication, reconnect, readiness, timeout, and browser or Node entry-point guidance. The Gateway protocol and reference client are prepared as calendar-versioned npm packages and become installable when the release train publishes them.
 
 [Plugin authors](/plugins/building-plugins) also get focused contracts for requester-aware hooks, channel setup, CLI backends, bounded provider streams, read-only secret references, and browser meeting adapters. Hook policy remains underneath channel admission, sandboxing, approvals, owner-only tools, and other host policy, and the timeout cleanup for Codex hook relays applies to POSIX hosts rather than Windows.
 
-The contract cleanup removes retired July and August SDK paths and replaces the `deactivate` alias with `gateway_stop`, while the beta.5 session-store bridge remains available through October 12, 2026. Clients using the v2026.7.2 beta question, worker, or session-catalog shapes need to move to the renamed and flattened contracts. Custom `agents.defaults.cliBackends` commands, arguments, environment, aliases, and parsers now belong in a backend plugin whose executable is available to the Vasudev service.
+The contract cleanup removes retired July and August SDK paths and replaces the `deactivate` alias with `gateway_stop`, while the beta.5 session-store bridge remains available through October 12, 2026. Clients using the v2026.7.2 beta question, worker, or session-catalog shapes need to move to the renamed and flattened contracts. Custom `agents.defaults.cliBackends` commands, arguments, environment, aliases, and parsers now belong in a backend plugin whose executable is available to the OpenClaw service.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -705,11 +705,11 @@ The contract cleanup removes retired July and August SDK paths and replaces the 
 
 <Accordion title="Plugin Packages and Host Compatibility">
 
-Vasudev can now install vendor-neutral [Agent Plugins](/plugins/bundles) from directories, archives, or Git sources, load their immediate-child skills and valid stdio, HTTP, or SSE MCP servers, and give them scoped bundle and persistent data paths. The Vasudev extension can add activation hints, while providers, channels, configuration schemas, and runtime entry points stay outside this portable bundle contract. An invalid MCP entry is skipped without blocking valid siblings.
+OpenClaw can now install vendor-neutral [Agent Plugins](/plugins/bundles) from directories, archives, or Git sources, load their immediate-child skills and valid stdio, HTTP, or SSE MCP servers, and give them scoped bundle and persistent data paths. The OpenClaw extension can add activation hints, while providers, channels, configuration schemas, and runtime entry points stay outside this portable bundle contract. An invalid MCP entry is skipped without blocking valid siblings.
 
-Cohere, Meta, BytePlus, ComfyUI, OpenCode, Voyage, Vydra, Volcengine, Mistral, NovitaAI, Teams meetings, and Zoom meetings now ship as separately installed [official packages](/plugins/plugin-inventory). New setups install the relevant package and restart Vasudev, and an existing enabled setup relocates when the external artifact is available. OpenCode Go remains bundled because its external placeholder was not usable.
+Cohere, Meta, BytePlus, ComfyUI, OpenCode, Voyage, Vydra, Volcengine, Mistral, NovitaAI, Teams meetings, and Zoom meetings now ship as separately installed [official packages](/plugins/plugin-inventory). New setups install the relevant package and restart OpenClaw, and an existing enabled setup relocates when the external artifact is available. OpenCode Go remains bundled because its external placeholder was not usable.
 
-Plugin loading now handles the specific npm 10 through 12 metadata and lock behavior, direct and peer Vasudev dependencies, packed host-runtime imports, and concurrent Node ESM cases that had prevented successful installs from activating. Canvas is now focused on the macOS presenter and session-board A2UI path, with its standalone workspace, eval and snapshot surfaces, native push and reset commands, and iOS, Android, and Linux clients removed. Dashboard and A2UI actions remain explicitly granted and sandboxed.
+Plugin loading now handles the specific npm 10 through 12 metadata and lock behavior, direct and peer OpenClaw dependencies, packed host-runtime imports, and concurrent Node ESM cases that had prevented successful installs from activating. Canvas is now focused on the macOS presenter and session-board A2UI path, with its standalone workspace, eval and snapshot surfaces, native push and reset commands, and iOS, Android, and Linux clients removed. Dashboard and A2UI actions remain explicitly granted and sandboxed.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -726,7 +726,7 @@ Plugin loading now handles the specific npm 10 through 12 metadata and lock beha
 - Move OpenCode Go to the official external plugin catalog [#117064](https://github.com/openclaw/openclaw/pull/117064)
 - Redesign the browser extension popup [#118095](https://github.com/openclaw/openclaw/pull/118095)
 - Support Agent Plugins bundles [#120115](https://github.com/openclaw/openclaw/pull/120115)
-- Add Vasudev activation metadata to portable Agent Plugins [#120214](https://github.com/openclaw/openclaw/pull/120214)
+- Add OpenClaw activation metadata to portable Agent Plugins [#120214](https://github.com/openclaw/openclaw/pull/120214)
 - Add automatic local Chrome extension setup [#121586](https://github.com/openclaw/openclaw/pull/121586)
 - Add a preflight check for the managed Codex app-server [#124137](https://github.com/openclaw/openclaw/pull/124137)
 - Run A2UI apps as session board widgets [#125803](https://github.com/openclaw/openclaw/pull/125803)
@@ -810,7 +810,7 @@ Plugin loading now handles the specific npm 10 through 12 metadata and lock beha
 - Fix Codex command session resolution and prerelease checks [#113820](https://github.com/openclaw/openclaw/pull/113820)
 - Compare plugin metadata by JSON structure [#117486](https://github.com/openclaw/openclaw/pull/117486)
 - Ignore malformed plugin build-version metadata [#117639](https://github.com/openclaw/openclaw/pull/117639)
-- Link plugins that declare Vasudev as a direct dependency [#117738](https://github.com/openclaw/openclaw/pull/117738)
+- Link plugins that declare OpenClaw as a direct dependency [#117738](https://github.com/openclaw/openclaw/pull/117738)
 - fix(diffs): restore GET/HEAD Content-Length parity on viewer routes [#120280](https://github.com/openclaw/openclaw/pull/120280)
 - fix(diffs-language-pack): serve byte-accurate Content-Length on asset HEAD requests [#120282](https://github.com/openclaw/openclaw/pull/120282)
 - Report OS-incompatible always-on skills as unavailable [#123731](https://github.com/openclaw/openclaw/pull/123731)

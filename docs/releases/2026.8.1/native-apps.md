@@ -13,7 +13,7 @@ Progress cards and assistant-created widgets also bring more of the Claw's activ
 
 On [iPhone and iPad](/platforms/ios), one Chat surface now handles typing, dictation, voice notes, attachments, realtime Talk, and the session, model, reasoning, and tool-activity controls around a conversation. The sidebar makes it easier to switch agents, search and manage recent conversations, see what needs attention, and pin the destinations used most often.
 
-Sharing into Vasudev now previews supported attachments and shows their progress from preparation through completion or failure. Completed shares in this release support text, links, or one to three images, and Send stays unavailable when an unsupported, excess, or unloadable attachment would otherwise be left out.
+Sharing into OpenClaw now previews supported attachments and shows their progress from preparation through completion or failure. Completed shares in this release support text, links, or one to three images, and Send stays unavailable when an unsupported, excess, or unloadable attachment would otherwise be left out.
 
 Apple Watch retains messages, approvals, replies, and commands through relaunches, Gateway changes, navigation, and retries, then reconciles the result across the phone and Watch so the same wrist action is less likely to be lost or repeated.
 
@@ -31,7 +31,7 @@ Apple Watch retains messages, approvals, replies, and commands through relaunche
 - Add durable voice sessions to iOS Talk [#111369](https://github.com/openclaw/openclaw/pull/111369)
 - fix(ios): refine Chat Actions and header controls [#132045](https://github.com/openclaw/openclaw/pull/132045)
 - Refresh the iPhone Control tab layout [#98582](https://github.com/openclaw/openclaw/pull/98582)
-- Refresh iOS and Watch icons with the current Vasudev mascot [#101411](https://github.com/openclaw/openclaw/pull/101411)
+- Refresh iOS and Watch icons with the current OpenClaw mascot [#101411](https://github.com/openclaw/openclaw/pull/101411)
 - Add state-aware mascot moods to iOS setup [#108900](https://github.com/openclaw/openclaw/pull/108900)
 - Add a mood-aware Clawd mascot to the watch inbox [#109365](https://github.com/openclaw/openclaw/pull/109365)
 - Add agent avatars and more space to the iOS sidebar [#112082](https://github.com/openclaw/openclaw/pull/112082)
@@ -147,7 +147,7 @@ The Wear OS companion uses its paired Android phone for the connection and store
 - feat(android): group sidebar sessions [#128092](https://github.com/openclaw/openclaw/pull/128092)
 - feat(android): unify agent and session pickers [#128309](https://github.com/openclaw/openclaw/pull/128309)
 - Make Android release screenshots deterministic [f163f32](https://github.com/openclaw/openclaw/commit/f163f32)
-- Align the Android launcher icon with the Vasudev favicon [#101423](https://github.com/openclaw/openclaw/pull/101423)
+- Align the Android launcher icon with the OpenClaw favicon [#101423](https://github.com/openclaw/openclaw/pull/101423)
 - Simplify the Android Canvas standby layout [#104001](https://github.com/openclaw/openclaw/pull/104001)
 - Refresh generated native app translations [#112803](https://github.com/openclaw/openclaw/pull/112803)
 - Keep completed Android plan steps readable [#124916](https://github.com/openclaw/openclaw/pull/124916)
@@ -344,7 +344,7 @@ The Dashboard returns to its remembered frame, Space, and eligible route through
 - fix(macos): cancelled Talk sessions can spin at full CPU [#129682](https://github.com/openclaw/openclaw/pull/129682)
 - fix(macos): restore denied speech permission recovery in Settings and voice controls [#129950](https://github.com/openclaw/openclaw/pull/129950)
 - fix(macos): recognize Screen Recording access after granting permission [#130530](https://github.com/openclaw/openclaw/pull/130530)
-- fix(macos): allow dragging the Vasudev panel header [#132288](https://github.com/openclaw/openclaw/pull/132288)
+- fix(macos): allow dragging the OpenClaw panel header [#132288](https://github.com/openclaw/openclaw/pull/132288)
 - fix(macos): restore Codex catalogs on paired Macs [#132713](https://github.com/openclaw/openclaw/pull/132713)
 
 **Documentation**

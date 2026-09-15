@@ -782,6 +782,7 @@
     <string name="native_6d46878b8f2895d5" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"โมเดลที่กำหนดค่าแล้ว %1$s โมเดล"</string>
     <string name="native_6d5d9004797377e1" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"สัญญาอนุญาต"</string>
     <string name="native_6d7c95a353d873cd" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"เชื่อมต่อ Gateway เพื่อค้นหา Skills ใน ClawHub"</string>
+    <string name="native_6df0479c79c9c4e1" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"โหนด OpenClaw"</string>
     <string name="native_6df1bb18a59ab97d" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"สกิล"</string>
     <string name="native_6e034875b3baa6ee" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"การเชื่อมต่อ Gateway มีการเปลี่ยนแปลง โปรดรีสตาร์ท OpenClaw เพื่อเชื่อมต่อใหม่"</string>
     <string name="native_6e0a0b9d8c5ee4d9" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"รหัสอุปกรณ์"</string>
@@ -802,6 +803,7 @@
     <string name="native_6f371721dd8088ad" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"รีเฟรชแชท"</string>
     <string name="native_6f45b0005e3b7c18" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"ช่วงเวลา"</string>
     <string name="native_6f5312c644035cff" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"ค้นหาแล้ว %1$s ครั้ง"</string>
+    <string name="native_6f570002ecf96991" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Vasudev"</string>
     <string name="native_6f69402c94791646" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"การดำเนินการกับข้อเสนอของเวิร์กช็อปสกิลต้องใช้ขอบเขต operator.admin"</string>
     <string name="native_6fa3cbf451b2a1d5" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"เซสชัน"</string>
     <string name="native_6fa62b3dba2f02f2" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"เปลี่ยนชื่อ…"</string>

@@ -3,7 +3,7 @@ title: "v2026.8.1: Other Bug Fixes"
 description: "Scoped fixes across Codex delegation, browser Talk, Copilot and xAI replay, Doctor recovery, plugin upgrades, meeting audio, and more."
 ---
 
-Vasudev now preserves completed Codex delegation results through the covered handoffs, keeps accepted user turns from being stored twice, stops cancelled commands before they start, and retains Canvas widget identity and pin state after reload. The rest of this section covers scoped fixes across browser Talk, Copilot and xAI replay, [Doctor](/cli/doctor) recovery, plugin upgrades, meeting audio, and the [terminal app](/web/tui).
+OpenClaw now preserves completed Codex delegation results through the covered handoffs, keeps accepted user turns from being stored twice, stops cancelled commands before they start, and retains Canvas widget identity and pin state after reload. The rest of this section covers scoped fixes across browser Talk, Copilot and xAI replay, [Doctor](/cli/doctor) recovery, plugin upgrades, meeting audio, and the [terminal app](/web/tui).
 
 <AccordionGroup>
 
@@ -423,7 +423,7 @@ In the repaired [Codex delegation](/tools/subagents) and `sessions_yield` paths,
 
 <Accordion title="Conversations, history, and stored data">
 
-One accepted user turn now stays one turn across the repaired retry and restart paths instead of being written twice. `/new` and `/reset` also preserve the underlying transcript position while clearing the visible conversation, so resetting what you see does not lose Vasudev's place in the [saved history](/concepts/session).
+One accepted user turn now stays one turn across the repaired retry and restart paths instead of being written twice. `/new` and `/reset` also preserve the underlying transcript position while clearing the visible conversation, so resetting what you see does not lose OpenClaw's place in the [saved history](/concepts/session).
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -543,7 +543,7 @@ One accepted user turn now stays one turn across the repaired retry and restart 
 - Restore history and usage reads for compressed transcript archives [#104795](https://github.com/openclaw/openclaw/pull/104795)
 - Refuse backup and compaction from corrupt SQLite indexes [#104938](https://github.com/openclaw/openclaw/pull/104938)
 - Restore byte-based auto-compaction for SQLite sessions [#104940](https://github.com/openclaw/openclaw/pull/104940)
-- Validate shared SQLite state before Vasudev mutates it [#104952](https://github.com/openclaw/openclaw/pull/104952)
+- Validate shared SQLite state before OpenClaw mutates it [#104952](https://github.com/openclaw/openclaw/pull/104952)
 - Reject corrupt agent state before startup changes [#105179](https://github.com/openclaw/openclaw/pull/105179)
 - Reject orphaned SQLite state before mutation or backup [#105222](https://github.com/openclaw/openclaw/pull/105222)
 - Remove transcript search data with deleted sessions [#105249](https://github.com/openclaw/openclaw/pull/105249)
@@ -885,7 +885,7 @@ One accepted user turn now stays one turn across the repaired retry and restart 
 - fix(sandbox): queue reads behind in-flight writes to the same file [#125091](https://github.com/openclaw/openclaw/pull/125091)
 - Report no-reply and unavailable tool outcomes [#125607](https://github.com/openclaw/openclaw/pull/125607)
 - Preserve Copilot manifest-profile tool grants [#125875](https://github.com/openclaw/openclaw/pull/125875)
-- Restore Vasudev guidance to Copilot agent turns [#125997](https://github.com/openclaw/openclaw/pull/125997)
+- Restore OpenClaw guidance to Copilot agent turns [#125997](https://github.com/openclaw/openclaw/pull/125997)
 - Agents stop cleanly after terminal dynamic tools [#126208](https://github.com/openclaw/openclaw/pull/126208)
 - Stop stale tool-failure warnings after successful replies [#126542](https://github.com/openclaw/openclaw/pull/126542)
 - Run Code Mode when the unused exec alias is blank [#126599](https://github.com/openclaw/openclaw/pull/126599)
@@ -1006,7 +1006,7 @@ One accepted user turn now stays one turn across the repaired retry and restart 
 
 Cancelling a queued command now keeps it from starting, cancellation during startup reaches the process once it exists, and an explicit replacement retires the command it replaced without killing ordinary work that happens to be running at the same time. Commands already running in the background keep their existing lifetime.
 
-[Process output](/tools/exec) also stays in the order Vasudev observed it, completion remains attached to the exact process that finished, and polling says when earlier output was omitted. The full history remains available through paged process logs rather than one response that can grow without bound.
+[Process output](/tools/exec) also stays in the order OpenClaw observed it, completion remains attached to the exact process that finished, and polling says when earlier output was omitted. The full history remains available through paged process logs rather than one response that can grow without bound.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -1115,7 +1115,7 @@ Cancelling a queued command now keeps it from starting, cancellation during star
 
 <Accordion title="Automations and task boards">
 
-[Workboard](/plugins/workboard) now keeps an accepted worker attached to its card, rolls back a failed operation without overwriting someone else's edits, and reconnects launches interrupted by a restart. If Vasudev does not have a complete view of the running workers, it waits instead of guessing whether one still belongs to the card, and stale launch attempts remain blocked.
+[Workboard](/plugins/workboard) now keeps an accepted worker attached to its card, rolls back a failed operation without overwriting someone else's edits, and reconnects launches interrupted by a restart. If OpenClaw does not have a complete view of the running workers, it waits instead of guessing whether one still belongs to the card, and stale launch attempts remain blocked.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -1786,13 +1786,13 @@ Local CLI text-to-speech now caps output memory, handles a broken audio stream s
 - fix(doctor): scan all configured agent session stores [#130895](https://github.com/openclaw/openclaw/pull/130895)
 - fix(doctor): bound recovered session migrations (#126265) [d06c0b8](https://github.com/openclaw/openclaw/commit/d06c0b8)
 - Show conversation usage in `/context map` [#102633](https://github.com/openclaw/openclaw/pull/102633)
-- Keep truncated Unicode text valid across Vasudev surfaces [#102823](https://github.com/openclaw/openclaw/pull/102823)
+- Keep truncated Unicode text valid across OpenClaw surfaces [#102823](https://github.com/openclaw/openclaw/pull/102823)
 - Stop stalled node camera downloads from hanging forever [#103266](https://github.com/openclaw/openclaw/pull/103266)
 - Preserve PATH when ClawDock is sourced in zsh [#103805](https://github.com/openclaw/openclaw/pull/103805)
 - Show task-registry restore errors in console output [#103976](https://github.com/openclaw/openclaw/pull/103976)
 - Stop healthy local audio checks from failing Doctor [#104237](https://github.com/openclaw/openclaw/pull/104237)
-- Register the local audio check in Vasudev Doctor [#104242](https://github.com/openclaw/openclaw/pull/104242)
-- Restore local audio information in Vasudev Doctor [#104281](https://github.com/openclaw/openclaw/pull/104281)
+- Register the local audio check in OpenClaw Doctor [#104242](https://github.com/openclaw/openclaw/pull/104242)
+- Restore local audio information in OpenClaw Doctor [#104281](https://github.com/openclaw/openclaw/pull/104281)
 - Unify CLI tool timeout and cancellation diagnostics [#104319](https://github.com/openclaw/openclaw/pull/104319)
 - Preserve consistent details in error messages [#105927](https://github.com/openclaw/openclaw/pull/105927)
 - Let doctor migrate legacy operator approvals [#108203](https://github.com/openclaw/openclaw/pull/108203)
@@ -1940,7 +1940,7 @@ Doctor's legacy [authentication migration](/gateway/authentication) now preserve
 - Keep Gateway locks inside the selected state directory [#120110](https://github.com/openclaw/openclaw/pull/120110)
 - Isolate external coding-session catalogs from operator HOME [#122983](https://github.com/openclaw/openclaw/pull/122983)
 - Hide unowned host session catalogs on multi-user Gateways [#123421](https://github.com/openclaw/openclaw/pull/123421)
-- Block agent SQLite commands from opening live Vasudev state [#123816](https://github.com/openclaw/openclaw/pull/123816)
+- Block agent SQLite commands from opening live OpenClaw state [#123816](https://github.com/openclaw/openclaw/pull/123816)
 - Keep caller speech at user priority in Voice Call [#123846](https://github.com/openclaw/openclaw/pull/123846)
 - Keep expired Codex approvals from aborting the turn [#125671](https://github.com/openclaw/openclaw/pull/125671)
 - Fail closed when Code Mode aliases are invalidated [#126660](https://github.com/openclaw/openclaw/pull/126660)

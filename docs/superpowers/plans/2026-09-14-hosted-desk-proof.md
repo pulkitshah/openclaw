@@ -32,31 +32,31 @@ Gateway's Serve route on port 443).
 
 `deploy/desk/new-desk.sh vasudev-desk …` (run by the coordinator, not by this task):
 
-| # | Droplet | Outcome | Fix |
-| - | ------- | ------- | --- |
-| 1 | 600360994 | Never joined the tailnet; `root` SSH impossible, so undiagnosable — the script's default `DESK_SSH_KEY_NAME` matched no DigitalOcean key for this Mac | `45c60d211f` — match the doctl key against a local public key; no personal default |
-| 2 | 600365069 | cloud-init: `Failed loading yaml blob. unacceptable character #x0080` → `empty cloud config`; nothing ran. The rendered user-data carried an em dash and `§` in comments and DigitalOcean's user-data path mangled the UTF-8 | `3085998470` — renderer refuses non-ASCII, with a test |
-| 3 | 600366210 | `users:` without `default` dropped `root`'s SSH key; Tailscale also sat behind the heavy package installs | `8e47fea526` |
-| 4 | 600370581 | SSH worked and the config ran, but `write_files` aborted on the `openclaw`-owned entries because the user did not exist yet — the Tailscale key, bot token, Gateway token and `openclaw.json` were never written | `343a3740a0` (`defer: true`), `6c6761a4dc` (time out `tailscale up`) |
-| 5 | 600371144 | Joined the tailnet in ≈6 min, but the Gateway never answered `/healthz` in 1800 s → `new-desk.sh` exit 4 | superseded |
-| 6 | **600383557** | **Up.** `s-4vcpu-8gb`, Serve route live, healthz 200 | — |
+| #   | Droplet       | Outcome                                                                                                                                                                                                                      | Fix                                                                                |
+| --- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| 1   | 600360994     | Never joined the tailnet; `root` SSH impossible, so undiagnosable — the script's default `DESK_SSH_KEY_NAME` matched no DigitalOcean key for this Mac                                                                        | `45c60d211f` — match the doctl key against a local public key; no personal default |
+| 2   | 600365069     | cloud-init: `Failed loading yaml blob. unacceptable character #x0080` → `empty cloud config`; nothing ran. The rendered user-data carried an em dash and `§` in comments and DigitalOcean's user-data path mangled the UTF-8 | `3085998470` — renderer refuses non-ASCII, with a test                             |
+| 3   | 600366210     | `users:` without `default` dropped `root`'s SSH key; Tailscale also sat behind the heavy package installs                                                                                                                    | `8e47fea526`                                                                       |
+| 4   | 600370581     | SSH worked and the config ran, but `write_files` aborted on the `openclaw`-owned entries because the user did not exist yet — the Tailscale key, bot token, Gateway token and `openclaw.json` were never written             | `343a3740a0` (`defer: true`), `6c6761a4dc` (time out `tailscale up`)               |
+| 5   | 600371144     | Joined the tailnet in ≈6 min, but the Gateway never answered `/healthz` in 1800 s → `new-desk.sh` exit 4                                                                                                                     | superseded                                                                         |
+| 6   | **600383557** | **Up.** `s-4vcpu-8gb`, Serve route live, healthz 200                                                                                                                                                                         | —                                                                                  |
 
 ### Phase B — the copy
 
-| Step | Wall clock | Note |
-| ---- | ---------- | ---- |
-| `gog` install + prereq checks | 22:50 → 22:51 | `claude` 2.1.270 was already installed |
-| `media.tar` build | 22:51 | 247 MB, 893 entries, uncompressed (861 JPEGs) |
-| Stop Gateway, stage bundle dir | 22:52 | 147 GB free on `/` |
-| `scp openclaw.sqlite` (245 MB) | 22:52:40 → 22:58:21 | 5 m 42 s, ≈0.72 MB/s to blr1 |
-| `scp media.tar` (247 MB) | 22:58:27 → 23:03:09 | 4 m 42 s |
-| secret files via `ssh 'cat >'` | 23:03 | four mode-600 files |
-| `apply-on-desk.sh` | 23:04:22 → 23:04:57 | 35 s, after two fixes below |
-| Gateway start + healthz | 23:05:06 → 23:05:58 | 52 s cold start, 22 plugins |
-| `/tmp` repair + restart | 23:11:30 → 23:12:01 | see defect 7 |
+| Step                                      | Wall clock          | Note                                                                                          |
+| ----------------------------------------- | ------------------- | --------------------------------------------------------------------------------------------- |
+| `gog` install + prereq checks             | 22:50 → 22:51       | `claude` 2.1.270 was already installed                                                        |
+| `media.tar` build                         | 22:51               | 247 MB, 893 entries, uncompressed (861 JPEGs)                                                 |
+| Stop Gateway, stage bundle dir            | 22:52               | 147 GB free on `/`                                                                            |
+| `scp openclaw.sqlite` (245 MB)            | 22:52:40 → 22:58:21 | 5 m 42 s, ≈0.72 MB/s to blr1                                                                  |
+| `scp media.tar` (247 MB)                  | 22:58:27 → 23:03:09 | 4 m 42 s                                                                                      |
+| secret files via `ssh 'cat >'`            | 23:03               | four mode-600 files                                                                           |
+| `apply-on-desk.sh`                        | 23:04:22 → 23:04:57 | 35 s, after two fixes below                                                                   |
+| Gateway start + healthz                   | 23:05:06 → 23:05:58 | 52 s cold start, 22 plugins                                                                   |
+| `/tmp` repair + restart                   | 23:11:30 → 23:12:01 | see defect 7                                                                                  |
 | `roll.sh vasudev-desk-1 feat/hosted-desk` | 23:14:45 → 23:32:15 | **17 m 30 s**, ended `rolled to feat/hosted-desk and is healthy`, OpenClaw 2026.9.4 (12c94b1) |
-| `snapshot.sh vasudev-desk` | 23:33:17 → 23:35:25 | **2 m 08 s**, `desk-vasudev-desk-20260914180320`, snapshot `3407055615` |
-| 2 × `amigos-search` in parallel | 23:39:43 → 23:40:31 | both `ok`, 26/26 steps, ≈45 s each |
+| `snapshot.sh vasudev-desk`                | 23:33:17 → 23:35:25 | **2 m 08 s**, `desk-vasudev-desk-20260914180320`, snapshot `3407055615`                       |
+| 2 × `amigos-search` in parallel           | 23:39:43 → 23:40:31 | both `ok`, 26/26 steps, ≈45 s each                                                            |
 
 **Cost.** `s-4vcpu-8gb` in `blr1` is $48/month ≈ $0.0714/hour; the five discarded `s-2vcpu-4gb`
 droplets were $24/month ≈ $0.0357/hour and each lived well under an hour. Total droplet spend
@@ -123,7 +123,7 @@ and `channels.telegram.botToken`/`dmPolicy`/`allowFrom`; only `channels.telegram
 by checking the merged JSON contains no `/Users/pulkitshah` substring. The Mac's loopback
 `hooks.gmail.hookUrl` is dropped.
 
-**Same bot, not a second one.** The Task 6 brief assumed a *new* BotFather bot; the owner chose
+**Same bot, not a second one.** The Task 6 brief assumed a _new_ BotFather bot; the owner chose
 to move the live one. Verified without printing either value: the SHA-256 of
 `channels.telegram.botToken` in the Mac's config equals the SHA-256 of the desk's
 `--tg-token-file` contents. Safe only because the Mac's Gateway is stopped.
@@ -321,7 +321,7 @@ keys, `duties.mail.status` unchanged, all 5 Duties with their step counts, Teleg
 The proof agents run on the owner's Claude subscription through the `claude-cli` runtime: the
 config maps every `anthropic/*` model to `agentRuntime: { id: "claude-cli" }` and holds no API
 key. `extensions/anthropic/cli-constants.ts` is explicit that auth belongs to the installed CLI
-— *"Non-secret marker telling OpenClaw that the installed Claude CLI owns auth"*, with
+— _"Non-secret marker telling OpenClaw that the installed Claude CLI owns auth"_, with
 `ANTHROPIC_API_KEY` and every `CLAUDE_CODE_OAUTH_*` variable stripped per run and Claude's own
 config directory deliberately inherited because "it owns the selected native login". No key or
 token was copied.
@@ -354,11 +354,11 @@ The Gmail watcher cannot claim its Funnel:
 ```
 
 The Gateway claims its Serve route as a **foreground** listener on 443
-(`src/infra/tailscale.ts` — `[bin, mode, "--yes", "--bg=false", target]`, and *"Foreground claims
-require a free port"*), which owns the whole 443 listener; `tailscale serve status` as root
+(`src/infra/tailscale.ts` — `[bin, mode, "--yes", "--bg=false", target]`, and _"Foreground claims
+require a free port"_), which owns the whole 443 listener; `tailscale serve status` as root
 prints `No serve config` because the route is held by the process, not persisted. A background
-Funnel path on the same port therefore cannot be added. The runbook's claim that *"Funnel is
-scoped to the hook route; the Control UI stays tailnet-only via Serve"* is not achievable in
+Funnel path on the same port therefore cannot be added. The runbook's claim that _"Funnel is
+scoped to the hook route; the Control UI stays tailnet-only via Serve"_ is not achievable in
 this configuration.
 
 Tailscale is otherwise ready: `OperatorUser: openclaw` is set (so the unprivileged `tailscale
@@ -367,10 +367,10 @@ serve`/`funnel` path works) and the node carries the `funnel` and
 
 This was **not** resolved here because every fix changes the desk's public exposure, and
 `src/gateway/server-tailscale.ts` is explicit that mixing Funnel with a token-auth Gateway is a
-security-posture change wanting password auth first — *"external Tailscale Funnel for port 443
+security-posture change wanting password auth first — _"external Tailscale Funnel for port 443
 remains active only for plugin-authenticated webhook routes; Gateway-authenticated routes reject
 its unattributable ingress… First configure a durable gateway password… then set
-gateway.tailscale.mode funnel"*. Options, for the owner to pick:
+gateway.tailscale.mode funnel"_. Options, for the owner to pick:
 
 0. **Put the Funnel on a different port.** The node's capability string is
    `funnel-ports?ports=443,8443,10000`, so a Funnel on **8443** avoids the 443 foreground
@@ -422,22 +422,22 @@ place on the desk already.
 
 ## Defects found
 
-| # | Defect | State |
-| - | ------ | ----- |
-| 1 | `new-desk.sh` default SSH key name matched no local key; README carried a personal key name | fixed `45c60d211f` |
-| 2 | Rendered cloud-init was non-ASCII → DigitalOcean mangled it → `empty cloud config` | fixed `3085998470` |
-| 3 | `users:` without `default` dropped `root`'s SSH key | fixed `8e47fea526` |
-| 4 | `write_files` for `openclaw`-owned paths ran before the user existed | fixed `343a3740a0`, `6c6761a4dc` |
-| 5 | cloud-init does not install `gog`, and `ensureDependency` cannot install it off macOS (`src/hooks/gmail-setup-utils.ts:154` just throws `gog not installed`), so the mail watcher refuses to start | **open** — installed by hand from the release tarball |
-| 6 | The `gog` `file` keyring needs `GOG_KEYRING_PASSWORD` in the Gateway's environment; the unit has no `EnvironmentFile` | **open** — worked around with `/etc/openclaw/secrets/gateway.env` + a systemd drop-in |
-| 7 | **`tar -C /tmp -xzf` as root resets `/tmp`.** The gogcli release tarball contains a `./` entry whose owner/mode are applied to the extraction directory, so `/tmp` went from `1777 root:root` to `0755 501:staff`. That silently broke everything needing a writable `/tmp`: the browser plugin (`setup-entry-load-failed … mkdtemp '/tmp/openclaw-plugin-build-XXXXXX'`), `claude` (`EACCES: mkdir '/tmp/claude-999'`) and plugin cleanup | **caused here, fixed here** — `chown root:root /tmp && chmod 1777 /tmp`; the install command must extract into a private `mktemp -d`, never `/tmp` itself |
-| 8 | **Chromium cannot sandbox on Ubuntu 24.04.** `kernel.apparmor_restrict_unprivileged_userns=1` is the distro default, so every browser step died at `open-dashboard` with `FATAL … No usable sandbox!` and `Failed to start Chrome CDP on port 18800`. cloud-init installs Chromium but never addresses it | **open in the template, fixed on the desk** — `/etc/sysctl.d/60-openclaw-desk-chromium.conf` sets `kernel.apparmor_restrict_unprivileged_userns = 0`, which restores Chromium's *own* sandbox and is strictly safer than the `browser.noSandbox: true` that OpenClaw's error hint suggests |
-| 9 | Gateway foreground Serve on 443 blocks the Gmail Funnel; the runbook claims they coexist | **open** — owner decision, above |
-| 10 | `sudo -u openclaw` keeps `/root` as CWD, and esbuild's child spawn fails with `EACCES` when the CWD is unreadable — surfacing as a bogus `TransformError: The service is no longer running` from `--import scripts/tsx.mjs`. Same class of trap: files handed to the service user under `/root` (0700) are unreadable | **worked around** — `apply-on-desk.sh` does `cd /opt/openclaw` and stages every secret file into a directory the service user owns, shredding it after |
-| 11 | `roll.sh` restarts the Gateway mid-roll before ownership is restored, producing a transient `[skills] Skipping invalid skill … EACCES … duties/skills/SKILL.md`. Self-heals on the final restart | **open**, cosmetic |
-| 12 | `duties.desk.status`'s `chromium` chip can only be true while a run holds a browser, so "all chips green" is unreachable at idle | **open** — chip semantics |
-| 13 | `openclaw gateway call` has a 10 s default transport timeout, so `duties.run.wait` on a longer run returns `gateway timeout after 10000ms` while the run is still fine. `--timeout 60000` is needed | **open**, usability |
-| 14 | The brief's `roll.sh … --git-ref <ref>` is not a real flag (`--git-ref` belongs to `new-desk.sh`); `roll.sh` takes the ref positionally | doc-level |
+| #   | Defect                                                                                                                                                                                                                                                                                                                                                                                                                                     | State                                                                                                                                                                                                                                                                                      |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | `new-desk.sh` default SSH key name matched no local key; README carried a personal key name                                                                                                                                                                                                                                                                                                                                                | fixed `45c60d211f`                                                                                                                                                                                                                                                                         |
+| 2   | Rendered cloud-init was non-ASCII → DigitalOcean mangled it → `empty cloud config`                                                                                                                                                                                                                                                                                                                                                         | fixed `3085998470`                                                                                                                                                                                                                                                                         |
+| 3   | `users:` without `default` dropped `root`'s SSH key                                                                                                                                                                                                                                                                                                                                                                                        | fixed `8e47fea526`                                                                                                                                                                                                                                                                         |
+| 4   | `write_files` for `openclaw`-owned paths ran before the user existed                                                                                                                                                                                                                                                                                                                                                                       | fixed `343a3740a0`, `6c6761a4dc`                                                                                                                                                                                                                                                           |
+| 5   | cloud-init does not install `gog`, and `ensureDependency` cannot install it off macOS (`src/hooks/gmail-setup-utils.ts:154` just throws `gog not installed`), so the mail watcher refuses to start                                                                                                                                                                                                                                         | **open** — installed by hand from the release tarball                                                                                                                                                                                                                                      |
+| 6   | The `gog` `file` keyring needs `GOG_KEYRING_PASSWORD` in the Gateway's environment; the unit has no `EnvironmentFile`                                                                                                                                                                                                                                                                                                                      | **open** — worked around with `/etc/openclaw/secrets/gateway.env` + a systemd drop-in                                                                                                                                                                                                      |
+| 7   | **`tar -C /tmp -xzf` as root resets `/tmp`.** The gogcli release tarball contains a `./` entry whose owner/mode are applied to the extraction directory, so `/tmp` went from `1777 root:root` to `0755 501:staff`. That silently broke everything needing a writable `/tmp`: the browser plugin (`setup-entry-load-failed … mkdtemp '/tmp/openclaw-plugin-build-XXXXXX'`), `claude` (`EACCES: mkdir '/tmp/claude-999'`) and plugin cleanup | **caused here, fixed here** — `chown root:root /tmp && chmod 1777 /tmp`; the install command must extract into a private `mktemp -d`, never `/tmp` itself                                                                                                                                  |
+| 8   | **Chromium cannot sandbox on Ubuntu 24.04.** `kernel.apparmor_restrict_unprivileged_userns=1` is the distro default, so every browser step died at `open-dashboard` with `FATAL … No usable sandbox!` and `Failed to start Chrome CDP on port 18800`. cloud-init installs Chromium but never addresses it                                                                                                                                  | **open in the template, fixed on the desk** — `/etc/sysctl.d/60-openclaw-desk-chromium.conf` sets `kernel.apparmor_restrict_unprivileged_userns = 0`, which restores Chromium's _own_ sandbox and is strictly safer than the `browser.noSandbox: true` that OpenClaw's error hint suggests |
+| 9   | Gateway foreground Serve on 443 blocks the Gmail Funnel; the runbook claims they coexist                                                                                                                                                                                                                                                                                                                                                   | **open** — owner decision, above                                                                                                                                                                                                                                                           |
+| 10  | `sudo -u openclaw` keeps `/root` as CWD, and esbuild's child spawn fails with `EACCES` when the CWD is unreadable — surfacing as a bogus `TransformError: The service is no longer running` from `--import scripts/tsx.mjs`. Same class of trap: files handed to the service user under `/root` (0700) are unreadable                                                                                                                      | **worked around** — `apply-on-desk.sh` does `cd /opt/openclaw` and stages every secret file into a directory the service user owns, shredding it after                                                                                                                                     |
+| 11  | `roll.sh` restarts the Gateway mid-roll before ownership is restored, producing a transient `[skills] Skipping invalid skill … EACCES … duties/skills/SKILL.md`. Self-heals on the final restart                                                                                                                                                                                                                                           | **open**, cosmetic                                                                                                                                                                                                                                                                         |
+| 12  | `duties.desk.status`'s `chromium` chip can only be true while a run holds a browser, so "all chips green" is unreachable at idle                                                                                                                                                                                                                                                                                                           | **open** — chip semantics                                                                                                                                                                                                                                                                  |
+| 13  | `openclaw gateway call` has a 10 s default transport timeout, so `duties.run.wait` on a longer run returns `gateway timeout after 10000ms` while the run is still fine. `--timeout 60000` is needed                                                                                                                                                                                                                                        | **open**, usability                                                                                                                                                                                                                                                                        |
+| 14  | The brief's `roll.sh … --git-ref <ref>` is not a real flag (`--git-ref` belongs to `new-desk.sh`); `roll.sh` takes the ref positionally                                                                                                                                                                                                                                                                                                    | doc-level                                                                                                                                                                                                                                                                                  |
 
 ## Reproducing the copy
 

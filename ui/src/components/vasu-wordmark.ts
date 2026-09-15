@@ -5,7 +5,7 @@ import { SIGNATURE_GRADIENT } from "../app/brand-gradient.ts";
 /** Lockup sizes from the brand guide: sidebar row, card header, hero. */
 const WORDMARK_SIZES = ["sm", "md", "lg"] as const;
 
-export type VasuWordmarkSize = (typeof WORDMARK_SIZES)[number];
+type VasuWordmarkSize = (typeof WORDMARK_SIZES)[number];
 
 const DEFAULT_SIZE: VasuWordmarkSize = "md";
 

@@ -782,6 +782,7 @@
     <string name="native_6d46878b8f2895d5" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"%1$s konfigurerade modeller"</string>
     <string name="native_6d5d9004797377e1" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Licenser"</string>
     <string name="native_6d7c95a353d873cd" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Anslut till Gateway för att söka efter färdigheter på ClawHub."</string>
+    <string name="native_6df0479c79c9c4e1" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"OpenClaw Nod"</string>
     <string name="native_6df1bb18a59ab97d" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Färdighet"</string>
     <string name="native_6e034875b3baa6ee" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Anslutningen till Gateway har ändrats. Starta om OpenClaw för att återansluta."</string>
     <string name="native_6e0a0b9d8c5ee4d9" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Enhets-ID"</string>
@@ -802,6 +803,7 @@
     <string name="native_6f371721dd8088ad" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Uppdatera chatten"</string>
     <string name="native_6f45b0005e3b7c18" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Intervall"</string>
     <string name="native_6f5312c644035cff" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"gjorde %1$s sökningar"</string>
+    <string name="native_6f570002ecf96991" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Vasudev"</string>
     <string name="native_6f69402c94791646" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Förslagsåtgärder i Skill Workshop kräver behörigheten operator.admin."</string>
     <string name="native_6fa3cbf451b2a1d5" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Sessioner"</string>
     <string name="native_6fa62b3dba2f02f2" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Byt namn…"</string>

@@ -1,4 +1,5 @@
 import { expect } from "vitest";
+import { CLI_DISPLAY_NAME } from "../../src/brand.js";
 import type { runSqliteSessionsTranscriptsFlipProof } from "./sqlite-sessions-transcripts-flip-proof.ts";
 
 type SqliteFlipProofReport = Awaited<ReturnType<typeof runSqliteSessionsTranscriptsFlipProof>>;
@@ -12,7 +13,7 @@ export function assertSqliteFlipProofCore(report: SqliteFlipProofReport): void {
   const refusalCheckpoint = report.checkpoints.find(
     (checkpoint) => checkpoint.label === "after-startup-refusal",
   );
-  expect(report.startupRefusal?.message).toContain('Run "openclaw doctor --fix"');
+  expect(report.startupRefusal?.message).toContain(`Run "${CLI_DISPLAY_NAME} doctor --fix"`);
   expect(
     report.startupRefusal?.preservedSourceFiles.map((filePath) => filePath.replaceAll("\\", "/")),
   ).toEqual(

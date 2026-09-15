@@ -1,8 +1,8 @@
-// Shared "lobster day" calendar hash: the CLI banner's ASCII cousin and the
-// Control UI pet coordinate wardrobe through this one function, so both
-// surfaces always agree on the date. Roughly one day in sixteen hits.
+// "Lobster day" calendar hash for the Control UI pet's wardrobe. The CLI
+// banner's ASCII cousin used to share it; that art is retired, so the hash is
+// module-local now. Roughly one day in sixteen hits.
 
-export function lobsterDayHash(now: Date): number {
+function lobsterDayHash(now: Date): number {
   const key = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
   let hash = 0x811c9dc5;
   for (let i = 0; i < key.length; i++) {

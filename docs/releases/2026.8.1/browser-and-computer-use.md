@@ -3,7 +3,7 @@ title: "v2026.8.1: Browser and Computer Use"
 description: "Signed-in browser sessions through an isolated managed profile or the Chrome tabs you share, and Computer Use on paired Macs and explicitly enabled Windows machines."
 ---
 
-Vasudev can now use [signed-in browser sessions](/tools/browser-login) through an isolated managed profile or the exact Chrome tabs you choose to share. On macOS, supported cookies can be imported locally or synced to a remote managed browser for an allowlist of sites you choose, while the official Chrome extension keeps live access scoped to shared tabs. Browser actions, downloads, and desktop input also stay attached to their intended tab, page state, and machine, with cancellation and timeouts reaching more of the local and remote work they own.
+OpenClaw can now use [signed-in browser sessions](/tools/browser-login) through an isolated managed profile or the exact Chrome tabs you choose to share. On macOS, supported cookies can be imported locally or synced to a remote managed browser for an allowlist of sites you choose, while the official Chrome extension keeps live access scoped to shared tabs. Browser actions, downloads, and desktop input also stay attached to their intended tab, page state, and machine, with cancellation and timeouts reaching more of the local and remote work they own.
 
 [Computer Use](/nodes/computer-use) can work with supported apps and windows on paired Macs and explicitly enabled Windows machines, and the Desktop panel can open the machine that owns a session. Control still requires the applicable pairing, policy, and operating-system permissions, view-only sessions reject input, and Linux control remains experimental.
 
@@ -11,7 +11,7 @@ Vasudev can now use [signed-in browser sessions](/tools/browser-login) through a
 
 <Accordion title="Browser setup">
 
-On a Mac, you can explicitly copy compatible cookies from Chrome, Brave, Edge, or Chromium into an [isolated managed browser](/tools/browser) after approving Keychain or Touch ID access. If that browser runs on another Vasudev machine, a separate opt-in sync can send cookies once or continuously for only the sites you allow. Neither path copies local storage or IndexedDB, and device-bound sessions can still ask you to sign in again.
+On a Mac, you can explicitly copy compatible cookies from Chrome, Brave, Edge, or Chromium into an [isolated managed browser](/tools/browser) after approving Keychain or Touch ID access. If that browser runs on another OpenClaw machine, a separate opt-in sync can send cookies once or continuously for only the sites you allow. Neither path copies local storage or IndexedDB, and device-bound sessions can still ask you to sign in again.
 
 For a browser you already have open, the Apps page now points to the official [Chrome extension](/tools/chrome-extension) and the command line can prepare its local connection. You decide which tabs to share, each shared tab can have its own copilot, and sending a page, supported document or thread, or selected text to the main conversation is a one-time handoff rather than continuing access to the rest of your browser.
 
@@ -143,11 +143,11 @@ Command-line users can run a [repeatable JSON plan](/cli/browser) against one ta
 
 <Accordion title="Computer Use">
 
-On a paired Mac, [Computer Use](/nodes/computer-use) can capture the desktop and work with supported apps, windows, and elements through pointer, keyboard, scroll, drag, and wait actions. Settings now shows the selected provider, Accessibility and Screen Recording state, and whether its supporting service is ready. Using those controls still requires pairing, the applicable command and tool policy, required arming, and the macOS permissions Vasudev reports but cannot grant.
+On a paired Mac, [Computer Use](/nodes/computer-use) can capture the desktop and work with supported apps, windows, and elements through pointer, keyboard, scroll, drag, and wait actions. Settings now shows the selected provider, Accessibility and Screen Recording state, and whether its supporting service is ready. Using those controls still requires pairing, the applicable command and tool policy, required arming, and the macOS permissions OpenClaw reports but cannot grant.
 
 Explicitly enabled Windows machines now use the packaged Computer Use driver without a separately installed service. Linux uses the packaged route too and remains experimental, with complete live click-and-type behavior still unverified in this release. Codex Computer Use remains a separate macOS integration with its own readiness and recovery checks.
 
-The Desktop panel can show the main Vasudev machine, a Labs headless Linux desktop, or an explicitly enabled paired Mac, Windows, or Linux machine, and session buttons can open the computer that owns the work. Paired streaming is off by default, and view-only sessions keep keyboard, pointer, and clipboard input blocked.
+The Desktop panel can show the main OpenClaw machine, a Labs headless Linux desktop, or an explicitly enabled paired Mac, Windows, or Linux machine, and session buttons can open the computer that owns the work. Paired streaming is off by default, and view-only sessions keep keyboard, pointer, and clipboard input blocked.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -225,7 +225,7 @@ The Desktop panel can show the main Vasudev machine, a Labs headless Linux deskt
 
 <Accordion title="Remote screens and devices">
 
-Vasudev now keeps browser and computer work on the explicitly selected eligible [paired machine](/gateway/cloud-sessions). A disconnected, ambiguous, or ineligible selector returns an actionable error for that device, while unpinned automatic browser routing can still use the main machine when policy permits.
+OpenClaw now keeps browser and computer work on the explicitly selected eligible [paired machine](/gateway/cloud-sessions). A disconnected, ambiguous, or ineligible selector returns an actionable error for that device, while unpinned automatic browser routing can still use the main machine when policy permits.
 
 Browser uploads and downloads can move between the main machine and a remote Browser node without a shared filesystem, and completed downloads return as readable local files. Terminal uploads can place safely quoted remote paths into the active shell without pressing Enter. Transfer size and authorization limits remain in force, malformed screenshots and Canvas data stop before dispatch, and Android accessibility control remains an opt-in local foundation for third-party builds that a Gateway or agent cannot invoke yet.
 
@@ -278,7 +278,7 @@ Browser uploads and downloads can move between the main machine and a remote Bro
 
 Tab handles, page references, screenshots, and desktop actions now remain bound to the tab, page, display, request, and provider that created them. Stale or ambiguous state stops with an error, cancellation and timeouts reach more of the local and remote work they own, and relay reconnects restore only tabs that are still shared.
 
-Remote browser connections are validated and remain pinned to their configured endpoint, connection credentials are redacted on the supported paths, and page-controlled text enters model context as untrusted input. [Browser](/tools/browser) and Canvas screenshots remain available to the inspecting agent but are no longer attached automatically to outbound replies. Cleanup stays limited to browsers and tabs Vasudev owns, and older extension clients may need an upgrade or fresh pairing for the newer relay protections.
+Remote browser connections are validated and remain pinned to their configured endpoint, connection credentials are redacted on the supported paths, and page-controlled text enters model context as untrusted input. [Browser](/tools/browser) and Canvas screenshots remain available to the inspecting agent but are no longer attached automatically to outbound replies. Cleanup stays limited to browsers and tabs OpenClaw owns, and older extension clients may need an upgrade or fresh pairing for the newer relay protections.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -323,7 +323,7 @@ Remote browser connections are validated and remain pinned to their configured e
 - Recover Chrome relay connections stuck during WebSocket opening [#109114](https://github.com/openclaw/openclaw/pull/109114)
 - Cancel browser tab discovery immediately [#109617](https://github.com/openclaw/openclaw/pull/109617)
 - fix(browser): stop agent-launched managed Chrome [#109723](https://github.com/openclaw/openclaw/pull/109723)
-- Clean up Vasudev browser tabs after Gateway restart [#110797](https://github.com/openclaw/openclaw/pull/110797)
+- Clean up OpenClaw browser tabs after Gateway restart [#110797](https://github.com/openclaw/openclaw/pull/110797)
 - Retire tracked tabs whose browser never returns [#111307](https://github.com/openclaw/openclaw/pull/111307)
 - Close browser tabs after isolated agent runs [#113566](https://github.com/openclaw/openclaw/pull/113566)
 - Prevent the browser copilot popup from hanging when a tab closes [#113744](https://github.com/openclaw/openclaw/pull/113744)

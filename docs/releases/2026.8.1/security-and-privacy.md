@@ -15,7 +15,7 @@ Recurring automations can now show their standing grants in the approvals page a
 
 Each session can choose read-only, guarded, workspace, or full access and override MCP servers, skills, or web search where the client exposes those controls, with full access reserved for administrators. Per-turn exec restrictions can tighten that session policy but cannot loosen it, and Doctor provides a migration path for the older persistent exec fields. Scheduled and delegated work retains its originating policy, and an uncertain result from another machine is reported as unknown instead of being retried on a guess.
 
-Per-session controls are nonretroactive, so existing sessions without a permission mode keep the previous global posture. Opt-in roles limit collaboration inside one trusted Vasudev installation rather than creating isolation between hostile tenants.
+Per-session controls are nonretroactive, so existing sessions without a permission mode keep the previous global posture. Opt-in roles limit collaboration inside one trusted OpenClaw installation rather than creating isolation between hostile tenants.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -107,7 +107,7 @@ Per-session controls are nonretroactive, so existing sessions without a permissi
 - Enforce session participation through lifecycle commits [#125889](https://github.com/openclaw/openclaw/pull/125889)
 - Restrict owner-only tools on inbound voice calls [#125953](https://github.com/openclaw/openclaw/pull/125953)
 - feat(ui): explain decision receipts in Activity [#126007](https://github.com/openclaw/openclaw/pull/126007)
-- Make Full access sessions run without Vasudev approval prompts [#126210](https://github.com/openclaw/openclaw/pull/126210)
+- Make Full access sessions run without OpenClaw approval prompts [#126210](https://github.com/openclaw/openclaw/pull/126210)
 - Preserve AGENTS.md in tool-restricted Codex turns [#126891](https://github.com/openclaw/openclaw/pull/126891)
 - Revalidate scoped cron ownership before locked mutations [#127042](https://github.com/openclaw/openclaw/pull/127042)
 - fix(exec): align Guardian approvals for bound compound plans [#128279](https://github.com/openclaw/openclaw/pull/128279)
@@ -460,7 +460,7 @@ The new team-scoped local [Secret Store](/gateway/secrets) separates Protected v
 
 Changing a Control UI Gateway URL to a different credential scope now clears the previous endpoint's password and bootstrap credentials before connecting, while credentials explicitly supplied for the destination still take precedence. A query-only scope change can retain the origin-scoped token but requires the password to be entered again.
 
-Secret Store values are not encrypted at rest and depend on the filesystem permissions of Vasudev's state directory. Destination-bound substitution applies only to Gateway-hosted HTTPS commands whose subprocess honors its proxy settings. Raw sockets, containers, remote nodes, provider-native harnesses, plain HTTP, and WebSockets stay outside that path.
+Secret Store values are not encrypted at rest and depend on the filesystem permissions of OpenClaw's state directory. Destination-bound substitution applies only to Gateway-hosted HTTPS commands whose subprocess honors its proxy settings. Raw sockets, containers, remote nodes, provider-native harnesses, plain HTTP, and WebSockets stay outside that path.
 
 Common credential and signed-parameter patterns are now redacted across covered logs, diagnostics, agent errors, and Control UI failures, while chat history removes inline media bytes, local paths, private shell rows, copied prompt context, and failed-delivery payloads on the covered paths. Extra feature statistics, Android installed-app details, and iOS Health summaries require explicit choices, with Health behind two disabled-by-default gates. Update checks remain on unless disabled, while approximate Activity location is enabled by default for routable addresses and may download its local city database on first use.
 
@@ -661,7 +661,7 @@ Common credential and signed-parameter patterns are now redacted across covered 
 **Documentation**
 
 - Document the groupScope main-session trust boundary [#125006](https://github.com/openclaw/openclaw/pull/125006)
-- docs: qualify Why Vasudev security and comparison claims [#130947](https://github.com/openclaw/openclaw/pull/130947)
+- docs: qualify Why OpenClaw security and comparison claims [#130947](https://github.com/openclaw/openclaw/pull/130947)
 - Add a dedicated 1Password Gateway guide [#106109](https://github.com/openclaw/openclaw/pull/106109)
 - Clarify SecretRef cold and stale degradation behavior [#111021](https://github.com/openclaw/openclaw/pull/111021)
 - Stop Policy Doctor from advertising a retired redaction fix [#113961](https://github.com/openclaw/openclaw/pull/113961)
@@ -898,7 +898,7 @@ Terminal and CSV output neutralize covered control-sequence and formula injectio
 - Bound Ed25519 base64url decode inputs [#104921](https://github.com/openclaw/openclaw/pull/104921)
 - Bound Reef guard provider response reads [#106439](https://github.com/openclaw/openclaw/pull/106439)
 - Validate 1Password audit limits strictly [#106926](https://github.com/openclaw/openclaw/pull/106926)
-- Align proxy bypass matching across Vasudev and Telegram [#107711](https://github.com/openclaw/openclaw/pull/107711)
+- Align proxy bypass matching across OpenClaw and Telegram [#107711](https://github.com/openclaw/openclaw/pull/107711)
 - Cap piped model-auth input at 1 MiB [#109800](https://github.com/openclaw/openclaw/pull/109800)
 - Accept padded audit-list cursors [#110551](https://github.com/openclaw/openclaw/pull/110551)
 - Trim pasted identifiers in Gateway audit filters [#110847](https://github.com/openclaw/openclaw/pull/110847)

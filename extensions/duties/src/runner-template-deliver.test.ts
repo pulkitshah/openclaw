@@ -4,7 +4,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import type { DutyNode } from "./duty.js";
-import { runDuty } from "./runner.js";
+import { runDuty, type RunnerDeps } from "./runner.js";
 import { duty, fakeDeps } from "./runner.test-helpers.js";
 import type { Template } from "./template.js";
 

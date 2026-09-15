@@ -8,18 +8,18 @@ description: "A clearer path from download to a first useful conversation on Mac
 
 This release changes how sessions and transcripts are stored by moving them into SQLite. Before downgrading to an older file-backed release, use the current CLI to restore archived legacy transcript artifacts; sessions created after the migration will not appear in older releases.
 
-Create a [verified backup](/install/updating#before-updating%3A-create-a-verified-backup) before upgrading to protect broader Vasudev state, and review [downgrading across the session SQLite migration](/install/updating#downgrading-across-the-session-sqlite-migration) before rolling back.
+Create a [verified backup](/install/updating#before-updating%3A-create-a-verified-backup) before upgrading to protect broader OpenClaw state, and review [downgrading across the session SQLite migration](/install/updating#downgrading-across-the-session-sqlite-migration) before rolling back.
 </Warning>
 
-Vasudev now gives new [Mac, Linux, and Windows installs](/install) a clearer path from download to a first useful conversation, while iPhone, iPad, and Android put pairing and permissions where people need them. Guided setup can reuse supported subscriptions, API keys, and [local models](/gateway/local-models) already available, verifies the chosen model before saving it, and hands off to the web app or terminal when the connection is ready.
+OpenClaw now gives new [Mac, Linux, and Windows installs](/install) a clearer path from download to a first useful conversation, while iPhone, iPad, and Android put pairing and permissions where people need them. Guided setup can reuse supported subscriptions, API keys, and [local models](/gateway/local-models) already available, verifies the chosen model before saving it, and hands off to the web app or terminal when the connection is ready.
 
 <AccordionGroup>
 
-<Accordion title="Installing Vasudev">
+<Accordion title="Installing OpenClaw">
 
 The [supported install path](/install) now keeps the app or command available after setup. A Mac app opened from Downloads or a disk image can offer to move itself into Applications, where updates and launch at login work properly. On Linux and other Unix systems, the installer makes `openclaw` available in new terminal sessions without asking you to edit shell startup files by hand.
 
-Network installations that would expose Vasudev without authentication are stopped before anything changes. Reinstalling also protects an existing working setup when preparation is cancelled or fails, and gives Vasudev time to start before reporting whether it is reachable.
+Network installations that would expose OpenClaw without authentication are stopped before anything changes. Reinstalling also protects an existing working setup when preparation is cancelled or fails, and gives OpenClaw time to start before reporting whether it is reachable.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -35,7 +35,7 @@ Network installations that would expose Vasudev without authentication are stopp
 - Prevent fresh-state Gateway startup timeouts [#111701](https://github.com/openclaw/openclaw/pull/111701)
 - Keep Gateway startup responsive during model-runtime preparation [#112262](https://github.com/openclaw/openclaw/pull/112262)
 - Add safe Gateway token recovery for onboarding [#118051](https://github.com/openclaw/openclaw/pull/118051)
-- Keep Vasudev available in fresh Unix shells after installation [#124779](https://github.com/openclaw/openclaw/pull/124779)
+- Keep OpenClaw available in fresh Unix shells after installation [#124779](https://github.com/openclaw/openclaw/pull/124779)
 - Honor remote flags in interactive onboarding [#111517](https://github.com/openclaw/openclaw/pull/111517)
 - Remove stale remote passwords when switching to token auth [#112544](https://github.com/openclaw/openclaw/pull/112544)
 - Let first-boot loopback CLI calls connect after Gateway readiness [#114380](https://github.com/openclaw/openclaw/pull/114380)
@@ -271,8 +271,8 @@ From there, the setup conversation can finish supported skill and web-search con
 - Hand fresh setup into the agent's first chat [#110331](https://github.com/openclaw/openclaw/pull/110331)
 - Extend browser onboarding and refresh app recommendations [#110484](https://github.com/openclaw/openclaw/pull/110484)
 - Add rich setup controls to Custodian chat [#114631](https://github.com/openclaw/openclaw/pull/114631)
-- Configure skills and web search inside Ask Vasudev [#115130](https://github.com/openclaw/openclaw/pull/115130)
-- Guide local Gateway configuration in Ask Vasudev [#115363](https://github.com/openclaw/openclaw/pull/115363)
+- Configure skills and web search inside Ask OpenClaw [#115130](https://github.com/openclaw/openclaw/pull/115130)
+- Guide local Gateway configuration in Ask OpenClaw [#115363](https://github.com/openclaw/openclaw/pull/115363)
 - Guide optional channel setup after first-run model setup [#116078](https://github.com/openclaw/openclaw/pull/116078)
 - Name the first agent during onboarding [#123521](https://github.com/openclaw/openclaw/pull/123521)
 - Add opt-in keyless Firecrawl search and richer search controls [#97078](https://github.com/openclaw/openclaw/pull/97078)
@@ -296,7 +296,7 @@ From there, the setup conversation can finish supported skill and web-search con
 - Require decimal menu numbers in setup chats [#108140](https://github.com/openclaw/openclaw/pull/108140)
 - Return setup inference repair to chat [#109938](https://github.com/openclaw/openclaw/pull/109938)
 - Make setup wizard Copy buttons work over plain HTTP [#110139](https://github.com/openclaw/openclaw/pull/110139)
-- Align Ask Vasudev framing and confirmation defaults [#111263](https://github.com/openclaw/openclaw/pull/111263)
+- Align Ask OpenClaw framing and confirmation defaults [#111263](https://github.com/openclaw/openclaw/pull/111263)
 - Keep system-agent model changes on the verified route [#111431](https://github.com/openclaw/openclaw/pull/111431)
 - Exit onboarding immediately when setup is skipped [#112165](https://github.com/openclaw/openclaw/pull/112165)
 - Label onboarding fields and mask Matrix credentials [#112233](https://github.com/openclaw/openclaw/pull/112233)
@@ -310,7 +310,7 @@ From there, the setup conversation can finish supported skill and web-search con
 - fix(tui): close setup gateway before exit fallback [#121183](https://github.com/openclaw/openclaw/pull/121183)
 - Restore setup chat on development Gateway rosters [#121784](https://github.com/openclaw/openclaw/pull/121784)
 - Split system-agent chat ownership and preserve handoff state [#121884](https://github.com/openclaw/openclaw/pull/121884)
-- Keep agent bootstrap on the Gateway's Vasudev CLI [#122765](https://github.com/openclaw/openclaw/pull/122765)
+- Keep agent bootstrap on the Gateway's OpenClaw CLI [#122765](https://github.com/openclaw/openclaw/pull/122765)
 - Add recovery when Custodian channel setup checks fail [#124680](https://github.com/openclaw/openclaw/pull/124680)
 - Open browser handoff in display-less WSL [#124704](https://github.com/openclaw/openclaw/pull/124704)
 - Finalize guided agent creation safely [#125768](https://github.com/openclaw/openclaw/pull/125768)
@@ -335,7 +335,7 @@ From there, the setup conversation can finish supported skill and web-search con
 
 **Documentation**
 
-- Document Ask Vasudev Gateway and memory wizards [#115487](https://github.com/openclaw/openclaw/pull/115487)
+- Document Ask OpenClaw Gateway and memory wizards [#115487](https://github.com/openclaw/openclaw/pull/115487)
 - Refresh the docs hero and complete the quick-start grid [#102880](https://github.com/openclaw/openclaw/pull/102880)
 - Align classic onboarding documentation [#124712](https://github.com/openclaw/openclaw/pull/124712)
 - Correct the classic onboarding step order in docs [#125454](https://github.com/openclaw/openclaw/pull/125454)
@@ -344,13 +344,13 @@ From there, the setup conversation can finish supported skill and web-search con
 
 </Accordion>
 
-<Accordion title="Setting Up Vasudev on Mac, Windows, and Linux">
+<Accordion title="Setting Up OpenClaw on Mac, Windows, and Linux">
 
 On [Mac](/platforms/macos), the main guide points directly to the app, and the local or remote Gateway you choose stays selected even if older startup or cleanup work finishes late. The app waits through the Local Network prompt and legitimate first-run data upgrades, authenticates the exact remote Gateway before moving on, and opens the dashboard only when the connection is ready.
 
-On [Windows](/platforms/windows), the guide points to the latest signed x64 and Arm64 Hub installers. The PowerShell installer now recognizes a supported Node runtime correctly and can continue in the same session after Winget installs Node.js. Windows Hub updates independently, so its standalone stable build can be newer than the mirror included with a Vasudev release.
+On [Windows](/platforms/windows), the guide points to the latest signed x64 and Arm64 Hub installers. The PowerShell installer now recognizes a supported Node runtime correctly and can continue in the same session after Winget installs Node.js. Windows Hub updates independently, so its standalone stable build can be newer than the mirror included with an OpenClaw release.
 
-On [Linux](/platforms/linux), desktop setup can repair or reinstall Vasudev, connect to a local or remote Gateway directly or through SSH, verify eligible AI access already on the machine, and resume an interrupted activation. Direct certificate-pinned connections remain unavailable inside the desktop app.
+On [Linux](/platforms/linux), desktop setup can repair or reinstall OpenClaw, connect to a local or remote Gateway directly or through SSH, verify eligible AI access already on the machine, and resume an interrupted activation. Direct certificate-pinned connections remain unavailable inside the desktop app.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -397,7 +397,7 @@ On [Linux](/platforms/linux), desktop setup can repair or reinstall Vasudev, con
 - fix(macos): preserve remote tunnels when switching connection modes [#127665](https://github.com/openclaw/openclaw/pull/127665)
 - fix: macOS onboarding waits for Gateway restart [#127713](https://github.com/openclaw/openclaw/pull/127713)
 - fix(mac): keep remote Gateway connected after a delayed local failure [#127723](https://github.com/openclaw/openclaw/pull/127723)
-- fix(macos): make Vasudev settings pane responsive [#128177](https://github.com/openclaw/openclaw/pull/128177)
+- fix(macos): make OpenClaw settings pane responsive [#128177](https://github.com/openclaw/openclaw/pull/128177)
 - fix(macos): keep CLI install complete when Gateway startup fails [#128350](https://github.com/openclaw/openclaw/pull/128350)
 - fix(macos): show the correct first-run onboarding progress [#129435](https://github.com/openclaw/openclaw/pull/129435)
 - fix(macos): confirm closing onboarding during API key verification [#129447](https://github.com/openclaw/openclaw/pull/129447)
@@ -423,7 +423,7 @@ On [Linux](/platforms/linux), desktop setup can repair or reinstall Vasudev, con
 - fix(installer): pin NodeSource RPM repository [#132286](https://github.com/openclaw/openclaw/pull/132286)
 - Correct macOS remote gateway URL guidance [#98548](https://github.com/openclaw/openclaw/pull/98548)
 - Honor custom config paths in the macOS CLI [#98631](https://github.com/openclaw/openclaw/pull/98631)
-- Preserve custom Vasudev profiles when the macOS app launches at login [#99752](https://github.com/openclaw/openclaw/pull/99752)
+- Preserve custom OpenClaw profiles when the macOS app launches at login [#99752](https://github.com/openclaw/openclaw/pull/99752)
 
 **Documentation**
 
@@ -435,11 +435,11 @@ On [Linux](/platforms/linux), desktop setup can repair or reinstall Vasudev, con
 
 </Accordion>
 
-<Accordion title="Setting Up Vasudev on iPhone, iPad, and Android">
+<Accordion title="Setting Up OpenClaw on iPhone, iPad, and Android">
 
 Mobile setup now puts QR and setup-code pairing first because that is what most people were trying to find anyway, while discovered Gateways and manual host and credential entry remain available. Secure official pairing shows whether the phone has Full or Limited access, and an unencrypted connection to another machine is automatically kept Limited.
 
-On [iPhone and iPad](/platforms/ios), a valid setup QR can now pair and open the main UI in one scan when the connection is already trusted or matches the code, while untrusted connections still stop for approval. Vasudev explains pairing before asking for Local Network access, lets you decide on optional permissions one at a time, and gives eligible administrators a dedicated Settings conversation for Gateway setup and repair without exposing that privileged assistant in ordinary Chat.
+On [iPhone and iPad](/platforms/ios), a valid setup QR can now pair and open the main UI in one scan when the connection is already trusted or matches the code, while untrusted connections still stop for approval. OpenClaw explains pairing before asking for Local Network access, lets you decide on optional permissions one at a time, and gives eligible administrators a dedicated Settings conversation for Gateway setup and repair without exposing that privileged assistant in ordinary Chat.
 
 On [Android](/platforms/android), pairing stays usable in landscape, on narrow screens, and with larger system text. Public Gateways can use normal certificate checks while LAN and IP connections keep explicit pinning, and pairing again preserves saved location and notification choices instead of quietly changing consent; revoked permissions remain revoked, and Google Play builds still use foreground location only.
 
@@ -453,7 +453,7 @@ On [Android](/platforms/android), pairing stays usable in landscape, on narrow s
 - Guide iOS first launch through pairing and permissions [#106129](https://github.com/openclaw/openclaw/pull/106129)
 - Make Android gateway pairing prominent in Settings [#106211](https://github.com/openclaw/openclaw/pull/106211)
 - Add Android system trust and manual Gateway pinning [#110976](https://github.com/openclaw/openclaw/pull/110976)
-- Add a Vasudev settings assistant to iOS [#112420](https://github.com/openclaw/openclaw/pull/112420)
+- Add an OpenClaw settings assistant to iOS [#112420](https://github.com/openclaw/openclaw/pull/112420)
 - Make iOS onboarding connection status clear [#101921](https://github.com/openclaw/openclaw/pull/101921)
 - Refresh native translations for access-status screens [#106260](https://github.com/openclaw/openclaw/pull/106260)
 
@@ -488,9 +488,9 @@ On [Android](/platforms/android), pairing stays usable in landscape, on narrow s
 
 <Accordion title="Moving, Importing, or Resetting an Existing Setup">
 
-[Imports from Claude, Codex, and Hermes](/install/migrating) now happen in a temporary staging area, where Vasudev verifies or repairs the model route before making the new setup active. If the source, import plan, or destination changes along the way, promotion stops rather than replaying a half-finished import against different data.
+[Imports from Claude, Codex, and Hermes](/install/migrating) now happen in a temporary staging area, where OpenClaw verifies or repairs the model route before making the new setup active. If the source, import plan, or destination changes along the way, promotion stops rather than replaying a half-finished import against different data.
 
-Rerunning onboarding keeps the workspace you already use unless you approve a move, and named agents keep the credentials they own through supported creation and configuration-only resets. Vasudev validates the provider, Gateway, migration, and workspace choices before a reset can move existing data to Trash, but a valid confirmed reset is still destructive.
+Rerunning onboarding keeps the workspace you already use unless you approve a move, and named agents keep the credentials they own through supported creation and configuration-only resets. OpenClaw validates the provider, Gateway, migration, and workspace choices before a reset can move existing data to Trash, but a valid confirmed reset is still destructive.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -515,7 +515,7 @@ Rerunning onboarding keeps the workspace you already use unless you approve a mo
 - Honor explicit Gateway options during quickstart onboarding [#112396](https://github.com/openclaw/openclaw/pull/112396)
 - Isolate non-default gateway workspaces and skills [#114487](https://github.com/openclaw/openclaw/pull/114487)
 - Preserve legacy model restrictions during migration [#114983](https://github.com/openclaw/openclaw/pull/114983)
-- Protect Vasudev state during headless reset [#116491](https://github.com/openclaw/openclaw/pull/116491)
+- Protect OpenClaw state during headless reset [#116491](https://github.com/openclaw/openclaw/pull/116491)
 - Honor explicit provider authentication when keeping the current model [#117883](https://github.com/openclaw/openclaw/pull/117883)
 - Honor Gateway CLI settings during manual onboarding [#122961](https://github.com/openclaw/openclaw/pull/122961)
 - Let onboarding imports survive runtime state initialization [#123106](https://github.com/openclaw/openclaw/pull/123106)

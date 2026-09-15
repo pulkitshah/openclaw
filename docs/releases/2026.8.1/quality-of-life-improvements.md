@@ -3,13 +3,13 @@ title: "v2026.8.1: Quality-of-Life Improvements"
 description: "Everyday work takes less effort to find, follow, move, and protect, including past conversations, visible progress on long jobs, and cloud or paired-computer sessions."
 ---
 
-Everyday work in Vasudev now takes less effort to find, follow, move, and protect. [Past conversations](/concepts/session-search) are easier to return to, long jobs keep useful progress visible, portable snapshots can be checked before they are needed, and eligible work can run on a [cloud worker](/gateway/cloud-workers) or [paired computer](/gateway/cloud-sessions), with cloud sessions later reclaimed to the main machine. Voice, video, meeting capture, agent tools, keyboard access, maintained translations, interface polish, and documentation also pick up changes that make the product easier to use across ordinary work.
+Everyday work in OpenClaw now takes less effort to find, follow, move, and protect. [Past conversations](/concepts/session-search) are easier to return to, long jobs keep useful progress visible, portable snapshots can be checked before they are needed, and eligible work can run on a [cloud worker](/gateway/cloud-workers) or [paired computer](/gateway/cloud-sessions), with cloud sessions later reclaimed to the main machine. Voice, video, meeting capture, agent tools, keyboard access, maintained translations, interface polish, and documentation also pick up changes that make the product easier to use across ordinary work.
 
 <AccordionGroup>
 
 <Accordion title="Past Conversations and Long-Running Work">
 
-[Past conversations](/concepts/session-search) and long-running work are easier to find and follow. The session catalog groups and opens Codex, Claude Code, OpenCode, and Pi work from the main Vasudev computer or an eligible paired one, and each session can carry one of eight colors across the Control UI, macOS, iOS, and Android. An eligible Claude Code continuation also brings its chosen color and renamed title into Vasudev without replacing later edits. Durable [progress cards](/tools/progress-card) survive reloads and reconnects, and background-task history is available on the web, iOS, and Android. An optional observer can summarize a conversation, answer questions about it, show its timeline, and alert an operator when attention is needed.
+[Past conversations](/concepts/session-search) and long-running work are easier to find and follow. The session catalog groups and opens Codex, Claude Code, OpenCode, and Pi work from the main OpenClaw computer or an eligible paired one, and each session can carry one of eight colors across the Control UI, macOS, iOS, and Android. An eligible Claude Code continuation also brings its chosen color and renamed title into OpenClaw without replacing later edits. Durable [progress cards](/tools/progress-card) survive reloads and reconnects, and background-task history is available on the web, iOS, and Android. An optional observer can summarize a conversation, answer questions about it, show its timeline, and alert an operator when attention is needed.
 
 Resume support depends on the runtime that owns the session. OpenCode and Pi catalogs are view-only, paired-computer actions need an opted-in capable host and an eligible session, and external transcripts remain with their original runtime. The observer can be disabled and requires an available utility model.
 
@@ -202,7 +202,7 @@ Some legacy stores require the owning process to be stopped before `openclaw doc
 - Move remaining non-session runtime journals into SQLite [#109427](https://github.com/openclaw/openclaw/pull/109427)
 - Move MCP OAuth credentials and refresh state to SQLite [#109844](https://github.com/openclaw/openclaw/pull/109844)
 - Raise the default session archive disk budget to 10 GiB [#110221](https://github.com/openclaw/openclaw/pull/110221)
-- Preserve Ask Vasudev conversations across restarts [#111440](https://github.com/openclaw/openclaw/pull/111440)
+- Preserve Ask OpenClaw conversations across restarts [#111440](https://github.com/openclaw/openclaw/pull/111440)
 - Unify offline storage for iPhone and Mac [#111598](https://github.com/openclaw/openclaw/pull/111598)
 - Migrate saved media history to canonical facts [#113695](https://github.com/openclaw/openclaw/pull/113695)
 - Move local tool notes into AGENTS.md [#113966](https://github.com/openclaw/openclaw/pull/113966)
@@ -247,9 +247,9 @@ Some legacy stores require the owning process to be stopped before `openclaw doc
 
 <Accordion title="Remote computers and devices">
 
-Work no longer has to stay on the main machine running Vasudev. A configured [cloud worker](/gateway/cloud-workers) can start a session in a selected repository and later return it to the main machine, and the Control UI now identifies the service and profile behind a placement when that identity can be resolved safely. Crabbox profiles can leave machine sizing to the service or choose it for one session. An explicitly opted-in [paired computer](/gateway/cloud-sessions), including an eligible native Mac, can run a complete turn using a worker bundle verified and supplied by Vasudev rather than whatever code happens to be installed there.
+Work no longer has to stay on the main machine running OpenClaw. A configured [cloud worker](/gateway/cloud-workers) can start a session in a selected repository and later return it to the main machine, and the Control UI now identifies the service and profile behind a placement when that identity can be resolved safely. Crabbox profiles can leave machine sizing to the service or choose it for one session. An explicitly opted-in [paired computer](/gateway/cloud-sessions), including an eligible native Mac, can run a complete turn using a worker bundle verified and supplied by OpenClaw rather than whatever code happens to be installed there.
 
-Those are two different paths with different requirements. Cloud workers need a configured profile and the Vasudev runtime, while paired computers need compatible versions, consent, available capacity, and support for the requested commands. The portable worker bundle does not include the destination machine's native terminal module, so work that depends on a truly interactive terminal still has a real boundary.
+Those are two different paths with different requirements. Cloud workers need a configured profile and the OpenClaw runtime, while paired computers need compatible versions, consent, available capacity, and support for the requested commands. The portable worker bundle does not include the destination machine's native terminal module, so work that depends on a truly interactive terminal still has a real boundary.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -299,7 +299,7 @@ Those are two different paths with different requirements. Cloud workers need a 
 - Recover sessions when a paired device goes offline [#126284](https://github.com/openclaw/openclaw/pull/126284)
 - Add lifecycle-safe duplex channels for plugin node commands [#126961](https://github.com/openclaw/openclaw/pull/126961)
 - feat: run Codex sessions on approved paired devices [#127202](https://github.com/openclaw/openclaw/pull/127202)
-- feat(workers): run Vasudev and Codex on the same cloud profile [#127752](https://github.com/openclaw/openclaw/pull/127752)
+- feat(workers): run OpenClaw and Codex on the same cloud profile [#127752](https://github.com/openclaw/openclaw/pull/127752)
 - feat(nodes): derive worker capacity from CPU cores and make it configurable [#128352](https://github.com/openclaw/openclaw/pull/128352)
 - feat(nodes): automatic device placement for sessions.dispatch [#128421](https://github.com/openclaw/openclaw/pull/128421)
 - feat(crabbox): opt-in profile warm images for cloud workers [#130087](https://github.com/openclaw/openclaw/pull/130087)
@@ -680,7 +680,7 @@ The optional [Control UI lobster](/web/lobster) now reacts to status changes and
 - Add a pixel lobster to the CLI wizard banner [#105119](https://github.com/openclaw/openclaw/pull/105119)
 - Animate the claw banner on interactive startup [#105540](https://github.com/openclaw/openclaw/pull/105540)
 - Give the working claw a clearer punching animation [#105597](https://github.com/openclaw/openclaw/pull/105597)
-- Standardize duration parsing and display across Vasudev [#105988](https://github.com/openclaw/openclaw/pull/105988)
+- Standardize duration parsing and display across OpenClaw [#105988](https://github.com/openclaw/openclaw/pull/105988)
 - Finish the managed worktrees list redesign [#106514](https://github.com/openclaw/openclaw/pull/106514)
 - Add a claw spinner to wizard wait steps [#108833](https://github.com/openclaw/openclaw/pull/108833)
 - Reduce agent startup overhead from TTS imports [#109344](https://github.com/openclaw/openclaw/pull/109344)
@@ -705,7 +705,7 @@ The optional [Control UI lobster](/web/lobster) now reacts to status changes and
 - chore(deps): refresh seven-day-cooled runtimes and tooling [#131719](https://github.com/openclaw/openclaw/pull/131719)
 - Refresh CLI startup taglines [#102750](https://github.com/openclaw/openclaw/pull/102750)
 - Add roast-style CLI startup taglines [#102789](https://github.com/openclaw/openclaw/pull/102789)
-- Attribute Vasudev to the Vasudev Foundation [#112536](https://github.com/openclaw/openclaw/pull/112536)
+- Attribute OpenClaw to the OpenClaw Foundation [#112536](https://github.com/openclaw/openclaw/pull/112536)
 - Add provider icons to coding catalog headings [#115956](https://github.com/openclaw/openclaw/pull/115956)
 - Show the Pi logo in external-session catalogs [#119998](https://github.com/openclaw/openclaw/pull/119998)
 - Give the collapsed session rail a distinct header icon [#121420](https://github.com/openclaw/openclaw/pull/121420)

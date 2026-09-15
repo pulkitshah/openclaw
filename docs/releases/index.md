@@ -1,10 +1,10 @@
 ---
 title: "Release notes"
-summary: "Vasudev release notes, complete Markdown changelogs, and contribution records."
-description: "Browse polished Vasudev release notes with highlights, reader-facing context, source links, and contributor credits."
+summary: "OpenClaw release notes, complete Markdown changelogs, and contribution records."
+description: "Browse polished OpenClaw release notes with highlights, reader-facing context, source links, and contributor credits."
 ---
 
-These pages explain what changed in Vasudev, how it affects your work, and
+These pages explain what changed in OpenClaw, how it affects your work, and
 who contributed, with links to the source changes.
 
 ## Releases
@@ -14,7 +14,7 @@ who contributed, with links to the source changes.
 - [v2026.9.2](/releases/2026.9.2) - Reliability and recovery improvements, OpenAI GPT-6 Astra and Meta Muse Spark 1.3 support, and flexible task workspaces.
 - [v2026.9.1](/releases/2026.9.1) - Mermaid diagrams across chat surfaces, a fuller Android experience, safer update recovery, and lower overhead for long conversations and large installations.
 - [v2026.8.2](/releases/2026.8.2) - Home beside your work, a Linux desktop companion, background sessions, browser control without a running Gateway, four new Control UI looks, and focused reply, voice, update, and recovery fixes.
-- [v2026.8.1 (AKA Vasudev 2.0)](/releases/2026.8.1) - A rebuilt web experience, simpler onboarding, stronger memory and session continuity, and a very large reliability pass across Vasudev.
+- [v2026.8.1 (AKA OpenClaw 2.0)](/releases/2026.8.1) - A rebuilt web experience, simpler onboarding, stronger memory and session continuity, and a very large reliability pass across OpenClaw.
 - [v2026.7.1](/releases/2026.7.1) - Major Control UI and onboarding overhauls, big iOS, Android, and macOS updates, expanded model support, and substantial Telegram, Slack, Discord, and Apple Messages improvements.
 - [v2026.6.11](/releases/2026.6.11) - Reliability fixes for replies, sends, reconnects, model setup, sessions, and safer admin defaults.
 

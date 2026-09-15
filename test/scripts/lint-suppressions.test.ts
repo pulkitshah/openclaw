@@ -195,6 +195,8 @@ describe("production lint suppressions", () => {
         "extensions/diffs/src/viewer-client.ts|eslint/no-underscore-dangle|1",
         "extensions/discord/src/outbound-adapter.test-harness.ts|typescript/no-unnecessary-type-parameters|1",
         "extensions/discord/src/test-support/provider.test-support.ts|typescript/no-unnecessary-type-parameters|1",
+        "extensions/duties/src/events.ts|unicorn/prefer-structured-clone|1",
+        "extensions/duties/src/files.ts|eslint/no-control-regex|1",
         "extensions/feishu/src/bitable.ts|typescript/no-unnecessary-type-parameters|1",
         "extensions/matrix/src/onboarding.test-harness.ts|typescript/no-unnecessary-type-parameters|1",
         "extensions/qa-lab/src/gateway-child-setup.ts|preserve-caught-error|1",
