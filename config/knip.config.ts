@@ -508,6 +508,10 @@ const config = {
     "src/plugins/interactive-registry.ts": ["exports"],
     "src/plugins/memory-state.ts": ["exports", "types"],
     "src/plugins/session-discussion-registry.ts": ["exports"],
+    // The boot-copy brand strings are stamped into `index.html` by
+    // `ui/vite.config.ts`, which knip classifies as a build config rather than a
+    // production entry, so their only consumer is invisible to this scan.
+    "ui/src/app/brand.ts": ["exports"],
     // Focused Control UI tests consume these explicit state-machine seams;
     // production uses them through their owning module/controller.
     "ui/src/pages/chat/chat-state-refresh.ts": ["exports"],
