@@ -213,7 +213,7 @@ function mailHealthLine(status: MailStatus | undefined): string {
     !status.mappingPresent ||
     !status.agentPresent;
   const setup = needsSetup
-    ? `<p class="mono small">Run: openclaw duties setup-mail --account &lt;you@…&gt;</p>`
+    ? `<p class="mono small">Run: vasudev duties setup-mail --account &lt;you@…&gt;</p>`
     : "";
   return `<div class="mchecks">${marks}</div><p class="muted small">${last}</p>${setup}`;
 }
