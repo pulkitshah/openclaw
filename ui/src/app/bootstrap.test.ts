@@ -248,6 +248,7 @@ describe("bootstrapApplication", () => {
         state: { selectedId: "main" },
         subscribe: () => () => undefined,
       },
+      config: { current: { terminalEnabled: false } },
       replace: replaceRoute,
     } as unknown as ApplicationContext<RouteId>;
     const canonicalLocation = { pathname: "/chat/main", search: "", hash: "" };

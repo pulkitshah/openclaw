@@ -31,6 +31,8 @@ function createConnectedContext(
     includeModelConfigured?: boolean;
     admin?: boolean;
     advertised?: boolean;
+    terminalEnabled?: boolean;
+    terminalAdvertised?: boolean;
   } = {},
 ) {
   const request = vi.fn();
@@ -49,7 +51,12 @@ function createConnectedContext(
         role: "operator",
         scopes: [options.admin === false ? "operator.read" : "operator.admin"],
       },
-      features: { methods: options.advertised === false ? [] : ["openclaw.setup.detect"] },
+      features: {
+        methods: [
+          ...(options.advertised === false ? [] : ["openclaw.setup.detect"]),
+          ...(options.terminalAdvertised ? ["terminal.open"] : []),
+        ],
+      },
       snapshot: { sessionDefaults },
     },
   };
@@ -67,6 +74,7 @@ function createConnectedContext(
     agentSelection: {
       state: { selectedId: options.selectedId === undefined ? "main" : options.selectedId },
     },
+    config: { current: { terminalEnabled: options.terminalEnabled ?? false } },
     replace,
   } as unknown as ApplicationContext<RouteId>;
   return { context, replace, request };
@@ -199,6 +207,31 @@ describe("model setup first-run redirect", () => {
 
   it.each([
     {
+      name: "the operator terminal can run the guided CLI setup",
+      options: { terminalEnabled: true, terminalAdvertised: true },
+      routeId: "terminal",
+    },
+    {
+      name: "the terminal surface is disabled",
+      options: { terminalAdvertised: true },
+      routeId: "model-setup",
+    },
+    {
+      name: "the gateway does not advertise a terminal",
+      options: { terminalEnabled: true },
+      routeId: "model-setup",
+    },
+  ])("lands a fresh install on $routeId when $name", async ({ options, routeId }) => {
+    const { context, replace } = createConnectedContext(options);
+
+    const dispose = await startRedirect(context);
+
+    expect(replace).toHaveBeenCalledWith(routeId, { search: "?firstRun=1" });
+    dispose();
+  });
+
+  it.each([
+    {
       name: "the default agent has no configured model",
       options: {},
       shouldRedirect: true,
@@ -266,7 +299,13 @@ describe("model setup first-run redirect", () => {
   });
 
   it("restores unfinished onboarding after its activation already configured the model", async () => {
-    const { context, replace } = createConnectedContext({ modelConfigured: true });
+    // Recovery belongs to the page that owns the receipt, even where the
+    // guided terminal would have taken a fresh install.
+    const { context, replace } = createConnectedContext({
+      modelConfigured: true,
+      terminalEnabled: true,
+      terminalAdvertised: true,
+    });
     persistFirstRunActivationReceipt(context, {
       kind: "openai-api-key",
       modelRef: "openai/expected",

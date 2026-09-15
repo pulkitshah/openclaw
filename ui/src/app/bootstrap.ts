@@ -632,10 +632,12 @@ export function bootstrapApplication(): ApplicationRuntime {
           initialLocationReady: initialRoutingLocationReady,
           ...(deferInitialLocationUntilGateway
             ? {
-                redirect: () =>
+                // The router has not started yet, so the first-run destination
+                // chosen by its owner is installed straight into history.
+                redirect: (destination) =>
                   history.replace({
-                    ...locationForRoute("model-setup", basePath),
-                    search: "?firstRun=1",
+                    ...locationForRoute(destination.routeId, basePath),
+                    search: destination.search,
                   }),
                 onInitialDecision: () => resolveInitialFirstRunDecision?.(),
               }
