@@ -3,6 +3,6 @@
 # Worker bundle installation no longer injects OPENCLAW_STATE_DIR into a remote npm process.
 # The internal Node-version check no longer contributes a false OPENCLAW_* name.
 # The next-turn runtime-context preface constant no longer exists as an OPENCLAW_* name.
-# +1 for OPENCLAW_BROWSER_WINDOW_SIZE: headed browser sessions and hosted desks
+# +1 for OPENCLAW_BROWSER_WINDOW_SIZE (owner approved 2026-09-15): headed browser sessions and hosted desks
 # size their Chromium window from it (extensions/browser).
 493
