@@ -130,7 +130,11 @@ if [[ "$force" -eq 0 ]]; then
   # `sudo -H`: stock Ubuntu sudoers is `env_reset` without `always_set_home`, so plain
   # `sudo -u openclaw` leaves $HOME=/root and the CLI reads /root/.openclaw instead of the
   # service user's own config (one `sudo -H` convention across this repo's desk commands).
-  remote_busy_check='sudo -H -u openclaw node /opt/openclaw/openclaw.mjs gateway call duties.runs.recent --params "{\"limit\":10}" --json'
+  # Trusted-proxy desks (a desk sitting behind the front door) have no token this local CLI
+  # call can present; per docs/gateway/trusted-proxy-auth.md, an internal same-host caller falls
+  # back to `gateway.auth.password` instead. When that secret file exists on the desk, read it
+  # and pass it through; a desk still on token auth has no such file and this stays a no-op.
+  remote_busy_check='PW_FILE=/etc/openclaw/secrets/gateway-admin-password; if [ -f "$PW_FILE" ]; then sudo -H -u openclaw node /opt/openclaw/openclaw.mjs gateway call duties.runs.recent --params "{\"limit\":10}" --json --password "$(cat "$PW_FILE")"; else sudo -H -u openclaw node /opt/openclaw/openclaw.mjs gateway call duties.runs.recent --params "{\"limit\":10}" --json; fi'
   runs_json="$(ssh "$ssh_target" "$remote_busy_check")"
   # The jq filter itself takes the first match (`.[0] // empty`) instead of piping through
   # `head -n1` — under `set -o pipefail`, `head -n1` closing its read end after one line can
