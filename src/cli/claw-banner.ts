@@ -15,7 +15,7 @@ import type { RuntimeEnv } from "../runtime.js";
 // wordmark sits on orb rows 3-5, across the middle of the circle. Cells are
 // about twice as tall as they are wide, so 20x10 dots read as a round orb: a
 // dense body, a lighter rim, and the highlight the CSS orb puts at 34%/30%.
-const ORB_ART = [
+export const ORB_ART = [
   "      ••••••••",
   "   •••●●●●●●●●•••",
   "  ••::..::●●●●●●••",
