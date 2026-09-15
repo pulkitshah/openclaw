@@ -7,8 +7,9 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: new-desk.sh <desk-name> --ts-authkey-file <file> --tg-token-file <file> \
-                    --owner-target <telegram-id> [--size s-2vcpu-4gb] [--git-ref <ref>] \
+Usage: new-desk.sh <desk-name> --ts-authkey-file <file> \
+                    [--profile owner|client] [--tg-token-file <file>] \
+                    [--owner-target <telegram-id>] [--size s-2vcpu-4gb] [--git-ref <ref>] \
                     [--image <image-or-snapshot-id>] [--gateway-token-file <file>]
 
 Creates one hosted desk droplet, waits for it to join the tailnet, and prints the Control UI
@@ -21,9 +22,20 @@ Required:
   <desk-name>                A DNS-safe hostname for the desk, e.g. desk-acme.
   --ts-authkey-file <file>   File holding a Tailscale pre-auth key (single line).
   --tg-token-file <file>     File holding the desk's Telegram bot token (single line).
+                             Required for --profile owner; unused for --profile client.
   --owner-target <id>        Telegram user/chat id allowed to DM this desk's agent.
+                             Required for --profile owner; unused for --profile client.
 
 Optional:
+  --profile <owner|client>   Whose desk this is (default: owner).
+                             owner  — the operator's own desk: the Telegram channel, the named
+                                      agents, their bindings and the Gmail hooks are configured
+                                      at first boot.
+                             client — a client's desk: only desk plumbing is configured, so the
+                                      client gets the same onboarding as a fresh install — Model
+                                      Setup, naming the assistant in the first conversation, and
+                                      adding Telegram from Settings. --tg-token-file and
+                                      --owner-target are not needed (and are ignored if passed).
   --size <slug>              doctl Droplet size slug (default: s-2vcpu-4gb).
   --git-ref <ref>            Fork ref to check out on first boot (default: main).
   --image <slug-or-id>       Base image or a prior desk's snapshot id (default: ubuntu-24-04-x64).
@@ -80,6 +92,7 @@ ts_authkey_file=""
 tg_token_file=""
 owner_target=""
 gateway_token_file=""
+profile="owner"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -111,6 +124,10 @@ while [[ $# -gt 0 ]]; do
       gateway_token_file="$2"
       shift 2
       ;;
+    --profile)
+      profile="$2"
+      shift 2
+      ;;
     -h | --help)
       usage
       exit 0
@@ -135,7 +152,21 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ -z "$desk_name" || -z "$ts_authkey_file" || -z "$tg_token_file" || -z "$owner_target" ]]; then
+case "$profile" in
+  owner | client) ;;
+  *)
+    echo "new-desk.sh: --profile must be \"owner\" or \"client\", not \"$profile\"" >&2
+    exit 2
+    ;;
+esac
+
+# A client desk renders no Telegram channel at all (see render-cloud-init.mjs --profile), so the
+# bot token and owner target it would configure are required only for the owner's own desk.
+if [[ -z "$desk_name" || -z "$ts_authkey_file" ]]; then
+  usage >&2
+  exit 2
+fi
+if [[ "$profile" == "owner" && ( -z "$tg_token_file" || -z "$owner_target" ) ]]; then
   usage >&2
   exit 2
 fi
@@ -207,14 +238,22 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "==> Rendering cloud-init for \"$desk_name\" (git-ref $git_ref)" >&2
+echo "==> Rendering cloud-init for \"$desk_name\" ($profile profile, git-ref $git_ref)" >&2
 render_args=(
   --name "$desk_name"
+  --profile "$profile"
   --ts-authkey-file "$ts_authkey_file"
-  --tg-token-file "$tg_token_file"
-  --owner-target "$owner_target"
   --git-ref "$git_ref"
 )
+# Passed through even under the client profile when the operator supplied them, so the renderer
+# — the one owner of what each profile configures — is what says they go unused, rather than this
+# script dropping them silently.
+if [[ -n "$tg_token_file" ]]; then
+  render_args+=(--tg-token-file "$tg_token_file")
+fi
+if [[ -n "$owner_target" ]]; then
+  render_args+=(--owner-target "$owner_target")
+fi
 if [[ -n "$gateway_token_file" ]]; then
   render_args+=(--gateway-token-file "$gateway_token_file")
 fi
@@ -318,3 +357,13 @@ echo "Control UI: ${control_ui_url}"
 # the CLI reads the service user's own ~/.openclaw, not root's) are both required — without
 # either, this very first operator step fails.
 echo "Sign in:    ssh -t ${DESK_SSH_USER}@${desk_name} 'sudo -H -u openclaw node /opt/openclaw/openclaw.mjs gateway auth-token --show'"
+if [[ "$profile" == "client" ]]; then
+  # Nothing is configured beyond desk plumbing on a client desk, so say where the client picks up
+  # rather than leaving a Control UI that looks half-finished.
+  echo
+  echo "Client desk: the Control UI opens on the same onboarding a fresh install shows."
+  echo "  1. Model Setup - connect Claude by signing in."
+  echo "  2. First conversation - name the assistant when it asks."
+  echo "  3. Settings > Telegram - paste a BotFather token to add Telegram."
+  echo "See deploy/desk/README.md (\"Client desk\") for what to hand over."
+fi
