@@ -42,22 +42,22 @@ describe("printWizardHeader", () => {
     }
   };
 
-  it("prints the mascot beside the wordmark with claws above the text line", async () => {
+  it("prints the orb beside the wordmark with the rim above the text line", async () => {
     const log = vi.fn();
     await withColumns(120, () => printWizardHeader({ log } as unknown as RuntimeEnv));
     const output = stripAnsi(String(log.mock.calls[0]?.[0]));
     const rows = output.split("\n");
-    // Claw rows stand above the wordmark; its first row shares the mascot body line.
-    expect(rows[0]).toBe(" •●●:.        .:●●•");
-    expect(rows[3]).toContain("█▀▀▀█ █▀▀▀█ █▀▀▀▀ █▄  █ █▀▀▀▀ █     █▀▀▀█ █   █");
-    expect(rows[3]).toContain(" .●●●: •●●●●• :●●●.");
+    // The orb's top rim stands above the wordmark; its first row shares an orb body line.
+    expect(rows[0]).toBe("      ••••••••");
+    expect(rows[3]).toContain("█   █ █▀▀▀█ █▀▀▀▀ █   █ █▀▀▀▄ █▀▀▀▀ █   █");
+    expect(rows[3]).toContain(" ••●:....:●●●●●●●••");
   });
 
   it("falls back to the plain title on narrow terminals", async () => {
     const log = vi.fn();
     await withColumns(50, () => printWizardHeader({ log } as unknown as RuntimeEnv));
     const output = String(log.mock.calls[0]?.[0]);
-    expect(output).toContain("OPENCLAW");
+    expect(output).toContain("VASUDEV");
     expect(output).not.toContain("█");
   });
 });

@@ -41,12 +41,12 @@ describe("doctor WhatsApp responsiveness", () => {
       stdout: [
         " 101 openclaw-tui",
         " 102 /usr/bin/node /usr/lib/node_modules/openclaw/dist/index.js gateway --port 18789",
-        " 103 vasudev channels",
-        " 104 vasudev tui --local",
+        " 103 openclaw channels",
+        " 104 openclaw tui --local",
         " 105 /usr/bin/openclaw chat",
-        " 106 helper --note 'vasudev tui'",
+        " 106 helper --note 'openclaw tui'",
         " 107 openclaw-helper openclaw terminal",
-        " 108 vasudev --flag tui",
+        " 108 openclaw --flag tui",
       ].join("\n"),
     });
     const findings = collectWhatsappResponsivenessHealthFindings({

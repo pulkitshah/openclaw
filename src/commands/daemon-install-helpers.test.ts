@@ -2482,7 +2482,7 @@ describe("gatewayInstallErrorHint", () => {
     expect(gatewayInstallErrorHint("win32")).toContain("Startup-folder login item");
     expect(gatewayInstallErrorHint("win32")).toContain("elevated PowerShell");
     expect(gatewayInstallErrorHint("linux")).toMatch(
-      /(?:openclaw|openclaw)( --profile isolated)? gateway install/,
+      /vasudev( --profile isolated)? gateway install/,
     );
   });
 });
