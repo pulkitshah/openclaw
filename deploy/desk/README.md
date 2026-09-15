@@ -224,9 +224,12 @@ sudo -H -u openclaw node /opt/openclaw/openclaw.mjs duties setup
 `always_set_home`, so plain `sudo -u openclaw` leaves `HOME=/root` and a config-reading command
 reads root's non-existent config — `duties setup` then reports every item as missing.)
 
-Then edit `/home/openclaw/.openclaw/openclaw.json` to set `hooks.token`, `hooks.gmail.account`,
-`hooks.gmail.topic`, `hooks.gmail.subscription`, and `hooks.gmail.pushToken` to match that
-existing setup, then restart the Gateway (see [Restart recipe](#restart-recipe) — never
+Then point the desk at that existing setup: put the bearer in
+`/etc/openclaw/secrets/hooks-token.env` as `HOOKS_TOKEN=<token>` (root:root 0600 — the Gateway
+unit reads it as systemd and `openclaw.json` resolves it through `${HOOKS_TOKEN}`, so the token
+never lands in a file the service user can read), and edit
+`/home/openclaw/.openclaw/openclaw.json` to set `hooks.gmail.account`, `hooks.gmail.topic`,
+`hooks.gmail.subscription`, and `hooks.gmail.pushToken` to match. Then restart the Gateway (see [Restart recipe](#restart-recipe) — never
 hot-edit a running desk's config and expect it to take effect on its own). Finally repoint the
 existing Pub/Sub subscription's push endpoint at the desk, from the machine that has `gcloud`:
 

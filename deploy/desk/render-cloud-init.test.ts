@@ -295,6 +295,36 @@ describe("render-cloud-init.mjs", () => {
     expect(gatewayTokenEntry?.content.trim()).toBe(fixedToken);
   });
 
+  it("mints the hooks bearer into a root-only EnvironmentFile and references it from openclaw.json", () => {
+    const output = render();
+    const doc = parseYaml(output) as CloudInitDoc;
+    const hooksEntry = doc.write_files.find(
+      (entry) => entry.path === "/etc/openclaw/secrets/hooks-token.env",
+    );
+    expect(hooksEntry?.permissions).toBe("0600");
+    // root:root, not openclaw:openclaw: systemd reads it before dropping to the service user,
+    // so the uid the desk exposes to untrusted inbound mail never gets a readable copy.
+    expect(hooksEntry?.owner).toBe("root:root");
+    const minted = (hooksEntry?.content ?? "").trim().replace(/^HOOKS_TOKEN=/u, "");
+    expect(minted.length).toBeGreaterThanOrEqual(32);
+
+    const configEntry = doc.write_files.find(
+      (entry) => entry.path === "/home/openclaw/.openclaw/openclaw.json",
+    );
+    const config = JSON.parse(configEntry?.content ?? "");
+    // hooks.token rejects SecretRef objects, so the config carries the env reference the
+    // Gateway resolves at load instead of the value itself.
+    expect(config.hooks.token).toBe("${HOOKS_TOKEN}");
+    expect(configEntry?.content).not.toContain(minted);
+
+    const gatewayUnit = doc.write_files.find(
+      (entry) => entry.path === "/etc/systemd/system/openclaw-gateway.service",
+    );
+    expect(gatewayUnit?.content).toContain(
+      "EnvironmentFile=-/etc/openclaw/secrets/hooks-token.env",
+    );
+  });
+
   it("embeds a valid openclaw.json referencing secrets by file SecretRef, never inline", () => {
     const doc = parseYaml(render()) as CloudInitDoc;
     const configEntry = doc.write_files.find(

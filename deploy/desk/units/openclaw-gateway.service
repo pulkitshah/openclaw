@@ -21,6 +21,13 @@ Environment=NODE_ENV=production
 # User=openclaw below, so the service user never needs read access to it. Absent on a fresh desk
 # (the leading "-" makes a missing file a no-op, not a startup failure).
 EnvironmentFile=-/etc/openclaw/secrets/gateway.env
+# The hooks bearer for the publicly-Funnelled Gmail webhook, resolved into openclaw.json's
+# `hooks.token` by ${HOOKS_TOKEN} env substitution. Same root:root 0600 shape as the file
+# above, for the same reason: hooks.token rejects SecretRef objects
+# (src/secrets/unsupported-surface-policy.ts), and inlining it in openclaw.json would leave
+# it readable by the service user the metadata guard exists to contain. cloud-init writes
+# this file; the leading "-" keeps a desk provisioned before it existed starting.
+EnvironmentFile=-/etc/openclaw/secrets/hooks-token.env
 ExecStart=/usr/bin/node /opt/openclaw/openclaw.mjs gateway run
 Restart=always
 RestartSec=3

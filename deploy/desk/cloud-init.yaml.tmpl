@@ -122,6 +122,18 @@ write_files:
     content: |
       {{GATEWAY_TOKEN}}
 
+  # Hooks bearer for the Gmail webhook. root:root 0600 and shaped as an EnvironmentFile, not a
+  # secrets-provider file: hooks.token is one of the surfaces that rejects SecretRef objects
+  # (src/secrets/unsupported-surface-policy.ts), so openclaw.json carries ${HOOKS_TOKEN} and the
+  # Gateway unit hands systemd this file to resolve it. systemd reads it as root before dropping
+  # to User=openclaw, so the service user - the uid the desk exposes to untrusted inbound mail -
+  # never gets a readable copy the way an inline openclaw.json value would give it one.
+  - path: /etc/openclaw/secrets/hooks-token.env
+    permissions: '0600'
+    owner: root:root
+    content: |
+      HOOKS_TOKEN={{HOOKS_TOKEN}}
+
   # Tailscale auth key: 0600, deleted by runcmd immediately after `tailscale up` consumes it.
   - path: /root/ts-authkey
     permissions: '0600'
