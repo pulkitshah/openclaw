@@ -739,6 +739,41 @@ describe("rewriteFileContent (test/fixture and cross-boundary exclusions)", () =
     expect(count).toBe(1);
   });
 
+  it("never rewrites the pre-rename completion marker the installer still replaces", () => {
+    // Profiles written by earlier installs carry this exact line. The installer
+    // has to keep recognising it to replace that block instead of appending a
+    // second one beside it.
+    const content = [
+      'const headers = ["# OpenClaw Completion", "# Vasudev Completion"] as const;',
+      'const why = "OpenClaw writes one marked block per profile.";',
+    ].join("\n");
+    const { content: rewritten, count } = rewriteFileContent(
+      "src/cli/completion-runtime.ts",
+      content,
+    );
+    expect(rewritten).toContain('"# OpenClaw Completion"');
+    expect(rewritten).toContain('"Vasudev writes one marked block per profile."');
+    expect(count).toBe(1);
+  });
+
+  it("never rewrites a node-update remediation expectation that reads the producer's own value", () => {
+    // `NODE_RUNNER_UPDATE_REQUIRED_ISSUE` holds bare command literals the
+    // rebrand keeps as values, so the assertions that read them back have to
+    // spell the same commands.
+    const content = [
+      'expect(finding).toMatchObject({ message: "run openclaw update, then reconnect" });',
+      'const why = "OpenClaw reports the node as outdated.";',
+    ].join("\n");
+    const { content: rewritten, count } = rewriteFileContent(
+      "src/gateway/worker-environments/device-placement-selector.test.ts",
+      content,
+      { includeTests: true },
+    );
+    expect(rewritten).toContain('"run openclaw update, then reconnect"');
+    expect(rewritten).toContain('"Vasudev reports the node as outdated."');
+    expect(count).toBe(1);
+  });
+
   it("still rewrites ordinary prose in a file that has one excluded literal", () => {
     const content = [
       'const product = "OpenClaw";',

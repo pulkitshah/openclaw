@@ -969,6 +969,69 @@ const EXCLUDED_LITERALS_BY_FILE = new Map([
     new Set(['"OpenClaw"']),
   ],
   [
+    // The `mm-api-source` header value this client sends to MiniMax, asserted
+    // against the real request. Same registered name as provider-attribution.
+    "src/media-understanding/image.test.ts",
+    new Set(['"OpenClaw"']),
+  ],
+  [
+    // The marker earlier installs wrote into a user's shell profile. The
+    // installer still has to recognise it to replace that block on upgrade, so
+    // the string names a byte already on operators' disks, not this product.
+    "src/cli/completion-runtime.ts",
+    new Set(['"# OpenClaw Completion"']),
+  ],
+  [
+    // The same pre-rename marker, in the case that proves the upgrade replaces
+    // such a block instead of appending a second one beside it.
+    "src/cli/completion-runtime.test.ts",
+    new Set(['"# OpenClaw Completion"']),
+  ],
+  [
+    // A GitHub owner/repo fixture. `src/projects`'s registry canonicalizes and
+    // compares these slugs, and the hovercard's hrefs point at the real
+    // upstream repository, so owner and repo are identities, not copy.
+    "ui/src/components/github-link-hovercard.test.ts",
+    new Set(['"OpenClaw"']),
+  ],
+  [
+    // Persisted agent-id input: `"OpenClaw"` normalizes onto `openclaw`, the
+    // reserved system-agent id, which is the lowercase internal namespace.
+    "ui/src/app/agent-selection.test.ts",
+    new Set(['"OpenClaw"']),
+  ],
+  [
+    // Same reserved-id input, padded to prove the normalizer trims it.
+    "ui/src/app/settings.node.test.ts",
+    new Set(['" OpenClaw "']),
+  ],
+  ...[
+    // `NODE_RUNNER_UPDATE_REQUIRED_ISSUE` (src/infra/node-runner-inventory.ts)
+    // holds `updateCommand`/`headlessReconnectCommand` as bare command
+    // literals, which the bare-command rule keeps as values: the issue is a
+    // structured payload the Control UI renders verbatim. Every expectation
+    // below reads that payload back, so it has to match the producer.
+    [
+      "src/gateway/worker-environments/device-placement-selector.test.ts",
+      ['"run openclaw update, then reconnect"'],
+    ],
+    [
+      "src/gateway/worker-environments/placement-dispatch-device.test.ts",
+      [
+        '"device worker node offline-device requires an update before it can host sessions; run openclaw update, then reconnect it (for a headless node, run openclaw node restart)"',
+        '"run openclaw update"',
+        '"run openclaw node restart"',
+      ],
+    ],
+    [
+      "ui/src/pages/new-session/device-placement.test.ts",
+      [
+        '"Update required: run openclaw update, then reconnect. For a headless node, run openclaw node restart."',
+      ],
+    ],
+    ["ui/src/pages/new-session/where-chip.test.ts", ["/openclaw update.*openclaw node restart/i"]],
+  ].map(([file, literals]) => [file, new Set(literals)]),
+  [
     // `clientInfo.title` in the Codex app-server `initialize` handshake: read
     // by the third-party Codex binary, not by this product's UI.
     "extensions/codex/src/app-server/client.ts",
@@ -1273,6 +1336,14 @@ const DOCS_EXCLUDED_PREFIX_RE = /^docs\/superpowers\//;
 //   - docs/reference/templates/*.dev.md: the `--dev` persona is "C-3PO —
 //     Clawd's 3rd Protocol Observer"; renaming half of an acronym leaves
 //     nonsense. Retiring that persona is its own change, not a rename.
+// Generated plugin pages whose remaining "OpenClaw" is the *published* npm
+// description of a third-party package (`@tencent-connect/openclaw-qqbot`),
+// recorded verbatim in scripts/lib/official-external-channel-seed.json.
+// scripts/generate-plugin-inventory-doc.mts owns every line it authors and
+// already reads PRODUCT_NAME; rewriting the seeded description here would
+// misquote a package this project does not publish.
+const DOCS_EXTERNAL_PACKAGE_RE = /^docs\/plugins\/(?:plugin-inventory\.md$|reference\/qqbot\.md$)/;
+
 const DOCS_SELF_REFERENCE_RE =
   /^docs\/(?:releases\/|start\/lore\.md$|reference\/credits\.md$|reference\/templates\/[^/]+\.dev\.md$)/;
 
@@ -1343,7 +1414,11 @@ function isInScopeTypeScriptPath(file) {
 export function collectTargetFiles(cwd, { includeTests = false } = {}) {
   const files = new Set();
   for (const file of gitLsFiles(cwd, ["docs/*.md"])) {
-    if (!DOCS_EXCLUDED_PREFIX_RE.test(file) && !DOCS_SELF_REFERENCE_RE.test(file)) {
+    if (
+      !DOCS_EXCLUDED_PREFIX_RE.test(file) &&
+      !DOCS_SELF_REFERENCE_RE.test(file) &&
+      !DOCS_EXTERNAL_PACKAGE_RE.test(file)
+    ) {
       files.add(file);
     }
   }

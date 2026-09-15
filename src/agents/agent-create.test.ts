@@ -150,7 +150,7 @@ describe("createAgent", () => {
       status: "error",
       reason: "invalid-name",
     });
-    // Reserved-id input, not copy: "OpenClaw" normalizes to the reserved
+    // Reserved-id input, not copy: the first name normalizes onto the reserved
     // `openclaw` agent id, the lowercase internal namespace that does not move.
     for (const name of ["OpenClaw", "crestodian"]) {
       await expect(createAgent({ name })).resolves.toMatchObject({
