@@ -4858,5 +4858,89 @@
   {
     "source": "FAQ: providers, hardware, and hosting",
     "target": "常见问题：服务商、硬件与托管"
+  },
+  {
+    "source": "Vasudev",
+    "target": "Vasudev"
+  },
+  {
+    "source": "Vasudev agent runtime workflow",
+    "target": "Vasudev agent runtime workflow"
+  },
+  {
+    "source": "Vasudev agent runtime architecture",
+    "target": "Vasudev agent runtime architecture"
+  },
+  {
+    "source": "Run Vasudev as an MCP server",
+    "target": "将 Vasudev 作为 MCP 服务器运行"
+  },
+  {
+    "source": "Embedding Vasudev",
+    "target": "嵌入 Vasudev"
+  },
+  {
+    "source": "Browser (Vasudev-managed)",
+    "target": "浏览器（Vasudev 托管）"
+  },
+  {
+    "source": "What is Vasudev?",
+    "target": "什么是 Vasudev？"
+  },
+  {
+    "source": "Vasudev lore",
+    "target": "Vasudev 传说"
+  },
+  {
+    "source": "Updating Vasudev",
+    "target": "更新 Vasudev"
+  },
+  {
+    "source": "Host Vasudev sessions on a node",
+    "target": "在节点上托管 Vasudev 会话"
+  },
+  {
+    "source": "Vasudev and Hermes Agent",
+    "target": "Vasudev 与 Hermes Agent"
+  },
+  {
+    "source": "Migrating a Vasudev install",
+    "target": "迁移 Vasudev 安装"
+  },
+  {
+    "source": "Vasudev setup agent",
+    "target": "Vasudev 设置助手"
+  },
+  {
+    "source": "Vasudev assistant",
+    "target": "Vasudev 助理"
+  },
+  {
+    "source": "Vasudev assistant setup",
+    "target": "Vasudev 助理设置"
+  },
+  {
+    "source": "Why Vasudev",
+    "target": "为什么选择 Vasudev"
+  },
+  {
+    "source": "Why Vasudev: working together",
+    "target": "为什么选择 Vasudev：协作"
+  },
+  {
+    "source": "Hosted desk",
+    "target": "托管工作台"
+  },
+  {
+    "source": "Duties plugin",
+    "target": "Duties 插件"
+  },
+  {
+    "source": "Duties plugin reference",
+    "target": "Duties 插件参考"
+  },
+  {
+    "source": "duties",
+    "target": "duties"
   }
 ]
