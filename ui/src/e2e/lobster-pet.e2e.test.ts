@@ -1,8 +1,14 @@
 // Control UI E2E tests cover real-browser lobster pet timing and pointer cancellation.
 import type { BrowserContext, Page } from "playwright";
 import { afterEach, beforeEach, expect, it } from "vitest";
+import { FEATURES } from "../app/brand.ts";
 import { installMockGateway } from "../test-helpers/control-ui-e2e.ts";
 import { createControlUiE2eSuite } from "./control-ui-e2e-suite.test-support.ts";
+
+// The pet only reaches the page when the sidebar schedules its module, which it
+// does behind FEATURES.lobsterDex. With the flag off nothing defines the
+// element, so every case here waits out its own load.
+const itWithPet = it.skipIf(!FEATURES.lobsterDex);
 
 const suite = createControlUiE2eSuite({
   name: "Control UI lobster pet",
@@ -56,42 +62,45 @@ suite.define(() => {
     await context.close();
   });
 
-  it("keeps a vigil-only failure present through droop and sweep before leaving", async () => {
-    await mountPet({ mode: "busy", outcome: "error", seed: 0 });
-    const sprite = page.locator(".lobster-pet");
-    await expect.poll(() => sprite.count()).toBe(0);
+  itWithPet(
+    "keeps a vigil-only failure present through droop and sweep before leaving",
+    async () => {
+      await mountPet({ mode: "busy", outcome: "error", seed: 0 });
+      const sprite = page.locator(".lobster-pet");
+      await expect.poll(() => sprite.count()).toBe(0);
 
-    await page.clock.fastForward(600_500);
-    await settlePet();
-    expect(await page.locator(".lobster-pet--vigil").count()).toBe(1);
-    await page.evaluate(async () => {
-      const pet = document.querySelector("openclaw-lobster-pet") as BrowserLobsterPet;
-      pet.mode = "idle";
-      await pet.updateComplete;
-    });
+      await page.clock.fastForward(600_500);
+      await settlePet();
+      expect(await page.locator(".lobster-pet--vigil").count()).toBe(1);
+      await page.evaluate(async () => {
+        const pet = document.querySelector("openclaw-lobster-pet") as BrowserLobsterPet;
+        pet.mode = "idle";
+        await pet.updateComplete;
+      });
 
-    const droop = page.locator(".lobster-pet--act-droop");
-    expect(await droop.count()).toBe(1);
-    await page.clock.runFor(1_599);
-    await settlePet();
-    expect(await droop.count()).toBe(1);
-    await page.clock.runFor(1);
-    await settlePet();
+      const droop = page.locator(".lobster-pet--act-droop");
+      expect(await droop.count()).toBe(1);
+      await page.clock.runFor(1_599);
+      await settlePet();
+      expect(await droop.count()).toBe(1);
+      await page.clock.runFor(1);
+      await settlePet();
 
-    const sweep = page.locator(".lobster-pet--act-sweep");
-    expect(await sweep.count()).toBe(1);
-    await page.clock.runFor(1_799);
-    await settlePet();
-    expect(await sweep.count()).toBe(1);
-    await page.clock.runFor(1);
-    await settlePet();
+      const sweep = page.locator(".lobster-pet--act-sweep");
+      expect(await sweep.count()).toBe(1);
+      await page.clock.runFor(1_799);
+      await settlePet();
+      expect(await sweep.count()).toBe(1);
+      await page.clock.runFor(1);
+      await settlePet();
 
-    expect(await page.locator(".lobster-pet--away").count()).toBe(1);
-    await page.clock.runFor(350);
-    await expect.poll(() => sprite.count()).toBe(0);
-  });
+      expect(await page.locator(".lobster-pet--away").count()).toBe(1);
+      await page.clock.runFor(350);
+      await expect.poll(() => sprite.count()).toBe(0);
+    },
+  );
 
-  it("does not pet after Chromium cancels a sub-threshold touch hold", async () => {
+  itWithPet("does not pet after Chromium cancels a sub-threshold touch hold", async () => {
     await mountPet({ mode: "offline", outcome: "ok", seed: 42 });
     const sprite = page.locator(".lobster-pet");
     await sprite.waitFor();
@@ -104,7 +113,7 @@ suite.define(() => {
     await expect.poll(() => page.locator(".lobster-pet--act-pet").count()).toBe(0);
   });
 
-  it("shows a clickable dismissal menu above the clipped footer ledge", async () => {
+  itWithPet("shows a clickable dismissal menu above the clipped footer ledge", async () => {
     await mountPet({ mode: "offline", outcome: "ok", seed: 42 });
     await page.evaluate(() => {
       const pet = document.querySelector<HTMLElement>("openclaw-lobster-pet");

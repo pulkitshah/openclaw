@@ -1107,7 +1107,11 @@ describe("scoped vitest configs", () => {
 
   it("keeps tooling tests in their own lane", () => {
     const testConfig = requireTestConfig(defaultToolingConfig);
-    expect(testConfig.include).toEqual(["test/**/*.test.ts", "src/scripts/**/*.test.ts"]);
+    expect(testConfig.include).toEqual([
+      "test/**/*.test.ts",
+      "src/scripts/**/*.test.ts",
+      "deploy/**/*.test.ts",
+    ]);
     expect(testConfig.exclude).toEqual(expect.arrayContaining(toolingDockerTestFiles));
     expect(testConfig.exclude).toEqual(expect.arrayContaining(toolingIsolatedTestFiles));
     expect(testConfig.include).not.toContain("src/config/doc-baseline.integration.test.ts");

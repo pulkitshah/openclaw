@@ -43,10 +43,12 @@ suite.define(() => {
         .toBe(DEV_BRANCH);
 
       const colors = await badge.evaluate((element) => {
-        // Compare resolved colors: getComputedStyle().color returns rgb() while
-        // the raw --danger token may be hex/oklch, so resolve it via a probe.
+        // Compare resolved colors: getComputedStyle().color returns rgb()
+        // while the raw token may be hex/oklch, so resolve it via a probe.
+        // Label text takes --danger-text, the AA-safe ink; --danger itself is
+        // the mark hue and only paints dots, bars and icons.
         const probe = document.createElement("span");
-        probe.style.color = "var(--danger)";
+        probe.style.color = "var(--danger-text)";
         element.append(probe);
         const danger = getComputedStyle(probe).color;
         probe.remove();

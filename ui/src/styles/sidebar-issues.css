@@ -186,13 +186,18 @@
   padding-block: 8px 11px;
 }
 
+/* The list well takes the content surface, not the panel's elevated one: the
+   sheet header shares --secondary with the panel, and on dark paper --secondary
+   and --bg-elevated are the same Surface-2 step, so the header would dissolve
+   into the list. --card and --bg-elevated are one colour on light paper, so
+   this only restores the dark seam. */
 .sidebar-issues-panel__list-wrap {
   position: relative;
   display: flex;
   min-height: 0;
   flex: 1 1 auto;
   overflow: hidden;
-  background: var(--bg-elevated);
+  background: var(--card);
 }
 
 .sidebar-issues-panel__list {
@@ -278,12 +283,12 @@
 
 .sidebar-issues-panel__overflow-cue--top {
   inset-block-start: 0;
-  background: linear-gradient(to bottom, var(--bg-elevated), transparent);
+  background: linear-gradient(to bottom, var(--card), transparent);
 }
 
 .sidebar-issues-panel__overflow-cue--bottom {
   inset-block-end: 0;
-  background: linear-gradient(to bottom, transparent, var(--bg-elevated));
+  background: linear-gradient(to bottom, transparent, var(--card));
 }
 
 .sidebar-issues-panel__update {

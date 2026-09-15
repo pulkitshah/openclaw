@@ -273,7 +273,12 @@ suite.define(() => {
         .toContain("separate from this Control UI build");
 
       const hero = page.locator(".about-hero");
-      await expect.poll(() => hero.locator(".about-hero__name").textContent()).toBe("Vasudev");
+      // The hero name is the <vasu-wordmark> lockup: its two spans live in a
+      // shadow root, so the heading carries no text node. The element is
+      // role="img" with the full name, which is what a reader gets.
+      await expect
+        .poll(() => hero.locator(".about-hero__name vasu-wordmark").getAttribute("aria-label"))
+        .toBe("Vasudev");
       await expect
         .poll(() => hero.locator(".about-hero__version").textContent())
         .toBe("v2026.7.10");

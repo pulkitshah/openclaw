@@ -57,7 +57,7 @@ func translationPrompt(srcLang, tgtLang string, glossary []GlossaryEntry) string
 }
 
 var alwaysProtectedProductNames = []string{
-	"OpenClaw", "Raspberry Pi", "WhatsApp", "Telegram", "Discord", "iMessage", "Slack", "Microsoft Teams", "Google Chat", "Signal",
+	"OpenClaw", "Vasudev", "Raspberry Pi", "WhatsApp", "Telegram", "Discord", "iMessage", "Slack", "Microsoft Teams", "Google Chat", "Signal",
 }
 
 var contextualProtectedProductNames = []string{

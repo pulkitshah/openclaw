@@ -1,5 +1,6 @@
 // Setup completion helpers render completion instructions after onboarding.
 import { CLI_NAME } from "../cli/cli-name.js";
+import { formatCliCommand } from "../cli/command-format.js";
 import {
   findCompletionProfileWriteError,
   formatCompletionReloadCommand,
@@ -73,7 +74,7 @@ export async function setupWizardShellCompletion(params: {
     if (!cacheGenerated) {
       await params.prompter.note(
         t("wizard.completion.cacheFailed", {
-          command: `${cliName} completion --write-state --install`,
+          command: formatCliCommand(`${cliName} completion --write-state --install`),
         }),
         t("wizard.completion.title"),
       );

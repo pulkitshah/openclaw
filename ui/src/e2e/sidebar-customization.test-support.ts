@@ -76,6 +76,9 @@ export async function openSidebarCustomizationPage(
   const page = await context.newPage();
   await installMockGateway(page);
   await page.goto(`${suite.server.baseUrl}chat`);
-  await page.waitForFunction(() => Boolean(customElements.get("openclaw-lobster-pet")));
+  // Wait for the sidebar itself, not the decorative pet: FEATURES.lobsterDex is
+  // off, so its module is never scheduled and its element is never defined.
+  await page.waitForFunction(() => Boolean(customElements.get("openclaw-app-sidebar")));
+  await page.locator("openclaw-app-sidebar .sidebar-nav__head-action").waitFor();
   return { context, page };
 }

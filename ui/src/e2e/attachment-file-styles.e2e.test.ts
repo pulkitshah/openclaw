@@ -104,7 +104,9 @@ suite.define(() => {
           const title = card.querySelector(".chat-assistant-attachment-card__title")!;
           return {
             color: getComputedStyle(card).color,
-            danger: getComputedStyle(card).getPropertyValue("--danger").trim(),
+            // A definitive failure paints label text, so it takes the AA-safe
+            // --danger-text ink rather than the --danger mark hue.
+            danger: getComputedStyle(card).getPropertyValue("--danger-text").trim(),
             iconColor: getComputedStyle(icon).color,
             statusColor: getComputedStyle(metadata).color,
             opacity: getComputedStyle(icon).opacity,

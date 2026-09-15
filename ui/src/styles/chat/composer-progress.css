@@ -830,10 +830,9 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .session-progress-card__summary:hover
-    :is(.session-progress-card__summary-title, .session-progress-card__current) {
-    color: var(--text-strong);
-  }
+  /* The title and the current step already sit on the one body ink the brand
+     defines per mode, so there is no brighter step to hover to. The heading
+     actions, count and chevron below carry the hover affordance instead. */
 
   .session-progress-card__summary:hover
     :is(

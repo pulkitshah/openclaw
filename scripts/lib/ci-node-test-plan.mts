@@ -2299,7 +2299,13 @@ function listCompactToolingTestFiles(): string[] {
     TOOLING_DOCKER_TEST_FILE,
     ...toolingIsolatedTestFiles,
   ]);
-  return [...listTestFiles("test"), ...listTestFiles("src/scripts")].filter(
+  // deploy/** joined the tooling config's include list, so the compact plan has
+  // to enumerate the same three roots or the shard loses those files.
+  return [
+    ...listTestFiles("test"),
+    ...listTestFiles("src/scripts"),
+    ...listTestFiles("deploy"),
+  ].filter(
     (file) =>
       !file.startsWith("test/fixtures/") &&
       !file.endsWith(".e2e.test.ts") &&

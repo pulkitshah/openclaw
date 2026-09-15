@@ -132,7 +132,9 @@ suite.define(() => {
     );
     await page.evaluate(() => document.fonts.ready);
     expect(new Set(fontRequests())).toEqual(
-      new Set(["dm-sans.css 200", "fraunces.css 200", "jetbrains-mono.css 200"]),
+      // index.html links the Khand display face and Space Mono before first
+      // paint; the theme adds only its own body and chat faces.
+      new Set(["dm-sans.css 200", "fraunces.css 200", "khand.css 200", "space-mono.css 200"]),
     );
     const families = () =>
       preview.evaluate((panel) => ({
@@ -154,7 +156,9 @@ suite.define(() => {
     await captureTypography(page, "picker-default");
     await openPicker(ui);
     await ui.locator('[role="option"][data-value="geist"]').waitFor({ state: "visible" });
-    await expect.poll(() => fontRequests().length).toBe(9);
+    // Opening the picker loads a specimen for each of the nine selectable
+    // faces, on top of the Khand and Space Mono faces index.html already links.
+    await expect.poll(() => fontRequests().length).toBe(11);
     await captureTypography(page, "picker-specimens");
     await selectPickerValue(ui, "geist");
     await expect.poll(async () => (await families()).ui).toContain("Geist");
@@ -194,27 +198,82 @@ suite.define(() => {
     ).toEqual(["", ""]);
   });
 
+  // The code column is the face the theme's own --mono names: base.css says
+  // Space Mono, and the two terminal themes (public/themes/crt.css,
+  // phosphor.css) redeclare it as their JetBrains Mono. The display column is
+  // --font-display: Khand for every theme except manuscript, rose and miami,
+  // which point it back at their own body face.
   it.each([
-    ["claw", "Instrument Sans", "Instrument Sans", ["instrument-sans"], "antialiased"],
-    ["knot", "Geist", "Geist", ["geist"], "antialiased"],
-    ["dash", "DM Sans", "Fraunces", ["dm-sans", "fraunces"], "auto"],
-    ["absolutely", "Space Grotesk", "Lora", ["space-grotesk", "lora"], "auto"],
-    ["tide", "IBM Plex Sans", "IBM Plex Sans", ["ibm-plex-sans"], "antialiased"],
+    [
+      "claw",
+      "Instrument Sans",
+      "Instrument Sans",
+      "Space Mono",
+      "Khand",
+      ["instrument-sans"],
+      "antialiased",
+    ],
+    ["knot", "Geist", "Geist", "Space Mono", "Khand", ["geist"], "antialiased"],
+    ["dash", "DM Sans", "Fraunces", "Space Mono", "Khand", ["dm-sans", "fraunces"], "auto"],
+    [
+      "absolutely",
+      "Space Grotesk",
+      "Lora",
+      "Space Mono",
+      "Khand",
+      ["space-grotesk", "lora"],
+      "auto",
+    ],
+    [
+      "tide",
+      "IBM Plex Sans",
+      "IBM Plex Sans",
+      "Space Mono",
+      "Khand",
+      ["ibm-plex-sans"],
+      "antialiased",
+    ],
     [
       "beacon",
       "Atkinson Hyperlegible Next",
       "Atkinson Hyperlegible Next",
+      "Space Mono",
+      "Khand",
       ["atkinson-hyperlegible"],
       "antialiased",
     ],
-    ["phosphor", "JetBrains Mono", "JetBrains Mono", ["jetbrains-mono"], "antialiased"],
-    ["crt", "JetBrains Mono", "JetBrains Mono", ["jetbrains-mono"], "antialiased"],
-    ["manuscript", "Lora", "Lora", ["lora"], "auto"],
-    ["rose", "DM Sans", "DM Sans", ["dm-sans"], "antialiased"],
-    ["miami", "Space Grotesk", "Space Grotesk", ["space-grotesk"], "antialiased"],
+    [
+      "phosphor",
+      "JetBrains Mono",
+      "JetBrains Mono",
+      "JetBrains Mono",
+      "Khand",
+      ["jetbrains-mono"],
+      "antialiased",
+    ],
+    [
+      "crt",
+      "JetBrains Mono",
+      "JetBrains Mono",
+      "JetBrains Mono",
+      "Khand",
+      ["jetbrains-mono"],
+      "antialiased",
+    ],
+    ["manuscript", "Lora", "Lora", "Space Mono", "Lora", ["lora"], "auto"],
+    ["rose", "DM Sans", "DM Sans", "Space Mono", "DM Sans", ["dm-sans"], "antialiased"],
+    [
+      "miami",
+      "Space Grotesk",
+      "Space Grotesk",
+      "Space Mono",
+      "Space Grotesk",
+      ["space-grotesk"],
+      "antialiased",
+    ],
   ] as const)(
     "paints %s chrome and chat prose in its own faces",
-    async (theme, body, chat, faces, chatSmoothing) => {
+    async (theme, body, chat, code, display, faces, chatSmoothing) => {
       const timestamp = Date.now();
       const text =
         "Typography carries the theme: chat prose renders in the reading face while chrome, chips, and code keep their own: `const example = 1`.";
@@ -279,12 +338,12 @@ suite.define(() => {
       );
       expect(report.bodyFontFamily).toBe(body);
       expect(report.chatFontFamily).toBe(chat);
-      expect(report.codeFontFamily).toBe("Space Mono");
+      expect(report.codeFontFamily).toBe(code);
       // Serif chat faces opt out of the app-wide `antialiased` thinning
       // (applyChatFontSmoothing) so their hairlines stay crisp.
       expect(report.chatFontSmoothing).toBe(chatSmoothing);
-      // Mono glyphs on the page pull the always-declared Space Mono face.
-      expect(new Set(report.loaded)).toEqual(new Set([body, chat, "Space Mono"]));
+      // Every page paints its display face alongside body, chat and code.
+      expect(new Set(report.loaded)).toEqual(new Set([body, chat, code, display]));
       expect(themeRequests.every((entry) => entry.endsWith(" 200"))).toBe(true);
 
       await captureTypography(page, `${theme}-chat-dark`);
@@ -606,8 +665,9 @@ suite.define(() => {
         ],
       });
     };
-    const pageColor = "#faf9f7";
-    const chatColor = "#f4f1ec";
+    // The light-mode --bg and --bg-content steps of the Vasudev paper palette.
+    const pageColor = "#f7f7f9";
+    const chatColor = "#f2f2f5";
     await expectChrome(chatColor);
 
     // Use the shell's actual shortcut and browser history without rebuilding the runtime.

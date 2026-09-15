@@ -413,7 +413,7 @@ async function main() {
           "-nolisten",
           "tcp",
           "-desktop",
-          "OpenClaw resize proof",
+          "Vasudev resize proof",
         ]),
       );
       await waitFor(() => tcpReady(port));
@@ -443,7 +443,7 @@ async function main() {
           "xterm",
           [
             "-title",
-            "OpenClaw resize proof",
+            "Vasudev resize proof",
             "-geometry",
             "100x30+0+0",
             "-fa",
