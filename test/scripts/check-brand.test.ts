@@ -808,6 +808,44 @@ describe("protected tokens (values that cross a boundary this rebrand does not o
     expect(count).toBe(1);
   });
 
+  it("never rewrites a header name named inside a sentence the reader is told to send", () => {
+    // src/gateway/server/hooks-request-handler.ts refuses a query-string token
+    // and names the header to use instead. The Gateway only ever reads
+    // `x-openclaw-token`, so renaming the sentence would hand the reader a
+    // header the server ignores.
+    const content = [
+      "const refusal =",
+      '  "Hook token must be provided via Authorization: Bearer <token> or X-OpenClaw-Token header (query parameters are not allowed).";',
+      'const note = "OpenClaw rejects query-string tokens.";',
+    ].join("\n");
+    const { content: rewritten, count } = rewriteTypeScriptContent(
+      content,
+      "src/gateway/server/hooks-request-handler.ts",
+    );
+    expect(rewritten).toContain("X-OpenClaw-Token header");
+    expect(rewritten).toContain('"Vasudev rejects query-string tokens."');
+    expect(count).toBe(1);
+  });
+
+  it("never rewrites a node client-identity literal, but still renames a hyphenated adjective", () => {
+    // src/shared/node-match.ts classifies a paired node as the current app with
+    // `clientId.toLowerCase().startsWith("openclaw-")`; the desktop, iOS and
+    // Android clients announce those ids on the wire.
+    const content = [
+      'const nodes = ["clawdbot-macos", " OpenClaw-MacOS "];',
+      'const ios = "OpenClaw-iOS";',
+      'const why = "Rejects an OpenClaw-managed host that is not paired.";',
+    ].join("\n");
+    const { content: rewritten, count } = rewriteTypeScriptContent(
+      content,
+      "src/shared/node-match.test.ts",
+    );
+    expect(rewritten).toContain('" OpenClaw-MacOS "');
+    expect(rewritten).toContain('"OpenClaw-iOS"');
+    expect(rewritten).toContain('"Rejects a Vasudev-managed host that is not paired."');
+    expect(count).toBe(1);
+  });
+
   it("never rewrites a real repository or bundle path segment", () => {
     const content = [
       "// Mirrors apps/macos/Sources/OpenClaw/AppProfile.swift so both surfaces agree.",

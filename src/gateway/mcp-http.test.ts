@@ -3950,7 +3950,7 @@ describe("mcp loopback server", () => {
         socket.once("close", resolve);
       });
       const headers = (framing: string) =>
-        `POST /mcp HTTP/1.1\r\nHost: localhost\r\nAuthorization: Bearer ${runtime.ownerToken}\r\nContent-Type: application/json\r\nX-Vasudev-Cli-Capture-Key: ${captureKey}\r\n${framing}\r\n\r\n`;
+        `POST /mcp HTTP/1.1\r\nHost: localhost\r\nAuthorization: Bearer ${runtime.ownerToken}\r\nContent-Type: application/json\r\nX-OpenClaw-Cli-Capture-Key: ${captureKey}\r\n${framing}\r\n\r\n`;
       const call = Buffer.from(mcpToolCallBody("message", { text: "🦞" }));
       try {
         if (mode === "exact-size") {

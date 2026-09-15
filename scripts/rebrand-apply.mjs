@@ -258,6 +258,19 @@ const PROTECTED_TOKEN_RULES = [
     pattern: /(?<=\b[A-Za-z][A-Za-z0-9]*-)OpenClaw(?=-[A-Za-z0-9])/g,
   },
   {
+    // A node/client identity token: a string literal whose *entire* content is
+    // one hyphenated `OpenClaw-<Segment>` identifier. `src/shared/node-match.ts`
+    // classifies a paired node as the current app with
+    // `clientId.toLowerCase().startsWith("openclaw-")`, and the desktop, iOS and
+    // Android clients each announce themselves with one of these ids on the
+    // wire, so the token is a value the rebrand does not own. Anchored to the
+    // literal's own quotes (inner padding allowed, because the matcher trims)
+    // so a hyphenated *adjective* inside a sentence — "an OpenClaw-managed
+    // host" — is still ordinary prose and still renames.
+    name: "client-identity-literal",
+    pattern: /(?<=^["'`][ \t]*)OpenClaw(?=-[A-Za-z0-9]+[ \t]*["'`]$)/g,
+  },
+  {
     // The canonical upstream GitHub owner/repo slug. `openclaw/openclaw` is
     // lowercase and never matched, but the capitalized slug appears in clone
     // URLs and derived project keys (`github.com/OpenClaw/OpenClaw`), which
