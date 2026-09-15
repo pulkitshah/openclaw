@@ -303,7 +303,7 @@
 
 .about-licences__summary {
   color: var(--ink-2);
-  cursor: pointer;
+  cursor: var(--cursor-action);
   font-size: 0.75rem;
   letter-spacing: 0.7px;
   text-transform: uppercase;
