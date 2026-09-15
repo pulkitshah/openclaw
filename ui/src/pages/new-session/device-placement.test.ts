@@ -89,9 +89,9 @@ describe("device placement projection", () => {
       environment: node({ issues: [updateIssue] }),
       selectable: false,
       reason:
-        "Update required: run vasudev update, then reconnect. For a headless node, run vasudev node restart.",
+        "Update required: run openclaw update, then reconnect. For a headless node, run openclaw node restart.",
       facts: [
-        "Update required: run vasudev update, then reconnect. For a headless node, run vasudev node restart.",
+        "Update required: run openclaw update, then reconnect. For a headless node, run openclaw node restart.",
         "macOS",
         "Camera",
       ],

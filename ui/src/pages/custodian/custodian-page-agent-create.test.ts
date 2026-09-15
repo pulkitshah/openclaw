@@ -151,7 +151,7 @@ describe("custodian new-agent flow", () => {
     expect(calls).toEqual(["agent:researcher", "session:agent:researcher:main"]);
     expect(context.navigate).toHaveBeenCalledWith("chat", {
       pathname: "/chat/researcher",
-      search: "?draft=Wake%20up%2C%20my%20friend!",
+      search: "?draft=Wake%20up%2C%20my%20friend.",
     });
   });
 
