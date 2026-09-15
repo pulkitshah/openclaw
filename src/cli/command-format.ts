@@ -19,7 +19,10 @@ const CONTAINER_HINT_RE = /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}$/;
 // literal, so normalizing it here is what keeps every displayed command
 // on-brand instead of scattering the alias through call sites. Both names
 // are real bins, so the rendered command still runs.
-const CLI_BINARY_TOKEN_RE = /^((?:pnpm|npm|bunx|npx)\s+)?openclaw\b/;
+// The lookahead is a space or end of string, not `\b`: a word boundary also sits
+// between `openclaw` and a hyphen, which would rename `openclaw-tui` and every
+// other hyphenated package or helper name.
+const CLI_BINARY_TOKEN_RE = /^((?:pnpm|npm|bunx|npx)\s+)?openclaw(?=\s|$)/;
 
 /** Swap a leading real-binary token for the displayed product alias. */
 export function applyCliDisplayName(command: string): string {
