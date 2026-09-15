@@ -22,14 +22,14 @@ For custom servers, leave room for the full Vasudev prompt, tools, history, and 
 
 ## Pick a backend
 
-| Backend                                              | Use when                                                                          |
-| ---------------------------------------------------- | --------------------------------------------------------------------------------- |
-| [ds4](/providers/ds4)                                | Local DeepSeek V4 Flash on macOS Metal with OpenAI-compatible tool calls          |
-| LiteLLM / OAI-proxy / custom OpenAI-compatible proxy | You front another model API and need Vasudev to treat it as OpenAI                |
+| Backend                                              | Use when                                                                         |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------- |
+| [ds4](/providers/ds4)                                | Local DeepSeek V4 Flash on macOS Metal with OpenAI-compatible tool calls         |
+| LiteLLM / OAI-proxy / custom OpenAI-compatible proxy | You front another model API and need Vasudev to treat it as OpenAI               |
 | [llama.cpp](/plugins/llama-cpp)                      | Hardware-aware model selection, verified downloads, and a Vasudev-managed server |
-| [LM Studio](/providers/lmstudio)                     | First-time local setup, GUI loader, native Responses API                          |
-| MLX / vLLM / SGLang                                  | High-throughput self-hosted serving with an OpenAI-compatible HTTP endpoint       |
-| [Ollama](/providers/ollama)                          | CLI workflow, model library, hands-off systemd service                            |
+| [LM Studio](/providers/lmstudio)                     | First-time local setup, GUI loader, native Responses API                         |
+| MLX / vLLM / SGLang                                  | High-throughput self-hosted serving with an OpenAI-compatible HTTP endpoint      |
+| [Ollama](/providers/ollama)                          | CLI workflow, model library, hands-off systemd service                           |
 
 Use `api: "openai-responses"` when the backend supports it (LM Studio does). Otherwise use `api: "openai-completions"`. If `api` is omitted on a custom provider with a `baseUrl`, Vasudev defaults to `openai-completions`.
 
