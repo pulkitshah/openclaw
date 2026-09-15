@@ -33,8 +33,9 @@ type AboutProps = {
 
 const SHORT_COMMIT_LENGTH = 12;
 
-// Docs-first where a docs page exists; GitHub/Discord match the native
-// macOS/iOS About screens (AboutSettings.swift, SettingsProTabSections.swift).
+// Upstream project links. They render only inside the Licences panel: the
+// notice text and these links are the one place the product names the
+// upstream project (spec section 2b).
 const ABOUT_LINKS: ReadonlyArray<{ href: string; icon: TemplateResult; label: () => string }> = [
   { href: "https://openclaw.ai", icon: icons.globe, label: () => t("aboutPage.linkWebsite") },
   { href: "https://docs.openclaw.ai", icon: icons.book, label: () => t("aboutPage.linkDocs") },
@@ -170,21 +171,6 @@ function renderHero(props: AboutProps) {
           ? html`<code class="about-hero__version" dir="ltr">v${props.buildInfo.version}</code>`
           : nothing
       }
-      <nav class="about-hero__links" aria-label=${t("aboutPage.linksLabel")}>
-        ${ABOUT_LINKS.map(
-          (link) => html`
-            <a
-              class="about-hero__link"
-              href=${link.href}
-              target=${EXTERNAL_LINK_TARGET}
-              rel=${buildExternalLinkRel()}
-            >
-              <span class="about-hero__link-icon" aria-hidden="true">${link.icon}</span>
-              <span>${link.label()}</span>
-            </a>
-          `,
-        )}
-      </nav>
     </section>
   `;
 }
@@ -210,6 +196,21 @@ function renderLicences(props: AboutProps) {
           ? html`<pre class="about-licences__notice" dir="ltr">${props.licenceNotice}</pre>`
           : html`<p class="muted">${t("aboutPage.unavailable")}</p>`
       }
+      <nav class="about-hero__links about-licences__links" aria-label=${t("aboutPage.linksLabel")}>
+        ${ABOUT_LINKS.map(
+          (link) => html`
+            <a
+              class="about-hero__link"
+              href=${link.href}
+              target=${EXTERNAL_LINK_TARGET}
+              rel=${buildExternalLinkRel()}
+            >
+              <span class="about-hero__link-icon" aria-hidden="true">${link.icon}</span>
+              <span>${link.label()}</span>
+            </a>
+          `,
+        )}
+      </nav>
     </details>
   `;
 }

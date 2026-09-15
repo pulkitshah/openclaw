@@ -55,7 +55,12 @@ describe("renderAbout", () => {
     clawd?.click();
     expect(onPokeClawd).toHaveBeenCalledOnce();
 
-    const links = Array.from(hero?.querySelectorAll<HTMLAnchorElement>(".about-hero__link") ?? []);
+    // Upstream links live only inside the Licences panel (spec section 2b).
+    expect(hero?.querySelector(".about-hero__link")).toBeNull();
+    const licences = container.querySelector(".about-licences");
+    const links = Array.from(
+      licences?.querySelectorAll<HTMLAnchorElement>(".about-hero__link") ?? [],
+    );
     expect(links.map((link) => link.getAttribute("href"))).toEqual([
       "https://openclaw.ai",
       "https://docs.openclaw.ai",
