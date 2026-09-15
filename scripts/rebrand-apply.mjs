@@ -1584,6 +1584,14 @@ export function collectTargetFiles(cwd, { includeTests = false } = {}) {
   }
   files.add("README.md");
   files.add("docs/docs.json");
+  // Workspace skills the Gateway loads at runtime
+  // (src/skills/loading/workspace-skill-loader.ts): an agent follows this prose
+  // and sends some of it — a channel test message — to the operator's real
+  // chat, so it is product copy. Markdown, so fenced blocks and code spans keep
+  // their commands and the prose around them renames.
+  for (const file of gitLsFiles(cwd, ["custodian-skills/*.md"])) {
+    files.add(file);
+  }
   for (const file of gitLsFiles(cwd, ["extensions/*/openclaw.plugin.json"])) {
     if (/^extensions\/[^/]+\/openclaw\.plugin\.json$/.test(file)) {
       files.add(file);

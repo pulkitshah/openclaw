@@ -10,12 +10,12 @@ This playbook is read-only: no config writes, no service restarts, no `doctor --
 ## Gather
 
 ```
-openclaw doctor --lint
-openclaw gateway status --deep
-openclaw config validate
-openclaw channels status
-openclaw models status
-openclaw channels logs --channel <id>
+vasudev doctor --lint
+vasudev gateway status --deep
+vasudev config validate
+vasudev channels status
+vasudev models status
+vasudev channels logs --channel <id>
 ```
 
 `doctor --lint` is read-only and can exit `1` for findings: read the report and continue the remaining checks. Do not substitute ordinary `doctor` or `doctor --non-interactive`; they can copy legacy config and migrate state without `--fix`.
@@ -38,15 +38,15 @@ Nothing. Do not change config, migrate state, or alter services. Diagnostic comm
 
 ## Repair
 
-Translate each finding into the next action, naming the responsible skill when one exists: `configure-channel`, `add-model-provider`, or `cloud-image-bake`. Recommend `openclaw doctor --fix --non-interactive` only as a separately approved step.
+Translate each finding into the next action, naming the responsible skill when one exists: `configure-channel`, `add-model-provider`, or `cloud-image-bake`. Recommend `vasudev doctor --fix --non-interactive` only as a separately approved step.
 
 ## Prove
 
 Repeat the smallest read-only probe that exposes the condition and record its output, for example:
 
 ```
-openclaw gateway status --deep
-openclaw channels status --probe
+vasudev gateway status --deep
+vasudev channels status --probe
 ```
 
 If access, logs, or the gateway are unavailable, report that exact blocker rather than declaring a cause.

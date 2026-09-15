@@ -538,6 +538,22 @@ describe("collectTargetFiles", () => {
     expect(collectLocaleFiles(rootDir)).toEqual(["ui/src/i18n/locales/de.ts"]);
   });
 
+  it("resolves the workspace custodian skills the Gateway loads at runtime", () => {
+    const rootDir = createFixtureRepo({
+      "README.md": "# OpenClaw\n",
+      "src/channels/plugins/pairing-message.ts": 'export const X = "no brand text here";\n',
+      "extensions/telegram/src/bot-message-context.session.ts": "export const Y = 1;\n",
+      "extensions/bonjour/src/advertiser.ts": "export const Z = 1;\n",
+      "custodian-skills/configure-channel/SKILL.md": "Send an OpenClaw channel test.\n",
+      "custodian-skills/diagnose-gateway/SKILL.md": "Read the OpenClaw gateway log.\n",
+    });
+
+    const files = collectTargetFiles(rootDir);
+
+    expect(files).toContain("custodian-skills/configure-channel/SKILL.md");
+    expect(files).toContain("custodian-skills/diagnose-gateway/SKILL.md");
+  });
+
   it("resolves the packed Chrome extension's user-visible files and excludes a nested fixture copy", () => {
     const rootDir = createFixtureRepo({
       "README.md": "# OpenClaw\n",

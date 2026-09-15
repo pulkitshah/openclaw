@@ -5,12 +5,12 @@ description: Bake, select, prove, and safely retire a Cloud Worker image with cr
 
 # Bake a Cloud Worker image
 
-Never print or persist secret values; provider credentials stay in their stores. Never hand-edit config files on disk — profile changes go through `openclaw config`. Every run ends with the observable Prove result or an exact explanation of why it could not be proven. Snapshots are cheap; unmanaged snapshot sprawl is not. Never delete a provider image without hard operator confirmation.
+Never print or persist secret values; provider credentials stay in their stores. Never hand-edit config files on disk — profile changes go through `vasudev config`. Every run ends with the observable Prove result or an exact explanation of why it could not be proven. Snapshots are cheap; unmanaged snapshot sprawl is not. Never delete a provider image without hard operator confirmation.
 
 ## Gather
 
 ```
-openclaw config get cloudWorkers --json
+vasudev config get cloudWorkers --json
 crabbox config show --json
 crabbox doctor --provider <backend> --json
 crabbox checkpoint list --json
@@ -36,9 +36,9 @@ Snapshot per backend:
 Point the profile at the new selection only through validated config writes — confirm the exact key first, dry-run, then write (example for a backend whose settings carry an image field):
 
 ```
-openclaw config schema --json | jq '.properties.cloudWorkers'
-openclaw config set cloudWorkers.profiles.<profile>.settings.<imageKey> "<image-id>" --dry-run
-openclaw config set cloudWorkers.profiles.<profile>.settings.<imageKey> "<image-id>"
+vasudev config schema --json | jq '.properties.cloudWorkers'
+vasudev config set cloudWorkers.profiles.<profile>.settings.<imageKey> "<image-id>" --dry-run
+vasudev config set cloudWorkers.profiles.<profile>.settings.<imageKey> "<image-id>"
 ```
 
 The bundled crabbox profile currently has no `image` settings key — AWS selection lives in `crabbox image promote`; never invent a config field. Preserve the old image until proof passes.
@@ -46,11 +46,11 @@ The bundled crabbox profile currently has no `image` settings key — AWS select
 ## Repair
 
 ```
-openclaw doctor --lint
+vasudev doctor --lint
 crabbox doctor --provider <backend> --json
 ```
 
-`doctor --lint` can exit `1` for findings: read the report and continue the remaining checks. Ordinary `doctor` and `doctor --non-interactive` can write config/state; do not use them for diagnosis before approval. Apply `openclaw doctor --fix --non-interactive` only after explicit approval, then re-read the profile and provider inventory.
+`doctor --lint` can exit `1` for findings: read the report and continue the remaining checks. Ordinary `doctor` and `doctor --non-interactive` can write config/state; do not use them for diagnosis before approval. Apply `vasudev doctor --fix --non-interactive` only after explicit approval, then re-read the profile and provider inventory.
 
 ## Prove
 
@@ -62,7 +62,7 @@ crabbox run --provider <backend> --id <lease> --no-sync -- bash -lc '<tool> --ve
 crabbox stop --provider <backend> --id <lease>
 ```
 
-Record warmup total and compare against the pre-bake timing. Then confirm the OpenClaw path end to end: dispatch one session to the profile from a client (Cloud destination) and verify the placement reaches active. If any step fails, roll back the image selection and report the exact blocker.
+Record warmup total and compare against the pre-bake timing. Then confirm the Vasudev path end to end: dispatch one session to the profile from a client (Cloud destination) and verify the placement reaches active. If any step fails, roll back the image selection and report the exact blocker.
 
 ## Report
 
