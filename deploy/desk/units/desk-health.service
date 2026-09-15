@@ -1,5 +1,5 @@
 [Unit]
-Description=OpenClaw desk health probe
+Description=Vasudev desk health probe
 After=network.target
 
 [Service]

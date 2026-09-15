@@ -3,11 +3,13 @@ import { expectDefined } from "@openclaw/normalization-core";
 import { parseDateStringTimestampMs } from "@openclaw/normalization-core/number-coercion";
 import { html, nothing } from "lit";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import { FEATURES } from "../../../app/brand.ts";
 import { renderHubTabs } from "../../../components/hub-tabs.ts";
 import { lobsterPetSeed } from "../../../components/lobster-pet-contract.ts";
 import { createLobsterPetLook, renderLobsterSvg } from "../../../components/lobster-pet-look.ts";
 import { toSanitizedMarkdownHtml } from "../../../components/markdown.ts";
 import "../../../components/modal-dialog.ts";
+import "../../../components/vasu-orb.ts";
 import { i18n, t } from "../../../i18n/index.ts";
 import { formatUiError } from "../../../lib/format-error.ts";
 import "../../../styles/dreams.css";
@@ -256,13 +258,22 @@ const STARS: {
   { top: 88, left: 18, size: 2, delay: 2.3, hue: "neutral" },
 ];
 
-// The dreams sleeper is the same seeded lobster that visits the sidebar for
-// this agent (eyes closed), so the pet identity carries across surfaces.
+// The sleeper this build ships. With LobsterDex on it is the same seeded
+// lobster that visits the sidebar for this agent (eyes closed), so the pet
+// identity carries across surfaces; otherwise the brand mark sleeps here, in
+// the mood the orb already owns.
 function renderDreamsCameo(agentId: string) {
+  if (!FEATURES.lobsterDex) {
+    return html`
+      <div class="dreams__sleeper"><vasu-orb mood="sleeping" size="160"></vasu-orb></div>
+    `;
+  }
   const look = createLobsterPetLook(lobsterPetSeed(agentId));
   const style = `--lob-shell:${look.palette.shell};--lob-claw:${look.palette.claw}`;
   return html`
-    <div class="dreams__lobster" style=${style}>${renderLobsterSvg(look, { sleeping: true })}</div>
+    <div class="dreams__sleeper dreams__lobster" style=${style}>
+      ${renderLobsterSvg(look, { sleeping: true })}
+    </div>
   `;
 }
 

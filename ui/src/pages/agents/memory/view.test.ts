@@ -3,6 +3,7 @@
 import { expectDefined } from "@openclaw/normalization-core";
 import { render } from "lit";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { FEATURES } from "../../../app/brand.ts";
 import {
   fullDreamingViewAccess,
   installDreamingViewTestTranslations,
@@ -242,22 +243,37 @@ describe("dreaming view", () => {
     viewState = createDreamingViewState();
   });
 
+  it("sleeps the seeded pet cameo when the build ships LobsterDex", () => {
+    FEATURES.lobsterDex = true;
+    try {
+      const container = renderInto(buildProps({}));
+
+      // The sleeper is the seeded pet cameo: eyes closed, pupils hidden.
+      expectElement(container, ".dreams__lobster svg");
+      const closedEyes = container.querySelector<SVGGElement>(".dreams__lobster .lob-eye-closed");
+      expect(closedEyes?.getAttribute("style")).toContain("opacity:1");
+      const openEyes = container.querySelector<SVGGElement>(".dreams__lobster .lob-eye-open");
+      expect(openEyes?.getAttribute("style")).toContain("display:none");
+      expect(
+        container.querySelector<HTMLElement>(".dreams__lobster")?.getAttribute("style"),
+      ).toContain("--lob-shell:");
+      expect(container.querySelector("vasu-orb")).toBeNull();
+    } finally {
+      FEATURES.lobsterDex = false;
+    }
+  });
+
   it("renders the active dream scene chrome and selects another view", () => {
     const onViewStateChange = vi.fn();
     const container = renderInto(
       buildProps({ dreamingOf: "reindexing old chats\u2026", onViewStateChange }),
     );
 
-    expectElement(container, ".dreams__lobster svg");
-
-    // The sleeper is the seeded pet cameo: eyes closed, pupils hidden.
-    const closedEyes = container.querySelector<SVGGElement>(".dreams__lobster .lob-eye-closed");
-    expect(closedEyes?.getAttribute("style")).toContain("opacity:1");
-    const openEyes = container.querySelector<SVGGElement>(".dreams__lobster .lob-eye-open");
-    expect(openEyes?.getAttribute("style")).toContain("display:none");
-    expect(
-      container.querySelector<HTMLElement>(".dreams__lobster")?.getAttribute("style"),
-    ).toContain("--lob-shell:");
+    // The mascot is behind FEATURES.lobsterDex like every other mascot surface,
+    // so this build sleeps the brand orb instead.
+    expect(container.querySelector(".dreams__lobster")).toBeNull();
+    const orb = expectElement(container, ".dreams__sleeper vasu-orb");
+    expect(orb.getAttribute("mood")).toBe("sleeping");
 
     expect(textItems(container, ".dreams__z")).toEqual(["z", "z", "Z"]);
 

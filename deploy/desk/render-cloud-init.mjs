@@ -443,8 +443,9 @@ function main() {
   }
   if (sections.GMAIL_HOOKS) {
     // hooks.enabled requires hooks.token (the Gmail push endpoint's bearer); minted per desk, it
-    // lives only inside the 0600 openclaw.json the service user owns.
-    configSubstitutions.HOOKS_TOKEN = randomBytes(32).toString("base64url");
+    // lives only in the root:root 0600 /etc/openclaw/secrets/hooks-token.env the Gateway unit
+    // hands systemd, and openclaw.json references it as ${HOOKS_TOKEN}.
+    templateValues.HOOKS_TOKEN = randomBytes(32).toString("base64url");
   }
 
   const rendered = renderCloudInit({ profile, configSubstitutions, values: templateValues });

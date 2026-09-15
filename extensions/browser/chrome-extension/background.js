@@ -7,13 +7,13 @@ import {
 import { createPopupMessageHandler } from "./modules/popup-background.js";
 import { createRelayCommandHandler } from "./modules/relay-command-handler.js";
 import { openAuthenticatedRelaySocket } from "./modules/relay-connection.js";
-// OpenClaw extension service worker.
+// Vasudev extension service worker.
 //
-// Thin transport between the OpenClaw extension relay (loopback WebSocket) and
+// Thin transport between the Vasudev extension relay (loopback WebSocket) and
 // chrome.debugger. All CDP target synthesis lives server-side in the relay
 // bridge; this worker owns tab eligibility/access and forwards allowed frames.
-// The OpenClaw tab group is the ACL in selected mode and an ownership marker
-// in all-tabs mode.
+// The relay's tab group (titled by OPENCLAW_TAB_GROUP_TITLE) is the ACL in
+// selected mode and an ownership marker in all-tabs mode.
 import {
   ACCESS_MODE_SELECTED,
   createPairingConfigStore,
@@ -335,7 +335,7 @@ function failRelayAuthentication(ws, error) {
     return;
   }
   relayStatusHint =
-    "Relay authentication v2 failed. Update OpenClaw, or re-pair after a relay key rotation.";
+    "Relay authentication v2 failed. Update Vasudev, or re-pair after a relay key rotation.";
   try {
     closeRelaySocket(
       4001,
@@ -469,7 +469,7 @@ async function connectRelay(isConnectionAllowed = () => true) {
           relayAuthenticatedSocket = null;
         } else if (!relayStatusHint) {
           relayStatusHint =
-            "Relay authentication v2 failed. Update OpenClaw, or re-pair after a relay key rotation.";
+            "Relay authentication v2 failed. Update Vasudev, or re-pair after a relay key rotation.";
         }
         setBadge("error");
         scheduleReconnect();
@@ -509,7 +509,7 @@ function handleRelayOpeningDeadline() {
     // The socket may have changed state while the alarm event was queued.
   }
   setBadge("error");
-  relayStatusHint = "Relay authentication v2 timed out. Make sure OpenClaw is up to date.";
+  relayStatusHint = "Relay authentication v2 timed out. Make sure Vasudev is up to date.";
   scheduleReconnect();
 }
 

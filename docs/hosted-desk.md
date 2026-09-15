@@ -164,7 +164,7 @@ The card also says how old its health reading is, and greys the chips out when t
 ## Updating, snapshots, and tearing down
 
 - **Update** a desk in place by rolling it to a newer version — `deploy/desk/README.md`'s Roll section covers the command and how it avoids interrupting a live run.
-- **Snapshot** a desk so you can recreate it quickly later — see that runbook's Snapshot / restore section.
+- **Snapshot** a desk so you can recreate it quickly later — see that runbook's Snapshot / restore section. A snapshot carries the source desk's live secrets — its credential store, and the source desk's own tokens in the cloud-init copy left under `/var/lib/cloud/instances/` — so never provision a client from another client's snapshot. Restore a snapshot only onto the same desk, for the same client, and work through the runbook's restore checklist before that desk takes traffic.
 - **Tear down** a desk you no longer need — see its Tear down section, which also covers revoking the desk's Telegram bot token.
 
 For the full command reference, health-check meaning, log locations, and troubleshooting, see `deploy/desk/README.md`.

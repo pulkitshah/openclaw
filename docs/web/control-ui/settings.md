@@ -36,13 +36,13 @@ The environment adds a 2 px top stripe, an agent-avatar ring, label pills in the
 
 ## Community invitation
 
-The sidebar shows a Discord community invitation by default. Its first appearance waits until sidebar interaction finishes, so it does not move session controls while you use them. Its close button dismisses it for the current browser origin. To hide the invitation for everyone using a Control UI deployment, run this on the Gateway serving that UI:
+The sidebar can show an invitation to the upstream project's Discord community. It is off by default. To offer it to everyone using a Control UI deployment, run this on the Gateway serving that UI:
 
 ```bash
-openclaw config set gateway.controlUi.communityInvite false
+openclaw config set gateway.controlUi.communityInvite true
 ```
 
-After the Gateway applies the change, reload the browser page or reconnect to pick it up. The setting belongs to the Gateway serving the UI, including when that UI connects to a different remote Gateway. Setting it to `false` hides the card even in new browser profiles. Re-enabling it with `true` preserves existing browser-local dismissals.
+Once enabled, the card's first appearance waits until sidebar interaction finishes, so it does not move session controls while you use them. Its close button dismisses it for the current browser origin. After the Gateway applies the change, reload the browser page or reconnect to pick it up. The setting belongs to the Gateway serving the UI, including when that UI connects to a different remote Gateway. Setting it back to `false` hides the card even in new browser profiles, and re-enabling it preserves existing browser-local dismissals.
 
 ## Personal identity
 

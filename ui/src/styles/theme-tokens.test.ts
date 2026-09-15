@@ -133,8 +133,8 @@ const DARK_TOKENS = [
   ["--bg", "#0d0e12"],
   ["--bg-accent", "#131418"],
   ["--bg-elevated", "#1d1f26"],
-  ["--bg-hover", "#1d1f26"],
-  ["--bg-muted", "#1d1f26"],
+  ["--bg-hover", "#242730"],
+  ["--bg-muted", "#242730"],
   ["--card", "#16171c"],
   ["--panel", "#0d0e12"],
   ["--panel-strong", "#1d1f26"],
@@ -176,6 +176,21 @@ const DARK_STATUS_SURFACES = [
   "--panel-hover",
 ] as const;
 const AA_NORMAL_TEXT_MIN = 4.5;
+
+/*
+ * Surface pairs a control stacks: it paints the first and fills its hovered or
+ * keyboard-active state with the second, so one shared value leaves the state
+ * with no fill at all. `ui/src/styles/select-picker.css` is the concrete seam —
+ * the listbox is --bg-elevated and the option's activated/hover fill is
+ * --bg-hover. Pinning each value alone let the whole dark surface ladder
+ * collapse onto one colour without a failing test.
+ */
+const DISTINCT_SURFACE_STEPS = [
+  ["--bg-elevated", "--bg-hover"],
+  ["--bg-elevated", "--bg-muted"],
+] as const;
+/* One rung on the ladder. The shipped dark step is 1.10:1 and light is 1.20:1. */
+const SURFACE_STEP_MIN = 1.05;
 
 function channelLuminance(value: number): number {
   const channel = value / 255;
@@ -504,6 +519,26 @@ describe("Vasudev theme tokens", () => {
       expect(failures).toEqual([]);
     },
   );
+
+  it.each([
+    ["light", LIGHT_SELECTOR],
+    ["dark", DARK_SELECTOR],
+  ] as const)("keeps the stacked %s surfaces a visible step apart", (_mode, selector) => {
+    const tokens = readBlockTokens(selector);
+    const failures: string[] = [];
+    for (const [surface, step] of DISTINCT_SURFACE_STEPS) {
+      const under = tokens.get(surface);
+      const over = tokens.get(step);
+      if (!under || !over) {
+        throw new Error(`${selector} does not declare ${surface} and ${step}`);
+      }
+      const ratio = contrastRatio(under, over);
+      if (ratio < SURFACE_STEP_MIN) {
+        failures.push(`${surface} ${under} vs ${step} ${over} = ${ratio.toFixed(3)}:1`);
+      }
+    }
+    expect(failures).toEqual([]);
+  });
 
   it("keeps every `color:` in ui/src on a status text ink, never on the mark", () => {
     // The mark stays for dots, bars, icons and chart geometry; label text reads

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "OpenClaw",
+  "name": "Vasudev",
   "version": "2.3.0",
-  "description": "Securely relay eligible signed-in Chrome tabs to the local OpenClaw browser automation service.",
+  "description": "Securely relay eligible signed-in Chrome tabs to the local Vasudev browser automation service.",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -19,7 +19,7 @@
   ],
   "background": { "service_worker": "background.js", "type": "module" },
   "action": {
-    "default_title": "OpenClaw",
+    "default_title": "Vasudev",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.png",

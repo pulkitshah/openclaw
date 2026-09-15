@@ -17,7 +17,7 @@ function unpairedLabel(nativeBootstrap) {
   if (nativeBootstrap?.state === "manual_required") {
     return "Manual setup required";
   }
-  return "Waiting for local OpenClaw";
+  return "Waiting for local Vasudev";
 }
 
 async function refresh() {
@@ -42,7 +42,7 @@ async function refresh() {
       ? "Connected"
       : status.state === "connecting"
         ? "Connecting…"
-        : "OpenClaw relay unavailable";
+        : "Vasudev relay unavailable";
   accessMode.textContent = status.accessMode === "selected" ? "Selected tabs" : "All tabs";
   const tab = await activeTab();
   if (tab?.id === undefined) {

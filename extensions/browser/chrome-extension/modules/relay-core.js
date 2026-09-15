@@ -1,8 +1,14 @@
-// Pure helpers for the OpenClaw extension: pairing-string parsing, reconnect
+// Pure helpers for the Vasudev extension: pairing-string parsing, reconnect
 // backoff, and Chrome tab-group color mapping. No chrome.* usage here so the
 // repo's vitest suite can exercise the logic directly.
 
-/** Tab group shown to the user; an ACL in selected mode and an ownership marker in all mode. */
+/**
+ * Tab group shown to the user; an ACL in selected mode and an ownership marker in
+ * all mode. Persisted marker: groups already created in an operator's browser
+ * carry this exact title and `relay-tab-groups.js` matches it to decide access,
+ * so it keeps the pre-rename spelling. Shielded in scripts/rebrand-apply.mjs
+ * ("extension-tab-group-marker").
+ */
 export const OPENCLAW_TAB_GROUP_TITLE = "OpenClaw";
 export const ACCESS_MODE_ALL = "all";
 export const ACCESS_MODE_SELECTED = "selected";

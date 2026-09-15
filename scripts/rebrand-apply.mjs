@@ -101,6 +101,10 @@ export const NAME_RULES = [
 // command tree at runtime from plugin registrations, so there is no static
 // list to import, and an over-broad list is exactly the failure mode this
 // guards against.
+// Every addition needs a `git grep "openclaw <sub>"` pass over non-display
+// positions first: `backup` also opens a persisted git-commit subject in the
+// operator's backup repository, which is why the `git-backup-commit-marker`
+// protected-token rule shields it.
 const CLI_SUBCOMMANDS = [
   "acp",
   "agent",
@@ -307,6 +311,29 @@ const PROTECTED_TOKEN_RULES = [
     // carry the old spelling forever, so the reader must keep matching it.
     name: "git-commit-trailer",
     pattern: /\bOpenClaw-Publication\b/g,
+  },
+  {
+    // The Chrome tab-group title the packed browser extension creates and then
+    // matches (`modules/relay-core.js`, read by `modules/relay-tab-groups.js`).
+    // It is displayed *and* an ACL marker: groups already in an operator's
+    // browser carry the old title, and renaming it drops their access
+    // silently. Anchored to the constant's own declaration so the extension's
+    // ordinary display strings in the same tree still rename.
+    name: "extension-tab-group-marker",
+    pattern: /(?<=OPENCLAW_TAB_GROUP_TITLE = ")OpenClaw(?=")/g,
+  },
+  {
+    // The `openclaw backup <iso>` commit subject the git-backup driver writes
+    // into the *operator's* backup repository, plus the grep that reads it back
+    // (`src/snapshot/git-backup.ts`). `backup` is a real CLI subcommand, so the
+    // displayed-alias rewrite would otherwise treat this persisted marker as a
+    // command example; commits an earlier build wrote keep their subject
+    // forever, and a renamed reader silently stops pushing. Anchored to the
+    // literal's own opening quote and to what follows the marker (a closing
+    // quote, a `${...}` timestamp, or an ISO year) so an ordinary
+    // `openclaw backup create` command example still renames.
+    name: "git-backup-commit-marker",
+    pattern: /(?<=["'`])(?:\^\(openclaw\|vasudev\)|openclaw)(?= backup (?:["'`]|\$\{|\d))/g,
   },
   {
     // A hyphenated HTTP header name whose middle segment is the product name
@@ -1186,9 +1213,9 @@ const EXCLUDED_LITERALS_BY_FILE = new Map([
   ],
   [
     // The pairing guidance printed by the Chrome extension's own
-    // `relay-core.js`. That module is plain JavaScript inside the packed
-    // extension and is not in the allowlist, so its command example still
-    // spells the real binary and the expectation has to match it.
+    // `relay-core.js`. That module is plain JavaScript, so it takes the prose
+    // pass, which never runs the displayed-alias rewrite: the guidance keeps
+    // spelling the real binary and this expectation has to match it.
     "extensions/browser/chrome-extension/modules/relay-core.test.ts",
     new Set(['"openclaw browser extension pair"']),
   ],
@@ -1298,6 +1325,15 @@ const JSON_KEYS_BY_BASENAME = new Map([
   ["docs.json", new Set(["name"])],
 ]);
 
+// The packed Chrome extension's own MV3 manifest, matched by path rather than
+// basename: `manifest.json` elsewhere in this repo is a different schema, and
+// only these three fields are read by a person. `name` is what
+// chrome://extensions and any store listing show, `description` is the listing
+// blurb, and `action.default_title` is the toolbar tooltip. Every other field
+// is machine-read (permissions, file paths, the service-worker entry).
+const CHROME_EXTENSION_MANIFEST_RE = /^extensions\/[^/]+\/chrome-extension\/manifest\.json$/;
+const CHROME_EXTENSION_MANIFEST_KEYS = new Set(["name", "description", "default_title"]);
+
 // The same key can hold prose in one entry and an identifier in another:
 // `name` is the plugin's display name at the manifest root but a CLI command's
 // own name under `cliCommands`, and a `default` is as often a model id, a path
@@ -1327,11 +1363,15 @@ const JSON_LINE_RE = /^(\s*"([A-Za-z0-9_-]+)":\s*)"((?:[^"\\]|\\.)*)"(,?\s*)$/;
  * rewritten, and an allowlisted key whose value is identifier-shaped (a
  * package name, id, URL, path or env var) is left alone as well — see
  * `isIdentifierLikeJsonValue`.
+ *
+ * `keys` is the manifest's basename (resolved through `JSON_KEYS_BY_BASENAME`)
+ * or, for a manifest whose schema is identified by path rather than filename,
+ * the key allowlist itself.
  */
-export function rewriteJsonManifestContent(content, basename) {
-  const allowedKeys = JSON_KEYS_BY_BASENAME.get(basename);
+export function rewriteJsonManifestContent(content, keys) {
+  const allowedKeys = keys instanceof Set ? keys : JSON_KEYS_BY_BASENAME.get(keys);
   if (!allowedKeys) {
-    throw new Error(`rewriteJsonManifestContent: no brand key allowlist for "${basename}"`);
+    throw new Error(`rewriteJsonManifestContent: no brand key allowlist for "${keys}"`);
   }
   let count = 0;
   const lines = content.split("\n").map((line) => {
@@ -1375,6 +1415,9 @@ export function rewriteLocaleContent(content) {
 /** Dispatches one file to the TypeScript-aware, prose, or JSON-field rewrite by its path/basename. */
 export function rewriteFileContent(relativePath, content, { includeTests = false } = {}) {
   const basename = path.basename(relativePath);
+  if (CHROME_EXTENSION_MANIFEST_RE.test(relativePath)) {
+    return rewriteJsonManifestContent(content, CHROME_EXTENSION_MANIFEST_KEYS);
+  }
   if (JSON_KEYS_BY_BASENAME.has(basename)) {
     return rewriteJsonManifestContent(content, basename);
   }
@@ -1501,6 +1544,11 @@ const TYPESCRIPT_AWARE_GLOBS = [
   "ui/src/*.ts",
 ];
 const NESTED_SOURCE_TREE_RE = /^(?:extensions|packages)\/[^/]+\/src\//;
+// Files of the packed Chrome extension that carry user-visible text. Git's
+// `*` crosses `/`, so the globs above also reach nested fixture trees; this
+// pins the shape to `extensions/<plugin>/chrome-extension/[modules/]<file>`.
+const CHROME_EXTENSION_TARGET_RE =
+  /^extensions\/[^/]+\/chrome-extension\/(?:modules\/)?[^/]+\.(?:js|html|json)$/;
 // Many bundled plugins and workspace packages keep their sources at the
 // plugin root instead of under `src/` (`extensions/anthropic/auth.runtime.ts`,
 // `extensions/migrate-hermes/config-mcp.ts`), and their user-facing strings
@@ -1536,6 +1584,14 @@ export function collectTargetFiles(cwd, { includeTests = false } = {}) {
   }
   files.add("README.md");
   files.add("docs/docs.json");
+  // Workspace skills the Gateway loads at runtime
+  // (src/skills/loading/workspace-skill-loader.ts): an agent follows this prose
+  // and sends some of it — a channel test message — to the operator's real
+  // chat, so it is product copy. Markdown, so fenced blocks and code spans keep
+  // their commands and the prose around them renames.
+  for (const file of gitLsFiles(cwd, ["custodian-skills/*.md"])) {
+    files.add(file);
+  }
   for (const file of gitLsFiles(cwd, ["extensions/*/openclaw.plugin.json"])) {
     if (/^extensions\/[^/]+\/openclaw\.plugin\.json$/.test(file)) {
       files.add(file);
@@ -1543,6 +1599,23 @@ export function collectTargetFiles(cwd, { includeTests = false } = {}) {
   }
   for (const file of gitLsFiles(cwd, ["extensions/*/package.json"])) {
     if (/^extensions\/[^/]+\/package\.json$/.test(file)) {
+      files.add(file);
+    }
+  }
+  // The packed Chrome extension is a shipped product surface: its manifest is
+  // read in chrome://extensions and any store listing, and its popup/options
+  // pages and service worker print to the user. Plain `.js`/`.html`, so they
+  // take the prose pass (display strings and comments, never an identifier —
+  // `\b` does not fire inside `addTabToOpenClawGroup`) and never the
+  // displayed-alias rewrite, which keeps the real binary in the command
+  // examples the options page shows. The tab-group title is both display and
+  // an ACL marker and is shielded by `extension-tab-group-marker`.
+  for (const file of gitLsFiles(cwd, [
+    "extensions/*/chrome-extension/*.js",
+    "extensions/*/chrome-extension/*.html",
+    "extensions/*/chrome-extension/manifest.json",
+  ])) {
+    if (CHROME_EXTENSION_TARGET_RE.test(file)) {
       files.add(file);
     }
   }

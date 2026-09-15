@@ -38,7 +38,7 @@ describe("simplified Chrome extension package", () => {
     expect(options).toContain("Automation is paused to protect a pre-upgrade copilot session.");
     expect(options).toContain("Confirm old runs are finished");
     expect(options).toContain("Disconnect and disable automatic setup");
-    expect(options).toContain("Use local OpenClaw");
+    expect(options).toContain("Use local Vasudev");
     expect(popup).toContain("Automation paused; open Settings");
     expect(options).not.toMatch(/copilotSessionRegistryV1|sessionId|sessionKey|deviceToken/u);
   });

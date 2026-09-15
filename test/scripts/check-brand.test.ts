@@ -353,6 +353,74 @@ describe("rewriteJsonManifestContent", () => {
   });
 });
 
+describe("the packed Chrome extension", () => {
+  it("rewrites the manifest's displayed fields and leaves its machine fields alone", () => {
+    const content = [
+      "{",
+      '  "name": "OpenClaw",',
+      '  "description": "Relay signed-in Chrome tabs to the local OpenClaw service.",',
+      '  "background": { "service_worker": "background.js" },',
+      '  "action": { "default_title": "OpenClaw", "default_popup": "popup.html" }',
+      "}",
+    ].join("\n");
+    const { content: rewritten, count } = rewriteFileContent(
+      "extensions/browser/chrome-extension/manifest.json",
+      content,
+    );
+
+    expect(rewritten).toContain('"name": "Vasudev"');
+    expect(rewritten).toContain("the local Vasudev service.");
+    expect(rewritten).toContain('"service_worker": "background.js"');
+    // `default_title` shares its line with `default_popup` here, which the
+    // line-oriented JSON pass does not split, so only the standalone fields
+    // above are counted; the shipped manifest keeps one field per line.
+    expect(count).toBe(2);
+  });
+
+  it("rewrites display strings in its plain JavaScript but never an identifier, a command example, or the tab-group marker", () => {
+    const content = [
+      "// Vasudev extension service worker.",
+      'const hint = "Relay authentication v2 failed. Update OpenClaw, or re-pair.";',
+      "const err = `tab ${id} is restricted or unavailable to OpenClaw`;",
+      'const pair = "Re-run `openclaw browser extension pair` with a Gateway URL.";',
+      'export const OPENCLAW_TAB_GROUP_TITLE = "OpenClaw";',
+      "await removeTabFromOpenClawGroup(tabId);",
+    ].join("\n");
+    const { content: rewritten, count } = rewriteFileContent(
+      "extensions/browser/chrome-extension/modules/relay-core.js",
+      content,
+    );
+
+    expect(rewritten).toContain("Update Vasudev, or re-pair.");
+    expect(rewritten).toContain("unavailable to Vasudev");
+    // The prose pass never runs the displayed-alias rewrite, so a command
+    // example in the packed extension keeps naming the installed binary.
+    expect(rewritten).toContain("`openclaw browser extension pair`");
+    // Displayed *and* an ACL marker: groups already in the operator's browser
+    // carry this title and `relay-tab-groups.js` matches it.
+    expect(rewritten).toContain('OPENCLAW_TAB_GROUP_TITLE = "OpenClaw"');
+    expect(rewritten).toContain("removeTabFromOpenClawGroup");
+    expect(count).toBe(2);
+  });
+
+  it("rewrites the popup and options page copy", () => {
+    const content = [
+      "<title>OpenClaw Browser Settings</title>",
+      "<button id='useLocal'>Use local OpenClaw</button>",
+      "<code>openclaw browser doctor --browser-profile chrome</code>",
+    ].join("\n");
+    const { content: rewritten, count } = rewriteFileContent(
+      "extensions/browser/chrome-extension/options.html",
+      content,
+    );
+
+    expect(rewritten).toContain("<title>Vasudev Browser Settings</title>");
+    expect(rewritten).toContain("Use local Vasudev");
+    expect(rewritten).toContain("<code>openclaw browser doctor --browser-profile chrome</code>");
+    expect(count).toBe(2);
+  });
+});
+
 describe("collectTargetFiles", () => {
   it("resolves docs/README/manifest files and excludes nested fixture manifests", () => {
     const rootDir = createFixtureRepo({
@@ -468,6 +536,50 @@ describe("collectTargetFiles", () => {
     expect(guarded).not.toContain(UPSTREAM_LICENCE_NOTICE_FILE);
 
     expect(collectLocaleFiles(rootDir)).toEqual(["ui/src/i18n/locales/de.ts"]);
+  });
+
+  it("resolves the workspace custodian skills the Gateway loads at runtime", () => {
+    const rootDir = createFixtureRepo({
+      "README.md": "# OpenClaw\n",
+      "src/channels/plugins/pairing-message.ts": 'export const X = "no brand text here";\n',
+      "extensions/telegram/src/bot-message-context.session.ts": "export const Y = 1;\n",
+      "extensions/bonjour/src/advertiser.ts": "export const Z = 1;\n",
+      "custodian-skills/configure-channel/SKILL.md": "Send an OpenClaw channel test.\n",
+      "custodian-skills/diagnose-gateway/SKILL.md": "Read the OpenClaw gateway log.\n",
+    });
+
+    const files = collectTargetFiles(rootDir);
+
+    expect(files).toContain("custodian-skills/configure-channel/SKILL.md");
+    expect(files).toContain("custodian-skills/diagnose-gateway/SKILL.md");
+  });
+
+  it("resolves the packed Chrome extension's user-visible files and excludes a nested fixture copy", () => {
+    const rootDir = createFixtureRepo({
+      "README.md": "# OpenClaw\n",
+      "src/channels/plugins/pairing-message.ts": 'export const X = "no brand text here";\n',
+      "extensions/telegram/src/bot-message-context.session.ts": "export const Y = 1;\n",
+      "extensions/bonjour/src/advertiser.ts": "export const Z = 1;\n",
+      "extensions/browser/chrome-extension/manifest.json": '{"name": "OpenClaw"}\n',
+      "extensions/browser/chrome-extension/popup.html": "<h1>OpenClaw Browser</h1>\n",
+      "extensions/browser/chrome-extension/popup.js": 'const s = "OpenClaw relay unavailable";\n',
+      "extensions/browser/chrome-extension/modules/tab-access.js":
+        'const e = "unavailable to OpenClaw";\n',
+      "extensions/browser/chrome-extension/icons/icon16.png": "not-an-icon\n",
+      "extensions/qa-lab/test-fixtures/browser/chrome-extension/popup.js":
+        'const s = "OpenClaw";\n',
+    });
+
+    const files = collectTargetFiles(rootDir);
+
+    expect(files).toContain("extensions/browser/chrome-extension/manifest.json");
+    expect(files).toContain("extensions/browser/chrome-extension/popup.html");
+    expect(files).toContain("extensions/browser/chrome-extension/popup.js");
+    expect(files).toContain("extensions/browser/chrome-extension/modules/tab-access.js");
+    expect(files).not.toContain("extensions/browser/chrome-extension/icons/icon16.png");
+    expect(files).not.toContain(
+      "extensions/qa-lab/test-fixtures/browser/chrome-extension/popup.js",
+    );
   });
 
   it("resolves bundled-plugin and package sources that live at the plugin root, with the same one-segment filter", () => {
@@ -810,6 +922,25 @@ describe("rewriteFileContent (test/fixture and cross-boundary exclusions)", () =
     );
     expect(rewritten).toContain('"# OpenClaw Completion"');
     expect(rewritten).toContain('"Vasudev writes one marked block per profile."');
+    expect(count).toBe(1);
+  });
+
+  it("never rewrites the git-backup commit subject persisted in the operator's repository", () => {
+    // `backup` is a real CLI subcommand, so without the protected-token rule
+    // the displayed-alias rewrite renames a marker that commits written by
+    // earlier builds carry forever, and the push guard stops matching them.
+    const content = [
+      'const prefix = "openclaw backup ";',
+      'const grep = "^(openclaw|vasudev) backup ";',
+      'const legacy = "openclaw backup 2026-01-01T00:00:00.000Z";',
+      'const hint = "run openclaw backup create first";',
+    ].join("\n");
+    const { content: rewritten, count } = rewriteFileContent("src/snapshot/git-backup.ts", content);
+
+    expect(rewritten).toContain('"openclaw backup "');
+    expect(rewritten).toContain('"^(openclaw|vasudev) backup "');
+    expect(rewritten).toContain('"openclaw backup 2026-01-01T00:00:00.000Z"');
+    expect(rewritten).toContain('"run vasudev backup create first"');
     expect(count).toBe(1);
   });
 
