@@ -442,10 +442,10 @@ export function isCrabboxWarmImageCaptureUncertain(
 }
 
 export const CRABBOX_WARM_IMAGE_WAIT_HINT =
-  "The capture may still be preparing its source or waiting for provider readiness. Inspect openclaw crabbox warm-images --json and allow the owning capture to settle.";
+  "The capture may still be preparing its source or waiting for provider readiness. Inspect vasudev crabbox warm-images --json and allow the owning capture to settle.";
 
 export function crabboxWarmImageRecoveryHint(selector: string): string {
-  return `Stop the owning Gateway and capture processes, confirm any worker being recovered is stopped, and resolve any untracked checkpoint in the Crabbox catalog before running: openclaw crabbox warm-images --recover ${selector} --acknowledge-provider-cleanup. Then restart the Gateway; the next eligible worker can capture again.`;
+  return `Stop the owning Gateway and capture processes, confirm any worker being recovered is stopped, and resolve any untracked checkpoint in the Crabbox catalog before running: vasudev crabbox warm-images --recover ${selector} --acknowledge-provider-cleanup. Then restart the Gateway; the next eligible worker can capture again.`;
 }
 
 export function listCrabboxWarmImages(env?: NodeJS.ProcessEnv) {
@@ -530,7 +530,7 @@ export function recoverCrabboxWarmImageCapture(
       !store.deleteIf(entry.key, (value) => legacyLeaseSelector(entry.key, value) === selector)
     ) {
       throw new Error(
-        "Legacy allocation selector is absent or changed; rerun openclaw crabbox warm-images --json. No state was changed.",
+        "Legacy allocation selector is absent or changed; rerun vasudev crabbox warm-images --json. No state was changed.",
       );
     }
     return;
@@ -540,7 +540,7 @@ export function recoverCrabboxWarmImageCapture(
     .find(({ key, value }) => crabboxWarmImageCaptureStatus(key, value)?.selector === selector);
   if (!entry || !clearCrabboxWarmImageCapture(entry.key, selector)) {
     throw new Error(
-      "Capture selector is absent or changed; rerun openclaw crabbox warm-images --json. No state was changed.",
+      "Capture selector is absent or changed; rerun vasudev crabbox warm-images --json. No state was changed.",
     );
   }
 }

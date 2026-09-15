@@ -74,7 +74,7 @@ async function runApprovalMigration(options: MigrationOptions): Promise<void> {
       return;
     }
     throw new Error(
-      "File-transfer permissions need interactive review. Run `openclaw file-transfer approvals migrate` in a terminal.",
+      "File-transfer permissions need interactive review. Run `vasudev file-transfer approvals migrate` in a terminal.",
     );
   }
 

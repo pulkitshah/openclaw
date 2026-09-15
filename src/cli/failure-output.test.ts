@@ -16,7 +16,7 @@ import {
 } from "./failure-output.js";
 
 const PLUGIN_POLICY_MESSAGE =
-  'The `openclaw workboard` command is provided by the "workboard" plugin, but that bundled plugin is disabled by default. Run `vasudev plugins enable workboard` to enable that CLI surface.';
+  'The `vasudev workboard` command is provided by the "workboard" plugin, but that bundled plugin is disabled by default. Run `vasudev plugins enable workboard` to enable that CLI surface.';
 
 // Mirrors the producer in ensureExplicitGatewayAuth: the message already carries the remedy.
 const EXPLICIT_GATEWAY_AUTH_MESSAGE = [

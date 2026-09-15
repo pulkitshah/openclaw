@@ -445,7 +445,7 @@ describe("runResumeCommand", () => {
     Object.defineProperty(process.stdout, "isTTY", { configurable: true, value: false });
 
     await expect(runResumeCommand("global", {})).rejects.toThrow(
-      "Attaching to a session requires an interactive terminal. Re-run `openclaw resume [query]` from an interactive terminal.",
+      "Attaching to a session requires an interactive terminal. Re-run `vasudev resume [query]` from an interactive terminal.",
     );
     expect(mocks.connect).not.toHaveBeenCalled();
     expect(mocks.runTui).not.toHaveBeenCalled();

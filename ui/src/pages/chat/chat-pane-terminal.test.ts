@@ -53,8 +53,8 @@ describe("chat pane terminal action", () => {
       const command =
         container.querySelector(".continue-in-terminal-dialog .login-gate__command code")
           ?.textContent ?? "";
-      expect(command).toMatch(/^openclaw resume --handoff [A-Za-z0-9_-]+$/u);
-      expect(decodeResumeHandoff(command.slice("openclaw resume --handoff ".length))).toEqual({
+      expect(command).toMatch(/^vasudev resume --handoff [A-Za-z0-9_-]+$/u);
+      expect(decodeResumeHandoff(command.slice("vasudev resume --handoff ".length))).toEqual({
         version: 1,
         sessionKey: "agent:row-agent:bare-session",
         gatewayUrl: "wss://gateway.example/control",

@@ -20,7 +20,7 @@ describe("buildDutiesSetup", () => {
     expect(result.missing).toContain(
       "gog CLI not found on PATH — install gogcli and run: gog auth add ops@example.com",
     );
-    expect(result.commands).toContain("openclaw webhooks gmail setup --account ops@example.com");
+    expect(result.commands).toContain("vasudev webhooks gmail setup --account ops@example.com");
     expect(result.commands).toContain(
       `vasudev approvals allowlist add --agent ${MAIL_AGENT_ID} <path-to-gog>`,
     );
@@ -121,9 +121,7 @@ describe("buildDutiesSetup", () => {
       },
     });
     expect(mismatched.missing.some((m) => m.includes("someone-else@example.com"))).toBe(true);
-    expect(mismatched.commands).toContain(
-      "openclaw webhooks gmail setup --account ops@example.com",
-    );
+    expect(mismatched.commands).toContain("vasudev webhooks gmail setup --account ops@example.com");
 
     const fullySet = buildDutiesSetup({
       account: "ops@example.com",
@@ -138,7 +136,7 @@ describe("buildDutiesSetup", () => {
     });
     expect(fullySet.missing).toEqual([]);
     expect(fullySet.commands).not.toContain(
-      "openclaw webhooks gmail setup --account ops@example.com",
+      "vasudev webhooks gmail setup --account ops@example.com",
     );
   });
 

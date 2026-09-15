@@ -187,7 +187,7 @@ export function buildDutiesSetup(params: {
   }
 
   if (!config.gmailAccount || config.gmailAccount !== account || !config.mappingPresent) {
-    commands.push(`openclaw webhooks gmail setup --account ${account}`);
+    commands.push(`vasudev webhooks gmail setup --account ${account}`);
   }
   // The allowlist command is always offered — there's no config fact that tells us whether this
   // exact gog binary is already exec-approved for the dispatcher agent, and re-running it is a

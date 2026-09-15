@@ -19,7 +19,7 @@ import type { ResumeCliOptions } from "./resume-cli.js";
 import { isTerminalInteractive } from "./terminal-interactivity.js";
 
 const RESUME_INTERACTIVE_TERMINAL_GUIDANCE =
-  "Attaching to a session requires an interactive terminal. Re-run `openclaw resume [query]` from an interactive terminal.";
+  "Attaching to a session requires an interactive terminal. Re-run `vasudev resume [query]` from an interactive terminal.";
 const RESUME_HANDOFF_UNRESOLVED =
   "Could not resolve the session handoff. Copy a fresh command from the Control UI.";
 
@@ -168,7 +168,7 @@ function reportResumeFailure(
   }
   defaultRuntime.error(`No recent session matched ${JSON.stringify(query)}.`);
   defaultRuntime.error(
-    "Run `openclaw resume` to choose from recent sessions or `vasudev sessions` to inspect all sessions.",
+    "Run `vasudev resume` to choose from recent sessions or `vasudev sessions` to inspect all sessions.",
   );
 }
 

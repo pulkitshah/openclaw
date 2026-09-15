@@ -52,7 +52,7 @@ export async function registerAttachCli(program: Command, _argv: string[] = proc
     )
     .addHelpText(
       "after",
-      "\nExamples:\n  openclaw attach                       Attach Claude Code to the main session\n  openclaw attach movies-a1166b81       Attach to a short session reference\n  openclaw attach --session agent:main:telegram:123 --ttl 600000\n  openclaw attach --print-config        Set up the grant + config and print how to launch it yourself\n",
+      "\nExamples:\n  vasudev attach                       Attach Claude Code to the main session\n  vasudev attach movies-a1166b81       Attach to a short session reference\n  vasudev attach --session agent:main:telegram:123 --ttl 600000\n  vasudev attach --print-config        Set up the grant + config and print how to launch it yourself\n",
     )
     .action(
       async (

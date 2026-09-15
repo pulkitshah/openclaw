@@ -64,7 +64,11 @@ export const NAME_RULES = [
   { name: "mascot-name", pattern: /\bClawd\b/g, replacement: NEW_MASCOT_NAME },
 ];
 
-// Top-level CLI commands. The displayed alias rewrite below only fires when
+// Top-level CLI commands, completed from the real registrations
+// (`core-command-descriptors.ts` + `subcli-descriptors.ts`) plus the bundled
+// plugin surfaces `docs/cli/` documents. An incomplete list leaves
+// mixed-binary sentences behind (one half rewritten, the other not).
+// The displayed alias rewrite below only fires when
 // the `openclaw` token is followed by one of these, which is what tells a
 // command example ("run `openclaw doctor --fix`") apart from prose that names
 // the lowercase internal namespace ("the openclaw config file", "openclaw
@@ -77,27 +81,43 @@ const CLI_SUBCOMMANDS = [
   "agent",
   "agents",
   "approvals",
+  "attach",
+  "audit",
   "auth",
   "automations",
   "backup",
   "browser",
   "canvas",
+  "capability",
   "channels",
+  "chat",
+  "clawbot",
   "claws",
   "completion",
   "config",
   "configure",
   "connect",
+  "crabbox",
+  "crestodian",
   "cron",
+  "daemon",
   "dashboard",
+  "database",
   "devices",
+  "directory",
+  "dns",
+  "docs",
   "doctor",
   "duties",
+  "exec-approvals",
+  "exec-policy",
   "explain",
+  "file-transfer",
   "fleet",
   "gateway",
   "health",
   "hooks",
+  "infer",
   "logs",
   "mcp",
   "media",
@@ -110,10 +130,21 @@ const CLI_SUBCOMMANDS = [
   "onboard",
   "package",
   "pairing",
+  "path",
   "peer",
   "plugins",
+  "policy",
   "projects",
+  "promos",
+  "proxy",
+  // `qa` is deliberately absent: the qa-lab surface is repo tooling invoked
+  // as `pnpm openclaw qa …` (the package script; `package.json` has no
+  // `vasudev` script) and through an executed `qa_args=(openclaw qa …)`
+  // shell array, so those spellings are invocations, not display text.
+  "qr",
+  "reset",
   "restart",
+  "resume",
   "sandbox",
   "secrets",
   "security",
@@ -121,8 +152,10 @@ const CLI_SUBCOMMANDS = [
   "setup",
   "skills",
   "status",
+  "system",
   "tasks",
   "telemetry",
+  "terminal",
   "tools",
   "transcripts",
   "triage",
@@ -130,7 +163,14 @@ const CLI_SUBCOMMANDS = [
   "tui",
   "uninstall",
   "update",
+  "users",
+  "voicecall",
   "webhook",
+  "webhooks",
+  "wiki",
+  "workboard",
+  "worker",
+  "worktrees",
 ];
 
 // The displayed CLI alias. `package.json`'s `bin` map ships both `openclaw`

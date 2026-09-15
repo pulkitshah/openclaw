@@ -62,7 +62,7 @@ describe("entry run-main boundary", () => {
   it("keeps expected conditions at exit 1 without crash framing", async () => {
     const previousExitCode = process.exitCode;
     const message =
-      'The `openclaw workboard` command is provided by the "workboard" plugin, but that bundled plugin is disabled by default. Run `vasudev plugins enable workboard` to enable that CLI surface.';
+      'The `vasudev workboard` command is provided by the "workboard" plugin, but that bundled plugin is disabled by default. Run `vasudev plugins enable workboard` to enable that CLI surface.';
     const error = new ExpectedCliError({
       message,
       humanOutput: message,
