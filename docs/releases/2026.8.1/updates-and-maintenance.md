@@ -3,21 +3,21 @@ title: "v2026.8.1: Updates and Maintenance"
 description: "Supported update paths inspect the installation before replacing it, and maintenance tools give clearer recovery paths."
 ---
 
-Users could sometimes experience instability after updating Vasudev. [Supported update paths](/install/updating) now inspect the installation before replacing it and stop unsafe candidates while leaving the previous CLI runnable. In the Control UI, updates identify the target, ask for confirmation, and keep progress and the final outcome visible.
+Users could sometimes experience instability after updating OpenClaw. [Supported update paths](/install/updating) now inspect the installation before replacing it and stop unsafe candidates while leaving the previous CLI runnable. In the Control UI, updates identify the target, ask for confirmation, and keep progress and the final outcome visible.
 
 Maintenance tools now provide clearer recovery paths. Configuration errors point to the setting that needs attention, Doctor focuses on problems and the next action, new backups are checked against the guarded restore path, destructive cleanup stops when ownership is unclear, and supported restarts give tracked work time to finish before handoff.
 
 <AccordionGroup>
 
-<Accordion title="Installing Vasudev Updates">
+<Accordion title="Installing OpenClaw Updates">
 
 Gateway updates started in the [Control UI](/install/updating) now identify the target, require confirmation, show progress through the update and restart, and report the final outcome. On eligible signed Mac apps, that flow updates the app first and then only the app-managed local Gateway; browser and user-managed installs keep their Gateway-only path.
 
 [Supported CLI updates](/cli/update) check Node compatibility, package-manager lifecycle rules, and whether npm, pnpm, or Bun owns the installation before replacement. An unsafe candidate stops while leaving the previous CLI runnable, and an exact `openclaw update --dry-run` previews the path without changing configuration, handoff, cleanup, or restart state.
 
-On Linux, code updates can preserve an administrator-owned service definition instead of trying to rewrite it, while an unsafe or uninspectable service handoff still fails visibly. If a plugin replacement asks for new capabilities, Vasudev keeps the known-good plugin available while the replacement waits for review; `openclaw update --accept-capabilities` or `openclaw update repair --accept-capabilities` approves only the staged artifact for that invocation, and `--yes` does not.
+On Linux, code updates can preserve an administrator-owned service definition instead of trying to rewrite it, while an unsafe or uninspectable service handoff still fails visibly. If a plugin replacement asks for new capabilities, OpenClaw keeps the known-good plugin available while the replacement waits for review; `openclaw update --accept-capabilities` or `openclaw update repair --accept-capabilities` approves only the staged artifact for that invocation, and `--yes` does not.
 
-One upgrade path still needs a manual repair. If you are on Vasudev 2026.7.1 with pnpm 11, run `pnpm add -g openclaw@latest` once. Vasudev does not upgrade Node for you.
+One upgrade path still needs a manual repair. If you are on OpenClaw 2026.7.1 with pnpm 11, run `pnpm add -g openclaw@latest` once. OpenClaw does not upgrade Node for you.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -28,7 +28,7 @@ One upgrade path still needs a manual repair. If you are on Vasudev 2026.7.1 wit
 - Coordinate macOS app and managed runtime updates [#107634](https://github.com/openclaw/openclaw/pull/107634)
 - Add signed updates to the Linux companion app [#108770](https://github.com/openclaw/openclaw/pull/108770)
 - Add safe extended-stable Docker channels [#112494](https://github.com/openclaw/openclaw/pull/112494)
-- Allow experimental Vasudev use on node:sqlite-capable Bun builds [#114256](https://github.com/openclaw/openclaw/pull/114256)
+- Allow experimental OpenClaw use on node:sqlite-capable Bun builds [#114256](https://github.com/openclaw/openclaw/pull/114256)
 - Add scheduled update campaigns and an Updates settings page [#120506](https://github.com/openclaw/openclaw/pull/120506)
 - Confirm Control UI updates before installing and restarting [#121234](https://github.com/openclaw/openclaw/pull/121234)
 - Refresh moving Docker image tags weekly [#123348](https://github.com/openclaw/openclaw/pull/123348)
@@ -120,7 +120,7 @@ One upgrade path still needs a manual repair. If you are on Vasudev 2026.7.1 wit
 - Restore plugin CLI access after retained reinstall [#123043](https://github.com/openclaw/openclaw/pull/123043)
 - Install externalized configured plugins after upgrades [#123399](https://github.com/openclaw/openclaw/pull/123399)
 - Reject unusable local-prefix installations [#123716](https://github.com/openclaw/openclaw/pull/123716)
-- Keep the Codex plugin matched to stable Vasudev upgrades [#124209](https://github.com/openclaw/openclaw/pull/124209)
+- Keep the Codex plugin matched to stable OpenClaw upgrades [#124209](https://github.com/openclaw/openclaw/pull/124209)
 - Enforce one cooldown across automatic dev updates [#124626](https://github.com/openclaw/openclaw/pull/124626)
 - Align Node version checks across install, launch, and workers [#124812](https://github.com/openclaw/openclaw/pull/124812)
 - Keep failed Git clones from poisoning install directories [#124872](https://github.com/openclaw/openclaw/pull/124872)
@@ -222,7 +222,7 @@ One upgrade path still needs a manual repair. If you are on Vasudev 2026.7.1 wit
 
 <Accordion title="Configuration Errors and Service Repairs">
 
-Bad [configuration](/gateway/configuration) now stops with a useful answer instead of quietly starting Vasudev with something else. Packaged builds, CLI checks, service preflight, and Gateway startup show the file, line, full setting path, allowed values when available, and a safe version of what was received; malformed top-level scalar files fail closed instead of loading defaults.
+Bad [configuration](/gateway/configuration) now stops with a useful answer instead of quietly starting OpenClaw with something else. Packaged builds, CLI checks, service preflight, and Gateway startup show the file, line, full setting path, allowed values when available, and a safe version of what was received; malformed top-level scalar files fail closed instead of loading defaults.
 
 If you are upgrading a configuration that still contains retired keys, run `openclaw doctor --fix` before September 18, 2026. [Doctor](/cli/doctor) keeps canonical values when old and new keys conflict and removes settings that no longer do anything, although explicitly retired tuning values return to the built-in defaults.
 
@@ -238,7 +238,7 @@ Supported Gateway service repairs preserve the installed state directory, config
 - Add Fleet cell backups, limits, egress controls, and diagnostics [#104828](https://github.com/openclaw/openclaw/pull/104828)
 - Reduce and standardize the configuration surface [#111142](https://github.com/openclaw/openclaw/pull/111142)
 - Remove tuning-only configuration knobs with stable built-in defaults [#111382](https://github.com/openclaw/openclaw/pull/111382)
-- Consolidate Vasudev configuration and legacy migrations [#111527](https://github.com/openclaw/openclaw/pull/111527)
+- Consolidate OpenClaw configuration and legacy migrations [#111527](https://github.com/openclaw/openclaw/pull/111527)
 - Switch macOS dashboards between gateways [#113965](https://github.com/openclaw/openclaw/pull/113965)
 - Scale agent concurrency to the host CPU [#114047](https://github.com/openclaw/openclaw/pull/114047)
 - Move macOS gateway settings into the Dashboard [#115999](https://github.com/openclaw/openclaw/pull/115999)
@@ -407,13 +407,13 @@ Supported Gateway service repairs preserve the installed state directory, config
 
 </Accordion>
 
-<Accordion title="Vasudev Restarts and Running Work">
+<Accordion title="OpenClaw Restarts and Running Work">
 
-Before a supported snapshot or [targeted restart](/gateway/restart-recovery), Gateway suspend and resume can pause new ordinary work, report blockers, and drain the agent runs, deliveries, scheduled jobs, queues, sessions, and background commands Vasudev already tracks. Failed configuration reloads keep the prior coherent state, and rapid configuration writes retain pending restart intent instead of dropping it.
+Before a supported snapshot or [targeted restart](/gateway/restart-recovery), Gateway suspend and resume can pause new ordinary work, report blockers, and drain the agent runs, deliveries, scheduled jobs, queues, sessions, and background commands OpenClaw already tracks. Failed configuration reloads keep the prior coherent state, and rapid configuration writes retain pending restart intent instead of dropping it.
 
 After restart, health checks, the agent list, and core controls become usable before optional catalog, plugin, and migration work finishes. That work is deferred rather than removed, so the first explicit catalog request can still take longer.
 
-The wait covers work Vasudev tracks. New channel or external ingress, existing plugin connections, unregistered background work, and durable receipt of incoming messages remain outside it, and externally supervised installations must consume the handoff and complete their own restart.
+The wait covers work OpenClaw tracks. New channel or external ingress, existing plugin connections, unregistered background work, and durable receipt of incoming messages remain outside it, and externally supervised installations must consume the handoff and complete their own restart.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -682,7 +682,7 @@ The wait covers work Vasudev tracks. New channel or external ingress, existing p
 
 [Logs](/cli/logs) now fill their bounded tail window across short reads, preserve Unicode at file boundaries, distinguish line and byte truncation from rollover, and report unavailable storage instead of an empty success. Status keeps its base report when optional health details fail, so missing information remains unknown rather than being shown as healthy.
 
-In the admin Control UI, Ask Vasudev can turn consequential health state into a diagnostic question and keep the system-care conversation docked as you move around, while the System overlay shows a short history of scheduler pressure, CPU, memory, event-loop delay, and optional disk activity. These controls require admin or operator access and do not appear during onboarding or to read-scoped clients.
+In the admin Control UI, Ask OpenClaw can turn consequential health state into a diagnostic question and keep the system-care conversation docked as you move around, while the System overlay shows a short history of scheduler pressure, CPU, memory, event-loop delay, and optional disk activity. These controls require admin or operator access and do not appear during onboarding or to read-scoped clients.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -690,18 +690,18 @@ In the admin Control UI, Ask Vasudev can turn consequential health state into a 
 **Improvements**
 
 - Show exact build identity in every About screen [#103595](https://github.com/openclaw/openclaw/pull/103595)
-- Add click-to-diagnose health nudges to Vasudev system care [#110708](https://github.com/openclaw/openclaw/pull/110708)
-- Add system change history to Ask Vasudev [#111286](https://github.com/openclaw/openclaw/pull/111286)
+- Add click-to-diagnose health nudges to OpenClaw system care [#110708](https://github.com/openclaw/openclaw/pull/110708)
+- Add system change history to Ask OpenClaw [#111286](https://github.com/openclaw/openclaw/pull/111286)
 - Add a state-aware caretaker welcome with quick actions [#111615](https://github.com/openclaw/openclaw/pull/111615)
-- Add a dedicated Vasudev settings chat to Android [#112788](https://github.com/openclaw/openclaw/pull/112788)
-- Add a dockable Ask Vasudev companion in the Control UI [#115123](https://github.com/openclaw/openclaw/pull/115123)
+- Add a dedicated OpenClaw settings chat to Android [#112788](https://github.com/openclaw/openclaw/pull/112788)
+- Add a dockable Ask OpenClaw companion in the Control UI [#115123](https://github.com/openclaw/openclaw/pull/115123)
 - Reuse plugin metadata throughout Doctor runs [#119482](https://github.com/openclaw/openclaw/pull/119482)
 - Add actionable QQBot setup errors [#119780](https://github.com/openclaw/openclaw/pull/119780)
 - Show telemetry exporter health in Doctor and status [#119816](https://github.com/openclaw/openclaw/pull/119816)
 - Start Doctor migration checks without loading every plugin runtime [#120678](https://github.com/openclaw/openclaw/pull/120678)
 - Keep Doctor security conditions as single findings [#124666](https://github.com/openclaw/openclaw/pull/124666)
-- Make Ask Vasudev persistent and globally accessible [#125107](https://github.com/openclaw/openclaw/pull/125107)
-- Move Ask Vasudev to the sidebar footer [#125486](https://github.com/openclaw/openclaw/pull/125486)
+- Make Ask OpenClaw persistent and globally accessible [#125107](https://github.com/openclaw/openclaw/pull/125107)
+- Move Ask OpenClaw to the sidebar footer [#125486](https://github.com/openclaw/openclaw/pull/125486)
 - Add live Gateway busyness diagnostics [#125591](https://github.com/openclaw/openclaw/pull/125591)
 - feat(ui): add live CPU/memory/delay sparkline graphs to the system busyness overlay [#127650](https://github.com/openclaw/openclaw/pull/127650)
 - feat(cli): add openclaw triage for sanitized agent debugging handoffs [#128756](https://github.com/openclaw/openclaw/pull/128756)
@@ -712,7 +712,7 @@ In the admin Control UI, Ask Vasudev can turn consequential health state into a 
 - Make regular doctor output shorter and problem-focused [#106968](https://github.com/openclaw/openclaw/pull/106968)
 - Consolidate operator diagnostics and migration safeguards [#109211](https://github.com/openclaw/openclaw/pull/109211)
 - Offer guided repair after invalid configuration blocks startup [#110533](https://github.com/openclaw/openclaw/pull/110533)
-- Give Ask Vasudev the regular chat experience [#110934](https://github.com/openclaw/openclaw/pull/110934)
+- Give Ask OpenClaw the regular chat experience [#110934](https://github.com/openclaw/openclaw/pull/110934)
 - Continue upstream traces through Gateway WebSocket requests [#113189](https://github.com/openclaw/openclaw/pull/113189)
 - Configure OpenTelemetry metric name prefixes [#116687](https://github.com/openclaw/openclaw/pull/116687)
 - Standardize error messages across core, plugins, and the Control UI [#117818](https://github.com/openclaw/openclaw/pull/117818)
@@ -805,7 +805,7 @@ In the admin Control UI, Ask Vasudev can turn consequential health state into a 
 - Preserve OpenTelemetry diagnostics during shutdown [#119705](https://github.com/openclaw/openclaw/pull/119705)
 - Honor per-signal OTLP protocol settings [#119708](https://github.com/openclaw/openclaw/pull/119708)
 - Preserve the real OTEL startup error during rollback [#119747](https://github.com/openclaw/openclaw/pull/119747)
-- Make OTEL_SDK_DISABLED fully disable Vasudev telemetry [#119961](https://github.com/openclaw/openclaw/pull/119961)
+- Make OTEL_SDK_DISABLED fully disable OpenClaw telemetry [#119961](https://github.com/openclaw/openclaw/pull/119961)
 - Explain unverified Windows SecretRef path security [#120211](https://github.com/openclaw/openclaw/pull/120211)
 - Give Gateway connection failures consistent recovery guidance [#120505](https://github.com/openclaw/openclaw/pull/120505)
 - Speed up doctor checks and restore Discord repairs [#120882](https://github.com/openclaw/openclaw/pull/120882)
@@ -991,7 +991,7 @@ In the admin Control UI, Ask Vasudev can turn consequential health state into a 
 - fix(logs): only report rotation when the log file actually shrank [#74252](https://github.com/openclaw/openclaw/pull/74252)
 - Skip missing lsof warnings during Gateway startup [#76364](https://github.com/openclaw/openclaw/pull/76364)
 - Avoid false gateway warnings for shell-wrapped LaunchAgents [#81778](https://github.com/openclaw/openclaw/pull/81778)
-- Fix Doctor sandbox repair for symlinked Vasudev launchers [#90942](https://github.com/openclaw/openclaw/pull/90942)
+- Fix Doctor sandbox repair for symlinked OpenClaw launchers [#90942](https://github.com/openclaw/openclaw/pull/90942)
 - Avoid duplicate channel scans in status commands [#95263](https://github.com/openclaw/openclaw/pull/95263)
 
 **Documentation**
@@ -1199,7 +1199,7 @@ The predictable machine-output contract covers the named command paths. Human di
 
 <Accordion title="Backup, restore, reset, and uninstall">
 
-[Reset and uninstall](/cli/reset) now refuse to remove data until the Gateway service is torn down and Vasudev can establish that no other process owns the state. If teardown or ownership checks fail, the state stays put, and a state-only uninstall leaves configured workspaces alone.
+[Reset and uninstall](/cli/reset) now refuse to remove data until the Gateway service is torn down and OpenClaw can establish that no other process owns the state. If teardown or ownership checks fail, the state stays put, and a state-only uninstall leaves configured workspaces alone.
 
 New [full backups](/cli/backup) preserve configured agent state roots and safe relative links, avoid mistaking active archive work for a stall, and restore default or custom layouts through the same guarded flow. Managed `dev/` checkouts and local source edits still need a separate backup, while older archives containing absolute generated `plugin-skills/` links remain rejected.
 

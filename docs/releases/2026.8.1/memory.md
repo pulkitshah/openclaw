@@ -5,7 +5,7 @@ description: "An eligible personal Claw can recall relevant context from that ag
 
 [Memory](/concepts/memory) now lets an eligible personal Claw recall relevant context from that agent's other private conversations, including what mattered immediately before a reset, while visible workflows let you search indexed sources, inspect how memory is working, import supported history, and remove attributable derived memory. Recall stays within the same agent's private conversations and respects explicit isolation and access policy.
 
-Built-in Memory owns the core search and recall path, with a supported Doctor migration from QMD. LanceDB, Memory Wiki, external embedding services, `MEMORY.md`, and `USER.md` still have distinct roles, and forgetting derived memory does not erase the original conversation or copies outside Vasudev.
+Built-in Memory owns the core search and recall path, with a supported Doctor migration from QMD. LanceDB, Memory Wiki, external embedding services, `MEMORY.md`, and `USER.md` still have distinct roles, and forgetting derived memory does not erase the original conversation or copies outside OpenClaw.
 
 <AccordionGroup>
 
@@ -275,7 +275,7 @@ Sessions without a configured reset policy now remain open across days, and dura
 
 <Accordion title="Importing memories and conversation history">
 
-Importing is separate from the QMD-to-built-in upgrade. You can [bring supported memory](/install/migrating) from Codex, Claude Code, or Hermes into an agent workspace through the Control UI, first-run setup, or Ask Vasudev while leaving the source alone and not sweeping in credentials, settings, skills, or arbitrary provider files. If the destination already contains conflicting content, replacement has to be reviewed explicitly.
+Importing is separate from the QMD-to-built-in upgrade. You can [bring supported memory](/install/migrating) from Codex, Claude Code, or Hermes into an agent workspace through the Control UI, first-run setup, or Ask OpenClaw while leaving the source alone and not sweeping in credentials, settings, skills, or arbitrary provider files. If the destination already contains conflicting content, replacement has to be reviewed explicitly.
 
 Old conversations follow their own preview-first path. The CLI shows what it would stage before it writes, the Control UI reports bounded-batch progress, and material owned by that import can be rolled back and applied again. Large histories use bounded or indexed processing, Memory Wiki preserves human notes through supported imports, and older history without complete ownership tracking may need to be rescanned. Staged material still does not become durable memory until dreaming or an explicit promotion chooses it.
 
@@ -288,7 +288,7 @@ Old conversations follow their own preview-first path. The CLI shows what it wou
 - Offer memory imports during onboarding [#108977](https://github.com/openclaw/openclaw/pull/108977)
 - Backfill retained session transcripts into memory staging [#115162](https://github.com/openclaw/openclaw/pull/115162)
 - Backfill memory from past sessions in Control UI [#115266](https://github.com/openclaw/openclaw/pull/115266)
-- Import local agent memories from Ask Vasudev [#115376](https://github.com/openclaw/openclaw/pull/115376)
+- Import local agent memories from Ask OpenClaw [#115376](https://github.com/openclaw/openclaw/pull/115376)
 - Lower Memory Core startup memory use [#119372](https://github.com/openclaw/openclaw/pull/119372)
 
 **Bug fixes**

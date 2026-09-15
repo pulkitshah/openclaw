@@ -1,6 +1,6 @@
 ---
 title: "v2026.8.1: Maintenance changes (part 4 of 8)"
-description: "Part 4 of the 6,016 routine maintenance changes in Vasudev v2026.8.1, with a source link for each one."
+description: "Part 4 of the 6,016 routine maintenance changes in OpenClaw v2026.8.1, with a source link for each one."
 ---
 
 Maintenance changes 2,257 to 3,008 of 6,016. See [Maintainer and Internal Changes](/releases/2026.8.1/maintainer-and-internal-changes) for the other categories and the remaining parts.
@@ -566,7 +566,7 @@ Maintenance changes 2,257 to 3,008 of 6,016. See [Maintainer and Internal Change
 - Stabilize cross-version dev upgrades [#115651](https://github.com/openclaw/openclaw/pull/115651)
 - Restore Telegram release QA scratch access [#115659](https://github.com/openclaw/openclaw/pull/115659)
 - Type the Code Mode matrix rejection callback [#115674](https://github.com/openclaw/openclaw/pull/115674)
-- Update dependencies across the Vasudev workspace [#115677](https://github.com/openclaw/openclaw/pull/115677)
+- Update dependencies across the OpenClaw workspace [#115677](https://github.com/openclaw/openclaw/pull/115677)
 - Add browser regression coverage for imported Claude history redaction [#115683](https://github.com/openclaw/openclaw/pull/115683)
 - Deduplicate model-fallback observation metadata [#115687](https://github.com/openclaw/openclaw/pull/115687)
 - Stabilize paired-node Ollama E2E under cold starts [#115693](https://github.com/openclaw/openclaw/pull/115693)

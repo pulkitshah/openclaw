@@ -5,13 +5,13 @@ description: "Telegram, Slack, Discord, and the native apps keep more of a conve
 
 Messaging now keeps more of a conversation intact across the places people already talk to their Claw. [Telegram](/channels/telegram) gains richer messages and media, [Slack](/channels/slack) keeps live progress and the final answer together, [Discord](/channels/discord) adds opt-in Activities and voice rooms that understand who is present, and the native apps keep media and pending sends inside the conversation where they belong.
 
-Across supported channels, Vasudev now holds accepted messages through managed restarts, reports whether a connection is usable, recovering, or blocked, and preserves an uncertain send instead of blindly sending it again. Recovery starts once Vasudev has accepted the message, and each service still controls what it can confirm beyond that point.
+Across supported channels, OpenClaw now holds accepted messages through managed restarts, reports whether a connection is usable, recovering, or blocked, and preserves an uncertain send instead of blindly sending it again. Recovery starts once OpenClaw has accepted the message, and each service still controls what it can confirm beyond that point.
 
 <AccordionGroup>
 
 <Accordion title="Message Delivery and Recovery">
 
-On supported channels, [messages Vasudev has accepted](/concepts/messages) now stay pending through a managed restart, and channel status shows whether a connection is usable, recovering, or blocked. When a send times out without a confirmed result, Vasudev keeps that outcome uncertain and can warn on the next contact rather than creating a likely duplicate. Recovery begins after local acceptance.
+On supported channels, [messages OpenClaw has accepted](/concepts/messages) now stay pending through a managed restart, and channel status shows whether a connection is usable, recovering, or blocked. When a send times out without a confirmed result, OpenClaw keeps that outcome uncertain and can warn on the next contact rather than creating a likely duplicate. Recovery begins after local acceptance.
 
 Eligible single-choice questions can use native controls on Telegram, Discord, and Slack, while longer Telegram and Discord turns can show a short status headline with compact tool activity. Multi-select and free-text questions continue through the supported client or text path, and Telegram partial-answer streaming remains a separate opt-in mode.
 
@@ -577,9 +577,9 @@ Busy conversations hold together better too. Follow-ups stay ordered during acti
 
 <Accordion title="Discord">
 
-[Discord](/channels/discord) now supports opt-in [Activities](/channels/discord-activities) that open configured Vasudev widgets directly inside Discord. Voice agents can also see who is in the room, use different wake-name rules for one-on-one and group conversations, and optionally join only while a human is present. Activities require explicit channel configuration, a Discord client secret, and a public HTTPS route; occupied-room auto-join is a separate option and does not change the existing always-on default.
+[Discord](/channels/discord) now supports opt-in [Activities](/channels/discord-activities) that open configured OpenClaw widgets directly inside Discord. Voice agents can also see who is in the room, use different wake-name rules for one-on-one and group conversations, and optionally join only while a human is present. Activities require explicit channel configuration, a Discord client secret, and a public HTTPS route; occupied-room auto-join is a separate option and does not change the existing always-on default.
 
-Message retries now reuse their identity to reduce duplicates, interaction replies settle in order, stale reply context is discarded, and repeated resume failures can recover without restarting all of Vasudev. Forum-thread sends still remain uncertain when retrying them could produce a duplicate.
+Message retries now reuse their identity to reduce duplicates, interaction replies settle in order, stale reply context is discarded, and repeated resume failures can recover without restarting all of OpenClaw. Forum-thread sends still remain uncertain when retrying them could produce a duplicate.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -913,7 +913,7 @@ One organization-installed app can also serve the Enterprise Grid workspaces Sla
 
 <Accordion title="WhatsApp">
 
-[WhatsApp](/channels/whatsapp) can now list groups from the linked account without making someone hunt through logs or invite links, and it avoids opening a competing connection while Vasudev already owns that account. If Vasudev restarts after accepting an incoming message, the pending work can continue without later events jumping ahead, while multipart replies keep the parts and receipts that actually succeeded instead of replaying the entire response after one part fails.
+[WhatsApp](/channels/whatsapp) can now list groups from the linked account without making someone hunt through logs or invite links, and it avoids opening a competing connection while OpenClaw already owns that account. If OpenClaw restarts after accepting an incoming message, the pending work can continue without later events jumping ahead, while multipart replies keep the parts and receipts that actually succeeded instead of replaying the entire response after one part fails.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -1035,7 +1035,7 @@ One organization-installed app can also serve the Enterprise Grid workspaces Sla
 
 [iMessage](/channels/imessage) is now an official installable plugin that carries existing configuration and state through the move out of core. Eligible approval requests can use native Messages polls, while older bridges, SMS, and failed poll sends keep the existing text, reaction, or command fallback.
 
-Remote Mac setups also keep attachments with the correct existing chat and can use supported remote paths and actions without sharing a filesystem with the machine running Vasudev, while incoming messages already stored before a crash can replay. New setups still need the plugin and `imsg` on a signed-in Mac, and this remains separate from the iOS and macOS Vasudev chat apps.
+Remote Mac setups also keep attachments with the correct existing chat and can use supported remote paths and actions without sharing a filesystem with the machine running OpenClaw, while incoming messages already stored before a crash can replay. New setups still need the plugin and `imsg` on a signed-in Mac, and this remains separate from the iOS and macOS OpenClaw chat apps.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -1087,7 +1087,7 @@ Remote Mac setups also keep attachments with the correct existing chat and can u
 
 **Documentation**
 
-- Remove retired Vasudev iMessage split-send coalescing [#108436](https://github.com/openclaw/openclaw/pull/108436)
+- Remove retired OpenClaw iMessage split-send coalescing [#108436](https://github.com/openclaw/openclaw/pull/108436)
 - Align iMessage recovery docs with durable SQLite ingress [#111002](https://github.com/openclaw/openclaw/pull/111002)
 
 </details>
@@ -1346,7 +1346,7 @@ Configured [Microsoft Teams](/channels/msteams) approvers can approve or deny el
 
 <Accordion title="Google Chat">
 
-[Google Chat](/channels/googlechat) webhook events accepted by Vasudev now remain queued through restarts, keep their order within each space, and recognize Google's retries before they create duplicate work. Recovery begins when the Gateway admits the event; events Google never delivered remain outside that recovery path.
+[Google Chat](/channels/googlechat) webhook events accepted by OpenClaw now remain queued through restarts, keep their order within each space, and recognize Google's retries before they create duplicate work. Recovery begins when the Gateway admits the event; events Google never delivered remain outside that recovery path.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -1387,7 +1387,7 @@ Configured [Microsoft Teams](/channels/msteams) approvers can approve or deny el
 
 In groups that require a mention, slash commands addressed to the bot now run as commands, and quoting one of its recent Gateway-sent messages can address it without a second mention. Date, time, and rich-menu selections reach the agent, while supported actions and choices return as native controls with visible text for anything LINE cannot render.
 
-A bot can also post one room-specific introduction when it actually joins an allowed group, while respecting both channel-wide and per-account opt-outs. Webhook events are stored before acknowledgement so work Vasudev already admitted can continue after a restart. Affected installations that passed through the brief pre-drain queue transition migrate eligible accepted rows before delivery resumes, while genuinely mismatched rows remain quarantined and messages for removed accounts wait until that account is restored.
+A bot can also post one room-specific introduction when it actually joins an allowed group, while respecting both channel-wide and per-account opt-outs. Webhook events are stored before acknowledgement so work OpenClaw already admitted can continue after a restart. Affected installations that passed through the brief pre-drain queue transition migrate eligible accepted rows before delivery resumes, while genuinely mismatched rows remain quarantined and messages for removed accounts wait until that account is restored.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -1466,7 +1466,7 @@ A bot can also post one room-specific introduction when it actually joins an all
 
 <Accordion title="SMS, MMS, and RCS with Twilio">
 
-The [Twilio-backed channel](/channels/sms) can now send and receive MMS and show recent provider or carrier states such as sent, delivered, failed, or conflicted without retaining message bodies or phone-number addresses. SMS and RCS messages Vasudev has already accepted can survive a restart in sender order, while replay protection fails closed instead of accepting work it can no longer protect from duplication.
+The [Twilio-backed channel](/channels/sms) can now send and receive MMS and show recent provider or carrier states such as sent, delivered, failed, or conflicted without retaining message bodies or phone-number addresses. SMS and RCS messages OpenClaw has already accepted can survive a restart in sender order, while replay protection fails closed instead of accepting work it can no longer protect from duplication.
 
 Delivery observations are kept for 30 days and reflect the latest state reported by Twilio or a carrier, which can differ from recipient-visible delivery. If the replay cache fills, new events are rejected rather than accepted without duplicate protection, and Twilio does not retry that response by default.
 
@@ -1502,7 +1502,7 @@ Delivery observations are kept for 30 days and reflect the latest state reported
 
 <Accordion title="ClickClack">
 
-[ClickClack](/channels/clickclack) can place a team discussion beside a Vasudev session, giving people somewhere to coordinate around the work without turning the agent's main transcript into a meeting room. Guided and command-line setup, readable discussion names, native command menus, attachments, optional group mention rules, and opt-in progress make that room easier to use while keeping the final answer visible.
+[ClickClack](/channels/clickclack) can place a team discussion beside an OpenClaw session, giving people somewhere to coordinate around the work without turning the agent's main transcript into a meeting room. Guided and command-line setup, readable discussion names, native command menus, attachments, optional group mention rules, and opt-in progress make that room easier to use while keeping the final answer visible.
 
 Opening a discussion still requires an authorized operator and a reachable ClickClack deployment. Generated names remain best effort, and mention-gated or bot-to-bot conversations have to be enabled deliberately.
 
@@ -1551,7 +1551,7 @@ Opening a discussion still requires an authorized operator and a reachable Click
 
 <Accordion title="Reef">
 
-Trusted Claws can talk directly through [Reef](/channels/reef), Vasudev's bundled end-to-end encrypted agent channel, using friend-code pairing, terminal registration and friendship controls, and discovery that keeps an external peer distinct from a local thread. Operators can now add plain-language inbound and outbound sharing rules for their own sensitive topics and named friends, while deterministic denials for secrets and credentials remain in force and changing the rules invalidates pending approvals from the old policy.
+Trusted Claws can talk directly through [Reef](/channels/reef), OpenClaw's bundled end-to-end encrypted agent channel, using friend-code pairing, terminal registration and friendship controls, and discovery that keeps an external peer distinct from a local thread. Operators can now add plain-language inbound and outbound sharing rules for their own sensitive topics and named friends, while deterministic denials for secrets and credentials remain in force and changing the rules invalidates pending approvals from the old policy.
 
 When an inbound message needs owner review, that recorded decision now owns later redelivery instead of rerunning the guard until the answer changes, and later inbox messages can keep moving while it waits. Temporary inbound guard failures leave the item parked for another attempt rather than rejecting it, with approved delivery receiving one final guard check and outbound sends still failing fast.
 
@@ -1601,7 +1601,7 @@ When a peer rejects a message, the sending agent gets bounded feedback and one c
 
 <Accordion title="Agent-to-Agent Messaging with A2A">
 
-Vasudev can now expose selected agents to explicitly trusted external agent systems through the [A2A v1.0 protocol](/channels/a2a). Configured peers can discover those agents, submit and poll authenticated tasks, receive replies as artifacts, and exchange text or structured data, while an unconfigured plugin registers no discovery or task routes at all.
+OpenClaw can now expose selected agents to explicitly trusted external agent systems through the [A2A v1.0 protocol](/channels/a2a). Configured peers can discover those agents, submit and poll authenticated tasks, receive replies as artifacts, and exchange text or structured data, while an unconfigured plugin registers no discovery or task routes at all.
 
 This first version supports one account, keeps tasks in memory, and does not yet provide streaming, push notifications, or cancellation. Authenticated peers currently operate as trusted callers rather than passing through the normal command-policy decision, so this is a deliberate interoperability path for known peers rather than a public agent endpoint.
 
@@ -1623,7 +1623,7 @@ This first version supports one account, keeps tasks in memory, and does not yet
 
 <Accordion title="Buzz">
 
-[Buzz](/channels/buzz) is now an official Vasudev channel for team rooms, with guided setup that can route different rooms to different agents and live directories that give those agents current room and member names without replacing the stable UUIDs used for automation. One Gateway can now run named Buzz accounts with separate bot identities, credentials, rooms, routing, and lifecycles while preserving the legacy root account and environment fallback, and updating one account does not unnecessarily disconnect healthy siblings.
+[Buzz](/channels/buzz) is now an official OpenClaw channel for team rooms, with guided setup that can route different rooms to different agents and live directories that give those agents current room and member names without replacing the stable UUIDs used for automation. One Gateway can now run named Buzz accounts with separate bot identities, credentials, rooms, routing, and lifecycles while preserving the legacy root account and environment fallback, and updating one account does not unnecessarily disconnect healthy siblings.
 
 Replies can use native mentions and threads, and operators can choose flat automatic replies and typing while explicit message-tool and CLI targets remain explicit. Mention-gated rooms can carry a small amount of recent authorized context into the next turn without running the model on every background message.
 
@@ -1752,9 +1752,9 @@ Setup finishes only after Bot-role membership is verified, a room name must reso
 
 <Accordion title="Tlon and Urbit">
 
-[Tlon](/channels/tlon) now saves an accepted Urbit message before acknowledging it, so work already admitted to Vasudev can resume after a restart without immediately abandoning the server cursor. Replies gain native Markdown lists, and oversized SSE events or JSON payloads stop before they can grow in memory without bound.
+[Tlon](/channels/tlon) now saves an accepted Urbit message before acknowledging it, so work already admitted to OpenClaw can resume after a restart without immediately abandoning the server cursor. Replies gain native Markdown lists, and oversized SSE events or JSON payloads stop before they can grow in memory without bound.
 
-There is one hard recovery limit. If Eyre has definitively deleted a channel, Vasudev can create and subscribe to another one, but the old cursor and its server-side history are gone.
+There is one hard recovery limit. If Eyre has definitively deleted a channel, OpenClaw can create and subscribe to another one, but the old cursor and its server-side history are gone.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -1856,7 +1856,7 @@ A [Nostr](/channels/nostr) direct message can move to the next configured relay 
 
 <Accordion title="Synology Chat">
 
-[Synology Chat](/channels/synology-chat) now records inbound webhook work before returning success, allowing accepted messages to resume after a restart. If the local write fails, Vasudev returns an error so the sender can redeliver, while the upstream retry remains controlled by Synology. Long Unicode replies keep their order, lookups and responses are bounded, and uncertain outbound sends remain unresolved instead of being replayed into a duplicate.
+[Synology Chat](/channels/synology-chat) now records inbound webhook work before returning success, allowing accepted messages to resume after a restart. If the local write fails, OpenClaw returns an error so the sender can redeliver, while the upstream retry remains controlled by Synology. Long Unicode replies keep their order, lookups and responses are bounded, and uncertain outbound sends remain unresolved instead of being replayed into a duplicate.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -1885,7 +1885,7 @@ A [Nostr](/channels/nostr) direct message can move to the next configured relay 
 
 <Accordion title="Twitch">
 
-[Twitch](/channels/twitch) chat already accepted into Vasudev's local queue can continue after a process crash. Stalled user lookups can be cancelled, stopped accounts stay stopped even when an earlier connection attempt finishes late, and ordinary replies keep normalized attachment links while internal tool traces and XML scaffolding are removed before they reach chat.
+[Twitch](/channels/twitch) chat already accepted into OpenClaw's local queue can continue after a process crash. Stalled user lookups can be cancelled, stopped accounts stay stopped even when an earlier connection attempt finishes late, and ordinary replies keep normalized attachment links while internal tool traces and XML scaffolding are removed before they reach chat.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -1910,7 +1910,7 @@ A [Nostr](/channels/nostr) direct message can move to the next configured relay 
 
 <Accordion title="IRC">
 
-[IRC](/channels/irc) channel messages already admitted to Vasudev can resume in order after a restart without echoing the bot's own replies back into the room. Direct-message recovery stays tied to the connection that accepted it and stops if that identity changes, while mentions follow IRC nickname rules, Markdown becomes readable plain text, and internal tool traces stay out of the channel.
+[IRC](/channels/irc) channel messages already admitted to OpenClaw can resume in order after a restart without echoing the bot's own replies back into the room. Direct-message recovery stays tied to the connection that accepted it and stops if that identity changes, while mentions follow IRC nickname rules, Markdown becomes readable plain text, and internal tool traces stay out of the channel.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -1934,7 +1934,7 @@ A [Nostr](/channels/nostr) direct message can move to the next configured relay 
 
 [Android](/platforms/android) now writes text, images, and voice notes to its outbox before using the network, keeping them through offline periods and restarts until conversation history confirms delivery. If the outcome remains uncertain, the item stays visible with explicit Retry and Delete controls and is not sent again automatically.
 
-Supported audio and video play inline, video uses the native upload flow, and notification replies return to the exact saved conversation or fail. Older 2026.7.x Vasudev installations use a reduced compatibility path.
+Supported audio and video play inline, video uses the native upload flow, and notification replies return to the exact saved conversation or fail. Older 2026.7.x OpenClaw installations use a reduced compatibility path.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -1961,7 +1961,7 @@ Supported audio and video play inline, video uses the native upload flow, and no
 
 <Accordion title="iOS and macOS Chat">
 
-The [iOS](/platforms/ios) and [macOS](/platforms/macos) Vasudev apps can play supported managed audio and video inside chat, upload video from the native composer, and hand the active attachment to system Now Playing controls. A slow accepted reply stays visibly pending while live state and saved history reconcile, so late history cannot clear a newer turn just because it arrived second.
+The [iOS](/platforms/ios) and [macOS](/platforms/macos) OpenClaw apps can play supported managed audio and video inside chat, upload video from the native composer, and hand the active attachment to system Now Playing controls. A slow accepted reply stays visibly pending while live state and saved history reconcile, so late history cannot clear a newer turn just because it arrived second.
 
 A run that truly produces no output eventually releases the composer without inventing a reply. Native video uploads retain the 20 MB limit, and these chat apps remain separate from the iMessage channel plugin.
 
@@ -1996,7 +1996,7 @@ A run that truly produces no output eventually releases the composer without inv
 
 Across Control UI, WebChat, and TUI, prompts, live work, attachments, and replies stay aligned when several clients share a conversation or reconnect at different times. Delayed prompts no longer jump below their live replies, and terminal users keep a privacy-safe attachment warning beside the answer and after history reload.
 
-These are Vasudev's own chat clients rather than external messaging services, and the saved conversation remains the final record when a live update and refreshed history disagree.
+These are OpenClaw's own chat clients rather than external messaging services, and the saved conversation remains the final record when a live update and refreshed history disagree.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>
@@ -2101,7 +2101,7 @@ Choosing the main transcript places raw call turns in primary history. A carrier
 
 <Accordion title="Raft">
 
-[Raft](/channels/raft) setup now says clearly when the machine running Vasudev cannot find the Raft executable instead of presenting a configured channel as healthy. A passing probe means the command-line tool was available at that moment, not that a later connection or message has already succeeded.
+[Raft](/channels/raft) setup now says clearly when the machine running OpenClaw cannot find the Raft executable instead of presenting a configured channel as healthy. A passing probe means the command-line tool was available at that moment, not that a later connection or message has already succeeded.
 
 <details class="release-source-toggle">
 <summary>Sources and complete change list</summary>

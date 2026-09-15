@@ -1,6 +1,6 @@
 ---
 title: "v2026.8.1: Maintenance changes (part 8 of 8)"
-description: "Part 8 of the 6,016 routine maintenance changes in Vasudev v2026.8.1, with a source link for each one."
+description: "Part 8 of the 6,016 routine maintenance changes in OpenClaw v2026.8.1, with a source link for each one."
 ---
 
 Maintenance changes 5,265 to 6,016 of 6,016. See [Maintainer and Internal Changes](/releases/2026.8.1/maintainer-and-internal-changes) for the other categories and the remaining parts.
