@@ -15,6 +15,7 @@ import {
   NODE_WORKER_SUPERVISOR_STATUS_COMMAND,
   NODE_WORKER_WORKSPACE_EXEC_COMMAND,
 } from "../../../../src/infra/node-commands.js";
+import { NODE_RUNNER_UPDATE_REQUIRED_ISSUE } from "../../../../src/infra/node-runner-inventory.js";
 import { stopQaGatewayFixture } from "../../../helpers/qa-gateway-cleanup.js";
 import { useAutoCleanupTempDirTracker } from "../../../helpers/temp-dir.js";
 import {
@@ -373,8 +374,13 @@ describe("node worker launch wire", () => {
           ),
         ).resolves.toMatchObject({
           status: "error",
+          // The remediation commands are formatted by their producer, so they
+          // carry the displayed bin name and any active profile.
           error: expect.stringMatching(
-            /requires an update.*openclaw update.*reconnect.*openclaw node restart/su,
+            new RegExp(
+              `requires an update.*${NODE_RUNNER_UPDATE_REQUIRED_ISSUE.updateCommand}.*reconnect.*${NODE_RUNNER_UPDATE_REQUIRED_ISSUE.headlessReconnectCommand}`,
+              "su",
+            ),
           ),
         });
         await legacyWorkerNode.waitForInvokes();

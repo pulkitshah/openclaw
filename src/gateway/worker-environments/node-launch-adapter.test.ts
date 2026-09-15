@@ -9,7 +9,10 @@ import {
 } from "../../../packages/gateway-protocol/src/schema/worker-admission.js";
 import { WORKER_PROTOCOL_MAX_INFERENCE_PAYLOAD_BYTES } from "../../../packages/gateway-protocol/src/schema/worker-inference.js";
 import { NODE_WORKER_CAPACITY_EXHAUSTED_ERROR_CODE } from "../../infra/node-commands.js";
-import { NODE_WORKER_SUPERVISOR_PROTOCOL_FEATURE } from "../../infra/node-runner-inventory.js";
+import {
+  NODE_RUNNER_UPDATE_REQUIRED_ISSUE,
+  NODE_WORKER_SUPERVISOR_PROTOCOL_FEATURE,
+} from "../../infra/node-runner-inventory.js";
 import {
   nodeWorkerPlanHash,
   type NodeWorkerLaunchInput,
@@ -460,7 +463,9 @@ describe("node worker launch adapter", () => {
       getTransport: () => transportWith(invoke, async () => [node]),
     });
 
-    await expect(adapter.launch(launchRequest())).rejects.toThrow("openclaw update");
+    await expect(adapter.launch(launchRequest())).rejects.toThrow(
+      NODE_RUNNER_UPDATE_REQUIRED_ISSUE.updateCommand,
+    );
     expect(invoke).not.toHaveBeenCalled();
   });
 

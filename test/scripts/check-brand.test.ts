@@ -756,10 +756,10 @@ describe("rewriteFileContent (test/fixture and cross-boundary exclusions)", () =
     expect(count).toBe(1);
   });
 
-  it("never rewrites a node-update remediation expectation that reads the producer's own value", () => {
-    // `NODE_RUNNER_UPDATE_REQUIRED_ISSUE` holds bare command literals the
-    // rebrand keeps as values, so the assertions that read them back have to
-    // spell the same commands.
+  it("renames a node-update remediation expectation now that its producer formats the command", () => {
+    // `NODE_RUNNER_UPDATE_REQUIRED_ISSUE` routes both shown commands through
+    // `formatCliCommand`, so the assertions that read the payload back follow
+    // the displayed name instead of pinning the real binary.
     const content = [
       'expect(finding).toMatchObject({ message: "run openclaw update, then reconnect" });',
       'const why = "OpenClaw reports the node as outdated.";',
@@ -769,9 +769,9 @@ describe("rewriteFileContent (test/fixture and cross-boundary exclusions)", () =
       content,
       { includeTests: true },
     );
-    expect(rewritten).toContain('"run openclaw update, then reconnect"');
+    expect(rewritten).toContain('"run vasudev update, then reconnect"');
     expect(rewritten).toContain('"Vasudev reports the node as outdated."');
-    expect(count).toBe(1);
+    expect(count).toBe(2);
   });
 
   it("still rewrites ordinary prose in a file that has one excluded literal", () => {

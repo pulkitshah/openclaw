@@ -91,10 +91,15 @@ function readRuntimeTargetIssues(value: unknown): RuntimeTargetIssue[] | undefin
     if (!isRecord(raw)) {
       return [];
     }
+    // `code`/`action` are the closed wire vocabulary. The two commands are
+    // display strings the Gateway spells with its own bin name and active
+    // profile, so admit any non-empty text and render it as sent.
     return raw.code === "update-required" &&
       raw.action === "update-and-reconnect" &&
-      raw.updateCommand === "openclaw update" &&
-      raw.headlessReconnectCommand === "openclaw node restart"
+      typeof raw.updateCommand === "string" &&
+      raw.updateCommand.length > 0 &&
+      typeof raw.headlessReconnectCommand === "string" &&
+      raw.headlessReconnectCommand.length > 0
       ? [raw as RuntimeTargetIssue]
       : [];
   });

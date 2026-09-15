@@ -202,15 +202,14 @@ const COMMAND_ALIAS_RE = new RegExp(
 const DISPLAY_BINARY_LITERAL_RE = /^(["'`])openclaw\1$/;
 
 // A string literal whose entire content is one bare command line and nothing
-// else (`"openclaw update"`, `"openclaw node restart"`) is a *value*, not
-// prose: it is spawned, compared, or sent on the wire. Real examples in this
-// tree are `Type.Literal("openclaw update")` in the Gateway protocol schema
-// (which `ui/src/pages/new-session/discovery.ts` validates by exact equality,
-// and external SDK clients pin) and `generatedBy: "openclaw secrets configure"`
-// (persisted provenance). Prose that shows a command to a user always wraps it
-// in a sentence or backticks, so it has other characters in the literal and is
-// still rewritten. Consequence worth knowing: a structured command field the
-// UI renders as-is keeps naming the real binary, which is still `openclaw`.
+// else (`"openclaw gateway run"`) is a *value*, not prose: it is spawned,
+// compared, or sent on the wire. The real example in this tree is
+// `generatedBy: "openclaw secrets configure"` (persisted provenance). Prose
+// that shows a command to a user always wraps it in a sentence or backticks, so
+// it has other characters in the literal and is still rewritten. A structured
+// command field the UI renders as-is is *not* covered by this rule: those go
+// through `formatCliCommand` at their producer (see
+// `NODE_RUNNER_UPDATE_REQUIRED_ISSUE`), which is what renames them.
 const BARE_COMMAND_LITERAL_RE =
   /^(["'`])openclaw(?:[ ]-{1,2}[A-Za-z0-9][A-Za-z0-9-]*|[ ][a-z][a-z0-9-]*)*\1$/;
 
@@ -1005,32 +1004,6 @@ const EXCLUDED_LITERALS_BY_FILE = new Map([
     "ui/src/app/settings.node.test.ts",
     new Set(['" OpenClaw "']),
   ],
-  ...[
-    // `NODE_RUNNER_UPDATE_REQUIRED_ISSUE` (src/infra/node-runner-inventory.ts)
-    // holds `updateCommand`/`headlessReconnectCommand` as bare command
-    // literals, which the bare-command rule keeps as values: the issue is a
-    // structured payload the Control UI renders verbatim. Every expectation
-    // below reads that payload back, so it has to match the producer.
-    [
-      "src/gateway/worker-environments/device-placement-selector.test.ts",
-      ['"run openclaw update, then reconnect"'],
-    ],
-    [
-      "src/gateway/worker-environments/placement-dispatch-device.test.ts",
-      [
-        '"device worker node offline-device requires an update before it can host sessions; run openclaw update, then reconnect it (for a headless node, run openclaw node restart)"',
-        '"run openclaw update"',
-        '"run openclaw node restart"',
-      ],
-    ],
-    [
-      "ui/src/pages/new-session/device-placement.test.ts",
-      [
-        '"Update required: run openclaw update, then reconnect. For a headless node, run openclaw node restart."',
-      ],
-    ],
-    ["ui/src/pages/new-session/where-chip.test.ts", ["/openclaw update.*openclaw node restart/i"]],
-  ].map(([file, literals]) => [file, new Set(literals)]),
   [
     // `clientInfo.title` in the Codex app-server `initialize` handshake: read
     // by the third-party Codex binary, not by this product's UI.

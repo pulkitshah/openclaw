@@ -178,23 +178,32 @@ describe("readDraftCloudProfiles", () => {
 });
 
 describe("readDraftEnvironments", () => {
-  it("keeps only the exact update-required issue contract", () => {
+  it("keeps the closed update-required vocabulary and whatever command text the Gateway sends", () => {
     const issue = {
       code: "update-required",
       action: "update-and-reconnect",
-      updateCommand: "openclaw update",
-      headlessReconnectCommand: "openclaw node restart",
+      updateCommand: "vasudev update",
+      headlessReconnectCommand: "vasudev node restart",
     };
+    // The Gateway spells both commands itself, carrying its own bin name and
+    // any active `--profile`, so the text varies per install; only the
+    // vocabulary and the presence of both commands are the contract.
+    const profiled = { ...issue, updateCommand: "vasudev --profile work update" };
     expect(
       readDraftEnvironments([
         {
           id: "node:outdated",
           type: "node",
           status: "available",
-          issues: [issue, { ...issue, headlessReconnectCommand: "legacy restart" }],
+          issues: [
+            issue,
+            profiled,
+            { ...issue, action: "run-legacy-worker" },
+            { ...issue, headlessReconnectCommand: "" },
+          ],
         },
       ])[0]?.issues,
-    ).toEqual([issue]);
+    ).toEqual([issue, profiled]);
   });
 
   it("normalizes command inventory and keeps only closed required-command state", () => {

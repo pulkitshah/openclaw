@@ -832,11 +832,11 @@ describe("Where chip", () => {
         {
           code: "update-required",
           action: "update-and-reconnect",
-          updateCommand: "openclaw update",
-          headlessReconnectCommand: "openclaw node restart",
+          updateCommand: "vasudev update",
+          headlessReconnectCommand: "vasudev node restart",
         } as const,
       ],
-      reason: /openclaw update.*openclaw node restart/i,
+      reason: /vasudev update.*vasudev node restart/i,
     },
   ])("disables automatic selection with an actionable reason when $name", ({ issues, reason }) => {
     const container = renderPicker(false, undefined, {

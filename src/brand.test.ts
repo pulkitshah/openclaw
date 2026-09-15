@@ -24,7 +24,7 @@ describe("brand constants", () => {
       expect(isCliBinaryName(alias)).toBe(true);
     }
     expect(isCliBinaryName("openclaw-gateway")).toBe(false);
-    expect(isCliBinaryName("OpenClaw")).toBe(false);
+    expect(isCliBinaryName("OPENCLAW")).toBe(false);
     expect(isCliBinaryName("/usr/local/bin/vasudev")).toBe(false);
     expect(isCliBinaryName("")).toBe(false);
     expect(isCliBinaryName(undefined)).toBe(false);

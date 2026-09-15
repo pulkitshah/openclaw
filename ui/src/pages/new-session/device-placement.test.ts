@@ -7,8 +7,8 @@ import type { DraftEnvironment } from "./discovery.ts";
 const updateIssue = {
   code: "update-required",
   action: "update-and-reconnect",
-  updateCommand: "openclaw update",
-  headlessReconnectCommand: "openclaw node restart",
+  updateCommand: "vasudev update",
+  headlessReconnectCommand: "vasudev node restart",
 } as const;
 
 function node(overrides: Partial<DraftEnvironment>): DraftEnvironment {
@@ -89,9 +89,9 @@ describe("device placement projection", () => {
       environment: node({ issues: [updateIssue] }),
       selectable: false,
       reason:
-        "Update required: run openclaw update, then reconnect. For a headless node, run openclaw node restart.",
+        "Update required: run vasudev update, then reconnect. For a headless node, run vasudev node restart.",
       facts: [
-        "Update required: run openclaw update, then reconnect. For a headless node, run openclaw node restart.",
+        "Update required: run vasudev update, then reconnect. For a headless node, run vasudev node restart.",
         "macOS",
         "Camera",
       ],

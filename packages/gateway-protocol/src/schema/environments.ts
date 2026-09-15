@@ -58,8 +58,12 @@ export const WorkerDesktopAppIdSchema = Type.Union([
 export const RuntimeTargetIssueSchema = closedObject({
   code: Type.Literal("update-required"),
   action: Type.Literal("update-and-reconnect"),
-  updateCommand: Type.Literal("openclaw update"),
-  headlessReconnectCommand: Type.Literal("openclaw node restart"),
+  // Displayed commands, not wire identities: the producer spells them with the
+  // brand-owned bin name (`formatCliCommand`), which also carries the Gateway's
+  // active `--profile`/`--container`. `code` and `action` stay the closed
+  // vocabulary consumers switch on.
+  updateCommand: Type.String({ minLength: 1, maxLength: 256 }),
+  headlessReconnectCommand: Type.String({ minLength: 1, maxLength: 256 }),
 });
 
 const NodeWorkerBundleStatusSchema = Type.Union([
