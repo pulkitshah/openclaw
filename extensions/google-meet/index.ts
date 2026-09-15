@@ -1,4 +1,4 @@
-// Google Meet plugin entrypoint registers its OpenClaw integration.
+// Google Meet plugin entrypoint registers its Vasudev integration.
 import type { GatewayRequestHandlerOptions } from "openclaw/plugin-sdk/gateway-runtime";
 import { definePluginEntry, type OpenClawPluginApi } from "openclaw/plugin-sdk/plugin-entry";
 import { normalizeOptionalString } from "openclaw/plugin-sdk/string-coerce-runtime";

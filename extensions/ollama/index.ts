@@ -1,4 +1,4 @@
-// Ollama plugin entrypoint registers its OpenClaw integration.
+// Ollama plugin entrypoint registers its Vasudev integration.
 import { collectConfiguredModelRefValues } from "@openclaw/model-catalog-core/configured-model-refs";
 import { findNormalizedProviderKey } from "@openclaw/model-catalog-core/provider-id";
 import type { OpenClawConfig } from "openclaw/plugin-sdk/config-contracts";
@@ -840,7 +840,7 @@ export default definePluginEntry({
         }),
       buildUnknownModelHint: () =>
         "Ollama Cloud requires an API key. " +
-        'Set OLLAMA_API_KEY or run "openclaw onboard --auth-choice ollama-cloud". ' +
+        'Set OLLAMA_API_KEY or run "vasudev onboard --auth-choice ollama-cloud". ' +
         "See: https://docs.openclaw.ai/providers/ollama",
     });
     api.registerProvider({
@@ -1075,7 +1075,7 @@ export default definePluginEntry({
       },
       buildUnknownModelHint: () =>
         "Ollama requires authentication to be registered as a provider. " +
-        'Set OLLAMA_API_KEY="ollama-local" (any value works) or run "openclaw configure". ' +
+        'Set OLLAMA_API_KEY="ollama-local" (any value works) or run "vasudev configure". ' +
         "See: https://docs.openclaw.ai/providers/ollama",
     });
   },

@@ -173,7 +173,7 @@ describe("Codex agent harness supports()", () => {
     expect(harness.delegatedExecutionPluginIds).toEqual(["voice-call"]);
   });
 
-  it("supports openai as the primary OpenClaw routing id", () => {
+  it("supports openai as the primary Vasudev routing id", () => {
     expect(harness.supports({ provider: "openai", requestedRuntime: "codex" })).toEqual({
       supported: true,
       priority: 100,

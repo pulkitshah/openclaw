@@ -273,7 +273,7 @@ export function createRadiusStreamFn(): StreamFunction<string, RadiusStreamOptio
       try {
         if (!options?.apiKey) {
           throw new Error(
-            "No Radius access token configured. Run openclaw models auth login --provider radius.",
+            "No Radius access token configured. Run vasudev models auth login --provider radius.",
           );
         }
         options.signal?.throwIfAborted();

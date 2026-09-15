@@ -1,4 +1,4 @@
-// Document Extract plugin entrypoint registers its OpenClaw integration.
+// Document Extract plugin entrypoint registers its Vasudev integration.
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 
 export default definePluginEntry({

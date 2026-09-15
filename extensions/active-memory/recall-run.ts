@@ -312,7 +312,7 @@ async function runRecallSubagent(params: {
     const activeSessionFile = normalizeOptionalString(agentMeta?.sessionFile);
     const marker = parseSqliteSessionFileMarker(activeSessionFile);
     // The host validates successors against this binding. CLI results without
-    // sessionFile carry a native sessionId, not an OpenClaw transcript identity.
+    // sessionFile carry a native sessionId, not a Vasudev transcript identity.
     const activeSessionId =
       marker?.sessionId ??
       (activeSessionFile === subagentSessionKey

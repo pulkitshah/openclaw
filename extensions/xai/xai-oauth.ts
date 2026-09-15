@@ -662,7 +662,7 @@ export async function loginXaiDeviceCode(ctx: ProviderAuthContext): Promise<Prov
       },
       notes: [
         "xAI OAuth uses device-code verification without requiring a localhost callback.",
-        "xAI may label the consent app as Grok Build because OpenClaw uses xAI's shared OAuth client.",
+        "xAI may label the consent app as Grok Build because Vasudev uses xAI's shared OAuth client.",
       ],
     });
   } catch (err) {

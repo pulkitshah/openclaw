@@ -134,7 +134,7 @@ describe("OpenAI billing route intent", () => {
     });
   });
 
-  it("keeps subscription eligible for an OpenClaw runtime pin with no API credential", () => {
+  it("keeps subscription eligible for a Vasudev runtime pin with no API credential", () => {
     expect(
       resolveModelRoutes({
         provider: "openai",

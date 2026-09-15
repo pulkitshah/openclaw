@@ -5,7 +5,7 @@
 import { resolveAwsSdkEnvVarName } from "openclaw/plugin-sdk/provider-auth-runtime";
 import type { ModelProviderConfig } from "openclaw/plugin-sdk/provider-model-shared";
 
-/** Resolve the config auth marker that tells OpenClaw to use AWS SDK credentials. */
+/** Resolve the config auth marker that tells Vasudev to use AWS SDK credentials. */
 export function resolveBedrockConfigApiKey(
   env: NodeJS.ProcessEnv = process.env,
 ): string | undefined {

@@ -27,7 +27,7 @@ export const legacyConfigRules = [
   {
     path: RETIRED_QMD_CONFIG_PATH,
     message:
-      'plugins.entries.active-memory.config.qmd is retired because the QMD memory backend was removed. Run "openclaw doctor --fix".',
+      'plugins.entries.active-memory.config.qmd is retired because the QMD memory backend was removed. Run "vasudev doctor --fix".',
   },
 ];
 
@@ -89,7 +89,7 @@ function parseLegacyToggleEntries(parsed: unknown): ActiveMemoryToggleEntry[] | 
   return entries;
 }
 
-/** State migrations exposed to OpenClaw doctor for Active Memory. */
+/** State migrations exposed to Vasudev doctor for Active Memory. */
 export const stateMigrations: PluginDoctorStateMigration[] = [
   defineLegacyJsonStateMigration<ActiveMemoryToggleEntry[]>({
     id: "active-memory-session-toggles-json-to-plugin-state",

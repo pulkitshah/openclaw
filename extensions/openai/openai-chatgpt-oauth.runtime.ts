@@ -83,7 +83,7 @@ function rewriteOpenAICodexOAuthError(error: unknown): Error {
       "unsupported_region",
       [
         "OpenAI rejected the token exchange for this country, region, or network route.",
-        "If you normally use a proxy, verify HTTPS_PROXY, HTTP_PROXY, or ALL_PROXY is set for the OpenClaw process and then retry `openclaw models auth login --provider openai`.",
+        "If you normally use a proxy, verify HTTPS_PROXY, HTTP_PROXY, or ALL_PROXY is set for the Vasudev process and then retry `vasudev models auth login --provider openai`.",
       ].join(" "),
       error,
     );
@@ -176,7 +176,7 @@ export async function loginOpenAICodexOAuth(params: {
           "You are running in a remote/VPS environment.",
           "A URL will be shown for you to open in your LOCAL browser.",
           "Open it, sign in, then paste the redirect URL here.",
-          "If this OpenClaw process can receive the browser callback, sign-in may finish automatically before you paste.",
+          "If this Vasudev process can receive the browser callback, sign-in may finish automatically before you paste.",
         ].join("\n")
       : [
           "Browser will open for OpenAI authentication.",

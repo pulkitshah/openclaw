@@ -265,7 +265,7 @@ export const stateMigrations: PluginDoctorStateMigration[] = [
         );
         for (const lease of leases) {
           warnings.push(
-            `Resolve lease ${lease.leaseId} through its original Gateway or provider, stop the original Gateway/capture processes, and confirm provider cleanup before running: openclaw crabbox warm-images --recover ${lease.selector} --acknowledge-provider-cleanup. Then rerun openclaw doctor --fix. The row was not changed.`,
+            `Resolve lease ${lease.leaseId} through its original Gateway or provider, stop the original Gateway/capture processes, and confirm provider cleanup before running: openclaw crabbox warm-images --recover ${lease.selector} --acknowledge-provider-cleanup. Then rerun vasudev doctor --fix. The row was not changed.`,
           );
         }
       }

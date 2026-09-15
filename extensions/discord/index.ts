@@ -1,4 +1,4 @@
-// Discord plugin entrypoint registers its OpenClaw integration.
+// Discord plugin entrypoint registers its Vasudev integration.
 import { defineBundledChannelEntry } from "openclaw/plugin-sdk/channel-entry-contract";
 import { registerDiscordActivities } from "./activities-api.js";
 import { registerDiscordSubagentHooks } from "./subagent-hooks-api.js";

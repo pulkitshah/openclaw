@@ -69,7 +69,7 @@ async function authorizeTool(
   if (!turn || signal.aborted || typeof toolName !== "string" || !isRecord(input)) {
     return {
       behavior: "deny",
-      message: "The OpenClaw run or native tool input is no longer valid.",
+      message: "The Vasudev run or native tool input is no longer valid.",
     };
   }
   const toolUseId = typeof request.tool_use_id === "string" ? request.tool_use_id : undefined;
@@ -87,11 +87,11 @@ async function authorizeTool(
           });
     // An operator decision can outlive its turn. Revalidate immediately before granting it.
     if (activeTurn(session) !== turn || abortSignal.aborted) {
-      return { behavior: "deny", message: "The OpenClaw run is no longer active." };
+      return { behavior: "deny", message: "The Vasudev run is no longer active." };
     }
     return decision;
   } catch {
-    return { behavior: "deny", message: "OpenClaw could not authorize this tool call." };
+    return { behavior: "deny", message: "Vasudev could not authorize this tool call." };
   }
 }
 
@@ -325,7 +325,7 @@ export async function* executeClaudeCli(
             if (admittedTurn && activeTurn(session) === admittedTurn && !signal.aborted) {
               return response;
             }
-            const message = "The OpenClaw run is no longer active.";
+            const message = "The Vasudev run is no longer active.";
             if (request.subtype === "can_use_tool") {
               return { behavior: "deny", message, toolUseID: request.tool_use_id };
             }

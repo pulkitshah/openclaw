@@ -64,7 +64,7 @@ async function buildMemoryItem(params: {
       : targetConflict
         ? MIGRATION_REASON_TARGET_EXISTS
         : undefined,
-    message: "Copy Hermes memory into the OpenClaw memory index.",
+    message: "Copy Hermes memory into the Vasudev memory index.",
     details: {
       sourceType: "hermes-memory",
       sourceLabel: params.sourceLabel,

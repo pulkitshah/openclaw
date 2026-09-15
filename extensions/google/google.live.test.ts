@@ -161,7 +161,7 @@ describeLive("google plugin live", () => {
           messages: [
             {
               role: "user",
-              content: "Reply with exactly: OpenClaw live catalog OK",
+              content: "Reply with exactly: Vasudev live catalog OK",
               timestamp: Date.now(),
             },
           ],
@@ -250,7 +250,7 @@ describeLive("google plugin live", () => {
     const provider = requireRegisteredProvider(speechProviders, "google");
 
     const audioFile = await provider.synthesize({
-      text: "OpenClaw Google text to speech integration test OK.",
+      text: "Vasudev Google text to speech integration test OK.",
       cfg: { plugins: { enabled: true } } as never,
       providerConfig: { apiKey: GOOGLE_API_KEY },
       target: "audio-file",
@@ -271,7 +271,7 @@ describeLive("google plugin live", () => {
     const provider = requireRegisteredProvider(speechProviders, "google");
 
     const audioFile = await provider.synthesize({
-      text: "OpenClaw Google voice note integration test OK.",
+      text: "Vasudev Google voice note integration test OK.",
       cfg: { plugins: { enabled: true } } as never,
       providerConfig: { apiKey: GOOGLE_API_KEY },
       target: "voice-note",
@@ -345,7 +345,7 @@ describeLive("google plugin live", () => {
       },
       onReady: () => {
         readyCount += 1;
-        bridge.triggerGreeting?.("Reply with exactly: OpenClaw Google realtime ready.");
+        bridge.triggerGreeting?.("Reply with exactly: Vasudev Google realtime ready.");
       },
       onError: (error) => errors.push(error),
       onClose: (reason) => closeReasons.push(reason),
@@ -441,7 +441,7 @@ describeLive("google plugin live", () => {
       closeReasons,
     });
 
-    bridge.sendUserMessage?.("Reply with exactly: OpenClaw lazy bridge ready.");
+    bridge.sendUserMessage?.("Reply with exactly: Vasudev lazy bridge ready.");
     try {
       await bridge.connect();
       // Gemini 3.1 can omit transcription.finished. Wait for output to go idle
@@ -505,7 +505,7 @@ describeLive("google plugin live", () => {
       let lastError: unknown;
       for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
-          result = await tool?.execute({ query: "OpenClaw GitHub", count: 1 });
+          result = await tool?.execute({ query: "Vasudev GitHub", count: 1 });
           lastError = undefined;
           break;
         } catch (error) {
@@ -545,7 +545,7 @@ describeLive("google plugin live", () => {
         searchConfig: { provider: "gemini", cacheTtlMinutes: 0, timeoutSeconds: 90 },
       } as never);
 
-      const result = await tool?.execute({ query: "OpenClaw GitHub", count: 1 });
+      const result = await tool?.execute({ query: "Vasudev GitHub", count: 1 });
 
       expect(process.env.GEMINI_API_KEY).toBeUndefined();
       expect(process.env.GOOGLE_API_KEY).toBeUndefined();

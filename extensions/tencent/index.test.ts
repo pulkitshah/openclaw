@@ -250,7 +250,7 @@ describe("tencent provider plugin", () => {
     expect(hy4Preview?.contextWindow).toBe(1_024_000);
     expect(hy4Preview?.maxTokens).toBe(64_000);
     expect(hy4Preview?.compat?.supportsReasoningEffort).toBe(true);
-    // OpenClaw exposes none/high; raw low acceptance does not prove a distinct low mode.
+    // Vasudev exposes none/high; raw low acceptance does not prove a distinct low mode.
     expect(hy4Preview?.compat?.supportedReasoningEfforts).toEqual(["none", "high"]);
 
     const hy3Preview = catalogProvider.models?.find((m) => m.id === "hy3-preview");
@@ -290,7 +290,7 @@ describe("tencent provider plugin", () => {
     expect(hy4Preview?.contextWindow).toBe(1_024_000);
     expect(hy4Preview?.maxTokens).toBe(64_000);
     expect(hy4Preview?.compat?.supportsReasoningEffort).toBe(true);
-    // OpenClaw exposes none/high; raw low acceptance does not prove a distinct low mode.
+    // Vasudev exposes none/high; raw low acceptance does not prove a distinct low mode.
     expect(hy4Preview?.compat?.supportedReasoningEfforts).toEqual(["none", "high"]);
   });
 
@@ -462,7 +462,7 @@ describe("tencent provider plugin", () => {
       baseUrl: "https://api.lkeap.cloud.tencent.com/plan/v3",
     });
 
-    // Preserve OpenClaw's none/high policy: intermediate efforts become high
+    // Preserve Vasudev's none/high policy: intermediate efforts become high
     // and off becomes none. Raw API acceptance of low alone does not establish
     // a distinct low reasoning mode.
     const expected: Record<string, string> = {

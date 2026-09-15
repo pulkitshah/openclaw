@@ -1,4 +1,4 @@
-// Venice plugin entrypoint registers its OpenClaw integration.
+// Venice plugin entrypoint registers its Vasudev integration.
 import { defineSingleProviderPluginEntry } from "openclaw/plugin-sdk/provider-entry";
 import {
   applyModelCompatPatch,

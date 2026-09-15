@@ -1,4 +1,4 @@
-// Workboard plugin entrypoint registers its OpenClaw integration.
+// Workboard plugin entrypoint registers its Vasudev integration.
 import { definePluginEntry } from "./api.js";
 import { registerWorkboardGatewayMethods } from "./runtime-api.js";
 import { createWorkboardAutomationNudgeService } from "./src/automation-nudge.js";

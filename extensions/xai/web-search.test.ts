@@ -217,7 +217,7 @@ describe("xai web search config resolution", () => {
         }),
       });
 
-      const result = await maybeTool.execute({ query: "OpenClaw" });
+      const result = await maybeTool.execute({ query: "Vasudev" });
       expect(result.error).toBe("missing_xai_api_key");
       expect(result.message).toContain("use web_fetch for a specific URL or the browser tool");
     });
@@ -238,7 +238,7 @@ describe("xai web search config resolution", () => {
       },
     });
 
-    await tool.execute({ query: "OpenClaw Grok OAuth web search" });
+    await tool.execute({ query: "Vasudev Grok OAuth web search" });
 
     expect(providerAuthRuntimeMocks.resolveApiKeyForProvider).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -269,7 +269,7 @@ describe("xai web search config resolution", () => {
       },
     });
 
-    await tool.execute({ query: "OpenClaw Grok active agent OAuth web search" });
+    await tool.execute({ query: "Vasudev Grok active agent OAuth web search" });
 
     expect(providerAuthRuntimeMocks.resolveApiKeyForProvider).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -301,7 +301,7 @@ describe("xai web search config resolution", () => {
     global.fetch = withFetchPreconnect(mockFetch);
     const tool = createAuthSearchTool();
 
-    const result = await tool.execute({ query: "OpenClaw Grok OAuth refresh test" });
+    const result = await tool.execute({ query: "Vasudev Grok OAuth refresh test" });
 
     expect(result.content).toContain("Fresh OAuth Grok answer");
     expect(providerAuthRuntimeMocks.resolveApiKeyForProvider).toHaveBeenNthCalledWith(
@@ -344,7 +344,7 @@ describe("xai web search config resolution", () => {
     global.fetch = withFetchPreconnect(mockFetch);
     const tool = createAuthSearchTool();
 
-    const result = await tool.execute({ query: "OpenClaw Grok API fallback test" });
+    const result = await tool.execute({ query: "Vasudev Grok API fallback test" });
 
     expect(result.content).toContain("API key fallback Grok answer");
     expect(providerAuthRuntimeMocks.resolveApiKeyForProvider).toHaveBeenNthCalledWith(
@@ -413,7 +413,7 @@ describe("xai web search config resolution", () => {
     global.fetch = withFetchPreconnect(mockFetch);
     const tool = createAuthSearchTool();
 
-    const result = await tool.execute({ query: "OpenClaw Grok profile fallback test" });
+    const result = await tool.execute({ query: "Vasudev Grok profile fallback test" });
 
     expect(result.content).toContain("Profile API key Grok answer");
     expect(providerAuthRuntimeMocks.resolveApiKeyForProvider).toHaveBeenNthCalledWith(
@@ -450,7 +450,7 @@ describe("xai web search config resolution", () => {
     global.fetch = withFetchPreconnect(mockFetch);
     const tool = createAuthSearchTool();
 
-    const result = await tool.execute({ query: "OpenClaw Grok API-key fallback test" });
+    const result = await tool.execute({ query: "Vasudev Grok API-key fallback test" });
 
     expect(result.content).toContain("Env fallback Grok answer");
     expect(providerAuthRuntimeMocks.resolveApiKeyForProvider).toHaveBeenNthCalledWith(
@@ -570,7 +570,7 @@ describe("xai web search config resolution", () => {
       searchConfig: { provider: "grok" },
     });
 
-    const result = await tool.execute({ query: "OpenClaw Grok proxy test" });
+    const result = await tool.execute({ query: "Vasudev Grok proxy test" });
 
     expect(firstFetchUrl(mockFetch)).toBe("https://api.x.ai/proxy/v1/responses");
     expect(firstFetchBody(mockFetch)).toMatchObject({
@@ -595,7 +595,7 @@ describe("xai web search config resolution", () => {
       config: xaiPluginConfig({ webSearch: { apiKey: "xai-test-key" } }),
     });
 
-    await expect(tool.execute({ query: "OpenClaw" })).rejects.toThrow(
+    await expect(tool.execute({ query: "Vasudev" })).rejects.toThrow(
       "xAI web search failed: malformed JSON response",
     );
   });
@@ -609,7 +609,7 @@ describe("xai web search config resolution", () => {
       config: xaiPluginConfig({ webSearch: { apiKey: "xai-test-key" } }),
     });
 
-    await expect(tool.execute({ query: "OpenClaw" })).rejects.toThrow(
+    await expect(tool.execute({ query: "Vasudev" })).rejects.toThrow(
       "xAI web search failed: no answer text returned; try a simpler request",
     );
   });
@@ -620,7 +620,7 @@ describe("xai web search config resolution", () => {
     const tool = requireXaiWebSearchTool({
       config: xaiPluginConfig({ webSearch: { apiKey: "xai-test-key" } }),
     });
-    const request = () => tool.execute({ query: "OpenClaw timeout" });
+    const request = () => tool.execute({ query: "Vasudev timeout" });
 
     await expect(request()).rejects.toThrow("xAI web search timed out after 60s");
 

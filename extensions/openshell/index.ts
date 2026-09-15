@@ -1,4 +1,4 @@
-// Openshell plugin entrypoint registers its OpenClaw integration.
+// Openshell plugin entrypoint registers its Vasudev integration.
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 import { registerSandboxBackend } from "openclaw/plugin-sdk/sandbox";
 import {

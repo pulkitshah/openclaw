@@ -29,7 +29,7 @@ const RETIRED_ACPX_CONFIG_KEYS = ["strictWindowsCmdWrapper", "queueOwnerTtlSecon
 /** Retired ACPX config that `openclaw doctor --fix` removes before strict validation. */
 export const legacyConfigRules = RETIRED_ACPX_CONFIG_KEYS.map((key) => ({
   path: [...ACPX_CONFIG_PATH, key],
-  message: `${[...ACPX_CONFIG_PATH, key].join(".")} is retired and ignored by the embedded ACPX runtime. Run "openclaw doctor --fix".`,
+  message: `${[...ACPX_CONFIG_PATH, key].join(".")} is retired and ignored by the embedded ACPX runtime. Run "vasudev doctor --fix".`,
 }));
 
 /** Removes retired plugin-owned config without keeping runtime compatibility keys. */

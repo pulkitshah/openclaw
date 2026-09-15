@@ -1,4 +1,4 @@
-// LongCat plugin entrypoint registers its OpenClaw integration.
+// LongCat plugin entrypoint registers its Vasudev integration.
 import { defineSingleProviderPluginEntry } from "openclaw/plugin-sdk/provider-entry";
 import { buildProviderReplayFamilyHooks } from "openclaw/plugin-sdk/provider-model-shared";
 import { buildProviderToolCompatFamilyHooks } from "openclaw/plugin-sdk/provider-tools";

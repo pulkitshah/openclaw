@@ -150,7 +150,7 @@ export default definePluginEntry({
         }
         stopping = undefined;
         if (!api.runtimeSource) {
-          throw new Error("Logbook requires an OpenClaw host with runtime entrypoint metadata");
+          throw new Error("Logbook requires a Vasudev host with runtime entrypoint metadata");
         }
         const next = new LogbookService(config, {
           runtime: api.runtime,

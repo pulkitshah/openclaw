@@ -1,4 +1,4 @@
-// Kimi Coding plugin entrypoint registers its OpenClaw integration.
+// Kimi Coding plugin entrypoint registers its Vasudev integration.
 import { defineSingleProviderPluginEntry } from "openclaw/plugin-sdk/provider-entry";
 import { normalizeProviderId } from "openclaw/plugin-sdk/provider-model-shared";
 import type { SecretInput } from "openclaw/plugin-sdk/secret-input";

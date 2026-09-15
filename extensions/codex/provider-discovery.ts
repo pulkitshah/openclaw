@@ -1,4 +1,4 @@
-/** Native login facts belong to Codex, never to an OpenClaw bearer profile. */
+/** Native login facts belong to Codex, never to a Vasudev bearer profile. */
 import type { ProviderPlugin } from "openclaw/plugin-sdk/provider-model-shared";
 
 const codexProviderDiscovery: ProviderPlugin = {

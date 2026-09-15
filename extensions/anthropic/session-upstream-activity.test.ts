@@ -89,7 +89,7 @@ describe("Claude upstream activity", () => {
         row({
           type: "user",
           content:
-            "Continue this conversation using the OpenClaw transcript below as prior session history.\nTreat it as authoritative context for this fresh CLI session.\n\n<conversation_history>\nold\n</conversation_history>\n\n<next_user_message>\nnew\n</next_user_message>",
+            "Continue this conversation using the Vasudev transcript below as prior session history.\nTreat it as authoritative context for this fresh CLI session.\n\n<conversation_history>\nold\n</conversation_history>\n\n<next_user_message>\nnew\n</next_user_message>",
           timestamp: "2026-07-13T10:04:00.000Z",
         }),
         row({
@@ -190,7 +190,7 @@ describe("Claude upstream activity", () => {
     ).resolves.toBeUndefined();
   });
 
-  it("filters OpenClaw-authored rows by normalized transcript text", async () => {
+  it("filters Vasudev-authored rows by normalized transcript text", async () => {
     await using workspace = await createClaudeUpstreamWorkspace("provenance");
     const dir = workspace.dir;
     const filePath = path.join(dir, "thread-provenance.jsonl");

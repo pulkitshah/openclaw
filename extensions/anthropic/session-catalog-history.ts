@@ -16,7 +16,7 @@ function importedClaudeMessage(
   }
   const text = importedText || "[Unsupported Claude transcript item]";
   if (item.type === "userMessage") {
-    // Imported native rows are not OpenClaw-authored; mirrorOrigin excludes them
+    // Imported native rows are not Vasudev-authored; mirrorOrigin excludes them
     // from self-echo provenance so a repeated native prompt stays observable.
     return {
       role: "user",

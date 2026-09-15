@@ -1020,7 +1020,7 @@ describe("google-meet plugin", () => {
       audioBridgeCommand: undefined,
       audioBridgeHealthCommand: undefined,
       launch: true,
-      guestName: "OpenClaw Agent",
+      guestName: "Vasudev Agent",
       reuseExistingTab: true,
       autoJoin: true,
       joinTimeoutMs: 30000,
@@ -1609,7 +1609,7 @@ describe("google-meet plugin", () => {
       type: "string",
       enum: ["agent", "bidi", "transcribe"],
       description:
-        "Join mode. agent uses realtime transcription, the configured OpenClaw agent, and regular TTS. bidi uses the realtime voice model directly. transcribe joins observe-only.",
+        "Join mode. agent uses realtime transcription, the configured Vasudev agent, and regular TTS. bidi uses the realtime voice model directly. transcribe joins observe-only.",
     });
   });
 
@@ -3734,7 +3734,7 @@ describe("google-meet plugin", () => {
         lobbyWaiting: true,
         manualAction: {
           reason: "meet-admission-required",
-          message: "Admit the OpenClaw browser participant in Google Meet.",
+          message: "Admit the Vasudev browser participant in Google Meet.",
         },
         title: "Meet",
         url: MEET_URL,
@@ -5002,7 +5002,7 @@ describe("google-meet plugin", () => {
               inCall: false,
               manualAction: {
                 reason: "meet-admission-required",
-                message: "Admit the OpenClaw browser participant in Google Meet.",
+                message: "Admit the Vasudev browser participant in Google Meet.",
               },
               title: "Meet",
               url: "https://meet.google.com/abc-defg-hij?authuser=me%40example.com&hl=en",
@@ -6137,7 +6137,7 @@ describe("google-meet plugin", () => {
           inCall: false,
           manualAction: {
             reason: "google-login-required",
-            message: "Sign in to Google in the OpenClaw browser profile, then retry the Meet join.",
+            message: "Sign in to Google in the Vasudev browser profile, then retry the Meet join.",
           },
           title: "Sign in - Google Accounts",
           url: "https://accounts.google.com/signin",
@@ -6159,7 +6159,7 @@ describe("google-meet plugin", () => {
 
     expect(result.details.manualAction).toEqual({
       reason: "google-login-required",
-      message: "Sign in to Google in the OpenClaw browser profile, then retry the Meet join.",
+      message: "Sign in to Google in the Vasudev browser profile, then retry the Meet join.",
     });
     expect(result.details.spoken).toBe(false);
     expect(result.details.speechReady).toBe(false);
@@ -6169,7 +6169,7 @@ describe("google-meet plugin", () => {
     const health = requireRecord(chrome.health, "manual action chrome health");
     expect(health.manualAction).toEqual({
       reason: "google-login-required",
-      message: "Sign in to Google in the OpenClaw browser profile, then retry the Meet join.",
+      message: "Sign in to Google in the Vasudev browser profile, then retry the Meet join.",
     });
     expect(health.speechReady).toBe(false);
     expect(health.speechBlockedReason).toBe("google-login-required");

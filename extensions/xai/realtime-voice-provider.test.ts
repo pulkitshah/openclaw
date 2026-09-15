@@ -1045,12 +1045,12 @@ describe("buildXaiRealtimeVoiceProvider", () => {
     socket.emitServer({
       type: "conversation.item.input_audio_transcription.completed",
       item_id: "item_1",
-      transcript: "OpenClaw",
+      transcript: "Vasudev",
     });
     await bridge.close();
 
     expect(onTranscript).toHaveBeenCalledOnce();
-    expect(onTranscript).toHaveBeenCalledWith("user", "OpenClaw", true);
+    expect(onTranscript).toHaveBeenCalledWith("user", "Vasudev", true);
   });
 
   it("forwards standard incremental input-transcription events", async () => {
@@ -1117,14 +1117,14 @@ describe("buildXaiRealtimeVoiceProvider", () => {
 
     socket.emitServer({ type: "response.created" });
     socket.emitServer({ type: "response.output_audio_transcript.delta", delta: "Hello " });
-    socket.emitServer({ type: "response.output_audio_transcript.delta", delta: "OpenClaw" });
+    socket.emitServer({ type: "response.output_audio_transcript.delta", delta: "Vasudev" });
     socket.emitServer({ type: "response.output_audio_transcript.done" });
     socket.emitServer({ type: "response.done" });
     await bridge.close();
 
     expect(onTranscript).toHaveBeenNthCalledWith(1, "assistant", "Hello ", false);
-    expect(onTranscript).toHaveBeenNthCalledWith(2, "assistant", "OpenClaw", false);
-    expect(onTranscript).toHaveBeenNthCalledWith(3, "assistant", "Hello OpenClaw", true);
+    expect(onTranscript).toHaveBeenNthCalledWith(2, "assistant", "Vasudev", false);
+    expect(onTranscript).toHaveBeenNthCalledWith(3, "assistant", "Hello Vasudev", true);
     expect(onTranscript).toHaveBeenCalledTimes(3);
   });
 
@@ -2223,7 +2223,7 @@ describe("buildXaiRealtimeVoiceProvider", () => {
     expect(String(secondSocket.args[0])).toContain("conversation_id=conv_text_queue");
     secondSocket.open();
 
-    bridge.sendUserMessage?.("OpenClaw finished checking.");
+    bridge.sendUserMessage?.("Vasudev finished checking.");
     expect(
       parseSent(secondSocket).filter((event) => event.type === "conversation.item.create"),
     ).toEqual([]);
@@ -2235,7 +2235,7 @@ describe("buildXaiRealtimeVoiceProvider", () => {
         item: {
           type: "message",
           role: "user",
-          content: [{ type: "input_text", text: "OpenClaw finished checking." }],
+          content: [{ type: "input_text", text: "Vasudev finished checking." }],
         },
       },
       { type: "response.create" },
@@ -2472,7 +2472,7 @@ describe("buildXaiRealtimeVoiceProvider", () => {
         {
           type: "function",
           name: "openclaw_agent_consult",
-          description: "Consult OpenClaw",
+          description: "Consult Vasudev",
           parameters: { type: "object", properties: {} },
         },
       ],

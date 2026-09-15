@@ -19,7 +19,7 @@ describe("Claude CLI execution environment", () => {
 });
 
 describe("resolveClaudeCliAutoCompactEnv", () => {
-  it("maps the effective OpenClaw context budget into Claude Code compaction", () => {
+  it("maps the effective Vasudev context budget into Claude Code compaction", () => {
     expect(resolveClaudeCliAutoCompactEnv(100_000.9)).toEqual({
       CLAUDE_CODE_AUTO_COMPACT_WINDOW: "100000",
     });

@@ -280,7 +280,7 @@ describeLive("xai plugin live", () => {
       expect(voices?.some((voice) => voice.id === "altair")).toBe(true);
 
       const audioFile = await speechProvider.synthesize({
-        text: "OpenClaw xAI text to speech integration test OK.",
+        text: "Vasudev xAI text to speech integration test OK.",
         cfg,
         providerConfig: {
           apiKey: XAI_API_KEY,
@@ -297,7 +297,7 @@ describeLive("xai plugin live", () => {
       expect(audioFile.audioBuffer.byteLength).toBeGreaterThan(512);
 
       const streaming = await speechProvider.streamSynthesize?.({
-        text: "OpenClaw xAI streaming text to speech integration test OK.",
+        text: "Vasudev xAI streaming text to speech integration test OK.",
         cfg,
         providerConfig: {
           apiKey: XAI_API_KEY,
@@ -329,7 +329,7 @@ describeLive("xai plugin live", () => {
       }
 
       const telephony = await speechProvider.synthesizeTelephony?.({
-        text: "OpenClaw xAI telephony check OK.",
+        text: "Vasudev xAI telephony check OK.",
         cfg,
         providerConfig: {
           apiKey: XAI_API_KEY,
@@ -353,7 +353,7 @@ describeLive("xai plugin live", () => {
       const mediaProvider = requireRegisteredProvider(mediaProviders, "xai");
       const speechProvider = requireRegisteredProvider(speechProviders, "xai");
       const cfg = createLiveConfig();
-      const phrase = "OpenClaw xAI speech to text integration test OK.";
+      const phrase = "Vasudev xAI speech to text integration test OK.";
 
       const audioFile = await speechProvider.synthesize({
         text: phrase,
@@ -433,7 +433,7 @@ describeLive("xai plugin live", () => {
       const realtimeProvider = requireRegisteredProvider(realtimeTranscriptionProviders, "xai");
       const speechProvider = requireRegisteredProvider(speechProviders, "xai");
       const cfg = createLiveConfig();
-      const phrase = "OpenClaw xAI realtime transcription integration test OK.";
+      const phrase = "Vasudev xAI realtime transcription integration test OK.";
 
       const telephony = await speechProvider.synthesizeTelephony?.({
         text: phrase,

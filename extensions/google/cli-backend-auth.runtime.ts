@@ -100,7 +100,7 @@ function throwUnsupportedGeminiCredential(credential: GeminiAuthProfileCredentia
   // a profile that is valid for its owner is not quarantined across providers.
   if (credential.provider === VERCEL_AI_GATEWAY_PROVIDER_ID) {
     throw new Error(
-      "Gemini CLI execution cannot use a vercel-ai-gateway auth profile. Use the OpenClaw vercel-ai-gateway provider instead.",
+      "Gemini CLI execution cannot use a vercel-ai-gateway auth profile. Use the Vasudev vercel-ai-gateway provider instead.",
     );
   }
   throw new Error("Gemini CLI execution requires a google-gemini-cli auth profile.");
@@ -151,7 +151,7 @@ function requireGeminiOAuthCredential(
     !Number.isFinite(credential.expires)
   ) {
     throw new CliBackendAuthProfilePreparationError(
-      `Gemini CLI OAuth profile is incomplete and cannot be repaired by OpenClaw. ${GEMINI_CLI_SUPPORTED_AUTH_GUIDANCE}`,
+      `Gemini CLI OAuth profile is incomplete and cannot be repaired by Vasudev. ${GEMINI_CLI_SUPPORTED_AUTH_GUIDANCE}`,
     );
   }
 
@@ -260,7 +260,7 @@ async function buildGeminiCliSystemSettings(
     );
     if (enforcedType && enforcedType !== selectedType) {
       throw new Error(
-        `Gemini CLI system settings enforce ${enforcedType} auth, but the selected OpenClaw profile requires ${selectedType}.`,
+        `Gemini CLI system settings enforce ${enforcedType} auth, but the selected Vasudev profile requires ${selectedType}.`,
       );
     }
     security.auth = { ...auth, selectedType };
@@ -361,7 +361,7 @@ function applyGeminiCliToolAvailability(
   if (exposesOpenClawTools) {
     const openClawMcpServer = mcpServers.openclaw;
     if (!isRecord(openClawMcpServer)) {
-      throw new Error("Gemini CLI exact tool availability requires the OpenClaw MCP server.");
+      throw new Error("Gemini CLI exact tool availability requires the Vasudev MCP server.");
     }
     restrictedMcpServers = {
       openclaw: {
@@ -521,7 +521,7 @@ async function prepareGeminiCliProfileHome(
 
 async function clearGeminiCliCachedCredentials(geminiDir: string): Promise<void> {
   // Gemini prefers its token store over oauth_creds.json. Rebuild that store
-  // from the selected OpenClaw profile each run so stale CLI auth cannot win.
+  // from the selected Vasudev profile each run so stale CLI auth cannot win.
   await fs.rm(path.join(geminiDir, GEMINI_CLI_CREDENTIALS_FILENAME), { force: true });
 }
 

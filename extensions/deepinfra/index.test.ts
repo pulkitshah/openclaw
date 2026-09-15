@@ -131,7 +131,7 @@ describe("deepinfra capability registration", () => {
     },
   );
 
-  it("registers all DeepInfra-backed OpenClaw provider surfaces", () => {
+  it("registers all DeepInfra-backed Vasudev provider surfaces", () => {
     const captured = createCapturedPluginRegistration();
     deepinfraPlugin.register(captured.api);
 

@@ -122,7 +122,7 @@ describe("openrouter media understanding provider", () => {
     }
     expect(headers.get("authorization")).toBe("Bearer sk-openrouter");
     expect(headers.get("http-referer")).toBe("https://openclaw.ai");
-    expect(headers.get("x-openrouter-title")).toBe("OpenClaw");
+    expect(headers.get("x-openrouter-title")).toBe("Vasudev");
     expect(release).toHaveBeenCalledOnce();
   });
 

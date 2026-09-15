@@ -1,4 +1,4 @@
-// Together plugin entrypoint registers its OpenClaw integration.
+// Together plugin entrypoint registers its Vasudev integration.
 import { defineSingleProviderPluginEntry } from "openclaw/plugin-sdk/provider-entry";
 import { applyTogetherConnectionConfig } from "./onboard.js";
 import manifest from "./openclaw.plugin.json" with { type: "json" };

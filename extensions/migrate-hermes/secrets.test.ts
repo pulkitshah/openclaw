@@ -275,7 +275,7 @@ describe("Hermes migration secret items", () => {
     );
   });
 
-  it("imports a configured provider key_env as matching OpenClaw provider auth", async () => {
+  it("imports a configured provider key_env as matching Vasudev provider auth", async () => {
     const { source, stateDir, secretContext, config, runtime } = await makeHermesSecretFixture();
     const value = ["custom", "provider", "placeholder"].join("-");
     const envVar = ["ACME", "TOKEN"].join("_");

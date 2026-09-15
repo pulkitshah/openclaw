@@ -1,5 +1,5 @@
 import { createProviderApiKeyAuthMethod } from "openclaw/plugin-sdk/provider-auth-api-key";
-// Moonshot plugin entrypoint registers its OpenClaw integration.
+// Moonshot plugin entrypoint registers its Vasudev integration.
 import { defineSingleProviderPluginEntry } from "openclaw/plugin-sdk/provider-entry";
 import { buildOpenAICompatibleReplayPolicy } from "openclaw/plugin-sdk/provider-model-shared";
 import { moonshotMediaUnderstandingProvider } from "./media-understanding-provider.js";

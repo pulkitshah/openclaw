@@ -53,7 +53,7 @@ function readCost(value: unknown): ModelCost | undefined {
     if (!tierRates || threshold === undefined || !Number.isSafeInteger(threshold + 1)) {
       return undefined;
     }
-    // Radius switches only above the threshold; OpenClaw uses half-open ranges.
+    // Radius switches only above the threshold; Vasudev uses half-open ranges.
     thresholds.push({ start: threshold + 1, rates: tierRates });
   }
   thresholds.sort((left, right) => left.start - right.start);

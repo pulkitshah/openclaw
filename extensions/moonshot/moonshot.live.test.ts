@@ -98,7 +98,7 @@ describeLive("moonshot plugin live", () => {
     let lastError: unknown;
     for (let attempt = 0; attempt < 2; attempt += 1) {
       try {
-        result = await tool?.execute({ query: "OpenClaw GitHub", count: 1 });
+        result = await tool?.execute({ query: "Vasudev GitHub", count: 1 });
         lastError = undefined;
         break;
       } catch (error) {

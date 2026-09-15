@@ -67,7 +67,7 @@ function deriveChatTypeFromSessionKey(
 
 const BROWSER_CLI_DESCRIPTOR = {
   name: "browser",
-  description: "Manage OpenClaw's dedicated browser (Chrome/Chromium)",
+  description: "Manage Vasudev's dedicated browser (Chrome/Chromium)",
   hasSubcommands: true,
   machineOutput: isBrowserMachineOutput,
 };
@@ -323,7 +323,7 @@ export function registerBrowserPlugin(api: OpenClawPluginApi) {
     match: "exact",
     handler: (_req: IncomingMessage, res: ServerResponse) => {
       res.writeHead(426, { "Content-Type": "text/plain" });
-      res.end("Upgrade Required: connect the OpenClaw Chrome extension over WebSocket.");
+      res.end("Upgrade Required: connect the Vasudev Chrome extension over WebSocket.");
     },
     handleUpgrade: async (req: IncomingMessage, socket: Duplex, head: Buffer) => {
       // Direct relay activity prepares the teardown module consumed by lazy service shutdown.

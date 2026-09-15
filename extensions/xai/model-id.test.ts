@@ -22,7 +22,7 @@ describe("normalizeXaiModelId", () => {
     );
   });
 
-  it("maps retired code and fast ids to current OpenClaw-backed ids", () => {
+  it("maps retired code and fast ids to current Vasudev-backed ids", () => {
     expect(normalizeXaiModelId("grok-code-fast-1")).toBe("grok-build-0.1");
     expect(normalizeXaiModelId("grok-code-fast")).toBe("grok-build-0.1");
     expect(normalizeXaiModelId("grok-code-fast-1-0825")).toBe("grok-build-0.1");

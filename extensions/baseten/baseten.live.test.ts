@@ -151,7 +151,7 @@ describeLive("Baseten plugin live", () => {
     20 * 60_000,
   );
 
-  it("runs an Inkling tool call through OpenClaw's completions transport", async () => {
+  it("runs an Inkling tool call through Vasudev's completions transport", async () => {
     const provider = await registerSingleProviderPlugin(basetenPlugin);
     const catalog = await runLiveBasetenCatalog(provider);
     const inkling = catalog.models.find((model) => model.id === BASETEN_DEFAULT_MODEL_ID);

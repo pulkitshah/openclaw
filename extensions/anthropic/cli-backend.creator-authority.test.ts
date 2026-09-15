@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildAnthropicCliBackend } from "./cli-backend.js";
 
 describe("Claude CLI cron creator authority", () => {
-  it("projects native tools into canonical OpenClaw capabilities", () => {
+  it("projects native tools into canonical Vasudev capabilities", () => {
     const project = buildAnthropicCliBackend().projectNativeToolAuthority;
 
     expect(project?.(["Read", "Write", "Edit", "Bash", "WebFetch", "WebSearch"])).toEqual([

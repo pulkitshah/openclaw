@@ -138,7 +138,7 @@ describe("Claude CLI user input adapter", () => {
     const rejected = {
       behavior: "deny",
       message:
-        "OpenClaw rejected malformed Claude user questions: questions[0].header must be at most 12 characters. Correct the invalid field and retry AskUserQuestion.",
+        "Vasudev rejected malformed Claude user questions: questions[0].header must be at most 12 characters. Correct the invalid field and retry AskUserQuestion.",
     };
 
     await expect(
@@ -248,7 +248,7 @@ describe("Claude CLI user input adapter", () => {
 
       expect(result).toEqual({
         behavior: "deny",
-        message: `OpenClaw rejected malformed Claude user questions: ${expectedDetail}. Correct the invalid field and retry AskUserQuestion.`,
+        message: `Vasudev rejected malformed Claude user questions: ${expectedDetail}. Correct the invalid field and retry AskUserQuestion.`,
       });
       expect(requestUserInput).not.toHaveBeenCalled();
     },

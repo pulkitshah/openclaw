@@ -60,7 +60,7 @@ function mapEffortForTencent(model: StreamModel, effort: string | undefined): st
   }
   // Every other Tencent model (hy3-preview, hy4-preview, …) is left untouched:
   // returning undefined makes the wrapper skip the payload patch entirely, so
-  // the shared OpenClaw effort handling — which already normalized the payload
+  // the shared Vasudev effort handling — which already normalized the payload
   // against the model's declared supportedReasoningEfforts — stays in control.
   return undefined;
 }

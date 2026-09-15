@@ -1,4 +1,4 @@
-// Kilocode plugin entrypoint registers its OpenClaw integration.
+// Kilocode plugin entrypoint registers its Vasudev integration.
 import { readConfiguredProviderCatalogEntries } from "openclaw/plugin-sdk/provider-catalog-shared";
 import { defineSingleProviderPluginEntry } from "openclaw/plugin-sdk/provider-entry";
 import { buildProviderReplayFamilyHooks } from "openclaw/plugin-sdk/provider-model-shared";

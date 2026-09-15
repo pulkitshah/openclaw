@@ -203,7 +203,7 @@ function projectLiveModel(
   };
 }
 
-/** Projects Baseten's authenticated `/models` response into OpenClaw model rows. */
+/** Projects Baseten's authenticated `/models` response into Vasudev model rows. */
 export function projectBasetenLiveModels(rows: readonly unknown[]): ModelDefinitionConfig[] {
   const fallbacks = new Map(buildStaticBasetenModels().map((model) => [model.id, model]));
   const seen = new Set<string>();

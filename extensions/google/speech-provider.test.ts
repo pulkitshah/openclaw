@@ -266,7 +266,7 @@ describe("Google speech provider", () => {
     );
   });
 
-  it("does not wrap an OpenClaw audio-profile-v1 prompt twice", async () => {
+  it("does not wrap a Vasudev audio-profile-v1 prompt twice", async () => {
     const provider = buildGoogleSpeechProvider();
     const text = [
       "Synthesize speech from the TRANSCRIPT section only. Use the other sections only",

@@ -1,4 +1,4 @@
-// Fish Audio provider maps OpenClaw speech contracts to the hosted S2.1 API.
+// Fish Audio provider maps Vasudev speech contracts to the hosted S2.1 API.
 import { normalizeResolvedSecretInputString } from "openclaw/plugin-sdk/secret-input";
 import type {
   SpeechDirectiveTokenParseContext,

@@ -16,7 +16,7 @@ import {
 
 export { resolveFastModeSupport } from "./fast-mode-policy.js";
 
-/** Profile ids that native Claude auth has retired from OpenClaw ownership. */
+/** Profile ids that native Claude auth has retired from Vasudev ownership. */
 export const deprecatedProfileIds = [CLAUDE_CLI_PROFILE_ID] as const;
 
 /** Normalize Anthropic provider config without importing runtime registration. */

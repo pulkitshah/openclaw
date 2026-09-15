@@ -110,15 +110,15 @@ function createClaudeCliAuthInput(params: {
 function resolveClaudeCliAuthInput(
   credential: ClaudeCliAuthCredential | undefined,
 ): ClaudeCliPreparedExecution | undefined {
-  // Forwarded OAuth here is OpenClaw-managed material (its refresh path is
-  // OpenClaw-owned). Native `claude` logins are never forwarded; the current
+  // Forwarded OAuth here is Vasudev-managed material (its refresh path is
+  // Vasudev-owned). Native `claude` logins are never forwarded; the current
   // Claude process reads its own config directory. An expired token here is
-  // therefore OpenClaw-managed state that must fail loudly.
+  // therefore Vasudev-managed state that must fail loudly.
   if (credential?.type === "oauth" && "access" in credential) {
     const expires = "expires" in credential ? credential.expires : undefined;
     if (typeof expires !== "number" || !Number.isFinite(expires) || expires <= Date.now()) {
       throw new Error(
-        "Selected Claude CLI OAuth credential is expired or invalid. Re-authenticate the selected profile and retry. OpenClaw did not start the run.",
+        "Selected Claude CLI OAuth credential is expired or invalid. Re-authenticate the selected profile and retry. Vasudev did not start the run.",
       );
     }
     if (typeof credential.access !== "string") {
@@ -274,7 +274,7 @@ export function buildAnthropicCliBackend(
             : undefined;
         const env = {
           // Claude rebuilds the startup Git snapshot on process resume, rewriting
-          // the conversation prefix after workspace edits or commits. OpenClaw
+          // the conversation prefix after workspace edits or commits. Vasudev
           // supplies workspace instructions; Git state can be read with tools.
           CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS: "1",
           ...resolveClaudeCliAutoCompactEnv(context.contextTokenBudget),

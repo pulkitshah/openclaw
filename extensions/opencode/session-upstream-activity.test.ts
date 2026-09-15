@@ -532,7 +532,7 @@ describe("OpenCode session upstream activity", () => {
   });
 
   it.runIf(process.platform !== "win32")(
-    "keeps real text mixed with ignored text and suppresses OpenClaw self-echo",
+    "keeps real text mixed with ignored text and suppresses Vasudev self-echo",
     async () => {
       const session: StatefulOpenCodeSession = {
         id: "ses_a",

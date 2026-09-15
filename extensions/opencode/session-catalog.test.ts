@@ -670,7 +670,7 @@ describe("OpenCode session catalog", () => {
     });
   });
 
-  itWithCli("projects only adopted OpenCode rows with their OpenClaw session key", async () => {
+  itWithCli("projects only adopted OpenCode rows with their Vasudev session key", async () => {
     await installFakeOpenCode();
     const { entries, provider } = captureOpenCodeContinuationCatalog();
     const sessionEntries = { entriesForAgent: () => entries } as never;

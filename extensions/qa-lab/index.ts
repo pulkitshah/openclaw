@@ -1,4 +1,4 @@
-// Qa Lab plugin entrypoint registers its OpenClaw integration.
+// Qa Lab plugin entrypoint registers its Vasudev integration.
 import { setTimeout as sleep } from "node:timers/promises";
 // Keep plugin registration independent of private QA transports, which packaged runtimes omit.
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";

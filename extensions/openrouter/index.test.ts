@@ -994,7 +994,7 @@ describe("openrouter provider hooks", () => {
     const headers = new Headers(options?.headers);
     expect(headers.get("authorization")).toBe("Bearer or-test-key");
     expect(headers.get("http-referer")).toBe("https://openclaw.ai");
-    expect(headers.get("x-openrouter-title")).toBe("OpenClaw");
+    expect(headers.get("x-openrouter-title")).toBe("Vasudev");
   });
 
   it("merges resolved OpenRouter model params into transport params", async () => {
