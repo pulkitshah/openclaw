@@ -719,6 +719,26 @@ describe("rewriteFileContent (test/fixture and cross-boundary exclusions)", () =
     }
   });
 
+  it("never rewrites a reserved-agent-id input in the cases that prove it is refused", () => {
+    // "OpenClaw" normalizes onto `openclaw`, the reserved system-agent id and
+    // the lowercase internal namespace this rebrand does not move. Renaming the
+    // input stops the case exercising the refusal at all.
+    const content = [
+      'for (const name of ["OpenClaw", "crestodian"]) {',
+      '  await expect(createAgent({ name })).resolves.toMatchObject({ reason: "reserved-id" });',
+      "}",
+      'const why = "OpenClaw refuses the reserved id.";',
+    ].join("\n");
+    const { content: rewritten, count } = rewriteFileContent(
+      "src/agents/agent-create.test.ts",
+      content,
+      { includeTests: true },
+    );
+    expect(rewritten).toContain('["OpenClaw", "crestodian"]');
+    expect(rewritten).toContain('"Vasudev refuses the reserved id."');
+    expect(count).toBe(1);
+  });
+
   it("still rewrites ordinary prose in a file that has one excluded literal", () => {
     const content = [
       'const product = "OpenClaw";',

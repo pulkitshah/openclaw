@@ -976,6 +976,13 @@ const EXCLUDED_LITERALS_BY_FILE = new Map([
     "src/system-agent/operations.test.ts",
     new Set(['"OpenClaw"']),
   ],
+  [
+    // Same reserved-id input again: `createAgent` refuses a name that
+    // normalizes onto the reserved `openclaw` agent id, so the input has to
+    // keep spelling it or the case stops exercising the refusal.
+    "src/agents/agent-create.test.ts",
+    new Set(['"OpenClaw"']),
+  ],
   ...[
     // The `X-OpenRouter-Title` value this client sends to OpenRouter, asserted
     // against the real request headers. The producer's own literal is
