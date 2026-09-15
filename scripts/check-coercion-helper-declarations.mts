@@ -254,7 +254,7 @@ const EXCEPTIONAL_COERCION_HELPER_CARVE_OUTS = [
     reason: "Standalone browser asset build cannot resolve workspace package imports.",
   },
   {
-    file: "extensions/duties/browser/index.ts",
+    file: "extensions/duties/browser/index-helpers.ts",
     name: "coerceErrorMessage",
     kind: "function",
     reason: "Standalone browser asset build cannot resolve workspace package imports.",
