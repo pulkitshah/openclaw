@@ -7,6 +7,7 @@ import { pathToFileURL } from "node:url";
 import { build as esbuild } from "esbuild";
 import { afterEach, describe, expect, it } from "vitest";
 import { parseNodeReleaseVersion } from "../node-version.mjs";
+import { PRODUCT_NAME } from "../src/brand.ts";
 import { NODE_RELEASE_VERSION_CASES } from "./helpers/node-version-cases.js";
 import { cleanupTempDirs, makeTempDir } from "./helpers/temp-dir.js";
 
@@ -564,7 +565,7 @@ describe("openclaw launcher", () => {
       },
     );
     expect(result.status, result.stderr).toBe(0);
-    expect(result.stdout).toMatch(/OpenClaw 2026\.9\.3|diagnostic-entry/);
+    expect(result.stdout).toMatch(new RegExp(`${PRODUCT_NAME} 2026\\.9\\.3|diagnostic-entry`, "u"));
   });
 
   it("admits lossless Node builds outside the support table while retaining the major floor", async () => {
