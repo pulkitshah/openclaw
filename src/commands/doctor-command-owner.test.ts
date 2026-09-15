@@ -1,6 +1,7 @@
 // Doctor command-owner tests cover channel sender formatting and configured owner detection.
 import { execFileSync } from "node:child_process";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { CLI_DISPLAY_NAME } from "../brand.js";
 import {
   formatCommandOwnerFromChannelSender,
   formatCommandOwnerHint,
@@ -66,7 +67,9 @@ describe("command owner health", () => {
       const command = hint.slice(hint.indexOf("`") + 1, hint.lastIndexOf("`"));
       const args = execFileSync(
         "/bin/sh",
-        ["-c", command.replace(/^openclaw /, "printf '%s\\n' ")],
+        // Swap the displayed binary for `printf` so the shell only echoes the
+        // quoted argv: the assertion is about quoting, and nothing is run.
+        ["-c", command.replace(new RegExp(`^${CLI_DISPLAY_NAME} `), "printf '%s\\n' ")],
         {
           encoding: "utf8",
         },

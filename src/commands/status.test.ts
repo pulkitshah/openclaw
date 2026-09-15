@@ -1226,7 +1226,7 @@ describe("statusCommand", () => {
       expectLogsInclude(logs, token);
     }
     expectLogsInclude(logs, "legacy-plugin is hook-only");
-    expectLogsMatch(logs, /openclaw (?:--profile isolated )?status --all/);
+    expectLogsMatch(logs, /vasudev (?:--profile isolated )?status --all/);
     expectLogsInclude(logs, "Cache");
     expectLogsInclude(logs, "40% hit");
     expectLogsInclude(logs, "read 2.0k");
