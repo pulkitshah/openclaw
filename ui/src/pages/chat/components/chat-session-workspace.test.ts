@@ -446,7 +446,7 @@ describe("session workspace artifacts", () => {
       const copyButton = reader?.querySelector<HTMLButtonElement>(".code-block-copy");
       expect(copyButton).toBeInstanceOf(HTMLButtonElement);
       copyButton!.click();
-      await vi.waitFor(() => expect(copyButton!.getAttribute("aria-label")).toBe("Copied!"));
+      await vi.waitFor(() => expect(copyButton!.getAttribute("aria-label")).toBe("Copied"));
       expect(writeText).toHaveBeenCalledWith(source);
     } finally {
       for (const [index, [, delay]] of schedule.mock.calls.entries()) {

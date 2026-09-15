@@ -1,6 +1,7 @@
 import { normalizeLowercaseStringOrEmpty } from "@openclaw/normalization-core/string-coerce";
 // Classifies a Gateway connect failure into what the login gate should say and where the fix lives.
 import { ConnectErrorDetailCodes } from "../../../packages/gateway-protocol/src/connect-error-details.js";
+import { CLI_NAME } from "../app/brand.ts";
 import { t } from "../i18n/index.ts";
 import {
   redactLoginFailureError,
@@ -189,11 +190,11 @@ export function resolveLoginFailureFeedback(
       // `approve --latest` only previews the newest pending request and prints the
       // exact approve command; without a request id the steps say to run that too.
       primaryCommand: pairing.requestId
-        ? `vasudev devices approve ${pairing.requestId}`
-        : "openclaw devices approve --latest",
+        ? `${CLI_NAME} devices approve ${pairing.requestId}`
+        : `${CLI_NAME} devices approve --latest`,
       stepKeys: [
         ...(pairing.requestId ? [] : ["login.failure.pairing.stepLatest"]),
-        { key: "login.failure.pairing.stepDashboard", commands: ["openclaw dashboard"] },
+        { key: "login.failure.pairing.stepDashboard", commands: [`${CLI_NAME} dashboard`] },
         ...(params.reconnectPending ? [] : ["login.failure.pairing.stepReconnect"]),
       ],
       stepParams: { host },
@@ -259,7 +260,7 @@ export function resolveLoginFailureFeedback(
       summaryKey: "login.failure.protocol.summary",
       refreshAction: { label: t("login.failure.protocol.refresh") },
       stepKeys: [
-        { key: "login.failure.protocol.stepDashboard", commands: ["openclaw dashboard"] },
+        { key: "login.failure.protocol.stepDashboard", commands: [`${CLI_NAME} dashboard`] },
         { key: "login.failure.protocol.stepDevUi", commands: ["pnpm ui:dev"] },
         "login.failure.protocol.stepRestart",
       ],
@@ -298,11 +299,11 @@ export function resolveLoginFailureFeedback(
         : [
             {
               key: "login.failure.authRequired.stepPaste",
-              commands: ["openclaw gateway auth-token --show"],
+              commands: [`${CLI_NAME} gateway auth-token --show`],
             },
             {
               key: "login.failure.authRequired.stepGenerate",
-              commands: ["openclaw doctor --generate-gateway-token"],
+              commands: [`${CLI_NAME} doctor --generate-gateway-token`],
             },
             "login.failure.authRequired.stepConnect",
           ],
@@ -331,7 +332,10 @@ export function resolveLoginFailureFeedback(
         : [
             {
               key: "login.failure.authFailed.stepDashboard",
-              commands: ["openclaw dashboard --no-open", "openclaw gateway auth-token --show"],
+              commands: [
+                `${CLI_NAME} dashboard --no-open`,
+                `${CLI_NAME} gateway auth-token --show`,
+              ],
             },
             "login.failure.authFailed.stepReplace",
           ],
@@ -350,12 +354,12 @@ export function resolveLoginFailureFeedback(
     stepKeys: [
       {
         key: "login.failure.network.stepGateway",
-        commands: ["openclaw status", "openclaw gateway run"],
+        commands: [`${CLI_NAME} status`, `${CLI_NAME} gateway run`],
       },
       "login.failure.network.stepUrl",
       {
         key: "login.failure.network.stepDashboard",
-        commands: ["openclaw dashboard --no-open"],
+        commands: [`${CLI_NAME} dashboard --no-open`],
       },
     ],
     stepParams: { host },

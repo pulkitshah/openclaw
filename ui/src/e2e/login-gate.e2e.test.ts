@@ -438,7 +438,7 @@ suite.define(() => {
       await expect
         .poll(() => page.evaluate(() => navigator.clipboard.readText()))
         .toBe("vasudev gateway auth-token --show");
-      expect(await command.locator(".chat-copy-btn").getAttribute("aria-label")).toBe("Copied!");
+      expect(await command.locator(".chat-copy-btn").getAttribute("aria-label")).toBe("Copied");
     } finally {
       await closeContext(context);
     }

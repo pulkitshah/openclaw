@@ -707,7 +707,7 @@ describe("renderSessionsCard", () => {
   });
 
   it.each([
-    { copied: true, feedback: "Copied!" },
+    { copied: true, feedback: "Copied" },
     { copied: false, feedback: "Copy failed" },
   ])("keeps session selection separate while showing $feedback", async ({ copied, feedback }) => {
     const writeText = vi.fn(async () => {

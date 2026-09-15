@@ -339,11 +339,11 @@ describe("Markdown clipboard operation lifetime", () => {
     button.click();
     button.click();
     await flushCopy();
-    expect(button.getAttribute("aria-label")).toBe("Copied!");
+    expect(button.getAttribute("aria-label")).toBe("Copied");
     pending.reject(new Error("Synthetic clipboard rejection"));
     await flushCopy();
     expect(fallbackCopies).toEqual([]);
-    expect(button.getAttribute("aria-label")).toBe("Copied!");
+    expect(button.getAttribute("aria-label")).toBe("Copied");
   });
 
   it.each(["code", "table", "mermaid", "message"] as const)(
@@ -354,7 +354,7 @@ describe("Markdown clipboard operation lifetime", () => {
       button.click();
       await flushCopy();
       expect(fallbackCopies).toEqual([writeText.mock.calls[0]![0]]);
-      expect(button.getAttribute("aria-label")).toBe("Copied!");
+      expect(button.getAttribute("aria-label")).toBe("Copied");
     },
   );
 });

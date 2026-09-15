@@ -124,7 +124,7 @@ describe("Mermaid Markdown presentation", () => {
     expect(element!.shadowRoot?.querySelector("script, img")).toBeNull();
     action(element!, "Copy source").click();
     await vi.waitFor(() =>
-      expect(action(element!, copied ? "Copied!" : "Copy failed")).toBeDefined(),
+      expect(action(element!, copied ? "Copied" : "Copy failed")).toBeDefined(),
     );
     expect(copySource.mock.calls.map(([text]) => text)).toEqual([original]);
 

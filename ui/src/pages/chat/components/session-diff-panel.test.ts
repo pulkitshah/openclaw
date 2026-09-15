@@ -211,9 +211,9 @@ describe("SessionDiffPanel", () => {
   });
 
   it.each([
-    { surface: "file", failed: false, feedback: "Copied!" },
+    { surface: "file", failed: false, feedback: "Copied" },
     { surface: "file", failed: true, feedback: "Copy failed" },
-    { surface: "sync", failed: false, feedback: "Copied!" },
+    { surface: "sync", failed: false, feedback: "Copied" },
     { surface: "sync", failed: true, feedback: "Copy failed" },
   ])(
     "keeps $surface path copy feedback visible: $feedback",

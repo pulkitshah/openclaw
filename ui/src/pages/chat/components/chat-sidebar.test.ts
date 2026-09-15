@@ -203,7 +203,7 @@ describe("markdown sidebar", () => {
       const writeText = vi.fn().mockResolvedValue(undefined);
       vi.stubGlobal("navigator", { clipboard: { writeText } });
       copyButton!.click();
-      await vi.waitFor(() => expect(copyButton!.getAttribute("aria-label")).toBe("Copied!"));
+      await vi.waitFor(() => expect(copyButton!.getAttribute("aria-label")).toBe("Copied"));
       expect(writeText).toHaveBeenCalledOnce();
 
       expect.soft(reader?.querySelectorAll("pre code")).toHaveLength(1);
@@ -772,7 +772,7 @@ describe("file sidebar clipboard feedback", () => {
       const timers = captureFeedbackTimers();
 
       button.click();
-      await vi.waitFor(() => expect(button.getAttribute("aria-label")).toBe("Copied!"));
+      await vi.waitFor(() => expect(button.getAttribute("aria-label")).toBe("Copied"));
 
       expect(writeText).toHaveBeenCalledWith(value);
       expect(button.classList.contains("copied")).toBe(true);
@@ -895,7 +895,7 @@ describe("file sidebar clipboard feedback", () => {
 
       button.click();
       await vi.waitFor(() =>
-        expect(button.getAttribute("aria-label")).toBe(failed ? "Copy failed" : "Copied!"),
+        expect(button.getAttribute("aria-label")).toBe(failed ? "Copy failed" : "Copied"),
       );
 
       panel.remove();

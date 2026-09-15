@@ -202,7 +202,7 @@ suite.define(() => {
         if (surface === "selection") {
           await expect.poll(() => page.locator(".chat-reply-context-menu").count()).toBe(0);
         } else {
-          await expect.poll(() => hasAccessibleName("Copied!")).toBe(true);
+          await expect.poll(() => hasAccessibleName("Copied")).toBe(true);
           expect(await button.isDisabled()).toBe(false);
           await page.clock.fastForward(1_500);
           await expect
@@ -253,7 +253,7 @@ suite.define(() => {
         expect((await readClipboardFailureProof(page)).value).toBe("main");
         expect(await copy.count()).toBe(1);
         expect(await copy.isDisabled()).toBe(false);
-        expect(await page.getByRole("button", { name: "Copied!", exact: true }).count()).toBe(0);
+        expect(await page.getByRole("button", { name: "Copied", exact: true }).count()).toBe(0);
         await page.evaluate(() => {
           const proof = (
             globalThis as typeof globalThis & { clipboardFailureProof: ClipboardFailureProof }
@@ -273,14 +273,14 @@ suite.define(() => {
         });
         await copy.click();
         expect((await readClipboardFailureProof(page)).value).toBe("reviewer");
-        await page.getByRole("button", { name: "Copied!", exact: true }).waitFor();
+        await page.getByRole("button", { name: "Copied", exact: true }).waitFor();
         await resolveClipboard(page, failed);
         expect(await readClipboardFailureProof(page)).toEqual({
           asyncAttempts: 2,
           legacyAttempts: 0,
           value: "reviewer",
         });
-        expect(await page.getByRole("button", { name: "Copied!", exact: true }).count()).toBe(1);
+        expect(await page.getByRole("button", { name: "Copied", exact: true }).count()).toBe(1);
       } finally {
         await suite.closeBrowserContext(context);
       }

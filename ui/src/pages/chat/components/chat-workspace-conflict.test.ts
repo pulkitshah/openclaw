@@ -52,7 +52,7 @@ describe("workspace conflict copy actions", () => {
   });
 
   it.each([
-    { copied: true, expected: "Copied!" },
+    { copied: true, expected: "Copied" },
     { copied: false, expected: "Copy failed" },
   ])("shows visible feedback when clipboard success is $copied", async ({ copied, expected }) => {
     const writeText = copied

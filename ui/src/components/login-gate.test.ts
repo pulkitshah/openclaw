@@ -484,8 +484,8 @@ describe("login gate failure recovery", () => {
     buttons[1]?.click();
 
     await vi.waitFor(() => {
-      expect(buttons[0]?.getAttribute("aria-label")).toBe("Copied!");
-      expect(buttons[1]?.getAttribute("aria-label")).toBe("Copied!");
+      expect(buttons[0]?.getAttribute("aria-label")).toBe("Copied");
+      expect(buttons[1]?.getAttribute("aria-label")).toBe("Copied");
     });
     expect(writeText.mock.calls).toEqual([["vasudev status"], ["vasudev gateway run"]]);
     expect(buttons[2]?.getAttribute("aria-label")).toBe("Copy command");
@@ -524,12 +524,12 @@ describe("login gate failure recovery", () => {
     failedReset();
     expect(command?.querySelector<HTMLElement>('[role="status"]')?.hidden).toBe(true);
     finishCopy();
-    await vi.waitFor(() => expect(button?.getAttribute("aria-label")).toBe("Copied!"));
+    await vi.waitFor(() => expect(button?.getAttribute("aria-label")).toBe("Copied"));
     expect(command?.querySelector<HTMLElement>('[role="status"]')?.hidden).toBe(false);
 
     failedReset();
-    expect(button?.getAttribute("aria-label")).toBe("Copied!");
-    expect(command?.querySelector('[role="status"]')?.textContent).toBe("Copied!");
+    expect(button?.getAttribute("aria-label")).toBe("Copied");
+    expect(command?.querySelector('[role="status"]')?.textContent).toBe("Copied");
 
     const successfulReset = schedule.mock.calls.find(([, delay]) => delay === 1_500)?.[0];
     if (typeof successfulReset !== "function") {

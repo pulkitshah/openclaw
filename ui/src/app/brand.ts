@@ -8,6 +8,13 @@ export const PRODUCT_NAME = "Vasudev";
 export const MAKER_LINE = "Vasudev · by TripIn Studio";
 export const TAGLINE = "All your chats, one Vasudev.";
 
+/** The binary name shown in a command the reader is meant to copy and run.
+ *
+ * Both `openclaw` and `vasudev` are installed bins, so a shown command works
+ * either way; the reader sees the product they installed. Never use this for a
+ * command the code itself spawns, compares or persists. */
+export const CLI_NAME = "vasudev";
+
 /** Which optional product surfaces this build ships.
  *
  * `lobsterDex` covers the decorative sidebar pet, its appearance-settings

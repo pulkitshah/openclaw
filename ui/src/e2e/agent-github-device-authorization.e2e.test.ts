@@ -56,7 +56,7 @@ async function assertDeviceCodeCopy(page: Page, userCode: string) {
   await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
   await copyCode.click();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(userCode);
-  await expect(page.getByRole("button", { name: "Copied!", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copied", exact: true })).toBeVisible();
 }
 const profileId = "11111111-1111-4111-8111-111111111111";
 const presenceUsers = [{ self: true, id: profileId, name: "Test Person" }];

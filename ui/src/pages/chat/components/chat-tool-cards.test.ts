@@ -535,7 +535,7 @@ describe("tool-cards", () => {
       },
     ].flatMap((tool) =>
       [
-        { failed: false, feedback: "Copied!" },
+        { failed: false, feedback: "Copied" },
         { failed: true, feedback: "Copy failed" },
       ].map((outcome) => ({
         name: tool.name,

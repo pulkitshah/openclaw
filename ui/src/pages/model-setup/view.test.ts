@@ -847,7 +847,7 @@ describe("renderModelSetup", () => {
     const copy = container.querySelector<HTMLButtonElement>(".wizard-step__device-code button");
     copy?.click();
 
-    const feedback = copied ? "Copied!" : "Copy failed";
+    const feedback = copied ? "Copied" : "Copy failed";
     await vi.waitFor(() => expect(copy?.textContent?.trim()).toBe(feedback));
     expect(copy?.getAttribute("aria-label")).toBeNull();
     expect(execCommand).toHaveBeenCalledWith("copy");

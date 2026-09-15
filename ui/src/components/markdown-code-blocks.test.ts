@@ -163,7 +163,7 @@ describe("Markdown code-block clipboard feedback", () => {
 
     expect(writeText).toHaveBeenCalledWith("const answer = 42;");
     expect(button.classList.contains("copied")).toBe(true);
-    expect(button.getAttribute("aria-label")).toBe("Copied!");
+    expect(button.getAttribute("aria-label")).toBe("Copied");
 
     await vi.advanceTimersByTimeAsync(1_500);
 
@@ -291,7 +291,7 @@ describe("toSanitizedMarkdownHtml code blocks", () => {
       const button = fragment.querySelector<HTMLButtonElement>(".code-block-copy");
       expect(button).toBeInstanceOf(HTMLButtonElement);
       button!.click();
-      await vi.waitFor(() => expect(button!.getAttribute("aria-label")).toBe("Copied!"));
+      await vi.waitFor(() => expect(button!.getAttribute("aria-label")).toBe("Copied"));
       expect(writeText).toHaveBeenCalledWith(text);
     } finally {
       fragment.remove();

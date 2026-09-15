@@ -70,7 +70,7 @@ describe("session workspace path actions", () => {
         path: surface.path,
         origin: surface.origin,
         failed,
-        feedback: failed ? "Copy failed" : "Copied!",
+        feedback: failed ? "Copy failed" : "Copied",
       })),
     ),
   )("shows $feedback when copying a $surface path", async (testCase) => {

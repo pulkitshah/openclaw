@@ -160,7 +160,7 @@ describe("Markdown table interactions", () => {
 
     expect(writeText).toHaveBeenCalledWith("Name\tValue\nAlpha\tOne");
     await vi.advanceTimersByTimeAsync(0);
-    expect(copy.getAttribute("aria-label")).toBe("Copied!");
+    expect(copy.getAttribute("aria-label")).toBe("Copied");
     expect(copy.querySelector("svg path")?.getAttribute("d")).toBe("M20 6 9 17l-5-5");
     await vi.advanceTimersByTimeAsync(1500);
     expect(copy.getAttribute("aria-label")).toBe("Copy table");
@@ -180,7 +180,7 @@ describe("Markdown table interactions", () => {
         if (previousSuccess) {
           copy.click();
           await vi.advanceTimersByTimeAsync(0);
-          expect(copy.getAttribute("aria-label")).toBe("Copied!");
+          expect(copy.getAttribute("aria-label")).toBe("Copied");
           expect(copy.querySelector("svg path")?.getAttribute("d")).toBe("M20 6 9 17l-5-5");
         }
 
@@ -199,10 +199,10 @@ describe("Markdown table interactions", () => {
 
         copy.click();
         await vi.advanceTimersByTimeAsync(0);
-        expect(copy.getAttribute("aria-label")).toBe("Copied!");
+        expect(copy.getAttribute("aria-label")).toBe("Copied");
         expect(copy.querySelector("svg path")?.getAttribute("d")).toBe("M20 6 9 17l-5-5");
         await vi.advanceTimersByTimeAsync(500);
-        expect(copy.getAttribute("aria-label")).toBe("Copied!");
+        expect(copy.getAttribute("aria-label")).toBe("Copied");
         await vi.advanceTimersByTimeAsync(1000);
         expect(copy.getAttribute("aria-label")).toBe("Copy table");
         expect(copy.querySelector("svg rect")).not.toBeNull();
