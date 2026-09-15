@@ -2148,7 +2148,7 @@ async function createChatPickerScenario(
       ],
       status: "running",
     }),
-    sessionRow("agent:main:work-openclaw", "OpenClaw work checkout", baseTime - 85_000, {
+    sessionRow("agent:main:work-openclaw", "Vasudev work checkout", baseTime - 85_000, {
       createdActor: MOCK_ACTOR_PETER,
       execCwd: "/Users/demo/Work/openclaw",
       lastReadAt: baseTime - 120_000,

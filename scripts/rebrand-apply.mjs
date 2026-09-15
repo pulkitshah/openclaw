@@ -1177,6 +1177,14 @@ const EXCLUDED_LITERALS_BY_FILE = new Map([
     ]),
   ],
   [
+    // The first line of every native-messaging launcher the browser installer
+    // owns. It is matched verbatim against launchers already written to
+    // operators' disks, so renaming it makes an existing launcher read as
+    // foreign; same contract as the shell-profile completion marker above.
+    "extensions/browser/src/browser/extension-install.ts",
+    new Set(['"# OpenClaw native messaging bootstrap v1"']),
+  ],
+  [
     // The pairing guidance printed by the Chrome extension's own
     // `relay-core.js`. That module is plain JavaScript inside the packed
     // extension and is not in the allowlist, so its command example still

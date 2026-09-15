@@ -137,7 +137,15 @@ suite.define(() => {
         const chip = sidebar.locator(".sidebar-agent-card__main");
         const workspace = sidebar.locator(".sidebar-workspace-header__main");
         const expectWorkspace = async () => {
-          await expect.poll(() => workspace.textContent()).toMatch(/^\s*Vasudev\s*$/);
+          // The workspace header names the product with the <vasu-wordmark>
+          // lockup, whose spans live in a shadow root: the name slot holds no
+          // text node, and role="img" carries the name a reader hears.
+          await expect
+            .poll(() => workspace.locator(".sidebar-agent-card__name-text").textContent())
+            .toMatch(/^\s*$/);
+          await expect
+            .poll(() => workspace.locator("vasu-wordmark").getAttribute("aria-label"))
+            .toBe("Vasudev");
           expect(await sidebar.locator("openclaw-sidebar-agent-card").count()).toBe(0);
           expect(await sidebar.locator(".sidebar-agent-card__avatar").count()).toBe(0);
         };

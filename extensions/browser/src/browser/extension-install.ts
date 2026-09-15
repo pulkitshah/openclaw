@@ -27,7 +27,11 @@ import {
 } from "./extension-install-layout.js";
 import { BROWSER_NATIVE_HOST_NAME } from "./extension-native-host.js";
 
-const OWNED_LAUNCHER_MARKER = "# Vasudev native messaging bootstrap v1";
+// The first line of every launcher this installer owns, matched verbatim
+// against scripts already on operators' disks (see ownedLauncherValues' exact
+// grammar). Renaming it would make an existing launcher read as foreign, so
+// this names a byte already written, not this product.
+const OWNED_LAUNCHER_MARKER = "# OpenClaw native messaging bootstrap v1";
 const BROWSER_EXTENSION_INSTALL_WAIT_DEFAULT_MS = 30_000;
 const BROWSER_EXTENSION_INSTALL_WAIT_MIN_MS = 1_000;
 const BROWSER_EXTENSION_INSTALL_WAIT_MAX_MS = 120_000;
