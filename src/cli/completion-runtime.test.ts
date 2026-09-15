@@ -451,6 +451,41 @@ describe("completion-runtime", () => {
     });
   });
 
+  it("replaces a pre-rename marker block instead of adding a second one", async () => {
+    // Installs made before the rename wrote the marker below. An upgrade that
+    // did not recognise it left the stale source line in place and appended a
+    // duplicate block beside it.
+    const legacyHeader = "# OpenClaw Completion";
+    await withBashCompletionHome(async ({ homeDir }) => {
+      const cachePath = resolveCompletionCachePath("bash", "openclaw");
+      const profilePath = path.join(homeDir, ".bash_profile");
+      // A previous install's cache: same basename under its own `completions`
+      // directory, which is what the owned-source rule recognizes.
+      const stalePath = path.join(
+        path.dirname(path.dirname(cachePath)),
+        "previous",
+        "completions",
+        path.basename(cachePath),
+      );
+      await fs.mkdir(path.dirname(cachePath), { recursive: true });
+      await fs.writeFile(cachePath, "# current completion\n", "utf-8");
+      await fs.writeFile(
+        profilePath,
+        `export IMPORTANT=keep\n${legacyHeader}\n[ -f "${stalePath}" ] && source "${stalePath}"\n`,
+        "utf-8",
+      );
+
+      await installCompletion("bash", true, "openclaw");
+
+      const profile = await fs.readFile(profilePath, "utf-8");
+      expect(profile).not.toContain(legacyHeader);
+      expect(profile).not.toContain(stalePath);
+      expect(profile).toContain("export IMPORTANT=keep");
+      expect(profile.match(/^# Vasudev Completion$/gm)).toHaveLength(1);
+      await expect(isCompletionInstalled("bash", "openclaw")).resolves.toBe(true);
+    });
+  });
+
   it("recognizes an installed profile when its completion cache has been removed", async () => {
     await withBashCompletionHome(async ({ homeDir }) => {
       const cachePath = resolveCompletionCachePath("bash", "openclaw");

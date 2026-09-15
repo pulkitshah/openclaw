@@ -156,8 +156,16 @@ export function formatCompletionReloadCommand(shell: CompletionShell, scriptPath
   return `source ${homePrefix}${quoteCompletionPath(shell, value)}`;
 }
 
+// The marker that labels the block this installer owns in a user's shell
+// profile. Installs made before the rename wrote the first spelling, so an
+// upgrade has to recognise it and replace that block instead of leaving it in
+// place and appending a second one beside it. New writes use the current name.
+const COMPLETION_PROFILE_HEADERS = ["# OpenClaw Completion", "# Vasudev Completion"] as const;
+const COMPLETION_PROFILE_HEADER = "# Vasudev Completion";
+
 function isCompletionProfileHeader(line: string): boolean {
-  return line.trim() === "# Vasudev Completion";
+  const trimmed = line.trim();
+  return COMPLETION_PROFILE_HEADERS.some((header) => header === trimmed);
 }
 
 function isCompletionProfileLine(line: string, binName: string, cachePath: string): boolean {
@@ -413,7 +421,7 @@ function updateCompletionProfile(
     return { next, changed: next !== content, hadExisting };
   }
   const trimmed = filtered.join("\n").trimEnd();
-  const block = `# Vasudev Completion\n${formatCompletionSourceLine(shell, cachePath)}`;
+  const block = `${COMPLETION_PROFILE_HEADER}\n${formatCompletionSourceLine(shell, cachePath)}`;
   const next = trimmed ? `${trimmed}\n\n${block}\n` : `${block}\n`;
   return { next, changed: next !== content, hadExisting };
 }
