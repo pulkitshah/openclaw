@@ -441,7 +441,7 @@ export const en = {
       askForHelp:
         "Ask someone experienced to help before enabling tools or exposing it to the internet.",
       attribution:
-        "Vasudev is an open-source assistant that learns and grows with you, by the Vasudev Foundation (a non-profit).",
+        "Vasudev is a personal AI assistant that learns and grows with you, built by TripIn Studio.",
       baselineDmSessions:
         "Shared inboxes: isolate DM sessions (session.dmScope: per-channel-peer) and keep tool access minimal.",
       baselinePairing: "Use pairing or allowlists; require mentions in group chats.",
