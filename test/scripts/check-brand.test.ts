@@ -381,7 +381,7 @@ describe("the packed Chrome extension", () => {
     const content = [
       "// Vasudev extension service worker.",
       'const hint = "Relay authentication v2 failed. Update OpenClaw, or re-pair.";',
-      'const err = `tab ${id} is restricted or unavailable to OpenClaw`;',
+      "const err = `tab ${id} is restricted or unavailable to OpenClaw`;",
       'const pair = "Re-run `openclaw browser extension pair` with a Gateway URL.";',
       'export const OPENCLAW_TAB_GROUP_TITLE = "OpenClaw";',
       "await removeTabFromOpenClawGroup(tabId);",
@@ -563,9 +563,11 @@ describe("collectTargetFiles", () => {
       "extensions/browser/chrome-extension/manifest.json": '{"name": "OpenClaw"}\n',
       "extensions/browser/chrome-extension/popup.html": "<h1>OpenClaw Browser</h1>\n",
       "extensions/browser/chrome-extension/popup.js": 'const s = "OpenClaw relay unavailable";\n',
-      "extensions/browser/chrome-extension/modules/tab-access.js": 'const e = "unavailable to OpenClaw";\n',
+      "extensions/browser/chrome-extension/modules/tab-access.js":
+        'const e = "unavailable to OpenClaw";\n',
       "extensions/browser/chrome-extension/icons/icon16.png": "not-an-icon\n",
-      "extensions/qa-lab/test-fixtures/browser/chrome-extension/popup.js": 'const s = "OpenClaw";\n',
+      "extensions/qa-lab/test-fixtures/browser/chrome-extension/popup.js":
+        'const s = "OpenClaw";\n',
     });
 
     const files = collectTargetFiles(rootDir);

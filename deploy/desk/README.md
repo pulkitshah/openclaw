@@ -352,7 +352,7 @@ template with the new desk's own tokens, so the Telegram bot token and Gateway t
 the ones in force.
 
 > **A snapshot carries the source desk's live secrets. Never provision a client from another
-> client's snapshot.** `--image <snapshot-id>` is only ever the *same* desk's snapshot, restored
+> client's snapshot.** `--image <snapshot-id>` is only ever the _same_ desk's snapshot, restored
 > for that same client. `snapshot.sh` names snapshots `desk-<desk-name>-<timestamp>` precisely so
 > you can tell whose they are; nothing enforces the match, so this is on you.
 
