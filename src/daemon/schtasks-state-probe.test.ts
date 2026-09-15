@@ -25,7 +25,7 @@ describe("Scheduled Task probe timeout", () => {
       error: Object.assign(new Error("spawnSync powershell.exe ETIMEDOUT"), { code: "ETIMEDOUT" }),
     });
 
-    const result = probeScheduledTaskState("Vasudev Gateway", budget);
+    const result = probeScheduledTaskState("OpenClaw Gateway", budget);
 
     expect(vi.mocked(spawnSync).mock.calls[0]?.[2]?.timeout).toBe(expected);
     expect(result).toEqual({

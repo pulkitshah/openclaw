@@ -24,7 +24,7 @@ const tempDirs = useAutoCleanupTempDirTracker(afterEach);
 // Real content from the openclaw-gateway.service unit file (the canonical gateway unit).
 const GATEWAY_SERVICE_CONTENTS = `\
 [Unit]
-Description=Vasudev Gateway
+Description=OpenClaw Gateway
 After=network-online.target
 Wants=network-online.target
 
@@ -104,7 +104,7 @@ describe("detectMarkerLineWithGateway", () => {
   it.each(["After", "Requires", "Description", "Environment"])(
     "ignores gateway mentions in %s instead of an executable directive",
     (key) => {
-      expect(detectMarkerLineWithGateway(`${key}=vasudev gateway\n`)).toBeNull();
+      expect(detectMarkerLineWithGateway(`${key}=openclaw gateway\n`)).toBeNull();
     },
   );
 
@@ -205,12 +205,12 @@ describe("renderGatewayServiceCleanupHints", () => {
       renderGatewayServiceCleanupHints([
         {
           platform: "win32",
-          label: "\\Vasudev Gateway Backup",
-          detail: "task: \\Vasudev Gateway Backup",
+          label: "\\OpenClaw Gateway Backup",
+          detail: "task: \\OpenClaw Gateway Backup",
           scope: "system",
         },
       ]),
-    ).toEqual(['schtasks /Delete /TN "\\Vasudev Gateway Backup" /F']);
+    ).toEqual(['schtasks /Delete /TN "\\OpenClaw Gateway Backup" /F']);
   });
 
   it.each(["$(Start-Process calc)", "%OPENCLAW_GATEWAY_TASK%", "unsafe&task", "task`name"])(
@@ -445,7 +445,7 @@ describe("findExtraGatewayServices (darwin / scanLaunchdDir) — real filesystem
     expect(result).toStrictEqual([]);
   });
 
-  it("reports custom LaunchAgents that execute vasudev gateway", async () => {
+  it("reports custom LaunchAgents that execute openclaw gateway", async () => {
     const tmpHome = tempDirs.make("openclaw-test-", os.tmpdir());
     const launchdDir = path.join(tmpHome, "Library", "LaunchAgents");
     const plistPath = path.join(launchdDir, "com.example.openclaw-gateway.plist");
@@ -513,11 +513,11 @@ describe("findExtraGatewayServices (win32)", () => {
 
   it("collects only non-openclaw marker tasks from schtasks output", async () => {
     // Real schtasks /Query /FO LIST /V output prefixes root-folder task
-    // names with a backslash (e.g. TaskName:\Vasudev Gateway).
+    // names with a backslash (e.g. TaskName:\OpenClaw Gateway).
     execSchtasksMock.mockResolvedValueOnce({
       code: 0,
       stdout: [
-        "TaskName:\\Vasudev Gateway",
+        "TaskName:\\OpenClaw Gateway",
         "Task To Run: C:\\Program Files\\Vasudev\\openclaw.exe gateway run",
         "",
         "TaskName: Clawdbot Legacy",
@@ -531,7 +531,7 @@ describe("findExtraGatewayServices (win32)", () => {
     });
 
     const result = await findExtraGatewayServices({}, { deep: true });
-    // The \Vasudev Gateway task is the live launcher — it must be skipped.
+    // The \OpenClaw Gateway task is the live launcher — it must be skipped.
     // Only the unrelated clawdbot task should be flagged.
     expect(result).toEqual([
       {
@@ -549,13 +549,13 @@ describe("findExtraGatewayServices (win32)", () => {
     execSchtasksMock.mockResolvedValueOnce({
       code: 0,
       stdout: [
-        "TaskName:\\Vasudev Gateway",
+        "TaskName:\\OpenClaw Gateway",
         "Task To Run: C:\\Program Files\\Vasudev\\openclaw.exe gateway run",
         "",
-        "TaskName:\\Vasudev Gateway (dev)",
+        "TaskName:\\OpenClaw Gateway (dev)",
         "Task To Run: C:\\Program Files\\Vasudev\\openclaw.exe gateway run --profile dev",
         "",
-        "TaskName:\\Vasudev Gateway Backup",
+        "TaskName:\\OpenClaw Gateway Backup",
         "Task To Run: C:\\Program Files\\Vasudev\\openclaw.exe gateway run",
         "",
       ].join("\n"),
@@ -566,9 +566,9 @@ describe("findExtraGatewayServices (win32)", () => {
     expect(result).toEqual([
       {
         platform: "win32",
-        label: "\\Vasudev Gateway Backup",
+        label: "\\OpenClaw Gateway Backup",
         detail:
-          "task: \\Vasudev Gateway Backup, run: C:\\Program Files\\Vasudev\\openclaw.exe gateway run",
+          "task: \\OpenClaw Gateway Backup, run: C:\\Program Files\\Vasudev\\openclaw.exe gateway run",
         scope: "system",
         marker: "openclaw",
         legacy: false,

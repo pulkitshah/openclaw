@@ -104,11 +104,11 @@ describe("installScheduledTask", () => {
     });
   }
 
-  function expectInitialTaskQuery(taskName = "Vasudev Gateway"): void {
+  function expectInitialTaskQuery(taskName = "OpenClaw Gateway"): void {
     expect(schtasksCalls[0]).toEqual(["/Query", "/TN", taskName]);
   }
 
-  function expectTaskRunCall(index: number, taskName = "Vasudev Gateway"): void {
+  function expectTaskRunCall(index: number, taskName = "OpenClaw Gateway"): void {
     expect(schtasksCalls[index]).toEqual(["/Run", "/TN", taskName]);
   }
 
@@ -161,30 +161,30 @@ describe("installScheduledTask", () => {
       const gatewayScript = decodeWindowsLauncherScript({
         buffer: await fs.readFile(gateway.scriptPath),
       });
-      expect(gatewayScript).toContain("rem Vasudev Gateway");
+      expect(gatewayScript).toContain("rem OpenClaw Gateway");
       expect(gatewayScript).not.toContain("OPENCLAW_SERVICE_VERSION");
       expect(xmlPayloadCaptures.at(-1)?.xml).toContain(
-        "<Description>Vasudev Gateway</Description>",
+        "<Description>OpenClaw Gateway</Description>",
       );
 
       const node = await installScheduledTask({
         env: {
           ...env,
-          OPENCLAW_WINDOWS_TASK_NAME: "Vasudev Node",
+          OPENCLAW_WINDOWS_TASK_NAME: "OpenClaw Node",
           OPENCLAW_TASK_SCRIPT_NAME: "node.cmd",
         },
         stdout: new PassThrough(),
         programArguments: ["node", "node-host.js"],
-        description: "Vasudev Node Host",
+        description: "OpenClaw Node Host",
         environment: {},
       });
       const nodeScript = decodeWindowsLauncherScript({
         buffer: await fs.readFile(node.scriptPath),
       });
-      expect(nodeScript).toContain("rem Vasudev Node Host");
+      expect(nodeScript).toContain("rem OpenClaw Node Host");
       expect(nodeScript).not.toContain("OPENCLAW_SERVICE_VERSION");
       expect(xmlPayloadCaptures.at(-1)?.xml).toContain(
-        "<Description>Vasudev Node Host</Description>",
+        "<Description>OpenClaw Node Host</Description>",
       );
     });
   });
@@ -266,17 +266,17 @@ describe("installScheduledTask", () => {
         sourcePath: scriptPath,
       });
 
-      expect(schtasksCalls[0]).toEqual(["/Query", "/TN", "Vasudev Gateway"]);
+      expect(schtasksCalls[0]).toEqual(["/Query", "/TN", "OpenClaw Gateway"]);
       expect(schtasksCalls[1]?.[0]).toBe("/Change");
       // Battery-flag XML re-apply runs between /Change and /Run on upgrades.
       expect(schtasksCalls[2]?.slice(0, 5)).toEqual([
         "/Create",
         "/F",
         "/TN",
-        "Vasudev Gateway",
+        "OpenClaw Gateway",
         "/XML",
       ]);
-      expect(schtasksCalls[3]).toEqual(["/Run", "/TN", "Vasudev Gateway"]);
+      expect(schtasksCalls[3]).toEqual(["/Run", "/TN", "OpenClaw Gateway"]);
     });
   });
 
@@ -345,7 +345,7 @@ describe("installScheduledTask", () => {
         expect(schtasksCalls[1]).toEqual([
           "/Change",
           "/TN",
-          "Vasudev Gateway",
+          "OpenClaw Gateway",
           "/TR",
           expect.stringContaining("gateway.vbs"),
         ]);
@@ -357,7 +357,7 @@ describe("installScheduledTask", () => {
         "/Create",
         "/F",
         "/TN",
-        "Vasudev Gateway",
+        "OpenClaw Gateway",
         "/XML",
       ]);
       expect(schtasksCalls[xmlIndex]).not.toContain("/RU");
@@ -427,7 +427,7 @@ describe("installScheduledTask", () => {
 
       expect(callerEnv.OPENCLAW_WINDOWS_TASK_HIDDEN_LAUNCHER).toBeUndefined();
       expect(gatewayEnv.OPENCLAW_WINDOWS_TASK_HIDDEN_LAUNCHER).toBe("1");
-      expect(gatewayEnv.OPENCLAW_WINDOWS_TASK_NAME).toBe("Vasudev Gateway");
+      expect(gatewayEnv.OPENCLAW_WINDOWS_TASK_NAME).toBe("OpenClaw Gateway");
 
       const { scriptPath } = await installScheduledTask({
         env: callerEnv,
@@ -546,7 +546,7 @@ describe("installScheduledTask", () => {
           "/Create",
           "/F",
           "/TN",
-          "Vasudev Gateway",
+          "OpenClaw Gateway",
           "/XML",
         ]);
         expect(createCall).not.toContain("/RU");

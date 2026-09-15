@@ -276,15 +276,39 @@ const PROTECTED_TOKEN_RULES = [
   },
 ];
 
+// Protected tokens that only apply inside one tree, where the same words mean
+// something different from the rest of the repo.
+const TREE_SCOPED_PROTECTED_TOKEN_RULES = [
+  {
+    // Everything under src/daemon/ is service lifecycle: "OpenClaw Gateway" and
+    // "OpenClaw Node" there are the Windows scheduled-task name, the systemd
+    // Description and the Startup-folder launcher filename of services already
+    // installed on operators' machines — read back by `schtasks /Query`, by the
+    // unit-file parser, and by the extra-service scan. src/daemon/constants.ts
+    // is excluded whole for the same reason; this covers its callers and tests
+    // without stranding their ordinary prose.
+    name: "daemon-service-label",
+    pathPattern: /^src\/daemon\//,
+    pattern: /\bOpenClaw (?:Gateway|Node)\b/g,
+  },
+];
+
+function protectedTokenRulesFor(relativePath) {
+  const scoped = TREE_SCOPED_PROTECTED_TOKEN_RULES.filter((rule) =>
+    rule.pathPattern.test(relativePath),
+  );
+  return scoped.length === 0 ? PROTECTED_TOKEN_RULES : [...scoped, ...PROTECTED_TOKEN_RULES];
+}
+
 /**
  * Applies the brand rewrite (and, when `commandAlias` is set, the displayed
- * CLI alias rewrite) to one span of prose, shielding every
- * PROTECTED_TOKEN_RULES match first and restoring it afterwards.
+ * CLI alias rewrite) to one span of prose, shielding every protected-token
+ * match first and restoring it afterwards.
  */
-function countAndReplace(text, { commandAlias = false } = {}) {
+function countAndReplace(text, { commandAlias = false, tokenRules = PROTECTED_TOKEN_RULES } = {}) {
   let shielded = text;
   const placeholders = [];
-  for (const rule of PROTECTED_TOKEN_RULES) {
+  for (const rule of tokenRules) {
     shielded = shielded.replace(rule.pattern, (match) => {
       const token = ` PROTECTED_TOKEN_${placeholders.length} `;
       placeholders.push(match);
@@ -674,6 +698,7 @@ export function rewriteTypeScriptContent(content, relativePath) {
     (left, right) => left[0] - right[0],
   );
   const excludedLiterals = EXCLUDED_LITERALS_BY_FILE.get(relativePath);
+  const tokenRules = protectedTokenRulesFor(relativePath);
 
   let count = 0;
   let output = "";
@@ -700,6 +725,7 @@ export function rewriteTypeScriptContent(content, relativePath) {
     const result = countAndReplace(slice, {
       commandAlias:
         kind === "command-display" || (kind === "literal" && !isBareCommandLiteral(slice)),
+      tokenRules,
     });
     output += result.text;
     count += result.count;
