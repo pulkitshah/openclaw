@@ -742,9 +742,10 @@ export function rewriteTypeScriptContent(content, relativePath) {
     /* setParentNodes */ true,
     scriptKind,
   );
-  const ranges = [...collectLiteralRanges(sourceFile), ...collectCommentRanges(sourceFile)].sort(
-    (left, right) => left[0] - right[0],
-  );
+  const ranges = [
+    ...collectLiteralRanges(sourceFile),
+    ...collectCommentRanges(sourceFile),
+  ].toSorted((left, right) => left[0] - right[0]);
   const excludedLiterals = EXCLUDED_LITERALS_BY_FILE.get(relativePath);
   const tokenRules = protectedTokenRulesFor(relativePath);
 
@@ -1173,14 +1174,14 @@ export function collectTargetFiles(cwd, { includeTests = false } = {}) {
   for (const file of ROOT_LAUNCHER_FILES) {
     files.add(file);
   }
-  return [...files].sort((left, right) => left.localeCompare(right));
+  return [...files].toSorted((left, right) => left.localeCompare(right));
 }
 
 /** Resolves the 30 generated non-English Control UI locale catalogs. */
 export function collectLocaleFiles(cwd) {
   return gitLsFiles(cwd, [LOCALE_GLOB])
     .filter((file) => NON_ENGLISH_LOCALE_RE.test(file))
-    .sort((left, right) => left.localeCompare(right));
+    .toSorted((left, right) => left.localeCompare(right));
 }
 
 /**

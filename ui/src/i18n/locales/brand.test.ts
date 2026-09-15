@@ -20,7 +20,7 @@ const UPSTREAM_LICENCE_MODULE = "../../pages/about/upstream-licence.ts";
 function englishCatalogFiles(): string[] {
   return readdirSync(here)
     .filter((name) => (name === "en.ts" || name.startsWith("en-")) && name.endsWith(".ts"))
-    .sort();
+    .toSorted();
 }
 
 describe("English catalogs carry the product name", () => {

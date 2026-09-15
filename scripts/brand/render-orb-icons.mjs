@@ -112,7 +112,7 @@ function resolveChromiumExecutable() {
   const candidates = existsSync(browsersRoot)
     ? readdirSync(browsersRoot)
         .filter((entry) => /^chromium-\d+$/u.test(entry))
-        .sort((left, right) => Number(right.slice(9)) - Number(left.slice(9)))
+        .toSorted((left, right) => Number(right.slice(9)) - Number(left.slice(9)))
         .map((entry) => path.join(browsersRoot, entry, relativeToInstall))
     : [];
   const found = candidates.find((candidate) => existsSync(candidate));

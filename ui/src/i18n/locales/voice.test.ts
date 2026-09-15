@@ -53,7 +53,9 @@ function extractValueStrings(source: string): string[] {
     const raw = match[0];
     const afterEnd = source.slice(match.index + raw.length);
     const isKey = /^\s*:/.test(afterEnd);
-    if (isKey) continue;
+    if (isKey) {
+      continue;
+    }
     const quote = raw[0];
     const inner = raw.slice(1, -1);
     values.push(quote === '"' ? inner.replace(/\\"/g, '"') : inner.replace(/\\'/g, "'"));
