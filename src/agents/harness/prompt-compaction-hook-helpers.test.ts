@@ -139,7 +139,7 @@ describe("resolveAgentHarnessBeforePromptBuildResult", () => {
     expect(result).toMatchObject({
       toolsAllow: ["read"],
       developerInstructions:
-        "---\n\nOpenClaw plugin-injected system context. This block is not workspace file content.\n\nbefore replacement\n\n---\n\nhook replacement\n\n---\n\nOpenClaw plugin-injected system context. This block is not workspace file content.\n\nafter replacement\n\n---",
+        "---\n\nVasudev plugin-injected system context. This block is not workspace file content.\n\nbefore replacement\n\n---\n\nhook replacement\n\n---\n\nVasudev plugin-injected system context. This block is not workspace file content.\n\nafter replacement\n\n---",
     });
     expect(result.developerInstructions).not.toContain("policy-filtered base");
   });

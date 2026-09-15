@@ -228,9 +228,9 @@ describe("derived mention matching with decorated identity names", () => {
   it("keeps a gap required when punctuation shares it with decoration", () => {
     const regexes = buildMentionRegexes(configForName("Vasu ・🦋 Bot"), "decorated-agent");
 
-    expect(matchesMentionPatterns("clawd ・🦋 bot status", regexes)).toBe(true);
-    expect(matchesMentionPatterns("clawd bot status", regexes)).toBe(false);
-    expect(matchesMentionPatterns("clawd🦋bot status", regexes)).toBe(false);
+    expect(matchesMentionPatterns("vasu ・🦋 bot status", regexes)).toBe(true);
+    expect(matchesMentionPatterns("vasu bot status", regexes)).toBe(false);
+    expect(matchesMentionPatterns("vasu🦋bot status", regexes)).toBe(false);
   });
 
   it("matches an Indic name typed without its ZWJ (text normalization strips it)", () => {
@@ -290,7 +290,7 @@ describe("derived mention matching with decorated identity names", () => {
     ).toBe(false);
     expect(
       matchesMentionPatterns(
-        "clawd🦋bots online",
+        "vasu🦋bots online",
         buildMentionRegexes(configForName("Vasu🦋"), "decorated-agent"),
       ),
     ).toBe(false);
@@ -354,7 +354,7 @@ describe("derived mention matching with decorated identity names", () => {
     const regexes = buildMentionRegexes(cfg, "decorated-agent");
 
     expect(matchesMentionPatterns("👩‍👧 status", regexes)).toBe(true);
-    expect(matchesMentionPatterns("clawd status", regexes)).toBe(true);
+    expect(matchesMentionPatterns("vasu status", regexes)).toBe(true);
   });
 
   // Decoration is not one shape: a single code point, a pair carrying a
@@ -498,10 +498,10 @@ describe("derived mention matching with decorated identity names", () => {
   it("reads interior decoration spaced apart or tightened up", () => {
     const regexes = buildMentionRegexes(configForName("Vasu 🦋 ★ Bot"), "decorated-agent");
 
-    expect(matchesMentionPatterns("clawd 🦋 ★ bot status", regexes)).toBe(true);
-    expect(matchesMentionPatterns("clawd🦋★bot status", regexes)).toBe(true);
-    expect(matchesMentionPatterns("clawd bot status", regexes)).toBe(true);
-    expect(matchesMentionPatterns("clawd 🦋 🦋 ★ bot status", regexes)).toBe(false);
+    expect(matchesMentionPatterns("vasu 🦋 ★ bot status", regexes)).toBe(true);
+    expect(matchesMentionPatterns("vasu🦋★bot status", regexes)).toBe(true);
+    expect(matchesMentionPatterns("vasu bot status", regexes)).toBe(true);
+    expect(matchesMentionPatterns("vasu 🦋 🦋 ★ bot status", regexes)).toBe(false);
   });
 
   // A mention consumes the decoration the name spells and no more, and the
@@ -559,7 +559,7 @@ describe("derived mention matching with decorated identity names", () => {
 
     expect(regexes).toHaveLength(1);
     expect(matchesMentionPatterns("hello!", regexes)).toBe(false);
-    expect(matchesMentionPatterns("clawd hello", regexes)).toBe(true);
+    expect(matchesMentionPatterns("vasu hello", regexes)).toBe(true);
   });
 
   it("never requires a bare variation selector as the identity token", () => {
@@ -689,20 +689,20 @@ describe("derived mention matching with decorated identity names", () => {
   it("keeps whitespace between plain words required (unchanged contract)", () => {
     const regexes = buildMentionRegexes(configForName("Vasu Bot"), "decorated-agent");
 
-    expect(matchesMentionPatterns("clawd bot status", regexes)).toBe(true);
-    expect(matchesMentionPatterns("clawdbot status", regexes)).toBe(false);
+    expect(matchesMentionPatterns("vasu bot status", regexes)).toBe(true);
+    expect(matchesMentionPatterns("vasubot status", regexes)).toBe(false);
   });
 
   it("keeps a separator required when a gap mixes whitespace and decoration", () => {
     const regexes = buildMentionRegexes(configForName("Vasu 🦋 Bot"), "decorated-agent");
 
-    expect(matchesMentionPatterns("clawd bot status", regexes)).toBe(true);
-    expect(matchesMentionPatterns("clawd🦋bot status", regexes)).toBe(true);
-    expect(matchesMentionPatterns("clawd 🦋 bot status", regexes)).toBe(true);
-    expect(matchesMentionPatterns("clawdbot status", regexes)).toBe(false);
+    expect(matchesMentionPatterns("vasu bot status", regexes)).toBe(true);
+    expect(matchesMentionPatterns("vasu🦋bot status", regexes)).toBe(true);
+    expect(matchesMentionPatterns("vasu 🦋 bot status", regexes)).toBe(true);
+    expect(matchesMentionPatterns("vasubot status", regexes)).toBe(false);
     // The @ alternative skips the word-boundary lookbehind; the separator
     // floor must still hold behind it.
-    expect(matchesMentionPatterns("@clawdbot status", regexes)).toBe(false);
+    expect(matchesMentionPatterns("@vasubot status", regexes)).toBe(false);
   });
 
   it("only accepts the name's own decoration, not arbitrary punctuation", () => {

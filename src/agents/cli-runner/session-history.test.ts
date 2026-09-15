@@ -820,7 +820,11 @@ describe("buildCliSessionHistoryPrompt", () => {
     const prompt = buildCliSessionHistoryPrompt({
       messages: [{ role: "compactionSummary", summary: `aa😀${"z".repeat(100)}` }],
       prompt: "next",
-      maxHistoryChars: withReseedGuidanceBudget(80),
+      // Sized so the cap lands between the emoji's two UTF-16 units, which is
+      // the split this case exists to catch. The budget is the truncation
+      // marker's length plus the summary prefix, so it moves whenever the
+      // marker text does.
+      maxHistoryChars: withReseedGuidanceBudget(79),
     });
 
     expect(prompt).toContain(
