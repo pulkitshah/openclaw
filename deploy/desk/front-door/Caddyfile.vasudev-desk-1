@@ -22,6 +22,15 @@ vasudev.tripinstudio.com {
 		reverse_proxy 127.0.0.1:8791 {
 			method GET
 			rewrite /_auth/check
+			# Without these, Caddy sees this sub-request still carries the original
+			# Connection/Upgrade headers whenever the real request is a WebSocket upgrade
+			# (opening a terminal, the control-UI session socket) and tries to negotiate a
+			# WS handshake with this plain-HTTP auth service too — which doesn't handle
+			# upgrades, and corrupts the frame stream for the real reverse_proxy hop right
+			# after it. Cost us a live terminal ("Invalid WebSocket frame: MASK must be
+			# set") the first time this Caddyfile went live; strip them here every time.
+			header_up -Connection
+			header_up -Upgrade
 			header_up X-Forwarded-Method {method}
 			header_up X-Forwarded-Uri {uri}
 
