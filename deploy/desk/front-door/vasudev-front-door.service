@@ -1,0 +1,22 @@
+[Unit]
+Description=Vasudev front-door sign-in (branded login for vasudev.tripinstudio.com)
+After=network.target
+
+[Service]
+Type=simple
+User=openclaw
+Group=openclaw
+WorkingDirectory=/opt/vasudev-front-door
+Environment=FRONT_DOOR_PORT=8791
+Environment=FRONT_DOOR_USERS_FILE=/etc/openclaw/front-door/users.json
+Environment=FRONT_DOOR_SESSIONS_FILE=/var/lib/openclaw/front-door/sessions.json
+ExecStart=/usr/bin/node /opt/vasudev-front-door/auth-server.mjs
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/openclaw/front-door
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

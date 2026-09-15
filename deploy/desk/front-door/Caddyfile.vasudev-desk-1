@@ -1,0 +1,53 @@
+# Reference copy of the live Caddyfile on vasudev-desk-1 (/etc/caddy/Caddyfile), the box that
+# fronts vasudev.tripinstudio.com for every client. Not templated or auto-deployed anywhere —
+# this box's role predates cloud-init.yaml.tmpl and was set up by hand; keep this file in sync
+# by hand too whenever /etc/caddy/Caddyfile changes, so the design and its rationale survive
+# outside any one person's SSH history. Caddy 2.6.2 (apt), so no `forward_auth` directive (2.7+);
+# this is its pre-2.7 expansion: reverse_proxy + handle_response to the vasudev-front-door
+# service (auth-server.mjs, port 8791) for the real branded sign-in and session check, then
+# per-user routing to that user's own desk via the X-Forwarded-User header it reports.
+#
+# Adding a new client here means: add their bcrypt hash to /etc/openclaw/front-door/users.json
+# on this box, and add one more `@clientname header X-Forwarded-User <their-email>` + its own
+# `reverse_proxy` route below (with a synthesized `Authorization` header if their own desk still
+# gates itself with basicauth using the same credential, as Prasthan's does).
+vasudev.tripinstudio.com {
+	bind 159.89.160.42
+	encode gzip
+
+	route {
+		@authpaths path /login /login/* /logout /logout/*
+		reverse_proxy @authpaths 127.0.0.1:8791
+
+		reverse_proxy 127.0.0.1:8791 {
+			method GET
+			rewrite /_auth/check
+			header_up X-Forwarded-Method {method}
+			header_up X-Forwarded-Uri {uri}
+
+			@good status 2xx
+			handle_response @good {
+				request_header X-Forwarded-User {rp.header.X-Forwarded-User}
+			}
+			@denied status 401
+			handle_response @denied {
+				redir * /login 302
+			}
+		}
+
+		@prasthan header X-Forwarded-User abhishek@prasthantours.com
+		reverse_proxy @prasthan https://206-189-128-145.sslip.io {
+			header_up Host 206-189-128-145.sslip.io
+			header_up X-Forwarded-User {header.X-Forwarded-User}
+			# Prasthan's own box still gates this endpoint with its own basicauth (same
+			# credential as here) so it stays safe to reach directly; this front door already
+			# verified the session, so it re-supplies that same credential on the desk's behalf.
+			# Redacted here: base64("<prasthan's email>:<prasthan's plaintext password>"),
+			# the same password recorded in prasthan-tours-login.txt (gitignored, local only).
+			header_up Authorization "Basic <REDACTED-see-prasthan-tours-login.txt>"
+		}
+		reverse_proxy 127.0.0.1:18789 {
+			header_up X-Forwarded-User {header.X-Forwarded-User}
+		}
+	}
+}

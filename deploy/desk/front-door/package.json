@@ -1,0 +1,11 @@
+{
+  "name": "vasudev-front-door",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Deliberately isolated from the product's own pnpm workspace: this is ops tooling for the front-door desk, installed with plain npm in place on the box, never part of the product's dependency graph or gates.",
+  "type": "module",
+  "main": "auth-server.mjs",
+  "dependencies": {
+    "bcryptjs": "2.4.3"
+  }
+}
