@@ -813,6 +813,25 @@ describe("rewriteFileContent (test/fixture and cross-boundary exclusions)", () =
     expect(count).toBe(1);
   });
 
+  it("never rewrites the git-backup commit subject persisted in the operator's repository", () => {
+    // `backup` is a real CLI subcommand, so without the protected-token rule
+    // the displayed-alias rewrite renames a marker that commits written by
+    // earlier builds carry forever, and the push guard stops matching them.
+    const content = [
+      'const prefix = "openclaw backup ";',
+      'const grep = "^(openclaw|vasudev) backup ";',
+      'const legacy = "openclaw backup 2026-01-01T00:00:00.000Z";',
+      'const hint = "run openclaw backup create first";',
+    ].join("\n");
+    const { content: rewritten, count } = rewriteFileContent("src/snapshot/git-backup.ts", content);
+
+    expect(rewritten).toContain('"openclaw backup "');
+    expect(rewritten).toContain('"^(openclaw|vasudev) backup "');
+    expect(rewritten).toContain('"openclaw backup 2026-01-01T00:00:00.000Z"');
+    expect(rewritten).toContain('"run vasudev backup create first"');
+    expect(count).toBe(1);
+  });
+
   it("renames a wordmark that follows an escape sequence, and keeps shielded tokens shielded", () => {
     // The script scans raw source text, so the character before the wordmark in
     // `"\\n\\nOpenClaw ..."` is the `n` of the escape and a plain `\\b` finds no

@@ -34,6 +34,15 @@ import type { SnapshotDatabaseRef } from "./snapshot-provider.js";
 const GIT_BACKUP_DIAGNOSTIC_MAX_LENGTH = 500;
 const GIT_BACKUP_NON_BACKUP_HISTORY_WARNING =
   "repository history contains non-backup commits; use a dedicated backup repository";
+// Persisted marker in the *operator's* backup repository: every backup commit
+// subject starts with it, and the push guard below counts commits that do not.
+// Commits an earlier build wrote keep their spelling forever, so the writer
+// stays on the real binary name and the reader accepts both spellings — a
+// repository written by either build still pushes. Protected in
+// scripts/rebrand-apply.mjs ("git-backup-commit-marker") so the displayed-alias
+// rewrite cannot mistake either literal for a command example.
+const GIT_BACKUP_COMMIT_SUBJECT_PREFIX = "openclaw backup ";
+const GIT_BACKUP_COMMIT_SUBJECT_GREP = "^(openclaw|vasudev) backup ";
 
 type GitBackupCreateResult = {
   repositoryPath: string;
@@ -349,7 +358,7 @@ export async function createGitBackup(params: {
     );
     commit = await commitGitBackup({
       repositoryPath,
-      message: `vasudev backup ${now.toISOString()}`,
+      message: `${GIT_BACKUP_COMMIT_SUBJECT_PREFIX}${now.toISOString()}`,
       scopes: commitScopes,
       env: params.gitEnv,
     });
@@ -361,7 +370,14 @@ export async function createGitBackup(params: {
     // repository is the supported remote shape.
     const nonBackupCommitCount = await requireGit(
       repositoryPath,
-      ["rev-list", "HEAD", "--invert-grep", "--grep=^vasudev backup ", "--count"],
+      [
+        "rev-list",
+        "HEAD",
+        "--invert-grep",
+        "--extended-regexp",
+        `--grep=${GIT_BACKUP_COMMIT_SUBJECT_GREP}`,
+        "--count",
+      ],
       { env: params.gitEnv },
     );
     if (nonBackupCommitCount !== "0") {

@@ -101,6 +101,10 @@ export const NAME_RULES = [
 // command tree at runtime from plugin registrations, so there is no static
 // list to import, and an over-broad list is exactly the failure mode this
 // guards against.
+// Every addition needs a `git grep "openclaw <sub>"` pass over non-display
+// positions first: `backup` also opens a persisted git-commit subject in the
+// operator's backup repository, which is why the `git-backup-commit-marker`
+// protected-token rule shields it.
 const CLI_SUBCOMMANDS = [
   "acp",
   "agent",
@@ -307,6 +311,19 @@ const PROTECTED_TOKEN_RULES = [
     // carry the old spelling forever, so the reader must keep matching it.
     name: "git-commit-trailer",
     pattern: /\bOpenClaw-Publication\b/g,
+  },
+  {
+    // The `openclaw backup <iso>` commit subject the git-backup driver writes
+    // into the *operator's* backup repository, plus the grep that reads it back
+    // (`src/snapshot/git-backup.ts`). `backup` is a real CLI subcommand, so the
+    // displayed-alias rewrite would otherwise treat this persisted marker as a
+    // command example; commits an earlier build wrote keep their subject
+    // forever, and a renamed reader silently stops pushing. Anchored to the
+    // literal's own opening quote and to what follows the marker (a closing
+    // quote, a `${...}` timestamp, or an ISO year) so an ordinary
+    // `openclaw backup create` command example still renames.
+    name: "git-backup-commit-marker",
+    pattern: /(?<=["'`])(?:\^\(openclaw\|vasudev\)|openclaw)(?= backup (?:["'`]|\$\{|\d))/g,
   },
   {
     // A hyphenated HTTP header name whose middle segment is the product name

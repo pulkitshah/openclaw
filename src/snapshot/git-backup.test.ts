@@ -798,6 +798,38 @@ describe("Git-backed SQLite snapshots", () => {
     expect(await requireGit(remotePath, ["rev-parse", `refs/heads/${branch}`])).toBe(result.commit);
   });
 
+  // A repository an earlier build wrote carries `openclaw backup <iso>` commit
+  // subjects. The push guard has to keep recognising them, or the backup goes
+  // on committing locally and silently stops reaching the remote.
+  it("pushes ancestry whose backup commits carry the pre-rename subject", async () => {
+    const root = await tempRoot();
+    const { stateDir, database } = createStateDatabaseFixture(root);
+    const repositoryPath = path.join(root, "legacy-backup-repository");
+    const remotePath = path.join(root, "remote.git");
+    await requireGit(root, ["init", "--bare", remotePath]);
+    await initializeGitBackupRepository({ repositoryPath, stateDir, remote: remotePath });
+    await requireGit(repositoryPath, ["config", "user.name", "Vasudev Backup Test"]);
+    await requireGit(repositoryPath, ["config", "user.email", "backup@example.invalid"]);
+    await requireGit(repositoryPath, [
+      "commit",
+      "--allow-empty",
+      "-m",
+      "openclaw backup 2026-01-01T00:00:00.000Z",
+    ]);
+
+    const result = await createGitBackup({
+      repositoryPath,
+      stateDir,
+      databases: [database],
+      push: true,
+    });
+
+    const branch = await requireGit(repositoryPath, ["branch", "--show-current"]);
+    expect(result).toMatchObject({ noChanges: false, pushed: true });
+    expect(result).not.toHaveProperty("pushWarning");
+    expect(await requireGit(remotePath, ["rev-parse", `refs/heads/${branch}`])).toBe(result.commit);
+  });
+
   it("redacts credential-bearing origins in conflict errors", async () => {
     const root = await tempRoot();
     const stateDir = path.join(root, "state");
