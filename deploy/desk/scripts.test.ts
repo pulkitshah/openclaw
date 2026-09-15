@@ -405,6 +405,75 @@ describe("deploy/desk operator scripts", () => {
       );
     });
 
+    it("creates a client desk with no Telegram token or owner target, and says what the client sees first", () => {
+      // The owner requirement this profile serves: a client's desk starts like a fresh install,
+      // so the two flags that would bake the operator's own channel into it are not needed.
+      const result = run(
+        NEW_DESK,
+        [deskName, "--profile", "client", "--ts-authkey-file", tsAuthkeyFile],
+        happyPathEnv(),
+      );
+
+      expect(result.status).toBe(0);
+      const renderCall = readLog(nodeLog)
+        .split("\n")
+        .find((line) => line.includes("render-cloud-init.mjs"));
+      expect(renderCall).toBeDefined();
+      expect(renderCall).toContain("--profile client");
+      expect(renderCall).not.toContain("--tg-token-file");
+      expect(renderCall).not.toContain("--owner-target");
+
+      expect(result.stdout).toContain(`Control UI: https://${deskName}.tailnet-fixture.ts.net`);
+      expect(result.stdout).toContain("Model Setup");
+      expect(result.stdout).toContain("Settings > Telegram");
+    });
+
+    it("passes a bot token given with --profile client through to the renderer instead of dropping it silently", () => {
+      const result = run(
+        NEW_DESK,
+        [
+          deskName,
+          "--profile",
+          "client",
+          "--ts-authkey-file",
+          tsAuthkeyFile,
+          "--tg-token-file",
+          tgTokenFile,
+          "--owner-target",
+          "123456789",
+        ],
+        happyPathEnv(),
+      );
+
+      expect(result.status).toBe(0);
+      // The renderer owns what each profile configures, and warns there that it goes unused.
+      const renderCall = readLog(nodeLog)
+        .split("\n")
+        .find((line) => line.includes("render-cloud-init.mjs"));
+      expect(renderCall).toContain("--tg-token-file");
+      expect(result.stderr).toContain("ignoring --tg-token-file");
+    });
+
+    it("refuses an unknown --profile, and still requires the bot token and owner target for the owner profile", () => {
+      const badProfile = run(
+        NEW_DESK,
+        [deskName, "--profile", "customer", "--ts-authkey-file", tsAuthkeyFile],
+        happyPathEnv(),
+      );
+      expect(badProfile.status).toBe(2);
+      expect(badProfile.stderr).toContain("--profile");
+      expect(readLog(doctlLog)).not.toContain("compute droplet create");
+
+      const missingOwnerFlags = run(
+        NEW_DESK,
+        [deskName, "--ts-authkey-file", tsAuthkeyFile],
+        happyPathEnv(),
+      );
+      expect(missingOwnerFlags.status).toBe(2);
+      expect(missingOwnerFlags.stderr).toContain("Usage: new-desk.sh");
+      expect(readLog(doctlLog)).not.toContain("compute droplet create");
+    });
+
     it("fails before creating a droplet when the configured SSH key name is not found", () => {
       const result = run(
         NEW_DESK,

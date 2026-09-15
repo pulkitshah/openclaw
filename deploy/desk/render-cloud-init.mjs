@@ -4,14 +4,27 @@
  *
  * Usage:
  *   node deploy/desk/render-cloud-init.mjs \
- *     --name <desk> --ts-authkey-file <f> --tg-token-file <f> \
- *     --owner-target <id> --git-ref <ref> [--gateway-token-file <f>] [--repo-url <url>] \
- *     [--preflight] \
+ *     --name <desk> --ts-authkey-file <f> [--profile owner|client] \
+ *     [--tg-token-file <f>] [--owner-target <id>] --git-ref <ref> \
+ *     [--gateway-token-file <f>] [--repo-url <url>] [--preflight] \
  *     > /tmp/<desk>.cloud-init.yaml
  *
- * Reads three secret inputs from files (never from argv, so they never land in shell history or
- * `ps`): the Tailscale auth key, the Telegram bot token, and — optionally — a pre-chosen Gateway
- * auth token. When `--gateway-token-file` is omitted a random one is generated here.
+ * Reads every secret input from a file (never from argv, so they never land in shell history or
+ * `ps`): the Tailscale auth key, the Telegram bot token (owner profile only, see `--profile`
+ * below), and — optionally — a pre-chosen Gateway auth token. When `--gateway-token-file` is
+ * omitted a random one is generated here.
+ *
+ * `--profile` picks WHOSE desk this is, which is the only thing that changes the embedded
+ * openclaw.json:
+ *   owner  (default) — the operator's own desk: `openclaw.json.tmpl`, with the Telegram channel,
+ *          the named agents, their bindings and the Gmail hooks already wired up.
+ *   client — a client's desk: `openclaw.client.json.tmpl`, which carries ONLY desk plumbing
+ *          (Gateway auth/bind/Tailscale, the Gateway-token secret provider, the browser SSRF
+ *          allowlist, the bundled plugin entries and tools.alsoAllow). No channels, agents,
+ *          bindings or hooks: the client meets the same onboarding a fresh install gives
+ *          anyone — Model Setup, the first-conversation naming ritual, and Telegram added from
+ *          Settings — instead of inheriting the operator's setup. `--tg-token-file` and
+ *          `--owner-target` are then unused (nothing would read them) and may be omitted.
  *
  * The desk clones the operator's own fork, never a name hardcoded in this file: `--repo-url`
  * (or the `DESK_FORK_REPO_URL` env var) overrides it explicitly, and by default it is read from
@@ -53,6 +66,25 @@ const INCLUDABLE_FILES = new Set([
 const ALL_CAPS_PLACEHOLDER_RE = /\{\{[A-Z][A-Z0-9_]*\}\}/;
 const INCLUDE_LINE_RE = /^([ \t]*)\{\{INCLUDE:([^}]+)\}\}[ \t]*$/;
 const OPENCLAW_CONFIG_JSON_LINE_RE = /^([ \t]*)\{\{OPENCLAW_CONFIG_JSON\}\}[ \t]*$/;
+// Conditional sections: a `{{#IF:NAME}}` line and its `{{/IF}}` line each own a whole line, so a
+// kept section renders byte-for-byte as if the markers were never there (the marker lines are
+// simply dropped) and a dropped one takes its blank lines with it instead of leaving a gap.
+const IF_OPEN_LINE_RE = /^[ \t]*\{\{#IF:([A-Z][A-Z0-9_]*)\}\}[ \t]*$/;
+const IF_CLOSE_LINE_RE = /^[ \t]*\{\{\/IF\}\}[ \t]*$/;
+
+/** The two desk profiles, and which optional cloud-init sections each one renders. Keys here are
+ *  the complete set of `{{#IF:NAME}}` names the template may use; an unknown one is a template
+ *  bug and fails the render rather than silently dropping the block. */
+const PROFILES = {
+  owner: { TELEGRAM: true, GMAIL_HOOKS: true },
+  client: { TELEGRAM: false, GMAIL_HOOKS: false },
+};
+const DEFAULT_PROFILE = "owner";
+/** Config template per profile — see the `--profile` note in this file's header comment. */
+const CONFIG_TEMPLATE_BY_PROFILE = {
+  owner: "openclaw.json.tmpl",
+  client: "openclaw.client.json.tmpl",
+};
 
 // `--name` becomes both a YAML scalar (`hostname: {{DESK_NAME}}`) and a raw shell argument
 // (`--hostname {{DESK_NAME}}` inside a runcmd string), so it is restricted to characters that
@@ -191,41 +223,73 @@ function readPnpmPackageManager() {
   return packageManager;
 }
 
-/** Renders `openclaw.json.tmpl` for one owner target and returns canonical (parsed + re-
- *  stringified) JSON text, so a malformed template — or a substitution that breaks JSON syntax —
- *  fails loudly here instead of shipping a Gateway that cannot parse its own config. */
-function renderOpenClawConfig(ownerTarget, hooksToken, gatewayTailscaleMode) {
-  const template = readFileSync(join(SCRIPT_DIR, "openclaw.json.tmpl"), "utf8");
-  // The placeholder sits inside a JSON string in the template; substitute the JSON-escaped form
-  // of the value so a target containing a quote or backslash cannot break the surrounding config.
-  const escapedOwnerTarget = JSON.stringify(ownerTarget).slice(1, -1);
-  const substituted = template
-    .replaceAll("{{OWNER_TG_TARGET}}", escapedOwnerTarget)
-    .replaceAll("{{HOOKS_TOKEN}}", JSON.stringify(hooksToken).slice(1, -1))
-    // "serve" on a real desk (the Gateway claims Tailscale Serve for the Control UI); "off" for
-    // --preflight, where the VM never joins a real tailnet and claiming Serve without one makes
-    // the Gateway exit ("Logged out.") instead of starting (observed 2026-09-14).
-    .replaceAll("{{GATEWAY_TAILSCALE_MODE}}", gatewayTailscaleMode);
+/** Drops every `{{#IF:NAME}}` … `{{/IF}}` block whose section is off for this profile, and the
+ *  marker lines of the ones that stay. Blocks do not nest: a desk section is either rendered or
+ *  not, and a nested one would only make it harder to see which profile ships what. */
+function applyConditionalSections(template, sections) {
+  const kept = [];
+  let open = null;
+  const lines = template.split("\n");
+  for (const [index, line] of lines.entries()) {
+    const openMatch = line.match(IF_OPEN_LINE_RE);
+    if (openMatch) {
+      const [, name] = openMatch;
+      if (open) {
+        fail(`template nests {{#IF:${name}}} inside {{#IF:${open.name}}} at line ${index + 1}`);
+      }
+      if (!(name in sections)) {
+        fail(`template references an unknown conditional section: ${name}`);
+      }
+      open = { name, keep: sections[name] };
+      continue;
+    }
+    if (IF_CLOSE_LINE_RE.test(line)) {
+      if (!open) {
+        fail(`template has a {{/IF}} with no matching {{#IF:...}} at line ${index + 1}`);
+      }
+      open = null;
+      continue;
+    }
+    if (!open || open.keep) {
+      kept.push(line);
+    }
+  }
+  if (open) {
+    fail(`template has an unterminated {{#IF:${open.name}}}`);
+  }
+  return kept.join("\n");
+}
+
+/** Renders this profile's openclaw.json template and returns canonical (parsed + re-stringified)
+ *  JSON text, so a malformed template — or a substitution that breaks JSON syntax — fails loudly
+ *  here instead of shipping a Gateway that cannot parse its own config. Every value is
+ *  substituted JSON-escaped: each placeholder sits inside a JSON string, so a value carrying a
+ *  quote or backslash must not be able to break out of it. */
+function renderOpenClawConfig(profile, substitutions) {
+  const templateName = CONFIG_TEMPLATE_BY_PROFILE[profile];
+  let substituted = readFileSync(join(SCRIPT_DIR, templateName), "utf8");
+  for (const [key, value] of Object.entries(substitutions)) {
+    substituted = substituted.replaceAll(`{{${key}}}`, JSON.stringify(value).slice(1, -1));
+  }
   if (ALL_CAPS_PLACEHOLDER_RE.test(substituted)) {
     const [placeholder] = substituted.match(ALL_CAPS_PLACEHOLDER_RE) ?? [];
-    fail(`openclaw.json.tmpl still has an unresolved placeholder: ${placeholder}`);
+    fail(`${templateName} still has an unresolved placeholder: ${placeholder}`);
   }
   let parsed;
   try {
     parsed = JSON.parse(substituted);
   } catch (error) {
-    fail(`rendered openclaw.json.tmpl is not valid JSON: ${error.message}`);
+    fail(`rendered ${templateName} is not valid JSON: ${error.message}`);
   }
   return JSON.stringify(parsed, null, 2) + "\n";
 }
 
-function renderCloudInit(values) {
-  const template = readFileSync(join(SCRIPT_DIR, "cloud-init.yaml.tmpl"), "utf8");
-  const configJson = renderOpenClawConfig(
-    values.OWNER_TG_TARGET,
-    values.HOOKS_TOKEN,
-    values.GATEWAY_TAILSCALE_MODE,
+function renderCloudInit({ profile, configSubstitutions, values }) {
+  const template = applyConditionalSections(
+    readFileSync(join(SCRIPT_DIR, "cloud-init.yaml.tmpl"), "utf8"),
+    PROFILES[profile],
   );
+  const configJson = renderOpenClawConfig(profile, configSubstitutions);
 
   const withIncludes = template
     .split("\n")
@@ -258,6 +322,11 @@ function assertFullyRendered(rendered) {
   }
   if (rendered.includes("{{INCLUDE:")) {
     fail("refusing to emit output: an unresolved {{INCLUDE:...}} remains");
+  }
+  // Conditional markers carry a `#`/`/`, so the ALL_CAPS check above never sees them; a stray one
+  // would otherwise ship into cloud-init as a bare YAML line.
+  if (rendered.includes("{{#IF:") || rendered.includes("{{/IF}}")) {
+    fail("refusing to emit output: an unresolved conditional section marker remains");
   }
   // DigitalOcean's user-data path re-encoded UTF-8 comment characters (an em dash, a section
   // sign) so that cloud-init saw byte 0x80, refused the YAML blob, and applied an EMPTY config
@@ -296,6 +365,7 @@ function main() {
   const { values } = parseArgs({
     options: {
       name: { type: "string" },
+      profile: { type: "string" },
       "ts-authkey-file": { type: "string" },
       "tg-token-file": { type: "string" },
       "gateway-token-file": { type: "string" },
@@ -306,9 +376,36 @@ function main() {
     },
   });
 
-  for (const flag of ["name", "ts-authkey-file", "tg-token-file", "owner-target", "git-ref"]) {
+  const profile = values.profile ?? DEFAULT_PROFILE;
+  if (!(profile in PROFILES)) {
+    fail(
+      `--profile ${JSON.stringify(profile)} is invalid: must be one of ` +
+        `${Object.keys(PROFILES).join(", ")}`,
+    );
+  }
+  const sections = PROFILES[profile];
+
+  // A client desk renders no Telegram channel, so it needs neither the bot token nor the owner
+  // target; the owner's own desk still requires both.
+  const requiredFlags = ["name", "ts-authkey-file", "git-ref"];
+  if (sections.TELEGRAM) {
+    requiredFlags.push("tg-token-file", "owner-target");
+  }
+  for (const flag of requiredFlags) {
     if (!values[flag]) {
       fail(`missing required --${flag}`);
+    }
+  }
+  // Ignoring a flag silently would leave an operator believing a client desk answers a bot it
+  // never configured; say so instead, and render the client profile as documented.
+  if (!sections.TELEGRAM) {
+    for (const flag of ["tg-token-file", "owner-target"]) {
+      if (values[flag]) {
+        process.stderr.write(
+          `render-cloud-init: ignoring --${flag}: the "${profile}" profile renders no Telegram ` +
+            "channel (the client adds Telegram from Settings)\n",
+        );
+      }
     }
   }
 
@@ -318,7 +415,6 @@ function main() {
   validateForkRepoUrl(forkRepoUrl);
 
   const tsAuthKey = readTrimmedFile(values["ts-authkey-file"], "Tailscale auth key");
-  const tgBotToken = readTrimmedFile(values["tg-token-file"], "Telegram bot token");
   const gatewayToken = values["gateway-token-file"]
     ? readTrimmedFile(values["gateway-token-file"], "Gateway auth token")
     : randomBytes(32).toString("base64url");
@@ -326,26 +422,32 @@ function main() {
   const preflight = Boolean(values.preflight);
   const tailscaleRuncmd = tailscaleRuncmdLines(values.name, preflight);
 
-  const rendered = renderCloudInit({
+  // A real desk's Gateway claims Tailscale Serve for the Control UI; --preflight's local VM never
+  // joins a real tailnet, so claiming Serve there makes the Gateway exit ("Logged out.") instead
+  // of starting.
+  const configSubstitutions = { GATEWAY_TAILSCALE_MODE: preflight ? "off" : "serve" };
+  const templateValues = {
     DESK_NAME: values.name,
     TS_AUTHKEY: tsAuthKey,
     GIT_REF: values["git-ref"],
     FORK_REPO_URL: forkRepoUrl,
-    OWNER_TG_TARGET: values["owner-target"],
-    TG_BOT_TOKEN: tgBotToken,
     GATEWAY_TOKEN: gatewayToken,
-    // hooks.enabled requires hooks.token (the Gmail push endpoint's bearer); minted per desk, it
-    // lives only inside the 0600 openclaw.json the service user owns.
-    HOOKS_TOKEN: randomBytes(32).toString("base64url"),
     PNPM_PACKAGE_MANAGER: readPnpmPackageManager(),
-    // A real desk's Gateway claims Tailscale Serve for the Control UI; --preflight's local VM
-    // never joins a real tailnet, so claiming Serve there makes the Gateway exit ("Logged out.")
-    // instead of starting.
-    GATEWAY_TAILSCALE_MODE: preflight ? "off" : "serve",
     TAILSCALE_UP_RUNCMD: tailscaleRuncmd.up,
     TAILSCALE_OPERATOR_RUNCMD: tailscaleRuncmd.operator,
     TAILSCALE_FUNNEL_RUNCMD: tailscaleRuncmd.funnel,
-  });
+  };
+  if (sections.TELEGRAM) {
+    templateValues.TG_BOT_TOKEN = readTrimmedFile(values["tg-token-file"], "Telegram bot token");
+    configSubstitutions.OWNER_TG_TARGET = values["owner-target"];
+  }
+  if (sections.GMAIL_HOOKS) {
+    // hooks.enabled requires hooks.token (the Gmail push endpoint's bearer); minted per desk, it
+    // lives only inside the 0600 openclaw.json the service user owns.
+    configSubstitutions.HOOKS_TOKEN = randomBytes(32).toString("base64url");
+  }
+
+  const rendered = renderCloudInit({ profile, configSubstitutions, values: templateValues });
 
   assertFullyRendered(rendered);
   process.stdout.write(rendered);

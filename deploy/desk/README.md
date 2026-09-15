@@ -71,7 +71,8 @@ Chromium install), the script prints a `provision-failed` warning alongside the 
 is up, but browser Duties will not work until it is fixed. See
 [Troubleshooting](#troubleshooting).
 
-Useful flags: `--size s-4vcpu-8gb` for more parallel runs, `--git-ref <ref>` to pin a
+Useful flags: `--profile client` for a desk you hand to someone else (see
+[Client desk](#client-desk)), `--size s-4vcpu-8gb` for more parallel runs, `--git-ref <ref>` to pin a
 non-`main` checkout, `--image <snapshot-id>` to create a new desk from a prior desk's
 snapshot instead of a bare image (minutes instead of a full first-boot install — see
 [Snapshot / restore](#snapshot--restore)). Run `deploy/desk/new-desk.sh --help` for the full
@@ -79,6 +80,51 @@ flag and environment-override list, including `DESK_SSH_KEY_NAME` to pick a spec
 SSH key (by default the script uses the first `doctl` key whose fingerprint matches a public
 key in your `~/.ssh`, so the printed sign-in command works from this machine), and
 `DESK_READY_POLL_SECONDS` if 30 minutes isn't enough for a particularly slow first boot.
+
+## Client desk
+
+A desk created with `--profile client` is the same machine, minus the operator's own setup. Use
+it for a desk somebody else will own:
+
+```sh
+deploy/desk/new-desk.sh <desk-name> --profile client \
+  --ts-authkey-file <path-to-a-file-holding-one-tailscale-preauth-key>
+```
+
+No `--tg-token-file` and no `--owner-target`: a client desk configures no Telegram channel, so
+there is nothing for either to configure. Pass them anyway and the renderer says it is ignoring
+them rather than pretending the bot is wired up.
+
+What first boot writes into `~openclaw/.openclaw/openclaw.json` is then only desk plumbing
+(`deploy/desk/openclaw.client.json.tmpl`): the Gateway's local/loopback mode, its Tailscale mode,
+token auth reading the per-desk Gateway-token file, that one secret provider, the browser SSRF
+allowlist, the four bundled plugin entries (`anthropic`, `duties`, `telegram`, `llm-task` — all
+enabled, none configured) and `tools.alsoAllow`. No `channels`, no `agents`, no `bindings`, no
+`hooks`, and no Telegram-token secret provider or secret file. The cloud-init that builds the box
+skips the Telegram token `write_files` entry and the Gmail webhook Funnel entirely — they are not
+rendered empty.
+
+Everything else is identical to an owner desk: same image, same Chromium, same units, same health
+timer, same tailnet-only Control UI, same `roll.sh`/`snapshot.sh`.
+
+### What the client sees first
+
+The operator still does [First sign-in](#first-sign-in) steps 1–3 (reveal the token, open the
+Control UI, approve the device) and hands over the URL and token. From there the client meets the
+same onboarding a fresh Vasudev install gives anyone:
+
+1. **Model Setup** — connect Claude by signing in. The desk already has the Claude CLI installed;
+   the client signs in with their own Claude account from the Control UI's Model Setup screen.
+2. **Name the assistant** — the first conversation runs the workspace bootstrap ritual
+   (`BOOTSTRAP.md`, see [Bootstrapping](/start/bootstrapping)), which asks what to call the
+   assistant and writes the answer into the workspace. Nothing is pre-named.
+3. **Add Telegram** — from **Settings → Telegram**, pasting a bot token the client creates with
+   [BotFather](https://t.me/BotFather). The `telegram` plugin is already enabled, so this is the
+   only step.
+
+Gmail connect is a coming feature on a client desk: the mail-trigger setup below needs `gcloud`
+and per-desk Google Cloud work, so a client desk ships without hooks and without the webhook
+Funnel rather than with a half-configured one.
 
 ## First sign-in
 
@@ -106,6 +152,9 @@ key in your `~/.ssh`, so the printed sign-in command works from this machine), a
    device (the browser tab from step 2 included) before it can do anything beyond sign-in.
 
 ## Sign Claude in
+
+This section is for an owner desk. On a [client desk](#client-desk) the client connects Claude
+themselves from the Control UI's Model Setup screen instead, and nothing below applies.
 
 The desk's agents run on the `claude-cli` provider — the owner's own Claude subscription, not
 an API key — so nothing answers until Claude Code is signed in as the `openclaw` service user.
@@ -351,7 +400,7 @@ the ones in force.
 ## Secrets on the box
 
 DigitalOcean keeps a droplet's user-data — the rendered cloud-init, including the Tailscale auth
-key, the Telegram bot token, the Gateway token and the minted hooks token — retrievable for the
+key, the Gateway token and (on an owner desk) the Telegram bot token and the minted hooks token — retrievable for the
 droplet's whole life from `http://169.254.169.254/metadata/v1/user-data`, unauthenticated, by any
 local process. Two things follow:
 

@@ -2,7 +2,10 @@
 # Rendered by deploy/desk/render-cloud-init.mjs - every ALL_CAPS placeholder below must be
 # substituted before this file is handed to `doctl compute droplet create --user-data-file`. The
 # renderer refuses to emit output while one remains (see section 10 of the design: secrets never ship
-# un-substituted or logged in the clear).
+# un-substituted or logged in the clear). A mustache-style IF marker line and its closing marker line
+# (see render-cloud-init.mjs) bracket a section only some desk profiles render: the owner profile keeps
+# every section, the client profile drops TELEGRAM (no bot token secret) and GMAIL_HOOKS (no webhook
+# Funnel), matching the config template that profile embeds.
 hostname: {{DESK_NAME}}
 timezone: Asia/Kolkata
 locale: en_IN.UTF-8
@@ -108,6 +111,7 @@ write_files:
   # Secrets: file-mode 0600, owned by the service user - the Gateway's file secret provider refuses
   # anything more open ("permissions are too open"); root can still read them. Never
   # inline in openclaw.json (SecretRef contract, docs/gateway/secrets/secretref-contract.md).
+{{#IF:TELEGRAM}}
   - path: /etc/openclaw/secrets/telegram-bot-token
     permissions: '0600'
     owner: openclaw:openclaw
@@ -115,6 +119,7 @@ write_files:
     content: |
       {{TG_BOT_TOKEN}}
 
+{{/IF}}
   - path: /etc/openclaw/secrets/gateway-token
     permissions: '0600'
     owner: openclaw:openclaw
@@ -164,6 +169,7 @@ runcmd:
   # "serve"); without operator rights it cannot talk to tailscaled and the Control UI never
   # answers on the tailnet (src/infra/tailscale.ts falls back to sudo, which openclaw lacks).
   {{TAILSCALE_OPERATOR_RUNCMD}}
+{{#IF:GMAIL_HOOKS}}
 
   # Gmail push per desk: the Gateway claims Tailscale Serve on 443 as a FOREGROUND listener
   # (gateway.tailscale.mode "serve"), which owns the whole port - a foreground Funnel for the
@@ -178,6 +184,7 @@ runcmd:
   # what makes it public. The tailnet's Funnel policy must allow port 8443 for this node
   # (`funnel-ports`) - the Tailscale admin console's default Funnel policy already does.
   {{TAILSCALE_FUNNEL_RUNCMD}}
+{{/IF}}
 
   # Desktop, browser and tooling packages (deferred from `packages:` so the tailnet join above
   # is not stuck behind them).

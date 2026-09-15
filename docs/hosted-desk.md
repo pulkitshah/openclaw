@@ -4,6 +4,7 @@ read_when:
   - You want Duties to keep running while your laptop is closed
   - You're deciding whether a hosted desk is worth the monthly cost
   - You need the prerequisites or the command shape for creating one
+  - You're setting up a desk for someone else and want them to onboard it themselves
 title: "Hosted desk"
 ---
 
@@ -31,6 +32,9 @@ You'll need, gathered ahead of time:
 - A Telegram bot token for the desk's own agent (each desk uses its own bot).
 - A Telegram user or chat id you want that bot to answer to.
 
+The last two are for a desk you run yourself. A [client desk](#client-desk) needs neither — the
+person you hand it to adds Telegram themselves.
+
 Put the Tailscale auth key and the Telegram bot token in two separate files — for example under `~/.openclaw-desk-secrets/`, each `chmod 600` — and pass their paths to the create command below. Never paste either value into chat or into a config file directly.
 
 ## Create one
@@ -42,7 +46,41 @@ deploy/desk/new-desk.sh <desk-name> \
   --owner-target <telegram-user-or-chat-id>
 ```
 
+Creating a desk for someone else? See [Client desk](#client-desk) below — `--profile client`
+drops the two Telegram flags and leaves the desk to be set up by whoever receives it.
+
 This boots a `s-2vcpu-4gb` droplet by default (pass `--size s-4vcpu-8gb` for more parallel runs) and prints the desk's Control UI address plus the command to reveal the first sign-in token. Creating a desk usually takes 15–25 minutes. The command first waits for the desk to appear on your tailnet, then keeps waiting until the Gateway answers at its tailnet URL, and prints that URL only when it does. If the desk does not answer within 30 minutes, the command stops with the log command to run. Full flag and environment-override reference: `deploy/desk/README.md`.
+
+## Client desk
+
+A desk you hand to someone else should start where a fresh install starts, not inside your setup.
+Create it with `--profile client`:
+
+```sh
+deploy/desk/new-desk.sh <desk-name> --profile client \
+  --ts-authkey-file <path-to-the-tailscale-authkey-file>
+```
+
+No Telegram bot token and no owner target: a client desk configures no channel, no agents and no
+mail hooks — only the desk plumbing (the Gateway, its tailnet-only Control UI and token auth, the
+browser, and the bundled plugins, enabled but unconfigured). Everything else — the image, the
+headed Chromium, the health check, rolling and snapshots — is identical to your own desk.
+
+### What the client sees first
+
+You still do the [first sign-in](#first-sign-in) steps and hand over the Control UI address and
+token. From there the client gets the same onboarding as any new Vasudev install:
+
+1. **Model Setup** — they connect Claude by signing in with their own account.
+2. **Name the assistant** — the first conversation runs the [bootstrap ritual](/start/bootstrapping),
+   which asks what to call the assistant. Nothing arrives pre-named.
+3. **Add Telegram** — from **Settings → Telegram**, by pasting a bot token they create with
+   BotFather. The Telegram plugin is already installed and enabled; the token is the only input.
+
+**Gmail connect is a coming feature** on a client desk. Mail triggers need per-desk Google Cloud
+setup that runs from a machine with `gcloud`, so a client desk ships with no hooks and no public
+webhook route at all — not a half-configured one. Everything a client desk exposes stays
+tailnet-only.
 
 ## First sign-in
 
@@ -79,6 +117,7 @@ Once first boot finishes, a desk runs:
 - **Control UI** — `https://<desk-name>.<tailnet>.ts.net`, open to any device on your tailnet and never to the public internet ([Tailscale Serve](/gateway/tailscale)).
 - **SSH** — over the tailnet, using the desk name as the host.
 - **The Telegram bot** — the one you supplied a token for, answering only the owner target you set.
+  A [client desk](#client-desk) has no bot until its owner adds one from Settings.
 
 The only thing a desk ever exposes to the public internet is a single webhook path on a second
 port, `<desk-name>.<tailnet>.ts.net:8443/gmail-pubsub`, present from first boot so Gmail push

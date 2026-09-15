@@ -1,0 +1,35 @@
+{
+  "gateway": {
+    "mode": "local",
+    "bind": "loopback",
+    "tailscale": { "mode": "{{GATEWAY_TAILSCALE_MODE}}" },
+    "controlUi": { "communityInvite": false },
+    "auth": {
+      "mode": "token",
+      "token": { "source": "file", "provider": "gateway-token-file", "id": "value" }
+    }
+  },
+  "secrets": {
+    "providers": {
+      "gateway-token-file": {
+        "source": "file",
+        "path": "/etc/openclaw/secrets/gateway-token",
+        "mode": "singleValue"
+      }
+    }
+  },
+  "browser": {
+    "ssrfPolicy": { "allowedHostnames": ["127.0.0.1"] }
+  },
+  "plugins": {
+    "entries": {
+      "anthropic": { "enabled": true },
+      "duties": { "enabled": true },
+      "telegram": { "enabled": true },
+      "llm-task": { "enabled": true }
+    }
+  },
+  "tools": {
+    "alsoAllow": ["llm-task"]
+  }
+}
