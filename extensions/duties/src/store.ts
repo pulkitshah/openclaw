@@ -136,39 +136,33 @@ export class DutyStore {
         namespace: "duties",
         maxEntries: 5_000,
         overflowPolicy: "reject-new",
-        // SAFETY: the real PluginStateKeyedStore is a superset of the local structural Keyed<T> (register/lookup/entries/delete/update all match by shape).
-      }) as unknown as Keyed<Duty>,
+      }),
       runs: api.runtime.state.openKeyedStore<DutyRun>({
         namespace: "runs",
         maxEntries: 50_000,
         overflowPolicy: "evict-oldest",
         defaultTtlMs: 90 * 24 * 3600 * 1000,
-        // SAFETY: same PluginStateKeyedStore superset relationship as the duties store above.
-      }) as unknown as Keyed<DutyRun>,
+      }),
       creds: api.runtime.state.openKeyedStore<CredKeyRecord>({
         namespace: "creds",
         maxEntries: 1_000,
         overflowPolicy: "reject-new",
-        // SAFETY: same PluginStateKeyedStore superset relationship as the duties store above.
-      }) as unknown as Keyed<CredKeyRecord>,
+      }),
       templates: api.runtime.state.openKeyedStore<Template>({
         namespace: "templates",
         maxEntries: 1_000,
         overflowPolicy: "reject-new",
-        // SAFETY: same PluginStateKeyedStore superset relationship as the duties store above.
-      }) as unknown as Keyed<Template>,
+      }),
       brands: api.runtime.state.openKeyedStore<Brand>({
         namespace: "brands",
         maxEntries: 10,
         overflowPolicy: "reject-new",
-        // SAFETY: same PluginStateKeyedStore superset relationship as the duties store above.
-      }) as unknown as Keyed<Brand>,
+      }),
       settings: api.runtime.state.openKeyedStore<DutiesSettings>({
         namespace: "settings",
         maxEntries: 10,
         overflowPolicy: "reject-new",
-        // SAFETY: same PluginStateKeyedStore superset relationship as the duties store above.
-      }) as unknown as Keyed<DutiesSettings>,
+      }),
     });
   }
 

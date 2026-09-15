@@ -76,6 +76,14 @@ function isPathWithin(parent: string, candidate: string) {
   );
 }
 
+// `src/brand.ts` owns the product wordmarks the harness asserts in guest
+// output. It exports four string constants and imports nothing, so it cannot
+// smuggle the checkout in as the app under test, and its package export
+// (`openclaw/plugin-sdk/brand`) resolves through `dist/`, which the host-side
+// VM harnesses run without. Duplicating the wordmark as a literal here would
+// silently outlive the next rename; every other `src/` module stays banned.
+const sourceConstantModules = new Set([path.join(ROOT_DIR, "src", "brand.ts")]);
+
 for (const relativePath of walk("scripts/e2e")) {
   if (!/\.(?:sh|ts|mts|mjs|js)$/u.test(relativePath)) {
     continue;
@@ -83,6 +91,9 @@ for (const relativePath of walk("scripts/e2e")) {
   const text = readText(relativePath);
   const sourceImport = findRelativeModuleSpecifiers(text).find((specifier) => {
     const resolved = path.resolve(ROOT_DIR, path.dirname(relativePath), specifier);
+    if (sourceConstantModules.has(resolved)) {
+      return false;
+    }
     return isPathWithin(path.join(ROOT_DIR, "src"), resolved);
   });
   if (sourceImport) {

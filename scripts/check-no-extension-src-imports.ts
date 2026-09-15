@@ -4,7 +4,26 @@ import path from "node:path";
 import { collectFilesSync, isCodeFile, relativeToCwd } from "./check-file-utils.js";
 import { classifyBundledExtensionSourcePath } from "./lib/extension-source-classifier.mts";
 
-const FORBIDDEN_REPO_SRC_IMPORT = /["'](?:\.\.\/)+(?:src\/)[^"']+["']/;
+// Only an ancestor-relative specifier can leave the extension, and only one
+// that resolves inside the repository's own `src/` is forbidden: a plugin
+// directory nested one level below its package root (`extensions/x/browser`)
+// reaches its own `extensions/x/src` barrel through `../src/`, which is the
+// surface this guard's own message recommends.
+const ANCESTOR_RELATIVE_SPECIFIER = /["'](\.\.\/[^"']+)["']/gu;
+
+function importsRepoSrc(content: string, fileDir: string, repoSrcDir: string): boolean {
+  for (const match of content.matchAll(ANCESTOR_RELATIVE_SPECIFIER)) {
+    const specifier = match[1];
+    if (!specifier) {
+      continue;
+    }
+    const resolved = path.resolve(fileDir, specifier);
+    if (resolved === repoSrcDir || resolved.startsWith(`${repoSrcDir}${path.sep}`)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 function collectExtensionSourceFiles(rootDir: string): string[] {
   return collectFilesSync(rootDir, {
@@ -15,12 +34,13 @@ function collectExtensionSourceFiles(rootDir: string): string[] {
 
 function main() {
   const extensionsDir = path.join(process.cwd(), "extensions");
+  const repoSrcDir = path.join(process.cwd(), "src");
   const files = collectExtensionSourceFiles(extensionsDir);
   const offenders: string[] = [];
 
   for (const file of files) {
     const content = fs.readFileSync(file, "utf8");
-    if (FORBIDDEN_REPO_SRC_IMPORT.test(content)) {
+    if (importsRepoSrc(content, path.dirname(file), repoSrcDir)) {
       offenders.push(file);
     }
   }
