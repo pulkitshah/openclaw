@@ -156,6 +156,9 @@ write_files:
       {{OPENCLAW_CONFIG_JSON}}
 
 runcmd:
+  # `vasudev` (and the real `openclaw` name) on PATH for every shell on the desk, including the
+  # Control UI's operator terminal, so the guided CLI onboarding can run from the portal.
+  - [sh, -c, "printf '%s\\n' '#!/bin/sh' '# Vasudev CLI on a hosted desk: the entry point the Gateway service runs.' 'exec /usr/bin/node /opt/openclaw/openclaw.mjs \"$@\"' > /usr/local/bin/vasudev && chmod 755 /usr/local/bin/vasudev && ln -sf /usr/local/bin/vasudev /usr/local/bin/openclaw"]
   # Ownership of the state dir write_files created ahead of the openclaw user's home existing.
   - [install, -d, -o, openclaw, -g, openclaw, -m, '0700', /home/openclaw/.openclaw]
   - [install, -d, -o, root, -g, root, -m, '0755', /var/lib/openclaw]
