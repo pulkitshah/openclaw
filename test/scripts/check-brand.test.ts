@@ -866,6 +866,42 @@ describe("protected tokens (values that cross a boundary this rebrand does not o
     expect(count).toBe(1);
   });
 
+  it("never rewrites a dot-prefixed on-disk directory from the .openclaw-* family", () => {
+    // The packaged install writes these beside a bundled plugin, and the
+    // matchers are case-insensitive, so fixtures spell them in mixed case.
+    const content = [
+      'const stage = "Dist/Extensions/browser/.OpenClaw-Install-Stage/package.json";',
+      'const wiki = "vault/.OpenClaw-Wiki/cache/agent-digest.json";',
+      'const why = "Rejects an OpenClaw-managed stage directory.";',
+    ].join("\n");
+    const { content: rewritten, count } = rewriteTypeScriptContent(
+      content,
+      "src/infra/package-dist-inventory.test.ts",
+    );
+    expect(rewritten).toContain(".OpenClaw-Install-Stage/package.json");
+    expect(rewritten).toContain(".OpenClaw-Wiki/cache");
+    expect(rewritten).toContain('"Rejects a Vasudev-managed stage directory."');
+    expect(count).toBe(1);
+  });
+
+  it("keeps the canonical Windows task label in the test that relaunches it", () => {
+    // src/infra/windows-task-restart.test.ts runs an already-registered
+    // scheduled task, so it pins the label src/daemon/constants.ts generates;
+    // the same words elsewhere are ordinary product copy.
+    const command =
+      "expect(result.tried).toContain('schtasks /Run /TN \"OpenClaw Gateway (work)\"');";
+    const prose = 'const note = "OpenClaw Gateway is running.";';
+    const scoped = rewriteTypeScriptContent(
+      [command, 'const note = "OpenClaw relaunches the scheduled task.";'].join("\n"),
+      "src/infra/windows-task-restart.test.ts",
+    );
+    expect(scoped.content).toContain('/TN "OpenClaw Gateway (work)"');
+    expect(scoped.content).toContain('"Vasudev relaunches the scheduled task."');
+    expect(rewriteTypeScriptContent(prose, "src/infra/other.test.ts").content).toContain(
+      '"Vasudev Gateway is running."',
+    );
+  });
+
   it("never rewrites a real repository or bundle path segment", () => {
     const content = [
       "// Mirrors apps/macos/Sources/OpenClaw/AppProfile.swift so both surfaces agree.",

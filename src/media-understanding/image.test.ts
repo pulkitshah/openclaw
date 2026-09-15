@@ -94,7 +94,7 @@ describe("describeImageWithModelCore", () => {
     expect(Object.fromEntries(new Headers(fetchOptions.headers as HeadersInit))).toEqual({
       authorization: ["Bearer", "test-api-key"].join(" "),
       "content-type": "application/json",
-      "mm-api-source": "Vasudev",
+      "mm-api-source": "OpenClaw",
     });
     expect(fetchOptions.signal).toBeInstanceOf(AbortSignal);
     expect(timeoutSpy).toHaveBeenCalledWith(1000);

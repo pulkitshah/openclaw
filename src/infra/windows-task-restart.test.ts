@@ -113,7 +113,7 @@ describe("relaunchGatewayScheduledTask", () => {
 
     expect(result.ok).toBe(true);
     expect(result.method).toBe("schtasks");
-    expect(result.tried).toContain('schtasks /Run /TN "Vasudev Gateway (work)"');
+    expect(result.tried).toContain('schtasks /Run /TN "OpenClaw Gateway (work)"');
     expect(result.tried).toContain(`${cmdExePath} /d /s /c ${seenCommandArg}`);
     const spawnCall = expectDefined(spawnMock.mock.calls[0], "restart helper spawn call");
     expect(spawnCall[0]).toBe(cmdExePath);
@@ -136,15 +136,15 @@ describe("relaunchGatewayScheduledTask", () => {
     expect(script).toContain("timeout /t 1 /nobreak >nul");
     expect(script).toContain("gateway-restart.log");
     expect(script).toContain(
-      'vasudev restart attempt source=windows-task-handoff target="Vasudev Gateway (work)"',
+      'vasudev restart attempt source=windows-task-handoff target="OpenClaw Gateway (work)"',
     );
     expect(script).toContain(
-      `powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "$task = Get-ScheduledTask -TaskName 'Vasudev Gateway (work)' -ErrorAction SilentlyContinue; if ($null -ne $task -and $task.State -eq 'Running') { exit 0 }; exit 1" >nul 2>&1`,
+      `powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "$task = Get-ScheduledTask -TaskName 'OpenClaw Gateway (work)' -ErrorAction SilentlyContinue; if ($null -ne $task -and $task.State -eq 'Running') { exit 0 }; exit 1" >nul 2>&1`,
     );
     expect(script).not.toContain("findstr");
-    expect(script).toContain('schtasks /Run /TN "Vasudev Gateway (work)" >>');
+    expect(script).toContain('schtasks /Run /TN "OpenClaw Gateway (work)" >>');
     expect(script.indexOf("powershell.exe -NoProfile")).toBeLessThan(
-      script.indexOf('schtasks /Run /TN "Vasudev Gateway (work)"'),
+      script.indexOf('schtasks /Run /TN "OpenClaw Gateway (work)"'),
     );
     expect(script).toContain('del "%~f0" >nul 2>&1');
   });

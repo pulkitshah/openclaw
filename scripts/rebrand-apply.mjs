@@ -282,6 +282,18 @@ const PROTECTED_TOKEN_RULES = [
     pattern: /\bOpenClaw\/OpenClaw\b/g,
   },
   {
+    // A dot-prefixed on-disk directory from the `.openclaw-*` family that the
+    // packaged install writes beside a bundled plugin
+    // (`.openclaw-install-stage-<hash>`, `.openclaw-runtime-deps-copy-<hash>`,
+    // `.openclaw-wiki`). The matchers are deliberately case-insensitive, so
+    // fixtures spell the segment in mixed case to prove that; the directories
+    // themselves are real paths on operators' disks. The leading dot has to
+    // start a path segment, so a hyphenated adjective in a sentence never
+    // matches.
+    name: "dot-directory-segment",
+    pattern: /(?<=(?:^|[\\/"'`])\.)OpenClaw(?=-[A-Za-z0-9])/g,
+  },
+  {
     // A real path segment inside this repository or a shipped bundle
     // (`apps/macos/Sources/OpenClaw/AppProfile.swift`,
     // `apps/shared/OpenClawKit/...`). Requires a preceding path segment so a
@@ -313,8 +325,13 @@ const TREE_SCOPED_PROTECTED_TOKEN_RULES = [
     // unit-file parser, and by the extra-service scan. src/daemon/constants.ts
     // is excluded whole for the same reason; this covers its callers and tests
     // without stranding their ordinary prose.
+    // src/infra/windows-task-restart.test.ts is the same subject from another
+    // tree: it relaunches an *already registered* scheduled task, so its
+    // expectations pin the canonical label src/daemon/constants.ts generates.
+    // Its explicit-override cases pass a name straight through and keep
+    // whatever the fixture spells.
     name: "daemon-service-label",
-    pathPattern: /^src\/daemon\//,
+    pathPattern: /^src\/(?:daemon\/|infra\/windows-task-restart\.test\.ts$)/,
     pattern: /\bOpenClaw (?:Gateway|Node)\b/g,
   },
   {
@@ -905,6 +922,13 @@ const EXCLUDED_LITERALS_BY_FILE = new Map([
     new Set(['"OpenClaw"']),
   ],
   [
+    // The same `OPENCLAW_ATTRIBUTION_PRODUCT` value, asserted against the real
+    // policy these cases read back. The producer's own literal is excluded
+    // above, so the expectation has to keep spelling the registered name.
+    "src/agents/provider-attribution.test.ts",
+    new Set(['"OpenClaw"']),
+  ],
+  [
     // `clientInfo.title` in the Codex app-server `initialize` handshake: read
     // by the third-party Codex binary, not by this product's UI.
     "extensions/codex/src/app-server/client.ts",
@@ -982,6 +1006,13 @@ const EXCLUDED_LITERALS_BY_FILE = new Map([
     // keep spelling it or the case stops exercising the refusal.
     "src/agents/agent-create.test.ts",
     new Set(['"OpenClaw"']),
+  ],
+  [
+    // The exec-tool fixture that proves the cron-add detector still counts the
+    // original bin name. Both `openclaw` and `vasudev` reach the same launcher;
+    // renaming this one leaves the table testing a single spelling twice.
+    "src/agents/embedded-agent-subscribe.handlers.tools.test.ts",
+    new Set(["\"openclaw cron add --at +1h --message 'follow up'\""]),
   ],
   ...[
     // The `X-OpenRouter-Title` value this client sends to OpenRouter, asserted
