@@ -3,9 +3,14 @@
      guide's dark block (~/.claude/commands/vasudev-brand.md, Visual). */
   --bg: #0d0e12;
   --bg-accent: #131418;
+  /* The lifted surface and the step a control fills when it is hovered or
+     keyboard-active must stay one rung apart, or the state is invisible: the
+     settings select paints its listbox --bg-elevated and its hovered option
+     --bg-hover (ui/src/styles/select-picker.css). --panel-hover already sits on
+     this rung. Pinned by ui/src/styles/theme-tokens.test.ts. */
   --bg-elevated: #1d1f26;
-  --bg-hover: #1d1f26;
-  --bg-muted: #1d1f26;
+  --bg-hover: #242730;
+  --bg-muted: #242730;
 
   /* Card / Surface - Clear hierarchy between levels */
   --card: #16171c;
