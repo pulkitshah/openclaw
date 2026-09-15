@@ -356,10 +356,10 @@ describe("plugins cli update", () => {
   });
 
   it.each([
-    ["missing", "missing-plugin", [], undefined, undefined, "openclaw"],
-    ["preview", "missing-plugin", ["--dry-run"], undefined, undefined, "openclaw"],
-    ["object-name", "constructor", [], undefined, undefined, "openclaw"],
-    ["npm-spec", "@acme/missing-plugin@beta", [], undefined, undefined, "openclaw"],
+    ["missing", "missing-plugin", [], undefined, undefined, "vasudev"],
+    ["preview", "missing-plugin", ["--dry-run"], undefined, undefined, "vasudev"],
+    ["object-name", "constructor", [], undefined, undefined, "vasudev"],
+    ["npm-spec", "@acme/missing-plugin@beta", [], undefined, undefined, "vasudev"],
     ["profile", "missing-plugin", [], "work", undefined, "vasudev --profile work"],
     [
       "profile preview",
