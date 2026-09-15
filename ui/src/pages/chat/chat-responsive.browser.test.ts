@@ -1093,7 +1093,7 @@ describeBrowserLayout.concurrent("chat responsive browser layout", () => {
         return { chat: radii(chat), search: radii(search) };
       });
 
-      const searchRadius = `${14 * (await readCornerScale(page))}px`;
+      const searchRadius = `${18 * (await readCornerScale(page))}px`;
       expect(searchBar.height).toBeLessThan(64);
       expect(cornerRadii).toEqual({
         chat: ["0px", "0px", "0px", "0px"],
@@ -5101,7 +5101,9 @@ describeBrowserLayout.concurrent("chat responsive browser layout", () => {
       expect(expandedBefore.titleLeft).toBeCloseTo(expandedBefore.firstMarkerLeft, 1);
       expect(expandedAfter.cardBackground).toBe(expandedBefore.cardBackground);
       expect(expandedAfter.summaryBackground).toBe(expandedBefore.summaryBackground);
-      expect(expandedAfter.titleColor).not.toBe(expandedBefore.titleColor);
+      // One body ink per mode: the title has no brighter hover step, so the
+      // heading actions and the chevron carry the affordance on their own.
+      expect(expandedAfter.titleColor).toBe(expandedBefore.titleColor);
       expect(expandedAfter.actionsColor).not.toBe(expandedBefore.actionsColor);
       expect(expandedAfter.chevronColor).not.toBe(expandedBefore.chevronColor);
 
@@ -5193,7 +5195,9 @@ describeBrowserLayout.concurrent("chat responsive browser layout", () => {
       const collapsedAfter = await readSummaryState();
       expect(collapsedAfter.cardBackground).toBe(collapsedBefore.cardBackground);
       expect(collapsedAfter.summaryBackground).toBe(collapsedBefore.summaryBackground);
-      expect(collapsedAfter.currentColor).not.toBe(collapsedBefore.currentColor);
+      // The current step sits on the one body ink, like the title above; the
+      // count and the chevron are the two that brighten under the cursor.
+      expect(collapsedAfter.currentColor).toBe(collapsedBefore.currentColor);
       expect(collapsedAfter.countColor).not.toBe(collapsedBefore.countColor);
       expect(collapsedAfter.chevronColor).not.toBe(collapsedBefore.chevronColor);
       expect(collapsedAfter.spinnerBorderColor).toBe(collapsedBefore.spinnerBorderColor);

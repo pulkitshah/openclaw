@@ -3636,6 +3636,11 @@ function classifyTarget(arg: string, cwd: string) {
     relative.startsWith("test/") ||
     relative === "src/scripts" ||
     relative.startsWith("src/scripts/") ||
+    // deploy/** holds the hosted-desk provisioning scripts; the tooling config
+    // includes them, so routing has to agree or a precise run falls back to the
+    // unit project and the plan refuses the selection.
+    relative === "deploy" ||
+    relative.startsWith("deploy/") ||
     relative === "src/config/doc-baseline.integration.test.ts" ||
     relative === "src/config/schema.base.generated.test.ts" ||
     relative === "src/config/schema.help.quality.test.ts"

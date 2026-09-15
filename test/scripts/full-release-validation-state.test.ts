@@ -2,7 +2,7 @@ import { spawn, spawnSync } from "node:child_process";
 import { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { afterEach, assert, describe, expect, it } from "vitest";
+import { afterEach, assert, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildFullReleaseCandidateBinding,
   buildFullReleaseCandidateRequest,
@@ -1101,6 +1101,17 @@ describe("release child attempt composition", () => {
 });
 
 describe("release decision policy", () => {
+  // These cases read a child run in-process, and provenance compares the run's
+  // repository against GITHUB_REPOSITORY. A fork's CI exports its own slug, so
+  // the fixture repository has to be pinned or the comparison reads the host.
+  beforeEach(() => {
+    vi.stubEnv("GITHUB_REPOSITORY", "openclaw/openclaw");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it.each(["beta", "stable", "full"])(
     "records Windows/macOS failures without blocking %s publication",
     (releaseProfile) => {

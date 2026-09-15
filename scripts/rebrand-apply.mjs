@@ -968,6 +968,14 @@ const CROSS_BOUNDARY_EXCLUDED_FILES = new Set([
   // Tests the generators above and nothing else, so every occurrence is the
   // same OS service identity.
   "src/daemon/constants.test.ts",
+  // Every occurrence is a command line typed at a real shell completion
+  // engine (Bash, Fish, PowerShell), or an assertion on the script those
+  // engines load. The generated script registers itself for the program's
+  // own name -- `complete -c openclaw`, `Register-ArgumentCompleter
+  // -CommandName openclaw` -- so a driven line spelled `vasudev` matches no
+  // completer and the engine silently answers with filenames instead.
+  "src/cli/completion-cli.test.ts",
+  "src/cli/completion-cli.aliases.test.ts",
 ]);
 
 // Individual string literals (matched by their exact source text, quotes
@@ -1130,6 +1138,43 @@ const EXCLUDED_LITERALS_BY_FILE = new Map([
     // as a value, so the expectation has to match it.
     "extensions/policy/src/doctor/register.base.test-utils.ts",
     new Set(['"openclaw config"']),
+  ],
+  [
+    // The relay command Codex execs. `executable` is the resolved launcher
+    // path these cases pass in, and the expectation echoes it, so the shape
+    // is a spawned command line rather than copy. The first two slices are
+    // template tails (the platform exec prefix is interpolated ahead of the
+    // command), which is the range the rewriter sees, so they start at the
+    // closing `}` of the substitution.
+    "src/agents/harness/native-hook-relay.test.ts",
+    new Set([
+      "}openclaw hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event permission_request --timeout 5000`",
+      "}openclaw hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event pre_tool_use --pre-tool-use-unavailable noop --timeout 5000`",
+      '"openclaw hooks relay --provider codex --relay-id relay-1 --event post_tool_use --timeout 5000"',
+      '"exec nice -n 10 openclaw hooks relay --provider codex --relay-id relay-1 --event post_tool_use --timeout 5000"',
+    ]),
+  ],
+  [
+    // A command line typed at the real Fish and PowerShell completion
+    // engines. Same contract as the completion-cli suites excluded above:
+    // the generated script registers the program's own name, so only
+    // `openclaw` reaches a completer.
+    "src/cli/program/message/register.read-edit-delete.test.ts",
+    new Set(['"openclaw message read --"']),
+  ],
+  [
+    // Descriptions mirrored from the official external plugin feed
+    // (scripts/lib/official-external-plugin-catalog.json), which is a local
+    // fallback copy of the published `@openclaw/*` registry entries. The
+    // live feed serves the upstream wording, so renaming the mirror alone
+    // makes the wizard's hints depend on whether the network answered.
+    "src/wizard/setup.official-plugins.test.ts",
+    new Set([
+      '"OpenClaw ACP runtime backend"',
+      '"OpenClaw diagnostics OpenTelemetry exporter"',
+      '"OpenClaw diagnostics Prometheus exporter"',
+      '"OpenClaw tokenjuice exec output compaction plugin"',
+    ]),
   ],
   [
     // The pairing guidance printed by the Chrome extension's own
