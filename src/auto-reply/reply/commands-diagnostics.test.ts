@@ -278,7 +278,7 @@ function createDiagnosticsHandlerForTest(
             expiresAtMs: Date.now() + 60_000,
             allowedDecisions: ["allow-once", "deny"] as const,
             host: "gateway" as const,
-            command: "vasudev gateway diagnostics export --json",
+            command: "openclaw gateway diagnostics export --json",
             cwd: "/tmp",
           },
         }

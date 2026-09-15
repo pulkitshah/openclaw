@@ -98,7 +98,7 @@ describe("update failure report", () => {
             failedUpdate().steps[0]!,
             {
               name: "post-install doctor",
-              command: "vasudev doctor",
+              command: "openclaw doctor",
               cwd: "/tmp/openclaw",
               durationMs: 5,
               exitCode: 86,

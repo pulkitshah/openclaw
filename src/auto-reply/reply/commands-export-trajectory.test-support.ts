@@ -98,7 +98,7 @@ function mockCommandBoundaries(
             expiresAtMs: Date.now() + 60_000,
             allowedDecisions: ["allow-once", "deny"] as const,
             host: "gateway" as const,
-            command: "vasudev sessions export-trajectory --session-key agent:target:session",
+            command: "openclaw sessions export-trajectory --session-key agent:target:session",
             cwd: "/tmp",
           },
         }

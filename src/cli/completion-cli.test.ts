@@ -290,17 +290,17 @@ _openclaw_root_completion
   itWithPowerShell.each([
     {
       name: "an omitted optional value",
-      commandLine: "vasudev --mode --j",
+      commandLine: "openclaw --mode --j",
       expected: ["--json"],
     },
     {
       name: "an inline optional value",
-      commandLine: "vasudev --mode=a",
+      commandLine: "openclaw --mode=a",
       expected: ["--mode=auto"],
     },
     {
       name: "a hyphen-prefixed optional choice",
-      commandLine: "vasudev --mode -l",
+      commandLine: "openclaw --mode -l",
       expected: ["-legacy"],
     },
   ])("preserves real PowerShell completion after $name", async ({ commandLine, expected }) => {

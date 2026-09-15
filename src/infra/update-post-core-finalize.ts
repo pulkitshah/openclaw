@@ -265,7 +265,7 @@ export function foldPostCoreFinalizeIntoResult(
       ...result.steps,
       {
         name: "post-core plugin finalize",
-        command: "vasudev update finalize",
+        command: "openclaw update finalize",
         cwd: result.root ?? process.cwd(),
         durationMs: 0,
         exitCode: outcome.reason === "nonzero-exit" ? (outcome.exitCode ?? 1) : 1,

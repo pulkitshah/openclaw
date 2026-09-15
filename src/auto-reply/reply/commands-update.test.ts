@@ -183,7 +183,7 @@ describe("handleUpdateCommand", () => {
         runId,
         ackDelivered: true,
         result: { status: "skipped", reason: "managed-service-handoff-started", steps: [] },
-        handoff: { status: "started", command: "vasudev update" },
+        handoff: { status: "started", command: "openclaw update" },
       };
     });
 

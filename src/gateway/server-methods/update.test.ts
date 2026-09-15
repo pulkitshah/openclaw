@@ -504,7 +504,7 @@ describe("update.run restart scheduling", () => {
     expect(payload?.handoff).toEqual({
       status: "started",
       pid: 12345,
-      command: "vasudev update --yes --timeout 1800",
+      command: "openclaw update --yes --timeout 1800",
     });
     expect(payload?.sentinel?.persisted).toBe(true);
     const sentinel = readCapturedPayload();
@@ -533,7 +533,7 @@ describe("update.run restart scheduling", () => {
     startManagedServiceUpdateHandoffMock.mockResolvedValueOnce({
       status: "joined",
       pid: 12345,
-      command: "vasudev update --yes --timeout 1800",
+      command: "openclaw update --yes --timeout 1800",
       logPath: "/tmp/openclaw-update-run-handoff/handoff.log",
       handoffId: "handoff-existing",
     });
@@ -564,7 +564,7 @@ describe("update.run restart scheduling", () => {
     });
     expect(payload?.handoff).toEqual({
       status: "already-running",
-      command: "vasudev update --yes --timeout 1800",
+      command: "openclaw update --yes --timeout 1800",
       message: "Another managed update is already running; retry after it completes.",
     });
     expect(payload?.sentinel?.persisted).toBe(false);
@@ -729,7 +729,7 @@ describe("update.run restart scheduling", () => {
     expect(payload?.handoff).toEqual({
       status: "started",
       pid: 12345,
-      command: "vasudev update --yes --timeout 1800",
+      command: "openclaw update --yes --timeout 1800",
     });
     expect(readCapturedPayload().status).toBe("skipped");
   });
@@ -745,7 +745,7 @@ describe("update.run restart scheduling", () => {
       steps: [
         {
           name: "preflight config validate (target)",
-          command: "vasudev config validate --json",
+          command: "openclaw config validate --json",
           cwd: "/tmp/openclaw-candidate",
           durationMs: 1,
           exitCode: 1,
@@ -927,7 +927,7 @@ describe("update.run restart scheduling", () => {
     expect(payload?.result?.reason).toBe("managed-service-handoff-unavailable");
     expect(payload?.handoff).toEqual({
       status: "unavailable",
-      command: "vasudev update --yes --timeout 1800",
+      command: "openclaw update --yes --timeout 1800",
       message:
         "Vasudev updates cannot safely run inside the live gateway process without a managed-service handoff.\n" +
         "Stop the foreground Gateway, run `vasudev update --yes --timeout 1800` from a shell, then launch the Gateway again. For a managed deployment, use its host's stop, update, and restart workflow.",

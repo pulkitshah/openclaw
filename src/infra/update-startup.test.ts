@@ -60,7 +60,7 @@ const {
   >(async () => ({
     status: "started" as const,
     pid: 12345,
-    command: "vasudev update --yes --channel beta --timeout 2700",
+    command: "openclaw update --yes --channel beta --timeout 2700",
     logPath: "/tmp/openclaw-handoff.log",
     handoffId: "auto-handoff-id",
     installRoot: "/opt/openclaw",
@@ -303,7 +303,7 @@ describe("update-startup", () => {
     startManagedServiceUpdateHandoffMock.mockResolvedValue({
       status: "started",
       pid: 12345,
-      command: "vasudev update --yes --channel beta --timeout 2700",
+      command: "openclaw update --yes --channel beta --timeout 2700",
       logPath: "/tmp/openclaw-handoff.log",
       handoffId: "auto-handoff-id",
       installRoot: "/opt/openclaw",
@@ -2328,7 +2328,7 @@ describe("update-startup", () => {
             releaseHandoff = () => {
               const handoff = {
                 pid: 12345,
-                command: "vasudev update --yes --channel beta",
+                command: "openclaw update --yes --channel beta",
                 logPath: "/tmp/late-handoff.log",
                 handoffId: "late-handoff",
                 installRoot: "/opt/openclaw",
@@ -2668,7 +2668,7 @@ describe("update-startup", () => {
     startManagedServiceUpdateHandoffMock.mockResolvedValueOnce({
       status: "started",
       pid: 12345,
-      command: "vasudev update --yes --channel beta --tag 2.0.0-beta.1 --timeout 2700",
+      command: "openclaw update --yes --channel beta --tag 2.0.0-beta.1 --timeout 2700",
       logPath: "/tmp/openclaw-handoff.log",
       handoffId: "started-auto-handoff-id",
       installRoot: await fs.realpath(installRoot),
@@ -2723,7 +2723,7 @@ describe("update-startup", () => {
       version: "2.0.0-beta.1",
       tag: "beta",
       forced: false,
-      command: "vasudev update --yes --channel beta --tag 2.0.0-beta.1 --timeout 2700",
+      command: "openclaw update --yes --channel beta --tag 2.0.0-beta.1 --timeout 2700",
       logPath: "/tmp/openclaw-handoff.log",
     });
     expect(getUpdateSchedule()?.campaign?.state).toBe("applying");
@@ -2807,7 +2807,7 @@ describe("update-startup", () => {
     startManagedServiceUpdateHandoffMock.mockResolvedValueOnce({
       status: "joined",
       pid: 12345,
-      command: "vasudev update --yes --channel beta --timeout 2700",
+      command: "openclaw update --yes --channel beta --timeout 2700",
       logPath: "/tmp/openclaw-handoff.log",
       handoffId: "handoff-existing",
     });

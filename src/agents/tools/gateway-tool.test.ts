@@ -138,7 +138,7 @@ describe("gateway update action", () => {
           reason: "managed-service-update-handoff",
           before: { version: "2026.9.1" },
         },
-        handoff: { status: "started", command: "vasudev update --timeout 1200", pid: 123 },
+        handoff: { status: "started", command: "openclaw update --timeout 1200", pid: 123 },
         restart: { ok: true, delayMs: 2000, pid: 456 },
         sentinel: { payload: "private-runtime-state" },
         ackDelivered: true,

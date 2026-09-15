@@ -786,7 +786,7 @@ describe("package update recovery safety", () => {
             }
             return {
               name: "vasudev doctor",
-              command: "vasudev doctor --non-interactive --fix",
+              command: "openclaw doctor --non-interactive --fix",
               cwd: candidateRoot,
               durationMs: 0,
               exitCode: outcome === "blocking" ? 1 : 0,
@@ -890,7 +890,7 @@ describe("package update recovery safety", () => {
           },
           postVerifyStep: async (candidateRoot) => ({
             name: "vasudev doctor",
-            command: "vasudev doctor --non-interactive --fix",
+            command: "openclaw doctor --non-interactive --fix",
             cwd: candidateRoot,
             durationMs: 0,
             exitCode: 1,

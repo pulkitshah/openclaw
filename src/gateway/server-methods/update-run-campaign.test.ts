@@ -56,7 +56,7 @@ const startManagedServiceUpdateHandoffMock = vi.fn<
 >(async () => ({
   status: "started" as const,
   pid: 12345,
-  command: "vasudev update --yes --timeout 1800",
+  command: "openclaw update --yes --timeout 1800",
   logPath: "/tmp/openclaw-update-run-handoff/handoff.log",
   handoffId: "handoff-1",
   installRoot: "/tmp/openclaw",

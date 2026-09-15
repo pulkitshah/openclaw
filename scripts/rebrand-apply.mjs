@@ -476,6 +476,24 @@ const HTTP_HEADER_NAME_RE = /^[A-Z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)+$/;
 // one side of an environment handshake breaks it.
 const ENV_VAR_KEY_RE = /^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+$/;
 
+// Property keys whose value is a process command line, argv, or executable
+// name. Those are matched against the *real* binary: `src/infra/ports-format.ts`
+// classifies a listener as the Gateway with `raw.includes("openclaw")`, so a
+// fixture's `commandLine: "node dist/index.js openclaw gateway"` has to keep
+// spelling the binary or the classification it exercises never happens.
+const PROCESS_COMMAND_PROPERTY_NAMES = new Set([
+  "argv",
+  "bin",
+  "binName",
+  "cmd",
+  "command",
+  "commandLine",
+  "exec",
+  "executable",
+  "program",
+  "programArguments",
+]);
+
 function callExpressionCalleeName(expression) {
   if (ts.isIdentifier(expression)) {
     return expression.text;
@@ -579,7 +597,12 @@ function isStructuralStringLiteral(node) {
   ) {
     const key = valueParent.name;
     const keyText = ts.isStringLiteral(key) || ts.isIdentifier(key) ? key.text : undefined;
-    if (keyText && (HTTP_HEADER_NAME_RE.test(keyText) || ENV_VAR_KEY_RE.test(keyText))) {
+    if (
+      keyText &&
+      (HTTP_HEADER_NAME_RE.test(keyText) ||
+        ENV_VAR_KEY_RE.test(keyText) ||
+        PROCESS_COMMAND_PROPERTY_NAMES.has(keyText))
+    ) {
       return true;
     }
   }
@@ -590,7 +613,12 @@ function isStructuralStringLiteral(node) {
       : ts.isIdentifier(key)
         ? key.text
         : undefined;
-    if (keyText && (HTTP_HEADER_NAME_RE.test(keyText) || ENV_VAR_KEY_RE.test(keyText))) {
+    if (
+      keyText &&
+      (HTTP_HEADER_NAME_RE.test(keyText) ||
+        ENV_VAR_KEY_RE.test(keyText) ||
+        PROCESS_COMMAND_PROPERTY_NAMES.has(keyText))
+    ) {
       return true;
     }
   }
@@ -832,6 +860,13 @@ const EXCLUDED_LITERALS_BY_FILE = new Map([
   [
     // Same `serviceName` contract as bounded-turn.ts.
     "extensions/codex/src/app-server/thread-requests.ts",
+    new Set(['"OpenClaw"']),
+  ],
+  [
+    // The `MM-API-Source` header value this client sends to MiniMax. The
+    // producer's own literal is protected by the header-value rule; the
+    // assertion argument is not reachable by it.
+    "src/infra/provider-usage.fetch.minimax.test.ts",
     new Set(['"OpenClaw"']),
   ],
   [

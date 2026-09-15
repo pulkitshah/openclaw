@@ -211,7 +211,7 @@ describe("update run report", () => {
         steps: [
           {
             name: "vasudev doctor",
-            command: "vasudev doctor",
+            command: "openclaw doctor",
             cwd: "/tmp",
             durationMs: 1,
             exitCode: 1,

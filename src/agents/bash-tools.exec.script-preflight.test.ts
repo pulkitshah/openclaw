@@ -114,7 +114,7 @@ describe("exec interactive Vasudev channel login guard", () => {
 
     await expect(
       tool.execute("call-openclaw-channel-login", {
-        command: "vasudev channels login --channel whatsapp --verbose",
+        command: "openclaw channels login --channel whatsapp --verbose",
       }),
     ).rejects.toThrow(/exec cannot run interactive Vasudev channel login commands/);
     await expect(

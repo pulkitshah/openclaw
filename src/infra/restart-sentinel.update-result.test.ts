@@ -282,7 +282,7 @@ describe("control-plane update restart sentinel", () => {
             steps: [
               {
                 name: "post-install doctor",
-                command: "vasudev doctor",
+                command: "openclaw doctor",
                 cwd: "/tmp/openclaw",
                 durationMs: 1,
                 exitCode: 86,

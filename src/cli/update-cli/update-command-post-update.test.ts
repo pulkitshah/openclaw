@@ -494,7 +494,7 @@ describe("successful update finalization ordering", () => {
       .mockImplementationOnce(async ({ result }) => ({ result, rolledBack: false }));
     const retained = {
       name: "package backup retained",
-      command: "vasudev update",
+      command: "openclaw update",
       cwd: previousRoot,
       durationMs: 0,
       exitCode: 0,

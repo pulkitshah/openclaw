@@ -694,7 +694,7 @@ describe("update failure triage boundary", () => {
                           steps: [
                             {
                               name: "doctor",
-                              command: "vasudev doctor --fix",
+                              command: "openclaw doctor --fix",
                               cwd: target.root,
                               durationMs: 1,
                               exitCode: 1,

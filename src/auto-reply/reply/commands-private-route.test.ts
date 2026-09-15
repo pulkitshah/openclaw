@@ -135,7 +135,7 @@ function buildApprovalRequest(): ExecApprovalRequest {
   return {
     id: "diagnostics-private-route",
     request: {
-      command: "vasudev gateway diagnostics export --json",
+      command: "openclaw gateway diagnostics export --json",
       sessionKey: "agent:main:discord:channel:1487138064806449297",
       turnSourceChannel: "discord",
       turnSourceTo: "channel:1487138064806449297",
@@ -159,7 +159,7 @@ describe("buildPrivateCommandApprovalRequest", () => {
     const request = buildPrivateCommandApprovalRequest({
       commandParams: buildCommandParams({}),
       id: "diagnostics-private-route",
-      command: "vasudev gateway diagnostics export --json",
+      command: "openclaw gateway diagnostics export --json",
       agentId: "main",
       createdAtMs,
     });

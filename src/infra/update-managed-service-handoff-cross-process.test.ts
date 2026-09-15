@@ -211,7 +211,7 @@ describe("managed service update handoff cross-process lease", () => {
     expect(result).toMatchObject({
       status: "joined",
       handoffId: "active-handoff",
-      command: "vasudev update --yes",
+      command: "openclaw update --yes",
     });
     expect(result).not.toHaveProperty("pid");
   });

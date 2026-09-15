@@ -1567,7 +1567,7 @@ describe("Codex app-server thread lifecycle bindings", () => {
               hooks: [
                 {
                   type: "command",
-                  command: "vasudev hooks relay --event pre_tool_use",
+                  command: "openclaw hooks relay --event pre_tool_use",
                 },
               ],
             },

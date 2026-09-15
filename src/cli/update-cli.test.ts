@@ -2137,7 +2137,7 @@ describe("update-cli", () => {
         steps: [
           {
             name: "candidate gateway canary",
-            command: "vasudev gateway",
+            command: "openclaw gateway",
             cwd: "/candidate",
             durationMs: 1,
             exitCode: 0,
@@ -7888,7 +7888,7 @@ describe("update-cli", () => {
         handoffId: "test-handoff",
         installRoot: root,
         logPath: "/tmp/update-handoff/handoff.log",
-        command: "vasudev update --yes",
+        command: "openclaw update --yes",
         pid: 12345,
       });
       managedUpdateHandoff.transfer.mockResolvedValue(true);
@@ -9012,7 +9012,7 @@ describe("update-cli", () => {
           steps: [
             {
               name: "candidate gateway canary",
-              command: "vasudev gateway",
+              command: "openclaw gateway",
               cwd: root,
               durationMs: 1,
               exitCode: candidateReady ? 0 : 1,
@@ -9193,7 +9193,7 @@ describe("update-cli", () => {
         steps: [
           {
             name: "candidate gateway canary",
-            command: "vasudev gateway",
+            command: "openclaw gateway",
             cwd: options.root,
             durationMs: 1,
             exitCode: 0,
@@ -9224,7 +9224,7 @@ describe("update-cli", () => {
         steps: [
           {
             name: "candidate gateway canary",
-            command: "vasudev gateway",
+            command: "openclaw gateway",
             cwd: root,
             durationMs: 1,
             exitCode: 0,

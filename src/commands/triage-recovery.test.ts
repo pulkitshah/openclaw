@@ -59,7 +59,7 @@ function failedUpdate(root: string): UpdateRunResult {
     steps: [
       {
         name: "doctor",
-        command: "vasudev doctor --fix",
+        command: "openclaw doctor --fix",
         cwd: root,
         exitCode: 1,
         durationMs: 12,
@@ -439,7 +439,7 @@ describe("standalone triage update evidence", () => {
             steps: [
               {
                 name: "doctor",
-                command: "vasudev doctor --fix",
+                command: "openclaw doctor --fix",
                 log: {
                   exitCode: 1,
                   stderrTail: " \n",

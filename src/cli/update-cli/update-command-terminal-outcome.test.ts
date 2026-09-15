@@ -370,7 +370,7 @@ async function scenario(
                 ? [
                     {
                       name: "original update failure",
-                      command: "vasudev update",
+                      command: "openclaw update",
                       cwd: swap.packageRoot,
                       durationMs: 1,
                       exitCode: 1,

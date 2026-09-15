@@ -2479,7 +2479,7 @@ Command: ${command}`;
     });
 
     const result = await runGatewayAllowlist({
-      command: "vasudev config set security.audit.suppressions '[]'",
+      command: "openclaw config set security.audit.suppressions '[]'",
       security: "full",
       ask: "on-miss",
     });
@@ -2498,7 +2498,7 @@ Command: ${command}`;
     });
 
     const result = await runGatewayAllowlist({
-      command: "vasudev config set security.audit.suppressions '[]'",
+      command: "openclaw config set security.audit.suppressions '[]'",
       security: "full",
       ask: "on-miss",
       autoReview: true,
@@ -2520,7 +2520,7 @@ Command: ${command}`;
     });
 
     await runGatewayAllowlist({
-      command: "vasudev config set security.audit.suppressions '[]'",
+      command: "openclaw config set security.audit.suppressions '[]'",
       security: "full",
       ask: "off",
     });
@@ -2547,7 +2547,7 @@ Command: ${command}`;
     });
 
     await runGatewayAllowlist({
-      command: "vasudev config get security.audit.suppressions",
+      command: "openclaw config get security.audit.suppressions",
       security: "full",
       ask: "on-miss",
     });
@@ -2577,7 +2577,7 @@ Command: ${command}`;
     });
 
     await runGatewayAllowlist({
-      command: "vasudev --profile rescue config get security.audit.suppressions",
+      command: "openclaw --profile rescue config get security.audit.suppressions",
       security: "full",
       ask: "on-miss",
     });
@@ -2608,7 +2608,7 @@ Command: ${command}`;
 
     const result = await runGatewayAllowlist({
       command:
-        "vasudev config get security.audit.suppressions; vasudev config set security.audit.suppressions '[]'",
+        "openclaw config get security.audit.suppressions; vasudev config set security.audit.suppressions '[]'",
       security: "full",
       ask: "on-miss",
     });
@@ -2636,7 +2636,7 @@ Command: ${command}`;
 
     const result = await runGatewayAllowlist({
       command:
-        "vasudev config get security.audit.suppressions; vasudev config set security.audit.suppressions '[]'",
+        "openclaw config get security.audit.suppressions; vasudev config set security.audit.suppressions '[]'",
       security: "full",
       ask: "on-miss",
     });
@@ -2802,7 +2802,7 @@ EOF`,
     );
 
     const result = await runGatewayAllowlist({
-      command: "vasudev gateway diagnostics export --json",
+      command: "openclaw gateway diagnostics export --json",
       trigger: "diagnostics",
       approvalFollowupMode: "direct",
       approvalFollowup,
@@ -2849,7 +2849,7 @@ EOF`,
     });
 
     const result = await runGatewayAllowlist({
-      command: "vasudev sessions export-trajectory --json",
+      command: "openclaw sessions export-trajectory --json",
       approvalFollowupMode: "agent",
       sessionId: "approval-session",
       sessionStore: "/tmp/openclaw-sessions.json",
@@ -2975,7 +2975,7 @@ EOF`,
     });
 
     const result = await runGatewayAllowlist({
-      command: "vasudev sessions export-trajectory --json",
+      command: "openclaw sessions export-trajectory --json",
       approvalFollowupMode: "agent",
       sessionId: "approval-session",
       sessionStore: "/tmp/openclaw-sessions.json",

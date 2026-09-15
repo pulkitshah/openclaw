@@ -113,7 +113,7 @@ describe("state-dir guard with a real token Gateway", () => {
     setCliStateDir(gatewayStateDir);
     await expect(
       checkCliGatewayStateDir({
-        command: "vasudev channels add",
+        command: "openclaw channels add",
         config: { gateway: { mode: "local", port, auth: { mode: "token", token } } },
       }),
     ).resolves.toEqual({ kind: "allow" });
@@ -128,7 +128,7 @@ describe("state-dir guard with a real token Gateway", () => {
 
   it("refuses mismatched authenticated hello paths", async () => {
     const outcome = await checkCliGatewayStateDir({
-      command: "vasudev channels add",
+      command: "openclaw channels add",
       config: { gateway: { mode: "local", port, auth: { mode: "token", token } } },
     });
 
@@ -143,7 +143,7 @@ describe("state-dir guard with a real token Gateway", () => {
   it("warns when a tokenless CLI can prove only the Gateway protocol", async () => {
     await expect(
       checkCliGatewayStateDir({
-        command: "vasudev channels add",
+        command: "openclaw channels add",
         config: { gateway: { mode: "local", port, auth: { mode: "token" } } },
       }),
     ).resolves.toMatchObject({ kind: "warn" });

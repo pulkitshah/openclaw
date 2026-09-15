@@ -2033,7 +2033,7 @@ describe("gatherDaemonStatus", () => {
           {
             port: 19001,
             status: "busy",
-            listeners: [{ pid: 8000, ppid: 1, commandLine: "vasudev gateway" }],
+            listeners: [{ pid: 8000, ppid: 1, commandLine: "openclaw gateway" }],
             hints: [],
           },
         ],

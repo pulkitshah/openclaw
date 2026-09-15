@@ -1376,7 +1376,7 @@ describe("Codex app-server approval bridge", () => {
       requestParams: {
         ...codexTestTurnIds(),
         itemId: "cmd-auto-review-security-suppression",
-        command: "vasudev config set security.audit.suppressions '[]'",
+        command: "openclaw config set security.audit.suppressions '[]'",
       },
       paramsForRun: params,
       ...codexTestTurnIds(),

@@ -934,7 +934,7 @@ describe("mutable update execution", () => {
       steps: [
         {
           name: "candidate doctor",
-          command: "vasudev doctor",
+          command: "openclaw doctor",
           cwd: "/candidate",
           durationMs: 1,
           exitCode: 1,

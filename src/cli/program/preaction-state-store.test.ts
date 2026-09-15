@@ -52,7 +52,7 @@ describe("state-store preAction guard", () => {
 
     await expect(program.parseAsync(process.argv)).rejects.toThrow("state stores differ");
 
-    expect(mocks.check).toHaveBeenCalledWith({ command: "vasudev configure" });
+    expect(mocks.check).toHaveBeenCalledWith({ command: "openclaw configure" });
     expect(mocks.ensureBootstrap).not.toHaveBeenCalled();
     expect(mocks.action).not.toHaveBeenCalled();
   });

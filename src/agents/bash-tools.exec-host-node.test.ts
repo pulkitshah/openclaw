@@ -2542,7 +2542,7 @@ describe("executeNodeHostCommand", () => {
 
     const result = await executeNodeHostCommand(
       createNodeHostRequest({
-        command: "vasudev status; id",
+        command: "openclaw status; id",
         security: "allowlist",
         ask: "on-miss",
         autoReview: true,
@@ -2598,7 +2598,7 @@ describe("executeNodeHostCommand", () => {
 
     const result = await executeNodeHostCommand(
       createNodeHostRequest({
-        command: "vasudev config get security.audit.suppressions",
+        command: "openclaw config get security.audit.suppressions",
         security: "allowlist",
         ask: "on-miss",
         autoReview: true,
@@ -2858,7 +2858,7 @@ describe("executeNodeHostCommand", () => {
 
     const result = await executeNodeHostCommand(
       createNodeHostRequest({
-        command: "vasudev config set security.audit.suppressions '[]'",
+        command: "openclaw config set security.audit.suppressions '[]'",
         security: "allowlist",
         ask: "on-miss",
         autoReview: true,

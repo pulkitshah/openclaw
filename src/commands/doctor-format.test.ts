@@ -76,15 +76,15 @@ describe("buildGatewayRuntimeHints", () => {
   it.each([
     {
       env: { OPENCLAW_PROFILE: "blue" },
-      command: "vasudev --profile blue gateway",
+      command: "openclaw --profile blue gateway",
     },
     {
       env: { OPENCLAW_CONTAINER_HINT: "sandbox" },
-      command: "vasudev --container sandbox gateway",
+      command: "openclaw --container sandbox gateway",
     },
     {
       env: { OPENCLAW_PROFILE: "blue", OPENCLAW_CONTAINER_HINT: "sandbox" },
-      command: "vasudev --container sandbox gateway",
+      command: "openclaw --container sandbox gateway",
     },
   ])("preserves the active target in systemd recovery commands: $command", ({ env, command }) => {
     const hints = buildGatewayRuntimeHints(

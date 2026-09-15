@@ -347,7 +347,7 @@ describe("failed update recovery restart", () => {
         steps: [
           {
             name: "update",
-            command: "vasudev update",
+            command: "openclaw update",
             cwd: "/repo",
             durationMs: 1,
             exitCode: 1,

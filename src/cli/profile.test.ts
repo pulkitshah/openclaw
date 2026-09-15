@@ -579,37 +579,37 @@ describe("formatCliCommand", () => {
   it.each([
     {
       name: "no profile is set",
-      cmd: "vasudev doctor --fix",
+      cmd: "openclaw doctor --fix",
       env: {},
       expected: "vasudev doctor --fix",
     },
     {
       name: "profile is default",
-      cmd: "vasudev doctor --fix",
+      cmd: "openclaw doctor --fix",
       env: { OPENCLAW_PROFILE: "default" },
       expected: "vasudev doctor --fix",
     },
     {
       name: "profile is Default (case-insensitive)",
-      cmd: "vasudev doctor --fix",
+      cmd: "openclaw doctor --fix",
       env: { OPENCLAW_PROFILE: "Default" },
       expected: "vasudev doctor --fix",
     },
     {
       name: "profile is invalid",
-      cmd: "vasudev doctor --fix",
+      cmd: "openclaw doctor --fix",
       env: { OPENCLAW_PROFILE: "bad profile" },
       expected: "vasudev doctor --fix",
     },
     {
       name: "--profile is already present",
-      cmd: "vasudev --profile work doctor --fix",
+      cmd: "openclaw --profile work doctor --fix",
       env: { OPENCLAW_PROFILE: "work" },
       expected: "vasudev --profile work doctor --fix",
     },
     {
       name: "--dev is already present",
-      cmd: "vasudev --dev doctor",
+      cmd: "openclaw --dev doctor",
       env: { OPENCLAW_PROFILE: "dev" },
       expected: "vasudev --dev doctor",
     },

@@ -71,7 +71,7 @@ describe("Codex native hook relay config", () => {
             {
               type: "command",
               command:
-                "vasudev hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event pre_tool_use --timeout 6000",
+                "openclaw hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event pre_tool_use --timeout 6000",
               timeout: 7,
               async: false,
               statusMessage: "Vasudev native hook relay",
@@ -85,7 +85,7 @@ describe("Codex native hook relay config", () => {
             {
               type: "command",
               command:
-                "vasudev hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event post_tool_use --timeout 6000",
+                "openclaw hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event post_tool_use --timeout 6000",
               timeout: 7,
               async: false,
               statusMessage: "Vasudev native hook relay",
@@ -99,7 +99,7 @@ describe("Codex native hook relay config", () => {
             {
               type: "command",
               command:
-                "vasudev hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event permission_request --timeout 6000",
+                "openclaw hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event permission_request --timeout 6000",
               timeout: 7,
               async: false,
               statusMessage: "Vasudev native hook relay",
@@ -113,7 +113,7 @@ describe("Codex native hook relay config", () => {
             {
               type: "command",
               command:
-                "vasudev hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event before_agent_finalize --timeout 6000",
+                "openclaw hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event before_agent_finalize --timeout 6000",
               timeout: 7,
               async: false,
               statusMessage: "Vasudev native hook relay",
@@ -176,7 +176,7 @@ describe("Codex native hook relay config", () => {
             {
               type: "command",
               command:
-                "vasudev hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event permission_request --timeout 9000",
+                "openclaw hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event permission_request --timeout 9000",
               timeout: 10,
               async: false,
               statusMessage: "Vasudev native hook relay",
@@ -211,7 +211,7 @@ describe("Codex native hook relay config", () => {
             {
               type: "command",
               command:
-                "vasudev hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event pre_tool_use --timeout 9000",
+                "openclaw hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event pre_tool_use --timeout 9000",
               timeout: 10,
               async: false,
               statusMessage: "Vasudev native hook relay",
@@ -264,7 +264,7 @@ describe("Codex native hook relay config", () => {
             {
               type: "command",
               command:
-                "vasudev hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event permission_request --timeout 9000",
+                "openclaw hooks relay --provider codex --relay-id relay-1 --generation generation-1 --event permission_request --timeout 9000",
               timeout: 10,
               async: false,
               statusMessage: "Vasudev native hook relay",

@@ -22,25 +22,25 @@ const surfaces = [
     kind: "missing-unit",
     name: "missing service unit",
     fact: "Service unit not found",
-    command: "vasudev gateway install",
+    command: "openclaw gateway install",
   },
   {
     kind: "config-mismatch",
     name: "CLI/service config-path mismatch",
     fact: "CLI and service are using different config paths",
-    command: "vasudev gateway install --force",
+    command: "openclaw gateway install --force",
   },
   {
     kind: "cached-label",
     name: "cached LaunchAgent label with missing plist",
     fact: "LaunchAgent label cached but plist missing",
-    command: "vasudev gateway install",
+    command: "openclaw gateway install",
   },
   {
     kind: "config-audit",
     name: "embedded-token service audit",
     fact: "embeds OPENCLAW_GATEWAY_TOKEN",
-    command: "vasudev gateway install --force",
+    command: "openclaw gateway install --force",
   },
 ] as const;
 type StatusSurface = (typeof surfaces)[number]["kind"];

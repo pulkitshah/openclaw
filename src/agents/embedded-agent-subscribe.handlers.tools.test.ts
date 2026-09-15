@@ -1265,7 +1265,7 @@ describe("handleToolExecutionEnd cron mutation tracking", () => {
       toolName: "exec",
       toolCallId: "tool-exec-cron-add-failed",
       args: {
-        command: "vasudev cron add --at +1h --message 'follow up' --name reminder",
+        command: "openclaw cron add --at +1h --message 'follow up' --name reminder",
       },
       isError: false,
       result: {

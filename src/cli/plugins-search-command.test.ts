@@ -56,25 +56,25 @@ describe("plugins search command", () => {
       context: "default",
       profile: undefined,
       container: undefined,
-      command: "vasudev plugins install clawhub:openclaw-calendar",
+      command: "openclaw plugins install clawhub:openclaw-calendar",
     },
     {
       context: "profile",
       profile: "work",
       container: undefined,
-      command: "vasudev --profile work plugins install clawhub:openclaw-calendar",
+      command: "openclaw --profile work plugins install clawhub:openclaw-calendar",
     },
     {
       context: "container",
       profile: undefined,
       container: "staging",
-      command: "vasudev --container staging plugins install clawhub:openclaw-calendar",
+      command: "openclaw --container staging plugins install clawhub:openclaw-calendar",
     },
     {
       context: "container over profile",
       profile: "work",
       container: "staging",
-      command: "vasudev --container staging plugins install clawhub:openclaw-calendar",
+      command: "openclaw --container staging plugins install clawhub:openclaw-calendar",
     },
   ])("searches ClawHub plugin families with the $context install context", async (scenario) => {
     mocks.searchClawHubPackages

@@ -163,7 +163,7 @@ describe("update.report", () => {
           ...(failure.stats?.steps ?? []),
           {
             name: "post-install doctor",
-            command: "vasudev doctor",
+            command: "openclaw doctor",
             durationMs: 5,
             advisory: true,
             log: { exitCode: 86 },

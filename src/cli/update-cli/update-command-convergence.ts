@@ -235,7 +235,7 @@ export async function convergeUpdatePlugins(params: {
       if (failureFacts.length) {
         resultWithPostUpdate.steps.push({
           name: "post-update verification",
-          command: "vasudev plugins update",
+          command: "openclaw plugins update",
           cwd: postUpdateRoot,
           durationMs: 0,
           exitCode: 1,
@@ -245,7 +245,7 @@ export async function convergeUpdatePlugins(params: {
       resultWithPostUpdate.steps.push(
         ...normalizeUpdatePostInstallDoctorWarnings(doctorWarnings).map((message, index) => ({
           name: `post-plugin doctor warning ${index + 1}`,
-          command: "vasudev doctor --fix",
+          command: "openclaw doctor --fix",
           cwd: postUpdateRoot,
           durationMs: 0,
           exitCode: 0,
@@ -265,7 +265,7 @@ export async function convergeUpdatePlugins(params: {
       resultWithPostUpdate.steps.push(
         ...pluginAdvisories.map((warning, index) => ({
           name: `finalize:plugins:${index}`,
-          command: "vasudev plugins update",
+          command: "openclaw plugins update",
           cwd: postUpdateRoot,
           durationMs: 0,
           exitCode: 0,
