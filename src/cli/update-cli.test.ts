@@ -11563,13 +11563,20 @@ describe("update-cli", () => {
     const localAppData = createCaseDir("openclaw-localappdata");
     const portableGitMingw = path.join(
       localAppData,
-      "Vasudev",
+      "OpenClaw",
       "deps",
       "portable-git",
       "mingw64",
       "bin",
     );
-    const portableGitUsr = path.join(localAppData, "Vasudev", "deps", "portable-git", "usr", "bin");
+    const portableGitUsr = path.join(
+      localAppData,
+      "OpenClaw",
+      "deps",
+      "portable-git",
+      "usr",
+      "bin",
+    );
     await fs.mkdir(portableGitMingw, { recursive: true });
     await fs.mkdir(portableGitUsr, { recursive: true });
     mockFileBackedPathExists();

@@ -102,7 +102,7 @@ const tick = () =>
     setImmediate(resolve);
   });
 
-describe("openclaw attach (action)", () => {
+describe("vasudev attach (action)", () => {
   beforeEach(() => {
     gatewayCalls.length = 0;
     logs.length = 0;

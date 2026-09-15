@@ -1,5 +1,5 @@
 // Root help renderer that combines core, sub-CLI, and optional plugin command descriptors.
-import { Command } from "commander";
+import type { Command } from "commander";
 import type { OpenClawConfig } from "../../config/types.openclaw.js";
 import { getPluginCliCommandDescriptors } from "../../plugins/cli-root-descriptors.js";
 import type { PluginLoadOptions } from "../../plugins/loader.js";
@@ -10,6 +10,7 @@ import {
 } from "./command-descriptor-utils.js";
 import { getCoreCliCommandDescriptors } from "./core-command-descriptors.js";
 import { configureProgramHelp, formatProgramHelpOutput } from "./help.js";
+import { OpenClawCommand } from "./openclaw-command.js";
 import { getSubCliEntriesCore } from "./subcli-descriptors.js";
 
 /** Options for rendering root help without fully registering the live CLI. */
@@ -20,7 +21,9 @@ export type RootHelpRenderOptions = Pick<PluginLoadOptions, "pluginSdkResolution
 };
 
 async function buildRootHelpProgram(renderOptions?: RootHelpRenderOptions): Promise<Command> {
-  const program = new Command();
+  // Same root class as `buildProgram`, so the rendered usage line carries the
+  // displayed product alias instead of the registered binary name.
+  const program = new OpenClawCommand();
   const pluginDescriptors =
     renderOptions?.includePluginDescriptors === true || renderOptions?.config
       ? await getPluginCliCommandDescriptors(renderOptions.config, renderOptions.env, {

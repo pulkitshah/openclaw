@@ -5,6 +5,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useAutoCleanupTempDirTracker } from "../../test/helpers/temp-dir.js";
 import { withEnvAsync } from "../test-utils/env.js";
+import { CLI_NAME } from "./cli-name.js";
 import {
   COMPLETION_SHELLS,
   formatCompletionReloadCommand,
@@ -426,7 +427,7 @@ describe("completion-runtime", () => {
     await withBashCompletionHome(async ({ homeDir }) => {
       await fs.writeFile(
         path.join(homeDir, ".bash_profile"),
-        "source <(vasudev completion --shell bash)\n",
+        `source <(${CLI_NAME} completion --shell bash)\n`,
         "utf-8",
       );
 
@@ -576,7 +577,7 @@ describe("completion-runtime", () => {
     await withBashCompletionHome(async ({ homeDir }) => {
       const cachePath = resolveCompletionCachePath("bash", "openclaw");
       const profilePath = path.join(homeDir, ".bash_profile");
-      const refreshAlias = "alias refresh_openclaw='vasudev completion --write-state'";
+      const refreshAlias = `alias refresh_openclaw='${CLI_NAME} completion --write-state'`;
       await fs.mkdir(path.dirname(cachePath), { recursive: true });
       await fs.writeFile(cachePath, "complete -W 'status' openclaw\n", "utf-8");
       await fs.writeFile(
@@ -599,12 +600,12 @@ describe("completion-runtime", () => {
     await withBashCompletionHome(async ({ homeDir }) => {
       const cachePath = resolveCompletionCachePath("bash", "openclaw");
       const profilePath = path.join(homeDir, ".bash_profile");
-      const refreshAlias = "alias refresh_openclaw='vasudev completion --write-state'";
+      const refreshAlias = `alias refresh_openclaw='${CLI_NAME} completion --write-state'`;
       await fs.mkdir(path.dirname(cachePath), { recursive: true });
       await fs.writeFile(cachePath, "complete -W 'status' openclaw\n", "utf-8");
       await fs.writeFile(
         profilePath,
-        `export IMPORTANT=keep\nsource <(vasudev completion --shell bash)\n${refreshAlias}\n`,
+        `export IMPORTANT=keep\nsource <(${CLI_NAME} completion --shell bash)\n${refreshAlias}\n`,
         "utf-8",
       );
 
@@ -613,17 +614,17 @@ describe("completion-runtime", () => {
       const profile = await fs.readFile(profilePath, "utf-8");
       expect(profile).toContain("export IMPORTANT=keep\n");
       expect(profile).toContain(`${refreshAlias}\n`);
-      expect(profile).not.toContain("source <(vasudev completion");
+      expect(profile).not.toContain(`source <(${CLI_NAME} completion`);
       expect(profile).toContain(cachePath);
     });
   });
 
   it.each([
-    "export IMPORTANT=keep; source <(vasudev completion --shell bash)",
-    "source <(vasudev completion --shell bash); export IMPORTANT=keep",
-    'source <(vasudev completion --shell bash) >"$HOME/completion.log"',
-    'eval "$(vasudev completion --shell bash)" >"$HOME/completion.log"',
-    'source <(vasudev completion --shell bash >"$HOME/completion.log")',
+    `export IMPORTANT=keep; source <(${CLI_NAME} completion --shell bash)`,
+    `source <(${CLI_NAME} completion --shell bash); export IMPORTANT=keep`,
+    `source <(${CLI_NAME} completion --shell bash) >"$HOME/completion.log"`,
+    `eval "$(${CLI_NAME} completion --shell bash)" >"$HOME/completion.log"`,
+    `source <(${CLI_NAME} completion --shell bash >"$HOME/completion.log")`,
   ])("preserves compound user-owned Bash profile statements: %s", async (compoundLine) => {
     await withBashCompletionHome(async ({ homeDir }) => {
       const cachePath = resolveCompletionCachePath("bash", "openclaw");
@@ -643,17 +644,17 @@ describe("completion-runtime", () => {
   it.each([
     {
       name: "dot-sourced process substitution",
-      sourceLine: ". <(vasudev completion --shell bash)",
+      sourceLine: `. <(${CLI_NAME} completion --shell bash)`,
     },
     {
       name: "eval command substitution",
-      sourceLine: 'eval "$(vasudev completion --shell bash)"',
+      sourceLine: `eval "$(${CLI_NAME} completion --shell bash)"`,
     },
   ])("replaces $name without deleting unrelated aliases", async ({ sourceLine }) => {
     await withBashCompletionHome(async ({ homeDir }) => {
       const cachePath = resolveCompletionCachePath("bash", "openclaw");
       const profilePath = path.join(homeDir, ".bash_profile");
-      const refreshAlias = "alias refresh_openclaw='vasudev completion --write-state'";
+      const refreshAlias = `alias refresh_openclaw='${CLI_NAME} completion --write-state'`;
       await fs.mkdir(path.dirname(cachePath), { recursive: true });
       await fs.writeFile(cachePath, "complete -W 'status' openclaw\n", "utf-8");
       await fs.writeFile(profilePath, `${sourceLine}\n${refreshAlias}\n`, "utf-8");
@@ -671,8 +672,8 @@ describe("completion-runtime", () => {
     await withBashCompletionHome(async () => {
       const cachePath = resolveCompletionCachePath("powershell", "openclaw");
       const profilePath = resolveCompletionProfilePath("powershell");
-      const dynamicLine = "vasudev completion --shell powershell | Out-String | Invoke-Expression";
-      const refreshCommand = '$refresh = "vasudev completion --write-state"';
+      const dynamicLine = `${CLI_NAME} completion --shell powershell | Out-String | Invoke-Expression`;
+      const refreshCommand = `$refresh = "${CLI_NAME} completion --write-state"`;
       await fs.mkdir(path.dirname(cachePath), { recursive: true });
       await fs.writeFile(cachePath, "# PowerShell completion\n", "utf-8");
       await fs.mkdir(path.dirname(profilePath), { recursive: true });
@@ -689,8 +690,8 @@ describe("completion-runtime", () => {
   });
 
   it.each([
-    "vasudev completion --shell powershell | Out-String | Invoke-Expression; $env:IMPORTANT = 'keep'",
-    'vasudev completion --shell powershell | Tee-Object "$HOME/generated.ps1" | Out-String | Invoke-Expression',
+    `${CLI_NAME} completion --shell powershell | Out-String | Invoke-Expression; $env:IMPORTANT = 'keep'`,
+    `${CLI_NAME} completion --shell powershell | Tee-Object "$HOME/generated.ps1" | Out-String | Invoke-Expression`,
   ])("preserves compound user-owned PowerShell profile statements: %s", async (compoundLine) => {
     await withBashCompletionHome(async () => {
       const cachePath = resolveCompletionCachePath("powershell", "openclaw");

@@ -137,10 +137,10 @@ export async function docsSearchCommand(
     const docs = formatDocsLink("/", "docs.openclaw.ai");
     if (isRich()) {
       runtime.log(`${theme.muted("Docs:")} ${docs}`);
-      runtime.log(`${theme.muted("Search:")} ${formatCliCommand('openclaw docs "your query"')}`);
+      runtime.log(`${theme.muted("Search:")} ${formatCliCommand('vasudev docs "your query"')}`);
     } else {
       runtime.log("Docs: https://docs.openclaw.ai/");
-      runtime.log(`Search: ${formatCliCommand('openclaw docs "your query"')}`);
+      runtime.log(`Search: ${formatCliCommand('vasudev docs "your query"')}`);
     }
     return;
   }

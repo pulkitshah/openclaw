@@ -224,7 +224,7 @@ describe("Crabbox warm-image doctor", () => {
                 message: expect.stringContaining(
                   "linux-development · aws · standard · linux · github.com/example/project",
                 ),
-                fixHint: expect.stringContaining("openclaw crabbox warm-images"),
+                fixHint: expect.stringContaining("vasudev crabbox warm-images"),
               }),
             ]
           : [],

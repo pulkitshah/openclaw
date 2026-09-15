@@ -143,7 +143,7 @@ export function createCrabboxWarmImageManager(dependencies: {
       assertCurrent(context);
       if (matches(openStore().lookup(key))) {
         warnOnce(
-          `checkpoint retirement (${operation.checkpointId} deletion obligation retained; retry during periodic maintenance or next warm-image-enabled worker teardown; inspect with openclaw crabbox warm-images)`,
+          `checkpoint retirement (${operation.checkpointId} deletion obligation retained; retry during periodic maintenance or next warm-image-enabled worker teardown; inspect with vasudev crabbox warm-images)`,
           error,
         );
       }
@@ -275,7 +275,7 @@ export function createCrabboxWarmImageManager(dependencies: {
     }
     if ((openStore().count?.() ?? openStore().entries().length) >= WARM_IMAGE_MAX_ENTRIES) {
       throw new Error(
-        "Crabbox warm-image profile capacity is full; stop outstanding workers or resolve cleanup with openclaw crabbox warm-images before retrying.",
+        "Crabbox warm-image profile capacity is full; stop outstanding workers or resolve cleanup with vasudev crabbox warm-images before retrying.",
       );
     }
   };

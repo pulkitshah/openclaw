@@ -552,7 +552,7 @@ describe("resolveMissingPluginCommandMessage", () => {
     );
 
     expect(message).toBe(
-      'The `openclaw workboard` command is provided by the "workboard" plugin, but that bundled plugin is disabled by default. Run `vasudev plugins enable workboard` to enable that CLI surface.',
+      'The `vasudev workboard` command is provided by the "workboard" plugin, but that bundled plugin is disabled by default. Run `vasudev plugins enable workboard` to enable that CLI surface.',
     );
   });
 
@@ -640,7 +640,7 @@ describe("resolveMissingPluginCommandMessage", () => {
       throw new Error("expected missing plugin command message");
     }
     expect(message).toBe(
-      '"lcm_recent" is an agent tool available from the "lossless-claw" plugin, not a CLI subcommand. Use it from an agent turn (model tool-use), not the CLI. Run `openclaw --help` to see available CLI subcommands.',
+      '"lcm_recent" is an agent tool available from the "lossless-claw" plugin, not a CLI subcommand. Use it from an agent turn (model tool-use), not the CLI. Run `vasudev --help` to see available CLI subcommands.',
     );
   });
 
@@ -740,7 +740,7 @@ describe("resolveMissingPluginCommandMessage", () => {
       throw new Error("expected missing plugin command message");
     }
     expect(message).toBe(
-      '"feishu_chat" may be provided by the "feishu" plugin as an agent tool, not a CLI subcommand. Run `openclaw --help` to see available CLI subcommands.',
+      '"feishu_chat" may be provided by the "feishu" plugin as an agent tool, not a CLI subcommand. Run `vasudev --help` to see available CLI subcommands.',
     );
   });
 });

@@ -58,7 +58,7 @@ async function fetchLivePromotion(slug: string): Promise<ClawHubPromotion> {
   } catch (error) {
     if (error instanceof ClawHubRequestError && error.status === 404) {
       throw new Error(
-        `Promotion "${slug}" was not found or is not live. See ${formatCliCommand("openclaw promos list")}.`,
+        `Promotion "${slug}" was not found or is not live. See ${formatCliCommand("vasudev promos list")}.`,
         { cause: error },
       );
     }
@@ -105,7 +105,7 @@ function requireUnchangedClaimContract(
     return;
   }
   throw new Error(
-    `Promotion "${initial.slug}" changed while the claim was in progress; no promotional models were added. Any provider credentials you just configured were kept. Run ${formatCliCommand("openclaw promos list")} and retry.`,
+    `Promotion "${initial.slug}" changed while the claim was in progress; no promotional models were added. Any provider credentials you just configured were kept. Run ${formatCliCommand("vasudev promos list")} and retry.`,
   );
 }
 

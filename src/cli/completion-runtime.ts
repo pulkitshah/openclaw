@@ -11,6 +11,7 @@ import { resolveStateDir } from "../config/paths.js";
 import { isErrno } from "../infra/errors.js";
 import { decodeWindowsTextFileBuffer } from "../infra/windows-encoding.js";
 import { pathExists } from "../utils.js";
+import { applyCliDisplayName } from "./command-format.js";
 import { publishOutputFileAtomically } from "./output-file.runtime.js";
 import { quotePowerShellArg } from "./quote-cli-arg.js";
 
@@ -582,8 +583,11 @@ export async function installCompletion(shell: string, yes: boolean, binName = "
   const cachePath = resolveCompletionCachePath(shell, binName);
   const cacheExists = await pathExists(cachePath);
   if (!cacheExists) {
+    // `binName` is the real binary this profile is keyed to; the recovery command
+    // is shown to the operator, so it spells the displayed product alias.
+    const writeStateCommand = applyCliDisplayName(`${binName} completion --write-state`);
     throw new Error(
-      `Completion cache not found at ${cachePath}. Run \`${binName} completion --write-state\` first.`,
+      `Completion cache not found at ${cachePath}. Run \`${writeStateCommand}\` first.`,
     );
   }
 

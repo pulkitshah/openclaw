@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { CLI_NAME } from "../cli/cli-name.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 import type { GatewayEventLoopHealth } from "../gateway/server/event-loop-health.js";
 
@@ -28,7 +29,7 @@ const cpuPressure: GatewayEventLoopHealth = {
   utilization: 0.04,
   cpuCoreRatio: 2,
 };
-const localTuis = () => [{ pid: 101, command: "openclaw-tui --profile another-profile" }];
+const localTuis = () => [{ pid: 101, command: `${CLI_NAME}-tui --profile another-profile` }];
 
 describe("doctor WhatsApp responsiveness", () => {
   beforeEach(() => {
@@ -38,15 +39,17 @@ describe("doctor WhatsApp responsiveness", () => {
   it("detects local TUI commands through the advisory finding", () => {
     spawnSyncMock.mockReturnValue({
       status: 0,
+      // Real `ps` lines: the detector matches the executable basename, so every
+      // spelling here is the installed binary (`CLI_NAME`), never the alias.
       stdout: [
-        " 101 openclaw-tui",
-        " 102 /usr/bin/node /usr/lib/node_modules/openclaw/dist/index.js gateway --port 18789",
-        " 103 vasudev channels",
-        " 104 vasudev tui --local",
-        " 105 /usr/bin/openclaw chat",
-        " 106 helper --note 'vasudev tui'",
-        " 107 openclaw-helper openclaw terminal",
-        " 108 vasudev --flag tui",
+        ` 101 ${CLI_NAME}-tui`,
+        ` 102 /usr/bin/node /usr/lib/node_modules/${CLI_NAME}/dist/index.js gateway --port 18789`,
+        ` 103 ${CLI_NAME} channels`,
+        ` 104 ${CLI_NAME} tui --local`,
+        ` 105 /usr/bin/${CLI_NAME} chat`,
+        ` 106 helper --note '${CLI_NAME} tui'`,
+        ` 107 ${CLI_NAME}-helper ${CLI_NAME} terminal`,
+        ` 108 ${CLI_NAME} --flag tui`,
       ].join("\n"),
     });
     const findings = collectWhatsappResponsivenessHealthFindings({

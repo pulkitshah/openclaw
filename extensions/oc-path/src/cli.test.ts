@@ -206,7 +206,7 @@ async function pathEmitCommand(
   );
 }
 
-describe("openclaw path CLI", () => {
+describe("vasudev path CLI", () => {
   const tempDirs = useAutoCleanupTempDirTracker(afterEach);
 
   it("reports its TTY-aware machine-output mode to the CLI", () => {

@@ -842,7 +842,11 @@ describe("backupVerifyCommand", () => {
 
   it("rejects case-mangled canonical SQLite paths", async () => {
     const stateAssetArchivePath = `${TEST_ARCHIVE_ROOT}/payload/posix/tmp/.openclaw`;
-    const sqliteArchivePath = `${stateAssetArchivePath}/State/Vasudev.SQLITE`;
+    // A case-mangled spelling of the canonical `state/openclaw.sqlite` entry:
+    // the alias check compares the lowercased path, so only the exact canonical
+    // casing of the real file name is accepted. Upper-cased here so the mangled
+    // spelling cannot read as an un-renamed product name.
+    const sqliteArchivePath = `${stateAssetArchivePath}/State/OPENCLAW.SQLITE`;
     const sqlitePayload = await createSqlitePayload((database) => {
       database.exec(`
         CREATE TABLE schema_meta (
@@ -868,7 +872,7 @@ describe("backupVerifyCommand", () => {
       async (archivePath) => {
         const runtime = createTestRuntime();
         await expect(backupVerifyCommand(runtime, { archive: archivePath })).rejects.toThrow(
-          /case-mangled canonical SQLite path.*State\/Vasudev\.SQLITE/u,
+          /case-mangled canonical SQLite path.*State\/OPENCLAW\.SQLITE/u,
         );
       },
     );

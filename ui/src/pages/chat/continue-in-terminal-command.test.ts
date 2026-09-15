@@ -39,8 +39,8 @@ describe("buildContinueInTerminalCommand", () => {
     if (!result.ok) {
       throw new Error("expected a continuation command");
     }
-    expect(result.command).toMatch(/^openclaw resume --handoff [A-Za-z0-9_-]+$/u);
-    const encoded = result.command.slice("openclaw resume --handoff ".length);
+    expect(result.command).toMatch(/^vasudev resume --handoff [A-Za-z0-9_-]+$/u);
+    const encoded = result.command.slice("vasudev resume --handoff ".length);
     expect(decodeResumeHandoff(encoded)).toEqual({
       version: 1,
       sessionKey: qualifiedKey,
@@ -59,7 +59,7 @@ describe("buildContinueInTerminalCommand", () => {
     if (!result.ok) {
       throw new Error("expected a continuation command");
     }
-    const encoded = result.command.slice("openclaw resume --handoff ".length);
+    const encoded = result.command.slice("vasudev resume --handoff ".length);
     expect(decodeResumeHandoff(encoded)).toEqual({
       version: 1,
       sessionKey: "agent:alpha:main",

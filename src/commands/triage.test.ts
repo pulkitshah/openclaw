@@ -8,6 +8,7 @@ import JSZip from "jszip";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useAutoCleanupTempDirTracker } from "../../test/helpers/temp-dir.js";
 import { createAgentCleanupScope } from "../agents/run-cleanup-timeout.js";
+import { CLI_DISPLAY_NAME } from "../brand.js";
 import { UpdateCommandFailure } from "../cli/update-cli/update-command-result.js";
 import { withUpdateFailureTriage } from "../cli/update-cli/update-command-triage.js";
 import type { HealthFinding } from "../flows/health-checks.js";
@@ -614,10 +615,12 @@ describe("triageCommand", () => {
         }
         return [];
       });
-      for (const command of ["claude", "codex", "opencode", "pi", "openclaw"]) {
+      // The manual handoff spells this product's own CLI with the displayed
+      // alias, so the stub that stands in for it on PATH carries that name.
+      for (const command of ["claude", "codex", "opencode", "pi", CLI_DISPLAY_NAME]) {
         await fs.writeFile(
           path.join(bin, command),
-          `#!/bin/sh\nprintf "%s\\n" "$OPENCLAW_STATE_DIR" "$OPENCLAW_CONFIG_PATH" "$OPENCLAW_WORKSPACE_DIR"\n${command === "openclaw" ? "" : "cat\n"}`,
+          `#!/bin/sh\nprintf "%s\\n" "$OPENCLAW_STATE_DIR" "$OPENCLAW_CONFIG_PATH" "$OPENCLAW_WORKSPACE_DIR"\n${command === CLI_DISPLAY_NAME ? "" : "cat\n"}`,
           { mode: 0o700 },
         );
       }

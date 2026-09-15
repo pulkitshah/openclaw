@@ -132,8 +132,8 @@ suite.define(() => {
         await dialog.waitFor({ state: "visible" });
         await action.waitFor({ state: "hidden" });
         const command = (await dialog.locator("code").textContent()) ?? "";
-        expect(command).toMatch(/^openclaw resume --handoff [A-Za-z0-9_-]+$/u);
-        const encoded = command.slice("openclaw resume --handoff ".length);
+        expect(command).toMatch(/^vasudev resume --handoff [A-Za-z0-9_-]+$/u);
+        const encoded = command.slice("vasudev resume --handoff ".length);
         expect(decodeResumeHandoff(encoded)).toEqual({
           version: 1,
           sessionKey,

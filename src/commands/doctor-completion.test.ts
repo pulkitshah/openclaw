@@ -4,6 +4,7 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as noteModule from "../../packages/terminal-core/src/note.js";
 import { useAutoCleanupTempDirTracker } from "../../test/helpers/temp-dir.js";
+import { CLI_NAME } from "../cli/cli-name.js";
 import {
   COMPLETION_SKIP_PLUGIN_COMMANDS_ENV,
   formatCompletionReloadCommand,
@@ -108,7 +109,7 @@ describe("shell completion health mapping", () => {
 
     await fs.writeFile(
       path.join(homeDir, ".bash_profile"),
-      "source <(vasudev completion --shell bash)\n",
+      `source <(${CLI_NAME} completion --shell bash)\n`,
       "utf-8",
     );
 
@@ -256,7 +257,7 @@ async function setupDoctorCompletionTest(usesSlowPattern: boolean) {
   if (usesSlowPattern) {
     await fs.writeFile(
       profilePath,
-      '# test bashrc\n[ -f "/tmp/nonexistent" ] && source <(vasudev completion bash)\n',
+      `# test bashrc\n[ -f "/tmp/nonexistent" ] && source <(${CLI_NAME} completion bash)\n`,
       "utf-8",
     );
     const cacheDir = path.join(stateDir, "completions");

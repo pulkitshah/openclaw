@@ -180,7 +180,7 @@ describe("logNonInteractiveOnboardingFailure", () => {
             ? (JSON.parse(emitted) as { hints: string[] }).hints[0]
             : emitted.split("\n").find((line) => line.startsWith("Fix:"));
           for (const command of commands) {
-            expect(hint).toContain(`\`openclaw ${selector} ${command}\``);
+            expect(hint).toContain(`\`vasudev ${selector} ${command}\``);
           }
         }
       }

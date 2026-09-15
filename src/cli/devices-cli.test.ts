@@ -179,7 +179,7 @@ function mockApprovedReplacement() {
 
 const requireRecord = createRequireRecord("object", "label-not-object");
 const approvalCommandContexts = [
-  ["default", undefined, undefined, "openclaw"],
+  ["default", undefined, undefined, "vasudev"],
   ["profile", "work", undefined, "vasudev --profile work"],
   ["container", "work", "demo", "vasudev --container demo"],
 ] as const;
@@ -1349,7 +1349,7 @@ describe("devices cli rename", () => {
 });
 
 describe("devices cli help", () => {
-  it("cross-references `openclaw qr` for mobile app setup codes", () => {
+  it("cross-references `vasudev qr` for mobile app setup codes", () => {
     const program = new Command();
     registerDevicesCli(program);
 

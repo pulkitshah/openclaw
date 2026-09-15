@@ -2908,7 +2908,7 @@ describe("plugins cli install", () => {
   });
 
   it.each([
-    ["default", undefined, undefined, "openclaw"],
+    ["default", undefined, undefined, "vasudev"],
     ["profile", "work", undefined, "vasudev --profile work"],
     ["container", undefined, "demo", "vasudev --container demo"],
     ["container before profile", "work", "demo", "vasudev --container demo"],

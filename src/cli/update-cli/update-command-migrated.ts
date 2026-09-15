@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { isRecord } from "@openclaw/normalization-core/record-coerce";
+import { CLI_DISPLAY_NAME } from "../../brand.js";
 import { resolveStateDir } from "../../config/paths.js";
 import type { OpenClawConfig } from "../../config/types.openclaw.js";
 import { formatErrorMessage } from "../../infra/errors.js";
@@ -73,9 +74,9 @@ export async function inspectActivatedUpdateState(
       // Doctor can warn without failing. Require applied content so startup
       // cannot migrate late; deferred publication alone is already ready.
       result.status = "error";
-      result.reason = `${CLI_NAME} doctor`;
+      result.reason = `${CLI_DISPLAY_NAME} doctor`;
       result.steps.push({
-        name: `${CLI_NAME} doctor`,
+        name: `${CLI_DISPLAY_NAME} doctor`,
         command: `${CLI_NAME} doctor --fix`,
         cwd: result.root ?? root,
         durationMs: 0,

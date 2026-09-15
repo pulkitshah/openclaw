@@ -193,7 +193,7 @@ function outputLifecycleResults(
           if (result.worktreePreserved) {
             const preserved = result.worktreePreserved;
             runtime.error(
-              `Worktree ${preserved.branch} at ${preserved.path} needs attention: ${WORKTREE_PRESERVATION_REASON_COPY[preserved.reason]}. Inspect it with ${formatCliCommand("openclaw worktrees list")}.`,
+              `Worktree ${preserved.branch} at ${preserved.path} needs attention: ${WORKTREE_PRESERVATION_REASON_COPY[preserved.reason]}. Inspect it with ${formatCliCommand("vasudev worktrees list")}.`,
             );
           }
           break;

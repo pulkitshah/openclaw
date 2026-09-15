@@ -205,7 +205,7 @@ describe("backupRestoreCommand", () => {
           expect(restored.warnings.join("\n")).toMatch(/WhatsApp/iu);
           expect(restored.warnings.join("\n")).toMatch(/pending approvals/iu);
           expect(restored.warnings.join("\n")).toMatch(/plugins install <spec> --force/iu);
-          expect(restored.warnings.join("\n")).toMatch(/openclaw skills list/iu);
+          expect(restored.warnings.join("\n")).toMatch(/vasudev skills list/iu);
           expect(runtime.log).toHaveBeenCalledOnce();
           expect(JSON.parse(String(vi.mocked(runtime.log).mock.calls[0]?.[0]))).toEqual(restored);
           if (process.platform !== "win32") {

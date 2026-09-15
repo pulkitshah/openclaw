@@ -159,7 +159,7 @@ async function promptZalouserAllowFrom(params: {
           t("wizard.zalouser.noDmAllowlist"),
           t("wizard.zalouser.directChatsBlocked"),
           t("wizard.zalouser.peersLookupTip", {
-            command: formatCliCommand("openclaw directory peers list --channel zalouser"),
+            command: formatCliCommand("vasudev directory peers list --channel zalouser"),
           }),
         ].join("\n"),
         ZALOUSER_ALLOWLIST_TITLE,
@@ -431,7 +431,7 @@ export const zalouserSetupWizard: ChannelSetupWizard = {
             t("wizard.zalouser.noGroupAllowlist"),
             t("wizard.zalouser.groupChatsBlocked"),
             t("wizard.zalouser.groupsLookupTip", {
-              command: formatCliCommand("openclaw directory groups list --channel zalouser"),
+              command: formatCliCommand("vasudev directory groups list --channel zalouser"),
             }),
             t("wizard.zalouser.groupMentionRequirement"),
           ].join("\n"),
