@@ -10,7 +10,7 @@
       { "id": "memory-core-qmd-file-locks-to-sqlite-leases" }
     ]
   },
-  "name": "OpenClaw Memory",
+  "name": "Vasudev Memory",
   "cliCommands": [
     {
       "name": "memory",

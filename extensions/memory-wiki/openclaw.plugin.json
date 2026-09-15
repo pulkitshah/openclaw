@@ -41,7 +41,7 @@
     },
     "vault.renderMode": {
       "label": "Render Mode",
-      "help": "Render markdown in native OpenClaw format or Obsidian-friendly format."
+      "help": "Render markdown in native Vasudev format or Obsidian-friendly format."
     },
     "obsidian.useOfficialCli": {
       "label": "Use Obsidian CLI",

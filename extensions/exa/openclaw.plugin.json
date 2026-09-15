@@ -21,7 +21,7 @@
     },
     "webSearch.baseUrl": {
       "label": "Exa Search Base URL",
-      "help": "Optional Exa Search API base URL override. OpenClaw appends /search when the URL does not already end there."
+      "help": "Optional Exa Search API base URL override. Vasudev appends /search when the URL does not already end there."
     }
   },
   "contracts": {

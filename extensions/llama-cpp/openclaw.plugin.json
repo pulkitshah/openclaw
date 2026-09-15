@@ -61,7 +61,7 @@
       "appGuidedDiscovery": true,
       "appGuidedSecret": true,
       "choiceLabel": "Existing llama-server",
-      "choiceHint": "Connect to a llama.cpp server managed outside OpenClaw",
+      "choiceHint": "Connect to a llama.cpp server managed outside Vasudev",
       "groupId": "llama-cpp",
       "groupLabel": "Local llama.cpp",
       "groupHint": "Managed or external llama.cpp server",

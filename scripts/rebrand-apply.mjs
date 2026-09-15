@@ -4,8 +4,8 @@
 // "Clawd" -> "Vasu" (the orb's name), and, inside human-facing command
 // examples only, the displayed CLI alias `openclaw ` -> `vasudev `, across the
 // Vasudev rebrand's user-visible prose allowlist:
-// docs, README, docs.json's `name` field, the two bundled-plugin manifest
-// fields that feed the Control UI channel picker, and every TypeScript source
+// docs, README, docs.json's `name` field, the prose-bearing fields of the
+// bundled-plugin manifests and their package.json siblings, and every TypeScript source
 // under `src/**`, `extensions/*/**`, `packages/*/**` (one segment deep, at the
 // plugin root or under its `src/`) and `ui/src/**`
 // (a TypeScript-aware pass — see `rewriteTypeScriptContent` below).
@@ -1198,23 +1198,83 @@ function isTypeScriptAwareTarget(relativePath, { includeTests = false } = {}) {
   return includeTests || !TEST_OR_FIXTURE_RE.test(relativePath);
 }
 
+// Every prose-bearing key of a bundled plugin manifest
+// (`extensions/*/openclaw.plugin.json`). Each one is text a reader sees: the
+// Control UI's Model Setup and plugin config screens render `label`/`help`/
+// `placeholder` per field, `groupLabel`/`groupHint` per group and
+// `choiceLabel`/`choiceHint`/`cliDescription` per auth choice (see
+// `src/plugins/manifest-setup-normalizers.ts`), the Plugins page renders the
+// plugin's own display `name`/`description`, `src/plugins/manifest-model-
+// suppression.ts` prints a suppression's `reason` verbatim in the "Unknown
+// model" error, and a `configSchema` `default` is shown beside the field it
+// documents (and is already spelled "Vasudev" by the TypeScript owner of the
+// same default, e.g. `extensions/google-meet/src/config.ts`).
+// Curated from `src/plugins/manifest-types.ts`'s display fields rather than
+// derived, for the same reason as CLI_SUBCOMMANDS: an over-broad key list is
+// exactly the failure mode this guards against. Machine keys sitting beside
+// these in the same file — `id`, `choiceId`, `groupId`, `optionKey`,
+// `cliOption`, `cliFlag`, `provider`, `model`, `type`, `api`, `baseUrl`,
+// `path`, `pattern`, npm dependency names — are absent, so the rewrite
+// cannot reach an identifier even inside an allowlisted manifest.
+const PLUGIN_MANIFEST_PROSE_KEYS = new Set([
+  "choiceHint",
+  "choiceLabel",
+  "cliDescription",
+  "default",
+  "description",
+  "groupHint",
+  "groupLabel",
+  "help",
+  "label",
+  "name",
+  "placeholder",
+  "reason",
+]);
+
 // JSON manifests carry both marketing copy and unrelated machine-readable
-// fields (npm dependency names, config-schema help/label/default text this
-// task does not migrate). Only these keys are in scope: the top-level
-// package description, the Control UI channel picker's blurb, and
-// docs.json's site `name`. Matching by key rather than scanning the whole
-// file keeps dependency names, repository URLs, un-migrated config help
-// text, and docs.json's `logo`/`favicon`/`colors` (a later phase swaps these
-// for the Vasudev orb/palette) untouched even though they sit in the same
-// allowlisted file.
+// fields (npm dependency names, config-schema enum values, model ids). Only
+// these keys are in scope: a bundled plugin manifest's prose fields above,
+// the top-level package description, the Control UI channel picker's blurb,
+// and docs.json's site `name`. Matching by key rather than scanning the whole
+// file keeps dependency names, repository URLs, and docs.json's
+// `logo`/`favicon`/`colors` (a later phase swaps these for the Vasudev
+// orb/palette) untouched even though they sit in the same allowlisted file.
 const JSON_KEYS_BY_BASENAME = new Map([
-  ["openclaw.plugin.json", new Set(["description"])],
+  ["openclaw.plugin.json", PLUGIN_MANIFEST_PROSE_KEYS],
   ["package.json", new Set(["description", "blurb"])],
   ["docs.json", new Set(["name"])],
 ]);
+
+// The same key can hold prose in one entry and an identifier in another:
+// `name` is the plugin's display name at the manifest root but a CLI command's
+// own name under `cliCommands`, and a `default` is as often a model id, a path
+// or an enum value as it is readable copy. So an allowlisted key is necessary
+// but not sufficient — the value has to look like something a reader reads.
+// Prose is a phrase: it contains whitespace. The single exception is a lone
+// capitalized word (`"name": "OpenClaw"`, docs.json's site name), which is a
+// wordmark rather than a token. Everything else that is one bare run of
+// non-space characters is an identifier of some kind — a package name
+// (`@openclaw/plugin-sdk`), a URL, a path (`~/.openclaw`, `OPENCLAW_HOME/x`),
+// an env var, a dotted or hyphenated id (`OpenClaw.app`,
+// `OpenClaw-Publication`) — and never moves.
+const LONE_WORDMARK_VALUE_RE = /^[A-Z][A-Za-z0-9]*$/;
+
+function isIdentifierLikeJsonValue(value) {
+  const trimmed = value.trim();
+  if (trimmed === "" || /\s/.test(trimmed)) {
+    return false;
+  }
+  return !LONE_WORDMARK_VALUE_RE.test(trimmed);
+}
 const JSON_LINE_RE = /^(\s*"([A-Za-z0-9_-]+)":\s*)"((?:[^"\\]|\\.)*)"(,?\s*)$/;
 
-/** Rewrites OpenClaw -> Vasudev inside one JSON manifest's allowlisted keys only. */
+/**
+ * Rewrites OpenClaw -> Vasudev inside one JSON manifest, restricted to the
+ * string *values* of that manifest's allowlisted prose keys. A key is never
+ * rewritten, and an allowlisted key whose value is identifier-shaped (a
+ * package name, id, URL, path or env var) is left alone as well — see
+ * `isIdentifierLikeJsonValue`.
+ */
 export function rewriteJsonManifestContent(content, basename) {
   const allowedKeys = JSON_KEYS_BY_BASENAME.get(basename);
   if (!allowedKeys) {
@@ -1227,6 +1287,9 @@ export function rewriteJsonManifestContent(content, basename) {
       return line;
     }
     const [, prefix, , value, suffix] = match;
+    if (isIdentifierLikeJsonValue(value)) {
+      return line;
+    }
     const result = countAndReplace(value);
     if (result.count === 0) {
       return line;

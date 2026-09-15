@@ -139,17 +139,17 @@
     },
     "pluginToolsMcpBridge": {
       "label": "Plugin Tools MCP Bridge",
-      "help": "Default off. When enabled, inject the built-in OpenClaw plugin-tools MCP server into embedded ACP sessions so ACP agents can call plugin-registered tools.",
+      "help": "Default off. When enabled, inject the built-in Vasudev plugin-tools MCP server into embedded ACP sessions so ACP agents can call plugin-registered tools.",
       "advanced": true
     },
     "openClawToolsMcpBridge": {
-      "label": "OpenClaw Tools MCP Bridge",
-      "help": "Default off. When enabled, inject the built-in OpenClaw core-tools MCP server into embedded ACP sessions so ACP agents can call selected built-in tools such as cron.",
+      "label": "Vasudev Tools MCP Bridge",
+      "help": "Default off. When enabled, inject the built-in Vasudev core-tools MCP server into embedded ACP sessions so ACP agents can call selected built-in tools such as cron.",
       "advanced": true
     },
     "timeoutSeconds": {
       "label": "Runtime Operation Timeout Seconds",
-      "help": "Timeout for embedded ACP runtime startup and control operations. ACP turns use OpenClaw agent/run timeouts.",
+      "help": "Timeout for embedded ACP runtime startup and control operations. ACP turns use Vasudev agent/run timeouts.",
       "advanced": true
     },
     "piSessionCatalog.enabled": {

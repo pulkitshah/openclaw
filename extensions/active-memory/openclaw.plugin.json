@@ -189,7 +189,7 @@
     },
     "transcriptDir": {
       "label": "Transcript Directory",
-      "help": "Relative artifact directory under the plugin-owned per-agent transcript directory in the OpenClaw state directory. The agent id is URI-encoded; the default subdirectory is active-memory."
+      "help": "Relative artifact directory under the plugin-owned per-agent transcript directory in the Vasudev state directory. The agent id is URI-encoded; the default subdirectory is active-memory."
     }
   }
 }

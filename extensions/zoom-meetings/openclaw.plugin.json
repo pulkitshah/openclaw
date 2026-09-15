@@ -24,7 +24,7 @@
   "uiHints": {
     "defaultMode": {
       "label": "Default Mode",
-      "help": "Agent consults OpenClaw, bidi uses direct realtime voice, and transcribe observes only."
+      "help": "Agent consults Vasudev, bidi uses direct realtime voice, and transcribe observes only."
     },
     "chrome.browserProfile": { "label": "Chrome Profile", "advanced": true },
     "chrome.audioBackend": {

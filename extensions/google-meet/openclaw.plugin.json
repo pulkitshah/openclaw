@@ -40,7 +40,7 @@
     },
     "defaultMode": {
       "label": "Default Mode",
-      "help": "Agent uses realtime transcription plus regular OpenClaw TTS. Bidi uses the realtime voice model directly. Transcribe observes only."
+      "help": "Agent uses realtime transcription plus regular Vasudev TTS. Bidi uses the realtime voice model directly. Transcribe observes only."
     },
     "chrome.audioBackend": {
       "label": "Chrome Audio Backend",
@@ -63,7 +63,7 @@
     },
     "chrome.autoJoin": {
       "label": "Auto Join Guest Screen",
-      "help": "Best-effort guest-name fill and Join Now click through OpenClaw browser automation."
+      "help": "Best-effort guest-name fill and Join Now click through Vasudev browser automation."
     },
     "chrome.waitForInCallMs": {
       "label": "Wait For In-Call (ms)",
@@ -175,7 +175,7 @@
     },
     "realtime.transcriptionProvider": {
       "label": "Realtime Transcription Provider",
-      "help": "Agent mode uses this provider to transcribe meeting audio before regular OpenClaw TTS answers."
+      "help": "Agent mode uses this provider to transcribe meeting audio before regular Vasudev TTS answers."
     },
     "realtime.voiceProvider": {
       "label": "Bidi Voice Provider",
@@ -183,7 +183,7 @@
     },
     "realtime.model": {
       "label": "Bidi Realtime Model",
-      "help": "Only used by mode=bidi. Agent mode answers with the configured OpenClaw agent and regular TTS.",
+      "help": "Only used by mode=bidi. Agent mode answers with the configured Vasudev agent and regular TTS.",
       "advanced": true
     },
     "realtime.instructions": {
@@ -196,7 +196,7 @@
     },
     "realtime.agentId": {
       "label": "Realtime Consult Agent",
-      "help": "OpenClaw agent id used by openclaw_agent_consult. Defaults to \"main\".",
+      "help": "Vasudev agent id used by openclaw_agent_consult. Defaults to \"main\".",
       "advanced": true
     },
     "realtime.toolPolicy": {
@@ -279,7 +279,7 @@
           },
           "guestName": {
             "type": "string",
-            "default": "OpenClaw Agent"
+            "default": "Vasudev Agent"
           },
           "reuseExistingTab": {
             "type": "boolean",
@@ -430,7 +430,7 @@
           },
           "instructions": {
             "type": "string",
-            "default": "You are joining a private Google Meet as an OpenClaw voice transport. Keep spoken replies brief and natural. In agent mode, wait for OpenClaw consult results and speak them exactly. In bidi mode, answer directly and call openclaw_agent_consult for deeper reasoning, current information, or tools."
+            "default": "You are joining a private Google Meet as a Vasudev voice transport. Keep spoken replies brief and natural. In agent mode, wait for Vasudev consult results and speak them exactly. In bidi mode, answer directly and call openclaw_agent_consult for deeper reasoning, current information, or tools."
           },
           "introMessage": {
             "type": "string",

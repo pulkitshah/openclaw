@@ -112,44 +112,44 @@
       {
         "provider": "xai",
         "model": "auto",
-        "reason": "The OpenClaw xAI OAuth auto selector has retired; use a concrete model.",
+        "reason": "The Vasudev xAI OAuth auto selector has retired; use a concrete model.",
         "retirement": { "replacedBy": "grok-4.6" },
         "when": { "baseUrlHosts": ["cli-chat-proxy.grok.com"] }
       },
       {
         "provider": "xai",
         "model": "grok-4.20-multi-agent-0309",
-        "reason": "OpenClaw does not currently support xAI multi-agent models; choose another xAI model. See https://docs.openclaw.ai/providers/xai."
+        "reason": "Vasudev does not currently support xAI multi-agent models; choose another xAI model. See https://docs.openclaw.ai/providers/xai."
       },
       {
         "provider": "xai",
         "model": "grok-4.20-multi-agent",
-        "reason": "OpenClaw does not currently support xAI multi-agent models; choose another xAI model. See https://docs.openclaw.ai/providers/xai."
+        "reason": "Vasudev does not currently support xAI multi-agent models; choose another xAI model. See https://docs.openclaw.ai/providers/xai."
       },
       {
         "provider": "xai",
         "model": "grok-4.20-multi-agent-latest",
-        "reason": "OpenClaw does not currently support xAI multi-agent models; choose another xAI model. See https://docs.openclaw.ai/providers/xai."
+        "reason": "Vasudev does not currently support xAI multi-agent models; choose another xAI model. See https://docs.openclaw.ai/providers/xai."
       },
       {
         "provider": "xai",
         "model": "grok-4.20-multi-agent-beta-latest",
-        "reason": "OpenClaw does not currently support xAI multi-agent models; choose another xAI model. See https://docs.openclaw.ai/providers/xai."
+        "reason": "Vasudev does not currently support xAI multi-agent models; choose another xAI model. See https://docs.openclaw.ai/providers/xai."
       },
       {
         "provider": "xai",
         "model": "grok-4.20-multi-agent-experimental-beta-0304",
-        "reason": "OpenClaw does not currently support xAI multi-agent models; choose another xAI model. See https://docs.openclaw.ai/providers/xai."
+        "reason": "Vasudev does not currently support xAI multi-agent models; choose another xAI model. See https://docs.openclaw.ai/providers/xai."
       },
       {
         "provider": "xai",
         "model": "grok-4.20-multi-agent-experimental-beta-latest",
-        "reason": "OpenClaw does not currently support xAI multi-agent models; choose another xAI model. See https://docs.openclaw.ai/providers/xai."
+        "reason": "Vasudev does not currently support xAI multi-agent models; choose another xAI model. See https://docs.openclaw.ai/providers/xai."
       },
       {
         "provider": "xai",
         "model": "grok-4.20-multi-agent-beta-0309",
-        "reason": "OpenClaw does not currently support xAI multi-agent models; choose another xAI model. See https://docs.openclaw.ai/providers/xai."
+        "reason": "Vasudev does not currently support xAI multi-agent models; choose another xAI model. See https://docs.openclaw.ai/providers/xai."
       }
     ]
   },

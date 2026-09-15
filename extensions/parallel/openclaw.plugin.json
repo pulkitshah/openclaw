@@ -21,7 +21,7 @@
     },
     "webSearch.baseUrl": {
       "label": "Parallel Search Base URL",
-      "help": "Optional Parallel API base URL override. OpenClaw appends /v1/search when the URL does not already end there."
+      "help": "Optional Parallel API base URL override. Vasudev appends /v1/search when the URL does not already end there."
     }
   },
   "contracts": {

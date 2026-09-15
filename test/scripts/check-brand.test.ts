@@ -239,7 +239,7 @@ describe("rewriteJsonManifestContent", () => {
     expect(rewritten).toContain('"blurb": "Connect Vasudev agents to Buzz team rooms."');
   });
 
-  it("rewrites the description field in openclaw.plugin.json but not help/label/name text", () => {
+  it("rewrites every prose-bearing field in openclaw.plugin.json", () => {
     const content = [
       "{",
       '  "id": "xai",',
@@ -249,9 +249,25 @@ describe("rewriteJsonManifestContent", () => {
       '    "properties": {',
       '      "model": {',
       '        "help": "OpenClaw does not currently support this model.",',
-      '        "label": "OpenClaw Model"',
+      '        "label": "OpenClaw Model",',
+      '        "placeholder": "an OpenClaw model id",',
+      '        "default": "OpenClaw Agent"',
       "      }",
       "    }",
+      "  },",
+      '  "setup": {',
+      '    "choices": [',
+      "      {",
+      '        "choiceLabel": "OpenClaw managed server",',
+      '        "choiceHint": "Connect to a server managed outside OpenClaw",',
+      '        "groupLabel": "OpenClaw hosted",',
+      '        "groupHint": "Servers OpenClaw starts for you",',
+      '        "cliDescription": "Use the OpenClaw-managed server"',
+      "      }",
+      "    ]",
+      "  },",
+      '  "modelCatalog": {',
+      '    "suppressions": [{ "reason": "OpenClaw does not support this model." }]',
       "  }",
       "}",
       "",
@@ -262,12 +278,53 @@ describe("rewriteJsonManifestContent", () => {
       "openclaw.plugin.json",
     );
 
-    expect(count).toBe(1);
+    expect(count).toBe(11);
+    expect(rewritten).toContain('"name": "Vasudev xAI"');
     expect(rewritten).toContain('"description": "Vasudev xAI plugin."');
-    // Out of this guard's scope for now: help/label/name fields untouched.
-    expect(rewritten).toContain('"name": "OpenClaw xAI"');
-    expect(rewritten).toContain('"help": "OpenClaw does not currently support this model."');
-    expect(rewritten).toContain('"label": "OpenClaw Model"');
+    expect(rewritten).toContain('"help": "Vasudev does not currently support this model."');
+    expect(rewritten).toContain('"label": "Vasudev Model"');
+    expect(rewritten).toContain('"placeholder": "a Vasudev model id"');
+    expect(rewritten).toContain('"default": "Vasudev Agent"');
+    expect(rewritten).toContain('"choiceLabel": "Vasudev managed server"');
+    expect(rewritten).toContain('"choiceHint": "Connect to a server managed outside Vasudev"');
+    expect(rewritten).toContain('"groupLabel": "Vasudev hosted"');
+    expect(rewritten).toContain('"groupHint": "Servers Vasudev starts for you"');
+    expect(rewritten).toContain('"cliDescription": "Use the Vasudev-managed server"');
+    // The plugin id is an identifier and never moves with the prose.
+    expect(rewritten).toContain('"id": "xai"');
+  });
+
+  it("leaves identifier-shaped values under prose keys alone in openclaw.plugin.json", () => {
+    const content = [
+      "{",
+      '  "id": "OpenClaw-Memory",',
+      '  "name": "OpenClaw.app",',
+      '  "description": "https://github.com/OpenClaw/OpenClaw",',
+      '  "configSchema": {',
+      '    "properties": {',
+      '      "package": {',
+      '        "default": "@openclaw/OpenClaw-plugin",',
+      '        "label": "OPENCLAW_HOME/OpenClaw",',
+      '        "help": "OpenClaw-Publication"',
+      "      }",
+      "    }",
+      "  },",
+      '  "machineKeys": {',
+      '    "provider": "OpenClaw",',
+      '    "cliFlag": "--OpenClaw",',
+      '    "baseUrl": "https://api.example.com/OpenClaw"',
+      "  }",
+      "}",
+      "",
+    ].join("\n");
+
+    const { content: rewritten, count } = rewriteJsonManifestContent(
+      content,
+      "openclaw.plugin.json",
+    );
+
+    expect(count).toBe(0);
+    expect(rewritten).toBe(content);
   });
 
   it("rewrites only docs.json's name field, never its logo/favicon/colors", () => {
