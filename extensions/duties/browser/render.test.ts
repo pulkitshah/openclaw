@@ -103,4 +103,13 @@ describe("teamPanel", () => {
     expect(html).not.toContain("<img src=x");
     expect(html).toContain("&lt;img");
   });
+
+  it("shows a retryable error banner (Task 10: teamPanel is now the Team page's own content, so it takes the same trailing RenderOpts every other page-level render function does)", () => {
+    const html = teamPanel(teamView, true, {
+      error: "Enter a name, a channel and their id on that channel.",
+    });
+    expect(html).toContain("Enter a name, a channel and their id on that channel.");
+    expect(html).toContain("data-retry");
+    expect(html).toContain("Pulkit");
+  });
 });

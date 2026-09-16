@@ -36,10 +36,11 @@ import {
   renderRun,
   renderTemplates,
 } from "./render.js";
-import { createTeamActions } from "./team-actions.js";
+import { createTeamPageMount } from "./team-page.js";
 import "./styles.css";
 
 const PAGE = "duties";
+const TEAM_PAGE = "team";
 
 export default defineControlUiPlugin({
   id: "duties",
@@ -50,6 +51,21 @@ export default defineControlUiPlugin({
       page: { id: PAGE },
       icon: "listChecks",
       order: 15,
+    });
+    // Team is a distinct concept from Duties (automations), so it gets its own top-level sidebar
+    // entry directly below Duties (order 16) instead of living inside the Duties board's Settings
+    // strip — see `team-page.ts` for its independent mount lifecycle.
+    const unregisterTeamNav = host.ui.registerNavigation({
+      id: "team",
+      label: "Team",
+      page: { id: TEAM_PAGE },
+      icon: "users",
+      order: 16,
+    });
+    const unregisterTeamPage = host.ui.registerPage({
+      id: TEAM_PAGE,
+      label: "Team",
+      mount: createTeamPageMount(host),
     });
     const unregisterPage = host.ui.registerPage({
       id: PAGE,
@@ -186,8 +202,6 @@ export default defineControlUiPlugin({
                 settings: state.settings,
                 mailStatus: state.mailStatus,
                 deskStatus: state.deskStatus,
-                team: state.team,
-                canAdmin: state.canAdmin,
               });
           }
           restoreOpenState(root, openState, {
@@ -278,17 +292,6 @@ export default defineControlUiPlugin({
             fail(error, () => void saveSettings());
           }
         };
-
-        const teamActions = createTeamActions({
-          host,
-          getContext: () => context,
-          root,
-          getTeam: () => state.team,
-          clearError,
-          loadTeam: loaders.loadTeam,
-          loadSettings: loaders.loadSettings,
-          fail,
-        });
 
         /** Fires on the Desk card's number input `change` (not a separate save button — a
          *  number input's own value change is already the owner's intent). Validated the same
@@ -644,10 +647,6 @@ export default defineControlUiPlugin({
           toggleFilePreview: (stepId) => void toggleFilePreview(stepId),
           openRunFile: (stepId) => void openRunFile(stepId),
           deleteLogin: (key) => void deleteLogin(key),
-          addTeamMember: () => void teamActions.addTeamMember(),
-          removeTeamMember: (memberId) => void teamActions.removeTeamMember(memberId),
-          transferTeamOwnership: (memberId) => void teamActions.transferTeamOwnership(memberId),
-          addTeamChannel: (memberId) => void teamActions.addTeamChannel(memberId),
         });
 
         // The Desk card's parallel-runs field is a plain number input, not a button: its own
@@ -685,9 +684,6 @@ export default defineControlUiPlugin({
             // settings change (from this page or elsewhere) keeps that card's number honest too.
             void loaders.loadDeskStatus();
           }
-          if (isRecord(payload) && payload.team === true) {
-            void loaders.loadTeam();
-          }
         });
         const offRun = host.onEvent("plugin.duties.run", (payload) => {
           const runId = readRunId(payload);
@@ -705,8 +701,6 @@ export default defineControlUiPlugin({
         void loaders.loadSettings();
         void loaders.loadMailStatus();
         void loaders.loadDeskStatus();
-        void loaders.loadTeam();
-        void loaders.probeAdmin();
 
         return {
           update(next) {
@@ -725,6 +719,8 @@ export default defineControlUiPlugin({
     return () => {
       unregisterPage();
       unregisterNav();
+      unregisterTeamPage();
+      unregisterTeamNav();
     };
   },
 });

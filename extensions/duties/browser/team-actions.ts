@@ -15,10 +15,9 @@ export function createTeamActions(deps: {
   getTeam: () => TeamView | undefined;
   clearError: () => void;
   loadTeam: () => Promise<void>;
-  loadSettings: () => Promise<void>;
   fail: (error: unknown, retry: () => void) => void;
 }) {
-  const { host, getContext, root, getTeam, clearError, loadTeam, loadSettings, fail } = deps;
+  const { host, getContext, root, getTeam, clearError, loadTeam, fail } = deps;
 
   const addTeamMember = async (): Promise<void> => {
     const name = root.querySelector<HTMLInputElement>("[data-team-name]")?.value.trim() ?? "";
@@ -55,6 +54,11 @@ export function createTeamActions(deps: {
     }
   };
 
+  /** `duties.team.transferOwnership` also flips `settings.owner` server-side and emits
+   *  `{ team: true, settings: true }` (`gateway-methods.ts`) — this page only re-reads its own
+   *  `team` slice; the "duties" page's board owns `settings` and refreshes it independently off
+   *  that same event when it is the one mounted, so there is nothing for this page to fetch or
+   *  hold onto for a field it never renders. */
   const transferTeamOwnership = async (memberId: string): Promise<void> => {
     try {
       await host.request("duties.team.transferOwnership", { memberId });
@@ -62,7 +66,7 @@ export function createTeamActions(deps: {
         return;
       }
       clearError();
-      await Promise.all([loadTeam(), loadSettings()]);
+      await loadTeam();
     } catch (error) {
       fail(error, () => void transferTeamOwnership(memberId));
     }

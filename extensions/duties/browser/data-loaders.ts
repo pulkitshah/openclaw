@@ -35,11 +35,6 @@ export type PageState = {
   settings: DutiesSettings;
   mailStatus: MailStatus | undefined;
   deskStatus: DeskStatusView | undefined;
-  team: TeamView | undefined;
-  /** Cosmetic only — hides the Team panel's mutating controls. `duties.team.*` writes are gated at
-   *  `operator.admin` server-side, which is the actual authority check; see `probeAdmin` below.
-   *  Defaults `true` so the buttons show until the probe answers, rather than flashing hidden. */
-  canAdmin: boolean;
 };
 
 export function createPageState(): PageState {
@@ -52,9 +47,22 @@ export function createPageState(): PageState {
     settings: {},
     mailStatus: undefined,
     deskStatus: undefined,
-    team: undefined,
-    canAdmin: true,
   };
+}
+
+/** The Team page's own state (`team-page.ts`) — split from `PageState` above once Team became a
+ *  top-level sidebar page (its own `mount()`) rather than a card the "duties" page's board drew:
+ *  it needs neither `duties`, `templates`, nor any of that page's other server-sourced fields. */
+export type TeamPageState = {
+  team: TeamView | undefined;
+  /** Cosmetic only — hides the Team panel's mutating controls. `duties.team.*` writes are gated at
+   *  `operator.admin` server-side, which is the actual authority check; see `probeAdmin` below.
+   *  Defaults `true` so the buttons show until the probe answers, rather than flashing hidden. */
+  canAdmin: boolean;
+};
+
+export function createTeamPageState(): TeamPageState {
+  return { team: undefined, canAdmin: true };
 }
 
 function rememberRuns(state: PageState, runs: readonly DutyRun[]): void {
@@ -244,6 +252,33 @@ export function createDataLoaders(deps: {
     }
   };
 
+  return {
+    loadRecentRuns,
+    loadDuties,
+    loadRun,
+    refreshDuty,
+    loadLogins,
+    loadTemplates,
+    loadSettings,
+    loadMailStatus,
+    loadDeskStatus,
+  };
+}
+
+/** The Team page's own loaders (`team-page.ts`), split out alongside `TeamPageState` above for the
+ *  same reason: `loadTeam`/`probeAdmin` only ever touched `state.team`/`state.canAdmin`, so moving
+ *  Team to its own page means moving these with it rather than leaving them stranded in
+ *  `createDataLoaders` — which the "duties" page no longer has a `team`/`canAdmin` field to receive
+ *  them into. */
+export function createTeamLoaders(deps: {
+  host: ControlUiHost;
+  getContext: () => ControlUiViewContext<Props>;
+  state: TeamPageState;
+  draw: () => void;
+  fail: (error: unknown, retry: () => void) => void;
+}) {
+  const { host, getContext, state, draw, fail } = deps;
+
   const loadTeam = async (): Promise<void> => {
     try {
       const result = await host.request<TeamGetResult>("duties.team.get", {});
@@ -277,17 +312,5 @@ export function createDataLoaders(deps: {
     draw();
   };
 
-  return {
-    loadRecentRuns,
-    loadDuties,
-    loadRun,
-    refreshDuty,
-    loadLogins,
-    loadTemplates,
-    loadSettings,
-    loadMailStatus,
-    loadDeskStatus,
-    loadTeam,
-    probeAdmin,
-  };
+  return { loadTeam, probeAdmin };
 }

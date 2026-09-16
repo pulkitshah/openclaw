@@ -268,13 +268,23 @@ function teamRow(member: TeamMemberView, canAdmin: boolean): string {
 
 /** Who Vasu takes instructions from. Everyone here can reach Vasu on the channels listed, and gets
  *  their own assistant. Hiding the buttons is cosmetic: `duties.team.*` is gated at
- *  `operator.admin` server-side, which is the actual authority check. */
-export function teamPanel(view: TeamView | undefined, canAdmin: boolean): string {
+ *  `operator.admin` server-side, which is the actual authority check.
+ *
+ *  Now the whole content of the "Team" page (its own top-level sidebar item, not a card inside the
+ *  Duties board's Settings strip — see `team-page.ts`), `opts` follows the same trailing-`RenderOpts`
+ *  convention every other page-level render function here uses, so a failed add/remove/transfer
+ *  surfaces through the same error-banner-plus-`data-retry` shape as the rest of the page. */
+export function teamPanel(
+  view: TeamView | undefined,
+  canAdmin: boolean,
+  opts?: RenderOpts,
+): string {
+  const errorBanner = opts?.error ? renderErrorBanner(opts.error) : "";
   if (!view) {
-    return `<div><h3>Team</h3><p class="muted small">Loading…</p></div>`;
+    return `${errorBanner}<div><h3>Team</h3><p class="muted small">Loading…</p></div>`;
   }
   if (view.members.length === 0) {
-    return `<div><h3>Team</h3><p class="muted small">Tell Vasu where to reach you. That makes you the first person on the Team.</p>${ownerSettingsForm(undefined)}</div>`;
+    return `${errorBanner}<div><h3>Team</h3><p class="muted small">Tell Vasu where to reach you. That makes you the first person on the Team.</p>${ownerSettingsForm(undefined)}</div>`;
   }
   const warnings = (view.warnings ?? [])
     .map((w) => `<p class="muted small warn">${esc(w)}</p>`)
@@ -286,7 +296,7 @@ export function teamPanel(view: TeamView | undefined, canAdmin: boolean): string
       `<label class="fld"><span>Their id on that channel</span><input type="text" data-team-sender placeholder="chat id, phone, @handle"></label>` +
       `<button class="btn primary" data-team-add>Add someone</button></div>`
     : "";
-  return `<div><h3>Team</h3><p class="muted small">Who Vasu takes instructions from. Everyone here can reach Vasu on the channels listed, and gets their own assistant.</p>${warnings}<div class="teamlist">${rows}</div>${add}</div>`;
+  return `${errorBanner}<div><h3>Team</h3><p class="muted small">Who Vasu takes instructions from. Everyone here can reach Vasu on the channels listed, and gets their own assistant.</p>${warnings}<div class="teamlist">${rows}</div>${add}</div>`;
 }
 
 const MAIL_CHECKS: ReadonlyArray<{ key: keyof MailStatus; label: string }> = [
@@ -437,11 +447,8 @@ function settingsStrip(
   settings: DutiesSettings | undefined,
   mailStatus: MailStatus | undefined,
   deskStatus: DeskStatusView | undefined,
-  team: TeamView | undefined,
-  canAdmin: boolean,
 ): string {
   return `<div class="panel settings"><div class="ph"><h2>Settings</h2></div><div class="pb"><div class="two-col">
-  ${teamPanel(team, canAdmin)}
   <div><h3>Mail trigger</h3>${mailHealthLine(mailStatus)}</div>
   ${deskCard(settings, deskStatus)}
 </div></div></div>`;
@@ -451,8 +458,6 @@ export type BoardOpts = RenderOpts & {
   settings?: DutiesSettings;
   mailStatus?: MailStatus;
   deskStatus?: DeskStatusView;
-  team?: TeamView;
-  canAdmin?: boolean;
 };
 
 export function renderBoard(
@@ -484,7 +489,7 @@ export function renderBoard(
   <div class="roll"><div class="n">${building}</div><div class="l">Being built with the agent</div></div>
 </div>
 ${banner}
-${settingsStrip(opts?.settings, opts?.mailStatus, opts?.deskStatus, opts?.team, opts?.canAdmin ?? true)}
+${settingsStrip(opts?.settings, opts?.mailStatus, opts?.deskStatus)}
 <div class="grid">${cards}<article class="card new" data-edit="new"><b>New Duty</b><span>Describe the job to the agent in any chat. It explores what it needs to, asks what it needs, builds and tests step by step.</span></article></div>`;
 }
 
