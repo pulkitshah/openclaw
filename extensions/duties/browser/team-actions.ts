@@ -73,10 +73,12 @@ export function createTeamActions(deps: {
   };
 
   /** `setChannels` REPLACES a member's whole identity list, so the existing identities are sent
-   *  back with it. Any identity for the same channel is replaced rather than duplicated: one id
-   *  per channel. The `c.senderId` guard is never live here — this only runs behind `canAdmin`,
-   *  where `duties.team.get` returned every sender id in full — but it keeps this function honest
-   *  against `TeamMemberView`'s optional field. */
+   *  back with it — each one whole, `accountId` included, or an identity scoped to one channel
+   *  account would come back as an unscoped `"*"` match the next time any channel is added to that
+   *  row (final review I7). Any identity for the same channel is replaced rather than duplicated:
+   *  one id per channel. The `c.senderId` guard is never live here — this only runs behind
+   *  `canAdmin`, where `duties.team.get` returns every sender id in full — but it keeps this
+   *  function honest against `TeamMemberView`'s optional field. */
   const addTeamChannel = async (memberId: string): Promise<void> => {
     const member = getTeam()?.members.find((m) => m.id === memberId);
     const channel =
@@ -88,12 +90,16 @@ export function createTeamActions(deps: {
       fail(new Error("Choose a channel and enter their id on it."), () => undefined);
       return;
     }
-    const channels = [
-      ...member.channels
-        .filter((c) => c.channel !== channel && c.senderId)
-        .map((c) => ({ channel: c.channel, senderId: c.senderId! })),
-      { channel, senderId },
-    ];
+    const kept: Array<{ channel: string; senderId: string; accountId?: string }> = [];
+    for (const c of member.channels) {
+      if (c.channel === channel || !c.senderId) continue;
+      kept.push({
+        channel: c.channel,
+        senderId: c.senderId,
+        ...(c.accountId ? { accountId: c.accountId } : {}),
+      });
+    }
+    const channels = [...kept, { channel, senderId }];
     try {
       await host.request("duties.team.setChannels", { memberId, channels });
       if (getContext().signal.aborted) {
@@ -106,5 +112,41 @@ export function createTeamActions(deps: {
     }
   };
 
-  return { addTeamMember, removeTeamMember, transferTeamOwnership, addTeamChannel };
+  /**
+   * The empty-roster path: "Tell Vasu where to reach you" makes the very first person the owner.
+   *
+   * `teamPanel`'s `ownerSettingsForm` renders on THIS page now (Task 10 moved it here with the rest
+   * of Team), so the save it needs lives here too — the Duties page's own `saveSettings` read its
+   * own DOM root, which no longer contains this form, leaving a brand-new desk with no way at all to
+   * set its owner (final review C3). `duties.settings.set` is the same one owner of "who the desk
+   * reports to" that form has always written to; it also seeds the roster's owner row, so reloading
+   * the team afterwards replaces the form with the roster.
+   */
+  const saveOwnerSettings = async (): Promise<void> => {
+    const channel = root.querySelector<HTMLSelectElement>("[data-settings-channel]")?.value ?? "";
+    const target =
+      root.querySelector<HTMLInputElement>("[data-settings-target]")?.value.trim() ?? "";
+    if (!channel || !target) {
+      fail(new Error("Choose a channel and enter a target."), () => undefined);
+      return;
+    }
+    try {
+      await host.request("duties.settings.set", { owner: { channel, target } });
+      if (getContext().signal.aborted) {
+        return;
+      }
+      clearError();
+      await loadTeam();
+    } catch (error) {
+      fail(error, () => void saveOwnerSettings());
+    }
+  };
+
+  return {
+    addTeamMember,
+    removeTeamMember,
+    transferTeamOwnership,
+    addTeamChannel,
+    saveOwnerSettings,
+  };
 }

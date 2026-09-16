@@ -76,6 +76,7 @@ export function createTeamPageMount(host: ControlUiHost): ControlUiView<Props> {
       removeTeamMember: (memberId) => void teamActions.removeTeamMember(memberId),
       transferTeamOwnership: (memberId) => void teamActions.transferTeamOwnership(memberId),
       addTeamChannel: (memberId) => void teamActions.addTeamChannel(memberId),
+      saveOwnerSettings: () => void teamActions.saveOwnerSettings(),
     });
 
     // Keeps the roster live when another connection (or this same one, from a mutation above)

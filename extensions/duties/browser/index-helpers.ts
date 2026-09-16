@@ -201,7 +201,6 @@ export function attachClickRouter(
     cancelRun: (runId: string) => void;
     toggleShot: (stepId: string) => void;
     saveLogin: () => void;
-    saveSettings: () => void;
     saveBrand: () => void;
     previewTemplate: (id: string) => void;
     openTemplatePdf: (id: string) => void;
@@ -215,7 +214,7 @@ export function attachClickRouter(
   root.addEventListener("click", (event) => {
     // SAFETY: this listener is on `root`, an HTMLElement, so its click events always target an Element.
     const target = (event.target as HTMLElement).closest<HTMLElement>(
-      "[data-open],[data-open-run],[data-run],[data-edit],[data-build],[data-status],[data-delete],[data-cancel],[data-nav],[data-retry],[data-shot],[data-cred-save],[data-cred-delete],[data-settings-save],[data-brand-save],[data-tpl-preview],[data-tpl-pdf],[data-tpl-edit],[data-tpl-delete],[data-file-shot],[data-file-open]",
+      "[data-open],[data-open-run],[data-run],[data-edit],[data-build],[data-status],[data-delete],[data-cancel],[data-nav],[data-retry],[data-shot],[data-cred-save],[data-cred-delete],[data-brand-save],[data-tpl-preview],[data-tpl-pdf],[data-tpl-edit],[data-tpl-delete],[data-file-shot],[data-file-open]",
     );
     if (!target) {
       return;
@@ -278,10 +277,6 @@ export function attachClickRouter(
       handlers.saveLogin();
       return;
     }
-    if (dataset.settingsSave !== undefined) {
-      handlers.saveSettings();
-      return;
-    }
     if (dataset.brandSave !== undefined) {
       handlers.saveBrand();
       return;
@@ -329,12 +324,15 @@ export function attachTeamClickRouter(
     removeTeamMember: (memberId: string) => void;
     transferTeamOwnership: (memberId: string) => void;
     addTeamChannel: (memberId: string) => void;
+    /** The empty-roster owner form's Save. Routed here and nowhere else: `ownerSettingsForm` renders
+     *  only inside `teamPanel`, so the Duties page's router has no form to serve (final review C3). */
+    saveOwnerSettings: () => void;
   },
 ): void {
   root.addEventListener("click", (event) => {
     // SAFETY: this listener is on `root`, an HTMLElement, so its click events always target an Element.
     const target = (event.target as HTMLElement).closest<HTMLElement>(
-      "[data-retry],[data-team-add],[data-team-remove],[data-team-transfer],[data-team-channel-add]",
+      "[data-retry],[data-team-add],[data-team-remove],[data-team-transfer],[data-team-channel-add],[data-settings-save]",
     );
     if (!target) {
       return;
@@ -359,6 +357,10 @@ export function attachTeamClickRouter(
     }
     if (dataset.teamChannelAdd !== undefined) {
       handlers.addTeamChannel(dataset.teamChannelAdd);
+      return;
+    }
+    if (dataset.settingsSave !== undefined) {
+      handlers.saveOwnerSettings();
     }
   });
 }

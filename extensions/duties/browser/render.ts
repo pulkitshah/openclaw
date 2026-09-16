@@ -226,16 +226,20 @@ function ownerSettingsForm(settings: DutiesSettings | undefined): string {
 
 /** The browser bundle's own structural view of `duties.team.get`'s reply — declared here rather
  *  than imported from `src/team.js` so the Control UI bundle stays independent of the plugin's
- *  server modules, the way `DutiesSettings`/`MailStatus` above already are. A read-level caller
- *  gets every field except a channel's `senderId` (the Gateway method itself never withholds it —
- *  the omission is a Control UI display choice, e.g. `canAdmin` gating below). */
+ *  server modules, the way `DutiesSettings`/`MailStatus` above already are. A read-level caller gets
+ *  every field except a channel's `senderId`, which `duties.team.get` itself withholds below admin
+ *  scope (final review I2); `canAdmin` gating below is the matching display choice.
+ *
+ *  `accountId` is carried even though nothing here renders it: `addTeamChannel` rebuilds the whole
+ *  identity list from this view, and dropping the field there silently widened an account-scoped
+ *  routing match to `"*"` (final review I7). */
 export type TeamMemberView = {
   id: string;
   name: string;
   role: "owner" | "member";
   agentId: string;
   bootstrapPending: boolean;
-  channels: Array<{ channel: string; senderId?: string }>;
+  channels: Array<{ channel: string; senderId?: string; accountId?: string }>;
 };
 export type TeamView = { members: TeamMemberView[]; warnings?: string[] };
 
@@ -334,7 +338,13 @@ function mailHealthLine(status: MailStatus | undefined): string {
   const setup = needsSetup
     ? `<p class="mono small">Run: vasudev duties setup-mail --account &lt;you@…&gt;</p>`
     : "";
-  return `<div class="mchecks">${marks}</div><p class="muted small">${last}</p>${setup}`;
+  // A named mailbox is served on its own hook path, so it needs its own `hooks.mappings` entry;
+  // without one its mail is accepted and then dropped. Name the mailbox rather than leaving the
+  // owner to work out which of several is unrouted (final review C1).
+  const unmapped = status.unmappedAccountIds?.length
+    ? `<p class="muted small warn">No mail mapping matches ${esc(status.unmappedAccountIds.join(", "))} — add a hooks.mappings entry whose match.path is gmail-&lt;account&gt; for each, or that mailbox's mail is dropped.</p>`
+    : "";
+  return `<div class="mchecks">${marks}</div><p class="muted small">${last}</p>${unmapped}${setup}`;
 }
 
 /** The health file's own boolean facts, in display order — spec §8's "Gateway, display, Chromium,
