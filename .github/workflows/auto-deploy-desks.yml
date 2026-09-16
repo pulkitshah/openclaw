@@ -1,0 +1,73 @@
+name: Auto-deploy desks
+
+# Rolls every hosted desk (deploy/desk/roll.sh) to integration/vasudev whenever a CI run against
+# that branch succeeds. Triggered by the CI workflow's own completion (workflow_run), not by push
+# directly, so it only fires once CI (however it was started - manual dispatch today) has actually
+# passed against the commit being deployed.
+#
+# The desks are only reachable from this runner by public IP + a dedicated SSH key
+# (DESK_DEPLOY_SSH_KEY secret) added to each desk's root authorized_keys - the runner is not on
+# the tailnet the desks otherwise use. roll.sh pipes a whole remote script over that SSH
+# connection, so this key is effectively full root on both desks, not a narrowly scoped
+# deploy-only credential; treat it and this workflow with that in mind.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'integration/vasudev'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: auto-deploy-desks
+      cancel-in-progress: false
+    steps:
+      - name: Checkout the exact commit CI validated
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up the deploy SSH key
+        run: |
+          set -euo pipefail
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "${{ secrets.DESK_DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+      # The desks' hostnames only resolve via Tailscale MagicDNS, which this runner is not on;
+      # roll.sh takes the desk name and shells out to `ssh root@<desk_name>`, so map each name to
+      # its public IP here instead of teaching roll.sh a second addressing scheme.
+      - name: Point desk hostnames at their public IPs
+        run: |
+          set -euo pipefail
+          echo "159.89.160.42   vasudev-desk-1"   | sudo tee -a /etc/hosts
+          echo "206.189.128.145 vasudev-prasthan" | sudo tee -a /etc/hosts
+          ssh-keyscan -H vasudev-desk-1 vasudev-prasthan >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Roll vasudev-desk-1
+        id: roll_desk_1
+        continue-on-error: true
+        run: bash deploy/desk/roll.sh vasudev-desk-1 "${{ github.event.workflow_run.head_sha }}"
+
+      - name: Roll vasudev-prasthan
+        id: roll_prasthan
+        continue-on-error: true
+        run: bash deploy/desk/roll.sh vasudev-prasthan "${{ github.event.workflow_run.head_sha }}"
+
+      - name: Summarize
+        run: |
+          {
+            echo "### Auto-deploy: ${{ github.event.workflow_run.head_sha }}"
+            echo "- vasudev-desk-1: ${{ steps.roll_desk_1.outcome }}"
+            echo "- vasudev-prasthan: ${{ steps.roll_prasthan.outcome }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail the job if any desk failed to roll
+        if: steps.roll_desk_1.outcome != 'success' || steps.roll_prasthan.outcome != 'success'
+        run: exit 1
