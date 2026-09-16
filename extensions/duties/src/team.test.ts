@@ -369,3 +369,60 @@ describe("one roster change admits a member on two channels", () => {
     expect(effectiveAllowFrom(after, "telegram")).toContain("111");
   });
 });
+
+import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
+
+describe("cross-channel routing through the real routing owner", () => {
+  /** What the channels actually pass: for a DM, `peer.id` IS the sender — WhatsApp's `resolvePeerId`
+   *  returns the sender's normalized E.164 and Telegram's `resolveTelegramDirectPeerId` returns the
+   *  sender's user id. So the ids Team stores for admission are the same strings the router matches. */
+  function routeFor(cfg: OpenClawConfig, channel: string, senderId: string) {
+    return resolveAgentRoute({ cfg, channel, peer: { kind: "direct", id: senderId } });
+  }
+
+  // Live-proof note: `src/auto-reply/reply/runtime-policy-session-key.ts:135-146` hardcodes
+  // `dmScope: "per-account-channel-peer"` for one DM-policy reply path. If a real turn reaches THAT
+  // path, two channels split into two keys despite the link. This unit test drives the routing owner
+  // directly and cannot see it — Task 9 step 5 checks `openclaw sessions list --agent <id>` instead
+  // of the reply text, for exactly that reason.
+  it("sends two channel identities of one member to the same agent and the same session", () => {
+    const cfg = applyTeamProjection(deskConfig(), [OWNER, RAMESH]);
+
+    const fromTelegram = routeFor(cfg, "telegram", "5551234");
+    const fromWhatsApp = routeFor(cfg, "whatsapp", "+919812345678");
+
+    expect(fromTelegram.agentId).toBe("ramesh");
+    expect(fromWhatsApp.agentId).toBe("ramesh");
+    expect(fromTelegram.matchedBy).toBe("binding.peer");
+    expect(fromWhatsApp.matchedBy).toBe("binding.peer");
+    // identityLinks collapses both onto the canonical member id, and dmScope "per-peer" is what
+    // makes the links apply at all (src/routing/session-key.ts:223-230).
+    expect(fromTelegram.sessionKey).toBe("agent:ramesh:direct:ramesh");
+    expect(fromWhatsApp.sessionKey).toBe(fromTelegram.sessionKey);
+  });
+
+  it("leaves everyone else on the channel-wide binding, including the owner", () => {
+    const cfg = applyTeamProjection(deskConfig(), [OWNER, RAMESH]);
+    const owner = routeFor(cfg, "telegram", "111");
+    expect(owner.agentId).toBe("krishna");
+    const stranger = routeFor(cfg, "telegram", "9999999");
+    expect(stranger.agentId).toBe("krishna");
+    // A stranger never gets here anyway — decideChannelIngress refuses them first — but if they
+    // did, they would land on the desk's own agent, never on a member's.
+    expect(stranger.agentId).not.toBe("ramesh");
+  });
+
+  it("keeps the member's chat off their agent's main session", () => {
+    const cfg = applyTeamProjection(deskConfig(), [OWNER, RAMESH]);
+    // `agent:<id>:main` is also cron's, heartbeat's and runSessionKey's fallback session
+    // (extensions/duties/src/store.ts:45); the member's conversation must stay separate.
+    expect(routeFor(cfg, "telegram", "5551234").sessionKey).not.toBe("agent:ramesh:main");
+  });
+
+  it("removing the member sends their next message back to the desk agent immediately", () => {
+    const withMember = applyTeamProjection(deskConfig(), [OWNER, RAMESH]);
+    expect(routeFor(withMember, "telegram", "5551234").agentId).toBe("ramesh");
+    const afterRemoval = applyTeamProjection(withMember, [OWNER]);
+    expect(routeFor(afterRemoval, "telegram", "5551234").agentId).toBe("krishna");
+  });
+});
