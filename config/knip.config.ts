@@ -30,6 +30,10 @@ const repositoryScriptEntries = [
   // setup-pnpm-store-cache invokes this helper from composite-action YAML.
   ".github/actions/setup-pnpm-store-cache/seed-pnpm-from-image.mjs!",
   "apps/android/scripts/build-release-artifacts.ts!",
+  // Manually invoked to regenerate brand icon assets from PNG frames; no script imports it.
+  "scripts/brand/make-ico.mjs!",
+  // Manually invoked to render the orb mark's app-icon PNG frames; no script imports it.
+  "scripts/brand/render-orb-icons.mjs!",
   "scripts/bundle-a2ui.mts!",
   "scripts/build-discord-activity-sdk.mts!",
   // package-mac-app.sh launches the architecture scheduler by path.
