@@ -1213,6 +1213,39 @@ describe("duties.team.* authority", () => {
     expect((await h.store.listMembers()).map((m) => m.id)).toEqual(["owner"]);
   });
 
+  it("rolls back the roster row when authority is lost between provisioning the agent and writing the projection", async () => {
+    // Authority is still live at the upfront `assertStillAuthorized(ctx)` check (the previous test
+    // covers that guard), so this request gets past it, past `provisionMemberAgent`, and past
+    // `store.addMember` — the roster row is written durably — before `writeTeamProjection`'s own
+    // internal re-check sees it has been lost, exactly as `duties.team.transferOwnership`'s
+    // "refuses the durable projection write..." test below does for that method. This proves the
+    // `store.removeMember` rollback in the handler's `catch` block actually fires, not just that
+    // its code shape looks right.
+    let authorized = true;
+    const request = vi.fn(async (method: string) => {
+      if (method !== "agents.create") throw new Error(`unexpected ${method}`);
+      authorized = false;
+      return { ok: true, agentId: "ramesh", name: "Ramesh", workspace: "/w/ramesh" };
+    });
+    const h = harness({ config: deskFixtureConfig(), request });
+    await h.call("duties.settings.set", { owner: { channel: "telegram", target: "111" } });
+    await h.call("duties.team.get", {});
+
+    const result = await h.call(
+      "duties.team.add",
+      { name: "Ramesh", channels: [{ channel: "telegram", senderId: "5551234" }] },
+      { hasCurrentClientAuthority: () => authorized },
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.error).toMatchObject({
+      message: "your session is no longer authorized — reconnect and try again",
+    });
+    // The roster row `store.addMember` wrote is gone — the rollback undid it, rather than leaving
+    // a member nothing enforces because the config write that was supposed to admit them failed.
+    expect((await h.store.listMembers()).map((m) => m.id)).toEqual(["owner"]);
+  });
+
   it("refuses the durable projection write when the admin connection lost authority mid-request", async () => {
     const { call, store } = harness();
     await store.seedOwner({
