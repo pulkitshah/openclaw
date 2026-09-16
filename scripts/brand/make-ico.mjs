@@ -24,7 +24,7 @@ function readPngSize(bytes, source) {
   return { width, height };
 }
 
-export function buildIco(frames) {
+function buildIco(frames) {
   if (frames.length === 0 || frames.length > 0xffff) {
     throw new Error("an ICO needs between 1 and 65535 frames");
   }
