@@ -62,6 +62,98 @@ describe("mailStatusFromConfig", () => {
     expect(JSON.stringify(status)).not.toContain("owner@example.com");
   });
 
+  it("still reports the shipped single-mailbox desk healthy, path-matched mapping and all", () => {
+    // `deploy/desk/openclaw.json.tmpl`'s exact shape: one root `hooks.gmail.account`, one mapping
+    // whose `match.path` is "gmail". Account-awareness must not regress this (C1).
+    const status = mailStatusFromConfig(
+      // SAFETY: fixture narrowing; only the keys this readout reads are set.
+      {
+        hooks: {
+          enabled: true,
+          gmail: { account: "owner@example.com" },
+          mappings: [{ id: "duties-mail", agentId: MAIL_AGENT_ID, match: { path: "gmail" } }],
+        },
+        agents: { entries: { [MAIL_AGENT_ID]: {} } },
+      } as OpenClawConfig,
+      {},
+    );
+    expect(status.mappingPresent).toBe(true);
+    expect(status.unmappedAccountIds).toBeUndefined();
+    expect(status.gmailAccountCount).toBe(1);
+  });
+
+  it("reports a named account whose gmail-<accountId> hook path no mapping matches", () => {
+    // The shipped desk template maps the one `gmail` path only, so a desk that follows the
+    // documented "More than one inbox" example has no mapping for either named mailbox: mail is
+    // accepted by the watcher and then dropped. The readout must not call that healthy (C1).
+    const status = mailStatusFromConfig(
+      // SAFETY: fixture narrowing; only the keys this readout reads are set.
+      {
+        hooks: {
+          enabled: true,
+          gmail: {
+            accounts: {
+              support: { account: "support@example.com" },
+              billing: { account: "billing@example.com" },
+            },
+          },
+          mappings: [{ agentId: MAIL_AGENT_ID, match: { path: "gmail-support" } }],
+        },
+        agents: { entries: { [MAIL_AGENT_ID]: {} } },
+      } as OpenClawConfig,
+      {},
+    );
+    expect(status.mappingPresent).toBe(false);
+    // Named by account id (never by address) so the owner knows which mailbox to map.
+    expect(status.unmappedAccountIds).toEqual(["billing"]);
+    expect(JSON.stringify(status)).not.toContain("example.com");
+  });
+
+  it("reports healthy once every named account has its own matching mapping", () => {
+    const status = mailStatusFromConfig(
+      // SAFETY: fixture narrowing; only the keys this readout reads are set.
+      {
+        hooks: {
+          enabled: true,
+          gmail: {
+            accounts: {
+              support: { account: "support@example.com" },
+              billing: { account: "billing@example.com" },
+            },
+          },
+          mappings: [
+            { agentId: MAIL_AGENT_ID, match: { path: "gmail-support" } },
+            { agentId: MAIL_AGENT_ID, match: { path: "/gmail-billing/" } },
+          ],
+        },
+        agents: { entries: { [MAIL_AGENT_ID]: {} } },
+      } as OpenClawConfig,
+      {},
+    );
+    expect(status.mappingPresent).toBe(true);
+    expect(status.unmappedAccountIds).toBeUndefined();
+    expect(status.gmailAccountCount).toBe(2);
+  });
+
+  it("treats the lowest-risk migration — renaming the one mailbox `default` — as already mapped", () => {
+    // `default` keeps the original `gmail` hook path, which is exactly what the desk template
+    // already maps, so naming an existing single mailbox `default` needs no mapping change.
+    const status = mailStatusFromConfig(
+      // SAFETY: fixture narrowing; only the keys this readout reads are set.
+      {
+        hooks: {
+          enabled: true,
+          gmail: { accounts: { default: { account: "owner@example.com" } } },
+          mappings: [{ agentId: MAIL_AGENT_ID, match: { path: "gmail" } }],
+        },
+        agents: { entries: { [MAIL_AGENT_ID]: {} } },
+      } as OpenClawConfig,
+      {},
+    );
+    expect(status.mappingPresent).toBe(true);
+    expect(status.unmappedAccountIds).toBeUndefined();
+  });
+
   it("counts named accounts and still never returns an address", () => {
     const status = mailStatusFromConfig(
       // SAFETY: fixture narrowing; only the keys this readout reads are set.

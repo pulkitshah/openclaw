@@ -26,7 +26,7 @@ vi.mock("./team-write.js", () => ({
       return { warnings: [], config: {} };
     },
   ),
-  revokePairingEntries: vi.fn(async () => undefined),
+  revokePairingEntries: vi.fn(async () => ({ warnings: [] })),
 }));
 
 /** The smallest config that satisfies `assertTeamProjectionSafe`: explicit ownership, one agent, a
@@ -62,6 +62,8 @@ type Handler = (ctx: {
   params: Record<string, unknown>;
   respond: (ok: boolean, result?: unknown, error?: unknown) => void;
   hasCurrentClientAuthority?: () => boolean;
+  /** Only the connection metadata the handlers read: the scope list `holdsAdminScope` checks. */
+  client?: { connect: { scopes?: string[] } };
 }) => Promise<void>;
 
 type EmitFn = (name: "changed" | "run", payload: Record<string, unknown>) => void;
@@ -134,10 +136,12 @@ function harness(params?: {
     ...(params?.deskHealth ? { deskHealth: params.deskHealth } : {}),
   });
 
+  /** `scopes` is what the connection holds, as the Gateway hands it to a handler; omitted means a
+   *  caller whose scopes cannot be read, which `holdsAdminScope` treats as not admin. */
   const call = async (
     name: string,
     callParams: Record<string, unknown>,
-    callOpts?: { hasCurrentClientAuthority?: () => boolean },
+    callOpts?: { hasCurrentClientAuthority?: () => boolean; scopes?: string[] },
   ) =>
     new Promise<{ ok: boolean; result?: unknown; error?: unknown }>((resolve) => {
       void methods.get(name)!.handler({
@@ -146,10 +150,12 @@ function harness(params?: {
         ...(callOpts?.hasCurrentClientAuthority
           ? { hasCurrentClientAuthority: callOpts.hasCurrentClientAuthority }
           : {}),
+        ...(callOpts?.scopes ? { client: { connect: { scopes: callOpts.scopes } } } : {}),
       });
     });
+  const asAdmin = { scopes: ["operator.admin"] };
 
-  return { methods, store, emit, runs, creds, call };
+  return { methods, store, emit, runs, creds, call, asAdmin };
 }
 
 const baseDuty = {
@@ -738,6 +744,9 @@ describe("duties gateway methods", () => {
   it("duties.mail.status reports each missing piece of the Gmail path without leaking the address", async () => {
     const bare = harness();
     expect((await bare.call("duties.mail.status", {})).result).toEqual({
+      // False only with no `hooks` section at all, and zero mailboxes resolved from it.
+      configured: false,
+      gmailAccountCount: 0,
       hooksEnabled: false,
       gmailAccountSet: false,
       mappingPresent: false,
@@ -761,6 +770,8 @@ describe("duties gateway methods", () => {
     await wired.store.updateSettings({ lastMailDispatchAt: 5, lastMailDispatchDutyId: "d1" });
     const status = await wired.call("duties.mail.status", {});
     expect(status.result).toEqual({
+      configured: true,
+      gmailAccountCount: 1,
       hooksEnabled: true,
       gmailAccountSet: true,
       mappingPresent: true,
@@ -964,10 +975,10 @@ describe("duties.team.get", () => {
   });
 
   it("seeds one owner row from DutiesSettings.owner and is idempotent", async () => {
-    const { call } = harness({ config: deskFixtureConfig() });
-    await call("duties.settings.set", { owner: { channel: "telegram", target: "111" } });
+    const { call, asAdmin } = harness({ config: deskFixtureConfig() });
+    await call("duties.settings.set", { owner: { channel: "telegram", target: "111" } }, asAdmin);
 
-    const first = await call("duties.team.get", {});
+    const first = await call("duties.team.get", {}, asAdmin);
     expect(first.ok).toBe(true);
     const firstMembers = (first.result as { members: TeamMember[] }).members;
     expect(firstMembers).toHaveLength(1);
@@ -978,10 +989,71 @@ describe("duties.team.get", () => {
       channels: [{ channel: "telegram", senderId: "111" }],
     });
 
-    const second = await call("duties.team.get", {});
+    const second = await call("duties.team.get", {}, asAdmin);
     const secondMembers = (second.result as { members: TeamMember[] }).members;
     expect(secondMembers).toHaveLength(1);
     expect(secondMembers[0]?.addedAt).toBe(firstMembers[0]?.addedAt);
+  });
+
+  it("writes no roster row on a read, and answers the seeded owner view anyway (I1)", async () => {
+    // `duties.team.get` is registered `operator.read` and used to call `store.seedOwner` — a durable
+    // write any read-scope caller (the `team_list` tool included) could trigger just by reading.
+    // The owner row it composes for the answer is now in-memory only.
+    const { call, store, asAdmin } = harness({ config: deskFixtureConfig() });
+    await store.updateSettings({ owner: { channel: "telegram", target: "111" } });
+
+    const read = await call("duties.team.get", {}, asAdmin);
+    expect((read.result as { members: TeamMember[] }).members).toMatchObject([
+      { id: "owner", role: "owner", agentId: "krishna" },
+    ]);
+    expect(await store.listMembers()).toEqual([]);
+
+    // The first admin-scoped Team write is what persists it, so a member has a real owner row to
+    // hang off.
+    const request = vi.fn(async () => ({ ok: true, agentId: "ramesh", workspace: "/w/ramesh" }));
+    const h = harness({ config: deskFixtureConfig(), request });
+    await h.store.updateSettings({ owner: { channel: "telegram", target: "111" } });
+    await h.call("duties.team.get", {}, h.asAdmin);
+    expect(await h.store.listMembers()).toEqual([]);
+    const added = await h.call(
+      "duties.team.add",
+      { name: "Ramesh", channels: [{ channel: "telegram", senderId: "5551234" }] },
+      h.asAdmin,
+    );
+    expect(added.ok).toBe(true);
+    expect((await h.store.listMembers()).map((m) => m.id)).toEqual(["owner", "ramesh"]);
+  });
+
+  it("withholds every sender id from a caller without operator.admin (I2)", async () => {
+    const { call, store, asAdmin } = harness({ config: deskFixtureConfig() });
+    await store.seedOwner({
+      id: "owner",
+      name: "Owner",
+      agentId: "krishna",
+      addedBy: "owner",
+      channels: [
+        { channel: "telegram", senderId: "111", addedAt: 1 },
+        { channel: "whatsapp", senderId: "+919800000000", accountId: "work", addedAt: 1 },
+      ],
+    });
+
+    const read = await call("duties.team.get", {}, { scopes: ["operator.read"] });
+    const readMembers = (read.result as { members: TeamMember[] }).members;
+    // The channel and its account id stay — they are routing labels, not anybody's identity, and
+    // nothing downstream can reconstruct a sender id from them.
+    expect(readMembers[0]?.channels).toEqual([
+      { channel: "telegram", addedAt: 1 },
+      { channel: "whatsapp", accountId: "work", addedAt: 1 },
+    ]);
+    expect(JSON.stringify(read.result)).not.toContain("+919800000000");
+    expect(JSON.stringify(read.result)).not.toContain('"111"');
+
+    // Admin still gets them in full: `addTeamChannel` sends the whole identity list back.
+    const admin = await call("duties.team.get", {}, asAdmin);
+    expect((admin.result as { members: TeamMember[] }).members[0]?.channels).toEqual([
+      { channel: "telegram", senderId: "111", addedAt: 1 },
+      { channel: "whatsapp", senderId: "+919800000000", accountId: "work", addedAt: 1 },
+    ]);
   });
 
   it("duties.settings.set { owner } moves the owner row's first identity", async () => {
@@ -1039,6 +1111,52 @@ describe("duties.team.add", () => {
       message: expect.stringContaining('There is already an agent called "Ramesh"'),
     });
     expect((await h.store.listMembers()).map((m) => m.id)).toEqual(["owner"]);
+  });
+
+  it("refuses an unsafe channel config before provisioning anything, so the same name still works after the fix (I3)", async () => {
+    // A desk whose whatsapp channel has no channel-wide binding: `assertTeamProjectionSafe` refuses
+    // the projection. It used to refuse AFTER `agents.create` had already made the agent, so the
+    // retry hit an agent-id collision and the owner had to rename a real person to work around a
+    // channel-config problem.
+    const config = deskFixtureConfig();
+    config.bindings = [{ agentId: "krishna", match: { channel: "telegram", accountId: "*" } }];
+    const request = vi.fn(async (method: string) => {
+      if (method !== "agents.create") throw new Error(`unexpected ${method}`);
+      return { ok: true, agentId: "ramesh", name: "Ramesh", workspace: "/w/ramesh" };
+    });
+    const h = harness({ config, request });
+    await h.call(
+      "duties.settings.set",
+      { owner: { channel: "telegram", target: "111" } },
+      h.asAdmin,
+    );
+
+    const refused = await h.call(
+      "duties.team.add",
+      { name: "Ramesh", channels: [{ channel: "whatsapp", senderId: "+919812345678" }] },
+      h.asAdmin,
+    );
+    expect(refused.ok).toBe(false);
+    expect(refused.error).toMatchObject({
+      message: expect.stringContaining("whatsapp has no channel-wide binding"),
+    });
+    // No agent was created, so nothing is stranded and no name is burned.
+    expect(request).not.toHaveBeenCalled();
+    expect((await h.store.listMembers()).map((m) => m.id)).toEqual(["owner"]);
+
+    // With the channel fixed, the SAME name goes through.
+    config.bindings = [
+      ...(config.bindings ?? []),
+      { agentId: "krishna", match: { channel: "whatsapp", accountId: "*" } },
+    ];
+    const retried = await h.call(
+      "duties.team.add",
+      { name: "Ramesh", channels: [{ channel: "whatsapp", senderId: "+919812345678" }] },
+      h.asAdmin,
+    );
+    expect(retried.ok).toBe(true);
+    expect(request).toHaveBeenCalledWith("agents.create", { name: "Ramesh" });
+    expect((await h.store.listMembers()).map((m) => m.id)).toEqual(["owner", "ramesh"]);
   });
 
   it("refuses an add with no channel identity", async () => {
@@ -1140,6 +1258,39 @@ describe("duties.team.remove", () => {
       }),
     );
     expect(emit).toHaveBeenCalledWith("changed", { team: true });
+  });
+
+  it("reports a pairing-store cleanup that did not complete, and still commits the removal (I4)", async () => {
+    const { call, store } = harness();
+    await store.seedOwner({
+      id: "owner",
+      name: "Owner",
+      agentId: "krishna",
+      addedBy: "owner",
+      channels: [],
+    });
+    await store.addMember({
+      id: "ramesh",
+      name: "Ramesh",
+      agentId: "ramesh",
+      addedBy: "owner",
+      channels: [{ channel: "telegram", senderId: "5551234", addedAt: 1 }],
+    });
+    (revokePairingEntries as Mock).mockClear();
+    (revokePairingEntries as Mock).mockResolvedValueOnce({
+      warnings: ["Could not clear the telegram pairing approval for 5551234"],
+    });
+
+    const result = await call("duties.team.remove", { memberId: "ramesh" });
+
+    // The config write landed, so this is a success with a warning — not a failure. A silently
+    // swallowed cleanup failure used to report a clean `ok: true` while the removed member could
+    // still reach Vasu through the pairing store.
+    expect(result.ok).toBe(true);
+    expect((result.result as { warnings: string[] }).warnings).toEqual([
+      "Could not clear the telegram pairing approval for 5551234",
+    ]);
+    expect(await store.getMember("ramesh")).toBeUndefined();
   });
 
   it("refuses to remove an unknown member", async () => {

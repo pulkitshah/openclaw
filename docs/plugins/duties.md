@@ -137,17 +137,9 @@ Adding a member, removing one, changing which channels they're reachable on, and
 
 Each member gets their own agent, their own workspace, their own conversation history, and their own memory, created the moment they're added. Their first message runs through the same naming ceremony the owner's own assistant went through when it was set up.
 
-A member's agent starts with a minimal tool set, and specifically without `browser`:
+A member's agent gets the same default tool access as any other agent on the desk — Team writes no `tools` block of its own for anyone, member or owner. If you want one member held to a narrower set, write it yourself in `agents.entries.<id>.tools`; Team reads that field for nobody and overwrites it for nobody, so whatever you put there stands, including across later roster edits.
 
-```json
-{
-  "profile": "minimal",
-  "alsoAllow": ["message", "exec", "llm-task", "duty_list", "duty_get", "duty_run"],
-  "deny": ["browser", "group:fs", "group:web", "cron", "gateway", "nodes"]
-}
-```
-
-`browser` is excluded on purpose: on a hosted desk it drives the one signed-in Chromium that belongs to the owner, not something a member's own agent should be able to steer. Widen a member's tools by editing `agents.entries.<id>.tools` directly once they need more.
+That is worth knowing before you add someone on a hosted desk: their agent can reach the same tools yours can, `browser` included, and on a desk `browser` drives the one signed-in Chromium that belongs to you. Add people you would hand that browser to, and restrict the ones you would not.
 
 Transferring ownership moves the reporting line, not the person: the outgoing owner keeps their row, their channel identities, their agent, their sessions, and their admission — only which member holds `owner` changes.
 

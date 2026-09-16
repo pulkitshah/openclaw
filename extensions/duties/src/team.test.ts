@@ -9,7 +9,6 @@ import {
   teamIdentityLinks,
   TEAM_ACCESS_GROUP_ENTRY,
   TEAM_MEMBER_ID_RE,
-  TEAM_MEMBER_TOOLS,
   type TeamMember,
 } from "./team.js";
 
@@ -250,18 +249,20 @@ describe("applyTeamProjection", () => {
     expect(afterRemoval.agents?.entries?.ramesh).toBeDefined();
   });
 
-  it("never stamps a tools ceiling onto the owner's own agent, even with no tools block configured", () => {
-    // krishna is OWNER's agentId, and deskConfig() gives it no `tools` override — exactly the
-    // shape that would trigger the ceiling if the owner were not skipped in that part of the loop.
+  it("writes no tools block onto anyone's agent, owner or member", () => {
+    // The Team-authored ceiling is gone (final review I8): a member's agent gets the ordinary
+    // default access every other agent gets, and neither agent entry here — neither the owner's
+    // `krishna` nor the member's `ramesh`, both without a `tools` override in deskConfig() — is
+    // touched by the projection at all.
     const next = applyTeamProjection(deskConfig(), [OWNER, RAMESH]);
     expect(next.agents?.entries?.krishna?.tools).toBeUndefined();
-    // The owner's other projections still apply as normal.
+    expect(next.agents?.entries?.ramesh?.tools).toBeUndefined();
+    // The entries themselves survive untouched, and the rest of the projection still applies.
+    expect(next.agents?.entries).toEqual(deskConfig().agents?.entries);
     expect(next.session?.identityLinks?.owner).toEqual(["telegram:111"]);
-    // A member's own agent still gets the ceiling.
-    expect(next.agents?.entries?.ramesh?.tools).toEqual(TEAM_MEMBER_TOOLS);
   });
 
-  it("never overwrites tools the owner already widened for a member", () => {
+  it("leaves tools the owner set for a member by hand exactly as they wrote them", () => {
     const cfg = deskConfig();
     cfg.agents = {
       ...cfg.agents,
@@ -273,6 +274,32 @@ describe("applyTeamProjection", () => {
     } as OpenClawConfig["agents"];
     const next = applyTeamProjection(cfg, [OWNER, RAMESH]);
     expect(next.agents?.entries?.ramesh?.tools).toEqual({ profile: "full" });
+  });
+
+  it("keeps an operator-authored identityLink that is not a Team member's", () => {
+    const cfg = deskConfig();
+    cfg.session = {
+      identityLinks: {
+        // An operator's own link, for ids Team has never projected. Replacing `identityLinks`
+        // wholesale used to delete it silently (final review I5).
+        "pulkit-desk": ["slack:U123", "discord:456"],
+      },
+      // SAFETY: fixture narrowing; only the key this assertion reads is set.
+    } as OpenClawConfig["session"];
+    const next = applyTeamProjection(cfg, [OWNER, RAMESH]);
+    expect(next.session?.identityLinks?.["pulkit-desk"]).toEqual(["slack:U123", "discord:456"]);
+    expect(next.session?.identityLinks?.ramesh).toEqual([
+      "telegram:5551234",
+      "whatsapp:+919812345678",
+    ]);
+
+    // …and removing a member still drops THAT link, because the previous projection's own access
+    // group is the record of which keys Team owns.
+    const afterRemoval = applyTeamProjection(next, [OWNER]);
+    expect(afterRemoval.session?.identityLinks).toEqual({
+      "pulkit-desk": ["slack:U123", "discord:456"],
+      owner: ["telegram:111"],
+    });
   });
 
   it("leaves an operator-authored binding untouched and replaces only its own marked entries", () => {

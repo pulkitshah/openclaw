@@ -6,6 +6,7 @@
  * `extensions/telegram/src/target-writeback.ts:148-161` (allowlist writeback) and
  * `extensions/feishu/src/dynamic-agent.ts:179-189` (binding materialization).
  */
+import { createAccountListHelpers } from "openclaw/plugin-sdk/account-helpers";
 import { createChannelPairingController } from "openclaw/plugin-sdk/channel-pairing";
 import {
   readConfigFileSnapshotForWrite,
@@ -44,14 +45,38 @@ export async function writeTeamProjection(params: {
   return { warnings, config: nextConfig };
 }
 
+/** The default account id every channel has (`DEFAULT_ACCOUNT_ID`, `src/routing/account-id.ts`),
+ *  reachable through `openclaw/plugin-sdk/account-id` but spelled here to keep this module's import
+ *  surface to the two SDK subpaths it actually needs. */
+const DEFAULT_ACCOUNT_ID = "default";
+
+/** Every account of one channel a roster identity with no `accountId` has to be cleaned out of.
+ *
+ *  `TeamChannelIdentity.accountId` being absent means "every account of that channel", so cleaning
+ *  only `"default"` left a removed member paired on every named account (final review I4).
+ *  `createAccountListHelpers` is the generic cross-channel enumerator every channel plugin's own
+ *  account listing is built from (`openclaw/plugin-sdk/account-helpers`), so this needs no
+ *  per-channel knowledge; the default account is always included because a channel configured only
+ *  at its root keys has an implicit default account that `accounts` does not list, and asking the
+ *  pairing store about an account that does not exist is a no-op. */
+function channelAccountIds(cfg: OpenClawConfig, channel: string): string[] {
+  const { listAccountIds } = createAccountListHelpers(channel);
+  return [...new Set([DEFAULT_ACCOUNT_ID, ...listAccountIds(cfg)])];
+}
+
 /**
- * Drops a removed identity from the channel's pairing store.
+ * Drops a removed identity from the channel's pairing store, on every account it could be paired on.
  *
  * Config is not the whole door: under `dmPolicy: "pairing"`, `senderGateForDirect`
  * (`src/channels/message-access/sender-gates.ts:55`) admits a pairing-store match independently of
  * the allowlist, so a member who was ALSO approved through pairing would survive removal from the
  * roster. Removal is available on this seam; addition is not, which is right — Team never writes to
  * the pairing store, it only cleans up after it.
+ *
+ * A failure is REPORTED, never swallowed: the config layer's own write has already succeeded by the
+ * time this runs, so the caller still answers `ok: true`, but a cleanup that did not complete is the
+ * difference between "access revoked" and "access revoked except through pairing" and the owner has
+ * to be told which identity to check by hand (final review I4).
  *
  * SDK note: the brief for this task named `createScopedPairingAccess` from a
  * `plugin-sdk/pairing-access` subpath; no such subpath is exported (`package.json`'s
@@ -63,16 +88,36 @@ export async function writeTeamProjection(params: {
  */
 export async function revokePairingEntries(params: {
   runtime: OpenClawPluginApi["runtime"];
+  /** Read-only: the accounts each channel has configured, for an identity that names none. */
+  cfg: OpenClawConfig;
   identities: readonly TeamChannelIdentity[];
-}): Promise<void> {
+}): Promise<{ warnings: string[] }> {
+  const warnings: string[] = [];
   for (const identity of params.identities) {
-    const pairing = createChannelPairingController({
-      core: params.runtime,
-      // SAFETY: a roster identity's channel is a message-channel id by construction; the pairing
-      // store answers "not present" for any channel it does not own.
-      channel: identity.channel as Parameters<typeof createChannelPairingController>[0]["channel"],
-      accountId: identity.accountId ?? "default",
-    });
-    await pairing.removeAllowFromStoreEntry(identity.senderId).catch(() => undefined);
+    const accountIds = identity.accountId
+      ? [identity.accountId]
+      : channelAccountIds(params.cfg, identity.channel);
+    for (const accountId of accountIds) {
+      const pairing = createChannelPairingController({
+        core: params.runtime,
+        // SAFETY: a roster identity's channel is a message-channel id by construction; the pairing
+        // store answers "not present" for any channel it does not own.
+        channel: identity.channel as Parameters<
+          typeof createChannelPairingController
+        >[0]["channel"],
+        accountId,
+      });
+      try {
+        await pairing.removeAllowFromStoreEntry(identity.senderId);
+      } catch (error) {
+        const where = accountId === DEFAULT_ACCOUNT_ID ? "" : ` on account ${accountId}`;
+        const reason = error instanceof Error ? error.message : String(error);
+        warnings.push(
+          `Could not clear the ${identity.channel} pairing approval for ${identity.senderId}${where} — ` +
+            `they may still reach Vasu there under dmPolicy "pairing". ${reason}`,
+        );
+      }
+    }
   }
+  return { warnings };
 }

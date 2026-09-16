@@ -31,6 +31,7 @@ import type { DutyStore, RunOrigin } from "./store.js";
 import { provisionMemberAgent, readBootstrapPending, type GatewayRequest } from "./team-agent.js";
 import { revokePairingEntries, writeTeamProjection } from "./team-write.js";
 import {
+  assertTeamProjectionSafe,
   normalizeTeamMemberId,
   teamPolicyWarnings,
   type TeamChannelIdentity,
@@ -163,6 +164,19 @@ export function registerDutiesGatewayMethods(deps: {
     if (ctx.hasCurrentClientAuthority?.() === false) {
       throw new Error("your session is no longer authorized — reconnect and try again");
     }
+  };
+
+  /** Whether the connection that dispatched this request holds `operator.admin`, read off the
+   *  server-authenticated connection metadata the same way core's own handlers do
+   *  (`canReviewOperatorApproval`, `src/gateway/operator-approval-authorization.ts:26`). Used to
+   *  decide what a READ method may answer, never to grant a write — the scope check
+   *  `registerGatewayMethod` performs is still the authority for that. Absent scopes mean not admin:
+   *  an in-process dispatch always carries the synthetic client's own scope list, so the only way to
+   *  get here without one is a caller whose authority cannot be established, and the withheld field
+   *  is PII. */
+  const holdsAdminScope = (ctx: Ctx): boolean => {
+    const scopes = ctx.client?.connect?.scopes;
+    return Array.isArray(scopes) && scopes.includes("operator.admin");
   };
 
   const readId = (params: Record<string, unknown>): string => {
@@ -744,7 +758,11 @@ export function registerDutiesGatewayMethods(deps: {
       // `settings.owner` so an empty roster can still seed from it, and mirror the change onto the
       // owner's first channel identity when a roster already exists — otherwise this method would
       // silently write a field `ownerTarget` no longer reads.
-      const ownerRow = await store.ownerMember();
+      //
+      // On a brand-new desk this IS the owner action that creates the roster: saving an owner target
+      // is what the Team page's empty-roster form does, and it is admin-scoped, so the row is
+      // persisted here rather than by the next `duties.team.get` (final review I1).
+      const ownerRow = await persistSeededOwner(ctx, ownerPatch);
       if (ownerRow) {
         const rest = ownerRow.channels.filter((c) => c.channel !== ownerPatch.channel);
         // A durable effect: re-check live authority immediately before it, same as every other
@@ -774,45 +792,86 @@ export function registerDutiesGatewayMethods(deps: {
     return { settings };
   });
 
-  /** The roster, seeding the one owner row on first read. The owner is a Team member from the
-   *  start: the Duties Owner card already names a channel and a target, and that IS an owner
-   *  identity, so it is promoted rather than asked for twice. */
   /** One shape for both the seeded and the already-populated answer, so the Team card never sees
    *  two different payloads. `warnings` is the non-throwing read: a warning is information, and
-   *  `duties.team.get` is `operator.read`, so it must never refuse. */
-  const teamView = async (members: TeamMember[]) => ({
+   *  `duties.team.get` is `operator.read`, so it must never refuse.
+   *
+   *  A channel's `senderId` is a channel-ingress identity — PII, and exactly what `team_list`'s own
+   *  contract says "stays with operator.admin" — so it is withheld from a caller that does not hold
+   *  admin (final review I2). `channel`, `accountId` and `addedAt` stay: they are operator-chosen
+   *  routing labels, not anybody's identity, and the Control UI needs `accountId` to send a member's
+   *  identity list back unchanged. */
+  const teamView = async (members: TeamMember[], canSeeIdentities: boolean) => ({
     members: await Promise.all(
       members.map(async (member) => ({
         ...member,
+        channels: member.channels.map(({ senderId, ...rest }) =>
+          canSeeIdentities ? { ...rest, senderId } : rest,
+        ),
         bootstrapPending: await readBootstrapPending(member.agentWorkspace),
       })),
     ),
     warnings: teamPolicyWarnings(currentConfig(), members),
   });
 
-  register("duties.team.get", "operator.read", async (_params, ctx) => {
-    const existing = await store.listMembers();
-    if (existing.length > 0) return await teamView(existing);
-    const settings = await store.getSettings();
-    if (!settings.owner) return { members: [], warnings: [] };
+  /** The owner row as it WOULD be seeded from `settings.owner`, without writing anything.
+   *
+   *  The owner is a Team member from the start: the Duties owner target already names a channel and
+   *  a target, and that IS an owner identity, so it is promoted rather than asked for twice. Undefined
+   *  when no owner target is set (a brand-new desk) — there is nothing to promote yet. */
+  const seedOwnerCandidate = async (owner?: { channel: string; target: string }) => {
+    const target = owner ?? (await store.getSettings()).owner;
+    if (!target) return undefined;
     const agentId = resolveAgentRoute({
       cfg: currentConfig(),
-      channel: settings.owner.channel,
-      peer: { kind: "direct", id: settings.owner.target },
+      channel: target.channel,
+      peer: { kind: "direct", id: target.target },
     }).agentId;
-    // A seed is a durable effect: re-check live authority immediately before it, the same as any
-    // other write this module performs.
-    assertStillAuthorized(ctx);
-    const seeded = await store.seedOwner({
+    return {
       id: "owner",
       name: "Owner",
       agentId,
       addedBy: "owner",
-      channels: [
-        { channel: settings.owner.channel, senderId: settings.owner.target, addedAt: Date.now() },
-      ],
-    });
-    return await teamView([seeded]);
+      channels: [{ channel: target.channel, senderId: target.target, addedAt: Date.now() }],
+    };
+  };
+
+  /**
+   * Writes the owner row when the roster is still empty, and nothing otherwise.
+   *
+   * Reachable ONLY from `operator.admin` handlers, which is the point: the plan's invariant is that
+   * nothing creates a roster row except an owner action, and `duties.team.get` — a read — used to
+   * create one just by being called (final review I1). So the read now composes the same row in
+   * memory and this helper is what persists it, on the first owner action that needs a real row to
+   * hang a member, an identity or an ownership transfer off.
+   */
+  const persistSeededOwner = async (
+    ctx: Ctx,
+    owner?: { channel: string; target: string },
+  ): Promise<TeamMember | undefined> => {
+    if ((await store.listMembers()).length > 0) return await store.ownerMember();
+    const candidate = await seedOwnerCandidate(owner);
+    if (!candidate) return undefined;
+    // A seed is a durable effect: re-check live authority immediately before it, the same as any
+    // other write this module performs.
+    assertStillAuthorized(ctx);
+    return await store.seedOwner(candidate);
+  };
+
+  register("duties.team.get", "operator.read", async (_params, ctx) => {
+    const canSeeIdentities = holdsAdminScope(ctx);
+    const existing = await store.listMembers();
+    if (existing.length > 0) return await teamView(existing, canSeeIdentities);
+    const candidate = await seedOwnerCandidate();
+    if (!candidate) return { members: [], warnings: [] };
+    // Seeded for this answer only: the caller sees the single-owner roster it will get, and a read
+    // at any scope leaves the store exactly as it found it. The row is written the first time an
+    // admin-scoped Team write needs it (`persistSeededOwner`).
+    const now = Date.now();
+    return await teamView(
+      [{ ...candidate, role: "owner", addedAt: now, updatedAt: now }],
+      canSeeIdentities,
+    );
   });
 
   register("duties.team.add", "operator.admin", async (params, ctx) => {
@@ -826,13 +885,35 @@ export function registerDutiesGatewayMethods(deps: {
         : normalizeTeamMemberId(name.replace(/\s+/g, "-"));
     const channels = readIdentities(params.channels);
     if (await store.getMember(memberId)) throw new Error(`Team already has a member "${memberId}"`);
-    const owner = await store.ownerMember();
+    assertStillAuthorized(ctx);
+    const owner = (await store.ownerMember()) ?? (await persistSeededOwner(ctx));
     if (!owner) throw new Error("set the owner on the Duties page before adding anyone else");
+
+    // The safety check runs BEFORE the agent is provisioned, even though `writeTeamProjection` runs
+    // it again against the snapshot it is about to write: it is pure and free, while provisioning is
+    // neither, and a refusal after provisioning left a stranded agent whose name the owner could
+    // then never reuse for the same real person (final review I3). It needs only the config and the
+    // roster this add would produce — never the agent — so nothing about it has to wait.
+    const prospective: TeamMember[] = [
+      ...(await store.listMembers()),
+      {
+        id: memberId,
+        name,
+        role: "member",
+        // Placeholder: core chooses the real agent id in `provisionMemberAgent` below, and the
+        // safety check never reads this field (only `channels`, and `role` for ordering).
+        agentId: memberId,
+        channels,
+        addedBy: owner.id,
+        addedAt: Date.now(),
+        updatedAt: Date.now(),
+      },
+    ];
+    assertTeamProjectionSafe(currentConfig(), prospective);
 
     // Ordering matters: `pickFirstExistingAgentId` (src/routing/resolve-route.ts:147-173) throws
     // AgentSelectionRequiredError when a binding names an agent that is absent from
     // `agents.entries`, so the agent is created and read back BEFORE the projection runs.
-    assertStillAuthorized(ctx);
     const agent = await provisionMemberAgent({ request, name });
 
     const member = await store.addMember({
@@ -861,6 +942,9 @@ export function registerDutiesGatewayMethods(deps: {
   register("duties.team.setChannels", "operator.admin", async (params, ctx) => {
     const memberId = readMemberId(params);
     const identities = readIdentities(params.channels);
+    // The owner row may still be the read path's in-memory seed (final review I1) — an owner adding
+    // their own second channel is the first write that needs it to be real.
+    await persistSeededOwner(ctx);
     const before = await store.getMember(memberId);
     if (!before) throw new Error(`no Team member "${memberId}"`);
     const member = await store.setMemberChannels(memberId, identities);
@@ -885,13 +969,18 @@ export function registerDutiesGatewayMethods(deps: {
       (old) =>
         !identities.some((next) => next.channel === old.channel && next.senderId === old.senderId),
     );
-    await revokePairingEntries({ runtime: api.runtime, identities: dropped });
+    const revoked = await revokePairingEntries({
+      runtime: api.runtime,
+      cfg: currentConfig(),
+      identities: dropped,
+    });
     safeEmit("changed", { team: true });
-    return { ok: true, member, warnings };
+    return { ok: true, member, warnings: [...warnings, ...revoked.warnings] };
   });
 
   register("duties.team.remove", "operator.admin", async (params, ctx) => {
     const memberId = readMemberId(params);
+    await persistSeededOwner(ctx);
     const member = await store.getMember(memberId);
     if (!member) throw new Error(`no Team member "${memberId}"`);
     // GC1: the row, the access-group entries, the links and the bindings go now. The agent and its
@@ -911,13 +1000,18 @@ export function registerDutiesGatewayMethods(deps: {
       await store.restoreMember(member).catch(() => undefined);
       throw error;
     }
-    await revokePairingEntries({ runtime: api.runtime, identities: member.channels });
+    const revoked = await revokePairingEntries({
+      runtime: api.runtime,
+      cfg: currentConfig(),
+      identities: member.channels,
+    });
     safeEmit("changed", { team: true });
-    return { ok: true, removed: member, warnings };
+    return { ok: true, removed: member, warnings: [...warnings, ...revoked.warnings] };
   });
 
   register("duties.team.transferOwnership", "operator.admin", async (params, ctx) => {
     const memberId = readMemberId(params);
+    await persistSeededOwner(ctx);
     // Snapshotted before the role swap below so a rejected projection can put both rows back
     // exactly as they were, not just report failure while the swap stands.
     const beforeOwner = await store.ownerMember();

@@ -89,16 +89,6 @@ export const TEAM_ACCESS_GROUP_ENTRY = `accessGroup:${TEAM_ACCESS_GROUP_NAME}`;
 /** Marks the bindings this projection owns so it can replace its own entries and nothing else. */
 export const TEAM_BINDING_COMMENT_PREFIX = "team roster: ";
 
-/** GC2: a member's agent never inherits the owner's browser, filesystem or administrative surface.
- *  Same shape as the desk template's `agents.entries.duties-mail.tools`. Typed with mutable arrays
- *  (rather than `as const`) because `structuredClone` preserves a `readonly` array's type, and
- *  `AgentEntryConfig["tools"]`'s `alsoAllow`/`deny` are plain `string[]`. */
-export const TEAM_MEMBER_TOOLS: { profile: "minimal"; alsoAllow: string[]; deny: string[] } = {
-  profile: "minimal",
-  alsoAllow: ["message", "exec", "llm-task", "duty_list", "duty_get", "duty_run"],
-  deny: ["browser", "group:fs", "group:web", "cron", "gateway", "nodes"],
-};
-
 /** Every channel any member has an identity on, in first-seen order. */
 export function teamChannels(members: readonly TeamMember[]): string[] {
   const seen: string[] = [];
@@ -203,12 +193,46 @@ export function assertTeamProjectionSafe(
 }
 
 /**
+ * Which existing `session.identityLinks` keys this projection owns, and may therefore drop.
+ *
+ * A key is Team's when every id listed under it is one Team itself projected as
+ * `<channel>:<senderId>` into its own access group on the PREVIOUS write — so a member who has just
+ * left the roster loses their link, while an operator-authored entry for anyone Team never admitted
+ * survives untouched (final review I5). `accessGroups.team` as it stands before this write is the
+ * only record of who Team had projected, which is why it is read off the incoming `cfg` and not off
+ * the half-built next config.
+ */
+function teamOwnedIdentityLinkKeys(
+  cfg: OpenClawConfig,
+  existing: Record<string, unknown>,
+): Set<string> {
+  const group = cfg.accessGroups?.[TEAM_ACCESS_GROUP_NAME] as TeamAccessGroup | undefined;
+  const projected = group?.type === "message.senders" ? group.members : {};
+  const owned = new Set<string>();
+  for (const [key, value] of Object.entries(existing)) {
+    if (!Array.isArray(value) || value.length === 0) continue;
+    const allProjectedByTeam = value.every((entry) => {
+      if (typeof entry !== "string") return false;
+      const split = entry.indexOf(":");
+      if (split <= 0) return false;
+      return (projected[entry.slice(0, split)] ?? []).includes(entry.slice(split + 1));
+    });
+    if (allProjectedByTeam) owned.add(key);
+  }
+  return owned;
+}
+
+/**
  * Roster -> every config key Team owns. The single place the roster becomes enforcement.
  *
- * Writes exactly five things and touches nothing else: `accessGroups.team`, each touched channel's
- * `allowFrom` (merged, never replaced), `session.identityLinks`, `agents.entries.<id>.tools` for a
- * member agent that has none yet, and the marked `bindings[]` entries. `dmPolicy` is deliberately
- * not written (GC3). Pure: the caller owns reading the snapshot and writing the file.
+ * Writes exactly four things and touches nothing else: `accessGroups.team`, each touched channel's
+ * `allowFrom` (merged, never replaced), `session.identityLinks` (merged — see
+ * `teamOwnedIdentityLinkKeys`), and the marked `bindings[]` entries. `dmPolicy` is deliberately not
+ * written (GC3), and neither is any agent's `tools`: a member's agent gets the ordinary default tool
+ * access every other agent gets, and an owner who wants a member restricted writes
+ * `agents.entries.<id>.tools` by hand, which nothing here ever reads or overwrites (final review
+ * I8 — the owner's decision to drop the Team-authored ceiling supersedes GC2 as planned). Pure: the
+ * caller owns reading the snapshot and writing the file.
  */
 export function applyTeamProjection(
   cfg: OpenClawConfig,
@@ -217,9 +241,16 @@ export function applyTeamProjection(
   const next = structuredClone(cfg);
   const sorted = sortTeamMembers(members);
 
+  const existingLinks = { ...next.session?.identityLinks };
+  const ownedLinkKeys = teamOwnedIdentityLinkKeys(cfg, existingLinks);
+
   next.accessGroups = { ...next.accessGroups, [TEAM_ACCESS_GROUP_NAME]: teamAccessGroup(sorted) };
 
-  const links = teamIdentityLinks(sorted);
+  const memberLinks = teamIdentityLinks(sorted);
+  const links = { ...existingLinks, ...memberLinks };
+  for (const key of ownedLinkKeys) {
+    if (!(key in memberLinks)) delete links[key];
+  }
   next.session = { ...next.session, identityLinks: links };
 
   for (const channel of teamChannels(sorted)) {
@@ -228,25 +259,6 @@ export function applyTeamProjection(
     if (!allowFrom.includes(TEAM_ACCESS_GROUP_ENTRY)) allowFrom.push(TEAM_ACCESS_GROUP_ENTRY);
     entry.allowFrom = allowFrom;
     next.channels = { ...next.channels, [channel]: entry };
-  }
-
-  // GC2: write the restrictive ceiling only when the agent entry has no `tools` block, so an owner
-  // who has widened a member's tools by hand is never overwritten by a later roster edit. The
-  // ceiling is for a new member's dedicated agent, never the owner's — the owner's agent commonly
-  // has no `tools` override configured and would otherwise be silently crippled by any Team
-  // projection run, so the owner's row is skipped here entirely (their accessGroups/allowFrom/
-  // identityLinks entries above are still projected as normal).
-  for (const member of sorted) {
-    if (member.role === "owner") continue;
-    const entry = next.agents?.entries?.[member.agentId];
-    if (!entry || entry.tools) continue;
-    next.agents = {
-      ...next.agents,
-      entries: {
-        ...next.agents?.entries,
-        [member.agentId]: { ...entry, tools: structuredClone(TEAM_MEMBER_TOOLS) },
-      },
-    };
   }
 
   // One binding per (member, channel identity). `match.channel` is required by the schema, so N

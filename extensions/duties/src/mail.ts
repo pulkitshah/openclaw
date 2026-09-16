@@ -8,8 +8,8 @@
  *   (src/config/types.openclaw.ts:236).
  * - `hooks.gmail.account` / `hooks.gmail.accounts.*.account` — optional strings on
  *   `HooksGmailConfigInput` (src/config/zod-schema.hooks.ts:106,151,180).
- * - `hooks.mappings[].agentId` — optional string on `HookMappingConfigInput`
- *   (src/config/zod-schema.hooks.ts:46,76).
+ * - `hooks.mappings[].agentId` / `hooks.mappings[].match.path` — optional strings on
+ *   `HookMappingConfigInput` (src/config/zod-schema.hooks.ts:46,76).
  * - `agents.entries` — `Record<string, AgentEntryConfig>` (src/config/types.agents.ts:113).
  */
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
@@ -31,7 +31,15 @@ export type MailStatus = {
    *  ignored once named accounts exist — see `src/hooks/gmail-accounts.ts`). Never the address(es)
    *  themselves, same as `gmailAccountSet`. */
   gmailAccountCount: number;
+  /** Whether EVERY configured mailbox has a `hooks.mappings` entry that routes its own hook path to
+   *  the Duties mail agent. False when any one of them has none: a named account is served on
+   *  `gmail-<accountId>`, and mail pushed to a path nothing matches is accepted by the watcher and
+   *  then dropped, so one mapped mailbox must never report the whole path as healthy (final review
+   *  C1). */
   mappingPresent: boolean;
+  /** The account ids (never addresses) whose hook path no mapping matches, in resolution order.
+   *  Omitted when there is no gap, so the Duties page can name the mailbox to fix. */
+  unmappedAccountIds?: string[];
   agentPresent: boolean;
   lastDispatchAt?: number;
   lastDispatchDutyId?: string;
@@ -47,29 +55,75 @@ export type MailStatus = {
  *  `cli.ts`'s `duties setup --account <email>` genuinely needs the address to compare against —
  *  it must not disagree with `mailStatusFromConfig` about whether an account is configured. */
 export function configuredGmailAddresses(hooks: OpenClawConfig["hooks"]): string[] {
-  const named = Object.values(hooks?.gmail?.accounts ?? {})
-    .map((entry) => entry?.account)
-    .filter((account): account is string => typeof account === "string" && account.length > 0);
-  if (named.length > 0) return named;
-  const root = hooks?.gmail?.account;
-  return typeof root === "string" && root.length > 0 ? [root] : [];
+  return resolveGmailAccounts(hooks).map((account) => account.account);
 }
 
-function countGmailAccounts(hooks: OpenClawConfig["hooks"]): number {
-  return configuredGmailAddresses(hooks).length;
+/** The default account id and its hook path, spelled here rather than imported: these are
+ *  `GMAIL_DEFAULT_ACCOUNT_ID` and `gmailHookPathForAccount` in `src/hooks/gmail-accounts.ts`, which
+ *  owns the resolution, and `extensions/**` must not import `src/**` (extensions/AGENTS.md). Same
+ *  reason `TEAM_ACCESS_GROUP_ENTRY` spells "accessGroup:" by hand in `team.ts`. A readiness readout
+ *  is a reader of that contract, never a second owner of it. */
+const GMAIL_DEFAULT_ACCOUNT_ID = "default";
+
+function gmailHookPathForAccount(accountId: string): string {
+  return accountId === GMAIL_DEFAULT_ACCOUNT_ID ? "gmail" : `gmail-${accountId}`;
+}
+
+/** Every configured mailbox as `{ accountId, account }`, mirroring `resolveGmailHookAccounts`: named
+ *  `hooks.gmail.accounts.*` entries that carry their own address, or the root `hooks.gmail.account`
+ *  as the default account when none are named. Unlike core's resolver this never throws on an
+ *  account id that is not session-safe — a readiness readout reports, it never refuses — so such an
+ *  account is still counted and still checked for a mapping. */
+function resolveGmailAccounts(
+  hooks: OpenClawConfig["hooks"],
+): Array<{ accountId: string; account: string }> {
+  const named = Object.entries(hooks?.gmail?.accounts ?? {})
+    .toSorted(([a], [b]) => a.localeCompare(b))
+    .flatMap(([accountId, entry]) => {
+      const account = typeof entry?.account === "string" ? entry.account.trim() : "";
+      return account ? [{ accountId, account }] : [];
+    });
+  if (named.length > 0) return named;
+  const root = typeof hooks?.gmail?.account === "string" ? hooks.gmail.account.trim() : "";
+  return root ? [{ accountId: GMAIL_DEFAULT_ACCOUNT_ID, account: root }] : [];
+}
+
+/** Whether a mapping to the Duties mail agent actually receives this account's pushes. A mapping
+ *  with no `match.path` matches every hook path (`mappingMatches`, src/gateway/hooks-mapping.ts),
+ *  so it serves every account; one with a path serves only the account whose path it names. Leading
+ *  and trailing slashes are stripped the same way `normalizeHookMatchPath` strips them. */
+function accountHasMapping(hooks: OpenClawConfig["hooks"], accountId: string): boolean {
+  const wanted = gmailHookPathForAccount(accountId);
+  return (hooks?.mappings ?? []).some((mapping) => {
+    if (mapping.agentId !== MAIL_AGENT_ID) return false;
+    const raw = typeof mapping.match?.path === "string" ? mapping.match.path.trim() : "";
+    if (!raw) return true;
+    return raw.replace(/^\/+/, "").replace(/\/+$/, "") === wanted;
+  });
 }
 
 /** Never returns the Gmail address itself (only whether/how many are set) or any hook token: this
  *  is a readiness readout, shown on the Duties page and printed by the CLI. */
 export function mailStatusFromConfig(config: OpenClawConfig, settings: DutiesSettings): MailStatus {
   const hooks = config.hooks;
-  const gmailAccountCount = countGmailAccounts(hooks);
+  const accounts = resolveGmailAccounts(hooks);
+  const unmappedAccountIds = accounts
+    .filter((account) => !accountHasMapping(hooks, account.accountId))
+    .map((account) => account.accountId);
+  // With no mailbox configured at all there is no account whose path could be checked, so the
+  // mapping check falls back to "is there a Duties mail mapping at all" — `gmailAccountSet` is the
+  // check that reports the missing mailbox, and this one must not double-report it.
+  const mappingPresent =
+    accounts.length === 0
+      ? (hooks?.mappings ?? []).some((mapping) => mapping.agentId === MAIL_AGENT_ID)
+      : unmappedAccountIds.length === 0;
   return {
     configured: hooks !== undefined,
     hooksEnabled: hooks?.enabled === true,
-    gmailAccountSet: gmailAccountCount > 0,
-    gmailAccountCount,
-    mappingPresent: (hooks?.mappings ?? []).some((m) => m.agentId === MAIL_AGENT_ID),
+    gmailAccountSet: accounts.length > 0,
+    gmailAccountCount: accounts.length,
+    mappingPresent,
+    ...(unmappedAccountIds.length > 0 ? { unmappedAccountIds } : {}),
     agentPresent: config.agents?.entries?.[MAIL_AGENT_ID] !== undefined,
     ...(settings.lastMailDispatchAt !== undefined
       ? { lastDispatchAt: settings.lastMailDispatchAt }
