@@ -202,7 +202,6 @@ describe("AppSidebar footer identity menu", () => {
     ).toEqual([
       "https://docs.openclaw.ai",
       "https://docs.openclaw.ai/help",
-      "https://discord.gg/clawd",
       "https://docs.openclaw.ai/releases",
     ]);
 

@@ -221,7 +221,6 @@ suite.define(() => {
         ).toEqual([
           expect.stringContaining("Docs"),
           expect.stringContaining("Get help"),
-          expect.stringContaining("Discord community"),
           expect.stringContaining("View changelog"),
         ]);
         await expect
