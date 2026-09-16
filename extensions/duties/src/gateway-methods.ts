@@ -22,6 +22,7 @@ import {
   type DutyTrigger,
   type PendingDutyChange,
 } from "./duty.js";
+import type { Ctx, Scope } from "./gateway-context.js";
 import { mailStatusFromConfig } from "./mail.js";
 import { renderTemplatePreview } from "./preview.js";
 import type { RunManager } from "./run-service.js";
@@ -37,11 +38,6 @@ import { validateBrand, validateTemplate } from "./template.js";
  *  not spinning. */
 const DEFAULT_RUN_WAIT_MS = 30_000;
 const MAX_RUN_WAIT_MS = 120_000;
-
-/** Exported for `team-gateway-methods.ts`, which registers the `duties.team.*` block through the
- *  same `register` closure this module owns. Type-only, so nothing is imported back at runtime. */
-export type Ctx = Parameters<Parameters<OpenClawPluginApi["registerGatewayMethod"]>[1]>[0];
-export type Scope = "operator.read" | "operator.write" | "operator.admin";
 
 /** Same per-entry ceiling the evidence blob store enforces on screenshots (`index.ts`), applied
  *  here by hand because a rendered document is a plain file with no store to bound it. */

@@ -178,8 +178,7 @@ export class DutyStore {
         namespace: "team",
         maxEntries: 200,
         overflowPolicy: "reject-new",
-        // SAFETY: same PluginStateKeyedStore superset relationship as the duties store above.
-      }) as unknown as Keyed<TeamMember>,
+      }),
     });
   }
 

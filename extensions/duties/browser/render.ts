@@ -233,7 +233,7 @@ function ownerSettingsForm(settings: DutiesSettings | undefined): string {
  *  `accountId` is carried even though nothing here renders it: `addTeamChannel` rebuilds the whole
  *  identity list from this view, and dropping the field there silently widened an account-scoped
  *  routing match to `"*"` (final review I7). */
-export type TeamMemberView = {
+type TeamMemberView = {
   id: string;
   name: string;
   role: "owner" | "member";

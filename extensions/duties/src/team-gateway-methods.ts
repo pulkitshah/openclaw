@@ -11,7 +11,7 @@
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
 import type { OpenClawPluginApi } from "../api.js";
-import type { Ctx, Scope } from "./gateway-methods.js";
+import type { Ctx, Scope } from "./gateway-context.js";
 import type { DutyStore } from "./store.js";
 import { provisionMemberAgent, readBootstrapPending, type GatewayRequest } from "./team-agent.js";
 import { revokePairingEntries, writeTeamProjection } from "./team-write.js";

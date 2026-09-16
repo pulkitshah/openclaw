@@ -111,11 +111,13 @@ export function harness(params?: {
       },
     },
     previewDir: async () => params?.previewDir ?? tmpdir(),
-    request:
-      params?.request ??
+    // SAFETY: a plain vi.fn() mock has no generic call signature, so it never structurally matches
+    // GatewayRequest's `<T>(method, params) => Promise<T>`; every caller here passes its own typed
+    // fake or never calls this default at all.
+    request: (params?.request ??
       vi.fn(async () => {
         throw new Error("gateway request not expected");
-      }),
+      })) as never,
     ...(params?.notifyOwner ? { notifyOwner: params.notifyOwner } : {}),
     ...(params?.deskHealth ? { deskHealth: params.deskHealth } : {}),
   });

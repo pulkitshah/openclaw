@@ -535,6 +535,9 @@ const config = {
     // asserted by the focused Beam mirror tests; production wires only the service.
     "extensions/beam/src/mirror.ts": ["exports", "types"],
     "src/infra/heartbeat-wake.ts": ["exports"],
+    // GMAIL_ACCOUNT_ID_RE is asserted directly by the focused Gmail account tests; production
+    // code only calls resolveGmailHookAccounts, which uses it internally.
+    "src/hooks/gmail-accounts.ts": ["exports"],
     // Focused Duties tests consume these explicit seams; production code uses
     // the surrounding runtime helpers (or, for cli.ts, only the Commander action) rather than
     // importing the exports directly.
@@ -545,6 +548,10 @@ const config = {
     "extensions/duties/src/cli.ts": ["exports", "types"],
     "extensions/duties/src/creds.ts": ["exports"],
     "extensions/duties/src/files.ts": ["exports"],
+    // TEAM_MEMBER_ID_RE, TEAM_ACCESS_GROUP_ENTRY, teamAccessGroup and teamIdentityLinks are
+    // asserted directly by the focused Team unit tests; production code reaches them only
+    // through applyTeamProjection, not by importing these exports itself.
+    "extensions/duties/src/team.ts": ["exports"],
   },
   workspaces: {
     ".": {

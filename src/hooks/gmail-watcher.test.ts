@@ -4,6 +4,7 @@ import { PassThrough } from "node:stream";
 import { expectDefined } from "@openclaw/normalization-core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createDeferred } from "../../test/helpers/promise.js";
+import type { PortUsageStatus } from "../infra/ports-types.js";
 import { withMockedPlatform } from "../test-utils/vitest-spies.js";
 import { isAddressInUseError } from "./gmail-watcher-errors.js";
 
@@ -34,7 +35,9 @@ const mocks = vi.hoisted(() => ({
   // Real port probing is exercised by src/infra/ports-probe.test.ts; here it defaults to "free"
   // so every existing single-account test stays fully deterministic (no real socket I/O), and
   // individual multi-account tests below override it to prove the busy-port reporting path.
-  probePortUsage: vi.fn(async () => "free" as const),
+  probePortUsage: vi.fn(
+    async (_port: number, _probeHosts?: readonly string[]): Promise<PortUsageStatus> => "free",
+  ),
 }));
 
 vi.mock("node:child_process", async () => {

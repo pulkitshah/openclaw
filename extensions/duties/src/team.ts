@@ -9,7 +9,7 @@
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 
 /** Exactly one member holds "owner" at a time; `transferOwnership` is the only writer of this. */
-export type TeamRole = "owner" | "member";
+type TeamRole = "owner" | "member";
 
 export type TeamChannelIdentity = {
   /** Message-channel id as the channel plugins spell it: "telegram", "whatsapp", "signal", … */
@@ -84,15 +84,15 @@ type TeamAccessGroup = NonNullable<OpenClawConfig["accessGroups"]>[string];
 type TeamBinding = NonNullable<OpenClawConfig["bindings"]>[number];
 type TeamChannelEntry = NonNullable<OpenClawConfig["channels"]>[string];
 
-export const TEAM_ACCESS_GROUP_NAME = "team";
+const TEAM_ACCESS_GROUP_NAME = "team";
 /** `ACCESS_GROUP_ALLOW_FROM_PREFIX` is "accessGroup:" (`src/channels/allow-from.ts:11`); it is not
  *  exported from any plugin-SDK subpath, so the literal is spelled once here. */
 export const TEAM_ACCESS_GROUP_ENTRY = `accessGroup:${TEAM_ACCESS_GROUP_NAME}`;
 /** Marks the bindings this projection owns so it can replace its own entries and nothing else. */
-export const TEAM_BINDING_COMMENT_PREFIX = "team roster: ";
+const TEAM_BINDING_COMMENT_PREFIX = "team roster: ";
 
 /** Every channel any member has an identity on, in first-seen order. */
-export function teamChannels(members: readonly TeamMember[]): string[] {
+function teamChannels(members: readonly TeamMember[]): string[] {
   const seen: string[] = [];
   for (const member of sortTeamMembers(members)) {
     for (const identity of member.channels) {

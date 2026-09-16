@@ -199,6 +199,9 @@ describe("teamAccessGroup", () => {
       type: "message.senders",
       members: { telegram: ["111", "5551234"], whatsapp: ["+919812345678"] },
     });
+    if (group.type !== "message.senders") {
+      throw new Error("expected a message.senders access group");
+    }
     expect(Object.keys(group.members)).not.toContain("*");
   });
 
@@ -363,7 +366,7 @@ describe("one roster change admits a member on two channels", () => {
    *  channel (`src/channels/message-access/runtime-access-groups.ts:32-58` partitions the symbolic
    *  entries; `src/channels/message-access/state.ts:155,362` expands message.senders). */
   function effectiveAllowFrom(cfg: OpenClawConfig, channel: string): string[] {
-    const entries = cfg.channels?.[channel]?.allowFrom ?? [];
+    const entries: unknown[] = cfg.channels?.[channel]?.allowFrom ?? [];
     return entries.flatMap((entry) => {
       if (typeof entry !== "string" || !entry.startsWith("accessGroup:")) {
         return [String(entry)];

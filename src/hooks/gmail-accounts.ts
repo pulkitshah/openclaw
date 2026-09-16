@@ -19,9 +19,9 @@
  */
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 
-/** Borrowed from IMAP's account id grammar (`extensions/imap/src/config.ts:52`) because the id
- *  reaches a session key. */
-export const GMAIL_ACCOUNT_ID_RE = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
+/** Borrowed from the IMAP plugin's account id grammar (its config module, near the account id
+ *  constant) because the id reaches a session key. */
+const GMAIL_ACCOUNT_ID_RE = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
 export const GMAIL_DEFAULT_ACCOUNT_ID = "default";
 
 /** The default account keeps the existing `gmail` hook path, so every already-deployed mapping and
@@ -31,7 +31,9 @@ export function gmailHookPathForAccount(accountId: string): string {
 }
 
 export function isGmailHookPath(hookPath: string | undefined): boolean {
-  if (!hookPath) return false;
+  if (!hookPath) {
+    return false;
+  }
   return hookPath === "gmail" || hookPath.startsWith("gmail-");
 }
 
@@ -40,7 +42,9 @@ export type ResolvedGmailAccount = { accountId: string; account: string };
 /** Every configured mailbox, sorted by account id so callers and evidence are deterministic. */
 export function resolveGmailHookAccounts(cfg: OpenClawConfig): ResolvedGmailAccount[] {
   const gmail = cfg.hooks?.gmail;
-  if (!gmail) return [];
+  if (!gmail) {
+    return [];
+  }
   const named = gmail.accounts ?? {};
   const ids = Object.keys(named);
   if (ids.length === 0) {
@@ -57,7 +61,9 @@ export function resolveGmailHookAccounts(cfg: OpenClawConfig): ResolvedGmailAcco
     const account = named[accountId]?.account?.trim() ?? "";
     // An address is per-account by definition; a root `account` is the DEFAULT account's address,
     // never a fallback for a named one.
-    if (account) resolved.push({ accountId, account });
+    if (account) {
+      resolved.push({ accountId, account });
+    }
   }
   return resolved;
 }

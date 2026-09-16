@@ -22,7 +22,11 @@ describe("provisionMemberAgent", () => {
   });
 
   it("passes no workspace and no model, so both are inherited", async () => {
-    const request = vi.fn(async () => ({ ok: true, agentId: "amit", workspace: "/w/amit" }));
+    const request = vi.fn(async (_method: string, _params: Record<string, unknown>) => ({
+      ok: true,
+      agentId: "amit",
+      workspace: "/w/amit",
+    }));
     // SAFETY: as above.
     await provisionMemberAgent({ request: request as never, name: "Amit" });
     const [, params] = request.mock.calls[0] ?? [];

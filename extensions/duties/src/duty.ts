@@ -66,7 +66,7 @@ const DELIVER_ROUTES = ["trigger", "owner"] as const;
  *  `explicit` is already true for a `team:` target and the existing branch below already makes
  *  `params.channel` required for it — the owner's "always name the channel too" rule is enforced by
  *  code that is already there. */
-export const TEAM_ROUTE_PREFIX = "team:";
+const TEAM_ROUTE_PREFIX = "team:";
 
 /** "team:ramesh" -> "ramesh"; anything else -> null. */
 export function parseTeamDeliverTarget(to: string): string | null {
