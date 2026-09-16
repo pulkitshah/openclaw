@@ -173,6 +173,7 @@ export default definePluginEntry({
     const resolveRoute = createRouteResolver({
       ownerTarget,
       sessionRoute: sessionRouteFromStore,
+      teamMember: (id) => store.getMember(id),
     });
     // Asks and run status lines are owner-facing: they go to the origin chat only when that chat
     // is the owner's own, never to a group the Duty happened to be triggered from.

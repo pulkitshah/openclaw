@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { resolvePlaceholders, validateDuty, validateRunInputs, type Duty } from "./duty.js";
+import {
+  parseTeamDeliverTarget,
+  resolvePlaceholders,
+  validateDuty,
+  validateRunInputs,
+  type Duty,
+} from "./duty.js";
 
 const base = {
   id: "book-flight",
@@ -671,5 +677,61 @@ describe("Part 2 model", () => {
         sheet: { name: "x" },
       }),
     ).toEqual(['input "sheet": path must be a string']);
+  });
+});
+
+describe("deliver to a Team member", () => {
+  const base = (params: Record<string, unknown>) => ({
+    id: "t",
+    name: "T",
+    summary: "",
+    status: "active",
+    machine: "gateway",
+    reportsTo: "owner",
+    inputs: [],
+    triggers: [{ kind: "manual" }],
+    updatedAt: 1,
+    steps: [{ id: "s1", label: "Send it", kind: "deliver", params }],
+  });
+
+  it("accepts to: team:<id> when a channel is named", () => {
+    expect(validateDuty(base({ to: "team:ramesh", channel: "whatsapp", text: "done" })).ok).toBe(
+      true,
+    );
+  });
+
+  it("rejects to: team:<id> with no channel, naming what is missing", () => {
+    const result = validateDuty(base({ to: "team:ramesh", text: "done" }));
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.join("\n")).toContain(
+        'channel: required when to is not "trigger" or "owner"',
+      );
+    }
+  });
+
+  it("names team:<memberId> in the bad-target message", () => {
+    const result = validateDuty(base({ to: "", text: "done" }));
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors.join("\n")).toContain(
+        '.to: must be "trigger", "owner", "team:<memberId>", or a channel target',
+      );
+    }
+  });
+
+  it("leaves an existing owner-routed Duty valid and unchanged", () => {
+    expect(validateDuty(base({ to: "owner", text: "done" })).ok).toBe(true);
+    expect(validateDuty(base({ to: "trigger", text: "done" })).ok).toBe(true);
+  });
+});
+
+describe("parseTeamDeliverTarget", () => {
+  it("returns the member id for a team: target and null for anything else", () => {
+    expect(parseTeamDeliverTarget("team:ramesh")).toBe("ramesh");
+    expect(parseTeamDeliverTarget("team:  ramesh  ")).toBe("ramesh");
+    expect(parseTeamDeliverTarget("team:")).toBeNull();
+    expect(parseTeamDeliverTarget("owner")).toBeNull();
+    expect(parseTeamDeliverTarget("+919812345678")).toBeNull();
   });
 });
