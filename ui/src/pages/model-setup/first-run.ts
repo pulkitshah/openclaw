@@ -10,7 +10,7 @@ import { TERMINAL_FIRST_RUN_SEARCH } from "../terminal/first-run-command.ts";
 export type FirstRunSetupDestination = { routeId: RouteId; search: string };
 
 /** Onboarding for a connection that cannot open a terminal. */
-export const MODEL_SETUP_FIRST_RUN_DESTINATION: FirstRunSetupDestination = {
+const MODEL_SETUP_FIRST_RUN_DESTINATION: FirstRunSetupDestination = {
   routeId: "model-setup",
   search: "?firstRun=1",
 };
@@ -23,7 +23,7 @@ export const MODEL_SETUP_FIRST_RUN_DESTINATION: FirstRunSetupDestination = {
  * advertise it, or a connection without operator.admin — a fresh install is
  * never left stranded on the default Chat landing.
  */
-export function firstRunSetupDestination(
+function firstRunSetupDestination(
   context: Pick<ApplicationContext<RouteId>, "gateway" | "config">,
 ): FirstRunSetupDestination {
   return isTerminalAvailable(

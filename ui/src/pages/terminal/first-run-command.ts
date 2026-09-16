@@ -10,7 +10,7 @@ import {
 } from "../../app-route-paths.ts";
 
 /** Marks the one terminal navigation that must type the guided setup. */
-export const TERMINAL_FIRST_RUN_PARAM = "firstRun";
+const TERMINAL_FIRST_RUN_PARAM = "firstRun";
 export const TERMINAL_FIRST_RUN_SEARCH = `?${TERMINAL_FIRST_RUN_PARAM}=1`;
 
 // The Control UI already is the Gateway's UI and health surface, and the daemon
