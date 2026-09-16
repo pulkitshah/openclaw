@@ -8,6 +8,13 @@ import {
 } from "@openclaw/normalization-core/string-coerce";
 import { resolveConfigPathCandidate } from "../config/paths.js";
 import type { HookMappingConfig, HooksConfig, HookSessionMode } from "../config/types.hooks.js";
+import type { OpenClawConfig } from "../config/types.openclaw.js";
+import {
+  GMAIL_DEFAULT_ACCOUNT_ID,
+  gmailHookPathForAccount,
+  isGmailHookPath,
+  resolveGmailHookAccounts,
+} from "../hooks/gmail-accounts.js";
 import { resolveGmailHookMaxBytes } from "../hooks/gmail.js";
 import { importFileModule, resolveFunctionModuleExport } from "../hooks/module-loader.js";
 import { isPathInside } from "../infra/path-guards.js";
@@ -117,24 +124,61 @@ function resolveGmailHookMaxBodyBytes(maxBytes: number): number {
   );
 }
 
-const hookPresetMappings: Record<string, HookMappingConfig[]> = {
-  gmail: [
-    {
-      id: "gmail",
-      match: { path: "gmail" },
-      action: "agent",
-      wakeMode: "now",
-      name: "Gmail",
-      // forEach dispatches one isolated run per pushed message; the templates
-      // below render against a payload holding only the current message, so
-      // messages[0] means "this message", not "the first of the batch".
-      forEach: "messages",
-      sessionKey: "hook:gmail:{{messages[0].id}}",
-      messageTemplate:
-        "New email from {{messages[0].from}}\nSubject: {{messages[0].subject}}\n{{messages[0].snippet}}\n{{messages[0].body}}",
-    },
-  ],
-};
+// "gmail" is the only preset today; it is handled specially in resolveHookMappings because it
+// expands to one entry per configured mailbox (src/hooks/gmail-accounts.ts) instead of a fixed
+// list. Keep this record for any future static preset.
+const hookPresetMappings: Record<string, HookMappingConfig[]> = {};
+
+function resolveGmailAccountAllowUnsafe(
+  gmail: HooksConfig["gmail"],
+  accountId: string,
+): boolean | undefined {
+  const named = accountId === GMAIL_DEFAULT_ACCOUNT_ID ? undefined : gmail?.accounts?.[accountId];
+  const value = named?.allowUnsafeExternalContent ?? gmail?.allowUnsafeExternalContent;
+  return typeof value === "boolean" ? value : undefined;
+}
+
+function buildGmailPresetMapping(
+  gmail: HooksConfig["gmail"],
+  accountId: string,
+): HookMappingConfig {
+  const isDefault = accountId === GMAIL_DEFAULT_ACCOUNT_ID;
+  const allowUnsafeExternalContent = resolveGmailAccountAllowUnsafe(gmail, accountId);
+  return {
+    id: isDefault ? "gmail" : `gmail-${accountId}`,
+    match: { path: gmailHookPathForAccount(accountId) },
+    action: "agent",
+    wakeMode: "now",
+    name: "Gmail",
+    // forEach dispatches one isolated run per pushed message; the templates
+    // below render against a payload holding only the current message, so
+    // messages[0] means "this message", not "the first of the batch".
+    forEach: "messages",
+    // Two mailboxes must not collide on a Gmail message id. The default account keeps the
+    // existing key exactly, so nothing already deployed changes.
+    sessionKey: isDefault
+      ? "hook:gmail:{{messages[0].id}}"
+      : `hook:gmail:${accountId}:{{messages[0].id}}`,
+    messageTemplate:
+      "New email from {{messages[0].from}}\nSubject: {{messages[0].subject}}\n{{messages[0].snippet}}\n{{messages[0].body}}",
+    ...(typeof allowUnsafeExternalContent === "boolean" ? { allowUnsafeExternalContent } : {}),
+  };
+}
+
+/** One preset entry per configured mailbox, sorted by account id (resolveGmailHookAccounts's own
+ *  order) so mapping precedence is deterministic. With no `hooks.gmail.accounts` configured (or
+ *  none of them carrying an address), this is the single pre-existing default-account entry,
+ *  regardless of whether an address is actually configured — the same as the old static preset,
+ *  so unconfigured desks that list the "gmail" preset still get a matchable "gmail" path. */
+function buildGmailPresetMappings(hooks: HooksConfig | undefined): HookMappingConfig[] {
+  const gmail = hooks?.gmail;
+  // SAFETY: resolveGmailHookAccounts only reads cfg.hooks?.gmail; this call site only has the
+  // HooksConfig slice, not a full OpenClawConfig.
+  const accounts = resolveGmailHookAccounts({ hooks } as OpenClawConfig);
+  const accountIds =
+    accounts.length > 0 ? accounts.map((entry) => entry.accountId) : [GMAIL_DEFAULT_ACCOUNT_ID];
+  return accountIds.map((accountId) => buildGmailPresetMapping(gmail, accountId));
+}
 
 const transformCache = new Map<string, HookTransformFn>();
 let transformCacheBustVersion = 0;
@@ -168,29 +212,36 @@ type HookTransformFn = (
   ctx: HookMappingContext,
 ) => HookTransformResult | Promise<HookTransformResult>;
 
+/** The producer-derived body bound for the gmail-path mapping at `matchPath`, using THAT
+ *  account's own `maxBytes` override so a mailbox configured for larger messages is never
+ *  undersized — an undersized bound wedges inbound mail permanently (see the comment on
+ *  GMAIL_HOOK_PER_MESSAGE_OVERHEAD_BYTES above). A custom mapping path that does not name a
+ *  configured account (the documented custom restricted reader) falls back to the root/default
+ *  value, same as before this function existed. */
+function resolveGmailMaxBodyBytesForPath(gmail: HooksConfig["gmail"], matchPath: string): number {
+  const accountId =
+    matchPath === "gmail" ? GMAIL_DEFAULT_ACCOUNT_ID : matchPath.replace(/^gmail-/, "");
+  const named = accountId === GMAIL_DEFAULT_ACCOUNT_ID ? undefined : gmail?.accounts?.[accountId];
+  return resolveGmailHookMaxBodyBytes(resolveGmailHookMaxBytes(named?.maxBytes ?? gmail?.maxBytes));
+}
+
 /** Resolve configured hook mappings plus preset mappings into normalized matcher entries. */
 export function resolveHookMappings(
   hooks?: HooksConfig,
   opts?: { configDir?: string },
 ): HookMappingResolved[] {
   const presets = hooks?.presets ?? [];
-  const gmailAllowUnsafe = hooks?.gmail?.allowUnsafeExternalContent;
   const mappings: HookMappingConfig[] = [];
   if (hooks?.mappings) {
     mappings.push(...hooks.mappings);
   }
   for (const preset of presets) {
-    const presetMappings = hookPresetMappings[preset];
-    if (!presetMappings) {
+    if (preset === "gmail") {
+      mappings.push(...buildGmailPresetMappings(hooks));
       continue;
     }
-    if (preset === "gmail" && typeof gmailAllowUnsafe === "boolean") {
-      mappings.push(
-        ...presetMappings.map((mapping) => ({
-          ...mapping,
-          allowUnsafeExternalContent: gmailAllowUnsafe,
-        })),
-      );
+    const presetMappings = hookPresetMappings[preset];
+    if (!presetMappings) {
       continue;
     }
     mappings.push(...presetMappings);
@@ -207,16 +258,14 @@ export function resolveHookMappings(
     "Hook transformsDir",
   );
 
-  const gmailMaxBodyBytes = resolveGmailHookMaxBodyBytes(
-    resolveGmailHookMaxBytes(hooks?.gmail?.maxBytes),
-  );
   return mappings.map((mapping, index) => {
     const normalized = normalizeHookMapping(mapping, index, transformsDir);
-    // Every gmail-path mapping (preset or the documented custom restricted
-    // reader) receives gog's batch payloads, so all of them inherit the
-    // producer-derived body bound.
-    if (normalized.matchPath === "gmail") {
-      normalized.maxBodyBytes = gmailMaxBodyBytes;
+    // Every gmail-path mapping (preset or the documented custom restricted reader) receives
+    // gog's batch payloads, so all of them inherit the producer-derived body bound.
+    // `isGmailHookPath` covers the default account's `gmail` and each named account's
+    // `gmail-<accountId>`.
+    if (normalized.matchPath && isGmailHookPath(normalized.matchPath)) {
+      normalized.maxBodyBytes = resolveGmailMaxBodyBytesForPath(hooks?.gmail, normalized.matchPath);
     }
     return normalized;
   });

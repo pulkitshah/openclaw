@@ -6,8 +6,8 @@
  * - `hooks.enabled` / `hooks.mappings` / `hooks.gmail` — `HooksConfig`
  *   (src/config/types.hooks.ts:29-60), reached from `OpenClawConfig.hooks`
  *   (src/config/types.openclaw.ts:236).
- * - `hooks.gmail.account` — optional string on `HooksGmailConfigInput`
- *   (src/config/zod-schema.hooks.ts:106,146).
+ * - `hooks.gmail.account` / `hooks.gmail.accounts.*.account` — optional strings on
+ *   `HooksGmailConfigInput` (src/config/zod-schema.hooks.ts:106,151,180).
  * - `hooks.mappings[].agentId` — optional string on `HookMappingConfigInput`
  *   (src/config/zod-schema.hooks.ts:46,76).
  * - `agents.entries` — `Record<string, AgentEntryConfig>` (src/config/types.agents.ts:113).
@@ -26,20 +26,37 @@ export type MailStatus = {
   configured: boolean;
   hooksEnabled: boolean;
   gmailAccountSet: boolean;
+  /** How many Gmail mailboxes are configured: the root `hooks.gmail.account` counts as one, or
+   *  each `hooks.gmail.accounts.*` entry that carries its own address counts (root address is
+   *  ignored once named accounts exist — see `src/hooks/gmail-accounts.ts`). Never the address(es)
+   *  themselves, same as `gmailAccountSet`. */
+  gmailAccountCount: number;
   mappingPresent: boolean;
   agentPresent: boolean;
   lastDispatchAt?: number;
   lastDispatchDutyId?: string;
 };
 
-/** Never returns the Gmail address itself (only whether one is set) or any hook token: this is a
- *  readiness readout, shown on the Duties page and printed by the CLI. */
+/** Counted here rather than imported from core: `extensions/**` must not import `src/**`
+ *  (extensions/AGENTS.md), and this is a readiness readout, not the resolution owner. */
+function countGmailAccounts(hooks: OpenClawConfig["hooks"]): number {
+  const named = Object.values(hooks?.gmail?.accounts ?? {}).filter(
+    (entry) => typeof entry?.account === "string" && entry.account.length > 0,
+  ).length;
+  if (named > 0) return named;
+  return typeof hooks?.gmail?.account === "string" && hooks.gmail.account.length > 0 ? 1 : 0;
+}
+
+/** Never returns the Gmail address itself (only whether/how many are set) or any hook token: this
+ *  is a readiness readout, shown on the Duties page and printed by the CLI. */
 export function mailStatusFromConfig(config: OpenClawConfig, settings: DutiesSettings): MailStatus {
   const hooks = config.hooks;
+  const gmailAccountCount = countGmailAccounts(hooks);
   return {
     configured: hooks !== undefined,
     hooksEnabled: hooks?.enabled === true,
-    gmailAccountSet: typeof hooks?.gmail?.account === "string" && hooks.gmail.account.length > 0,
+    gmailAccountSet: gmailAccountCount > 0,
+    gmailAccountCount,
     mappingPresent: (hooks?.mappings ?? []).some((m) => m.agentId === MAIL_AGENT_ID),
     agentPresent: config.agents?.entries?.[MAIL_AGENT_ID] !== undefined,
     ...(settings.lastMailDispatchAt !== undefined

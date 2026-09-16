@@ -14,6 +14,7 @@ import { formatCommandResult } from "../process/command-error.js";
 import { runCommandWithTimeout } from "../process/exec.js";
 import { killProcessTree } from "../process/kill-tree.js";
 import { hasBinary } from "../skills/loading/config.js";
+import { resolveGmailHookAccounts } from "./gmail-accounts.js";
 import { ensureTailscaleEndpoint } from "./gmail-setup-utils.js";
 import { isAddressInUseError } from "./gmail-watcher-errors.js";
 import {
@@ -29,13 +30,36 @@ import {
 const log = createSubsystemLogger("gmail-watcher");
 const GMAIL_WATCHER_STDERR_TAIL_CHARS = 512;
 
-let watcherProcess: ChildProcess | null = null;
-let renewInterval: ReturnType<typeof setInterval> | null = null;
-let renewalInFlight: Promise<boolean> | null = null;
-let renewalAbortController: AbortController | null = null;
-let shuttingDown = false;
-let currentConfig: GmailHookRuntimeConfig | null = null;
-let respawnTimeout: ReturnType<typeof setTimeout> | null = null;
+type GmailWatcherState = {
+  watcherProcess: ChildProcess | null;
+  renewInterval: ReturnType<typeof setInterval> | null;
+  renewalInFlight: Promise<boolean> | null;
+  renewalAbortController: AbortController | null;
+  shuttingDown: boolean;
+  currentConfig: GmailHookRuntimeConfig | null;
+  respawnTimeout: ReturnType<typeof setTimeout> | null;
+};
+
+/** One `gog serve` process per mailbox. Keyed by account id, so starting or stopping one mailbox
+ *  never disturbs another; `stopGmailWatcher()` with no argument still stops every one. */
+const watchers = new Map<string, GmailWatcherState>();
+
+function watcherFor(accountId: string): GmailWatcherState {
+  let state = watchers.get(accountId);
+  if (!state) {
+    state = {
+      watcherProcess: null,
+      renewInterval: null,
+      renewalInFlight: null,
+      renewalAbortController: null,
+      shuttingDown: false,
+      currentConfig: null,
+      respawnTimeout: null,
+    };
+    watchers.set(accountId, state);
+  }
+  return state;
+}
 
 /**
  * Start the Gmail watch (registers with Gmail API)
@@ -65,7 +89,7 @@ async function startGmailWatch(
 /**
  * Spawn the gog gmail watch serve process
  */
-function spawnGogServe(cfg: GmailHookRuntimeConfig): ChildProcess {
+function spawnGogServe(cfg: GmailHookRuntimeConfig, state: GmailWatcherState): ChildProcess {
   const args = buildGogWatchServeArgs(cfg);
   log.info(`starting gog ${buildGogWatchServeLogArgs(cfg).join(" ")}`);
   let addressInUse = false;
@@ -122,7 +146,12 @@ function spawnGogServe(cfg: GmailHookRuntimeConfig): ChildProcess {
   child.once("exit", () => {
     // The detached POSIX group remains ours after its leader dies. Windows
     // taskkill requires a live root PID; only bound inherited-pipe drain there.
-    if (!shuttingDown && watcherProcess === child && process.platform !== "win32" && child.pid) {
+    if (
+      !state.shuttingDown &&
+      state.watcherProcess === child &&
+      process.platform !== "win32" &&
+      child.pid
+    ) {
       killProcessTree(child.pid, { force: true, detached: true });
     }
   });
@@ -130,11 +159,11 @@ function spawnGogServe(cfg: GmailHookRuntimeConfig): ChildProcess {
   // `close` follows bounded stdio drain, so late stderr still classifies bind failures.
   child.once("close", (code, signal) => {
     releaseOutput();
-    if (shuttingDown || watcherProcess !== child) {
+    if (state.shuttingDown || state.watcherProcess !== child) {
       return;
     }
     if (spawnFailed) {
-      watcherProcess = null;
+      state.watcherProcess = null;
       return;
     }
     if (addressInUse) {
@@ -142,17 +171,17 @@ function spawnGogServe(cfg: GmailHookRuntimeConfig): ChildProcess {
         "gog serve failed to bind (address already in use); stopping restarts. " +
           "Another watcher is likely running. Set OPENCLAW_SKIP_GMAIL_WATCHER=1 or stop the other process.",
       );
-      watcherProcess = null;
+      state.watcherProcess = null;
       return;
     }
     log.warn(`gog exited (code=${code}, signal=${signal}); restarting in 5s`);
-    watcherProcess = null;
-    respawnTimeout = setTimeout(() => {
-      respawnTimeout = null;
-      if (shuttingDown || !currentConfig) {
+    state.watcherProcess = null;
+    state.respawnTimeout = setTimeout(() => {
+      state.respawnTimeout = null;
+      if (state.shuttingDown || !state.currentConfig) {
         return;
       }
-      watcherProcess = spawnGogServe(currentConfig);
+      state.watcherProcess = spawnGogServe(state.currentConfig, state);
     }, 5000);
   });
 
@@ -236,26 +265,26 @@ function settleProcess(proc: ChildProcess): Promise<void> {
   });
 }
 
-async function stopPeriodicRenewal(): Promise<void> {
-  if (renewInterval) {
-    clearInterval(renewInterval);
-    renewInterval = null;
+async function stopPeriodicRenewal(state: GmailWatcherState): Promise<void> {
+  if (state.renewInterval) {
+    clearInterval(state.renewInterval);
+    state.renewInterval = null;
   }
 
-  const renewal = renewalInFlight;
-  const controller = renewalAbortController;
+  const renewal = state.renewalInFlight;
+  const controller = state.renewalAbortController;
   if (!renewal) {
-    renewalAbortController = null;
+    state.renewalAbortController = null;
     return;
   }
 
   controller?.abort();
   await renewal;
-  if (renewalInFlight === renewal) {
-    renewalInFlight = null;
+  if (state.renewalInFlight === renewal) {
+    state.renewalInFlight = null;
   }
-  if (renewalAbortController === controller) {
-    renewalAbortController = null;
+  if (state.renewalAbortController === controller) {
+    state.renewalAbortController = null;
   }
 }
 
@@ -270,27 +299,29 @@ type GmailWatcherStartOptions = {
 
 function cancelledGmailWatcherStart(
   expectedConfig: GmailHookRuntimeConfig,
+  state: GmailWatcherState,
 ): GmailWatcherStartResult {
-  if (currentConfig === expectedConfig) {
-    currentConfig = null;
+  if (state.currentConfig === expectedConfig) {
+    state.currentConfig = null;
   }
   return { started: false, reason: "startup cancelled" };
 }
 
 /**
- * Start the Gmail watcher service.
+ * Start the Gmail watcher service: one `gog serve` process per configured mailbox.
  * Called automatically by the gateway if hooks.gmail is configured.
  */
 export async function startGmailWatcher(
   cfg: OpenClawConfig,
   options: GmailWatcherStartOptions = {},
 ): Promise<GmailWatcherStartResult> {
-  // Check if gmail hooks are configured
+  // Check if hooks are enabled
   if (!cfg.hooks?.enabled) {
     return { started: false, reason: "hooks not enabled" };
   }
 
-  if (!cfg.hooks?.gmail?.account) {
+  const accounts = resolveGmailHookAccounts(cfg);
+  if (accounts.length === 0) {
     return { started: false, reason: "no gmail account configured" };
   }
 
@@ -299,13 +330,37 @@ export async function startGmailWatcher(
     return { started: false, reason: "gog binary not found" };
   }
 
-  // Resolve the full runtime config
-  const resolved = resolveGmailHookRuntimeConfig(cfg, {});
-  if (!resolved.ok) {
-    return { started: false, reason: resolved.error };
+  // The common case (and every already-deployed config) has exactly one mailbox. Keep that
+  // path's result shape byte-identical — no per-account prefix on the reason string — so callers
+  // matching specific reason text (gmail-watcher-lifecycle.ts, existing tests) keep working
+  // unchanged.
+  const onlyAccount = accounts.length === 1 ? accounts[0] : undefined;
+  if (onlyAccount) {
+    const resolved = resolveGmailHookRuntimeConfig(cfg, { accountId: onlyAccount.accountId });
+    if (!resolved.ok) {
+      return { started: false, reason: resolved.error };
+    }
+    return startGmailWatcherService(resolved.value, options);
   }
 
-  return startGmailWatcherService(resolved.value, options);
+  // Multiple mailboxes: one misconfigured or failed account must not stop the others, so start
+  // every account and aggregate the outcome.
+  const reasons: string[] = [];
+  let started = false;
+  for (const { accountId } of accounts) {
+    const resolved = resolveGmailHookRuntimeConfig(cfg, { accountId });
+    if (!resolved.ok) {
+      reasons.push(`${accountId}: ${resolved.error}`);
+      continue;
+    }
+    const result = await startGmailWatcherService(resolved.value, options);
+    if (result.started) {
+      started = true;
+    } else {
+      reasons.push(`${accountId}: ${result.reason ?? "not started"}`);
+    }
+  }
+  return started ? { started: true } : { started: false, reason: reasons.join("; ") };
 }
 
 /** Start the shared watcher lifecycle after the caller resolves config and prerequisites. */
@@ -313,28 +368,34 @@ export async function startGmailWatcherService(
   runtimeConfig: GmailHookRuntimeConfig,
   options: GmailWatcherStartOptions = {},
 ): Promise<GmailWatcherStartResult> {
+  const state = watcherFor(runtimeConfig.accountId);
   if (options.signal?.aborted) {
-    return cancelledGmailWatcherStart(runtimeConfig);
+    return cancelledGmailWatcherStart(runtimeConfig, state);
   }
-  currentConfig = runtimeConfig;
+  state.currentConfig = runtimeConfig;
 
   // Stop any existing watcher before doing async setup so a re-entry
   // does not orphan the old serve process or leave a dangling timer.
   // This must run before Tailscale/watch-start to prevent the old
   // process from exiting and queuing a respawn during async work.
-  if (watcherProcess || renewInterval || renewalInFlight || respawnTimeout) {
-    shuttingDown = true;
-    if (respawnTimeout) {
-      clearTimeout(respawnTimeout);
-      respawnTimeout = null;
+  if (
+    state.watcherProcess ||
+    state.renewInterval ||
+    state.renewalInFlight ||
+    state.respawnTimeout
+  ) {
+    state.shuttingDown = true;
+    if (state.respawnTimeout) {
+      clearTimeout(state.respawnTimeout);
+      state.respawnTimeout = null;
     }
-    await stopPeriodicRenewal();
-    if (watcherProcess) {
-      const oldProcess = watcherProcess;
-      watcherProcess = null;
+    await stopPeriodicRenewal(state);
+    if (state.watcherProcess) {
+      const oldProcess = state.watcherProcess;
+      state.watcherProcess = null;
       await settleProcess(oldProcess);
     }
-    shuttingDown = false;
+    state.shuttingDown = false;
   }
 
   // Set up Tailscale endpoint if needed
@@ -351,11 +412,11 @@ export async function startGmailWatcherService(
         `tailscale ${runtimeConfig.tailscale.mode} configured for port ${runtimeConfig.serve.port}`,
       );
       if (options.signal?.aborted) {
-        return cancelledGmailWatcherStart(runtimeConfig);
+        return cancelledGmailWatcherStart(runtimeConfig, state);
       }
     } catch (err) {
       if (options.signal?.aborted) {
-        return cancelledGmailWatcherStart(runtimeConfig);
+        return cancelledGmailWatcherStart(runtimeConfig, state);
       }
       log.error(`tailscale setup failed: ${String(err)}`);
       return {
@@ -368,31 +429,31 @@ export async function startGmailWatcherService(
   // Start the Gmail watch (register with Gmail API)
   const watchStarted = await startGmailWatch(runtimeConfig, { signal: options.signal });
   if (options.signal?.aborted) {
-    return cancelledGmailWatcherStart(runtimeConfig);
+    return cancelledGmailWatcherStart(runtimeConfig, state);
   }
   if (!watchStarted) {
     log.warn("gmail watch start failed, but continuing with serve");
   }
 
   // Spawn the gog serve process
-  shuttingDown = false;
-  watcherProcess = spawnGogServe(runtimeConfig);
+  state.shuttingDown = false;
+  state.watcherProcess = spawnGogServe(runtimeConfig, state);
   const renewMs = runtimeConfig.renewEveryMinutes * 60_000;
-  renewInterval = setInterval(() => {
-    if (shuttingDown || renewalInFlight) {
+  state.renewInterval = setInterval(() => {
+    if (state.shuttingDown || state.renewalInFlight) {
       return;
     }
     const controller = new AbortController();
-    renewalAbortController = controller;
+    state.renewalAbortController = controller;
     const renewal = startGmailWatch(runtimeConfig, { signal: controller.signal }).finally(() => {
-      if (renewalInFlight === renewal) {
-        renewalInFlight = null;
+      if (state.renewalInFlight === renewal) {
+        state.renewalInFlight = null;
       }
-      if (renewalAbortController === controller) {
-        renewalAbortController = null;
+      if (state.renewalAbortController === controller) {
+        state.renewalAbortController = null;
       }
     });
-    renewalInFlight = renewal;
+    state.renewalInFlight = renewal;
   }, renewMs);
 
   log.info(
@@ -403,24 +464,36 @@ export async function startGmailWatcherService(
 }
 
 /**
- * Stop the Gmail watcher service.
+ * Stop the Gmail watcher service for one account, or every running account when `accountId` is
+ * omitted (the gateway's own shutdown path, `src/gateway/server-close.ts`, always omits it).
  */
-export async function stopGmailWatcher(): Promise<void> {
-  shuttingDown = true;
-
-  if (respawnTimeout) {
-    clearTimeout(respawnTimeout);
-    respawnTimeout = null;
+export async function stopGmailWatcher(accountId?: string): Promise<void> {
+  const ids = accountId ? [accountId] : [...watchers.keys()];
+  for (const id of ids) {
+    await stopOneGmailWatcher(id);
   }
-  await stopPeriodicRenewal();
+}
 
-  if (watcherProcess) {
+async function stopOneGmailWatcher(accountId: string): Promise<void> {
+  const state = watcherFor(accountId);
+  state.shuttingDown = true;
+
+  if (state.respawnTimeout) {
+    clearTimeout(state.respawnTimeout);
+    state.respawnTimeout = null;
+  }
+  await stopPeriodicRenewal(state);
+
+  if (state.watcherProcess) {
     log.info("stopping gmail watcher");
-    const proc = watcherProcess;
-    watcherProcess = null;
+    const proc = state.watcherProcess;
+    state.watcherProcess = null;
     await settleProcess(proc);
   }
 
-  currentConfig = null;
+  state.currentConfig = null;
   log.info("gmail watcher stopped");
+  // Drop the entry so a churned-away account does not leak an empty state object forever, and so
+  // a future start for this id begins from a clean slate.
+  watchers.delete(accountId);
 }

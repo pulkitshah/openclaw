@@ -8,6 +8,7 @@ describe("mailStatusFromConfig", () => {
       configured: false,
       hooksEnabled: false,
       gmailAccountSet: false,
+      gmailAccountCount: 0,
       mappingPresent: false,
       agentPresent: false,
     });
@@ -27,6 +28,7 @@ describe("mailStatusFromConfig", () => {
       hooksEnabled: true,
       // An empty account string is not a configured mailbox.
       gmailAccountSet: false,
+      gmailAccountCount: 0,
       // A mapping that routes to another agent does not feed Duties.
       mappingPresent: false,
       agentPresent: false,
@@ -50,6 +52,7 @@ describe("mailStatusFromConfig", () => {
       configured: true,
       hooksEnabled: true,
       gmailAccountSet: true,
+      gmailAccountCount: 1,
       mappingPresent: true,
       agentPresent: true,
       lastDispatchAt: 1700000000000,
@@ -57,5 +60,26 @@ describe("mailStatusFromConfig", () => {
     });
     // The readout says a mailbox is configured; it never repeats the address itself.
     expect(JSON.stringify(status)).not.toContain("owner@example.com");
+  });
+
+  it("counts named accounts and still never returns an address", () => {
+    const status = mailStatusFromConfig(
+      // SAFETY: fixture narrowing; only the keys this readout reads are set.
+      {
+        hooks: {
+          enabled: true,
+          gmail: {
+            accounts: {
+              orders: { account: "orders@prasthan.in" },
+              enquiries: { account: "enquiries@prasthan.in" },
+            },
+          },
+        },
+      } as OpenClawConfig,
+      {},
+    );
+    expect(status.gmailAccountSet).toBe(true);
+    expect(status.gmailAccountCount).toBe(2);
+    expect(JSON.stringify(status)).not.toContain("prasthan.in");
   });
 });
