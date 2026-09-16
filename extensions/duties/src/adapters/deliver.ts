@@ -164,7 +164,9 @@ export function createRouteResolver(params: {
     return { channel: target.channel, to: target.target };
   };
   return async (to, channel, origin) => {
-    if (to === "owner") return owner();
+    if (to === "owner") {
+      return owner();
+    }
     if (to === "trigger") {
       const route = origin?.kind === "chat" ? params.sessionRoute(origin) : undefined;
       return route ?? owner();
@@ -176,7 +178,9 @@ export function createRouteResolver(params: {
       // hand-edited, and a wrong delivery is worse than a failed step. There is no "whichever
       // channel they are reachable on", no fallback to the owner and no fallback to their first
       // identity: a delivery that cannot land must say so at the step.
-      if (!channel) throw new Error(`deliver to "${to}" needs a channel`);
+      if (!channel) {
+        throw new Error(`deliver to "${to}" needs a channel`);
+      }
       const member = await params.teamMember(memberId);
       if (!member) {
         throw new Error(
@@ -196,7 +200,9 @@ export function createRouteResolver(params: {
       };
     }
 
-    if (!channel) throw new Error(`deliver to "${to}" needs a channel`);
+    if (!channel) {
+      throw new Error(`deliver to "${to}" needs a channel`);
+    }
     return { channel, to };
   };
 }

@@ -681,7 +681,7 @@ describe("Part 2 model", () => {
 });
 
 describe("deliver to a Team member", () => {
-  const base = (params: Record<string, unknown>) => ({
+  const teamDeliverDuty = (params: Record<string, unknown>) => ({
     id: "t",
     name: "T",
     summary: "",
@@ -695,13 +695,13 @@ describe("deliver to a Team member", () => {
   });
 
   it("accepts to: team:<id> when a channel is named", () => {
-    expect(validateDuty(base({ to: "team:ramesh", channel: "whatsapp", text: "done" })).ok).toBe(
-      true,
-    );
+    expect(
+      validateDuty(teamDeliverDuty({ to: "team:ramesh", channel: "whatsapp", text: "done" })).ok,
+    ).toBe(true);
   });
 
   it("rejects to: team:<id> with no channel, naming what is missing", () => {
-    const result = validateDuty(base({ to: "team:ramesh", text: "done" }));
+    const result = validateDuty(teamDeliverDuty({ to: "team:ramesh", text: "done" }));
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.errors.join("\n")).toContain(
@@ -711,7 +711,7 @@ describe("deliver to a Team member", () => {
   });
 
   it("names team:<memberId> in the bad-target message", () => {
-    const result = validateDuty(base({ to: "", text: "done" }));
+    const result = validateDuty(teamDeliverDuty({ to: "", text: "done" }));
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.errors.join("\n")).toContain(
@@ -721,8 +721,8 @@ describe("deliver to a Team member", () => {
   });
 
   it("leaves an existing owner-routed Duty valid and unchanged", () => {
-    expect(validateDuty(base({ to: "owner", text: "done" })).ok).toBe(true);
-    expect(validateDuty(base({ to: "trigger", text: "done" })).ok).toBe(true);
+    expect(validateDuty(teamDeliverDuty({ to: "owner", text: "done" })).ok).toBe(true);
+    expect(validateDuty(teamDeliverDuty({ to: "trigger", text: "done" })).ok).toBe(true);
   });
 });
 

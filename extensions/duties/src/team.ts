@@ -71,7 +71,9 @@ export function normalizeTeamMemberId(raw: string): string {
 /** Sorted for display and for every projection: the owner first, then members by name. */
 export function sortTeamMembers(members: readonly TeamMember[]): TeamMember[] {
   return [...members].toSorted((a, b) => {
-    if (a.role !== b.role) return a.role === "owner" ? -1 : 1;
+    if (a.role !== b.role) {
+      return a.role === "owner" ? -1 : 1;
+    }
     return a.name.localeCompare(b.name);
   });
 }
@@ -94,7 +96,9 @@ export function teamChannels(members: readonly TeamMember[]): string[] {
   const seen: string[] = [];
   for (const member of sortTeamMembers(members)) {
     for (const identity of member.channels) {
-      if (!seen.includes(identity.channel)) seen.push(identity.channel);
+      if (!seen.includes(identity.channel)) {
+        seen.push(identity.channel);
+      }
     }
   }
   return seen;
@@ -108,7 +112,9 @@ export function teamAccessGroup(members: readonly TeamMember[]): TeamAccessGroup
   for (const member of sortTeamMembers(members)) {
     for (const identity of member.channels) {
       const list = (byChannel[identity.channel] ??= []);
-      if (!list.includes(identity.senderId)) list.push(identity.senderId);
+      if (!list.includes(identity.senderId)) {
+        list.push(identity.senderId);
+      }
     }
   }
   return { type: "message.senders", members: byChannel };
@@ -120,7 +126,9 @@ export function teamAccessGroup(members: readonly TeamMember[]): TeamAccessGroup
 export function teamIdentityLinks(members: readonly TeamMember[]): Record<string, string[]> {
   const links: Record<string, string[]> = {};
   for (const member of sortTeamMembers(members)) {
-    if (member.channels.length === 0) continue;
+    if (member.channels.length === 0) {
+      continue;
+    }
     links[member.id] = member.channels.map((c) => `${c.channel}:${c.senderId}`);
   }
   return links;
@@ -144,7 +152,7 @@ function channelHasWideBinding(cfg: OpenClawConfig, channel: string): boolean {
 export function teamPolicyWarnings(cfg: OpenClawConfig, members: readonly TeamMember[]): string[] {
   const warnings: string[] = [];
   for (const channel of teamChannels(members)) {
-    const entry = cfg.channels?.[channel] as TeamChannelEntry | undefined;
+    const entry = cfg.channels?.[channel] as TeamChannelEntry;
     if (entry?.dmPolicy === "open") {
       // Referencing an access group is not the same as public access: with `"*"` in the effective
       // allowlist the roster is not a restriction at all (`docs/channels/access-groups.md`).
@@ -175,7 +183,7 @@ export function assertTeamProjectionSafe(
           `Add a binding for ${channel} in config first, then try again.`,
       );
     }
-    const entry = cfg.channels?.[channel] as TeamChannelEntry | undefined;
+    const entry = cfg.channels?.[channel] as TeamChannelEntry;
     const allowFrom = entry?.allowFrom ?? [];
     const dmPolicy = entry?.dmPolicy;
     // GC3: an empty allowlist admits everyone (`isSenderIdAllowed`, src/channels/allow-from.ts:75),
@@ -210,14 +218,22 @@ function teamOwnedIdentityLinkKeys(
   const projected = group?.type === "message.senders" ? group.members : {};
   const owned = new Set<string>();
   for (const [key, value] of Object.entries(existing)) {
-    if (!Array.isArray(value) || value.length === 0) continue;
+    if (!Array.isArray(value) || value.length === 0) {
+      continue;
+    }
     const allProjectedByTeam = value.every((entry) => {
-      if (typeof entry !== "string") return false;
+      if (typeof entry !== "string") {
+        return false;
+      }
       const split = entry.indexOf(":");
-      if (split <= 0) return false;
+      if (split <= 0) {
+        return false;
+      }
       return (projected[entry.slice(0, split)] ?? []).includes(entry.slice(split + 1));
     });
-    if (allProjectedByTeam) owned.add(key);
+    if (allProjectedByTeam) {
+      owned.add(key);
+    }
   }
   return owned;
 }
@@ -249,14 +265,18 @@ export function applyTeamProjection(
   const memberLinks = teamIdentityLinks(sorted);
   const links = { ...existingLinks, ...memberLinks };
   for (const key of ownedLinkKeys) {
-    if (!(key in memberLinks)) delete links[key];
+    if (!(key in memberLinks)) {
+      delete links[key];
+    }
   }
   next.session = { ...next.session, identityLinks: links };
 
   for (const channel of teamChannels(sorted)) {
-    const entry = { ...(next.channels?.[channel] ?? {}) } as TeamChannelEntry;
+    const entry = { ...next.channels?.[channel] } as TeamChannelEntry;
     const allowFrom = [...(entry.allowFrom ?? [])];
-    if (!allowFrom.includes(TEAM_ACCESS_GROUP_ENTRY)) allowFrom.push(TEAM_ACCESS_GROUP_ENTRY);
+    if (!allowFrom.includes(TEAM_ACCESS_GROUP_ENTRY)) {
+      allowFrom.push(TEAM_ACCESS_GROUP_ENTRY);
+    }
     entry.allowFrom = allowFrom;
     next.channels = { ...next.channels, [channel]: entry };
   }
@@ -276,7 +296,9 @@ export function applyTeamProjection(
           binding.match?.channel === identity.channel &&
           !binding.match?.peer,
       );
-      if (ownsChannelWide) continue;
+      if (ownsChannelWide) {
+        continue;
+      }
       projected.push({
         agentId: member.agentId,
         comment: `${TEAM_BINDING_COMMENT_PREFIX}${member.name} — managed by the Duties Team card, edit it there, not here`,

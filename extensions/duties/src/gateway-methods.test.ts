@@ -1073,7 +1073,9 @@ describe("duties.team.get", () => {
 describe("duties.team.add", () => {
   it("creates the agent first, then writes the roster row with the id core chose", async () => {
     const request = vi.fn(async (method: string) => {
-      if (method !== "agents.create") throw new Error(`unexpected ${method}`);
+      if (method !== "agents.create") {
+        throw new Error(`unexpected ${method}`);
+      }
       return { ok: true, agentId: "ramesh", name: "Ramesh", workspace: "/w/ramesh" };
     });
     const h = harness({ config: deskFixtureConfig(), request });
@@ -1121,7 +1123,9 @@ describe("duties.team.add", () => {
     const config = deskFixtureConfig();
     config.bindings = [{ agentId: "krishna", match: { channel: "telegram", accountId: "*" } }];
     const request = vi.fn(async (method: string) => {
-      if (method !== "agents.create") throw new Error(`unexpected ${method}`);
+      if (method !== "agents.create") {
+        throw new Error(`unexpected ${method}`);
+      }
       return { ok: true, agentId: "ramesh", name: "Ramesh", workspace: "/w/ramesh" };
     });
     const h = harness({ config, request });
@@ -1374,7 +1378,9 @@ describe("duties.team.* authority", () => {
     // its code shape looks right.
     let authorized = true;
     const request = vi.fn(async (method: string) => {
-      if (method !== "agents.create") throw new Error(`unexpected ${method}`);
+      if (method !== "agents.create") {
+        throw new Error(`unexpected ${method}`);
+      }
       authorized = false;
       return { ok: true, agentId: "ramesh", name: "Ramesh", workspace: "/w/ramesh" };
     });

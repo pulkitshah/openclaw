@@ -213,11 +213,17 @@ export function registerDutiesGatewayMethods(deps: {
     }
     const now = Date.now();
     return value.map((raw, index) => {
-      if (!isRecord(raw)) throw new Error(`channels[${index}]: must be an object`);
+      if (!isRecord(raw)) {
+        throw new Error(`channels[${index}]: must be an object`);
+      }
       const channel = typeof raw.channel === "string" ? raw.channel.trim() : "";
       const senderId = typeof raw.senderId === "string" ? raw.senderId.trim() : "";
-      if (!channel) throw new Error(`channels[${index}].channel is required`);
-      if (!senderId) throw new Error(`channels[${index}].senderId is required`);
+      if (!channel) {
+        throw new Error(`channels[${index}].channel is required`);
+      }
+      if (!senderId) {
+        throw new Error(`channels[${index}].senderId is required`);
+      }
       const accountId = typeof raw.accountId === "string" ? raw.accountId.trim() : "";
       return { channel, senderId, ...(accountId ? { accountId } : {}), addedAt: now };
     });
@@ -821,7 +827,9 @@ export function registerDutiesGatewayMethods(deps: {
    *  when no owner target is set (a brand-new desk) — there is nothing to promote yet. */
   const seedOwnerCandidate = async (owner?: { channel: string; target: string }) => {
     const target = owner ?? (await store.getSettings()).owner;
-    if (!target) return undefined;
+    if (!target) {
+      return undefined;
+    }
     const agentId = resolveAgentRoute({
       cfg: currentConfig(),
       channel: target.channel,
@@ -849,9 +857,13 @@ export function registerDutiesGatewayMethods(deps: {
     ctx: Ctx,
     owner?: { channel: string; target: string },
   ): Promise<TeamMember | undefined> => {
-    if ((await store.listMembers()).length > 0) return await store.ownerMember();
+    if ((await store.listMembers()).length > 0) {
+      return await store.ownerMember();
+    }
     const candidate = await seedOwnerCandidate(owner);
-    if (!candidate) return undefined;
+    if (!candidate) {
+      return undefined;
+    }
     // A seed is a durable effect: re-check live authority immediately before it, the same as any
     // other write this module performs.
     assertStillAuthorized(ctx);
@@ -861,9 +873,13 @@ export function registerDutiesGatewayMethods(deps: {
   register("duties.team.get", "operator.read", async (_params, ctx) => {
     const canSeeIdentities = holdsAdminScope(ctx);
     const existing = await store.listMembers();
-    if (existing.length > 0) return await teamView(existing, canSeeIdentities);
+    if (existing.length > 0) {
+      return await teamView(existing, canSeeIdentities);
+    }
     const candidate = await seedOwnerCandidate();
-    if (!candidate) return { members: [], warnings: [] };
+    if (!candidate) {
+      return { members: [], warnings: [] };
+    }
     // Seeded for this answer only: the caller sees the single-owner roster it will get, and a read
     // at any scope leaves the store exactly as it found it. The row is written the first time an
     // admin-scoped Team write needs it (`persistSeededOwner`).
@@ -884,10 +900,14 @@ export function registerDutiesGatewayMethods(deps: {
         ? normalizeTeamMemberId(params.id)
         : normalizeTeamMemberId(name.replace(/\s+/g, "-"));
     const channels = readIdentities(params.channels);
-    if (await store.getMember(memberId)) throw new Error(`Team already has a member "${memberId}"`);
+    if (await store.getMember(memberId)) {
+      throw new Error(`Team already has a member "${memberId}"`);
+    }
     assertStillAuthorized(ctx);
     const owner = (await store.ownerMember()) ?? (await persistSeededOwner(ctx));
-    if (!owner) throw new Error("set the owner on the Duties page before adding anyone else");
+    if (!owner) {
+      throw new Error("set the owner on the Duties page before adding anyone else");
+    }
 
     // The safety check runs BEFORE the agent is provisioned, even though `writeTeamProjection` runs
     // it again against the snapshot it is about to write: it is pure and free, while provisioning is
@@ -946,7 +966,9 @@ export function registerDutiesGatewayMethods(deps: {
     // their own second channel is the first write that needs it to be real.
     await persistSeededOwner(ctx);
     const before = await store.getMember(memberId);
-    if (!before) throw new Error(`no Team member "${memberId}"`);
+    if (!before) {
+      throw new Error(`no Team member "${memberId}"`);
+    }
     const member = await store.setMemberChannels(memberId, identities);
     const members = await store.listMembers();
     let warnings: string[];
@@ -982,7 +1004,9 @@ export function registerDutiesGatewayMethods(deps: {
     const memberId = readMemberId(params);
     await persistSeededOwner(ctx);
     const member = await store.getMember(memberId);
-    if (!member) throw new Error(`no Team member "${memberId}"`);
+    if (!member) {
+      throw new Error(`no Team member "${memberId}"`);
+    }
     // GC1: the row, the access-group entries, the links and the bindings go now. The agent and its
     // workspace stay — removal revokes access, it does not destroy a conversation.
     await store.removeMember(memberId);
@@ -1029,8 +1053,12 @@ export function registerDutiesGatewayMethods(deps: {
       // leave a stuck ownership transfer standing — the worst-case outcome this guard exists to
       // prevent. Same rollback shape as `duties.team.add`'s own
       // `store.removeMember(memberId).catch(() => undefined)`.
-      if (beforeOwner) await store.restoreMember(beforeOwner).catch(() => undefined);
-      if (beforeTarget) await store.restoreMember(beforeTarget).catch(() => undefined);
+      if (beforeOwner) {
+        await store.restoreMember(beforeOwner).catch(() => undefined);
+      }
+      if (beforeTarget) {
+        await store.restoreMember(beforeTarget).catch(() => undefined);
+      }
       throw error;
     }
     // Approvals, questions and `to: "owner"` now resolve to the new owner, because `ownerTarget`

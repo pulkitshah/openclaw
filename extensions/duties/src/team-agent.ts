@@ -47,7 +47,7 @@ export async function provisionMemberAgent(params: {
   name: string;
 }): Promise<ProvisionedAgent> {
   const reply = await params
-    .request<unknown>("agents.create", { name: params.name })
+    .request("agents.create", { name: params.name })
     .catch((error: unknown) => {
       const message = error instanceof Error ? error.message : String(error);
       if (/already exists/i.test(message)) {
@@ -74,7 +74,9 @@ export async function provisionMemberAgent(params: {
  * the ritual deletes it when it completes.
  */
 export async function readBootstrapPending(workspace: string | undefined): Promise<boolean> {
-  if (!workspace) return false;
+  if (!workspace) {
+    return false;
+  }
   const info = await stat(path.join(workspace, "BOOTSTRAP.md")).catch(() => undefined);
   return info?.isFile() === true;
 }

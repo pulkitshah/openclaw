@@ -267,7 +267,9 @@ export class DutyStore {
   async seedOwner(input: NewTeamMember): Promise<TeamMember> {
     const existing = await this.listMembers();
     const owner = existing.find((m) => m.role === "owner");
-    if (owner) return owner;
+    if (owner) {
+      return owner;
+    }
     if (existing.length > 0) {
       throw new Error("Team has members but no owner — transfer ownership to repair the roster");
     }
@@ -290,7 +292,9 @@ export class DutyStore {
 
   async removeMember(id: string): Promise<boolean> {
     const member = await this.stores.team.lookup(id);
-    if (!member) return false;
+    if (!member) {
+      return false;
+    }
     if (member.role === "owner") {
       throw new Error("transfer ownership before removing the owner");
     }
@@ -302,7 +306,9 @@ export class DutyStore {
     channels: TeamChannelIdentity[],
   ): Promise<TeamMember | undefined> {
     const member = await this.stores.team.lookup(id);
-    if (!member) return undefined;
+    if (!member) {
+      return undefined;
+    }
     const next: TeamMember = { ...member, channels, updatedAt: Date.now() };
     await this.stores.team.register(id, next);
     return next;
@@ -323,10 +329,16 @@ export class DutyStore {
    *  never observable as broken; the outgoing owner keeps their identities, agent and admission. */
   async transferOwnership(toMemberId: string): Promise<{ from: TeamMember; to: TeamMember }> {
     const target = await this.stores.team.lookup(toMemberId);
-    if (!target) throw new Error(`no Team member "${toMemberId}"`);
+    if (!target) {
+      throw new Error(`no Team member "${toMemberId}"`);
+    }
     const current = await this.ownerMember();
-    if (!current) throw new Error("Team has no owner to transfer from");
-    if (current.id === toMemberId) throw new Error(`${target.name} is already the owner`);
+    if (!current) {
+      throw new Error("Team has no owner to transfer from");
+    }
+    if (current.id === toMemberId) {
+      throw new Error(`${target.name} is already the owner`);
+    }
     const now = Date.now();
     const from: TeamMember = { ...current, role: "member", updatedAt: now };
     const to: TeamMember = { ...target, role: "owner", updatedAt: now };

@@ -167,7 +167,9 @@ export default definePluginEntry({
     const ownerTarget = async () => {
       const owner = await store.ownerMember();
       const identity = owner?.channels[0];
-      if (identity) return { channel: identity.channel, target: identity.senderId };
+      if (identity) {
+        return { channel: identity.channel, target: identity.senderId };
+      }
       return (await store.getSettings()).owner;
     };
     const resolveRoute = createRouteResolver({

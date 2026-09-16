@@ -62,9 +62,13 @@ describe("the Team page's own controls", () => {
   it("saves the owner target the form names and reloads the roster from the click alone", async () => {
     let members: Array<Record<string, unknown>> = [];
     const request = vi.fn<RequestFn>(async (method, params) => {
-      if (method === "duties.team.get") return { members, warnings: [] };
+      if (method === "duties.team.get") {
+        return { members, warnings: [] };
+      }
       if (method === "duties.settings.set") {
-        if (params?.owner === undefined) throw new Error(SETTINGS_PROBE_ERROR);
+        if (params?.owner === undefined) {
+          throw new Error(SETTINGS_PROBE_ERROR);
+        }
         // What the real handler does on a brand-new desk: records the owner target and seeds the
         // roster's owner row, so the next read answers a roster instead of the form.
         members = [
@@ -133,7 +137,9 @@ describe("the Team page's own controls", () => {
       if (method === "duties.settings.set" && params?.owner === undefined) {
         throw new Error(SETTINGS_PROBE_ERROR);
       }
-      if (method === "duties.team.setChannels") return { ok: true };
+      if (method === "duties.team.setChannels") {
+        return { ok: true };
+      }
       throw new Error(`unexpected ${method}`);
     });
     const { host, context } = testHost(request);
@@ -162,7 +168,9 @@ describe("the Team page's own controls", () => {
 
   it("refuses an empty target with a retryable message instead of calling the Gateway", async () => {
     const request = vi.fn<RequestFn>(async (method, params) => {
-      if (method === "duties.team.get") return { members: [], warnings: [] };
+      if (method === "duties.team.get") {
+        return { members: [], warnings: [] };
+      }
       if (method === "duties.settings.set" && params?.owner === undefined) {
         throw new Error(SETTINGS_PROBE_ERROR);
       }

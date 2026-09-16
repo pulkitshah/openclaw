@@ -70,7 +70,9 @@ export const TEAM_ROUTE_PREFIX = "team:";
 
 /** "team:ramesh" -> "ramesh"; anything else -> null. */
 export function parseTeamDeliverTarget(to: string): string | null {
-  if (!to.startsWith(TEAM_ROUTE_PREFIX)) return null;
+  if (!to.startsWith(TEAM_ROUTE_PREFIX)) {
+    return null;
+  }
   const id = to.slice(TEAM_ROUTE_PREFIX.length).trim();
   return id.length > 0 ? id : null;
 }

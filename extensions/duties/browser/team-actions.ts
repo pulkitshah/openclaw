@@ -92,7 +92,9 @@ export function createTeamActions(deps: {
     }
     const kept: Array<{ channel: string; senderId: string; accountId?: string }> = [];
     for (const c of member.channels) {
-      if (c.channel === channel || !c.senderId) continue;
+      if (c.channel === channel || !c.senderId) {
+        continue;
+      }
       kept.push({
         channel: c.channel,
         senderId: c.senderId,

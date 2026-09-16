@@ -83,7 +83,9 @@ function resolveGmailAccounts(
       const account = typeof entry?.account === "string" ? entry.account.trim() : "";
       return account ? [{ accountId, account }] : [];
     });
-  if (named.length > 0) return named;
+  if (named.length > 0) {
+    return named;
+  }
   const root = typeof hooks?.gmail?.account === "string" ? hooks.gmail.account.trim() : "";
   return root ? [{ accountId: GMAIL_DEFAULT_ACCOUNT_ID, account: root }] : [];
 }
@@ -95,9 +97,13 @@ function resolveGmailAccounts(
 function accountHasMapping(hooks: OpenClawConfig["hooks"], accountId: string): boolean {
   const wanted = gmailHookPathForAccount(accountId);
   return (hooks?.mappings ?? []).some((mapping) => {
-    if (mapping.agentId !== MAIL_AGENT_ID) return false;
+    if (mapping.agentId !== MAIL_AGENT_ID) {
+      return false;
+    }
     const raw = typeof mapping.match?.path === "string" ? mapping.match.path.trim() : "";
-    if (!raw) return true;
+    if (!raw) {
+      return true;
+    }
     return raw.replace(/^\/+/, "").replace(/\/+$/, "") === wanted;
   });
 }

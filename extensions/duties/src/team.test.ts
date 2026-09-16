@@ -365,10 +365,14 @@ describe("one roster change admits a member on two channels", () => {
   function effectiveAllowFrom(cfg: OpenClawConfig, channel: string): string[] {
     const entries = cfg.channels?.[channel]?.allowFrom ?? [];
     return entries.flatMap((entry) => {
-      if (typeof entry !== "string" || !entry.startsWith("accessGroup:")) return [String(entry)];
+      if (typeof entry !== "string" || !entry.startsWith("accessGroup:")) {
+        return [String(entry)];
+      }
       const group = cfg.accessGroups?.[entry.slice("accessGroup:".length)];
-      if (!group || group.type !== "message.senders") return [];
-      return [...(group.members[channel] ?? []), ...(group.members["*"] ?? [])];
+      if (!group || group.type !== "message.senders") {
+        return [];
+      }
+      return (group.members[channel] ?? []).concat(group.members["*"] ?? []);
     });
   }
 
