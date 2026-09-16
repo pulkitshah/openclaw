@@ -802,10 +802,20 @@ export function registerDutiesGatewayMethods(deps: {
     if (!before) throw new Error(`no Team member "${memberId}"`);
     const member = await store.setMemberChannels(memberId, identities);
     const members = await store.listMembers();
-    const { warnings } = await writeTeamProjection({
-      members,
-      assertStillAuthorized: () => assertStillAuthorized(ctx),
-    });
+    let warnings: string[];
+    try {
+      ({ warnings } = await writeTeamProjection({
+        members,
+        assertStillAuthorized: () => assertStillAuthorized(ctx),
+      }));
+    } catch (error) {
+      // The channel write above already landed durably; a rejected projection (lost authority, an
+      // assertTeamProjectionSafe refusal, a failed config write) must not leave it standing — a
+      // config write is all-or-nothing, and so is this row. Same rollback shape as
+      // `duties.team.add`'s own `store.removeMember(memberId).catch(() => undefined)`.
+      await store.restoreMember(before).catch(() => undefined);
+      throw error;
+    }
     // An identity the member no longer has must lose its pairing-store approval too, or the
     // channel would keep admitting it independently of the allowlist.
     const dropped = before.channels.filter(
@@ -825,10 +835,19 @@ export function registerDutiesGatewayMethods(deps: {
     // workspace stay — removal revokes access, it does not destroy a conversation.
     await store.removeMember(memberId);
     const members = await store.listMembers();
-    const { warnings } = await writeTeamProjection({
-      members,
-      assertStillAuthorized: () => assertStillAuthorized(ctx),
-    });
+    let warnings: string[];
+    try {
+      ({ warnings } = await writeTeamProjection({
+        members,
+        assertStillAuthorized: () => assertStillAuthorized(ctx),
+      }));
+    } catch (error) {
+      // The removal above already landed durably; a rejected projection must not leave it
+      // standing, so the row goes back exactly as it was. Same rollback shape as
+      // `duties.team.add`'s own `store.removeMember(memberId).catch(() => undefined)`.
+      await store.restoreMember(member).catch(() => undefined);
+      throw error;
+    }
     await revokePairingEntries({ runtime: api.runtime, identities: member.channels });
     safeEmit("changed", { team: true });
     return { ok: true, removed: member, warnings };
@@ -836,12 +855,27 @@ export function registerDutiesGatewayMethods(deps: {
 
   register("duties.team.transferOwnership", "operator.admin", async (params, ctx) => {
     const memberId = readMemberId(params);
+    // Snapshotted before the role swap below so a rejected projection can put both rows back
+    // exactly as they were, not just report failure while the swap stands.
+    const beforeOwner = await store.ownerMember();
+    const beforeTarget = await store.getMember(memberId);
     const { from, to } = await store.transferOwnership(memberId);
     const members = await store.listMembers();
-    const { warnings } = await writeTeamProjection({
-      members,
-      assertStillAuthorized: () => assertStillAuthorized(ctx),
-    });
+    let warnings: string[];
+    try {
+      ({ warnings } = await writeTeamProjection({
+        members,
+        assertStillAuthorized: () => assertStillAuthorized(ctx),
+      }));
+    } catch (error) {
+      // The role swap above already landed durably on both rows; a rejected projection must not
+      // leave a stuck ownership transfer standing — the worst-case outcome this guard exists to
+      // prevent. Same rollback shape as `duties.team.add`'s own
+      // `store.removeMember(memberId).catch(() => undefined)`.
+      if (beforeOwner) await store.restoreMember(beforeOwner).catch(() => undefined);
+      if (beforeTarget) await store.restoreMember(beforeTarget).catch(() => undefined);
+      throw error;
+    }
     // Approvals, questions and `to: "owner"` now resolve to the new owner, because `ownerTarget`
     // reads the owner row. Nothing else moves: the outgoing owner keeps their identities, their
     // access-group entries, their agent and their sessions.

@@ -308,6 +308,17 @@ export class DutyStore {
     return next;
   }
 
+  /** Writes a Team row back exactly as given, bypassing every business rule this store otherwise
+   *  enforces (role invariants, uniqueness, lookup-then-merge). Rollback-only: a caller that
+   *  already holds the exact prior row (fetched before its own durable mutation) uses this to undo
+   *  that mutation when a subsequent step fails — `duties.team.setChannels`, `.remove` and
+   *  `.transferOwnership` in `gateway-methods.ts` roll back this way when the config projection
+   *  that follows their store write is rejected, so "a rejected write leaves everything unchanged"
+   *  holds for the roster row too, not just the config file. */
+  async restoreMember(member: TeamMember): Promise<void> {
+    await this.stores.team.register(member.id, member);
+  }
+
   /** The one writer of `role`. Both rows move in one pass so the exactly-one-owner invariant is
    *  never observable as broken; the outgoing owner keeps their identities, agent and admission. */
   async transferOwnership(toMemberId: string): Promise<{ from: TeamMember; to: TeamMember }> {

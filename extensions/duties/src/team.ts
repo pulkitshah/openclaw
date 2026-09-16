@@ -231,8 +231,13 @@ export function applyTeamProjection(
   }
 
   // GC2: write the restrictive ceiling only when the agent entry has no `tools` block, so an owner
-  // who has widened a member's tools by hand is never overwritten by a later roster edit.
+  // who has widened a member's tools by hand is never overwritten by a later roster edit. The
+  // ceiling is for a new member's dedicated agent, never the owner's — the owner's agent commonly
+  // has no `tools` override configured and would otherwise be silently crippled by any Team
+  // projection run, so the owner's row is skipped here entirely (their accessGroups/allowFrom/
+  // identityLinks entries above are still projected as normal).
   for (const member of sorted) {
+    if (member.role === "owner") continue;
     const entry = next.agents?.entries?.[member.agentId];
     if (!entry || entry.tools) continue;
     next.agents = {

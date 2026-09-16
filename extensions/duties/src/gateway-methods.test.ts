@@ -1032,9 +1032,15 @@ describe("duties.team.setChannels", () => {
 
   it("rejects an unknown member and a missing channels array", async () => {
     const { call } = harness();
-    expect((await call("duties.team.setChannels", { memberId: "nobody", channels: [] })).ok).toBe(
-      false,
-    );
+    // A non-empty, otherwise-valid channels array, so this actually exercises the unknown-member
+    // check rather than tripping the earlier "channels is required" validation.
+    const unknown = await call("duties.team.setChannels", {
+      memberId: "nobody",
+      channels: [{ channel: "telegram", senderId: "111" }],
+    });
+    expect(unknown.ok).toBe(false);
+    expect(unknown.error).toMatchObject({ message: 'no Team member "nobody"' });
+
     const missing = await call("duties.team.setChannels", { memberId: "owner" });
     expect(missing.ok).toBe(false);
     expect(missing.error).toMatchObject({
@@ -1146,6 +1152,12 @@ describe("duties.team.* authority", () => {
       channels: [],
     });
 
+    // Snapshotted before the rejected call so the roster row can be proved untouched afterward —
+    // not just that the RPC reported an error. A stuck ownership transfer (the store write landing
+    // durably while the RPC reports failure) is the worst-case outcome this guard exists to
+    // prevent.
+    const before = await store.listMembers();
+
     const result = await call(
       "duties.team.transferOwnership",
       { memberId: "ramesh" },
@@ -1156,5 +1168,7 @@ describe("duties.team.* authority", () => {
     expect(result.error).toMatchObject({
       message: "your session is no longer authorized — reconnect and try again",
     });
+    expect(await store.listMembers()).toEqual(before);
+    expect((await store.ownerMember())?.id).toBe("owner");
   });
 });

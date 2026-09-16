@@ -9,6 +9,7 @@ import {
   teamIdentityLinks,
   TEAM_ACCESS_GROUP_ENTRY,
   TEAM_MEMBER_ID_RE,
+  TEAM_MEMBER_TOOLS,
   type TeamMember,
 } from "./team.js";
 
@@ -247,6 +248,17 @@ describe("applyTeamProjection", () => {
     expect(afterRemoval.bindings?.some((b) => b.agentId === "ramesh")).toBe(false);
     // GC1: the agent entry and its workspace stay.
     expect(afterRemoval.agents?.entries?.ramesh).toBeDefined();
+  });
+
+  it("never stamps a tools ceiling onto the owner's own agent, even with no tools block configured", () => {
+    // krishna is OWNER's agentId, and deskConfig() gives it no `tools` override — exactly the
+    // shape that would trigger the ceiling if the owner were not skipped in that part of the loop.
+    const next = applyTeamProjection(deskConfig(), [OWNER, RAMESH]);
+    expect(next.agents?.entries?.krishna?.tools).toBeUndefined();
+    // The owner's other projections still apply as normal.
+    expect(next.session?.identityLinks?.owner).toEqual(["telegram:111"]);
+    // A member's own agent still gets the ceiling.
+    expect(next.agents?.entries?.ramesh?.tools).toEqual(TEAM_MEMBER_TOOLS);
   });
 
   it("leaves an operator-authored binding untouched and replaces only its own marked entries", () => {
