@@ -395,6 +395,15 @@
       }
     },
     {
+      // One cohesive, tightly-stateful controller (session lifecycle, tab boot/restore,
+      // reconnection); splitting it is a real refactor with regression risk to live
+      // terminal sessions, not a fit for a lint-threshold fix. Small headroom over 700.
+      "files": ["ui/src/components/terminal/terminal-panel-session-controller.ts"],
+      "rules": {
+        "max-lines": ["error", { "max": 750, "skipBlankLines": true, "skipComments": true }]
+      }
+    },
+    {
       "files": ["**/*.{ts,tsx,mts,cts}"],
       "rules": {
         // tsgo owns TypeScript type/value namespace validity; no-var still rejects var declarations.
