@@ -132,6 +132,71 @@ Open the desk's Control UI [Logins page](/plugins/duties#logins) and add whateve
 
 A desk that should react to inbound mail needs the same [mail-trigger setup](/plugins/duties#setup) as any other Gateway. Gmail push needs one public URL for Google's Pub/Sub delivery; a desk exposes only that one webhook path (`:8443/gmail-pubsub`), through a persistent background Tailscale Funnel set up by cloud-init at first boot — never on the Control UI's own port 443, which the Gateway keeps tailnet-only via Serve. Because that setup needs `gcloud`, which a desk does not have, the mail-trigger CLI setup command runs on a machine that has it instead of on the desk; see `deploy/desk/README.md`'s "Gmail push per desk" section for the exact steps and the config fields to carry over.
 
+<a id="more-than-one-inbox" />
+
+### More than one inbox
+
+By default, `hooks.gmail.account` names the one mailbox a desk watches. To watch more than one, give each mailbox an id under `hooks.gmail.accounts`, and give each one its own `hooks.mappings` entry — a named mailbox is served on its own hook path, and mail pushed to a path no mapping matches is accepted and then dropped:
+
+```json5
+{
+  hooks: {
+    gmail: {
+      accounts: {
+        support: { account: "support@example.com", label: "INBOX" },
+        billing: { account: "billing@example.com", label: "Duties" },
+      },
+      defaultAccount: "support",
+    },
+    mappings: [
+      // One entry per named mailbox. Everything except `id` and `match.path` is copied from the
+      // single-mailbox entry the desk template ships; `agentId` names whichever agent should
+      // receive that mailbox's mail.
+      {
+        id: "duties-mail-support",
+        match: { path: "gmail-support" },
+        action: "agent",
+        agentId: "duties-mail",
+        wakeMode: "now",
+        name: "Duties mail",
+        forEach: "messages",
+        deliver: false,
+        sessionKey: "hook:gmail:support:{{messages[0].id}}",
+        messageTemplate: "From: {{messages[0].from}}\nSubject: {{messages[0].subject}}\n\n{{messages[0].body}}",
+      },
+      {
+        id: "duties-mail-billing",
+        match: { path: "gmail-billing" },
+        action: "agent",
+        agentId: "duties-mail",
+        wakeMode: "now",
+        name: "Duties mail",
+        forEach: "messages",
+        deliver: false,
+        sessionKey: "hook:gmail:billing:{{messages[0].id}}",
+        messageTemplate: "From: {{messages[0].from}}\nSubject: {{messages[0].subject}}\n\n{{messages[0].body}}",
+      },
+    ],
+  },
+}
+```
+
+Each key under `accounts` is an account id (letters, digits, `-`, and `_`), and it becomes part of that mailbox's hook path and session keys, below. `defaultAccount` names which one a single-account operation — the mail-trigger setup CLI, for instance — resolves to when it isn't told an id explicitly.
+
+**Adding a mailbox is two config edits, not one**: the `accounts` entry, and a `hooks.mappings` entry whose `match.path` is that account's `gmail-<accountId>` path. The desk template ships exactly one mapping, matching the default `gmail` path, and no `hooks.presets`, so nothing routes a named account's mail on its own. The Duties page's Mail trigger card reports "Mapped to the mail agent" as failing and names the account whenever a configured mailbox has no matching mapping, so check it after the edit.
+
+**The lowest-risk migration for a desk that already has one working mailbox** is to name that mailbox `default`: `accounts: { default: { account: "you@example.com" } }` keeps the original `gmail` hook path and the original `hook:gmail:<messageId>` session key, so the mapping already in your config keeps working with no change at all. Introduce new names only for the mailboxes you are adding.
+
+Once `hooks.gmail.accounts` has any entries, the root `hooks.gmail.*` keys stop being an independent mailbox of their own and become only the shared defaults every named account inherits from — except `account`, the mailbox address itself, which is never inherited: each named account sets its own, or has none. A desk with a single mailbox needs no migration at all — leave `accounts` unset and the root `account` keeps working exactly as it always has.
+
+`hooks.gmail.label` (root or per-account) is the Gmail label `gog` watches for new mail, not a label for the account — the two are easy to conflate, and only one of them exists.
+
+Credentials need no change to add a second mailbox: `gog` already authenticates per address (`gog auth add <address>`), so a named account's `account` field only has to name an address `gog` already knows about.
+
+Each non-default account is served on its own hook path, `gmail-<accountId>`, and dispatches into its own session, keyed `hook:gmail:<accountId>:<messageId>` — so two mailboxes never collide on the same inbound message id. The default account keeps the original `gmail` path and `hook:gmail:<messageId>` session key untouched.
+
+Mail accounts are workspace inboxes, not people: a `TeamMember` has no email field, and a message landing in one of these mailboxes never by itself grants its sender permission to instruct the agent. See [Team](/plugins/duties#team) for what does.
+
 ## Security notes
 
 - **Network**: no public ports except the one Gmail webhook path noted above; everything else

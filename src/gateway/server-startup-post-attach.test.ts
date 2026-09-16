@@ -3602,6 +3602,39 @@ describe("startGatewayPostAttachRuntime", () => {
     resolveWatcher();
   });
 
+  it("schedules the Gmail watcher for a named-accounts-only config with no root address", async () => {
+    // Regression: the cold-start gate used to check `hooks.gmail.account` (the root address)
+    // directly, so a desk configured with ONLY named accounts never scheduled the watcher at all
+    // on an actual restart (hot-reload calls the watcher unconditionally, which is why this was
+    // not caught earlier).
+    const result = await startGatewaySidecars({
+      cfg: {
+        hooks: {
+          enabled: true,
+          internal: { enabled: false },
+          gmail: { accounts: { orders: { account: "orders@example.test" } } },
+        },
+      } as never,
+      pluginRegistry: createPostAttachParams().pluginRegistry,
+      defaultWorkspaceDir: testState.workspaceDir,
+      deps: {} as never,
+      startChannels: vi.fn(async () => {}),
+      log: { warn: vi.fn() },
+      logHooks: createInfoWarnErrorLogger(),
+      logChannels: createInfoErrorLogger(),
+    });
+
+    expect(result).toBe(2);
+    await waitForGatewayTestState(() => {
+      expect(hoisted.startGmailWatcherWithLogs).toHaveBeenCalledTimes(1);
+    });
+
+    const postReadySidecars = [...publishedPostReadySidecars];
+    for (const sidecar of postReadySidecars) {
+      await stopTrackedSidecar(sidecar);
+    }
+  });
+
   it("does not create post-ready sidecars after close begins during channel startup", async () => {
     let releaseChannels: (() => void) | undefined;
     let closeStarted = false;

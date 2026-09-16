@@ -6,7 +6,7 @@ import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { Duty } from "../src/duty.js";
 import type { DutiesSettings, DutyRun } from "../src/store.js";
 import type { Brand, Template } from "../src/template.js";
-import type { DeskStatusView } from "./render.js";
+import type { DeskStatusView, TeamView } from "./render.js";
 
 export type Props = Readonly<Record<string, string>>;
 
@@ -31,6 +31,7 @@ export type TemplatePreviewResult = {
 export type SettingsGetResult = { settings: DutiesSettings };
 export type SettingsSetResult = { settings: DutiesSettings };
 export type DeskStatusResult = DeskStatusView;
+export type TeamGetResult = TeamView;
 /** `duties.run.file`'s result — the same shape whether `params.kind` is omitted (the full
  *  document) or `"preview"` (a PNG thumbnail of it). */
 export type RunFileResult = { name: string; contentType: string; base64: string };
@@ -200,7 +201,6 @@ export function attachClickRouter(
     cancelRun: (runId: string) => void;
     toggleShot: (stepId: string) => void;
     saveLogin: () => void;
-    saveSettings: () => void;
     saveBrand: () => void;
     previewTemplate: (id: string) => void;
     openTemplatePdf: (id: string) => void;
@@ -214,7 +214,7 @@ export function attachClickRouter(
   root.addEventListener("click", (event) => {
     // SAFETY: this listener is on `root`, an HTMLElement, so its click events always target an Element.
     const target = (event.target as HTMLElement).closest<HTMLElement>(
-      "[data-open],[data-open-run],[data-run],[data-edit],[data-build],[data-status],[data-delete],[data-cancel],[data-nav],[data-retry],[data-shot],[data-cred-save],[data-cred-delete],[data-settings-save],[data-brand-save],[data-tpl-preview],[data-tpl-pdf],[data-tpl-edit],[data-tpl-delete],[data-file-shot],[data-file-open]",
+      "[data-open],[data-open-run],[data-run],[data-edit],[data-build],[data-status],[data-delete],[data-cancel],[data-nav],[data-retry],[data-shot],[data-cred-save],[data-cred-delete],[data-brand-save],[data-tpl-preview],[data-tpl-pdf],[data-tpl-edit],[data-tpl-delete],[data-file-shot],[data-file-open]",
     );
     if (!target) {
       return;
@@ -277,10 +277,6 @@ export function attachClickRouter(
       handlers.saveLogin();
       return;
     }
-    if (dataset.settingsSave !== undefined) {
-      handlers.saveSettings();
-      return;
-    }
     if (dataset.brandSave !== undefined) {
       handlers.saveBrand();
       return;
@@ -311,6 +307,60 @@ export function attachClickRouter(
     }
     if (dataset.credDelete !== undefined) {
       handlers.deleteLogin(dataset.credDelete);
+    }
+  });
+}
+
+/** The Team page's own click router (`team-page.ts`) — the `data-team-*` branches that used to live
+ *  in `attachClickRouter` above before Team became its own top-level sidebar page instead of a card
+ *  inside the Duties board. A separate, narrower router rather than a shared one: this page has no
+ *  business wiring the other twenty-odd Duties actions, and the Duties page no longer has any Team
+ *  state to dispatch these into. */
+export function attachTeamClickRouter(
+  root: HTMLElement,
+  handlers: {
+    getLastRetry: () => (() => void) | null;
+    addTeamMember: () => void;
+    removeTeamMember: (memberId: string) => void;
+    transferTeamOwnership: (memberId: string) => void;
+    addTeamChannel: (memberId: string) => void;
+    /** The empty-roster owner form's Save. Routed here and nowhere else: `ownerSettingsForm` renders
+     *  only inside `teamPanel`, so the Duties page's router has no form to serve (final review C3). */
+    saveOwnerSettings: () => void;
+  },
+): void {
+  root.addEventListener("click", (event) => {
+    // SAFETY: this listener is on `root`, an HTMLElement, so its click events always target an Element.
+    const target = (event.target as HTMLElement).closest<HTMLElement>(
+      "[data-retry],[data-team-add],[data-team-remove],[data-team-transfer],[data-team-channel-add],[data-settings-save]",
+    );
+    if (!target) {
+      return;
+    }
+    event.preventDefault();
+    const { dataset } = target;
+    if (dataset.retry !== undefined) {
+      handlers.getLastRetry()?.();
+      return;
+    }
+    if (dataset.teamAdd !== undefined) {
+      handlers.addTeamMember();
+      return;
+    }
+    if (dataset.teamRemove !== undefined) {
+      handlers.removeTeamMember(dataset.teamRemove);
+      return;
+    }
+    if (dataset.teamTransfer !== undefined) {
+      handlers.transferTeamOwnership(dataset.teamTransfer);
+      return;
+    }
+    if (dataset.teamChannelAdd !== undefined) {
+      handlers.addTeamChannel(dataset.teamChannelAdd);
+      return;
+    }
+    if (dataset.settingsSave !== undefined) {
+      handlers.saveOwnerSettings();
     }
   });
 }

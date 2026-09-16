@@ -211,6 +211,10 @@ function dutyCard(duty: Duty, runs: readonly DutyRun[]): string {
  *  that can carry an approval/question to a person. */
 const OWNER_CHANNELS = ["discord", "signal", "slack", "telegram", "whatsapp"] as const;
 
+/** The Team panel's empty-roster fallback: before anyone (including the owner) has a channel
+ *  identity on file, `teamPanel` falls back to this original owner-target form so the very first
+ *  person can tell Vasu where to reach them. Once `duties.team.get` returns at least one member
+ *  (the owner is seeded on first read — see `src/gateway-methods.ts`), this is never shown again. */
 function ownerSettingsForm(settings: DutiesSettings | undefined): string {
   const owner = settings?.owner;
   const options = OWNER_CHANNELS.map(
@@ -218,6 +222,85 @@ function ownerSettingsForm(settings: DutiesSettings | undefined): string {
       `<option value="${channel}"${owner?.channel === channel ? " selected" : ""}>${channel}</option>`,
   ).join("");
   return `<div class="ownerform"><label class="fld"><span>Channel</span><select data-settings-channel>${options}</select></label><label class="fld"><span>Target</span><input type="text" data-settings-target value="${esc(owner?.target ?? "")}" placeholder="chat id, phone, @handle"></label><button class="btn primary" data-settings-save>Save</button></div>`;
+}
+
+/** The browser bundle's own structural view of `duties.team.get`'s reply — declared here rather
+ *  than imported from `src/team.js` so the Control UI bundle stays independent of the plugin's
+ *  server modules, the way `DutiesSettings`/`MailStatus` above already are. A read-level caller gets
+ *  every field except a channel's `senderId`, which `duties.team.get` itself withholds below admin
+ *  scope (final review I2); `canAdmin` gating below is the matching display choice.
+ *
+ *  `accountId` is carried even though nothing here renders it: `addTeamChannel` rebuilds the whole
+ *  identity list from this view, and dropping the field there silently widened an account-scoped
+ *  routing match to `"*"` (final review I7). */
+export type TeamMemberView = {
+  id: string;
+  name: string;
+  role: "owner" | "member";
+  agentId: string;
+  bootstrapPending: boolean;
+  channels: Array<{ channel: string; senderId?: string; accountId?: string }>;
+};
+export type TeamView = { members: TeamMemberView[]; warnings?: string[] };
+
+function teamRow(member: TeamMemberView, canAdmin: boolean): string {
+  const role = member.role === "owner" ? "Owner" : "Member";
+  const channels = member.channels
+    .map((c) =>
+      canAdmin && c.senderId
+        ? `<span class="chip">${esc(c.channel)} · <span class="mono">${esc(c.senderId)}</span></span>`
+        : `<span class="chip">${esc(c.channel)}</span>`,
+    )
+    .join("");
+  const agent = member.bootstrapPending
+    ? `<span class="mono">${esc(member.agentId)}</span> · Setting up`
+    : `<span class="mono">${esc(member.agentId)}</span>`;
+  const actions =
+    canAdmin && member.role !== "owner"
+      ? `<button class="btn" data-team-transfer="${esc(member.id)}">Make owner</button>` +
+        `<button class="btn" data-team-remove="${esc(member.id)}">Remove</button>`
+      : "";
+  // Adding a channel is available on every row INCLUDING the owner's — that form is what replaced
+  // the Owner card, so the owner adds their WhatsApp here rather than anywhere else.
+  const addChannel = canAdmin
+    ? `<span class="taddchan"><select data-team-row-channel="${esc(member.id)}">${OWNER_CHANNELS.map((c) => `<option value="${c}">${c}</option>`).join("")}</select>` +
+      `<input type="text" data-team-row-sender="${esc(member.id)}" placeholder="their id on that channel">` +
+      `<button class="btn" data-team-channel-add="${esc(member.id)}">Add a channel</button></span>`
+    : "";
+  return `<div class="teamrow"><span class="tname">${esc(member.name)}</span><span class="trole">${role}</span><span class="tchans">${channels}</span><span class="tagent">${agent}</span><span class="tacts">${actions}${addChannel}</span></div>`;
+}
+
+/** Who Vasu takes instructions from. Everyone here can reach Vasu on the channels listed, and gets
+ *  their own assistant. Hiding the buttons is cosmetic: `duties.team.*` is gated at
+ *  `operator.admin` server-side, which is the actual authority check.
+ *
+ *  Now the whole content of the "Team" page (its own top-level sidebar item, not a card inside the
+ *  Duties board's Settings strip — see `team-page.ts`), `opts` follows the same trailing-`RenderOpts`
+ *  convention every other page-level render function here uses, so a failed add/remove/transfer
+ *  surfaces through the same error-banner-plus-`data-retry` shape as the rest of the page. */
+export function teamPanel(
+  view: TeamView | undefined,
+  canAdmin: boolean,
+  opts?: RenderOpts,
+): string {
+  const errorBanner = opts?.error ? renderErrorBanner(opts.error) : "";
+  if (!view) {
+    return `${errorBanner}<div><h3>Team</h3><p class="muted small">Loading…</p></div>`;
+  }
+  if (view.members.length === 0) {
+    return `${errorBanner}<div><h3>Team</h3><p class="muted small">Tell Vasu where to reach you. That makes you the first person on the Team.</p>${ownerSettingsForm(undefined)}</div>`;
+  }
+  const warnings = (view.warnings ?? [])
+    .map((w) => `<p class="muted small warn">${esc(w)}</p>`)
+    .join("");
+  const rows = view.members.map((m) => teamRow(m, canAdmin)).join("");
+  const add = canAdmin
+    ? `<div class="teamadd"><label class="fld"><span>Name</span><input type="text" data-team-name placeholder="Ramesh"></label>` +
+      `<label class="fld"><span>Channel</span><select data-team-channel>${OWNER_CHANNELS.map((c) => `<option value="${c}">${c}</option>`).join("")}</select></label>` +
+      `<label class="fld"><span>Their id on that channel</span><input type="text" data-team-sender placeholder="chat id, phone, @handle"></label>` +
+      `<button class="btn primary" data-team-add>Add someone</button></div>`
+    : "";
+  return `${errorBanner}<div><h3>Team</h3><p class="muted small">Who Vasu takes instructions from. Everyone here can reach Vasu on the channels listed, and gets their own assistant.</p>${warnings}<div class="teamlist">${rows}</div>${add}</div>`;
 }
 
 const MAIL_CHECKS: ReadonlyArray<{ key: keyof MailStatus; label: string }> = [
@@ -255,7 +338,13 @@ function mailHealthLine(status: MailStatus | undefined): string {
   const setup = needsSetup
     ? `<p class="mono small">Run: vasudev duties setup-mail --account &lt;you@…&gt;</p>`
     : "";
-  return `<div class="mchecks">${marks}</div><p class="muted small">${last}</p>${setup}`;
+  // A named mailbox is served on its own hook path, so it needs its own `hooks.mappings` entry;
+  // without one its mail is accepted and then dropped. Name the mailbox rather than leaving the
+  // owner to work out which of several is unrouted (final review C1).
+  const unmapped = status.unmappedAccountIds?.length
+    ? `<p class="muted small warn">No mail mapping matches ${esc(status.unmappedAccountIds.join(", "))} — add a hooks.mappings entry whose match.path is gmail-&lt;account&gt; for each, or that mailbox's mail is dropped.</p>`
+    : "";
+  return `<div class="mchecks">${marks}</div><p class="muted small">${last}</p>${unmapped}${setup}`;
 }
 
 /** The health file's own boolean facts, in display order — spec §8's "Gateway, display, Chromium,
@@ -370,7 +459,6 @@ function settingsStrip(
   deskStatus: DeskStatusView | undefined,
 ): string {
   return `<div class="panel settings"><div class="ph"><h2>Settings</h2></div><div class="pb"><div class="two-col">
-  <div><h3>Owner</h3><p class="muted small">Where approvals and questions reach you.</p>${ownerSettingsForm(settings)}</div>
   <div><h3>Mail trigger</h3>${mailHealthLine(mailStatus)}</div>
   ${deskCard(settings, deskStatus)}
 </div></div></div>`;

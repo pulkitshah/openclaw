@@ -67,6 +67,35 @@ describe("hook mapping fan-out", () => {
     expect(mappings.find((mapping) => mapping.id === "other")?.maxBodyBytes).toBeUndefined();
   });
 
+  // Pins the round-1 max-bytes correctness fix: a named account configured for larger messages
+  // must get ITS OWN bound, not the root/default one — otherwise its larger messages would be
+  // rejected by a bound sized for the smaller default, and gog's redelivery-on-rejection means
+  // that wedges inbound mail for that mailbox permanently (see the GMAIL_HOOK_PER_MESSAGE_OVERHEAD
+  // comment in hooks-mapping.ts).
+  it("uses a named account's own maxBytes for its own mapping's body bound", () => {
+    const mappings = resolveHookMappings({
+      presets: ["gmail"],
+      gmail: {
+        maxBytes: 10_000,
+        accounts: {
+          orders: { account: "orders@example.com" },
+          enquiries: { account: "enquiries@example.com", maxBytes: 100_000 },
+        },
+      },
+    });
+    const defaultExpected = 100 * (10_000 * 3 + 8_192);
+    const enquiriesExpected = 100 * (100_000 * 3 + 8_192);
+    // "orders" has no maxBytes override, so it inherits the root default.
+    expect(mappings.find((mapping) => mapping.id === "gmail-orders")?.maxBodyBytes).toBe(
+      defaultExpected,
+    );
+    // "enquiries" sets its own, larger maxBytes; its mapping must reflect that, not the root's.
+    expect(mappings.find((mapping) => mapping.id === "gmail-enquiries")?.maxBodyBytes).toBe(
+      enquiriesExpected,
+    );
+    expect(enquiriesExpected).toBeGreaterThan(defaultExpected);
+  });
+
   it("rejects nested forEach paths", () => {
     expect(() =>
       resolveHookMappings({

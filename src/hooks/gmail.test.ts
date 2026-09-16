@@ -164,4 +164,66 @@ describe("gmail hook config", () => {
     });
     expectResolvedPaths(result, { servePath: "/custom", publicPath: "/custom", target });
   });
+
+  it("resolves a single-mailbox config exactly as before, plus accountId default", () => {
+    const result = resolveGmailHookRuntimeConfig(baseConfig, {});
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value.accountId).toBe("default");
+    expect(result.value.account).toBe("openclaw@gmail.com");
+    expect(result.value.label).toBe("INBOX");
+    expect(result.value.subscription).toBe("gog-gmail-watch-push");
+    expect(result.value.hookUrl).toBe(`http://127.0.0.1:${DEFAULT_GATEWAY_PORT}/hooks/gmail`);
+    expect(result.value.hookUrl).not.toContain("gmail-");
+  });
+
+  it("resolves a named account without inheriting the root address", () => {
+    const cfg = {
+      hooks: {
+        token: "hook-token",
+        gmail: {
+          account: "root@example.com",
+          topic: "projects/demo/topics/gog-gmail-watch",
+          pushToken: "push-token",
+          accounts: { enquiries: { account: "enquiries@prasthan.in" } },
+        },
+      },
+    } satisfies OpenClawConfig;
+    const result = resolveGmailHookRuntimeConfig(cfg, { accountId: "enquiries" });
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value.accountId).toBe("enquiries");
+    expect(result.value.account).toBe("enquiries@prasthan.in");
+    // Topic and push token ARE shared defaults; the address is not.
+    expect(result.value.topic).toBe("projects/demo/topics/gog-gmail-watch");
+    expect(result.value.hookUrl).toContain("/gmail-enquiries");
+  });
+
+  it("refuses an unknown accountId instead of silently falling back to the root/default account", () => {
+    const cfg = {
+      hooks: {
+        token: "hook-token",
+        gmail: {
+          account: "root@example.com",
+          topic: "projects/demo/topics/gog-gmail-watch",
+          pushToken: "push-token",
+          accounts: { enquiries: { account: "enquiries@prasthan.in" } },
+        },
+      },
+    } satisfies OpenClawConfig;
+    // A typo'd hooks.gmail.defaultAccount (or an explicit bad accountId override) must fail
+    // loudly rather than silently watching the root mailbox while posting to a hook path
+    // ("/gmail-orders-typo") nothing is mapped to.
+    const result = resolveGmailHookRuntimeConfig(cfg, { accountId: "orders-typo" });
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+    expect(result.error).toContain("orders-typo");
+    expect(result.error).not.toContain("root@example.com");
+  });
 });

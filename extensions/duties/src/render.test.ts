@@ -467,7 +467,10 @@ describe("render", () => {
     expect(html).toContain("&lt;script&gt;&amp;&quot;");
   });
 
-  it("board shows the owner settings form and the mail setup instruction when the mapping is missing", () => {
+  it("board shows the mail setup instruction before every check passes", () => {
+    // Team (Task 7) moved off the Duties board onto its own top-level sidebar page (Task 10) —
+    // `teamPanel`'s own board-shaped assertions moved with it into `browser/render.test.ts`. This
+    // now only proves the board's remaining Settings-strip content: the mail health line.
     const html = renderBoard([duty as unknown as Duty], [], {
       settings: { owner: { channel: "telegram", target: "12345" } },
       mailStatus: {
@@ -478,10 +481,7 @@ describe("render", () => {
         agentPresent: true,
       },
     });
-    expect(html).toContain("data-settings-save");
     expect(html).toContain("vasudev duties setup-mail");
-    expect(html).toContain('value="12345"');
-    expect(html).toContain('value="telegram" selected');
   });
 
   it("board's mail setup instruction disappears once every check passes", () => {

@@ -1,105 +1,23 @@
 import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
-import { describe, expect, it, vi, type Mock } from "vitest";
-import type { RenderAdapter } from "./adapters/render.js";
-import type { DeskHealth } from "./desk.js";
+import { describe, expect, it, vi } from "vitest";
 import type { Duty } from "./duty.js";
-import { registerDutiesGatewayMethods } from "./gateway-methods.js";
+import { harness, type EmitFn } from "./gateway-methods.test-helpers.js";
 import type { RunManager } from "./run-service.js";
-import { DutyStore } from "./store.js";
 
-function memoryKeyed<T>() {
-  const m = new Map<string, T>();
-  return {
-    register: async (k: string, v: T) => {
-      m.set(k, v);
+/** No test below reaches `writeTeamProjection`, which reads and writes the real config file — the
+ *  `duties.team.*` tests that assert on it moved to `team-gateway-methods.test.ts`. The stub stays
+ *  so this suite can never touch `~/.openclaw/openclaw.json`, whatever a Duty method grows into. */
+vi.mock("./team-write.js", () => ({
+  writeTeamProjection: vi.fn(
+    async (params: { members: unknown; assertStillAuthorized: () => void }) => {
+      params.assertStillAuthorized();
+      return { warnings: [], config: {} };
     },
-    lookup: async (k: string) => m.get(k),
-    entries: async () => [...m].map(([key, value]) => ({ key, value })),
-    delete: async (k: string) => m.delete(k),
-  };
-}
-
-type Handler = (ctx: {
-  params: Record<string, unknown>;
-  respond: (ok: boolean, result?: unknown, error?: unknown) => void;
-}) => Promise<void>;
-
-type EmitFn = (name: "changed" | "run", payload: Record<string, unknown>) => void;
-
-function harness(params?: {
-  emit?: Mock<EmitFn>;
-  runs?: {
-    start: ReturnType<typeof vi.fn>;
-    cancel: ReturnType<typeof vi.fn>;
-    waitFor: ReturnType<typeof vi.fn>;
-    status?: ReturnType<typeof vi.fn>;
-    admit?: ReturnType<typeof vi.fn>;
-  };
-  blob?: { bytes: Uint8Array; metadata: { contentType: string } };
-  config?: OpenClawConfig;
-  render?: RenderAdapter;
-  previewDir?: string;
-  notifyOwner?: (text: string) => Promise<void>;
-  deskHealth?: () => Promise<DeskHealth>;
-}) {
-  const methods = new Map<string, { handler: Handler; scope: string }>();
-  const api = {
-    registerGatewayMethod: (name: string, handler: never, opts: { scope: string }) =>
-      methods.set(name, { handler, scope: opts.scope }),
-    config: params?.config ?? {},
-    // SAFETY: the Gateway methods under test only touch `registerGatewayMethod` and `config`.
-  } as never;
-  const store = new DutyStore({
-    duties: memoryKeyed() as never,
-    runs: memoryKeyed() as never,
-    creds: memoryKeyed() as never,
-    templates: memoryKeyed() as never,
-    brands: memoryKeyed() as never,
-    settings: memoryKeyed() as never,
-  });
-  const emit = params?.emit ?? vi.fn<EmitFn>();
-  const runs = params?.runs ?? {
-    start: vi.fn(),
-    cancel: vi.fn(),
-    waitFor: vi.fn(),
-    status: vi.fn(() => ({ active: 0, queued: 0 })),
-    admit: vi.fn(),
-  };
-  const creds = {
-    set: vi.fn<(key: string, value: string) => Promise<void>>(async () => {}),
-    delete: vi.fn<(key: string) => Promise<boolean>>(async () => true),
-    has: vi.fn<(key: string) => Promise<boolean>>(async (key) => key === "acme-demo.password"),
-  };
-  registerDutiesGatewayMethods({
-    api,
-    store,
-    runs: runs as never,
-    emit,
-    creds,
-    evidence: () => ({ lookup: async () => params?.blob }),
-    render: params?.render ?? {
-      toPdf: async () => {
-        throw new Error("render not expected");
-      },
-    },
-    previewDir: async () => params?.previewDir ?? tmpdir(),
-    ...(params?.notifyOwner ? { notifyOwner: params.notifyOwner } : {}),
-    ...(params?.deskHealth ? { deskHealth: params.deskHealth } : {}),
-  });
-
-  const call = async (name: string, callParams: Record<string, unknown>) =>
-    new Promise<{ ok: boolean; result?: unknown; error?: unknown }>((resolve) => {
-      void methods.get(name)!.handler({
-        params: callParams,
-        respond: (ok, result, error) => resolve({ ok, result, error }),
-      });
-    });
-
-  return { methods, store, emit, runs, creds, call };
-}
+  ),
+  revokePairingEntries: vi.fn(async () => ({ warnings: [] })),
+}));
 
 const baseDuty = {
   id: "d1",
@@ -687,6 +605,9 @@ describe("duties gateway methods", () => {
   it("duties.mail.status reports each missing piece of the Gmail path without leaking the address", async () => {
     const bare = harness();
     expect((await bare.call("duties.mail.status", {})).result).toEqual({
+      // False only with no `hooks` section at all, and zero mailboxes resolved from it.
+      configured: false,
+      gmailAccountCount: 0,
       hooksEnabled: false,
       gmailAccountSet: false,
       mappingPresent: false,
@@ -710,6 +631,8 @@ describe("duties gateway methods", () => {
     await wired.store.updateSettings({ lastMailDispatchAt: 5, lastMailDispatchDutyId: "d1" });
     const status = await wired.call("duties.mail.status", {});
     expect(status.result).toEqual({
+      configured: true,
+      gmailAccountCount: 1,
       hooksEnabled: true,
       gmailAccountSet: true,
       mappingPresent: true,

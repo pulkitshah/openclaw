@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import type { TeamMember } from "../team.js";
 import {
   createAskSessionResolver,
   createDeliverAdapter,
@@ -15,6 +16,7 @@ describe("createRouteResolver", () => {
       ownerTarget: async () => owner,
       sessionRoute: (o) =>
         o.sessionKey === "agent:main:telegram:222" ? { channel: "telegram", to: "222" } : undefined,
+      teamMember: async () => undefined,
     });
     expect(
       await resolve("trigger", undefined, { kind: "chat", sessionKey: "agent:main:telegram:222" }),
@@ -35,10 +37,86 @@ describe("createRouteResolver", () => {
     const resolve = createRouteResolver({
       ownerTarget: async () => undefined,
       sessionRoute: () => undefined,
+      teamMember: async () => undefined,
     });
     await expect(resolve("owner", undefined, undefined)).rejects.toThrow(
       /no owner target configured — set it on the Duties page/u,
     );
+  });
+});
+
+describe("createRouteResolver: team targets", () => {
+  const ramesh: TeamMember = {
+    id: "ramesh",
+    name: "Ramesh",
+    role: "member",
+    agentId: "ramesh",
+    addedBy: "owner",
+    addedAt: 1,
+    updatedAt: 1,
+    channels: [
+      { channel: "whatsapp", senderId: "+919812345678", accountId: "work", addedAt: 1 },
+      { channel: "telegram", senderId: "5551234", addedAt: 1 },
+    ],
+  };
+  const resolver = () =>
+    createRouteResolver({
+      ownerTarget: async () => ({ channel: "telegram", target: "111" }),
+      sessionRoute: () => undefined,
+      teamMember: async (id) => (id === "ramesh" ? ramesh : undefined),
+    });
+
+  it("resolves to that member's id on the named channel, carrying the account", async () => {
+    await expect(resolver()("team:ramesh", "whatsapp", undefined)).resolves.toEqual({
+      channel: "whatsapp",
+      to: "+919812345678",
+      accountId: "work",
+    });
+  });
+
+  it("omits accountId when the identity has none", async () => {
+    await expect(resolver()("team:ramesh", "telegram", undefined)).resolves.toEqual({
+      channel: "telegram",
+      to: "5551234",
+    });
+  });
+
+  it("throws when no channel was named, instead of picking one", async () => {
+    await expect(resolver()("team:ramesh", undefined, undefined)).rejects.toThrow(
+      'deliver to "team:ramesh" needs a channel',
+    );
+  });
+
+  it("throws when that member has no identity on the named channel, naming both", async () => {
+    await expect(resolver()("team:ramesh", "signal", undefined)).rejects.toThrow(
+      'deliver to "team:ramesh": Ramesh has no signal identity — add it on the Team card',
+    );
+  });
+
+  it("throws on an unknown member id, naming the id", async () => {
+    await expect(resolver()("team:nobody", "whatsapp", undefined)).rejects.toThrow(
+      'deliver to "team:nobody": no Team member "nobody" — add them on the Team card',
+    );
+  });
+
+  it("never falls back to the owner for a failed team target", async () => {
+    await expect(resolver()("team:nobody", "telegram", undefined)).rejects.toThrow();
+  });
+
+  it("leaves owner, trigger and explicit targets exactly as before", async () => {
+    const r = resolver();
+    await expect(r("owner", undefined, undefined)).resolves.toEqual({
+      channel: "telegram",
+      to: "111",
+    });
+    await expect(r("trigger", undefined, undefined)).resolves.toEqual({
+      channel: "telegram",
+      to: "111",
+    });
+    await expect(r("+919700000000", "whatsapp", undefined)).resolves.toEqual({
+      channel: "whatsapp",
+      to: "+919700000000",
+    });
   });
 });
 

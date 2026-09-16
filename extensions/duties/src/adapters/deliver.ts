@@ -30,7 +30,9 @@ import {
   deliveryContextFromSession,
   getSessionEntry,
 } from "openclaw/plugin-sdk/session-store-runtime";
+import { parseTeamDeliverTarget } from "../duty.js";
 import type { RunOrigin } from "../store.js";
+import type { TeamMember } from "../team.js";
 
 export type DeliverRoute = { channel: string; to: string; accountId?: string };
 export type RouteResolver = (
@@ -144,11 +146,15 @@ export function createOwnerRouteResolver(params: {
   };
 }
 
-/** "trigger" -> the chat the run came from, else the owner; "owner" -> the owner target; anything
- *  else is an explicit channel target (validateDuty already required `channel` for it). */
+/** "trigger" -> the chat the run came from, else the owner; "owner" -> the owner target;
+ *  "team:<memberId>" -> that person's own id on the named channel; anything else is an explicit
+ *  channel target (validateDuty already required `channel` for both of the last two). */
 export function createRouteResolver(params: {
   ownerTarget: () => Promise<{ channel: string; target: string } | undefined>;
   sessionRoute: (origin: RunOrigin) => DeliverRoute | undefined;
+  /** Injected the same way `ownerTarget` is (extensions/duties/index.ts), so tests never open the
+   *  real roster. */
+  teamMember: (id: string) => Promise<TeamMember | undefined>;
 }): RouteResolver {
   const owner = async (): Promise<DeliverRoute> => {
     const target = await params.ownerTarget();
@@ -165,6 +171,35 @@ export function createRouteResolver(params: {
       const route = origin?.kind === "chat" ? params.sessionRoute(origin) : undefined;
       return route ?? owner();
     }
+
+    const memberId = parseTeamDeliverTarget(to);
+    if (memberId) {
+      // `validateDuty` already required `channel`; re-check because an authored Duty can be
+      // hand-edited, and a wrong delivery is worse than a failed step. There is no "whichever
+      // channel they are reachable on", no fallback to the owner and no fallback to their first
+      // identity: a delivery that cannot land must say so at the step.
+      if (!channel) {
+        throw new Error(`deliver to "${to}" needs a channel`);
+      }
+      const member = await params.teamMember(memberId);
+      if (!member) {
+        throw new Error(
+          `deliver to "${to}": no Team member "${memberId}" — add them on the Team card`,
+        );
+      }
+      const identity = member.channels.find((c) => c.channel === channel);
+      if (!identity) {
+        throw new Error(
+          `deliver to "${to}": ${member.name} has no ${channel} identity — add it on the Team card`,
+        );
+      }
+      return {
+        channel,
+        to: identity.senderId,
+        ...(identity.accountId ? { accountId: identity.accountId } : {}),
+      };
+    }
+
     if (!channel) {
       throw new Error(`deliver to "${to}" needs a channel`);
     }

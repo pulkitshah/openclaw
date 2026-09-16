@@ -13,6 +13,7 @@ import {
   isWindowsBatchCommand,
   resolveTrustedWindowsCmdExe,
 } from "../process/windows-command.js";
+import { GMAIL_DEFAULT_ACCOUNT_ID, gmailHookPathForAccount } from "./gmail-accounts.js";
 
 export const DEFAULT_GMAIL_LABEL = "INBOX";
 export const DEFAULT_GMAIL_TOPIC = "gog-gmail-watch";
@@ -29,6 +30,7 @@ const GMAIL_WATCH_SENSITIVE_FLAGS = new Set(["--token", "--hook-url", "--hook-to
 let gogBin: string | undefined;
 
 export type GmailHookOverrides = {
+  accountId?: string;
   account?: string;
   label?: string;
   topic?: string;
@@ -48,6 +50,7 @@ export type GmailHookOverrides = {
 };
 
 export type GmailHookRuntimeConfig = {
+  accountId: string;
   account: string;
   label: string;
   topic: string;
@@ -110,10 +113,19 @@ export function normalizeServePath(raw?: string): string {
 export function buildDefaultHookUrl(
   hooksPath?: string,
   port: number = DEFAULT_GATEWAY_PORT,
+  accountId: string = GMAIL_DEFAULT_ACCOUNT_ID,
 ): string {
   const basePath = normalizeHooksPath(hooksPath);
   const baseUrl = `http://127.0.0.1:${port}`;
-  return joinUrl(baseUrl, `${basePath}/gmail`);
+  return joinUrl(baseUrl, `${basePath}/${gmailHookPathForAccount(accountId)}`);
+}
+
+/** Same wording as today for one mailbox; names the account once there is more than one, so an
+ *  operator reading the log or error knows which inbox is misconfigured. */
+function requiredForGmailAccount(what: string, accountId: string): string {
+  return accountId === GMAIL_DEFAULT_ACCOUNT_ID
+    ? `${what} required`
+    : `${what} required for hooks.gmail.accounts.${accountId}`;
 }
 
 export function resolveGmailHookRuntimeConfig(
@@ -122,38 +134,63 @@ export function resolveGmailHookRuntimeConfig(
 ): { ok: true; value: GmailHookRuntimeConfig } | { ok: false; error: string } {
   const hooks = cfg.hooks;
   const gmail = hooks?.gmail;
+  const accountId = overrides.accountId ?? gmail?.defaultAccount ?? GMAIL_DEFAULT_ACCOUNT_ID;
+  // Root keys are the shared defaults for every named account EXCEPT the address and hookUrl,
+  // which are per-account by definition and must never leak sideways into a sibling account
+  // (src/hooks/gmail-accounts.ts). `named` stays undefined for the default account so every
+  // `named?.x ?? gmail?.x` fallback below collapses to the pre-existing single-mailbox lookup.
+  const named = accountId === GMAIL_DEFAULT_ACCOUNT_ID ? undefined : gmail?.accounts?.[accountId];
+  // An unresolvable accountId must never silently fall through to the root/default account's
+  // values: that would violate the "address never leaks sideways" invariant (a typo'd
+  // hooks.gmail.defaultAccount, or an explicit bad accountId, would otherwise watch the wrong
+  // mailbox while posting to a hook path nothing is mapped to).
+  if (accountId !== GMAIL_DEFAULT_ACCOUNT_ID && !named) {
+    return {
+      ok: false,
+      error: `Gmail account "${accountId}" is not configured (no hooks.gmail.accounts.${accountId})`,
+    };
+  }
+
   const hookToken = overrides.hookToken ?? hooks?.token ?? "";
   if (!hookToken) {
     return { ok: false, error: "hooks.token missing (needed for gmail hook)" };
   }
 
-  const account = overrides.account ?? gmail?.account ?? "";
+  const account = overrides.account ?? named?.account ?? (named ? "" : (gmail?.account ?? ""));
   if (!account) {
-    return { ok: false, error: "gmail account required" };
+    return { ok: false, error: requiredForGmailAccount("gmail account", accountId) };
   }
 
-  const topic = overrides.topic ?? gmail?.topic ?? "";
+  const topic = overrides.topic ?? named?.topic ?? gmail?.topic ?? "";
   if (!topic) {
-    return { ok: false, error: "gmail topic required" };
+    return { ok: false, error: requiredForGmailAccount("gmail topic", accountId) };
   }
 
-  const subscription = overrides.subscription ?? gmail?.subscription ?? DEFAULT_GMAIL_SUBSCRIPTION;
+  const subscription =
+    overrides.subscription ??
+    named?.subscription ??
+    gmail?.subscription ??
+    DEFAULT_GMAIL_SUBSCRIPTION;
 
-  const pushToken = overrides.pushToken ?? gmail?.pushToken ?? "";
+  const pushToken = overrides.pushToken ?? named?.pushToken ?? gmail?.pushToken ?? "";
   if (!pushToken) {
-    return { ok: false, error: "gmail push token required" };
+    return { ok: false, error: requiredForGmailAccount("gmail push token", accountId) };
   }
 
   const hookUrl =
     overrides.hookUrl ??
-    gmail?.hookUrl ??
-    buildDefaultHookUrl(hooks?.path, resolveGatewayPort(cfg));
+    named?.hookUrl ??
+    (named ? undefined : gmail?.hookUrl) ??
+    buildDefaultHookUrl(hooks?.path, resolveGatewayPort(cfg), accountId);
 
-  const includeBody = overrides.includeBody ?? gmail?.includeBody ?? true;
+  const includeBody = overrides.includeBody ?? named?.includeBody ?? gmail?.includeBody ?? true;
 
-  const maxBytes = resolveGmailHookMaxBytes(overrides.maxBytes ?? gmail?.maxBytes);
+  const maxBytes = resolveGmailHookMaxBytes(
+    overrides.maxBytes ?? named?.maxBytes ?? gmail?.maxBytes,
+  );
 
-  const renewEveryMinutesRaw = overrides.renewEveryMinutes ?? gmail?.renewEveryMinutes;
+  const renewEveryMinutesRaw =
+    overrides.renewEveryMinutes ?? named?.renewEveryMinutes ?? gmail?.renewEveryMinutes;
   const renewEveryMinutes =
     typeof renewEveryMinutesRaw === "number" &&
     Number.isFinite(renewEveryMinutesRaw) &&
@@ -161,13 +198,17 @@ export function resolveGmailHookRuntimeConfig(
       ? Math.floor(renewEveryMinutesRaw)
       : DEFAULT_GMAIL_RENEW_MINUTES;
 
-  const serveBind = overrides.serveBind ?? gmail?.serve?.bind ?? DEFAULT_GMAIL_SERVE_BIND;
-  const servePortRaw = overrides.servePort ?? gmail?.serve?.port;
+  // Named accounts shallow-merge their own serve.* over the root's, the same convention as the
+  // account object itself (src/hooks/gmail-accounts.ts) — unlike the address, serve settings ARE
+  // shared defaults, per field.
+  const serveBind =
+    overrides.serveBind ?? named?.serve?.bind ?? gmail?.serve?.bind ?? DEFAULT_GMAIL_SERVE_BIND;
+  const servePortRaw = overrides.servePort ?? named?.serve?.port ?? gmail?.serve?.port;
   const servePort =
     typeof servePortRaw === "number" && Number.isFinite(servePortRaw) && servePortRaw > 0
       ? Math.floor(servePortRaw)
       : DEFAULT_GMAIL_SERVE_PORT;
-  const servePathRaw = overrides.servePath ?? gmail?.serve?.path;
+  const servePathRaw = overrides.servePath ?? named?.serve?.path ?? gmail?.serve?.path;
   const normalizedServePathRaw =
     typeof servePathRaw === "string" && servePathRaw.trim().length > 0
       ? normalizeServePath(servePathRaw)
@@ -196,8 +237,9 @@ export function resolveGmailHookRuntimeConfig(
   return {
     ok: true,
     value: {
+      accountId,
       account,
-      label: overrides.label ?? gmail?.label ?? DEFAULT_GMAIL_LABEL,
+      label: overrides.label ?? named?.label ?? gmail?.label ?? DEFAULT_GMAIL_LABEL,
       topic,
       subscription,
       pushToken,
@@ -218,6 +260,35 @@ export function resolveGmailHookRuntimeConfig(
       },
     },
   };
+}
+
+export type GmailServeBindCollision = {
+  first: string;
+  second: string;
+  bind: string;
+  port: number;
+};
+
+/**
+ * Two `gog serve` processes cannot both bind the same address+port: the second one's bind
+ * failure is only ever a warn log (gmail-watcher.ts), so without this check a desk with two
+ * accounts sharing a default port would look healthy while one mailbox silently never delivers
+ * mail. Returns the first colliding pair (by account id resolution order), or null when every
+ * resolved account has a distinct (bind, port).
+ */
+export function findGmailServeBindCollision(
+  configs: readonly GmailHookRuntimeConfig[],
+): GmailServeBindCollision | null {
+  const seenBy = new Map<string, string>();
+  for (const config of configs) {
+    const key = `${config.serve.bind}:${config.serve.port}`;
+    const first = seenBy.get(key);
+    if (first) {
+      return { first, second: config.accountId, bind: config.serve.bind, port: config.serve.port };
+    }
+    seenBy.set(key, config.accountId);
+  }
+  return null;
 }
 
 export function buildGogWatchStartArgs(

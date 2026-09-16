@@ -27,6 +27,9 @@ import { renderTemplatePreview } from "./preview.js";
 import type { RunManager } from "./run-service.js";
 import { renderStatusFromConfig } from "./setup.js";
 import type { DutyStore, RunOrigin } from "./store.js";
+import type { GatewayRequest } from "./team-agent.js";
+import { registerTeamGatewayMethods } from "./team-gateway-methods.js";
+import { normalizeTeamMemberId, type TeamChannelIdentity } from "./team.js";
 import { validateBrand, validateTemplate } from "./template.js";
 
 /** How long `duties.run.wait` blocks before answering with the run as it stands. Short enough that
@@ -35,8 +38,10 @@ import { validateBrand, validateTemplate } from "./template.js";
 const DEFAULT_RUN_WAIT_MS = 30_000;
 const MAX_RUN_WAIT_MS = 120_000;
 
-type Ctx = Parameters<Parameters<OpenClawPluginApi["registerGatewayMethod"]>[1]>[0];
-type Scope = "operator.read" | "operator.write" | "operator.admin";
+/** Exported for `team-gateway-methods.ts`, which registers the `duties.team.*` block through the
+ *  same `register` closure this module owns. Type-only, so nothing is imported back at runtime. */
+export type Ctx = Parameters<Parameters<OpenClawPluginApi["registerGatewayMethod"]>[1]>[0];
+export type Scope = "operator.read" | "operator.write" | "operator.admin";
 
 /** Same per-entry ceiling the evidence blob store enforces on screenshots (`index.ts`), applied
  *  here by hand because a rendered document is a plain file with no store to bound it. */
@@ -95,6 +100,9 @@ export function registerDutiesGatewayMethods(deps: {
   evidence: () => EvidenceBlobs;
   render: RenderAdapter;
   previewDir: () => Promise<string>;
+  /** Trusted in-process Gateway dispatch, already built in `index.ts` with
+   *  `{ scopes: ["operator.admin"] }`. Injectable so tests never reach a real Gateway. */
+  request: GatewayRequest;
   /** Reads the config as it stands now, not the snapshot `register()` was handed: the Mail
    *  trigger health readout is exactly what an operator watches while fixing config, so answering
    *  it from a registration-time snapshot told them setup had not worked when it had. */
@@ -105,7 +113,8 @@ export function registerDutiesGatewayMethods(deps: {
   /** Test injection point for `duties.desk.status`; defaults to `desk.ts`'s file-backed reader. */
   deskHealth?: () => Promise<DeskHealth>;
 }): void {
-  const { api, store, runs, emit, creds, evidence, render, previewDir, notifyOwner } = deps;
+  const { api, store, runs, emit, creds, evidence, render, previewDir, notifyOwner, request } =
+    deps;
   const currentConfig = (): OpenClawConfig => deps.config?.() ?? api.config;
   const readDesk = deps.deskHealth ?? readDeskHealth;
 
@@ -124,13 +133,13 @@ export function registerDutiesGatewayMethods(deps: {
   const register = (
     method: string,
     scope: Scope,
-    handler: (params: Record<string, unknown>) => Promise<unknown>,
+    handler: (params: Record<string, unknown>, ctx: Ctx) => Promise<unknown>,
   ) =>
     api.registerGatewayMethod(
       method,
       async (ctx: Ctx) => {
         try {
-          ctx.respond(true, await handler(isRecord(ctx.params) ? ctx.params : {}));
+          ctx.respond(true, await handler(isRecord(ctx.params) ? ctx.params : {}, ctx));
         } catch (error) {
           ctx.respond(false, undefined, {
             code: "duties_error",
@@ -140,6 +149,30 @@ export function registerDutiesGatewayMethods(deps: {
       },
       { scope },
     );
+
+  /** Re-asserts that the admin connection that dispatched this request still holds its authority,
+   *  synchronously, immediately before a durable effect. `authorizeGatewayMethod` checked the scope
+   *  before the handler body ran, but the roster read, the `agents.create` dispatch and the
+   *  projection all await in between — and `src/gateway/AGENTS.md` is explicit that a token or a
+   *  matching id is not live authority. Absent on in-process callers, which is not a revocation. */
+  const assertStillAuthorized = (ctx: Ctx): void => {
+    if (ctx.hasCurrentClientAuthority?.() === false) {
+      throw new Error("your session is no longer authorized — reconnect and try again");
+    }
+  };
+
+  /** Whether the connection that dispatched this request holds `operator.admin`, read off the
+   *  server-authenticated connection metadata the same way core's own handlers do
+   *  (`canReviewOperatorApproval`, `src/gateway/operator-approval-authorization.ts:26`). Used to
+   *  decide what a READ method may answer, never to grant a write — the scope check
+   *  `registerGatewayMethod` performs is still the authority for that. Absent scopes mean not admin:
+   *  an in-process dispatch always carries the synthetic client's own scope list, so the only way to
+   *  get here without one is a caller whose authority cannot be established, and the withheld field
+   *  is PII. */
+  const holdsAdminScope = (ctx: Ctx): boolean => {
+    const scopes = ctx.client?.connect?.scopes;
+    return Array.isArray(scopes) && scopes.includes("operator.admin");
+  };
 
   const readId = (params: Record<string, unknown>): string => {
     if (typeof params.id !== "string" || !params.id) {
@@ -158,6 +191,37 @@ export function registerDutiesGatewayMethods(deps: {
       throw new Error("key is required");
     }
     return params.key;
+  };
+  const readMemberId = (params: Record<string, unknown>): string => {
+    if (typeof params.memberId !== "string" || !params.memberId) {
+      throw new Error("memberId is required");
+    }
+    return normalizeTeamMemberId(params.memberId);
+  };
+
+  /** Channel identities arrive as ordinary params, so only the known fields in the known shapes are
+   *  kept. An identity with no channel or no sender id is rejected rather than stored half-formed —
+   *  it would become an allowlist entry and a routing key. */
+  const readIdentities = (value: unknown): TeamChannelIdentity[] => {
+    if (!Array.isArray(value) || value.length === 0) {
+      throw new Error("channels is required: at least one { channel, senderId }");
+    }
+    const now = Date.now();
+    return value.map((raw, index) => {
+      if (!isRecord(raw)) {
+        throw new Error(`channels[${index}]: must be an object`);
+      }
+      const channel = typeof raw.channel === "string" ? raw.channel.trim() : "";
+      const senderId = typeof raw.senderId === "string" ? raw.senderId.trim() : "";
+      if (!channel) {
+        throw new Error(`channels[${index}].channel is required`);
+      }
+      if (!senderId) {
+        throw new Error(`channels[${index}].senderId is required`);
+      }
+      const accountId = typeof raw.accountId === "string" ? raw.accountId.trim() : "";
+      return { channel, senderId, ...(accountId ? { accountId } : {}), addedAt: now };
+    });
   };
   /** Validates a caller-supplied run origin. The tools capture this from their trusted tool
    *  context, but it arrives here as ordinary params, so only the known fields in the known shapes
@@ -657,7 +721,7 @@ export function registerDutiesGatewayMethods(deps: {
     settings: await store.getSettings(),
   }));
 
-  register("duties.settings.set", "operator.admin", async (params) => {
+  register("duties.settings.set", "operator.admin", async (params, ctx) => {
     const owner = params.owner;
     const approval = params.requireApprovalForEdits;
     const maxParallelRuns = params.maxParallelRuns;
@@ -689,7 +753,27 @@ export function registerDutiesGatewayMethods(deps: {
       if (typeof target !== "string" || !target.trim()) {
         throw new Error("owner.target is required");
       }
-      patch.owner = { channel: channel.trim(), target: target.trim() };
+      const ownerPatch = { channel: channel.trim(), target: target.trim() };
+      patch.owner = ownerPatch;
+      // The owner row is the one owner of "who the desk reports to". Keep writing
+      // `settings.owner` so an empty roster can still seed from it, and mirror the change onto the
+      // owner's first channel identity when a roster already exists — otherwise this method would
+      // silently write a field `ownerTarget` no longer reads.
+      //
+      // On a brand-new desk this IS the owner action that creates the roster: saving an owner target
+      // is what the Team page's empty-roster form does, and it is admin-scoped, so the row is
+      // persisted here rather than by the next `duties.team.get` (final review I1).
+      const ownerRow = await persistSeededOwner(ctx, ownerPatch);
+      if (ownerRow) {
+        const rest = ownerRow.channels.filter((c) => c.channel !== ownerPatch.channel);
+        // A durable effect: re-check live authority immediately before it, same as every other
+        // write this module performs (`assertStillAuthorized`'s own contract).
+        assertStillAuthorized(ctx);
+        await store.setMemberChannels(ownerRow.id, [
+          { channel: ownerPatch.channel, senderId: ownerPatch.target, addedAt: Date.now() },
+          ...rest,
+        ]);
+      }
     }
     if (approval !== undefined) {
       patch.requireApprovalForEdits = approval;
@@ -707,6 +791,23 @@ export function registerDutiesGatewayMethods(deps: {
       runs.admit();
     }
     return { settings };
+  });
+
+  /** The five `duties.team.*` methods, moved whole into `team-gateway-methods.ts` to keep this file
+   *  under the extensions max-lines budget. `persistSeededOwner` comes back out because
+   *  `duties.settings.set` above calls it too — it is the one helper the Team block shares with a
+   *  method that is not part of it. */
+  const { persistSeededOwner } = registerTeamGatewayMethods({
+    register,
+    store,
+    request,
+    api,
+    currentConfig,
+    assertStillAuthorized,
+    holdsAdminScope,
+    readMemberId,
+    readIdentities,
+    safeEmit,
   });
 
   /** Setup readiness for both of Part 2's outward-facing paths: the Gmail dispatch chain and

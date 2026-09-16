@@ -36,9 +36,11 @@ import {
   renderRun,
   renderTemplates,
 } from "./render.js";
+import { createTeamPageMount } from "./team-page.js";
 import "./styles.css";
 
 const PAGE = "duties";
+const TEAM_PAGE = "team";
 
 export default defineControlUiPlugin({
   id: "duties",
@@ -49,6 +51,21 @@ export default defineControlUiPlugin({
       page: { id: PAGE },
       icon: "listChecks",
       order: 15,
+    });
+    // Team is a distinct concept from Duties (automations), so it gets its own top-level sidebar
+    // entry directly below Duties (order 16) instead of living inside the Duties board's Settings
+    // strip — see `team-page.ts` for its independent mount lifecycle.
+    const unregisterTeamNav = host.ui.registerNavigation({
+      id: "team",
+      label: "Team",
+      page: { id: TEAM_PAGE },
+      icon: "users",
+      order: 16,
+    });
+    const unregisterTeamPage = host.ui.registerPage({
+      id: TEAM_PAGE,
+      label: "Team",
+      mount: createTeamPageMount(host),
     });
     const unregisterPage = host.ui.registerPage({
       id: PAGE,
@@ -252,29 +269,10 @@ export default defineControlUiPlugin({
           }
         };
 
-        const saveSettings = async (): Promise<void> => {
-          const channelInput = root.querySelector<HTMLSelectElement>("[data-settings-channel]");
-          const targetInput = root.querySelector<HTMLInputElement>("[data-settings-target]");
-          const channel = channelInput?.value ?? "";
-          const target = targetInput?.value.trim() ?? "";
-          if (!channel || !target) {
-            fail(new Error("Choose a channel and enter a target."), () => undefined);
-            return;
-          }
-          try {
-            const result = await host.request<SettingsSetResult>("duties.settings.set", {
-              owner: { channel, target },
-            });
-            if (context.signal.aborted) {
-              return;
-            }
-            state.settings = result.settings;
-            clearError();
-            draw();
-          } catch (error) {
-            fail(error, () => void saveSettings());
-          }
-        };
+        // The owner-target form this page used to own moved to the Team page with the rest of Team
+        // (Task 10), and its save moved with it — `createTeamActions().saveOwnerSettings` reads the
+        // Team page's own root. Nothing on this page renders `data-settings-save` any more, so a
+        // second copy here would be a handler for markup that cannot appear (final review C3).
 
         /** Fires on the Desk card's number input `change` (not a separate save button — a
          *  number input's own value change is already the owner's intent). Validated the same
@@ -621,7 +619,6 @@ export default defineControlUiPlugin({
           cancelRun: (runId) => void cancelRun(runId),
           toggleShot: (stepId) => void toggleShot(stepId),
           saveLogin: () => void saveLogin(),
-          saveSettings: () => void saveSettings(),
           saveBrand: () => void saveBrand(),
           previewTemplate: (id) => void previewTemplate(id),
           openTemplatePdf: (id) => void openTemplatePdf(id),
@@ -702,6 +699,8 @@ export default defineControlUiPlugin({
     return () => {
       unregisterPage();
       unregisterNav();
+      unregisterTeamPage();
+      unregisterTeamNav();
     };
   },
 });

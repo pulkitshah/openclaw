@@ -90,11 +90,15 @@ and `saveAs`.
   `{{file:<templateStepId>}}`); a `message` template's rendered text is saved via `saveAs`
   like any other step. See **Templates** below for the authoring loop.
 - **`deliver`** — sends text and/or files to a route. `params.to` is `"trigger"` (reply
-  to whoever/whatever started this run), `"owner"` (the configured owner), or an explicit
-  channel target, in which case `params.channel` is required. `params.text` is a string
-  (placeholders resolved as usual); `params.files` is an array of `{{file:<templateStepId>}}`
-  placeholders naming earlier `template` steps' output files. Needs at least one of `text`
-  or `files`.
+  to whoever/whatever started this run), `"owner"` (the current Team owner), `"team:<memberId>"`
+  (a person on the Team roster), or an explicit channel target. **For anything other than
+  `"trigger"` and `"owner"`, `params.channel` is required** — naming a person always names the
+  channel they should be reached on, because Vasu never guesses which channel someone is on. Call
+  `team_list` to read real member ids and which channels each person has; never invent an id, and
+  never name a channel a person has no identity on — the step fails rather than delivering
+  elsewhere. `params.text` is a string (placeholders resolved as usual); `params.files` is an array
+  of `{{file:<templateStepId>}}` placeholders naming earlier `template` steps' output files. Needs
+  at least one of `text` or `files`.
 - **`when`** — `cond` is one of `{ visible: <target> }`, `{ equals: [a, b] }`,
   `{ text_matches: <regex> }`, `{ url_matches: <regex> }`; has `then` and optional `else` node
   lists.

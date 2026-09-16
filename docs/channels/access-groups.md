@@ -40,6 +40,8 @@ Static sender groups use `type: "message.senders"`. `members` is keyed by messag
 
 Entries are matched with the destination channel's normal `allowFrom` rules. Vasudev does not translate sender ids between channels: if Alice has a Telegram id and a Discord id, list both ids under the matching channel keys.
 
+The Duties plugin's Team roster is one maintained consumer of this mechanism: adding, removing, or re-channeling a Team member keeps `accessGroups.team` and each touched channel's `accessGroup:team` allowlist entry in sync for you. It merges its entry into whatever else that channel's `allowFrom` already lists rather than replacing the list, and it never writes `dmPolicy` — a channel's open-or-restricted setting is left exactly as configured.
+
 ## Reference groups from allowlists
 
 Reference a group with `accessGroup:<name>` anywhere the message channel path supports sender allowlists.

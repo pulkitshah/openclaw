@@ -20,6 +20,7 @@
       "duty_set_steps",
       "duty_run",
       "duty_save",
+      "team_list",
       "cred_needed",
       "template_list",
       "template_get",
@@ -43,9 +44,9 @@
     }
   },
   "controlUi": {
-    "entry": "dist/control-ui/dd2e6eba4fedb8fc14190cf146c84234f52f5fac7191cd13d8e90690e2f6f16c/index.js",
+    "entry": "dist/control-ui/62458721afdc070d5f85d3e16f6ac77d13bdd6d20691debe76f2b6cabbdd496d/index.js",
     "styles": [
-      "dist/control-ui/dd2e6eba4fedb8fc14190cf146c84234f52f5fac7191cd13d8e90690e2f6f16c/index.css"
+      "dist/control-ui/62458721afdc070d5f85d3e16f6ac77d13bdd6d20691debe76f2b6cabbdd496d/index.css"
     ]
   }
 }

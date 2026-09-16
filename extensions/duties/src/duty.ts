@@ -61,6 +61,22 @@ export type DutyTrigger =
 const INPUT_SOURCES = ["ask", "file", "mail", "trigger", "cred", "literal"] as const;
 const TRIGGER_KINDS = ["manual", "mail", "chat"] as const;
 const DELIVER_ROUTES = ["trigger", "owner"] as const;
+
+/** A `deliver` target naming a person on the Team roster. `DELIVER_ROUTES` is unchanged, so
+ *  `explicit` is already true for a `team:` target and the existing branch below already makes
+ *  `params.channel` required for it — the owner's "always name the channel too" rule is enforced by
+ *  code that is already there. */
+export const TEAM_ROUTE_PREFIX = "team:";
+
+/** "team:ramesh" -> "ramesh"; anything else -> null. */
+export function parseTeamDeliverTarget(to: string): string | null {
+  if (!to.startsWith(TEAM_ROUTE_PREFIX)) {
+    return null;
+  }
+  const id = to.slice(TEAM_ROUTE_PREFIX.length).trim();
+  return id.length > 0 ? id : null;
+}
+
 export type Duty = {
   id: string;
   name: string;
@@ -422,7 +438,7 @@ function validateDeliverParams(
   errors: string[],
 ): void {
   if (typeof params.to !== "string" || !params.to.trim()) {
-    errors.push(`${path}.to: must be "trigger", "owner", or a channel target`);
+    errors.push(`${path}.to: must be "trigger", "owner", "team:<memberId>", or a channel target`);
     return;
   }
   // SAFETY: includes() is the runtime check; the cast only lets an arbitrary string be compared.

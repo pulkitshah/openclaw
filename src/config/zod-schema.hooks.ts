@@ -139,6 +139,43 @@ export const HooksGmailSchema = z
         z.literal("high"),
       ])
       .optional(),
+    // Multiple mailboxes: root keys above stay the DEFAULT account's own values and the shared
+    // defaults for every named account (see src/hooks/gmail-accounts.ts). `account` is the one
+    // field that is never inherited sideways between accounts.
+    defaultAccount: z.string().optional(),
+    accounts: z
+      .record(
+        z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_-]*$/, "Invalid Gmail account id"),
+        z
+          .object({
+            account: z.string().optional(),
+            // `label` stays what it already is — the Gmail LABEL to watch, passed to `gog`
+            // (src/hooks/gmail.ts). It is NOT the account label. Do not reuse the name.
+            label: z.string().optional(),
+            topic: z.string().optional(),
+            subscription: z.string().optional(),
+            pushToken: z.string().optional().register(sensitive),
+            hookUrl: z.string().optional(),
+            includeBody: z.boolean().optional(),
+            maxBytes: z.number().int().positive().optional(),
+            renewEveryMinutes: z.number().int().positive().optional(),
+            allowUnsafeExternalContent: z.boolean().optional(),
+            serve: z
+              .object({
+                bind: z.string().optional(),
+                port: z.number().int().positive().optional(),
+                path: z.string().optional(),
+              })
+              .strict()
+              .optional(),
+            // No per-account `model`: only the root `hooks.gmail.model` is ever consulted (by
+            // model-selection-shared.ts, the doctor's retired-model-ref repair, and friends) —
+            // none of those five call sites are account-aware, so a per-account override here
+            // would be a silently-accepted no-op field.
+          })
+          .strict(),
+      )
+      .optional(),
   })
   .strict()
   .optional();

@@ -122,3 +122,31 @@ Restart the Gateway, then check the Duties page's Settings strip: it reports eac
 ### The owner target
 
 Set the channel and target you want approvals and reports to reach on the Duties page. Until it is set, a Duty still runs — it just has nowhere to report, and a Duty that asks you something cannot ask.
+
+<a id="team" />
+
+## Team
+
+Team is the desk's only people list. It answers exactly one question — who may give the agent instructions — and it answers it identically on every channel. It never decides who the agent may talk to: it can still message any WhatsApp number, Telegram id, or other contact it's told to reach, Team member or not.
+
+There are two roles, `owner` and `member`, and no separate contact tier. Nothing is ever added to the roster except by the owner. If a channel's `dmPolicy` is `"pairing"` and a stranger writes in, that produces an ordinary pairing request in that channel's own store — it never turns into a roster row by itself.
+
+The owner is a Team member from the start: the first time the roster is read, it seeds itself from the channel and target already set as [the owner target](#the-owner-target) above, so nothing has to be entered twice.
+
+Adding a member, removing one, changing which channels they're reachable on, and transferring ownership are all owner-only, enforced server-side at `operator.admin` — there is no client-side version of that gate to bypass.
+
+Each member gets their own agent, their own workspace, their own conversation history, and their own memory, created the moment they're added. Their first message runs through the same naming ceremony the owner's own assistant went through when it was set up.
+
+A member's agent gets the same default tool access as any other agent on the desk — Team writes no `tools` block of its own for anyone, member or owner. If you want one member held to a narrower set, write it yourself in `agents.entries.<id>.tools`; Team reads that field for nobody and overwrites it for nobody, so whatever you put there stands, including across later roster edits.
+
+That is worth knowing before you add someone on a hosted desk: their agent can reach the same tools yours can, `browser` included, and on a desk `browser` drives the one signed-in Chromium that belongs to you. Add people you would hand that browser to, and restrict the ones you would not.
+
+Transferring ownership moves the reporting line, not the person: the outgoing owner keeps their row, their channel identities, their agent, their sessions, and their admission — only which member holds `owner` changes.
+
+Removing a member revokes their admission and delivery routing everywhere, on every channel, immediately — but keeps their agent and workspace. Removal is about access, not about deleting a conversation. If you want the agent gone too, delete it separately with `openclaw agents delete <id>`.
+
+A `deliver` step naming a person must name the channel too: `{ to: "team:<memberId>", channel: "whatsapp" }`. If that member has no identity on that channel, the step fails and says so — it never falls back to another channel or to the owner.
+
+Team never changes a channel's `dmPolicy`. If a channel is left `open`, the roster isn't a restriction there, and the Team card says so.
+
+Mail accounts are workspace inboxes, not people: a `TeamMember` has no email field, and having a message land in one of the [Gmail mailboxes a hosted desk watches](/hosted-desk#more-than-one-inbox) never by itself grants that sender permission to instruct the agent.

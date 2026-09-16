@@ -2,6 +2,7 @@
 // without exposing configuration values, paths, or startup errors.
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 import { resolveInternalHookSelection } from "../hooks/configured.js";
+import { resolveGmailHookAccounts } from "../hooks/gmail-accounts.js";
 import { isTruthyEnvValue } from "../infra/env.js";
 
 const GATEWAY_STARTUP_SUBSYSTEMS = [
@@ -67,7 +68,7 @@ function resolveOutcomePlan(
         : "not-configured";
   const gmailWatcher: GatewayStartupOutcomePlan["gmailWatcher"] = !params.cfg.hooks?.enabled
     ? "hooks-disabled"
-    : !params.cfg.hooks.gmail?.account
+    : resolveGmailHookAccounts(params.cfg).length === 0
       ? "no-gmail-account"
       : isTruthyEnvValue((params.env ?? process.env).OPENCLAW_SKIP_GMAIL_WATCHER)
         ? "disabled-by-environment"

@@ -7,6 +7,7 @@ import type { CliDeps } from "../cli/deps.types.js";
 import { resolveStateDir } from "../config/paths.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 import { resolveInternalHookSelection } from "../hooks/configured.js";
+import { resolveGmailHookAccounts } from "../hooks/gmail-accounts.js";
 import { isTruthyEnvValue } from "../infra/env.js";
 import type { GatewayActiveWorkInspectors } from "../infra/gateway-active-work.js";
 import { hasRestartSentinel } from "../infra/restart-sentinel.js";
@@ -846,7 +847,7 @@ export async function startGatewaySidecars(params: {
     }),
   );
 
-  if (params.cfg.hooks?.enabled && params.cfg.hooks.gmail?.account) {
+  if (params.cfg.hooks?.enabled && resolveGmailHookAccounts(params.cfg).length > 0) {
     postReadySidecars.push(
       schedulePostReadySidecarTask({
         startupTrace: params.startupTrace,
