@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { randomBytes } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 // Vasudev front door: a real, branded sign-in page for vasudev.tripinstudio.com, replacing
 // Caddy's raw HTTP Basic Auth (a bare OS-native credential popup with no product identity).
 //
@@ -16,8 +18,6 @@
 // `desk-health.json` — this is ops tooling outside the product's own SQLite-only rule, which
 // scopes to `src/**`/`extensions/**` state). A stolen cookie is useless without this file.
 import { createServer } from "node:http";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 
 const PORT = Number(process.env.FRONT_DOOR_PORT ?? 8791);
@@ -182,9 +182,10 @@ const server = createServer(async (req, res) => {
   // passing through. Using the raw socket address here would put every visitor's login attempts
   // in one shared rate-limit bucket, letting one client's typos lock out another's.
   const forwardedFor = req.headers["x-forwarded-for"];
-  const ip = (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor)
-    ?.split(",")[0]
-    ?.trim() || req.socket.remoteAddress || "unknown";
+  const ip =
+    (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor)?.split(",")[0]?.trim() ||
+    req.socket.remoteAddress ||
+    "unknown";
 
   // Caddy's internal auth sub-request. It never carries the real client's method or body —
   // only whatever this endpoint returns decides whether the real request proceeds.
