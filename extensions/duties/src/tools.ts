@@ -87,7 +87,7 @@ function originFromToolContext(ctx: OpenClawPluginToolContext): RunOrigin {
 }
 
 /**
- * Registers the thirteen agent-facing Duties tools declared in `openclaw.plugin.json`'s
+ * Registers the fourteen agent-facing Duties tools declared in `openclaw.plugin.json`'s
  * `contracts.tools`. Each one forwards to the Gateway method that owns the same operation and
  * returns its payload, so a tool and the Control UI can never disagree about what happened.
  *
