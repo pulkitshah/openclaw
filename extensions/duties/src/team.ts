@@ -204,11 +204,15 @@ export function assertTeamProjectionSafe(
  * Which existing `session.identityLinks` keys this projection owns, and may therefore drop.
  *
  * A key is Team's when every id listed under it is one Team itself projected as
- * `<channel>:<senderId>` into its own access group on the PREVIOUS write — so a member who has just
- * left the roster loses their link, while an operator-authored entry for anyone Team never admitted
- * survives untouched (final review I5). `accessGroups.team` as it stands before this write is the
- * only record of who Team had projected, which is why it is read off the incoming `cfg` and not off
- * the half-built next config.
+ * `<channel>:<senderId>` into its own access group on the PREVIOUS write. This is re-evaluated on
+ * EVERY projection, not only when that key's own member is removed — so an operator-authored link
+ * whose every value happens to coincide with a current member's own `<channel>:<senderId>` is
+ * indistinguishable from one Team wrote, and is dropped on the next write of any kind, whichever
+ * member it touches (final review I5; this is strictly better than the pre-fix wholesale replace,
+ * which dropped every operator-authored key on every write, but the imprecision is real). An
+ * operator-authored entry that doesn't coincide with a projected id survives untouched.
+ * `accessGroups.team` as it stands before this write is the only record of who Team had projected,
+ * which is why it is read off the incoming `cfg` and not off the half-built next config.
  */
 function teamOwnedIdentityLinkKeys(
   cfg: OpenClawConfig,
