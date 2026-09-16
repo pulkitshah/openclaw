@@ -332,6 +332,7 @@ export function attachClickRouter(
     }
     if (dataset.teamChannelAdd !== undefined) {
       handlers.addTeamChannel(dataset.teamChannelAdd);
+      return;
     }
   });
 }
