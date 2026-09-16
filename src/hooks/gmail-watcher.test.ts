@@ -31,6 +31,10 @@ const mocks = vi.hoisted(() => ({
       queueMicrotask(() => child.emit("close", 0, null));
     }
   }),
+  // Real port probing is exercised by src/infra/ports-probe.test.ts; here it defaults to "free"
+  // so every existing single-account test stays fully deterministic (no real socket I/O), and
+  // individual multi-account tests below override it to prove the busy-port reporting path.
+  probePortUsage: vi.fn(async () => "free" as const),
 }));
 
 vi.mock("node:child_process", async () => {
@@ -55,6 +59,10 @@ vi.mock("../process/exec.js", () => ({
 
 vi.mock("../process/kill-tree.js", () => ({
   killProcessTree: mocks.killProcessTree,
+}));
+
+vi.mock("../infra/ports-probe.js", () => ({
+  probePortUsage: mocks.probePortUsage,
 }));
 
 const { startGmailWatcher, stopGmailWatcher } = await import("./gmail-watcher.js");
@@ -138,6 +146,8 @@ describe("startGmailWatcher", () => {
       }
     });
     mocks.spawn.mockImplementation(() => createMockWatcherChild(false));
+    mocks.probePortUsage.mockReset();
+    mocks.probePortUsage.mockResolvedValue("free");
   });
 
   afterEach(async () => {
@@ -675,5 +685,93 @@ describe("startGmailWatcher", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe("startGmailWatcher with multiple accounts", () => {
+  beforeEach(async () => {
+    await stopGmailWatcher();
+    spawnRegistry.clear();
+    mocks.hasBinary.mockReturnValue(true);
+    mocks.resolveExecutable.mockImplementation((name: string) => name);
+    mocks.runCommandWithTimeout.mockReset();
+    mocks.runCommandWithTimeout.mockResolvedValue({ code: 0, stdout: "", stderr: "" });
+    mocks.spawn.mockReset();
+    mocks.spawn.mockImplementation(() => createMockWatcherChild(false));
+    mocks.killProcessTree.mockReset();
+    mocks.killProcessTree.mockImplementation((pid: number) => {
+      const child = spawnRegistry.get(pid);
+      if (child) {
+        queueMicrotask(() => child.emit("close", 0, null));
+      }
+    });
+    mocks.probePortUsage.mockReset();
+    mocks.probePortUsage.mockResolvedValue("free");
+  });
+
+  afterEach(async () => {
+    await stopGmailWatcher();
+  });
+
+  function createTwoAccountConfig(overrides?: { ordersPort?: number; enquiriesPort?: number }) {
+    return {
+      hooks: {
+        enabled: true,
+        token: "hook-token",
+        gmail: {
+          topic: "projects/demo/topics/gmail",
+          pushToken: "push-token",
+          accounts: {
+            orders: {
+              account: "orders@example.com",
+              ...(overrides?.ordersPort ? { serve: { port: overrides.ordersPort } } : {}),
+            },
+            enquiries: {
+              account: "enquiries@example.com",
+              ...(overrides?.enquiriesPort ? { serve: { port: overrides.enquiriesPort } } : {}),
+            },
+          },
+        },
+      },
+    } as never;
+  }
+
+  it("rejects two accounts that resolve to the same serve bind and port without starting either", async () => {
+    // Neither account sets its own serve.port, so both fall back to the exact same shared
+    // default — the ordinary, expected two-account mistake this must catch before spawning.
+    const result = await startGmailWatcher(createTwoAccountConfig());
+
+    expect(result.started).toBe(false);
+    expect(result.reason).toContain("orders");
+    expect(result.reason).toContain("enquiries");
+    expect(mocks.spawn).not.toHaveBeenCalled();
+  });
+
+  it("starts every account once each has its own distinct port", async () => {
+    const result = await startGmailWatcher(
+      createTwoAccountConfig({ ordersPort: 8788, enquiriesPort: 8789 }),
+    );
+
+    expect(result.started).toBe(true);
+    expect(result.reason).toBeUndefined();
+    expect(mocks.spawn).toHaveBeenCalledTimes(2);
+  });
+
+  it("reports a busy port as a start failure for that account without stopping the other", async () => {
+    mocks.probePortUsage.mockImplementation(async (port: number) =>
+      port === 8789 ? "busy" : "free",
+    );
+
+    const result = await startGmailWatcher(
+      createTwoAccountConfig({ ordersPort: 8788, enquiriesPort: 8789 }),
+    );
+
+    // Overall still "started" (orders came up), but the enquiries failure must not be silently
+    // absorbed — see gmail-watcher-lifecycle.test.ts for the log surface this feeds.
+    expect(result.started).toBe(true);
+    expect(result.reason).toContain("enquiries");
+    expect(result.reason).toContain("8789");
+    // Only "orders" ever spawned gog; "enquiries" was reported busy and never attempted.
+    expect(mocks.spawn).toHaveBeenCalledTimes(1);
   });
 });

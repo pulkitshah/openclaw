@@ -140,6 +140,16 @@ export function resolveGmailHookRuntimeConfig(
   // (src/hooks/gmail-accounts.ts). `named` stays undefined for the default account so every
   // `named?.x ?? gmail?.x` fallback below collapses to the pre-existing single-mailbox lookup.
   const named = accountId === GMAIL_DEFAULT_ACCOUNT_ID ? undefined : gmail?.accounts?.[accountId];
+  // An unresolvable accountId must never silently fall through to the root/default account's
+  // values: that would violate the "address never leaks sideways" invariant (a typo'd
+  // hooks.gmail.defaultAccount, or an explicit bad accountId, would otherwise watch the wrong
+  // mailbox while posting to a hook path nothing is mapped to).
+  if (accountId !== GMAIL_DEFAULT_ACCOUNT_ID && !named) {
+    return {
+      ok: false,
+      error: `Gmail account "${accountId}" is not configured (no hooks.gmail.accounts.${accountId})`,
+    };
+  }
 
   const hookToken = overrides.hookToken ?? hooks?.token ?? "";
   if (!hookToken) {
@@ -250,6 +260,35 @@ export function resolveGmailHookRuntimeConfig(
       },
     },
   };
+}
+
+export type GmailServeBindCollision = {
+  first: string;
+  second: string;
+  bind: string;
+  port: number;
+};
+
+/**
+ * Two `gog serve` processes cannot both bind the same address+port: the second one's bind
+ * failure is only ever a warn log (gmail-watcher.ts), so without this check a desk with two
+ * accounts sharing a default port would look healthy while one mailbox silently never delivers
+ * mail. Returns the first colliding pair (by account id resolution order), or null when every
+ * resolved account has a distinct (bind, port).
+ */
+export function findGmailServeBindCollision(
+  configs: readonly GmailHookRuntimeConfig[],
+): GmailServeBindCollision | null {
+  const seenBy = new Map<string, string>();
+  for (const config of configs) {
+    const key = `${config.serve.bind}:${config.serve.port}`;
+    const first = seenBy.get(key);
+    if (first) {
+      return { first, second: config.accountId, bind: config.serve.bind, port: config.serve.port };
+    }
+    seenBy.set(key, config.accountId);
+  }
+  return null;
 }
 
 export function buildGogWatchStartArgs(

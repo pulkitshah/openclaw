@@ -14,7 +14,7 @@ import { promisify } from "node:util";
 import type { Command } from "commander";
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { readDeskHealth, type DeskHealth } from "./desk.js";
-import { MAIL_AGENT_ID, mailStatusFromConfig } from "./mail.js";
+import { configuredGmailAddresses, MAIL_AGENT_ID, mailStatusFromConfig } from "./mail.js";
 import { RENDER_ALLOWLIST_KEY, RENDER_LOOPBACK_HOST, renderStatusFromConfig } from "./setup.js";
 
 const execFileAsync = promisify(execFile);
@@ -25,8 +25,9 @@ const execFileAsync = promisify(execFile);
 const DESK_KEYFILE_PATH = process.env.DUTIES_CRED_KEYFILE ?? "/etc/openclaw/keyfile";
 
 /** Config facts `buildDutiesSetup` needs — the CLI reads these off `mailStatusFromConfig` and
- *  `renderStatusFromConfig`, plus the raw `hooks.gmail.account` value (which the status readout
- *  deliberately never repeats). */
+ *  `renderStatusFromConfig`, plus a resolved Gmail address (`resolveGmailAccountForSetup`, which
+ *  the status readout deliberately never repeats itself — but this checklist genuinely needs one
+ *  to compare against `--account`). */
 export type SetupConfigFacts = {
   hooksEnabled: boolean;
   gmailAccount?: string;
@@ -272,6 +273,22 @@ function printDutiesSetup(params: {
   console.log("Then restart the Gateway.");
 }
 
+/** The address `SetupConfigFacts.gmailAccount` should carry for the `--account <email>` checklist:
+ *  the target address itself when it is configured somewhere (root or a named account — matching
+ *  `mailStatusFromConfig`'s multi-account-aware resolution, so this checklist and the Duties page
+ *  readout never disagree about whether an account is configured), otherwise whichever address IS
+ *  configured (so a genuine mismatch is still reported by name), or undefined when none is. */
+function resolveGmailAccountForSetup(
+  hooks: OpenClawConfig["hooks"],
+  targetAccount: string,
+): string | undefined {
+  const addresses = configuredGmailAddresses(hooks);
+  if (addresses.length === 0) {
+    return undefined;
+  }
+  return addresses.includes(targetAccount) ? targetAccount : addresses[0];
+}
+
 /** Best-effort "does the file exist" check for the desk credential keyfile — never throws, since
  *  its absence is exactly the finding the setup checklist reports, not an error running setup. */
 async function keyfileExists(path = DESK_KEYFILE_PATH): Promise<boolean> {
@@ -308,9 +325,10 @@ export function registerDutiesSetupCli(params: {
       const desk = health.hosted
         ? { keyfilePresent: await checkKeyfile(), displayOk: health.display === true }
         : undefined;
+      const resolvedGmailAccount = resolveGmailAccountForSetup(config.hooks, options.account);
       const configFacts: SetupConfigFacts = {
         hooksEnabled: status.hooksEnabled,
-        ...(config.hooks?.gmail?.account ? { gmailAccount: config.hooks.gmail.account } : {}),
+        ...(resolvedGmailAccount ? { gmailAccount: resolvedGmailAccount } : {}),
         mappingPresent: status.mappingPresent,
         agentPresent: status.agentPresent,
         renderAllowed: renderStatusFromConfig(config).renderAllowed,

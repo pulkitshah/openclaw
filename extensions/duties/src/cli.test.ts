@@ -319,4 +319,35 @@ describe("registerDutiesSetupCli", () => {
     }
     expect(logs.join("\n")).not.toContain("Desk:");
   });
+
+  // Regression: this checklist used to read only the root hooks.gmail.account, so a desk
+  // configured with ONLY named accounts printed "Gmail account configured: no" and "no Gmail
+  // account is configured for hooks" — directly contradicting mailStatusFromConfig, which
+  // correctly reports gmailAccountSet: true for the same desk.
+  it("agrees with mailStatusFromConfig that a named-accounts-only desk has an account configured", async () => {
+    const { program, run } = captureAction();
+    const logs: string[] = [];
+    const logSpy = vi.spyOn(console, "log").mockImplementation((line: string) => {
+      logs.push(line);
+    });
+    try {
+      registerDutiesSetupCli({
+        program,
+        config: {
+          hooks: {
+            enabled: true,
+            gmail: { accounts: { orders: { account: "ops@example.com" } } },
+          },
+        },
+        readDeskHealth: async () => ({ hosted: false }),
+        keyfilePresent: async () => false,
+      });
+      await run({ account: "ops@example.com" });
+    } finally {
+      logSpy.mockRestore();
+    }
+    const output = logs.join("\n");
+    expect(output).toContain("Gmail account configured: yes");
+    expect(output).not.toContain("no Gmail account is configured for hooks");
+  });
 });

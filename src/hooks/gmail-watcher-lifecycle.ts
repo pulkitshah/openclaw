@@ -30,6 +30,12 @@ export async function startGmailWatcherWithLogs(params: {
     });
     if (gmailResult.started) {
       params.log.info("gmail watcher started");
+      // A multi-account start can succeed overall while one mailbox failed to bind or resolve;
+      // `reason` is only ever set alongside `started: true` for that partial-failure case, so
+      // surface it instead of letting a working sibling mailbox hide a silently dead one.
+      if (gmailResult.reason) {
+        params.log.warn(`gmail watcher partially started: ${gmailResult.reason}`);
+      }
       return;
     }
     if (

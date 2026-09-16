@@ -168,7 +168,10 @@ export const HooksGmailSchema = z
               })
               .strict()
               .optional(),
-            model: z.string().optional(),
+            // No per-account `model`: only the root `hooks.gmail.model` is ever consulted (by
+            // model-selection-shared.ts, the doctor's retired-model-ref repair, and friends) —
+            // none of those five call sites are account-aware, so a per-account override here
+            // would be a silently-accepted no-op field.
           })
           .strict(),
       )

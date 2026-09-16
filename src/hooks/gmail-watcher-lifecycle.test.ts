@@ -57,6 +57,24 @@ describe("startGmailWatcherWithLogs", () => {
     expect(log.error).not.toHaveBeenCalled();
   });
 
+  it("warns on a partial multi-account start instead of hiding it behind an overall success", async () => {
+    startGmailWatcherMock.mockResolvedValue({
+      started: true,
+      reason: "enquiries: gmail serve bind unavailable: 127.0.0.1:8789 is already in use",
+    });
+
+    await startGmailWatcherWithLogs({
+      cfg: {},
+      log,
+    });
+
+    expect(log.info).toHaveBeenCalledWith("gmail watcher started");
+    expect(log.warn).toHaveBeenCalledWith(
+      "gmail watcher partially started: enquiries: gmail serve bind unavailable: " +
+        "127.0.0.1:8789 is already in use",
+    );
+  });
+
   it("logs actionable non-start reason", async () => {
     startGmailWatcherMock.mockResolvedValue({ started: false, reason: "auth failed" });
 

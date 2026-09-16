@@ -202,4 +202,28 @@ describe("gmail hook config", () => {
     expect(result.value.topic).toBe("projects/demo/topics/gog-gmail-watch");
     expect(result.value.hookUrl).toContain("/gmail-enquiries");
   });
+
+  it("refuses an unknown accountId instead of silently falling back to the root/default account", () => {
+    const cfg = {
+      hooks: {
+        token: "hook-token",
+        gmail: {
+          account: "root@example.com",
+          topic: "projects/demo/topics/gog-gmail-watch",
+          pushToken: "push-token",
+          accounts: { enquiries: { account: "enquiries@prasthan.in" } },
+        },
+      },
+    } satisfies OpenClawConfig;
+    // A typo'd hooks.gmail.defaultAccount (or an explicit bad accountId override) must fail
+    // loudly rather than silently watching the root mailbox while posting to a hook path
+    // ("/gmail-orders-typo") nothing is mapped to.
+    const result = resolveGmailHookRuntimeConfig(cfg, { accountId: "orders-typo" });
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+    expect(result.error).toContain("orders-typo");
+    expect(result.error).not.toContain("root@example.com");
+  });
 });

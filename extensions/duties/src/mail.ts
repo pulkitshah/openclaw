@@ -37,14 +37,26 @@ export type MailStatus = {
   lastDispatchDutyId?: string;
 };
 
-/** Counted here rather than imported from core: `extensions/**` must not import `src/**`
- *  (extensions/AGENTS.md), and this is a readiness readout, not the resolution owner. */
+/** Every distinct Gmail address configured (root, or each named `hooks.gmail.accounts.*` entry
+ *  that carries its own address — the root is ignored once named accounts exist, see
+ *  `src/hooks/gmail-accounts.ts`). Resolved here rather than imported from core: `extensions/**`
+ *  must not import `src/**` (extensions/AGENTS.md), and this is a readiness readout, not the
+ *  resolution owner.
+ *
+ *  Exported (unlike the rest of this file's "never return an address" discipline) because
+ *  `cli.ts`'s `duties setup --account <email>` genuinely needs the address to compare against —
+ *  it must not disagree with `mailStatusFromConfig` about whether an account is configured. */
+export function configuredGmailAddresses(hooks: OpenClawConfig["hooks"]): string[] {
+  const named = Object.values(hooks?.gmail?.accounts ?? {})
+    .map((entry) => entry?.account)
+    .filter((account): account is string => typeof account === "string" && account.length > 0);
+  if (named.length > 0) return named;
+  const root = hooks?.gmail?.account;
+  return typeof root === "string" && root.length > 0 ? [root] : [];
+}
+
 function countGmailAccounts(hooks: OpenClawConfig["hooks"]): number {
-  const named = Object.values(hooks?.gmail?.accounts ?? {}).filter(
-    (entry) => typeof entry?.account === "string" && entry.account.length > 0,
-  ).length;
-  if (named > 0) return named;
-  return typeof hooks?.gmail?.account === "string" && hooks.gmail.account.length > 0 ? 1 : 0;
+  return configuredGmailAddresses(hooks).length;
 }
 
 /** Never returns the Gmail address itself (only whether/how many are set) or any hook token: this

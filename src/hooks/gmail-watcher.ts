@@ -8,6 +8,7 @@
 import { type ChildProcess, spawn } from "node:child_process";
 import process from "node:process";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
+import { probePortUsage } from "../infra/ports-probe.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { releaseChildProcessOutputAfterExit } from "../process/child-process.js";
 import { formatCommandResult } from "../process/command-error.js";
@@ -21,6 +22,7 @@ import {
   buildGogWatchServeLogArgs,
   buildGogWatchServeArgs,
   buildGogWatchStartArgs,
+  findGmailServeBindCollision,
   type GmailHookRuntimeConfig,
   resolveGogExecutable,
   resolveGogServeInvocation,
@@ -343,24 +345,61 @@ export async function startGmailWatcher(
     return startGmailWatcherService(resolved.value, options);
   }
 
-  // Multiple mailboxes: one misconfigured or failed account must not stop the others, so start
-  // every account and aggregate the outcome.
+  // Multiple mailboxes: resolve every account first — one misconfigured account must not stop the
+  // others — then reject the whole set if any two resolve to the exact same (bind, port). Two
+  // named accounts left on the shared default port is the ordinary, expected two-account mistake,
+  // not an edge case; catching it here means neither account's `gog serve` ever races to bind the
+  // same address, so the second one's failure is never silently a warn log nobody sees.
   const reasons: string[] = [];
-  let started = false;
+  const okConfigs: GmailHookRuntimeConfig[] = [];
   for (const { accountId } of accounts) {
     const resolved = resolveGmailHookRuntimeConfig(cfg, { accountId });
     if (!resolved.ok) {
       reasons.push(`${accountId}: ${resolved.error}`);
       continue;
     }
-    const result = await startGmailWatcherService(resolved.value, options);
+    okConfigs.push(resolved.value);
+  }
+
+  const collision = findGmailServeBindCollision(okConfigs);
+  if (collision) {
+    return {
+      started: false,
+      reason:
+        `gmail accounts "${collision.first}" and "${collision.second}" both resolve to serve ` +
+        `${collision.bind}:${collision.port}; set hooks.gmail.accounts.<id>.serve.port to a ` +
+        "distinct port for each mailbox",
+    };
+  }
+
+  // A distinct configured port is not proof the port is actually free — something outside this
+  // desk's own Gmail accounts (or a leftover process) may already hold it. Probe before spawning
+  // so that failure is a reported start failure for that one account, not a warn log discovered
+  // only by reading logs after mail silently stops arriving.
+  let started = false;
+  for (const runtimeConfig of okConfigs) {
+    const usage = await probePortUsage(runtimeConfig.serve.port, [runtimeConfig.serve.bind]);
+    if (usage === "busy") {
+      reasons.push(
+        `${runtimeConfig.accountId}: gmail serve bind unavailable: ` +
+          `${runtimeConfig.serve.bind}:${runtimeConfig.serve.port} is already in use`,
+      );
+      continue;
+    }
+    const result = await startGmailWatcherService(runtimeConfig, options);
     if (result.started) {
       started = true;
     } else {
-      reasons.push(`${accountId}: ${result.reason ?? "not started"}`);
+      reasons.push(`${runtimeConfig.accountId}: ${result.reason ?? "not started"}`);
     }
   }
-  return started ? { started: true } : { started: false, reason: reasons.join("; ") };
+  // A partial success (some accounts started, at least one did not) still reports `reason`
+  // alongside `started: true` — a bind failure or resolution error must never be silently dropped
+  // just because a sibling mailbox happened to work.
+  return {
+    started,
+    ...(reasons.length > 0 ? { reason: reasons.join("; ") } : {}),
+  };
 }
 
 /** Start the shared watcher lifecycle after the caller resolves config and prerequisites. */
