@@ -28,8 +28,14 @@ import { renderTemplatePreview } from "./preview.js";
 import type { RunManager } from "./run-service.js";
 import { renderStatusFromConfig } from "./setup.js";
 import type { DutyStore, RunOrigin } from "./store.js";
+import { provisionMemberAgent, readBootstrapPending, type GatewayRequest } from "./team-agent.js";
 import { revokePairingEntries, writeTeamProjection } from "./team-write.js";
-import { normalizeTeamMemberId, type TeamChannelIdentity } from "./team.js";
+import {
+  normalizeTeamMemberId,
+  teamPolicyWarnings,
+  type TeamChannelIdentity,
+  type TeamMember,
+} from "./team.js";
 import { validateBrand, validateTemplate } from "./template.js";
 
 /** How long `duties.run.wait` blocks before answering with the run as it stands. Short enough that
@@ -98,6 +104,9 @@ export function registerDutiesGatewayMethods(deps: {
   evidence: () => EvidenceBlobs;
   render: RenderAdapter;
   previewDir: () => Promise<string>;
+  /** Trusted in-process Gateway dispatch, already built in `index.ts` with
+   *  `{ scopes: ["operator.admin"] }`. Injectable so tests never reach a real Gateway. */
+  request: GatewayRequest;
   /** Reads the config as it stands now, not the snapshot `register()` was handed: the Mail
    *  trigger health readout is exactly what an operator watches while fixing config, so answering
    *  it from a registration-time snapshot told them setup had not worked when it had. */
@@ -108,7 +117,8 @@ export function registerDutiesGatewayMethods(deps: {
   /** Test injection point for `duties.desk.status`; defaults to `desk.ts`'s file-backed reader. */
   deskHealth?: () => Promise<DeskHealth>;
 }): void {
-  const { api, store, runs, emit, creds, evidence, render, previewDir, notifyOwner } = deps;
+  const { api, store, runs, emit, creds, evidence, render, previewDir, notifyOwner, request } =
+    deps;
   const currentConfig = (): OpenClawConfig => deps.config?.() ?? api.config;
   const readDesk = deps.deskHealth ?? readDeskHealth;
 
@@ -767,11 +777,24 @@ export function registerDutiesGatewayMethods(deps: {
   /** The roster, seeding the one owner row on first read. The owner is a Team member from the
    *  start: the Duties Owner card already names a channel and a target, and that IS an owner
    *  identity, so it is promoted rather than asked for twice. */
+  /** One shape for both the seeded and the already-populated answer, so the Team card never sees
+   *  two different payloads. `warnings` is the non-throwing read: a warning is information, and
+   *  `duties.team.get` is `operator.read`, so it must never refuse. */
+  const teamView = async (members: TeamMember[]) => ({
+    members: await Promise.all(
+      members.map(async (member) => ({
+        ...member,
+        bootstrapPending: await readBootstrapPending(member.agentWorkspace),
+      })),
+    ),
+    warnings: teamPolicyWarnings(currentConfig(), members),
+  });
+
   register("duties.team.get", "operator.read", async (_params, ctx) => {
     const existing = await store.listMembers();
-    if (existing.length > 0) return { members: existing };
+    if (existing.length > 0) return await teamView(existing);
     const settings = await store.getSettings();
-    if (!settings.owner) return { members: [] };
+    if (!settings.owner) return { members: [], warnings: [] };
     const agentId = resolveAgentRoute({
       cfg: currentConfig(),
       channel: settings.owner.channel,
@@ -789,11 +812,51 @@ export function registerDutiesGatewayMethods(deps: {
         { channel: settings.owner.channel, senderId: settings.owner.target, addedAt: Date.now() },
       ],
     });
-    return { members: [seeded] };
+    return await teamView([seeded]);
   });
 
-  /** `duties.team.add` is completed in Task 3 — it needs the agent-provisioning step, which this
-   *  task does not add. */
+  register("duties.team.add", "operator.admin", async (params, ctx) => {
+    if (typeof params.name !== "string" || !params.name.trim()) {
+      throw new Error("name is required");
+    }
+    const name = params.name.trim();
+    const memberId =
+      typeof params.id === "string" && params.id.trim()
+        ? normalizeTeamMemberId(params.id)
+        : normalizeTeamMemberId(name.replace(/\s+/g, "-"));
+    const channels = readIdentities(params.channels);
+    if (await store.getMember(memberId)) throw new Error(`Team already has a member "${memberId}"`);
+    const owner = await store.ownerMember();
+    if (!owner) throw new Error("set the owner on the Duties page before adding anyone else");
+
+    // Ordering matters: `pickFirstExistingAgentId` (src/routing/resolve-route.ts:147-173) throws
+    // AgentSelectionRequiredError when a binding names an agent that is absent from
+    // `agents.entries`, so the agent is created and read back BEFORE the projection runs.
+    assertStillAuthorized(ctx);
+    const agent = await provisionMemberAgent({ request, name });
+
+    const member = await store.addMember({
+      id: memberId,
+      name,
+      agentId: agent.agentId,
+      ...(agent.workspace ? { agentWorkspace: agent.workspace } : {}),
+      channels,
+      addedBy: owner.id,
+    });
+    try {
+      const { warnings } = await writeTeamProjection({
+        members: await store.listMembers(),
+        assertStillAuthorized: () => assertStillAuthorized(ctx),
+      });
+      safeEmit("changed", { team: true });
+      return { ok: true, member, warnings };
+    } catch (error) {
+      // A rejected config write must not leave a roster row nothing enforces. The agent stays —
+      // it is already created, and deleting it here would be the data loss GC1 rules out.
+      await store.removeMember(memberId).catch(() => undefined);
+      throw error;
+    }
+  });
 
   register("duties.team.setChannels", "operator.admin", async (params, ctx) => {
     const memberId = readMemberId(params);

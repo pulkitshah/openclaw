@@ -287,6 +287,7 @@ export default definePluginEntry({
       evidence,
       render,
       previewDir: () => runFiles.previewDir(),
+      request,
       config: currentConfig,
       // Same owner route asks and status lines use, so everything owner-facing lands in one place.
       notifyOwner: async (text) => {

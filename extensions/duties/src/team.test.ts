@@ -261,6 +261,20 @@ describe("applyTeamProjection", () => {
     expect(next.agents?.entries?.ramesh?.tools).toEqual(TEAM_MEMBER_TOOLS);
   });
 
+  it("never overwrites tools the owner already widened for a member", () => {
+    const cfg = deskConfig();
+    cfg.agents = {
+      ...cfg.agents,
+      entries: {
+        ...cfg.agents?.entries,
+        ramesh: { name: "Ramesh", tools: { profile: "full" } },
+      },
+      // SAFETY: fixture narrowing; only the keys this assertion reads are set.
+    } as OpenClawConfig["agents"];
+    const next = applyTeamProjection(cfg, [OWNER, RAMESH]);
+    expect(next.agents?.entries?.ramesh?.tools).toEqual({ profile: "full" });
+  });
+
   it("leaves an operator-authored binding untouched and replaces only its own marked entries", () => {
     const cfg = deskConfig();
     cfg.bindings = [

@@ -81,6 +81,7 @@ function harness(params?: {
   previewDir?: string;
   notifyOwner?: (text: string) => Promise<void>;
   deskHealth?: () => Promise<DeskHealth>;
+  request?: ReturnType<typeof vi.fn>;
 }) {
   const methods = new Map<string, { handler: Handler; scope: string }>();
   const api = {
@@ -124,6 +125,11 @@ function harness(params?: {
       },
     },
     previewDir: async () => params?.previewDir ?? tmpdir(),
+    request:
+      params?.request ??
+      vi.fn(async () => {
+        throw new Error("gateway request not expected");
+      }),
     ...(params?.notifyOwner ? { notifyOwner: params.notifyOwner } : {}),
     ...(params?.deskHealth ? { deskHealth: params.deskHealth } : {}),
   });
@@ -954,7 +960,7 @@ describe("duties.team.get", () => {
     const { call } = harness();
     const result = await call("duties.team.get", {});
     expect(result.ok).toBe(true);
-    expect(result.result).toEqual({ members: [] });
+    expect(result.result).toEqual({ members: [], warnings: [] });
   });
 
   it("seeds one owner row from DutiesSettings.owner and is idempotent", async () => {
@@ -989,6 +995,59 @@ describe("duties.team.get", () => {
     const owner = await store.ownerMember();
     expect(owner?.channels[0]).toMatchObject({ channel: "whatsapp", senderId: "+919800000000" });
     expect(owner?.role).toBe("owner");
+  });
+});
+
+describe("duties.team.add", () => {
+  it("creates the agent first, then writes the roster row with the id core chose", async () => {
+    const request = vi.fn(async (method: string) => {
+      if (method !== "agents.create") throw new Error(`unexpected ${method}`);
+      return { ok: true, agentId: "ramesh", name: "Ramesh", workspace: "/w/ramesh" };
+    });
+    const h = harness({ config: deskFixtureConfig(), request });
+    await h.call("duties.settings.set", { owner: { channel: "telegram", target: "111" } });
+    await h.call("duties.team.get", {});
+    const added = await h.call("duties.team.add", {
+      name: "Ramesh",
+      channels: [{ channel: "telegram", senderId: "5551234" }],
+    });
+    expect(added.ok).toBe(true);
+    expect(request).toHaveBeenCalledWith("agents.create", { name: "Ramesh" });
+    expect((added.result as { member: TeamMember }).member).toMatchObject({
+      id: "ramesh",
+      role: "member",
+      agentId: "ramesh",
+      agentWorkspace: "/w/ramesh",
+      addedBy: "owner",
+    });
+    expect((await h.store.listMembers()).map((m) => m.id)).toEqual(["owner", "ramesh"]);
+  });
+
+  it("writes no roster row when the agent could not be created", async () => {
+    const request = vi.fn(async () => {
+      throw new Error("agent already exists: ramesh");
+    });
+    const h = harness({ config: deskFixtureConfig(), request });
+    await h.call("duties.settings.set", { owner: { channel: "telegram", target: "111" } });
+    await h.call("duties.team.get", {});
+    const result = await h.call("duties.team.add", {
+      name: "Ramesh",
+      channels: [{ channel: "telegram", senderId: "5551234" }],
+    });
+    expect(result.ok).toBe(false);
+    expect(result.error).toMatchObject({
+      message: expect.stringContaining('There is already an agent called "Ramesh"'),
+    });
+    expect((await h.store.listMembers()).map((m) => m.id)).toEqual(["owner"]);
+  });
+
+  it("refuses an add with no channel identity", async () => {
+    const h = harness({ config: deskFixtureConfig(), request: vi.fn() });
+    const result = await h.call("duties.team.add", { name: "Ramesh", channels: [] });
+    expect(result.ok).toBe(false);
+    expect(result.error).toMatchObject({
+      message: expect.stringContaining("channels is required"),
+    });
   });
 });
 
@@ -1122,6 +1181,7 @@ describe("duties.team.* authority", () => {
   it("registers every mutating method at operator.admin, and the read method at operator.read", () => {
     const { methods } = harness();
     for (const method of [
+      "duties.team.add",
       "duties.team.setChannels",
       "duties.team.remove",
       "duties.team.transferOwnership",
@@ -1131,9 +1191,27 @@ describe("duties.team.* authority", () => {
     expect(methods.get("duties.team.get")?.scope).toBe("operator.read");
   });
 
-  // `duties.team.add` is registered in Task 3; its own authority test (guarding before the agent
-  // is provisioned, not just before the config write) belongs there.
-  it.todo("duties.team.add registers at operator.admin and refuses before provisioning an agent");
+  it("duties.team.add refuses before provisioning an agent when authority is already lost", async () => {
+    const request = vi.fn(async () => ({ ok: true, agentId: "ramesh", workspace: "/w/ramesh" }));
+    const h = harness({ config: deskFixtureConfig(), request });
+    await h.call("duties.settings.set", { owner: { channel: "telegram", target: "111" } });
+    await h.call("duties.team.get", {});
+
+    const result = await h.call(
+      "duties.team.add",
+      { name: "Ramesh", channels: [{ channel: "telegram", senderId: "5551234" }] },
+      { hasCurrentClientAuthority: () => false },
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.error).toMatchObject({
+      message: "your session is no longer authorized — reconnect and try again",
+    });
+    // The guard fires before `agents.create` is dispatched, so a lost-authority request never
+    // provisions an agent nobody will be able to reach through the roster.
+    expect(request).not.toHaveBeenCalled();
+    expect((await h.store.listMembers()).map((m) => m.id)).toEqual(["owner"]);
+  });
 
   it("refuses the durable projection write when the admin connection lost authority mid-request", async () => {
     const { call, store } = harness();
