@@ -18,9 +18,10 @@ import type {
   RecentRunsResult,
   RunGetResult,
   SettingsGetResult,
+  TeamGetResult,
   TemplateListResult,
 } from "./index-helpers.js";
-import type { DeskStatusView } from "./render.js";
+import type { DeskStatusView, TeamView } from "./render.js";
 
 /** Everything the page fetches from the Gateway and `draw()` reads. Bundled into one object
  *  (rather than individual `let`s in `mount()`) so the loaders below can be a standalone module
@@ -34,6 +35,11 @@ export type PageState = {
   settings: DutiesSettings;
   mailStatus: MailStatus | undefined;
   deskStatus: DeskStatusView | undefined;
+  team: TeamView | undefined;
+  /** Cosmetic only — hides the Team panel's mutating controls. `duties.team.*` writes are gated at
+   *  `operator.admin` server-side, which is the actual authority check; see `probeAdmin` below.
+   *  Defaults `true` so the buttons show until the probe answers, rather than flashing hidden. */
+  canAdmin: boolean;
 };
 
 export function createPageState(): PageState {
@@ -46,6 +52,8 @@ export function createPageState(): PageState {
     settings: {},
     mailStatus: undefined,
     deskStatus: undefined,
+    team: undefined,
+    canAdmin: true,
   };
 }
 
@@ -236,6 +244,39 @@ export function createDataLoaders(deps: {
     }
   };
 
+  const loadTeam = async (): Promise<void> => {
+    try {
+      const result = await host.request<TeamGetResult>("duties.team.get", {});
+      if (getContext().signal.aborted) {
+        return;
+      }
+      state.team = result;
+      draw();
+    } catch (error) {
+      fail(error, () => void loadTeam());
+    }
+  };
+
+  /** Cosmetic only. A read-level connection is refused server-side with a missing-scope error
+   *  before any handler runs, so an admin-only request that comes back with that error means the
+   *  Team panel's mutating controls should not be drawn. Any other failure leaves them up and lets
+   *  the real error surface through `fail` instead, because hiding them on a transient fault would
+   *  tell the owner they had lost a permission they still hold. `duties.settings.set` is reused as
+   *  the probe (rather than a dedicated method) because it is already registered at
+   *  `operator.admin` and calling it with no fields is a no-op the handler rejects for a different,
+   *  unambiguous reason once the scope check has passed. */
+  const probeAdmin = async (): Promise<void> => {
+    try {
+      await host.request("duties.settings.set", {});
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      // "owner, requireApprovalForEdits, or maxParallelRuns is required" == the handler ran, which
+      // means the scope check passed.
+      state.canAdmin = !/scope/i.test(message);
+    }
+    draw();
+  };
+
   return {
     loadRecentRuns,
     loadDuties,
@@ -246,5 +287,7 @@ export function createDataLoaders(deps: {
     loadSettings,
     loadMailStatus,
     loadDeskStatus,
+    loadTeam,
+    probeAdmin,
   };
 }

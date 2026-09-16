@@ -36,6 +36,7 @@ import {
   renderRun,
   renderTemplates,
 } from "./render.js";
+import { createTeamActions } from "./team-actions.js";
 import "./styles.css";
 
 const PAGE = "duties";
@@ -185,6 +186,8 @@ export default defineControlUiPlugin({
                 settings: state.settings,
                 mailStatus: state.mailStatus,
                 deskStatus: state.deskStatus,
+                team: state.team,
+                canAdmin: state.canAdmin,
               });
           }
           restoreOpenState(root, openState, {
@@ -275,6 +278,17 @@ export default defineControlUiPlugin({
             fail(error, () => void saveSettings());
           }
         };
+
+        const teamActions = createTeamActions({
+          host,
+          getContext: () => context,
+          root,
+          getTeam: () => state.team,
+          clearError,
+          loadTeam: loaders.loadTeam,
+          loadSettings: loaders.loadSettings,
+          fail,
+        });
 
         /** Fires on the Desk card's number input `change` (not a separate save button — a
          *  number input's own value change is already the owner's intent). Validated the same
@@ -630,6 +644,10 @@ export default defineControlUiPlugin({
           toggleFilePreview: (stepId) => void toggleFilePreview(stepId),
           openRunFile: (stepId) => void openRunFile(stepId),
           deleteLogin: (key) => void deleteLogin(key),
+          addTeamMember: () => void teamActions.addTeamMember(),
+          removeTeamMember: (memberId) => void teamActions.removeTeamMember(memberId),
+          transferTeamOwnership: (memberId) => void teamActions.transferTeamOwnership(memberId),
+          addTeamChannel: (memberId) => void teamActions.addTeamChannel(memberId),
         });
 
         // The Desk card's parallel-runs field is a plain number input, not a button: its own
@@ -667,6 +685,9 @@ export default defineControlUiPlugin({
             // settings change (from this page or elsewhere) keeps that card's number honest too.
             void loaders.loadDeskStatus();
           }
+          if (isRecord(payload) && payload.team === true) {
+            void loaders.loadTeam();
+          }
         });
         const offRun = host.onEvent("plugin.duties.run", (payload) => {
           const runId = readRunId(payload);
@@ -684,6 +705,8 @@ export default defineControlUiPlugin({
         void loaders.loadSettings();
         void loaders.loadMailStatus();
         void loaders.loadDeskStatus();
+        void loaders.loadTeam();
+        void loaders.probeAdmin();
 
         return {
           update(next) {

@@ -6,7 +6,7 @@ import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { Duty } from "../src/duty.js";
 import type { DutiesSettings, DutyRun } from "../src/store.js";
 import type { Brand, Template } from "../src/template.js";
-import type { DeskStatusView } from "./render.js";
+import type { DeskStatusView, TeamView } from "./render.js";
 
 export type Props = Readonly<Record<string, string>>;
 
@@ -31,6 +31,7 @@ export type TemplatePreviewResult = {
 export type SettingsGetResult = { settings: DutiesSettings };
 export type SettingsSetResult = { settings: DutiesSettings };
 export type DeskStatusResult = DeskStatusView;
+export type TeamGetResult = TeamView;
 /** `duties.run.file`'s result — the same shape whether `params.kind` is omitted (the full
  *  document) or `"preview"` (a PNG thumbnail of it). */
 export type RunFileResult = { name: string; contentType: string; base64: string };
@@ -209,12 +210,16 @@ export function attachClickRouter(
     toggleFilePreview: (stepId: string) => void;
     openRunFile: (stepId: string) => void;
     deleteLogin: (key: string) => void;
+    addTeamMember: () => void;
+    removeTeamMember: (memberId: string) => void;
+    transferTeamOwnership: (memberId: string) => void;
+    addTeamChannel: (memberId: string) => void;
   },
 ): void {
   root.addEventListener("click", (event) => {
     // SAFETY: this listener is on `root`, an HTMLElement, so its click events always target an Element.
     const target = (event.target as HTMLElement).closest<HTMLElement>(
-      "[data-open],[data-open-run],[data-run],[data-edit],[data-build],[data-status],[data-delete],[data-cancel],[data-nav],[data-retry],[data-shot],[data-cred-save],[data-cred-delete],[data-settings-save],[data-brand-save],[data-tpl-preview],[data-tpl-pdf],[data-tpl-edit],[data-tpl-delete],[data-file-shot],[data-file-open]",
+      "[data-open],[data-open-run],[data-run],[data-edit],[data-build],[data-status],[data-delete],[data-cancel],[data-nav],[data-retry],[data-shot],[data-cred-save],[data-cred-delete],[data-settings-save],[data-brand-save],[data-tpl-preview],[data-tpl-pdf],[data-tpl-edit],[data-tpl-delete],[data-file-shot],[data-file-open],[data-team-add],[data-team-remove],[data-team-transfer],[data-team-channel-add]",
     );
     if (!target) {
       return;
@@ -311,6 +316,22 @@ export function attachClickRouter(
     }
     if (dataset.credDelete !== undefined) {
       handlers.deleteLogin(dataset.credDelete);
+      return;
+    }
+    if (dataset.teamAdd !== undefined) {
+      handlers.addTeamMember();
+      return;
+    }
+    if (dataset.teamRemove !== undefined) {
+      handlers.removeTeamMember(dataset.teamRemove);
+      return;
+    }
+    if (dataset.teamTransfer !== undefined) {
+      handlers.transferTeamOwnership(dataset.teamTransfer);
+      return;
+    }
+    if (dataset.teamChannelAdd !== undefined) {
+      handlers.addTeamChannel(dataset.teamChannelAdd);
     }
   });
 }

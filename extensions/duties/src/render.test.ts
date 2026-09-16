@@ -467,7 +467,10 @@ describe("render", () => {
     expect(html).toContain("&lt;script&gt;&amp;&quot;");
   });
 
-  it("board shows the owner settings form and the mail setup instruction when the mapping is missing", () => {
+  it("board shows the Team panel's owner prompt and the mail setup instruction before anyone is on the roster", () => {
+    // The Owner card is replaced by the Team panel (Task 7): with no team members yet — `team`
+    // omitted, matching a board rendered before `duties.team.get` has answered — the panel falls
+    // back to the same owner-target form the old Owner card showed.
     const html = renderBoard([duty as unknown as Duty], [], {
       settings: { owner: { channel: "telegram", target: "12345" } },
       mailStatus: {
@@ -477,11 +480,31 @@ describe("render", () => {
         mappingPresent: false,
         agentPresent: true,
       },
+      team: { members: [] },
     });
     expect(html).toContain("data-settings-save");
     expect(html).toContain("vasudev duties setup-mail");
-    expect(html).toContain('value="12345"');
-    expect(html).toContain('value="telegram" selected');
+  });
+
+  it("board's Team panel shows each member's channel identity to an admin caller", () => {
+    const html = renderBoard([duty as unknown as Duty], [], {
+      team: {
+        members: [
+          {
+            id: "owner",
+            name: "Pulkit",
+            role: "owner",
+            agentId: "krishna",
+            bootstrapPending: false,
+            channels: [{ channel: "telegram", senderId: "12345" }],
+          },
+        ],
+      },
+      canAdmin: true,
+    });
+    expect(html).toContain("Pulkit");
+    expect(html).toContain("telegram");
+    expect(html).toContain("12345");
   });
 
   it("board's mail setup instruction disappears once every check passes", () => {
