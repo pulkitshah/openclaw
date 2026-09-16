@@ -15,7 +15,13 @@ let storedOwner: { channel: string; target: string } | undefined = {
 vi.mock("./src/store.js", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./src/store.js")>()),
   DutyStore: {
-    open: () => ({ getSettings: async () => ({ owner: storedOwner }) }),
+    // `ownerMember` is undefined here on purpose: this suite predates the Team roster and tests
+    // the pre-Team fallback path (`ownerTarget` reading `settings.owner` directly), which is
+    // still real behavior for a desk with no Team member yet.
+    open: () => ({
+      getSettings: async () => ({ owner: storedOwner }),
+      ownerMember: async () => undefined,
+    }),
   },
 }));
 
