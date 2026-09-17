@@ -32,7 +32,10 @@ import { normalizeDeliveryContext } from "../utils/delivery-context.shared.js";
 import { captureAgentToolSourceExecutionGuard } from "./agent-tool-source-execution-guard.js";
 import { markBackgrounded } from "./bash-process-registry.js";
 import { describeExecTool } from "./bash-tools.descriptions.js";
-import { processGatewayAllowlist } from "./bash-tools.exec-host-gateway.js";
+import {
+  processGatewayAllowlist,
+  resolveGatewaySelfCliDenial,
+} from "./bash-tools.exec-host-gateway.js";
 import { executeNodeHostCommand } from "./bash-tools.exec-host-node.js";
 import {
   assertSupportedExecParams,
@@ -509,6 +512,24 @@ export function createExecTool(
           host === "gateway" && preparedRunEnvironment.managedLocalIdentity
             ? preparedRunEnvironment.localIdentityEnv.GH_CONFIG_DIR
             : undefined;
+
+        // Hard, mode-independent gate: self-CLI denial must not be reachable through the
+        // full-trust `bypassApprovals` path. `processGatewayAllowlist` below is the only other
+        // place this runs for the gateway host, but it is skipped entirely when bypassApprovals
+        // is true, so this check runs unconditionally, ahead of and independent of that gate.
+        if (host === "gateway" && bypassApprovals && defaults?.denySelfCli === true) {
+          const selfCliDeniedResult = await resolveGatewaySelfCliDenial({
+            command: params.command,
+            workdir,
+            env,
+            safeBins,
+            safeBinProfiles,
+            trustedSafeBinDirs,
+          });
+          if (selfCliDeniedResult) {
+            return attachExecApprovalReview(selfCliDeniedResult, approvalReview);
+          }
+        }
 
         if (host === "gateway" && !bypassApprovals) {
           const gatewayResult = await processGatewayAllowlist({

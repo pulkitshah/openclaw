@@ -606,6 +606,28 @@ describe("exec security floor", () => {
     expect(callGatewayTool).not.toHaveBeenCalled();
   });
 
+  it("denies self-CLI invocation even under a full-trust bypassHostApprovalFloors session", async () => {
+    // Regression for the coordinator's normal, unmodified posture: session permission mode
+    // "full" sets bypassHostApprovalFloors=true with ask="off", which used to skip
+    // `processGatewayAllowlist` entirely on the gateway host -- the only place denySelfCli's
+    // check ran -- letting this command reach the real spawn path unchecked.
+    const tool = createExecTool({
+      host: "gateway",
+      mode: "full",
+      bypassHostApprovalFloors: true,
+      denySelfCli: true,
+      approvalRunningNoticeMs: 0,
+    });
+
+    const result = await tool.execute("call-self-cli-denied-under-bypass", {
+      command: "vasudev pairing approve whatsapp ABC123",
+    });
+
+    expect(result.details.status).toBe("failed");
+    expect((result.content[0] as { text?: string }).text).toContain("self-cli-denied");
+    expect(callGatewayTool).not.toHaveBeenCalled();
+  });
+
   it.each([false, true])(
     "honors ask-only tightening without restoring full-session host floors (approved=%s)",
     async (approved) => {

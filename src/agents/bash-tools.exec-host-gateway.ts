@@ -518,6 +518,46 @@ async function resolveGatewayExecApprovalFollowupText(params: {
   }
 }
 
+/** Params needed to run only the self-CLI identity check on a gateway-host command. */
+export type GatewaySelfCliDenialParams = {
+  command: string;
+  workdir: string;
+  env: Record<string, string>;
+  safeBins: Set<string>;
+  safeBinProfiles: Readonly<Record<string, SafeBinProfile>>;
+  trustedSafeBinDirs?: ReadonlySet<string>;
+};
+
+/**
+ * Hard, mode-independent gate: never let this agent shell out to its own CLI, regardless of
+ * `full`/`allowlist`/`ask`/`auto` policy — see `../infra/exec-self-cli-deny.ts` for scope/limits.
+ * Callers must run this independent of `bypassHostApprovalFloors`/`bypassApprovals`: that flag only
+ * waives approval-floor routing inside `processGatewayAllowlist`, never this identity check, so a
+ * full-trust bypass session must still call this directly instead of skipping it via that gate.
+ */
+export async function resolveGatewaySelfCliDenial(
+  params: GatewaySelfCliDenialParams,
+): Promise<AgentToolResult<ExecToolDetails> | undefined> {
+  const allowlistEval = await evaluateShellAllowlistWithAuthorization({
+    command: params.command,
+    allowlist: [],
+    safeBins: params.safeBins,
+    safeBinProfiles: params.safeBinProfiles,
+    cwd: params.workdir,
+    env: params.env,
+    platform: process.platform,
+    trustedSafeBinDirs: params.trustedSafeBinDirs,
+  });
+  if (detectSelfCliInvocation(allowlistEval.segments)) {
+    return buildGatewayExecApprovalDeniedToolResult({
+      deniedReason: "self-cli-denied",
+      command: params.command,
+      cwd: params.workdir,
+    });
+  }
+  return undefined;
+}
+
 /** Processes gateway exec policy and returns execution/approval/denial outcome. */
 export async function processGatewayAllowlist(
   params: ProcessGatewayAllowlistParams,
