@@ -1,6 +1,7 @@
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { definePluginEntry } from "./api.js";
 import { createTeamEventService } from "./src/events.js";
+import { applyExecSelfCliDenyDefault } from "./src/exec-self-cli-default.js";
 import { registerTeamGatewayMethods } from "./src/gateway-methods.js";
 import { importLegacyTeamRows } from "./src/legacy-import.js";
 import { TeamStore } from "./src/store.js";
@@ -85,6 +86,28 @@ export default definePluginEntry({
         });
         for (const warning of warnings) {
           ctx.logger.warn(`team: ${warning}`);
+        }
+      },
+    });
+
+    // Fills in the exec self-CLI-deny default (Team v2 Task 5) for the coordinator agent, once per
+    // Gateway start, whenever a coordinator can be resolved and the operator has not already made
+    // an explicit choice. See `src/exec-self-cli-default.ts` for the exact contract.
+    api.registerService({
+      id: "team:exec-self-cli-default",
+      async start(ctx) {
+        try {
+          const members = await store.listMembers();
+          const { applied, agentId } = await applyExecSelfCliDenyDefault({ members });
+          if (applied) {
+            ctx.logger.info(
+              `team: denied self-CLI exec by default for coordinator agent "${agentId}"`,
+            );
+          }
+        } catch (error) {
+          ctx.logger.warn(
+            `team: could not apply the exec self-CLI-deny default: ${error instanceof Error ? error.message : String(error)}`,
+          );
         }
       },
     });

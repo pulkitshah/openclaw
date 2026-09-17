@@ -485,6 +485,7 @@ export function createExecTool(
             autoReviewer,
             signal,
             strictInlineEval: defaults?.strictInlineEval,
+            denySelfCli: defaults?.denySelfCli,
             commandHighlighting: defaults?.commandHighlighting,
             trigger: defaults?.trigger,
             timeoutSec: params.timeoutSeconds,
@@ -529,6 +530,7 @@ export function createExecTool(
             safeBins,
             safeBinProfiles,
             strictInlineEval: defaults?.strictInlineEval,
+            denySelfCli: defaults?.denySelfCli,
             commandHighlighting: defaults?.commandHighlighting,
             trigger: defaults?.trigger,
             agentId,
@@ -752,3 +754,4 @@ export function createExecTool(
 
 /** Default exec tool instance used by agent tool registries. */
 export const execTool = createExecTool();
+/* oxlint-disable max-lines -- TODO: split this grandfathered oversized file. */

@@ -35,6 +35,17 @@ Team never changes a channel's `dmPolicy`. If a channel is left `open`, the rost
 
 Mail accounts are workspace inboxes, not people: a `TeamMember` has no email field, and having a message land in one of the [Gmail mailboxes a hosted desk watches](/hosted-desk#more-than-one-inbox) never by itself grants that sender permission to instruct the agent.
 
+## The coordinator cannot shell out to its own CLI
+
+Once the coordinator has real tool calls for roster changes (`team_add`, `team_remove`,
+`team_transfer_ownership`), there is no legitimate reason for it to shell out to the `vasudev`/
+`openclaw` CLI itself — for pairing approval or anything else. Team sets
+`tools.exec.denySelfCli: true` on the coordinator agent by default (once a coordinator can be
+resolved), which makes exec unconditionally deny that binary as a target, for any subcommand,
+regardless of the agent's exec mode. Every other exec command is unaffected. An operator who
+explicitly sets `denySelfCli` to `true` or `false` for that agent is never overridden — see
+[Exec approvals](/tools/exec-approvals#tools-exec-denyselfcli) for the full mechanism.
+
 ## Migrating from an earlier install
 
 Before this plugin existed, the roster lived inside the `duties` plugin's own storage, with a dedicated agent, workspace and memory per member. On first activation, Team copies any such rows over automatically, dropping the per-member agent fields — everyone lands on the shared coordinator agent described above. The agents/workspaces that used to be dedicated to a member are not deleted; they simply stop being referenced by the roster projection. Nothing needs to be run by hand for this — it happens once, the first time this plugin starts on a desk that still has the old rows.

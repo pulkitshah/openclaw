@@ -285,6 +285,39 @@ Those paths skip strict inline-eval detection. Ask-only tightening of a full
 session restores the approval path while retaining its host-file-floor
 exception. See [Inline eval](/tools/exec#inline-eval-strictinlineeval).
 
+### `tools.exec.denySelfCli`
+
+<ParamField path="denySelfCli" type="boolean" default="false">
+  When `true`, host exec unconditionally denies any command whose resolved
+  executable is this product's own CLI binary (`vasudev`/`openclaw` —
+  `package.json`'s `bin` field aliases both names to the same entry point),
+  for any subcommand or arguments. Unlike `strictInlineEval`, a hit here is
+  terminal: there is no reviewer, no human approval, and no `full`/
+  `allowlist`/`ask`/`auto` mode that lets it through. Every other exec
+  command is unaffected and keeps its existing policy exactly as configured.
+</ParamField>
+
+Set globally under `tools.exec.denySelfCli` or per agent under
+`agents.entries.*.tools.exec.denySelfCli`. Team's plugin sets this to `true`
+by default for the coordinator agent once a coordinator can be resolved,
+unless the operator has already made an explicit choice (`true` or `false`)
+for that agent — an explicit choice is never overridden.
+
+This is a binary-identity check, not a substring match: it matches a
+command's resolved executable name (bare `PATH` lookup, or a path whose
+target is exactly `vasudev`/`openclaw`), so a path that merely contains one
+of those names — for example `/home/vasudev-user/script.sh` — is
+unaffected. Known limitation: invoking the underlying entry script directly
+through a generic interpreter (for example `node /path/to/openclaw.mjs
+...`) is not detected.
+
+Rationale: once an agent has dedicated tool-call paths for every
+legitimate CLI-shaped action (for example Team's `team_add`/`team_remove`/
+`team_transfer_ownership`), there is no remaining legitimate reason for
+that agent to shell out to its own CLI — closing the whole binary is
+simpler and more complete than denying individual dangerous subcommands
+(`pairing approve`, `config set`, ...) one at a time.
+
 ### `tools.exec.commandHighlighting`
 
 <ParamField path="commandHighlighting" type="boolean" default="false">

@@ -691,6 +691,7 @@ function createOpenClawCodingToolsInternal(options?: OpenClawCodingToolsOptions)
       pathPrepend: mergeGatewayAgentCliPath(options?.exec?.pathPrepend ?? execConfig.pathPrepend),
       safeBins: options?.exec?.safeBins ?? execConfig.safeBins,
       strictInlineEval: options?.exec?.strictInlineEval ?? execConfig.strictInlineEval,
+      denySelfCli: options?.exec?.denySelfCli ?? execConfig.denySelfCli,
       commandHighlighting: options?.exec?.commandHighlighting ?? execConfig.commandHighlighting,
       safeBinTrustedDirs: options?.exec?.safeBinTrustedDirs ?? execConfig.safeBinTrustedDirs,
       safeBinProfiles: options?.exec?.safeBinProfiles ?? execConfig.safeBinProfiles,

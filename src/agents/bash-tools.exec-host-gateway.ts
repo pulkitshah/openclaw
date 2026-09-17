@@ -48,6 +48,7 @@ import {
   type ExecAutoReviewer,
 } from "../infra/exec-auto-review.js";
 import type { SafeBinProfile } from "../infra/exec-safe-bin-policy.js";
+import { detectSelfCliInvocation } from "../infra/exec-self-cli-deny.js";
 import { hasPosixShellStartupBeforeInlineCommand } from "../infra/exec-wrapper-resolution.js";
 import {
   prepareSystemRunMutableFileBinding,
@@ -119,6 +120,8 @@ type ProcessGatewayAllowlistParams = {
   safeBins: Set<string>;
   safeBinProfiles: Readonly<Record<string, SafeBinProfile>>;
   strictInlineEval?: boolean;
+  /** Unconditionally deny exec commands whose resolved executable is this product's own CLI. */
+  denySelfCli?: boolean;
   commandHighlighting?: boolean;
   trigger?: string;
   agentId?: string;
@@ -556,6 +559,17 @@ export async function processGatewayAllowlist(
     platform: process.platform,
     trustedSafeBinDirs: params.trustedSafeBinDirs,
   });
+  // Hard, mode-independent gate: never let this agent shell out to its own CLI, regardless of
+  // `full`/`allowlist`/`ask`/`auto` policy. See `../infra/exec-self-cli-deny.ts` for scope/limits.
+  if (params.denySelfCli === true && detectSelfCliInvocation(allowlistEval.segments)) {
+    return {
+      deniedResult: buildGatewayExecApprovalDeniedToolResult({
+        deniedReason: "self-cli-denied",
+        command: params.command,
+        cwd: params.workdir,
+      }),
+    };
+  }
   const allowlistMatches = allowlistEval.allowlistMatches;
   const analysisOk = allowlistEval.analysisOk;
   const allowlistSatisfied =

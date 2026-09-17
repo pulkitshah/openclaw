@@ -304,6 +304,14 @@ export type ExecToolConfig = {
    * Prevents silent allowlist reuse and allow-always persistence for those forms.
    */
   strictInlineEval?: boolean;
+  /**
+   * Unconditionally deny exec calls whose resolved executable is this product's own CLI binary
+   * (`vasudev`/`openclaw` — package.json's `bin` aliases for the same entry point), regardless of
+   * subcommand or arguments and regardless of `mode`/`security`/`ask`. Every other exec command is
+   * unaffected. Intended for agents (such as Team's coordinator) that have dedicated tool-call paths
+   * for every legitimate CLI-shaped action, so shelling out to the CLI itself is never legitimate.
+   */
+  denySelfCli?: boolean;
   /** Render parser-derived command highlights in exec approval prompts (default: false). */
   commandHighlighting?: boolean;
   /**

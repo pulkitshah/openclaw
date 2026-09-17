@@ -38,6 +38,8 @@ export type ExecToolDefaults = {
   pathPrepend?: string[];
   safeBins?: string[];
   strictInlineEval?: boolean;
+  /** Unconditionally deny exec commands whose resolved executable is this product's own CLI. */
+  denySelfCli?: boolean;
   commandHighlighting?: boolean;
   safeBinTrustedDirs?: string[];
   safeBinProfiles?: Record<string, SafeBinProfileFixture>;

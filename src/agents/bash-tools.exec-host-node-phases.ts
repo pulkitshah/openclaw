@@ -27,6 +27,7 @@ import {
   resolveAllowAlwaysPatternCoverage,
   type AllowAlwaysPattern,
 } from "../infra/exec-approvals.js";
+import { detectSelfCliInvocation } from "../infra/exec-self-cli-deny.js";
 import {
   hasPosixShellStartupBeforeInlineCommand,
   isBlockedShellWrapperCommand,
@@ -85,6 +86,8 @@ type NodeApprovalAnalysis = {
   nodeSecurity?: ExecSecurity;
   nodeAsk?: ExecAsk;
   inlineEvalHit: InterpreterInlineEvalHit | null;
+  /** Hard, mode-independent deny: this agent's own CLI binary as the exec target. */
+  selfCliDenied: boolean;
   requiresSecurityAuditSuppressionApproval: boolean;
   autoReviewBlockedByShellStartup: boolean;
   autoReviewEligibility: ReturnType<typeof resolveNodeAutoApprovalEligibility>;
@@ -576,6 +579,13 @@ export async function analyzeNodeApprovalRequirement(params: {
       )}.`,
     );
   }
+  // Hard, mode-independent gate: never let this agent shell out to its own CLI, regardless of
+  // `full`/`allowlist`/`ask`/`auto` policy. See `../infra/exec-self-cli-deny.ts` for scope/limits.
+  const selfCliDenied =
+    params.request.denySelfCli === true &&
+    policyCommandEvals.some(
+      (entry) => detectSelfCliInvocation(entry.allowlistEval.segments) !== null,
+    );
   const suppressionCommandEvals =
     preparedShellPayload && preparedShellPayload.trim().length > 0
       ? policyCommandEvals.filter(
@@ -712,6 +722,7 @@ export async function analyzeNodeApprovalRequirement(params: {
     nodeSecurity: params.prepared.execPolicy?.security,
     nodeAsk: params.prepared.execPolicy?.ask,
     inlineEvalHit,
+    selfCliDenied,
     requiresSecurityAuditSuppressionApproval,
     autoReviewBlockedByShellStartup,
     autoReviewEligibility,

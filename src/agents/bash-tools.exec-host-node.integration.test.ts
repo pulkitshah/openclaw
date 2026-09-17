@@ -246,6 +246,34 @@ it("auto-reviews an absolute direct command through real node preparation and ex
   expect(invokeCount).toBe(1);
 });
 
+it("denies invoking the product's own CLI on the node host, before any dispatch or approval", async () => {
+  const result = await executeNodeHostCommand({
+    ...request,
+    command: "vasudev pairing approve whatsapp ABC123",
+    denySelfCli: true,
+  });
+  expect(result.details.status).toBe("failed");
+  expect(result.content[0]).toMatchObject({
+    type: "text",
+    text: expect.stringContaining("self-cli-denied"),
+  });
+  // `system.run.prepare` only resolves canonical plan metadata (cwd/argv), never executes anything
+  // — it runs ahead of the approval decision for every command. The actual execution RPC,
+  // `system.run`, and any approval request/wait, must never fire once denied.
+  expect(rpc.mock.calls.some(([method]) => method === "exec.approval.request")).toBe(false);
+  expect(rpc.mock.calls.some(([method]) => method === "exec.approval.waitDecision")).toBe(false);
+  expect(invokeCount).toBe(0);
+});
+
+it("leaves an unrelated node command unaffected by denySelfCli", async () => {
+  const result = await executeNodeHostCommand({
+    ...request,
+    denySelfCli: true,
+  });
+  expect(result.details).toMatchObject({ status: "completed", aggregated: "node-policy-proof" });
+  expect(invokeCount).toBe(1);
+});
+
 it.each([
   "printf node-policy-proof",
   "/usr/bin/printf *.txt",

@@ -96,6 +96,7 @@ export function resolveExecToolConfig(params: { cfg?: OpenClawConfig; agentId?: 
     pathPrepend: mergeGatewayAgentCliPath(agentExec?.pathPrepend ?? globalExec?.pathPrepend),
     safeBins: agentExec?.safeBins ?? globalExec?.safeBins,
     strictInlineEval: agentExec?.strictInlineEval ?? globalExec?.strictInlineEval,
+    denySelfCli: agentExec?.denySelfCli ?? globalExec?.denySelfCli,
     commandHighlighting: resolveExecCommandHighlighting({
       config: cfg,
       agentId: params.agentId,
