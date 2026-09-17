@@ -17,6 +17,7 @@ vi.mock("openclaw/plugin-sdk/question-gateway-runtime", async (importOriginal) =
 import { questionGatewayRuntime } from "openclaw/plugin-sdk/question-gateway-runtime";
 import {
   maybeResolveWhatsAppQuestionReaction,
+  maybeResolveWhatsAppQuestionTextReply,
   registerWhatsAppQuestionReactionTargetForDeliveredPayload,
 } from "./question-reactions.js";
 
@@ -104,5 +105,120 @@ describe("WhatsApp question reactions", () => {
       expect.objectContaining({ questionId, optionValue: "Two", senderId: "+1555" }),
     );
     expect(hoisted.resolve).toHaveBeenCalledOnce();
+  });
+
+  it("resolves a typed reply quoting the question message, matched by exact option text", async () => {
+    const payload = buildPayload();
+    expect(payload).not.toBeNull();
+    expect(
+      registerWhatsAppQuestionReactionTargetForDeliveredPayload({
+        cfg: {},
+        target: { channel: "whatsapp", accountId: "default" },
+        payload: payload!,
+        results: [
+          {
+            channel: "whatsapp",
+            messageId: "summary",
+            toJid: "1555@s.whatsapp.net",
+            receipt: {
+              platformMessageIds: ["wa-2"],
+              sentAt: 1,
+              parts: [
+                {
+                  platformMessageId: "wa-2",
+                  kind: "text",
+                  index: 0,
+                  raw: { messageId: "wa-2", toJid: "1555@s.whatsapp.net" },
+                },
+              ],
+            },
+          },
+        ],
+      }),
+    ).toBe(true);
+    const msg = {
+      key: { remoteJid: "1555@s.whatsapp.net" },
+      message: {
+        extendedTextMessage: {
+          text: "Two",
+          contextInfo: { stanzaId: "wa-2" },
+        },
+      },
+    };
+
+    await expect(
+      maybeResolveWhatsAppQuestionTextReply({
+        cfg: {},
+        accountId: "default",
+        msg,
+        senderId: "+1555",
+      }),
+    ).resolves.toBe(true);
+    expect(hoisted.resolve).toHaveBeenCalledWith(
+      expect.objectContaining({ questionId, optionValue: "Two", senderId: "+1555" }),
+    );
+  });
+
+  it("leaves an ordinary reply that quotes no pending question alone", async () => {
+    const msg = {
+      key: { remoteJid: "1555@s.whatsapp.net" },
+      message: { conversation: "just chatting, not answering anything" },
+    };
+    await expect(
+      maybeResolveWhatsAppQuestionTextReply({
+        cfg: {},
+        accountId: "default",
+        msg,
+        senderId: "+1555",
+      }),
+    ).resolves.toBe(false);
+    expect(hoisted.resolve).not.toHaveBeenCalled();
+  });
+
+  it("leaves a reply quoting the question with text that matches no option alone", async () => {
+    const payload = buildPayload();
+    expect(payload).not.toBeNull();
+    registerWhatsAppQuestionReactionTargetForDeliveredPayload({
+      cfg: {},
+      target: { channel: "whatsapp", accountId: "default" },
+      payload: payload!,
+      results: [
+        {
+          channel: "whatsapp",
+          messageId: "summary",
+          toJid: "1555@s.whatsapp.net",
+          receipt: {
+            platformMessageIds: ["wa-3"],
+            sentAt: 1,
+            parts: [
+              {
+                platformMessageId: "wa-3",
+                kind: "text",
+                index: 0,
+                raw: { messageId: "wa-3", toJid: "1555@s.whatsapp.net" },
+              },
+            ],
+          },
+        },
+      ],
+    });
+    const msg = {
+      key: { remoteJid: "1555@s.whatsapp.net" },
+      message: {
+        extendedTextMessage: {
+          text: "maybe later",
+          contextInfo: { stanzaId: "wa-3" },
+        },
+      },
+    };
+    await expect(
+      maybeResolveWhatsAppQuestionTextReply({
+        cfg: {},
+        accountId: "default",
+        msg,
+        senderId: "+1555",
+      }),
+    ).resolves.toBe(false);
+    expect(hoisted.resolve).not.toHaveBeenCalled();
   });
 });

@@ -8,6 +8,7 @@ import {
 } from "openclaw/plugin-sdk/question-gateway-runtime";
 import type { ReplyPayload } from "openclaw/plugin-sdk/reply-runtime";
 import { resolveWhatsAppAccount } from "./accounts.js";
+import { describeReplyContext, extractText } from "./inbound/extract.js";
 
 type WhatsAppQuestionReactionIdentity = {
   accountId: string;
@@ -124,6 +125,84 @@ export async function maybeResolveWhatsAppQuestionReaction(params: {
     cfg: params.cfg,
     senderId: params.senderId,
     gatewayUrl: params.gatewayUrl,
+    logDebug: params.logDebug,
+  });
+}
+
+/** Matches a typed reply's exact text (case-insensitive) or a bare 1-based index against the
+ *  pending question's own option labels. Deliberately strict — a substring or fuzzy match could
+ *  silently resolve the wrong option from a reply that only coincidentally contains one of the
+ *  labels, and a Duty step's ask has real side effects once answered. */
+function matchOptionIndex(text: string, optionValues: readonly string[]): number | undefined {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  const asIndex = Number.parseInt(trimmed, 10);
+  if (String(asIndex) === trimmed && asIndex >= 1 && asIndex <= optionValues.length) {
+    return asIndex - 1;
+  }
+  const normalized = trimmed.toLowerCase();
+  const index = optionValues.findIndex((value) => value.trim().toLowerCase() === normalized);
+  return index >= 0 ? index : undefined;
+}
+
+/**
+ * Resolves a pending WhatsApp question from a typed reply quoting the question message, for
+ * owners who use WhatsApp's ordinary swipe-to-reply instead of the numbered emoji reaction
+ * `maybeResolveWhatsAppQuestionReaction` expects.
+ *
+ * Personal/web-connected WhatsApp has no native interactive buttons (`prepareQuestionReactionPayloadForDelivery`
+ * sends the options as plain numbered text for exactly that reason), so a reaction is the only
+ * tap-to-answer affordance WhatsApp actually has — but replying to a message is the far more
+ * familiar gesture, and a typed reply with no matching handler here silently fell through to
+ * ordinary chat, leaving the run parked on `question.waitAnswer` until it timed out (up to an
+ * hour) while the owner's actual answer was never recognized as one.
+ *
+ * Requires the reply to quote the exact question message (`describeReplyContext`'s `id`, WhatsApp's
+ * own `stanzaId`) — the same precision a reaction gets from being attached to a specific message —
+ * so an unrelated later message in the same chat can never be misread as answering a stale ask.
+ */
+export async function maybeResolveWhatsAppQuestionTextReply(params: {
+  cfg: OpenClawConfig;
+  accountId: string;
+  msg: WAMessage;
+  senderId: string;
+  resolveReactionTargetJids?: (jid: string) => Promise<readonly string[]>;
+  logDebug?: (message: string) => void;
+}): Promise<boolean> {
+  const quotedMessageId = describeReplyContext(params.msg.message ?? undefined)?.id?.trim();
+  const text = extractText(params.msg.message ?? undefined)?.trim();
+  if (!quotedMessageId || !text) {
+    return false;
+  }
+  const remoteJids: string[] = [];
+  addCandidate(remoteJids, params.msg.key?.remoteJid);
+  const candidates: string[] = [];
+  for (const remoteJid of remoteJids) {
+    addCandidate(candidates, remoteJid);
+    for (const mapped of (await params.resolveReactionTargetJids?.(remoteJid)) ?? []) {
+      addCandidate(candidates, mapped);
+    }
+  }
+  const identities = candidates.map((remoteJid) => ({
+    accountId: params.accountId,
+    remoteJid,
+    messageId: quotedMessageId,
+  }));
+  const target = questionReactionTargets.peek(identities);
+  if (!target) {
+    return false;
+  }
+  const optionIndex = matchOptionIndex(text, target.optionValues);
+  if (optionIndex === undefined) {
+    return false;
+  }
+  return await questionReactionTargets.resolve({
+    identities,
+    optionIndex,
+    cfg: params.cfg,
+    senderId: params.senderId,
     logDebug: params.logDebug,
   });
 }

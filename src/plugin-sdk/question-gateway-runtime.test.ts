@@ -54,6 +54,24 @@ describe("createQuestionReactionTargetStore", () => {
     expect(store.has([identity])).toBe(false);
   });
 
+  it("peek reads the pending target's own option labels and stops once it's gone", () => {
+    vi.useFakeTimers();
+    const store = createStore({
+      ttlMs: 1_000,
+      registerChannelDelivery: vi.fn<RegisterChannelDelivery>(),
+    });
+    const identity = { accountId: "default", messageId: "message-1" };
+
+    expect(store.peek([identity])).toBeUndefined();
+    store.register(binding, identity);
+    expect(store.peek([identity])).toEqual({
+      questionId: binding.questionId,
+      optionValues: binding.optionValues,
+    });
+    vi.advanceTimersByTime(1_000);
+    expect(store.peek([identity])).toBeUndefined();
+  });
+
   it("registers the exact delivery id and honors synchronous finalization", async () => {
     const registerChannelDelivery = vi.fn<RegisterChannelDelivery>((params) => {
       void params.finalize("answered");

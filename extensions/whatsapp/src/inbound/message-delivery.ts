@@ -10,7 +10,10 @@ import { defaultRuntime, createSubsystemLogger } from "openclaw/plugin-sdk/runti
 import { maybeResolveWhatsAppApprovalReaction } from "../approval-reactions.js";
 import { resolveComparableIdentity } from "../identity.js";
 import { addWhatsAppImagePreviewFields } from "../image-preview.js";
-import { maybeResolveWhatsAppQuestionReaction } from "../question-reactions.js";
+import {
+  maybeResolveWhatsAppQuestionReaction,
+  maybeResolveWhatsAppQuestionTextReply,
+} from "../question-reactions.js";
 import { cacheInboundMessageMeta } from "../quoted-message.js";
 import { formatError } from "../session.js";
 import { requireWhatsAppInboundAdmission } from "./admission.js";
@@ -453,6 +456,21 @@ export function createWhatsAppMessageDeliveryCoordinator(options: WhatsAppMessag
     }
     if (
       await maybeResolveWhatsAppQuestionReaction({
+        cfg: options.loadConfig?.() ?? options.cfg,
+        accountId: options.accountId,
+        msg,
+        senderId: inbound.senderE164 ?? inbound.from,
+        resolveReactionTargetJids,
+        logDebug: (message) => logWhatsAppVerbose(options.verbose, message),
+      })
+    ) {
+      return "completed";
+    }
+    // A typed reply quoting the question message is the natural gesture for owners who don't
+    // know about (or don't use) the numbered emoji reaction above; see the function doc for why
+    // this must run before the message falls through to ordinary chat.
+    if (
+      await maybeResolveWhatsAppQuestionTextReply({
         cfg: options.loadConfig?.() ?? options.cfg,
         accountId: options.accountId,
         msg,

@@ -186,10 +186,20 @@ export function assertTeamProjectionSafe(
     const entry = cfg.channels?.[channel] as TeamChannelEntry;
     const allowFrom = entry?.allowFrom ?? [];
     const dmPolicy = entry?.dmPolicy;
-    // GC3: an empty allowlist admits everyone (`isSenderIdAllowed`, src/channels/allow-from.ts:75),
-    // so writing the FIRST entry onto such a channel would silently refuse people who are reaching
-    // Vasu today. Fail loudly instead of narrowing, and never change dmPolicy to compensate.
-    if (allowFrom.length === 0 && dmPolicy !== "allowlist") {
+    // GC3: under dmPolicy "open", an empty allowlist admits everyone (`isSenderIdAllowed`,
+    // src/channels/allow-from.ts:75), so writing the FIRST entry onto such a channel would
+    // silently refuse people who are reaching Vasu today. Fail loudly instead of narrowing, and
+    // never change dmPolicy to compensate.
+    //
+    // "pairing" (unset defaults to it — every dmPolicy resolver in src/security/dm-policy-shared.ts
+    // and src/channels/direct-dm-access.ts falls back to "pairing", never to "open") is NOT the
+    // same risk: an empty allowFrom there already admits no one — every sender not already listed
+    // gets a pairing prompt instead (`resolveDmGroupAccessWithLists`'s pairing branch) — and
+    // pairing-store approvals merge with, rather than get replaced by, whatever Team writes here
+    // (`mergeDmAllowFromSources`, docs/channels/whatsapp.md's "pairings persist in the channel
+    // allow-store and merge with configured allowFrom"). Refusing on the channel's own safe
+    // default meant Team could never be used on a freshly set up channel at all.
+    if (allowFrom.length === 0 && dmPolicy !== "allowlist" && dmPolicy !== "pairing" && dmPolicy) {
       throw new Error(
         `${channel} currently admits every sender because it has no allowFrom list. ` +
           `Adding Team to it would silently cut off anyone already talking to Vasu there. ` +

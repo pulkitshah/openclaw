@@ -325,16 +325,36 @@ describe("assertTeamProjectionSafe", () => {
     );
   });
 
-  it("refuses to narrow a channel whose allowFrom is empty and whose dmPolicy is not allowlist", () => {
+  it("refuses to narrow a channel whose allowFrom is empty under dmPolicy open", () => {
+    const cfg = deskConfig();
+    cfg.channels = {
+      ...cfg.channels,
+      whatsapp: { enabled: true, dmPolicy: "open" },
+      // SAFETY: fixture narrowing; only the two keys this assertion reads are set.
+    } as OpenClawConfig["channels"];
+    expect(() => assertTeamProjectionSafe(cfg, [OWNER, RAMESH])).toThrow(
+      /whatsapp currently admits every sender/,
+    );
+  });
+
+  // Regression: pairing (the channel's own default when dmPolicy is unset) never admits anyone
+  // through an empty allowFrom — every sender not already listed gets a pairing prompt instead
+  // (src/security/dm-policy-shared.ts's pairing branch) — so refusing here meant Team could never
+  // add a first member on a freshly set up channel at all.
+  it("does not refuse a channel left on its own pairing default, allowFrom empty or unset", () => {
     const cfg = deskConfig();
     cfg.channels = {
       ...cfg.channels,
       whatsapp: { enabled: true, dmPolicy: "pairing" },
       // SAFETY: fixture narrowing; only the two keys this assertion reads are set.
     } as OpenClawConfig["channels"];
-    expect(() => assertTeamProjectionSafe(cfg, [OWNER, RAMESH])).toThrow(
-      /whatsapp currently admits every sender/,
-    );
+    expect(assertTeamProjectionSafe(cfg, [OWNER, RAMESH])).toEqual([]);
+    cfg.channels = {
+      ...cfg.channels,
+      whatsapp: { enabled: true },
+      // SAFETY: fixture narrowing; only the key this assertion reads is set.
+    } as OpenClawConfig["channels"];
+    expect(assertTeamProjectionSafe(cfg, [OWNER, RAMESH])).toEqual([]);
   });
 
   it("keeps pairing-approved senders: a pairing channel with an explicit allowFrom is fine", () => {

@@ -25,7 +25,12 @@ vi.mock("@openclaw/libterminal/browser", () => ({
   createGhosttyTerminal: runtimeMocks.create,
   loadGhosttyRuntime: runtimeMocks.load,
 }));
-vi.mock("ghostty-web", () => ({ mockedGhosttyModule: true }));
+vi.mock("ghostty-web", () => ({
+  mockedGhosttyModule: true,
+  UrlRegexProvider: class {
+    dispose = vi.fn();
+  },
+}));
 
 class MeasurementAddon {
   activate = runtimeMocks.activate;

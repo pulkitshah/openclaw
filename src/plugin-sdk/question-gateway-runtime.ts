@@ -91,6 +91,20 @@ export function createQuestionReactionTargetStore<TIdentity, TMetadata = undefin
       return Boolean(findTarget(identities));
     },
 
+    /** Read-only lookup for a channel that wants to interpret a reply (typed text, not a
+     *  reaction) against the pending question's own option labels before calling `resolve`. Never
+     *  returns a stale or already-terminal target — those behave as "nothing pending" to a peek,
+     *  the same way they behave to `resolve`. */
+    peek(
+      identities: readonly TIdentity[],
+    ): { questionId: string; optionValues: string[] } | undefined {
+      const target = findTarget(identities);
+      if (!target || target.expiresAtMs <= Date.now() || target.terminal) {
+        return undefined;
+      }
+      return { questionId: target.questionId, optionValues: target.optionValues };
+    },
+
     async resolve(resolveParams: {
       identities: readonly TIdentity[];
       optionIndex: number;

@@ -1,5 +1,6 @@
 import type { CreateGhosttyTerminalOptions } from "@openclaw/libterminal/browser";
 import { asOptionalRecord } from "@openclaw/normalization-core/record-coerce";
+import { UrlRegexProvider } from "ghostty-web";
 
 function isEventListener(value: unknown): value is EventListener {
   return typeof value === "function";
@@ -23,6 +24,11 @@ export async function createIsolatedGhosttyTerminal(options: CreateGhosttyTermin
   // Ghostty ignores defaultPrevented; its custom handler returns true to consume.
   // App capture listeners own dock shortcuts before they can become PTY input.
   terminal.attachCustomKeyEventHandler((event) => event.defaultPrevented);
+  // No link provider is registered by default, so a URL a session prints — an OAuth sign-in
+  // link, a doc reference — was never clickable. Only single-line URLs (`UrlRegexProvider`'s own
+  // documented limit); a long URL that wraps across rows still needs manual selection.
+  const linkProvider = new UrlRegexProvider(terminal);
+  terminal.registerLinkProvider(linkProvider);
   const mouseUpCandidate = asOptionalRecord(terminal)?.handleMouseUp;
   let handleMouseUp = isEventListener(mouseUpCandidate) ? mouseUpCandidate : undefined;
   let disposed = false;
@@ -44,6 +50,7 @@ export async function createIsolatedGhosttyTerminal(options: CreateGhosttyTermin
     disposed = true;
     observer?.disconnect();
     measurement.dispose();
+    linkProvider.dispose();
     // ghostty-web 0.4.0 clears isOpen before cleanup, skipping this listener removal.
     if (handleMouseUp) {
       document.removeEventListener("mouseup", handleMouseUp);
