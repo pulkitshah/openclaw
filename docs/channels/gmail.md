@@ -15,9 +15,9 @@ public exposure required, so it works on a headless hosted desk as well as a loc
 Gmail is not a two-way chat channel plugin: this card writes a single
 `plugins.entries.imap.config.accounts.gmail` entry (host `imap.gmail.com`, the entered address and
 app password, and `agentId: "duties-mail"`), the same account shape [Duties' mail-trigger
-readiness readout](/automation/imap) already recognizes. Reconfiguring the card overwrites that one
-account; a **Disconnect** action in its detail view removes it without touching any other IMAP
-account you configured by hand.
+readiness readout](/plugins/duties#mail-triggers) already recognizes. Reconfiguring the card
+overwrites that one account; a **Disconnect** action in its detail view removes it without touching
+any other IMAP account you configured by hand.
 
 ## When to use `hooks.gmail`/Pub/Sub instead
 
