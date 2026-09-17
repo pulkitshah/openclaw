@@ -854,20 +854,6 @@
 .dt .panel.settings h3 {
   margin-bottom: 4px;
 }
-.dt .ownerform {
-  margin-top: 8px;
-}
-.dt .ownerform select {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 7px 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-elevated);
-  color: inherit;
-  font: inherit;
-  margin-bottom: 0;
-}
 .dt .mchecks {
   display: flex;
   flex-wrap: wrap;
@@ -969,59 +955,4 @@
   margin-top: 8px;
   border: 1px solid var(--border);
   border-radius: 8px;
-}
-
-/* Task 7: the Team panel that replaced the single-Owner card. */
-.dt .teamlist {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 10px 0;
-}
-.dt .teamrow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-.dt .teamrow .tname {
-  font-weight: 600;
-}
-.dt .teamrow .trole {
-  color: var(--muted);
-  font-size: 12px;
-}
-.dt .teamrow .tchans {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.dt .teamrow .tagent {
-  color: var(--muted);
-  font-size: 12px;
-}
-.dt .teamrow .tacts {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
-}
-.dt .teamrow .taddchan {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.dt .teamadd {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 12px;
-  margin-top: 12px;
-}
-.dt .teamadd .fld {
-  margin-bottom: 0;
 }

@@ -103,7 +103,6 @@ function makeStore(overrides: Partial<DutyStores> = {}): DutyStore {
     templates: memoryKeyed(),
     brands: memoryKeyed(),
     settings: memoryKeyed(),
-    team: memoryKeyed(),
     ...overrides,
   });
 }

@@ -468,9 +468,9 @@ describe("render", () => {
   });
 
   it("board shows the mail setup instruction before every check passes", () => {
-    // Team (Task 7) moved off the Duties board onto its own top-level sidebar page (Task 10) —
-    // `teamPanel`'s own board-shaped assertions moved with it into `browser/render.test.ts`. This
-    // now only proves the board's remaining Settings-strip content: the mail health line.
+    // The Team roster moved to its own plugin (`extensions/team`), whole, including its own
+    // `teamPanel` and that render function's own tests — this only proves the board's remaining
+    // Settings-strip content: the mail health line.
     const html = renderBoard([duty as unknown as Duty], [], {
       settings: { owner: { channel: "telegram", target: "12345" } },
       mailStatus: {

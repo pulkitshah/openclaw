@@ -6,19 +6,6 @@ import type { Duty } from "./duty.js";
 import { harness, type EmitFn } from "./gateway-methods.test-helpers.js";
 import type { RunManager } from "./run-service.js";
 
-/** No test below reaches `writeTeamProjection`, which reads and writes the real config file — the
- *  `duties.team.*` tests that assert on it moved to `team-gateway-methods.test.ts`. The stub stays
- *  so this suite can never touch `~/.openclaw/openclaw.json`, whatever a Duty method grows into. */
-vi.mock("./team-write.js", () => ({
-  writeTeamProjection: vi.fn(
-    async (params: { members: unknown; assertStillAuthorized: () => void }) => {
-      params.assertStillAuthorized();
-      return { warnings: [], config: {} };
-    },
-  ),
-  revokePairingEntries: vi.fn(async () => ({ warnings: [] })),
-}));
-
 const baseDuty = {
   id: "d1",
   name: "D",

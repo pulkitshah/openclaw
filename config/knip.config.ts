@@ -551,7 +551,7 @@ const config = {
     // TEAM_MEMBER_ID_RE, TEAM_ACCESS_GROUP_ENTRY, teamAccessGroup and teamIdentityLinks are
     // asserted directly by the focused Team unit tests; production code reaches them only
     // through applyTeamProjection, not by importing these exports itself.
-    "extensions/duties/src/team.ts": ["exports"],
+    "extensions/team/src/team.ts": ["exports"],
   },
   workspaces: {
     ".": {

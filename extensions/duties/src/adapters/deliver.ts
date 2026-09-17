@@ -32,7 +32,15 @@ import {
 } from "openclaw/plugin-sdk/session-store-runtime";
 import { parseTeamDeliverTarget } from "../duty.js";
 import type { RunOrigin } from "../store.js";
-import type { TeamMember } from "../team.js";
+
+/** The slice of `extensions/team`'s `TeamMember` this module actually reads, declared locally
+ *  rather than imported: Team is a separate plugin now (Team v2 Task 1), and no plugin in this
+ *  codebase imports another plugin's private `src/` — `teamMember` below is resolved through
+ *  Team's own registered Gateway method (`team.member.get`) instead. */
+export type TeamMemberRoute = {
+  name: string;
+  channels: Array<{ channel: string; senderId: string; accountId?: string }>;
+};
 
 export type DeliverRoute = { channel: string; to: string; accountId?: string };
 export type RouteResolver = (
@@ -41,7 +49,7 @@ export type RouteResolver = (
   origin: RunOrigin | undefined,
 ) => Promise<DeliverRoute>;
 
-const NO_OWNER_TARGET = "no owner target configured — set it on the Duties page";
+const NO_OWNER_TARGET = "no owner target configured — set it on the Team page";
 
 /**
  * Whether a run's origin is the OWNER'S OWN direct chat — the one origin whose conversation may
@@ -153,8 +161,9 @@ export function createRouteResolver(params: {
   ownerTarget: () => Promise<{ channel: string; target: string } | undefined>;
   sessionRoute: (origin: RunOrigin) => DeliverRoute | undefined;
   /** Injected the same way `ownerTarget` is (extensions/duties/index.ts), so tests never open the
-   *  real roster. */
-  teamMember: (id: string) => Promise<TeamMember | undefined>;
+   *  real roster. Resolved in production through `extensions/team`'s `team.member.get` Gateway
+   *  method, never a direct import of that plugin's private store. */
+  teamMember: (id: string) => Promise<TeamMemberRoute | undefined>;
 }): RouteResolver {
   const owner = async (): Promise<DeliverRoute> => {
     const target = await params.ownerTarget();

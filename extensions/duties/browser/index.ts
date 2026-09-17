@@ -36,11 +36,9 @@ import {
   renderRun,
   renderTemplates,
 } from "./render.js";
-import { createTeamPageMount } from "./team-page.js";
 import "./styles.css";
 
 const PAGE = "duties";
-const TEAM_PAGE = "team";
 
 export default defineControlUiPlugin({
   id: "duties",
@@ -52,21 +50,8 @@ export default defineControlUiPlugin({
       icon: "listChecks",
       order: 15,
     });
-    // Team is a distinct concept from Duties (automations), so it gets its own top-level sidebar
-    // entry directly below Duties (order 16) instead of living inside the Duties board's Settings
-    // strip — see `team-page.ts` for its independent mount lifecycle.
-    const unregisterTeamNav = host.ui.registerNavigation({
-      id: "team",
-      label: "Team",
-      page: { id: TEAM_PAGE },
-      icon: "users",
-      order: 16,
-    });
-    const unregisterTeamPage = host.ui.registerPage({
-      id: TEAM_PAGE,
-      label: "Team",
-      mount: createTeamPageMount(host),
-    });
+    // Team's own top-level sidebar entry (order 16) moved whole into `extensions/team`'s own
+    // control-ui plugin (Team v2 Task 1) — this plugin no longer registers it.
     const unregisterPage = host.ui.registerPage({
       id: PAGE,
       label: "Duties",
@@ -269,10 +254,10 @@ export default defineControlUiPlugin({
           }
         };
 
-        // The owner-target form this page used to own moved to the Team page with the rest of Team
-        // (Task 10), and its save moved with it — `createTeamActions().saveOwnerSettings` reads the
-        // Team page's own root. Nothing on this page renders `data-settings-save` any more, so a
-        // second copy here would be a handler for markup that cannot appear (final review C3).
+        // The owner-target form this page used to own moved to the Team plugin's own page, along
+        // with the rest of Team (Team v2 Task 1) — its save lives in `extensions/team`'s own
+        // `team-actions.ts` now. Nothing on this page renders `data-settings-save` any more, so a
+        // second copy here would be a handler for markup that cannot appear.
 
         /** Fires on the Desk card's number input `change` (not a separate save button — a
          *  number input's own value change is already the owner's intent). Validated the same
@@ -699,8 +684,6 @@ export default defineControlUiPlugin({
     return () => {
       unregisterPage();
       unregisterNav();
-      unregisterTeamPage();
-      unregisterTeamNav();
     };
   },
 });

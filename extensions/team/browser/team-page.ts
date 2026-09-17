@@ -1,11 +1,6 @@
-// The Team page's own Control UI mount: registered as a second, independent nav+page pair
-// alongside "duties" in index.ts's activate() now that Team is a top-level sidebar item (below
-// Duties) rather than a card inside the Duties board's Settings strip. Mirrors the "duties" page
-// mount's own shape (context/draw/loaders/click-router/dispose) in index.ts, scoped to the one
-// responsibility this page owns: the roster `teamPanel` renders and the four writes
-// `team-actions.ts` exposes. Split into its own module for the same reason data-loaders.ts,
-// team-actions.ts and index-helpers.ts already are — a real responsibility seam, and index.ts is
-// already at the extensions max-lines budget.
+// The Team page's own Control UI mount: a top-level sidebar page (see `index.ts`), scoped to the
+// one responsibility this plugin owns: the roster `teamPanel` renders and the writes
+// `team-actions.ts` exposes.
 import type {
   ControlUiHost,
   ControlUiView,
@@ -80,9 +75,8 @@ export function createTeamPageMount(host: ControlUiHost): ControlUiView<Props> {
     });
 
     // Keeps the roster live when another connection (or this same one, from a mutation above)
-    // changes it — the same event the "duties" page's board used to key its own `loadTeam()` off
-    // before Team had a page of its own.
-    const offChanged = host.onEvent("plugin.duties.changed", (payload) => {
+    // changes it.
+    const offChanged = host.onEvent("plugin.team.changed", (payload) => {
       if (isRecord(payload) && payload.team === true) {
         void loaders.loadTeam();
       }

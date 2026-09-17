@@ -195,7 +195,7 @@ Credentials need no change to add a second mailbox: `gog` already authenticates 
 
 Each non-default account is served on its own hook path, `gmail-<accountId>`, and dispatches into its own session, keyed `hook:gmail:<accountId>:<messageId>` — so two mailboxes never collide on the same inbound message id. The default account keeps the original `gmail` path and `hook:gmail:<messageId>` session key untouched.
 
-Mail accounts are workspace inboxes, not people: a `TeamMember` has no email field, and a message landing in one of these mailboxes never by itself grants its sender permission to instruct the agent. See [Team](/plugins/duties#team) for what does.
+Mail accounts are workspace inboxes, not people: a `TeamMember` has no email field, and a message landing in one of these mailboxes never by itself grants its sender permission to instruct the agent. See [Team](/plugins/team) for what does.
 
 ## Security notes
 

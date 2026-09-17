@@ -60,7 +60,6 @@ function newStore(runs: unknown = memoryKeyed()): DutyStore {
     templates: memoryKeyed() as never,
     brands: memoryKeyed() as never,
     settings: memoryKeyed() as never,
-    team: memoryKeyed() as never,
   });
 }
 

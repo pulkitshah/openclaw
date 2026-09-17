@@ -50,7 +50,7 @@ Each entry lists the package, distribution route, and description.
 
 ## Core npm package
 
-61 plugins
+62 plugins
 
 - **[a2a](/plugins/reference/a2a)** (`@openclaw/a2a`) - included in Vasudev. A2A v1.0 Agent-to-Agent protocol channel plugin.
 
@@ -155,6 +155,8 @@ Each entry lists the package, distribution route, and description.
 - **[sglang](/plugins/reference/sglang)** (`@openclaw/sglang-provider`) - included in Vasudev. Adds SGLang model provider support to Vasudev.
 
 - **[talk-voice](/plugins/reference/talk-voice)** (`openclaw`) - included in Vasudev. Manage Talk voice selection (list/set).
+
+- **[team](/plugins/reference/team)** (`@openclaw/team`) - included in Vasudev. The desk's owner/member roster: who may give the agent instructions, on which channels.
 
 - **[telegram](/plugins/reference/telegram)** (`@openclaw/telegram`) - included in Vasudev. Vasudev Telegram channel plugin.
 

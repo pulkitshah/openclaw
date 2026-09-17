@@ -1,10 +1,5 @@
-// Shared fixtures for gateway-methods.test.ts and team-gateway-methods.test.ts: an in-memory
-// DutyStore wired to the registered Gateway methods, plus a `call` that resolves whatever a handler
-// responded. Split out for the same reason as runner.test-helpers.ts — the two suites were one file
-// over the extensions max-lines budget.
-//
-// The `vi.mock("./team-write.js")` guard stays in each test file: vi.mock is hoisted per test file
-// and cannot be shared through an import.
+// Shared fixture for gateway-methods.test.ts: an in-memory DutyStore wired to the registered
+// Gateway methods, plus a `call` that resolves whatever a handler responded.
 import { tmpdir } from "node:os";
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { vi, type Mock } from "vitest";
@@ -12,23 +7,6 @@ import type { RenderAdapter } from "./adapters/render.js";
 import type { DeskHealth } from "./desk.js";
 import { registerDutiesGatewayMethods } from "./gateway-methods.js";
 import { DutyStore } from "./store.js";
-
-/** The smallest config that satisfies `assertTeamProjectionSafe`: explicit ownership, one agent, a
- *  channel-wide binding per channel, and a non-empty allowlist on each channel Team will touch. */
-export function deskFixtureConfig(): OpenClawConfig {
-  return {
-    agents: { ownership: "explicit", entries: { krishna: { name: "Krishna" } } },
-    channels: {
-      telegram: { enabled: true, dmPolicy: "allowlist", allowFrom: ["111"] },
-      whatsapp: { enabled: true, dmPolicy: "allowlist", allowFrom: ["+919800000000"] },
-    },
-    bindings: [
-      { agentId: "krishna", match: { channel: "telegram", accountId: "*" } },
-      { agentId: "krishna", match: { channel: "whatsapp", accountId: "*" } },
-    ],
-    // SAFETY: a hand-built config fixture is a partial OpenClawConfig by construction.
-  } as OpenClawConfig;
-}
 
 function memoryKeyed<T>() {
   const m = new Map<string, T>();
@@ -67,7 +45,6 @@ export function harness(params?: {
   previewDir?: string;
   notifyOwner?: (text: string) => Promise<void>;
   deskHealth?: () => Promise<DeskHealth>;
-  request?: ReturnType<typeof vi.fn>;
 }) {
   const methods = new Map<string, { handler: Handler; scope: string }>();
   const api = {
@@ -83,7 +60,6 @@ export function harness(params?: {
     templates: memoryKeyed() as never,
     brands: memoryKeyed() as never,
     settings: memoryKeyed() as never,
-    team: memoryKeyed() as never,
   });
   const emit = params?.emit ?? vi.fn<EmitFn>();
   const runs = params?.runs ?? {
@@ -111,13 +87,6 @@ export function harness(params?: {
       },
     },
     previewDir: async () => params?.previewDir ?? tmpdir(),
-    // SAFETY: a plain vi.fn() mock has no generic call signature, so it never structurally matches
-    // GatewayRequest's `<T>(method, params) => Promise<T>`; every caller here passes its own typed
-    // fake or never calls this default at all.
-    request: (params?.request ??
-      vi.fn(async () => {
-        throw new Error("gateway request not expected");
-      })) as never,
     ...(params?.notifyOwner ? { notifyOwner: params.notifyOwner } : {}),
     ...(params?.deskHealth ? { deskHealth: params.deskHealth } : {}),
   });

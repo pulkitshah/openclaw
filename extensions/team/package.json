@@ -1,0 +1,19 @@
+{
+  "name": "@openclaw/team",
+  "version": "2026.9.4",
+  "private": true,
+  "description": "Vasudev Team plugin — the desk's owner/member roster",
+  "type": "module",
+  "devDependencies": { "@openclaw/plugin-sdk": "workspace:*", "openclaw": "workspace:*" },
+  "peerDependencies": { "openclaw": ">=2026.9.4" },
+  "peerDependenciesMeta": { "openclaw": { "optional": true } },
+  "openclaw": {
+    "extensions": ["./index.ts"],
+    "controlUi": "./browser/index.ts",
+    "assetScripts": {
+      "build": "node --import ../../scripts/tsx.mjs ../../scripts/build-plugin-control-ui.mts",
+      "copy": "node --import ../../scripts/tsx.mjs ../../scripts/build-plugin-control-ui.mts --copy",
+      "buildOutputs": ["openclaw.plugin.json"]
+    }
+  }
+}

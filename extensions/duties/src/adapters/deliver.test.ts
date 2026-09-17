@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from "vitest";
-import type { TeamMember } from "../team.js";
 import {
   createAskSessionResolver,
   createDeliverAdapter,
@@ -7,6 +6,7 @@ import {
   createRouteResolver,
   maskTarget,
   sessionRouteFromStore,
+  type TeamMemberRoute,
 } from "./deliver.js";
 
 describe("createRouteResolver", () => {
@@ -40,20 +40,14 @@ describe("createRouteResolver", () => {
       teamMember: async () => undefined,
     });
     await expect(resolve("owner", undefined, undefined)).rejects.toThrow(
-      /no owner target configured — set it on the Duties page/u,
+      /no owner target configured — set it on the Team page/u,
     );
   });
 });
 
 describe("createRouteResolver: team targets", () => {
-  const ramesh: TeamMember = {
-    id: "ramesh",
+  const ramesh: TeamMemberRoute = {
     name: "Ramesh",
-    role: "member",
-    agentId: "ramesh",
-    addedBy: "owner",
-    addedAt: 1,
-    updatedAt: 1,
     channels: [
       { channel: "whatsapp", senderId: "+919812345678", accountId: "work", addedAt: 1 },
       { channel: "telegram", senderId: "5551234", addedAt: 1 },
@@ -178,7 +172,7 @@ describe("createAskSessionResolver", () => {
   it("fails loudly when there is no owner target to ask", async () => {
     const resolve = resolver(undefined);
     await expect(resolve({ kind: "mail", sessionKey: "hook:gmail:1" })).rejects.toThrow(
-      /no owner target configured — set it on the Duties page/u,
+      /no owner target configured — set it on the Team page/u,
     );
   });
 });

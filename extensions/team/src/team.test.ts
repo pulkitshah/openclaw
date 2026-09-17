@@ -1,6 +1,7 @@
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
+import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
 import { describe, expect, it } from "vitest";
-import { DutyStore } from "./store.js";
+import { TeamStore } from "./store.js";
 import {
   applyTeamProjection,
   assertTeamProjectionSafe,
@@ -24,24 +25,15 @@ function memoryKeyed<T>() {
   };
 }
 
-function store(): DutyStore {
-  return new DutyStore({
-    duties: memoryKeyed() as never,
-    runs: memoryKeyed() as never,
-    creds: memoryKeyed() as never,
-    templates: memoryKeyed() as never,
-    brands: memoryKeyed() as never,
-    settings: memoryKeyed() as never,
-    team: memoryKeyed<TeamMember>() as never,
-  });
+function store(): TeamStore {
+  return new TeamStore({ team: memoryKeyed<TeamMember>() });
 }
 
-async function seeded(): Promise<DutyStore> {
+async function seeded(): Promise<TeamStore> {
   const s = store();
   await s.seedOwner({
     id: "owner",
     name: "Pulkit",
-    agentId: "krishna",
     addedBy: "owner",
     channels: [{ channel: "telegram", senderId: "111", addedAt: 1 }],
   });
@@ -60,13 +52,7 @@ describe("team member ids", () => {
 describe("team roster invariants", () => {
   it("seeds exactly one owner and is idempotent", async () => {
     const s = await seeded();
-    await s.seedOwner({
-      id: "owner",
-      name: "Someone else",
-      agentId: "other",
-      addedBy: "owner",
-      channels: [],
-    });
+    await s.seedOwner({ id: "owner", name: "Someone else", addedBy: "owner", channels: [] });
     const members = await s.listMembers();
     expect(members).toHaveLength(1);
     expect(members[0]?.name).toBe("Pulkit");
@@ -78,7 +64,6 @@ describe("team roster invariants", () => {
     const added = await s.addMember({
       id: "ramesh",
       name: "Ramesh",
-      agentId: "ramesh",
       addedBy: "owner",
       channels: [{ channel: "telegram", senderId: "5551234", addedAt: 2 }],
     });
@@ -88,20 +73,8 @@ describe("team roster invariants", () => {
 
   it("lists the owner first, then members by name", async () => {
     const s = await seeded();
-    await s.addMember({
-      id: "zara",
-      name: "Zara",
-      agentId: "zara",
-      addedBy: "owner",
-      channels: [],
-    });
-    await s.addMember({
-      id: "amit",
-      name: "Amit",
-      agentId: "amit",
-      addedBy: "owner",
-      channels: [],
-    });
+    await s.addMember({ id: "zara", name: "Zara", addedBy: "owner", channels: [] });
+    await s.addMember({ id: "amit", name: "Amit", addedBy: "owner", channels: [] });
     expect((await s.listMembers()).map((m) => m.id)).toEqual(["owner", "amit", "zara"]);
   });
 
@@ -118,7 +91,6 @@ describe("team roster invariants", () => {
     await s.addMember({
       id: "ramesh",
       name: "Ramesh",
-      agentId: "ramesh",
       addedBy: "owner",
       channels: [{ channel: "telegram", senderId: "5551234", addedAt: 2 }],
     });
@@ -129,7 +101,6 @@ describe("team roster invariants", () => {
     const after = await s.listMembers();
     expect(after.filter((m) => m.role === "owner").map((m) => m.id)).toEqual(["ramesh"]);
     expect(after.find((m) => m.id === "owner")?.channels).toHaveLength(1);
-    expect(after.find((m) => m.id === "owner")?.agentId).toBe("krishna");
   });
 
   it("transferOwnership rejects an unknown member", async () => {
@@ -153,7 +124,6 @@ const OWNER: TeamMember = {
   id: "owner",
   name: "Pulkit",
   role: "owner",
-  agentId: "krishna",
   addedBy: "owner",
   addedAt: 1,
   updatedAt: 1,
@@ -164,7 +134,6 @@ const RAMESH: TeamMember = {
   id: "ramesh",
   name: "Ramesh",
   role: "member",
-  agentId: "ramesh",
   addedBy: "owner",
   addedAt: 2,
   updatedAt: 2,
@@ -178,7 +147,7 @@ function deskConfig(): OpenClawConfig {
   return {
     agents: {
       ownership: "explicit",
-      entries: { krishna: { name: "Krishna" }, ramesh: { name: "Ramesh" } },
+      entries: { krishna: { name: "Krishna" } },
     },
     channels: {
       telegram: { enabled: true, dmPolicy: "allowlist", allowFrom: ["111"] },
@@ -247,36 +216,38 @@ describe("applyTeamProjection", () => {
       members: { telegram: ["111"] },
     });
     expect(afterRemoval.session?.identityLinks).toEqual({ owner: ["telegram:111"] });
-    expect(afterRemoval.bindings?.some((b) => b.agentId === "ramesh")).toBe(false);
-    // GC1: the agent entry and its workspace stay.
-    expect(afterRemoval.agents?.entries?.ramesh).toBeDefined();
+    expect(
+      afterRemoval.bindings?.some((b) => b.match?.peer && b.match.channel === "whatsapp"),
+    ).toBe(false);
   });
 
-  it("writes no tools block onto anyone's agent, owner or member", () => {
-    // The Team-authored ceiling is gone (final review I8): a member's agent gets the ordinary
-    // default access every other agent gets, and neither agent entry here — neither the owner's
-    // `krishna` nor the member's `ramesh`, both without a `tools` override in deskConfig() — is
-    // touched by the projection at all.
+  it("every member's binding names the same coordinator agent — there is no per-member agent", () => {
+    const next = applyTeamProjection(deskConfig(), [OWNER, RAMESH]);
+    const memberBindings = next.bindings?.filter((b) => b.match?.peer) ?? [];
+    expect(memberBindings.length).toBeGreaterThan(0);
+    expect(memberBindings.every((b) => b.agentId === "krishna")).toBe(true);
+  });
+
+  it("writes no tools block onto anyone's agent", () => {
     const next = applyTeamProjection(deskConfig(), [OWNER, RAMESH]);
     expect(next.agents?.entries?.krishna?.tools).toBeUndefined();
-    expect(next.agents?.entries?.ramesh?.tools).toBeUndefined();
     // The entries themselves survive untouched, and the rest of the projection still applies.
     expect(next.agents?.entries).toEqual(deskConfig().agents?.entries);
     expect(next.session?.identityLinks?.owner).toEqual(["telegram:111"]);
   });
 
-  it("leaves tools the owner set for a member by hand exactly as they wrote them", () => {
+  it("leaves tools the owner set for the coordinator agent by hand exactly as they wrote them", () => {
     const cfg = deskConfig();
     cfg.agents = {
       ...cfg.agents,
       entries: {
         ...cfg.agents?.entries,
-        ramesh: { name: "Ramesh", tools: { profile: "full" } },
+        krishna: { name: "Krishna", tools: { profile: "full" } },
       },
       // SAFETY: fixture narrowing; only the keys this assertion reads are set.
     } as OpenClawConfig["agents"];
     const next = applyTeamProjection(cfg, [OWNER, RAMESH]);
-    expect(next.agents?.entries?.ramesh?.tools).toEqual({ profile: "full" });
+    expect(next.agents?.entries?.krishna?.tools).toEqual({ profile: "full" });
   });
 
   it("keeps an operator-authored identityLink that is not a Team member's", () => {
@@ -284,7 +255,7 @@ describe("applyTeamProjection", () => {
     cfg.session = {
       identityLinks: {
         // An operator's own link, for ids Team has never projected. Replacing `identityLinks`
-        // wholesale used to delete it silently (final review I5).
+        // wholesale used to delete it silently.
         "pulkit-desk": ["slack:U123", "discord:456"],
       },
       // SAFETY: fixture narrowing; only the key this assertion reads is set.
@@ -314,6 +285,11 @@ describe("applyTeamProjection", () => {
     const next = applyTeamProjection(cfg, [OWNER, RAMESH]);
     expect(next.bindings?.filter((b) => b.comment === "operator wrote this")).toHaveLength(1);
   });
+
+  it("projects nothing when there is no owner identity to resolve a coordinator from", () => {
+    const next = applyTeamProjection(deskConfig(), []);
+    expect(next.bindings).toEqual(deskConfig().bindings);
+  });
 });
 
 describe("assertTeamProjectionSafe", () => {
@@ -337,10 +313,6 @@ describe("assertTeamProjectionSafe", () => {
     );
   });
 
-  // Regression: pairing (the channel's own default when dmPolicy is unset) never admits anyone
-  // through an empty allowFrom — every sender not already listed gets a pairing prompt instead
-  // (src/security/dm-policy-shared.ts's pairing branch) — so refusing here meant Team could never
-  // add a first member on a freshly set up channel at all.
   it("does not refuse a channel left on its own pairing default, allowFrom empty or unset", () => {
     const cfg = deskConfig();
     cfg.channels = {
@@ -381,10 +353,6 @@ describe("assertTeamProjectionSafe", () => {
 });
 
 describe("one roster change admits a member on two channels", () => {
-  /** What every channel's ingress resolver ends up comparing a sender against: the channel's
-   *  `allowFrom` with each `accessGroup:<name>` entry replaced by that group's members for THIS
-   *  channel (`src/channels/message-access/runtime-access-groups.ts:32-58` partitions the symbolic
-   *  entries; `src/channels/message-access/state.ts:155,362` expands message.senders). */
   function effectiveAllowFrom(cfg: OpenClawConfig, channel: string): string[] {
     const entries: unknown[] = cfg.channels?.[channel]?.allowFrom ?? [];
     return entries.flatMap((entry) => {
@@ -408,10 +376,8 @@ describe("one roster change admits a member on two channels", () => {
 
     expect(effectiveAllowFrom(after, "telegram")).toContain("5551234");
     expect(effectiveAllowFrom(after, "whatsapp")).toContain("+919812345678");
-    // The owner's original entries survive on both channels.
     expect(effectiveAllowFrom(after, "telegram")).toContain("111");
     expect(effectiveAllowFrom(after, "whatsapp")).toContain("+919800000000");
-    // A non-member is on neither.
     expect(effectiveAllowFrom(after, "telegram")).not.toContain("9999999");
     expect(effectiveAllowFrom(after, "whatsapp")).not.toContain("+919700000000");
   });
@@ -424,8 +390,6 @@ describe("one roster change admits a member on two channels", () => {
   });
 });
 
-import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
-
 describe("cross-channel routing through the real routing owner", () => {
   /** What the channels actually pass: for a DM, `peer.id` IS the sender — WhatsApp's `resolvePeerId`
    *  returns the sender's normalized E.164 and Telegram's `resolveTelegramDirectPeerId` returns the
@@ -434,49 +398,56 @@ describe("cross-channel routing through the real routing owner", () => {
     return resolveAgentRoute({ cfg, channel, peer: { kind: "direct", id: senderId } });
   }
 
-  // Live-proof note: `src/auto-reply/reply/runtime-policy-session-key.ts:135-146` hardcodes
-  // `dmScope: "per-account-channel-peer"` for one DM-policy reply path. If a real turn reaches THAT
-  // path, two channels split into two keys despite the link. This unit test drives the routing owner
-  // directly and cannot see it — Task 9 step 5 checks `openclaw sessions list --agent <id>` instead
-  // of the reply text, for exactly that reason.
-  it("sends two channel identities of one member to the same agent and the same session", () => {
+  it("sends both of a member's channel identities to the coordinator agent, in the same session", () => {
     const cfg = applyTeamProjection(deskConfig(), [OWNER, RAMESH]);
 
     const fromTelegram = routeFor(cfg, "telegram", "5551234");
     const fromWhatsApp = routeFor(cfg, "whatsapp", "+919812345678");
 
-    expect(fromTelegram.agentId).toBe("ramesh");
-    expect(fromWhatsApp.agentId).toBe("ramesh");
+    // No per-member agent: everyone — the owner included — talks to the same coordinator.
+    expect(fromTelegram.agentId).toBe("krishna");
+    expect(fromWhatsApp.agentId).toBe("krishna");
     expect(fromTelegram.matchedBy).toBe("binding.peer");
     expect(fromWhatsApp.matchedBy).toBe("binding.peer");
     // identityLinks collapses both onto the canonical member id, and dmScope "per-peer" is what
     // makes the links apply at all (src/routing/session-key.ts:223-230).
-    expect(fromTelegram.sessionKey).toBe("agent:ramesh:direct:ramesh");
+    expect(fromTelegram.sessionKey).toBe("agent:krishna:direct:ramesh");
     expect(fromWhatsApp.sessionKey).toBe(fromTelegram.sessionKey);
   });
 
-  it("leaves everyone else on the channel-wide binding, including the owner", () => {
+  it("keeps the member's session isolated from the coordinator's own wide/main session", () => {
     const cfg = applyTeamProjection(deskConfig(), [OWNER, RAMESH]);
     const owner = routeFor(cfg, "telegram", "111");
-    expect(owner.agentId).toBe("krishna");
+    const member = routeFor(cfg, "telegram", "5551234");
     const stranger = routeFor(cfg, "telegram", "9999999");
+    // Same agent for everyone reachable at all…
+    expect(owner.agentId).toBe("krishna");
+    expect(member.agentId).toBe("krishna");
     expect(stranger.agentId).toBe("krishna");
-    // A stranger never gets here anyway — decideChannelIngress refuses them first — but if they
-    // did, they would land on the desk's own agent, never on a member's.
-    expect(stranger.agentId).not.toBe("ramesh");
+    // …but the member's own peer-scoped session is distinct from the owner's/a stranger's, which
+    // both fall through to the coordinator's ordinary wide-binding session.
+    expect(member.sessionKey).not.toBe(owner.sessionKey);
+    expect(member.sessionKey).not.toBe(stranger.sessionKey);
+    expect(owner.sessionKey).toBe(stranger.sessionKey);
   });
 
-  it("keeps the member's chat off their agent's main session", () => {
+  it("keeps the member's chat off the coordinator agent's main session", () => {
     const cfg = applyTeamProjection(deskConfig(), [OWNER, RAMESH]);
-    // `agent:<id>:main` is also cron's, heartbeat's and runSessionKey's fallback session
-    // (extensions/duties/src/store.ts:45); the member's conversation must stay separate.
-    expect(routeFor(cfg, "telegram", "5551234").sessionKey).not.toBe("agent:ramesh:main");
+    expect(routeFor(cfg, "telegram", "5551234").sessionKey).not.toBe("agent:krishna:main");
   });
 
-  it("removing the member sends their next message back to the desk agent immediately", () => {
+  it("removing the member folds their next message onto the coordinator's ordinary session", () => {
     const withMember = applyTeamProjection(deskConfig(), [OWNER, RAMESH]);
-    expect(routeFor(withMember, "telegram", "5551234").agentId).toBe("ramesh");
+    const before = routeFor(withMember, "telegram", "5551234");
+    expect(before.agentId).toBe("krishna");
+    expect(before.sessionKey).toBe("agent:krishna:direct:ramesh");
+
     const afterRemoval = applyTeamProjection(withMember, [OWNER]);
-    expect(routeFor(afterRemoval, "telegram", "5551234").agentId).toBe("krishna");
+    const after = routeFor(afterRemoval, "telegram", "5551234");
+    // Still the same agent (there never was a different one) — but no longer their own isolated
+    // session, because removal drops their binding, their identity link and their access-group
+    // entry in one write.
+    expect(after.agentId).toBe("krishna");
+    expect(after.sessionKey).not.toBe(before.sessionKey);
   });
 });

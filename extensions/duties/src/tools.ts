@@ -24,7 +24,6 @@ import { Type } from "typebox";
 import type { OpenClawPluginApi } from "../api.js";
 import { MAIL_AGENT_ID } from "./mail.js";
 import type { RunOrigin } from "./store.js";
-import type { TeamMember } from "./team.js";
 
 /** One poll of `duties.run.wait`. The method itself caps how long it blocks; the tool loops. */
 const RUN_WAIT_POLL_MS = 30_000;
@@ -87,7 +86,7 @@ function originFromToolContext(ctx: OpenClawPluginToolContext): RunOrigin {
 }
 
 /**
- * Registers the fourteen agent-facing Duties tools declared in `openclaw.plugin.json`'s
+ * Registers the thirteen agent-facing Duties tools declared in `openclaw.plugin.json`'s
  * `contracts.tools`. Each one forwards to the Gateway method that owns the same operation and
  * returns its payload, so a tool and the Control UI can never disagree about what happened.
  *
@@ -273,32 +272,6 @@ export function registerDutyTools(params: { api: OpenClawPluginApi }): void {
       jsonResult(
         await call("duties.status", { id: readId(input), status: "active" }, "operator.write"),
       ),
-  });
-
-  register({
-    name: "team_list",
-    label: "List the Team",
-    description:
-      "The people Vasu takes instructions from, and which channels each of them is on. Use it to " +
-      'pick a real `to: "team:<id>"` target for a deliver step instead of inventing an id. Read only.',
-    parameters: Type.Object({}),
-    execute: async () => {
-      const { members } = await call<{ members: TeamMember[] }>(
-        "duties.team.get",
-        {},
-        "operator.read",
-      );
-      // Names, ids, roles and which channels each person has — never the sender ids themselves.
-      // Those are declared PII by the channel ingress identities and stay with operator.admin.
-      return jsonResult(
-        members.map((member) => ({
-          id: member.id,
-          name: member.name,
-          role: member.role,
-          channels: member.channels.map((c) => ({ channel: c.channel })),
-        })),
-      );
-    },
   });
 
   register({

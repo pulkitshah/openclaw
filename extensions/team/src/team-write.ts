@@ -53,7 +53,7 @@ const DEFAULT_ACCOUNT_ID = "default";
 /** Every account of one channel a roster identity with no `accountId` has to be cleaned out of.
  *
  *  `TeamChannelIdentity.accountId` being absent means "every account of that channel", so cleaning
- *  only `"default"` left a removed member paired on every named account (final review I4).
+ *  only `"default"` left a removed member paired on every named account.
  *  `createAccountListHelpers` is the generic cross-channel enumerator every channel plugin's own
  *  account listing is built from (`openclaw/plugin-sdk/account-helpers`), so this needs no
  *  per-channel knowledge; the default account is always included because a channel configured only
@@ -76,15 +76,7 @@ function channelAccountIds(cfg: OpenClawConfig, channel: string): string[] {
  * A failure is REPORTED, never swallowed: the config layer's own write has already succeeded by the
  * time this runs, so the caller still answers `ok: true`, but a cleanup that did not complete is the
  * difference between "access revoked" and "access revoked except through pairing" and the owner has
- * to be told which identity to check by hand (final review I4).
- *
- * SDK note: the brief for this task named `createScopedPairingAccess` from a
- * `plugin-sdk/pairing-access` subpath; no such subpath is exported (`package.json`'s
- * `exports` map has no `./plugin-sdk/pairing-access`, and `extensions/tsconfig.package-boundary.paths.json`
- * has no matching alias). `openclaw/plugin-sdk/channel-pairing` re-exports
- * `createChannelPairingController`, which wraps the same `createScopedPairingAccess` helper and
- * spreads its full return value — including `removeAllowFromStoreEntry` — so it is used here instead;
- * the extra `issueChallenge` it also exposes is unused.
+ * to be told which identity to check by hand.
  */
 export async function revokePairingEntries(params: {
   runtime: OpenClawPluginApi["runtime"];

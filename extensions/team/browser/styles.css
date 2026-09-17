@@ -1,0 +1,163 @@
+/* Team plugin page — uses the Control UI's own tokens so it sits with the host. The base layout
+ * rules below are the same small subset `extensions/duties/browser/styles.css` defines for its own
+ * `.dt` root (this plugin's page reuses that class name for visual consistency with Duties, though
+ * the two stylesheets are built and served independently); the `.ownerform`/`.teamlist`/`.teamrow`/
+ * `.teamadd` rules are the Team-specific ones, moved here whole (Team v2 Task 1). */
+.dt {
+  padding: 24px 28px 48px;
+  color: var(--text);
+  font-family: var(--font-body, inherit);
+  min-width: 0;
+}
+.dt * {
+  box-sizing: border-box;
+}
+.dt h1,
+.dt h2,
+.dt h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-strong, var(--text));
+}
+.dt p {
+  margin: 0;
+}
+.dt button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.dt .muted {
+  color: var(--muted);
+}
+.dt .small {
+  font-size: 12px;
+}
+.dt .mono {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+}
+.dt .btn {
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong, var(--border));
+  background: var(--card);
+  font-weight: 500;
+  color: var(--text-strong, var(--text));
+}
+.dt .btn.primary {
+  background: var(--accent);
+  color: var(--accent-foreground, #fff);
+  border-color: var(--accent);
+}
+.dt .btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.dt .error {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--danger-subtle, rgba(229, 72, 77, 0.1));
+  border: 1px solid var(--danger, #e5484d);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  color: var(--danger, #e5484d);
+}
+.dt .fld {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+.dt .fld span {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.dt .fld input,
+.dt select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  color: inherit;
+  font: inherit;
+}
+.dt .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+}
+.dt .warn {
+  color: var(--warn, #f59e0b);
+}
+
+.dt .ownerform {
+  margin-top: 8px;
+}
+.dt .ownerform select {
+  margin-bottom: 0;
+}
+
+.dt .teamlist {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px 0;
+}
+.dt .teamrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.dt .teamrow .tname {
+  font-weight: 600;
+}
+.dt .teamrow .trole {
+  color: var(--muted);
+  font-size: 12px;
+}
+.dt .teamrow .tchans {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.dt .teamrow .tacts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.dt .teamrow .taddchan {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dt .teamadd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+}
+.dt .teamadd .fld {
+  margin-bottom: 0;
+}

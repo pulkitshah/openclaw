@@ -12,6 +12,7 @@ import {
   createOwnerRouteResolver,
   createRouteResolver,
   sessionRouteFromStore,
+  type TeamMemberRoute,
 } from "./src/adapters/deliver.js";
 import {
   createRenderAdapter,
@@ -22,6 +23,7 @@ import { credDelete, credGet, credHas, credSet } from "./src/creds.js";
 import { createDutiesEventService } from "./src/events.js";
 import { createRunFiles } from "./src/files.js";
 import { registerDutiesGatewayMethods } from "./src/gateway-methods.js";
+import { registerLegacyTeamExport } from "./src/legacy-team-export.js";
 import { RunManager } from "./src/run-service.js";
 import { DutyStore, runSessionKey } from "./src/store.js";
 import { registerDutyTools } from "./src/tools.js";
@@ -160,22 +162,41 @@ export default definePluginEntry({
       }),
     });
     const deliver = createDeliverAdapter({ cfg: currentConfig });
-    // The owner row is the one owner of "who the desk reports to"; `DutiesSettings.owner` stays as
-    // the seed input only. `ownerTarget`'s signature is unchanged, so `createRouteResolver`,
-    // `createOwnerRouteResolver` and `createAskSessionResolver` are untouched and NO_OWNER_TARGET
-    // still fires when the roster is empty.
+    // `extensions/team` is the canonical owner of "who the owner is" and of the roster (Team v2
+    // Task 1 — `team.owner.get`/`team.member.get` are its own registered Gateway methods, called
+    // in-process the same way `index.ts` already calls `agents.create` and friends). Duties' own
+    // `DutiesSettings.owner` is kept only as a fallback for when Team has no answer yet (not
+    // installed, or not yet set up) — `ownerTarget`'s signature is unchanged, so
+    // `createRouteResolver`, `createOwnerRouteResolver` and `createAskSessionResolver` are
+    // untouched and NO_OWNER_TARGET still fires when neither has one.
     const ownerTarget = async () => {
-      const owner = await store.ownerMember();
-      const identity = owner?.channels[0];
-      if (identity) {
-        return { channel: identity.channel, target: identity.senderId };
+      try {
+        const fromTeam = await request<{ owner?: { channel: string; target: string } }>(
+          "team.owner.get",
+          {},
+        );
+        if (fromTeam?.owner) {
+          return fromTeam.owner;
+        }
+      } catch {
+        // Team not installed, not yet set up, or its Gateway method unreachable in this runtime —
+        // fall through to Duties' own fallback below.
       }
       return (await store.getSettings()).owner;
     };
     const resolveRoute = createRouteResolver({
       ownerTarget,
       sessionRoute: sessionRouteFromStore,
-      teamMember: (id) => store.getMember(id),
+      teamMember: async (id) => {
+        try {
+          const { member } = await request<{ member?: TeamMemberRoute }>("team.member.get", {
+            id,
+          });
+          return member;
+        } catch {
+          return undefined;
+        }
+      },
     });
     // Asks and run status lines are owner-facing: they go to the origin chat only when that chat
     // is the owner's own, never to a group the Duty happened to be triggered from.
@@ -290,7 +311,6 @@ export default definePluginEntry({
       evidence,
       render,
       previewDir: () => runFiles.previewDir(),
-      request,
       config: currentConfig,
       // Same owner route asks and status lines use, so everything owner-facing lands in one place.
       notifyOwner: async (text) => {
@@ -298,6 +318,9 @@ export default definePluginEntry({
       },
     });
     registerDutyTools({ api });
+    // One-time migration bridge for the Team v2 plugin split — see its own file header for why
+    // this stays here rather than moving whole into `extensions/team`.
+    registerLegacyTeamExport({ api });
 
     registerDutiesCli(api);
   },

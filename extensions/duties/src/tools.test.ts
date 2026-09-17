@@ -111,39 +111,6 @@ describe("duty tools as gateway clients", () => {
     });
   });
 
-  it("team_list returns names, ids, roles and channel names, never sender ids", async () => {
-    const { run, calls } = makeTools({
-      respond: ({ method }) =>
-        method === "duties.team.get"
-          ? {
-              members: [
-                {
-                  id: "ramesh",
-                  name: "Ramesh",
-                  role: "member",
-                  agentId: "ramesh",
-                  agentWorkspace: "/w/ramesh",
-                  addedBy: "owner",
-                  addedAt: 1,
-                  updatedAt: 1,
-                  channels: [{ channel: "whatsapp", senderId: "+919812345678", addedAt: 1 }],
-                },
-              ],
-            }
-          : {},
-    });
-    const out = JSON.stringify(await run("team_list", {}));
-    expect(calls[0]).toMatchObject({
-      method: "duties.team.get",
-      params: {},
-      scopes: ["operator.read"],
-    });
-    expect(out).toContain('"id":"ramesh"');
-    expect(out).toContain('"channel":"whatsapp"');
-    expect(out).not.toContain("+919812345678");
-    expect(out).not.toContain("agentWorkspace");
-  });
-
   it("renders a preview through the gateway and returns the path the owner can be shown", async () => {
     const { run, calls } = makeTools({
       respond: ({ method }) =>
@@ -271,7 +238,6 @@ describe("duty tools as gateway clients", () => {
         "duty_run",
         "duty_save",
         "duty_set_steps",
-        "team_list",
         "template_get",
         "template_list",
         "template_preview",

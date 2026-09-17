@@ -1,0 +1,28 @@
+{
+  "id": "team",
+  "name": "Team",
+  "description": "The desk's owner/member roster: who may give the agent instructions, on which channels.",
+  "categories": [
+    "other"
+  ],
+  "enabledByDefault": true,
+  "activation": {
+    "onStartup": true
+  },
+  "contracts": {
+    "tools": [
+      "team_list"
+    ]
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  },
+  "controlUi": {
+    "entry": "dist/control-ui/8956e888fa8abcbeda60c8eded7debc17f615bafe153f36b1f7f6c8d29a4c669/index.js",
+    "styles": [
+      "dist/control-ui/8956e888fa8abcbeda60c8eded7debc17f615bafe153f36b1f7f6c8d29a4c669/index.css"
+    ]
+  }
+}

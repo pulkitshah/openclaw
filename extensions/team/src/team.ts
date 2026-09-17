@@ -2,11 +2,19 @@
  * The Team roster: the desk's only people list.
  *
  * It answers exactly one question — who may give Vasu instructions — and it answers it identically
- * on every channel, because it does not implement admission at all. `applyTeamProjection` (added in
- * Task 2) turns this roster into ordinary core config keys that `decideChannelIngress` and
- * `resolveAgentRoute` already read.
+ * on every channel, because it does not implement admission at all. `applyTeamProjection` turns this
+ * roster into ordinary core config keys that `decideChannelIngress` and `resolveAgentRoute` already
+ * read.
+ *
+ * There is no per-member agent. Every member — the owner included — talks to the SAME coordinator
+ * agent: whichever agent already answers the owner's own channel before Team ever writes a binding
+ * (`resolveCoordinatorAgentId` below). `session.dmScope: "per-peer"` on each member's own binding is
+ * what still gives them an isolated conversation with that one agent, without a dedicated agent of
+ * their own (moved here, whole, from `extensions/duties/src/team.ts` — Team v2 Task 1; per-member
+ * agent provisioning is deleted, not deprecated).
  */
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
+import { resolveAgentRoute } from "openclaw/plugin-sdk/routing";
 
 /** Exactly one member holds "owner" at a time; `transferOwnership` is the only writer of this. */
 type TeamRole = "owner" | "member";
@@ -23,22 +31,18 @@ export type TeamChannelIdentity = {
 };
 
 /** One person Vasu takes instructions from. This is the whole people model: there is no contact
- *  tier, and nothing is ever added except by the owner. */
+ *  tier, and nothing is ever added except by the owner. No agent id: everyone shares the one
+ *  coordinator agent (`resolveCoordinatorAgentId`) — there is no dedicated agent, workspace or
+ *  memory per member. */
 export type TeamMember = {
-  /** Slug. Same grammar as an agent id, because it becomes one — and also a
-   *  `session.identityLinks` canonical id and a Duty's `team:<id>` target. */
+  /** Slug. Same grammar as an agent id (it used to become one), and still a `session.identityLinks`
+   *  canonical id and a Duty's `team:<id>` target. */
   id: string;
   name: string;
   role: TeamRole;
   /** How this person reaches Vasu. A member with no identity on a channel cannot instruct on it
    *  and cannot be named for delivery on it — both fail loudly rather than falling back. */
   channels: TeamChannelIdentity[];
-  /** The member's own agent. For the owner this is the agent that already answers their channel;
-   *  for everyone else it is created when they are added. */
-  agentId: string;
-  /** Recorded from `agents.create`'s reply so the Team card can tell whether BOOTSTRAP.md is still
-   *  present without a second RPC. The RPC does not return `bootstrapPending`. */
-  agentWorkspace?: string;
   /** Member id of the owner who added them. The seeded owner row names itself. */
   addedBy: string;
   addedAt: number;
@@ -48,14 +52,13 @@ export type TeamMember = {
 export type NewTeamMember = {
   id: string;
   name: string;
-  agentId: string;
-  agentWorkspace?: string;
   channels: TeamChannelIdentity[];
   addedBy: string;
 };
 
-/** Same grammar as `AgentsSchema`'s entry key (`src/config/zod-schema.agents.ts:37`), because a
- *  member id becomes an agent id, an identityLinks canonical id and a `team:<id>` delivery target. */
+/** Same grammar as `AgentsSchema`'s entry key (`src/config/zod-schema.agents.ts:37`): a member id
+ *  is still a `session.identityLinks` canonical id and a `team:<id>` delivery target, even though it
+ *  no longer doubles as an agent id. */
 export const TEAM_MEMBER_ID_RE = /^[a-z0-9_][a-z0-9_-]{0,63}$/;
 
 export function normalizeTeamMemberId(raw: string): string {
@@ -143,11 +146,31 @@ function channelHasWideBinding(cfg: OpenClawConfig, channel: string): boolean {
   );
 }
 
+/** The one agent every Team member talks to: whichever agent already answers the owner's own
+ *  channel, resolved through the SAME pre-Team-binding routing the owner already relies on (never
+ *  through a binding Team itself wrote — that would be circular). Undefined when there is no owner
+ *  yet, or the owner has no channel identity to resolve from. */
+function resolveCoordinatorAgentId(
+  cfg: OpenClawConfig,
+  members: readonly TeamMember[],
+): string | undefined {
+  const owner = members.find((m) => m.role === "owner");
+  const identity = owner?.channels[0];
+  if (!owner || !identity) {
+    return undefined;
+  }
+  return resolveAgentRoute({
+    cfg,
+    channel: identity.channel,
+    peer: { kind: "direct", id: identity.senderId },
+  }).agentId;
+}
+
 /**
- * What Team cannot protect against, said plainly, for the Team card to show.
+ * What Team cannot protect against, said plainly, for the Team page to show.
  *
- * Never throws: it is read on every `duties.team.get`, including for a read-level operator, and a
- * warning is information, not a refusal.
+ * Never throws: it is read on every `team.get`, including for a read-level operator, and a warning
+ * is information, not a refusal.
  */
 export function teamPolicyWarnings(cfg: OpenClawConfig, members: readonly TeamMember[]): string[] {
   const warnings: string[] = [];
@@ -218,11 +241,9 @@ export function assertTeamProjectionSafe(
  * EVERY projection, not only when that key's own member is removed — so an operator-authored link
  * whose every value happens to coincide with a current member's own `<channel>:<senderId>` is
  * indistinguishable from one Team wrote, and is dropped on the next write of any kind, whichever
- * member it touches (final review I5; this is strictly better than the pre-fix wholesale replace,
- * which dropped every operator-authored key on every write, but the imprecision is real). An
- * operator-authored entry that doesn't coincide with a projected id survives untouched.
- * `accessGroups.team` as it stands before this write is the only record of who Team had projected,
- * which is why it is read off the incoming `cfg` and not off the half-built next config.
+ * member it touches. An operator-authored entry that doesn't coincide with a projected id survives
+ * untouched. `accessGroups.team` as it stands before this write is the only record of who Team had
+ * projected, which is why it is read off the incoming `cfg` and not off the half-built next config.
  */
 function teamOwnedIdentityLinkKeys(
   cfg: OpenClawConfig,
@@ -257,12 +278,12 @@ function teamOwnedIdentityLinkKeys(
  *
  * Writes exactly four things and touches nothing else: `accessGroups.team`, each touched channel's
  * `allowFrom` (merged, never replaced), `session.identityLinks` (merged — see
- * `teamOwnedIdentityLinkKeys`), and the marked `bindings[]` entries. `dmPolicy` is deliberately not
- * written (GC3), and neither is any agent's `tools`: a member's agent gets the ordinary default tool
- * access every other agent gets, and an owner who wants a member restricted writes
- * `agents.entries.<id>.tools` by hand, which nothing here ever reads or overwrites (final review
- * I8 — the owner's decision to drop the Team-authored ceiling supersedes GC2 as planned). Pure: the
- * caller owns reading the snapshot and writing the file.
+ * `teamOwnedIdentityLinkKeys`), and the marked `bindings[]` entries — every one of them naming the
+ * SAME coordinator agent (`resolveCoordinatorAgentId`), never a per-member agent. `dmPolicy` is
+ * deliberately not written (GC3), and neither is any agent's `tools`: a member gets the ordinary
+ * default tool access every other agent gets, and an owner who wants a member restricted writes
+ * `agents.entries.<coordinatorId>.tools` by hand, which nothing here ever reads or overwrites. Pure:
+ * the caller owns reading the snapshot and writing the file.
  */
 export function applyTeamProjection(
   cfg: OpenClawConfig,
@@ -295,36 +316,45 @@ export function applyTeamProjection(
     next.channels = { ...next.channels, [channel]: entry };
   }
 
-  // One binding per (member, channel identity). `match.channel` is required by the schema, so N
-  // identities produce N bindings, all naming the same agent. The owner's agent already owns the
-  // channel-wide binding for their channels, so no redundant peer binding is written for them.
+  // One binding per (member, channel identity), all naming the coordinator agent. The owner's own
+  // identity is the one exception: the owner already owns the channel-wide binding for their own
+  // channels (that IS the coordinator, by construction — see `resolveCoordinatorAgentId`), so no
+  // redundant peer binding is written for it. Every other member's identity — even on a channel the
+  // coordinator already answers widely — still gets its own peer binding, because that binding is
+  // what carries `session.dmScope: "per-peer"` for that one peer; without it a member's chat would
+  // fall through to the coordinator's ordinary (non-isolated) session.
+  const coordinatorAgentId = resolveCoordinatorAgentId(cfg, sorted);
   const kept = (next.bindings ?? []).filter(
     (binding) => !binding.comment?.startsWith(TEAM_BINDING_COMMENT_PREFIX),
   );
   const projected: TeamBinding[] = [];
-  for (const member of sorted) {
-    for (const identity of member.channels) {
-      const ownsChannelWide = kept.some(
-        (binding) =>
-          binding.agentId === member.agentId &&
-          binding.match?.channel === identity.channel &&
-          !binding.match?.peer,
-      );
-      if (ownsChannelWide) {
-        continue;
+  if (coordinatorAgentId) {
+    for (const member of sorted) {
+      for (const identity of member.channels) {
+        const ownsChannelWide =
+          member.role === "owner" &&
+          kept.some(
+            (binding) =>
+              binding.agentId === coordinatorAgentId &&
+              binding.match?.channel === identity.channel &&
+              !binding.match?.peer,
+          );
+        if (ownsChannelWide) {
+          continue;
+        }
+        projected.push({
+          agentId: coordinatorAgentId,
+          comment: `${TEAM_BINDING_COMMENT_PREFIX}${member.name} — managed by the Team page, edit it there, not here`,
+          match: {
+            channel: identity.channel,
+            accountId: identity.accountId ?? "*",
+            peer: { kind: "direct", id: identity.senderId },
+          },
+          // `resolveLinkedDirectPeerId` is consulted only when dmScope !== "main"
+          // (src/routing/session-key.ts:223-230), so per-peer is what makes identityLinks apply.
+          session: { dmScope: "per-peer" },
+        });
       }
-      projected.push({
-        agentId: member.agentId,
-        comment: `${TEAM_BINDING_COMMENT_PREFIX}${member.name} — managed by the Duties Team card, edit it there, not here`,
-        match: {
-          channel: identity.channel,
-          accountId: identity.accountId ?? "*",
-          peer: { kind: "direct", id: identity.senderId },
-        },
-        // `resolveLinkedDirectPeerId` is consulted only when dmScope !== "main"
-        // (src/routing/session-key.ts:223-230), so per-peer is what makes identityLinks apply.
-        session: { dmScope: "per-peer" },
-      });
     }
   }
   next.bindings = [...kept, ...projected];

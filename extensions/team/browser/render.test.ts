@@ -1,6 +1,3 @@
-// Render tests for the Duties Control UI's Team panel (Task 7). `render.ts` is otherwise
-// exercised through the full-page flows in `browser/index.test.ts`-style integration coverage
-// elsewhere in this plan; this file is scoped to `teamPanel`, the surface this task adds.
 import { describe, expect, it } from "vitest";
 import { teamPanel } from "./render.js";
 
@@ -10,11 +7,9 @@ const teamView = {
       id: "owner",
       name: "Pulkit",
       role: "owner" as const,
-      agentId: "krishna",
       addedBy: "owner",
       addedAt: 1,
       updatedAt: 1,
-      bootstrapPending: false,
       channels: [
         { channel: "telegram", senderId: "111", addedAt: 1 },
         { channel: "whatsapp", senderId: "+919800000000", addedAt: 1 },
@@ -24,25 +19,22 @@ const teamView = {
       id: "ramesh",
       name: "Ramesh",
       role: "member" as const,
-      agentId: "ramesh",
       addedBy: "owner",
       addedAt: 2,
       updatedAt: 2,
-      bootstrapPending: true,
       channels: [{ channel: "whatsapp", senderId: "+919812345678", addedAt: 2 }],
     },
   ],
 };
 
 describe("teamPanel", () => {
-  it("lists each person with their role, channels and agent", () => {
+  it("lists each person with their role and channels", () => {
     const html = teamPanel(teamView, true);
     expect(html).toContain("Pulkit");
     expect(html).toContain("Owner");
     expect(html).toContain("telegram");
     expect(html).toContain("whatsapp");
     expect(html).toContain("Ramesh");
-    expect(html).toContain("Setting up");
   });
 
   it("offers Make owner and Remove on a member row, never on the owner's", () => {
@@ -104,7 +96,7 @@ describe("teamPanel", () => {
     expect(html).toContain("&lt;img");
   });
 
-  it("shows a retryable error banner (Task 10: teamPanel is now the Team page's own content, so it takes the same trailing RenderOpts every other page-level render function does)", () => {
+  it("shows a retryable error banner", () => {
     const html = teamPanel(teamView, true, {
       error: "Enter a name, a channel and their id on that channel.",
     });
