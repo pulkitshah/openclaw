@@ -11,6 +11,7 @@ import {
   type DutyNode,
   type Step,
   type Target,
+  parseTeamRouteTarget,
   resolvePlaceholders,
 } from "./duty.js";
 import { safeFileName, uniqueFileName } from "./files.js";
@@ -98,6 +99,10 @@ export type AskAdapter = {
     header: string;
     options: string[];
     timeoutMs?: number;
+    /** The Team member id (already parsed off a `"team:<id>"` `params.target`) whose own session
+     *  this question is raised in, instead of the owner's. Absent for the default, owner-targeted
+     *  ask that existed before member-targeting did. */
+    target?: string;
     /** Called with the created question's id as soon as it exists, so the run can park on it. */
     onAsked?: (questionId: string) => void;
   }): Promise<AskResult>;
@@ -404,6 +409,11 @@ export async function runDuty(
         // SAFETY: askOptions is authored duty config; a missing/non-array value falls back to an empty list.
         const askOptions = (step.params.options as string[] | undefined) ?? [];
         const question = String(await resolve(step.params.question));
+        // "owner" (or omitted) keeps asking in the owner's own session, unchanged; "team:<id>"
+        // raises the question in that member's session instead — `validateDuty` already restricted
+        // `params.target` to one of those two shapes.
+        const targetRaw = typeof step.params.target === "string" ? step.params.target : undefined;
+        const memberTarget = targetRaw ? (parseTeamRouteTarget(targetRaw) ?? undefined) : undefined;
         let result: Awaited<ReturnType<AskAdapter["ask"]>>;
         try {
           result = await deps.ask.ask({
@@ -412,6 +422,7 @@ export async function runDuty(
             header: coerceParamText(step.params.header ?? step.label).slice(0, 12),
             options: askOptions,
             timeoutMs: step.timeoutMs,
+            ...(memberTarget ? { target: memberTarget } : {}),
             onAsked: (questionId) => deps.onWaiting?.({ questionId, stepId: step.id }),
           });
         } finally {
@@ -557,7 +568,7 @@ export async function runDuty(
       } else if (step.kind === "deliver") {
         const to = String(await resolveWithFiles(step.params.to));
         const channel = typeof step.params.channel === "string" ? step.params.channel : undefined;
-        const route = await deps.resolveRoute(to, channel, options.origin);
+        const routes = await deps.resolveRoute(to, channel, options.origin);
         const text =
           typeof step.params.text === "string"
             ? String(await resolveWithFiles(step.params.text))
@@ -578,8 +589,36 @@ export async function runDuty(
             );
           }
         }
-        await deps.deliver.send({ route, ...(text !== undefined ? { text } : {}), files: paths });
-        summary = `→ ${route.channel}:${maskTarget(route.to)}`;
+        // A team target with no channel fans out to every identity the member has (`resolveRoute`);
+        // every other target still resolves to exactly one route. Each route is sent independently
+        // — one channel's failure (a disconnected WhatsApp account, say) must not stop the message
+        // from reaching the member on their other channels — but the step still fails loudly, per
+        // the durable-batch `partial_failed` convention above, when every route failed: a Duty step
+        // that silently delivered nowhere is exactly the silent failure this system refuses to have.
+        const failures: string[] = [];
+        const delivered: string[] = [];
+        const messageIds: string[] = [];
+        for (const route of routes) {
+          const label = `${route.channel}:${maskTarget(route.to)}`;
+          try {
+            const sent = await deps.deliver.send({
+              route,
+              ...(text !== undefined ? { text } : {}),
+              files: paths,
+            });
+            messageIds.push(...sent.messageIds);
+            delivered.push(label);
+          } catch (error) {
+            failures.push(`${label}: ${errorMessage(error)}`);
+          }
+        }
+        if (messageIds.length === 0 && failures.length > 0) {
+          throw new Error(`delivery failed on every channel: ${failures.join("; ")}`);
+        }
+        summary =
+          failures.length > 0
+            ? `→ ${delivered.join(", ")} (failed: ${failures.join("; ")})`
+            : `→ ${delivered.join(", ")}`;
       } else {
         // Exhaustiveness guard: a step kind outside the four handled above would otherwise be
         // recorded as a silent `ok` that performed no action at all.

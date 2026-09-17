@@ -55,6 +55,11 @@ function questionIdForStep(stepId: string): string {
   return /^[a-z]/u.test(slug) ? slug : `q_${slug}`;
 }
 
+type Announce = (
+  text: string,
+  question?: { id: string; options: readonly string[] },
+) => Promise<void>;
+
 export function createAskAdapter(params: {
   request: Request;
   /**
@@ -67,6 +72,12 @@ export function createAskAdapter(params: {
    * `ask` needs an owner.
    */
   sessionKey: string | (() => Promise<string>);
+  /** Resolves the session AND the announce route for an `ask` whose step names `target` (a Team
+   *  member id, already parsed off `"team:<id>"` by the runner) instead of the owner. Only called
+   *  when `ask()` is given a `target` — `params.sessionKey`/`params.announce` above are untouched
+   *  for every ask that doesn't. A `target` with no resolver wired is a plugin wiring bug, not a
+   *  duty-authoring error, so it throws rather than silently asking the owner instead. */
+  memberTarget?: (memberId: string) => Promise<{ sessionKey: string; announce: Announce }>;
   pollMs?: number;
   /** Sends a visible note about the question to wherever the run reports back to.
    *
@@ -77,15 +88,29 @@ export function createAskAdapter(params: {
    *  by probing `question.request` against a live Gateway with the owner's own session key and
    *  seeing no channel send at all. So without this the owner is never told the run is waiting.
    *  Best-effort: a run must park on its question even if the note cannot be delivered. */
-  announce?: (text: string, question?: { id: string; options: readonly string[] }) => Promise<void>;
+  announce?: Announce;
 }): AskAdapter {
   return {
-    async ask({ stepId, question, header, options, timeoutMs, onAsked }) {
+    async ask({ stepId, question, header, options, timeoutMs, onAsked, target }) {
       const budget = timeoutMs ?? DEFAULT_TIMEOUT_MS;
       const questionId = questionIdForStep(stepId);
       const recordId = newQuestionRecordId();
-      const sessionKey =
-        typeof params.sessionKey === "string" ? params.sessionKey : await params.sessionKey();
+      let sessionKey: string;
+      let announce: Announce | undefined;
+      if (target) {
+        if (!params.memberTarget) {
+          throw new Error(
+            `ask step "${stepId}" targets "team:${target}" but no member routing is configured`,
+          );
+        }
+        const resolved = await params.memberTarget(target);
+        sessionKey = resolved.sessionKey;
+        announce = resolved.announce;
+      } else {
+        sessionKey =
+          typeof params.sessionKey === "string" ? params.sessionKey : await params.sessionKey();
+        announce = params.announce;
+      }
       const requested = await params.request<{ id: string; expiresAtMs: number }>(
         "question.request",
         {
@@ -111,16 +136,14 @@ export function createAskAdapter(params: {
       const note = canRenderQuestionCard(options)
         ? undefined
         : "sent without buttons: an ask needs 2–4 distinct options";
-      if (params.announce) {
+      if (announce) {
         // The options stay in the text too: a channel that cannot render choices still has to say
         // what they are, and the card's own buttons are built from `options`, not from this text.
         const choices = options.length > 0 ? `\n\n${options.join(" / ")}` : "";
-        await params
-          .announce(
-            `${header || "Duty"}: ${question}${choices}`,
-            options.length > 0 ? { id: requested.id, options } : undefined,
-          )
-          .catch(() => {});
+        await announce(
+          `${header || "Duty"}: ${question}${choices}`,
+          options.length > 0 ? { id: requested.id, options } : undefined,
+        ).catch(() => {});
       }
       const deadline = Date.now() + budget;
       while (Date.now() < deadline) {

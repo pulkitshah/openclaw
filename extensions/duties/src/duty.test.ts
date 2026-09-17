@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  parseTeamDeliverTarget,
+  parseTeamRouteTarget,
   resolvePlaceholders,
   validateDuty,
   validateRunInputs,
@@ -584,6 +584,37 @@ describe("Part 2 model", () => {
     }
   });
 
+  // Team v2 Task 6: `ask.target` names a Team member instead of always asking the owner, using the
+  // same "team:<id>" shape `deliver.to` already uses.
+  it('accepts an ask target of "owner" or "team:<id>", rejects anything else', () => {
+    const ask = (target: unknown) =>
+      validateDuty({
+        ...baseDuty(),
+        steps: [
+          {
+            id: "a1",
+            kind: "ask",
+            label: "Approve?",
+            params: { question: "Hold this booking?", options: ["Approve", "Decline"], target },
+          },
+        ],
+      });
+
+    expect(ask(undefined).ok).toBe(true);
+    expect(ask("owner").ok).toBe(true);
+    expect(ask("team:ramesh").ok).toBe(true);
+
+    for (const bad of ["team:", "", 7, "trigger"]) {
+      const result = ask(bad);
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.errors.join("\n")).toMatch(
+          /params\.target: must be "owner" or "team:<memberId>"/u,
+        );
+      }
+    }
+  });
+
   // Regression (I7): `validateStepParams` dispatched only to template/deliver, so an `ask` with no
   // question asked the owner a card that literally read "undefined", and an `ai` step with no
   // instruction sent "undefined" to the model.
@@ -726,12 +757,12 @@ describe("deliver to a Team member", () => {
   });
 });
 
-describe("parseTeamDeliverTarget", () => {
+describe("parseTeamRouteTarget", () => {
   it("returns the member id for a team: target and null for anything else", () => {
-    expect(parseTeamDeliverTarget("team:ramesh")).toBe("ramesh");
-    expect(parseTeamDeliverTarget("team:  ramesh  ")).toBe("ramesh");
-    expect(parseTeamDeliverTarget("team:")).toBeNull();
-    expect(parseTeamDeliverTarget("owner")).toBeNull();
-    expect(parseTeamDeliverTarget("+919812345678")).toBeNull();
+    expect(parseTeamRouteTarget("team:ramesh")).toBe("ramesh");
+    expect(parseTeamRouteTarget("team:  ramesh  ")).toBe("ramesh");
+    expect(parseTeamRouteTarget("team:")).toBeNull();
+    expect(parseTeamRouteTarget("owner")).toBeNull();
+    expect(parseTeamRouteTarget("+919812345678")).toBeNull();
   });
 });

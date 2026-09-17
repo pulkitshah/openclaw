@@ -30,7 +30,7 @@ import {
   deliveryContextFromSession,
   getSessionEntry,
 } from "openclaw/plugin-sdk/session-store-runtime";
-import { parseTeamDeliverTarget } from "../duty.js";
+import { parseTeamRouteTarget } from "../duty.js";
 import type { RunOrigin } from "../store.js";
 
 /** The slice of `extensions/team`'s `TeamMember` this module actually reads, declared locally
@@ -43,11 +43,15 @@ export type TeamMemberRoute = {
 };
 
 export type DeliverRoute = { channel: string; to: string; accountId?: string };
+/** One or more routes to send the same payload to. Only a `team:<id>` target with no `channel`
+ *  fans out to more than one — every other target (owner, trigger, an explicit channel target, or
+ *  a `team:<id>` target WITH a channel) still resolves to exactly one route, unchanged from before
+ *  fan-out existed. */
 export type RouteResolver = (
   to: string,
   channel: string | undefined,
   origin: RunOrigin | undefined,
-) => Promise<DeliverRoute>;
+) => Promise<DeliverRoute[]>;
 
 const NO_OWNER_TARGET = "no owner target configured — set it on the Team page";
 
@@ -154,9 +158,22 @@ export function createOwnerRouteResolver(params: {
   };
 }
 
+function routeFromIdentity(identity: {
+  channel: string;
+  senderId: string;
+  accountId?: string;
+}): DeliverRoute {
+  return {
+    channel: identity.channel,
+    to: identity.senderId,
+    ...(identity.accountId ? { accountId: identity.accountId } : {}),
+  };
+}
+
 /** "trigger" -> the chat the run came from, else the owner; "owner" -> the owner target;
- *  "team:<memberId>" -> that person's own id on the named channel; anything else is an explicit
- *  channel target (validateDuty already required `channel` for both of the last two). */
+ *  "team:<memberId>" -> that person's own id on the named channel, or — when no channel was named —
+ *  every channel identity that member has, fanned out; anything else is an explicit channel target
+ *  (validateDuty already required `channel` for both of the last two). */
 export function createRouteResolver(params: {
   ownerTarget: () => Promise<{ channel: string; target: string } | undefined>;
   sessionRoute: (origin: RunOrigin) => DeliverRoute | undefined;
@@ -174,45 +191,84 @@ export function createRouteResolver(params: {
   };
   return async (to, channel, origin) => {
     if (to === "owner") {
-      return owner();
+      return [await owner()];
     }
     if (to === "trigger") {
       const route = origin?.kind === "chat" ? params.sessionRoute(origin) : undefined;
-      return route ?? owner();
+      return [route ?? (await owner())];
     }
 
-    const memberId = parseTeamDeliverTarget(to);
+    const memberId = parseTeamRouteTarget(to);
     if (memberId) {
-      // `validateDuty` already required `channel`; re-check because an authored Duty can be
-      // hand-edited, and a wrong delivery is worse than a failed step. There is no "whichever
-      // channel they are reachable on", no fallback to the owner and no fallback to their first
-      // identity: a delivery that cannot land must say so at the step.
-      if (!channel) {
-        throw new Error(`deliver to "${to}" needs a channel`);
-      }
       const member = await params.teamMember(memberId);
       if (!member) {
         throw new Error(
           `deliver to "${to}": no Team member "${memberId}" — add them on the Team card`,
         );
       }
-      const identity = member.channels.find((c) => c.channel === channel);
-      if (!identity) {
+      if (channel) {
+        // A named channel still forces exactly one identity: no fallback to the owner and no
+        // fallback to a different identity of theirs — a delivery that cannot land on the
+        // requested channel must say so at the step.
+        const identity = member.channels.find((c) => c.channel === channel);
+        if (!identity) {
+          throw new Error(
+            `deliver to "${to}": ${member.name} has no ${channel} identity — add it on the Team card`,
+          );
+        }
+        return [routeFromIdentity(identity)];
+      }
+      // No channel named: fan out to every channel identity this member has, so they get the
+      // message wherever they actually are, instead of forcing the author to guess one.
+      if (member.channels.length === 0) {
         throw new Error(
-          `deliver to "${to}": ${member.name} has no ${channel} identity — add it on the Team card`,
+          `deliver to "${to}": ${member.name} has no channel identity — add one on the Team card`,
         );
       }
-      return {
-        channel,
-        to: identity.senderId,
-        ...(identity.accountId ? { accountId: identity.accountId } : {}),
-      };
+      return member.channels.map(routeFromIdentity);
     }
 
     if (!channel) {
       throw new Error(`deliver to "${to}" needs a channel`);
     }
-    return { channel, to };
+    return [{ channel, to }];
+  };
+}
+
+/** Where a member-targeted `ask` raises its question: the session an ordinary inbound message on
+ *  ANY of that member's linked channels would resolve to (proven identical across their channels
+ *  by `dmScope: "per-peer"` + `session.identityLinks` — see
+ *  `extensions/team/src/team.test.ts`'s "sends both of a member's channel identities to the
+ *  coordinator agent, in the same session"), plus the route to announce the question on. Picking
+ *  the member's first channel identity is therefore not a guess among several different outcomes;
+ *  it is one deterministic choice among options `resolveAgentRoute` proves converge on the same
+ *  session key. */
+export function createMemberAskTarget(params: {
+  cfg: OpenClawConfig | (() => OpenClawConfig);
+  teamMember: (id: string) => Promise<TeamMemberRoute | undefined>;
+  /** Injectable so tests never load the host's routing tables. */
+  resolveRoute?: typeof resolveAgentRoute;
+}): (memberId: string) => Promise<{ sessionKey: string; route: DeliverRoute }> {
+  return async (memberId) => {
+    const member = await params.teamMember(memberId);
+    if (!member) {
+      throw new Error(
+        `ask target "team:${memberId}": no Team member "${memberId}" — add them on the Team card`,
+      );
+    }
+    const identity = member.channels[0];
+    if (!identity) {
+      throw new Error(
+        `ask target "team:${memberId}": ${member.name} has no channel identity — add one on the Team card`,
+      );
+    }
+    const resolve = params.resolveRoute ?? resolveAgentRoute;
+    const resolved = resolve({
+      cfg: typeof params.cfg === "function" ? params.cfg() : params.cfg,
+      channel: identity.channel,
+      peer: { kind: "direct", id: identity.senderId },
+    });
+    return { sessionKey: resolved.sessionKey, route: routeFromIdentity(identity) };
   };
 }
 

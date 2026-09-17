@@ -67,14 +67,19 @@ and `saveAs`.
   result object.
 - **`ask`** — `params.question` (required), `params.options` (**required**: 2–4 distinct,
   non-blank choices), optional `params.header` (≤ 12 characters). Answer is saved via `saveAs`.
-  The 2–4 rule is not style: the owner answers by tapping a button, and a channel only renders
+  The 2–4 rule is not style: the person answers by tapping a button, and a channel only renders
   buttons for 2–4 distinct option values. One option, five options, or `["Yes","yes"]` goes out as
   plain prose — and a typed reply does **not** answer a Duty's question, it reaches the agent as
   ordinary chat while the run waits out its timeout. Saving such a step is refused. If a step
   genuinely needs free text (a one-time code), ask the owner in the conversation yourself with
   `ask_user` instead of putting it in the Duty.
-  An `ask` is always raised with the owner — if the run was triggered from a group, the question
-  still goes to the owner's own chat, so nobody else can approve it.
+  By default an `ask` is raised with the owner — if the run was triggered from a group, the
+  question still goes to the owner's own chat, so nobody else can approve it. Set optional
+  `params.target: "team:<memberId>"` to raise it with that Team member instead (same id shape as
+  `deliver`'s `"team:<memberId>"`; call `team_list` first, never invent an id): the question is
+  raised in that person's own session and answered from whichever of their linked channels they
+  actually reply on, the same "reply everywhere" behavior their chat already has. Leave `target`
+  out, or set it to `"owner"`, to keep asking the owner.
 - **`template`** — renders a saved template. `params.template` is the template id;
   `params.fill` maps each of its slots to either `{ from: "{{out:...}}" }` (or any other
   placeholder) or `{ ai: "instruction" }` (the model writes that slot from the run's data).
@@ -91,12 +96,14 @@ and `saveAs`.
   like any other step. See **Templates** below for the authoring loop.
 - **`deliver`** — sends text and/or files to a route. `params.to` is `"trigger"` (reply
   to whoever/whatever started this run), `"owner"` (the current Team owner), `"team:<memberId>"`
-  (a person on the Team roster), or an explicit channel target. **For anything other than
-  `"trigger"` and `"owner"`, `params.channel` is required** — naming a person always names the
-  channel they should be reached on, because Vasu never guesses which channel someone is on. Call
-  `team_list` to read real member ids and which channels each person has; never invent an id, and
-  never name a channel a person has no identity on — the step fails rather than delivering
-  elsewhere. `params.text` is a string (placeholders resolved as usual); `params.files` is an array
+  (a person on the Team roster), or an explicit channel target. For an explicit channel target,
+  `params.channel` is required. For `"team:<memberId>"`, `params.channel` is optional: name it to
+  force exactly that one channel (the step fails rather than delivering elsewhere if that person
+  has no identity there); leave it out and the step fans out to **every** channel identity that
+  person has, so they get the message wherever they actually are — one channel failing (e.g. a
+  disconnected account) does not stop the others, and the step only fails if every channel failed.
+  Call `team_list` to read real member ids and which channels each person has; never invent an id.
+  `params.text` is a string (placeholders resolved as usual); `params.files` is an array
   of `{{file:<templateStepId>}}` placeholders naming earlier `template` steps' output files. Needs
   at least one of `text` or `files`.
 - **`when`** — `cond` is one of `{ visible: <target> }`, `{ equals: [a, b] }`,

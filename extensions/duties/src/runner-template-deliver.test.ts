@@ -533,4 +533,81 @@ describe("template and deliver steps", () => {
     expect(outcome.status).toBe("cancelled");
     expect(deps.calls.some((c) => c.startsWith("deliver"))).toBe(false);
   });
+
+  // Team v2 Task 6: `deliver` fans out across every route `resolveRoute` returns (a "team:<id>"
+  // target with no channel resolves to one route per identity that member has).
+  describe("delivery fan-out across multiple resolved routes", () => {
+    it("sends the same payload to every resolved route and reports all of them in the summary", async () => {
+      const deps = fakeDeps({
+        resolveRoute: async () => [
+          { channel: "whatsapp", to: "+919812345678" },
+          { channel: "telegram", to: "5551234" },
+        ],
+      });
+      const outcome = await runDuty(
+        duty([
+          { id: "d1", kind: "deliver", label: "Send", params: { to: "team:ramesh", text: "hi" } },
+        ]),
+        deps,
+        { inputs: {} },
+      );
+      expect(outcome.status).toBe("ok");
+      expect(deps.calls).toContain("deliver whatsapp:+919812345678 hi []");
+      expect(deps.calls).toContain("deliver telegram:5551234 hi []");
+      expect(outcome.steps[0]!.summary).toBe("→ whatsapp:+91••••5678, telegram:5551234");
+    });
+
+    it("succeeds off a single surviving channel and names the failed one in the summary", async () => {
+      const deps = fakeDeps({
+        resolveRoute: async () => [
+          { channel: "whatsapp", to: "+919812345678" },
+          { channel: "telegram", to: "5551234" },
+        ],
+        deliver: {
+          send: async ({ route }) => {
+            if (route.channel === "whatsapp") {
+              throw new Error("channel down");
+            }
+            return { messageIds: [`m-${route.channel}`] };
+          },
+        },
+      });
+      const outcome = await runDuty(
+        duty([
+          { id: "d1", kind: "deliver", label: "Send", params: { to: "team:ramesh", text: "hi" } },
+        ]),
+        deps,
+        { inputs: {} },
+      );
+      expect(outcome.status).toBe("ok");
+      expect(outcome.steps[0]!.summary).toBe(
+        "→ telegram:5551234 (failed: whatsapp:+91••••5678: channel down)",
+      );
+    });
+
+    it("fails the step loudly when every route fails, instead of a silent no-op delivery", async () => {
+      const deps = fakeDeps({
+        resolveRoute: async () => [
+          { channel: "whatsapp", to: "+919812345678" },
+          { channel: "telegram", to: "5551234" },
+        ],
+        deliver: {
+          send: async () => {
+            throw new Error("channel down");
+          },
+        },
+      });
+      const outcome = await runDuty(
+        duty([
+          { id: "d1", kind: "deliver", label: "Send", params: { to: "team:ramesh", text: "hi" } },
+        ]),
+        deps,
+        { inputs: {} },
+      );
+      expect(outcome.status).toBe("failed");
+      expect(outcome.report).toContain("delivery failed on every channel");
+      expect(outcome.report).toContain("whatsapp:+91••••5678: channel down");
+      expect(outcome.report).toContain("telegram:5551234: channel down");
+    });
+  });
 });

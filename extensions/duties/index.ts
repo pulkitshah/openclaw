@@ -9,6 +9,7 @@ import { createBrowserAdapter } from "./src/adapters/browser.js";
 import {
   createAskSessionResolver,
   createDeliverAdapter,
+  createMemberAskTarget,
   createOwnerRouteResolver,
   createRouteResolver,
   sessionRouteFromStore,
@@ -184,19 +185,22 @@ export default definePluginEntry({
       }
       return (await store.getSettings()).owner;
     };
+    // Shared by `resolveRoute`'s `team:<id>` targets and `memberAskTarget` below, so both go
+    // through the same Team lookup rather than two independently-drifting copies of it.
+    const teamMember = async (id: string) => {
+      try {
+        const { member } = await request<{ member?: TeamMemberRoute }>("team.member.get", {
+          id,
+        });
+        return member;
+      } catch {
+        return undefined;
+      }
+    };
     const resolveRoute = createRouteResolver({
       ownerTarget,
       sessionRoute: sessionRouteFromStore,
-      teamMember: async (id) => {
-        try {
-          const { member } = await request<{ member?: TeamMemberRoute }>("team.member.get", {
-            id,
-          });
-          return member;
-        } catch {
-          return undefined;
-        }
-      },
+      teamMember,
     });
     // Asks and run status lines are owner-facing: they go to the origin chat only when that chat
     // is the owner's own, never to a group the Duty happened to be triggered from.
@@ -209,6 +213,10 @@ export default definePluginEntry({
       ownerTarget,
       sessionRoute: sessionRouteFromStore,
     });
+    // Where a member-TARGETED `ask` (Team v2 Task 6) raises its question, instead of the owner's
+    // session: resolved through the same `resolveAgentRoute` an ordinary inbound message from that
+    // member would use, via one of their linked channel identities.
+    const memberAskTarget = createMemberAskTarget({ cfg: currentConfig, teamMember });
     // Read through the store on every run so an edit on the Duties page is picked up by the next
     // run without rebuilding the deps.
     const templates = {
@@ -246,6 +254,18 @@ export default definePluginEntry({
             announce: async (text, question) => {
               const route = await ownerRoute(run.origin);
               await deliver.send({ route, text, ...(question ? { question } : {}) });
+            },
+            // A `team:<id>` `ask.target` (Team v2 Task 6) raises the question in that member's own
+            // session/route instead of the owner's — resolved fresh per call, same as the owner
+            // path above, so a config reload still picks up roster/routing changes mid-desk-life.
+            memberTarget: async (memberId) => {
+              const { sessionKey, route } = await memberAskTarget(memberId);
+              return {
+                sessionKey,
+                announce: async (text, question) => {
+                  await deliver.send({ route, text, ...(question ? { question } : {}) });
+                },
+              };
             },
           }),
           cred: (key: string) => credGet(key),

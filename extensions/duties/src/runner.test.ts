@@ -424,6 +424,39 @@ describe("runDuty", () => {
     expect(outcome.status).toBe("failed");
     expect(outcome.steps[1]).toMatchObject({ status: "failed", screenshotBlobId: "blob-1" });
   });
+  // Team v2 Task 6: an `ask` step's `params.target` (parsed off "team:<id>") reaches the ask
+  // adapter as `target`, so it can raise the question in that member's session instead of the
+  // owner's; an ask with no target (or "owner") still passes none, unchanged.
+  it('passes ask.target through to the ask adapter, parsed off "team:<id>"', async () => {
+    const seen: Array<string | undefined> = [];
+    const outcome = await runDuty(
+      duty([
+        {
+          id: "s1",
+          kind: "ask",
+          label: "Confirm?",
+          params: { question: "Ready?", options: ["Yes", "No"], target: "team:ramesh" },
+        },
+        {
+          id: "s2",
+          kind: "ask",
+          label: "Confirm again?",
+          params: { question: "Sure?", options: ["Yes", "No"], target: "owner" },
+        },
+      ]),
+      fakeDeps({
+        ask: {
+          ask: async ({ target }) => {
+            seen.push(target);
+            return { status: "answered", answer: "Yes" };
+          },
+        },
+      }),
+      { inputs: {} },
+    );
+    expect(outcome.status).toBe("ok");
+    expect(seen).toEqual(["ramesh", undefined]);
+  });
   it("throws for a step kind it cannot run instead of recording a silent ok", async () => {
     const outcome = await runDuty(
       duty([

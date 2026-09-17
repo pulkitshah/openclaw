@@ -154,7 +154,7 @@ function deps(delayMs: number, openTracker?: { current: number; max: number }): 
       },
     },
     deliver: { send: async () => ({ messageIds: ["m-1"] }) },
-    resolveRoute: async () => ({ channel: "telegram", to: "222" }),
+    resolveRoute: async () => [{ channel: "telegram", to: "222" }],
     filesDir: "",
   };
 }
