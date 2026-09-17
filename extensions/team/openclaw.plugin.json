@@ -11,7 +11,10 @@
   },
   "contracts": {
     "tools": [
-      "team_list"
+      "team_list",
+      "team_add",
+      "team_remove",
+      "team_transfer_ownership"
     ]
   },
   "configSchema": {
