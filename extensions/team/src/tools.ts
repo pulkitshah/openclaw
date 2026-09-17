@@ -89,7 +89,9 @@ export function registerTeamTools(params: { api: OpenClawPluginApi }): void {
             description: "Their identifier on that channel (phone number, user id, etc.).",
           }),
           accountId: Type.Optional(
-            Type.String({ description: "Which of this desk's accounts on that channel, if more than one." }),
+            Type.String({
+              description: "Which of this desk's accounts on that channel, if more than one.",
+            }),
           ),
         }),
         { description: "At least one channel identity this person can reach Vasu on." },
@@ -144,7 +146,9 @@ export function registerTeamTools(params: { api: OpenClawPluginApi }): void {
       "This is the correct way to change who owns the Team — do not try to reach the same result " +
       "by editing config directly. Use `team_list` first to find the target member's id.",
     parameters: Type.Object({
-      memberId: Type.String({ description: "Team member id to make the new owner, from team_list." }),
+      memberId: Type.String({
+        description: "Team member id to make the new owner, from team_list.",
+      }),
     }),
     execute: async (_toolCallId, rawInput) => {
       if (!isRecord(rawInput)) {
