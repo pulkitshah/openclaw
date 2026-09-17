@@ -310,9 +310,59 @@ of those names — for example `/home/vasudev-user/script.sh` — is
 unaffected. The check also recurses into a generic shell wrapper's inline
 payload (for example `bash -lc "vasudev ..."`, `sh -c "vasudev ..."`, or a
 nested `env bash -lc "vasudev ..."`), up to several levels of nesting, so
-wrapping the CLI in a shell does not bypass it. Known limitation: invoking the
-underlying entry script directly through a generic interpreter (for example
-`node /path/to/openclaw.mjs ...`) is not detected.
+wrapping the CLI in a shell does not bypass it.
+
+**This is layer 1 of a two-layer defense.** It is a *static* check: it
+inspects the command's resolved segments before anything is spawned, and it
+can only recognize a bounded set of shapes (bare/path invocation, a
+transparent dispatch wrapper whose own resolved identity is the self-CLI
+binary, and a recognized shell wrapper's inline payload). It cannot see a
+self-CLI invocation buried inside an indirection tool it does not itself
+unwrap — for example `pnpm exec bash -c "vasudev ..."` (the observed argv
+still has a `pnpm exec` prefix the shell-wrapper recursion does not match),
+`find . -exec vasudev ... \;`, or `xargs -I{} vasudev {}`. Recognizing every
+such tool one at a time is an open-ended enumeration problem, not something
+a finite list can ever finish closing.
+
+**Layer 2: the PATH-shadow environment defense.** When `denySelfCli` is
+active, the Gateway host also prepends a small stub directory ahead of every
+other `PATH` entry in the spawned command's own environment. That directory
+contains executable files literally named `vasudev`/`openclaw` that
+immediately deny and exit non-zero. Because `PATH` search order is a
+property of the environment inherited by the *entire* process tree a
+command spawns — not something each wrapper tool has to individually
+support — this closes the whole class of "unrecognized indirection tool"
+bypasses at once (including `pnpm exec`, `find -exec`, `xargs`, and a
+scripting language's subprocess-by-name call), without needing layer 1 to
+recognize any of those tools by name. Layer 2 is additive: layer 1 still
+runs first and denies plenty of cases before anything is spawned.
+
+Layer 2 is scoped to the Gateway (and, incidentally, sandbox env-building)
+host, the same way `tools.exec.pathPrepend` already is: the node host
+dispatches a command to a genuinely remote device, and this process never
+controls that device's `PATH`. Layer 1's static check already runs
+unconditionally on the node host regardless, so the node host's self-CLI
+defense today is layer 1 alone.
+
+**Known limitations (read honestly — this is not an unconditional "no
+chances" guarantee against every conceivable path):**
+
+- Invoking the underlying entry script directly through a generic
+  interpreter (for example `node /path/to/openclaw.mjs ...`) is not
+  detected by either layer. Closing that would require binding argv-token
+  realpaths against the entry script itself, which is the kind of general
+  interpreter/loader coverage the exec-approvals engine already documents
+  as best-effort elsewhere — out of scope for this narrow identity check.
+- A command that explicitly reassigns `PATH` before invoking the bare name
+  (`env PATH=/usr/bin vasudev ...`, or a script doing `export PATH=...`
+  then calling `vasudev`) can still reach the real binary if the
+  reassigned value omits the shadow directory and still contains the real
+  one. This is an accepted residual gap: it requires deliberately naming a
+  PATH value, a materially higher bar than the zero-PATH-knowledge
+  bypasses layer 2 closes.
+- Layer 2 does not extend to the node host (see above); a buried,
+  unrecognized-indirection-tool invocation on a node host is covered only
+  by layer 1.
 
 Rationale: once an agent has dedicated tool-call paths for every
 legitimate CLI-shaped action (for example Team's `team_add`/`team_remove`/

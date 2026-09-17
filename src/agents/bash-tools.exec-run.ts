@@ -20,6 +20,7 @@ import {
   rejectUnsafeExecLiveStateSqliteShellCommand,
 } from "../infra/exec-control-command-guard.js";
 import { resolveExecSafeBinRuntimePolicy } from "../infra/exec-safe-bin-runtime-policy.js";
+import { prepareSelfCliDenyPathShadow } from "../infra/exec-self-cli-deny-path-shadow.js";
 import { logInfo } from "../logger.js";
 import { parseAgentSessionKey, resolveAgentIdFromSessionKey } from "../routing/session-key.js";
 import {
@@ -134,6 +135,12 @@ export function createExecTool(
   const defaultTimeoutSec =
     defaults?.timeoutSec && defaults.timeoutSec > 0 ? defaults.timeoutSec : 1800;
   const defaultPathPrepend = normalizePathPrepend(defaults?.pathPrepend);
+  // Kick off shadow-stub preparation as soon as the tool exists (cheap, idempotent, cached -- see
+  // `prepareSelfCliDenyPathShadow`) rather than per-call, so it is normally already resolved by the
+  // time the first call needs it. Only started when denySelfCli is actually configured for this
+  // tool instance.
+  const selfCliDenyPathShadowPromise =
+    defaults?.denySelfCli === true ? prepareSelfCliDenyPathShadow() : undefined;
   const {
     safeBins,
     safeBinProfiles,
@@ -445,6 +452,9 @@ export function createExecTool(
             storeEnv.secretEgressBindings ?? [],
           );
         }
+        const selfCliDenyPathShadowDir = selfCliDenyPathShadowPromise
+          ? await selfCliDenyPathShadowPromise
+          : undefined;
         const { env, requestedEnv } = resolvePreparedExecEnvironment({
           execParams: params,
           host,
@@ -452,6 +462,7 @@ export function createExecTool(
           containerWorkdir,
           channelContext: defaults?.channelContext,
           defaultPathPrepend,
+          selfCliDenyPathShadowDir,
           pluginEnv: resolvedExecEnvState?.pluginEnv,
           storeEnv: host === "gateway" ? storeEnv.env : undefined,
           storeSecretEnv: useSecretEgress ? storeEnv.secretSentinels : undefined,
@@ -459,6 +470,14 @@ export function createExecTool(
           ...preparedRunEnvironment,
           warnings,
         });
+        // Used below for the gateway/sandbox `runExecProcess` calls (never reached for host="node",
+        // which already returned above): the shadow-stub directory always wins ahead of every other
+        // entry, including a real, working PATH entry like the Gateway's own agent-CLI shim
+        // (`../infra/openclaw-cli-shim.ts`) -- otherwise a buried invocation reaching bare
+        // `openclaw` could resolve to that real shim instead of the deny stub.
+        const pathPrependWithSelfCliShadow = selfCliDenyPathShadowDir
+          ? [selfCliDenyPathShadowDir, ...defaultPathPrepend]
+          : defaultPathPrepend;
 
         if (host === "node") {
           return executeNodeHostCommand({
@@ -537,7 +556,7 @@ export function createExecTool(
             workdir,
             env,
             githubProfileDir,
-            pathPrepend: defaultPathPrepend,
+            pathPrepend: pathPrependWithSelfCliShadow,
             requestedEnv,
             pty: params.pty === true && !sandbox,
             timeoutSec: params.timeoutSeconds,
@@ -616,7 +635,7 @@ export function createExecTool(
           workdir,
           env,
           githubProfileDir,
-          pathPrepend: defaultPathPrepend,
+          pathPrepend: pathPrependWithSelfCliShadow,
           sandbox,
           containerWorkdir,
           usePty,

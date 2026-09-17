@@ -41,10 +41,12 @@ Once the coordinator has real tool calls for roster changes (`team_add`, `team_r
 `team_transfer_ownership`), there is no legitimate reason for it to shell out to the `vasudev`/
 `openclaw` CLI itself — for pairing approval or anything else. Team sets
 `tools.exec.denySelfCli: true` on the coordinator agent by default (once a coordinator can be
-resolved), which makes exec unconditionally deny that binary as a target, for any subcommand,
-regardless of the agent's exec mode. Every other exec command is unaffected. An operator who
-explicitly sets `denySelfCli` to `true` or `false` for that agent is never overridden — see
-[Exec approvals](/tools/exec-approvals#tools-exec-denyselfcli) for the full mechanism.
+resolved), which makes exec deny that binary as a target, for any subcommand, direct or buried
+inside another command, regardless of the agent's exec mode. Every other exec command is
+unaffected. An operator who explicitly sets `denySelfCli` to `true` or `false` for that agent is
+never overridden — see [Exec approvals](/tools/exec-approvals#tools-exec-denyselfcli) for the full
+two-layer mechanism and its honestly-documented residual gaps (deliberate `PATH` reassignment, and
+invoking the entry script through a generic interpreter).
 
 ## Migrating from an earlier install
 

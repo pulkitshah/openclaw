@@ -1,5 +1,11 @@
 // Denies the agent's own CLI binary as an exec target, independent of `tools.exec` mode.
 //
+// This module is layer 1 of a two-layer defense (Team v2 plan, Task 5, "structural pivot" fix
+// round): a static, pre-spawn segment-analysis check. See `exec-self-cli-deny-path-shadow.ts` for
+// layer 2, an environment-level PATH-shadow defense added specifically because this static layer
+// cannot structurally recognize every possible indirection tool (see that module's doc comment and
+// the "Known limitation" section below for the exact split of what each layer covers).
+//
 // Rationale (Team v2 plan, "Exec restriction: deny agent self-CLI invocation"): once an agent has
 // real, agent-callable tools for roster management (`team_add`/`team_remove`/`team_transfer_ownership`),
 // there is no legitimate reason for that agent to shell out to its own CLI — every legitimate
@@ -16,8 +22,19 @@
 // only when its resolved executable name is *exactly* one of this product's two CLI binary names
 // (`vasudev`, `openclaw` — see package.json's `bin` field; both alias the same entry point), whether
 // invoked bare (PATH lookup), via a relative/absolute path, or through a transparent dispatch/shell
-// wrapper (`env`, `nice`, `pnpm exec`, etc.). A path like `/home/vasudev-user/script.sh` is
-// unaffected: its basename is `script.sh`, not `vasudev`.
+// wrapper whose own resolved identity IS the self-CLI binary (`env vasudev ...`, `nice vasudev ...`,
+// `pnpm exec vasudev ...`, etc.) or whose shell-wrapper inline payload names it directly (see
+// "Shell-wrapper recursion" below). A path like `/home/vasudev-user/script.sh` is unaffected: its
+// basename is `script.sh`, not `vasudev`.
+//
+// What this does NOT structurally see (closed by the PATH-shadow layer, not by extending this
+// static analysis further — see `exec-self-cli-deny-path-shadow.ts`): a self-CLI invocation buried
+// *inside* an indirection tool this analysis does not itself unwrap into a shell-wrapper-shaped
+// argv, e.g. `pnpm exec bash -c "vasudev ..."` (the observed top-level argv is `pnpm exec bash -c
+// <payload>`, not the bare `[bash, -c, payload]` shape the shell-wrapper recursion below matches),
+// `find . -exec vasudev ... \;`, `xargs -I{} vasudev {}`, or a scripting language's
+// subprocess-by-name call. Recognizing every such tool's syntax one at a time is the open-ended
+// enumeration problem the PATH-shadow layer exists to close structurally instead.
 //
 // Shell-wrapper recursion: a generic shell wrapper (`bash -lc "..."`, `sh -c "..."`, including a
 // login-mode form and nested dispatch wrappers like `env bash -lc "..."`) is NOT unwrapped by
@@ -36,12 +53,20 @@
 // is the one shared recursion point both the gateway and node exec hosts call through, so there is
 // no second, divergent unwrapper.
 //
-// Known limitation: invoking the underlying entry script directly through a generic interpreter
-// (for example `node /path/to/openclaw.mjs ...`) is not detected here. Closing that would require
-// binding argv-token realpaths against the entry script itself, which is the kind of general
-// interpreter/loader coverage the exec-approvals engine already documents as best-effort elsewhere
-// (see `resolveAllowAlwaysPatternEntries` / interpreter binding docs) — out of scope for this narrow
-// identity check.
+// Known limitation (this static layer): invoking the underlying entry script directly through a
+// generic interpreter (for example `node /path/to/openclaw.mjs ...`) is not detected here. Closing
+// that would require binding argv-token realpaths against the entry script itself, which is the
+// kind of general interpreter/loader coverage the exec-approvals engine already documents as
+// best-effort elsewhere (see `resolveAllowAlwaysPatternEntries` / interpreter binding docs) — out
+// of scope for this narrow identity check.
+//
+// Known limitation (both layers combined — see `exec-self-cli-deny-path-shadow.ts` for the second
+// layer's own residual-gap analysis): a command that explicitly reassigns `PATH` before invoking
+// the bare name (`env PATH=/usr/bin vasudev ...`, or a script doing `export PATH=...` then calling
+// `vasudev`) can still reach the real binary. This is an accepted residual gap: it requires
+// deliberately naming a PATH value, a materially higher bar than the zero-PATH-knowledge bypasses
+// the PATH-shadow layer closes, and this codebase does not claim "no chances" against it — see
+// `docs/tools/exec-approvals.md` for the full, honest limitations list.
 
 import path from "node:path";
 import { MAX_DISPATCH_WRAPPER_DEPTH } from "./dispatch-wrapper-resolution.js";

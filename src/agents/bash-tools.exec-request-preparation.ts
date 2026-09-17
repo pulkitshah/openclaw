@@ -367,6 +367,15 @@ export function resolvePreparedExecEnvironment(params: {
   containerWorkdir?: string | null;
   channelContext?: PluginHookChannelContext;
   defaultPathPrepend: string[];
+  /**
+   * PATH-shadow stub directory for `tools.exec.denySelfCli` (see
+   * `../infra/exec-self-cli-deny-path-shadow.ts`), prepended ahead of everything else -- including
+   * `defaultPathPrepend` -- so a real, working PATH entry (e.g. the Gateway's own agent-CLI shim,
+   * see `../infra/openclaw-cli-shim.ts`) can never shadow the deny stub. Only meaningful for
+   * host!=="node": the node host's remote spawn environment is not controlled from here (mirrors
+   * `defaultPathPrepend`'s own existing node-host scoping immediately below).
+   */
+  selfCliDenyPathShadowDir?: string;
   pluginEnv?: Record<string, string>;
   storeEnv?: Record<string, string>;
   storeSecretEnv?: Record<string, string>;
@@ -500,6 +509,14 @@ export function resolvePreparedExecEnvironment(params: {
     );
   } else {
     applyPathPrepend(env, params.defaultPathPrepend);
+  }
+
+  // Hard, mode-independent PATH-shadow layer for denySelfCli: applied after (so it wins ahead of)
+  // every other prepend, including a real, working PATH entry like the Gateway's own agent-CLI
+  // shim. Node hosts are excluded for the same reason `defaultPathPrepend` is: this process does
+  // not control that remote device's spawn environment (see the param doc comment above).
+  if (params.host !== "node" && params.selfCliDenyPathShadowDir) {
+    applyPathPrepend(env, [params.selfCliDenyPathShadowDir]);
   }
 
   if (params.host === "gateway" && params.managedLocalIdentity === false) {
