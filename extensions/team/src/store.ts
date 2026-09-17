@@ -85,6 +85,16 @@ export class TeamStore {
     return this.stores.team.delete(id);
   }
 
+  /** Deletes a roster row outright, bypassing `removeMember`'s "transfer ownership before removing
+   *  the owner" guard. Rollback-only, mirroring `restoreMember`'s bypass: `team.owner.set` uses this
+   *  to undo the owner row it just seeded from an empty roster when the config projection that
+   *  follows is rejected. There is no successor to transfer to in that case — the row was never
+   *  durably admitted by config in the first place, so `removeMember`'s ordinary-admin-action guard
+   *  does not apply. */
+  async removeSeededOwner(id: string): Promise<boolean> {
+    return this.stores.team.delete(id);
+  }
+
   async setMemberChannels(
     id: string,
     channels: TeamChannelIdentity[],

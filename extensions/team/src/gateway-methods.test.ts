@@ -210,6 +210,37 @@ describe("team.owner.set", () => {
     expect(owner?.channels[0]).toMatchObject({ channel: "whatsapp", senderId: "+919800000000" });
     expect(owner?.channels).toHaveLength(2);
   });
+
+  it("removes the seeded owner row when the projection write is rejected on an empty roster", async () => {
+    const { call, store } = harness({ config: deskFixtureConfig() });
+    (writeTeamProjection as Mock).mockRejectedValueOnce(new Error("config write rejected"));
+
+    const result = await call("team.owner.set", { channel: "telegram", target: "111" });
+
+    expect(result.ok).toBe(false);
+    expect(await store.ownerMember()).toBeUndefined();
+    expect(await store.listMembers()).toEqual([]);
+  });
+
+  it("restores the prior owner identity when the projection write is rejected on a move", async () => {
+    const { call, store } = harness({ config: deskFixtureConfig() });
+    await store.seedOwner({
+      id: "owner",
+      name: "Owner",
+      addedBy: "owner",
+      channels: [{ channel: "telegram", senderId: "111", addedAt: 1 }],
+    });
+    (writeTeamProjection as Mock).mockRejectedValueOnce(new Error("config write rejected"));
+
+    const result = await call("team.owner.set", {
+      channel: "whatsapp",
+      target: "+919800000000",
+    });
+
+    expect(result.ok).toBe(false);
+    const owner = await store.ownerMember();
+    expect(owner?.channels).toEqual([{ channel: "telegram", senderId: "111", addedAt: 1 }]);
+  });
 });
 
 describe("team.add", () => {
@@ -405,6 +436,23 @@ describe("team.remove", () => {
     expect(result.ok).toBe(false);
     expect(result.error).toMatchObject({ message: 'no Team member "nobody"' });
   });
+
+  it("rolls back the removed member when the projection write is rejected", async () => {
+    const { call, store } = harness();
+    await store.seedOwner({ id: "owner", name: "Owner", addedBy: "owner", channels: [] });
+    const ramesh = await store.addMember({
+      id: "ramesh",
+      name: "Ramesh",
+      addedBy: "owner",
+      channels: [{ channel: "telegram", senderId: "5551234", addedAt: 1 }],
+    });
+    (writeTeamProjection as Mock).mockRejectedValueOnce(new Error("config write rejected"));
+
+    const result = await call("team.remove", { memberId: "ramesh" });
+
+    expect(result.ok).toBe(false);
+    expect(await store.getMember("ramesh")).toEqual(ramesh);
+  });
 });
 
 describe("team.transferOwnership", () => {
@@ -419,6 +467,19 @@ describe("team.transferOwnership", () => {
     expect(result.ok).toBe(true);
     expect((await store.ownerMember())?.id).toBe("ramesh");
     expect(emit).toHaveBeenCalledWith("changed", { team: true });
+  });
+
+  it("restores both roles when the projection write is rejected", async () => {
+    const { call, store } = harness();
+    await store.seedOwner({ id: "owner", name: "Owner", addedBy: "owner", channels: [] });
+    await store.addMember({ id: "ramesh", name: "Ramesh", addedBy: "owner", channels: [] });
+    (writeTeamProjection as Mock).mockRejectedValueOnce(new Error("config write rejected"));
+
+    const result = await call("team.transferOwnership", { memberId: "ramesh" });
+
+    expect(result.ok).toBe(false);
+    expect((await store.ownerMember())?.id).toBe("owner");
+    expect((await store.getMember("ramesh"))?.role).toBe("member");
   });
 });
 

@@ -185,10 +185,27 @@ export function registerTeamGatewayMethods(deps: {
           addedBy: "owner",
           channels: [identity],
         });
-    const { warnings } = await writeTeamProjection({
-      members: await store.listMembers(),
-      assertStillAuthorized: () => assertStillAuthorized(ctx),
-    });
+    if (!ownerRow) {
+      // `existingOwner.id` was just read from the roster above, so `setMemberChannels` should
+      // always find it; this only guards a concurrent delete of that same row mid-request.
+      throw new Error("the owner row changed while updating it — try again");
+    }
+    let warnings: string[];
+    try {
+      ({ warnings } = await writeTeamProjection({
+        members: await store.listMembers(),
+        assertStillAuthorized: () => assertStillAuthorized(ctx),
+      }));
+    } catch (error) {
+      // The move/seed above already landed durably; a rejected projection (lost authority, an
+      // assertTeamProjectionSafe refusal, a failed config write) must not leave it standing.
+      if (existingOwner) {
+        await store.restoreMember(existingOwner).catch(() => undefined);
+      } else {
+        await store.removeSeededOwner(ownerRow.id).catch(() => undefined);
+      }
+      throw error;
+    }
     safeEmit("changed", { team: true });
     return { ok: true, member: ownerRow, warnings };
   });
