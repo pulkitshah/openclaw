@@ -16,6 +16,7 @@ import type {
   WhatsAppStatus,
 } from "../../api/types.ts";
 import type { PluginListResult } from "../../lib/plugins/index.ts";
+import type { GmailSetupFieldName, GmailSetupFormState } from "./gmail-setup.ts";
 import type { NostrProfileFormState } from "./view.nostr-profile-form.ts";
 import type { ChannelWizardState } from "./wizard-controller.ts";
 
@@ -62,6 +63,8 @@ export type ChannelsProps = {
   nostrProfileFormState: NostrProfileFormState | null;
   nostrProfileAccountId: string | null;
   selectedChannel: string | null;
+  gmailSetup: GmailSetupFormState | null;
+  gmailRemoving: boolean;
   wizard: ChannelWizardState;
   wizardMultiselect: readonly unknown[];
   wizardTextValue: string;
@@ -99,6 +102,12 @@ export type ChannelsProps = {
   onNostrProfileSave: () => void;
   onNostrProfileImport: () => void;
   onNostrProfileToggleAdvanced: () => void;
+  onGmailSetupFieldChange: (field: GmailSetupFieldName, value: string) => void;
+  onGmailSetupTogglePasswordVisibility: () => void;
+  onGmailSetupContinue: () => void;
+  onGmailSetupSave: () => void;
+  onGmailSetupClose: () => void;
+  onGmailRemove: () => void;
 };
 
 export type ChannelsChannelData = {

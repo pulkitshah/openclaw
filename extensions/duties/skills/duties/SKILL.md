@@ -219,13 +219,21 @@ a plain-words description of what should route here (e.g. "invoices from our sup
 Duty needs at least one trigger; `duty_draft`/`duty_set_steps` default to `[{ kind: "manual" }]`
 when none is given.
 
-Inbound Gmail is not routed to a specific Duty directly — it wakes a separate, narrowly-scoped
+Inbound mail is not routed to a specific Duty directly — it wakes a separate, narrowly-scoped
 dispatcher agent (`duties-mail`) that reads the mail, picks the matching Duty, and calls
-`duty_run` on it. If you are that dispatcher agent:
+`duty_run` on it. Mail reaches this dispatcher over one of two transports, and attachment
+handling differs between them. If you are that dispatcher agent:
 
 1. Read the incoming message (from/subject/body are already in your context) and its
-   attachments — a Gmail attachment through `gog gmail <read/download>` via the `exec` tool, a
-   dropped file by its given path.
+   attachments:
+   - Mail routed through the `hooks.gmail` webhook: fetch attachment content through
+     `gog gmail <read/download>` via the `exec` tool.
+   - Mail routed through the generic IMAP connection (the Control UI's Gmail card, or any other
+     `extensions/imap` account): only the attachment filename is in your context — the plugin does
+     not expose attachment content to this dispatcher. If a Duty needs an attachment's content, say
+     so to the owner instead of guessing or attempting a download that does not exist for this
+     transport.
+   - A dropped file: by its given path.
 2. Call `duty_list` and match the mail against each active Duty's `triggers[].match` in plain
    words. Pick **exactly one**. If none clearly matches, or more than one plausibly does,
    message the owner with the `message` tool describing the mail and why nothing matched, and

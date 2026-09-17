@@ -445,6 +445,44 @@ export const en: TranslationMap & {
       title: "Discord",
       subtitle: "Bot status and channel configuration.",
     },
+    gmail: {
+      title: "Gmail",
+      subtitle: "Read mail from a Gmail inbox over IMAP and dispatch it to Duties.",
+      hubDescription:
+        "Connect a Gmail inbox with an app password — no Google Cloud project needed.",
+      notConfigured: "Not connected yet. Run setup to connect a Gmail inbox.",
+      account: "Gmail address",
+      mailAgent: "Mail dispatcher agent",
+      disconnect: "Disconnect",
+      disconnecting: "Disconnecting…",
+      errors: {
+        email: "Enter a valid email address.",
+        appPassword: "Enter the 16-character Google app password (spaces are fine).",
+        allowedSendersRequired:
+          "Add at least one address or @domain allowed to trigger Duties by email.",
+        allowedSendersFormat: "Use email addresses or @domain entries, separated by commas.",
+        saveFailed: "Could not save the Gmail connection.",
+        removeFailed: "Could not remove the Gmail connection.",
+      },
+      setup: {
+        subtitle: "Connect Gmail with an app password — no Google Cloud project needed.",
+        introBody1:
+          "Gmail needs 2-Step Verification turned on before it will generate an app password. This takes two minutes and never leaves your Google account.",
+        enable2sv: "1. Turn on 2-Step Verification",
+        createAppPassword: '2. Create an app password for "Mail"',
+        emailLabel: "Gmail address",
+        emailPlaceholder: "you@gmail.com",
+        appPasswordLabel: "App password",
+        appPasswordHelp:
+          "The 16-character code Google generated in the previous step, not your normal Google password.",
+        appPasswordPlaceholder: "abcd efgh ijkl mnop",
+        allowedSendersLabel: "Who can trigger Duties by email",
+        allowedSendersHelp:
+          "Email addresses or @domain entries allowed to trigger Duties. Mail from anyone else is ignored.",
+        allowedSendersPlaceholder: "you@example.com, @yourcompany.com",
+        connect: "Connect Gmail",
+      },
+    },
     googleChat: {
       title: "Google Chat",
       subtitle: "Chat API webhook status and channel configuration.",

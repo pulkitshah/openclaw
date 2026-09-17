@@ -163,6 +163,9 @@ describe("channels setup access", () => {
       "signal",
       "imessage",
       "nostr",
+      // Gmail is a guided extensions/imap wizard, not a ChannelPlugin (gmail-setup.ts), so it is
+      // never "configured" through the channel-status snapshot this fixture builds.
+      "Gmail",
     ]);
   });
 
@@ -189,6 +192,173 @@ describe("channels setup access", () => {
     ).not.toContain("Set up");
     expect(container.textContent).not.toContain("More channels…");
     expect(onStartSetup).not.toHaveBeenCalled();
+  });
+});
+
+describe("channels gmail card", () => {
+  function imapConfigForm(overrides?: Record<string, unknown>) {
+    return {
+      plugins: {
+        entries: {
+          imap: {
+            enabled: true,
+            config: {
+              accounts: {
+                gmail: {
+                  host: "imap.gmail.com",
+                  user: "owner@example.com",
+                  agentId: "duties-mail",
+                  ...overrides,
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+  }
+
+  it("lists Gmail as available (not connected) before any account is configured", () => {
+    const props = createProps({
+      ts: 1,
+      channelOrder: [],
+      channelLabels: {},
+      channels: {},
+      channelAccounts: {},
+      channelDefaultAccountId: {},
+    });
+    const container = document.createElement("div");
+    render(renderChannels(props), container);
+
+    const connectedTitles = [
+      ...container.querySelectorAll(".settings-row--nav .settings-row__title"),
+    ].map((node) => node.textContent?.trim());
+    const availableTitles = [
+      ...container.querySelectorAll(".channels-item__detail .settings-row__title"),
+    ].map((node) => node.textContent?.trim());
+    expect(connectedTitles).not.toContain("Gmail");
+    expect(availableTitles).toContain("Gmail");
+  });
+
+  it("moves Gmail into the connected list once an IMAP account is configured for it", () => {
+    const props = createProps({
+      ts: 1,
+      channelOrder: [],
+      channelLabels: {},
+      channels: {},
+      channelAccounts: {},
+      channelDefaultAccountId: {},
+    });
+    props.configForm = imapConfigForm();
+    const container = document.createElement("div");
+    render(renderChannels(props), container);
+
+    const connectedTitles = [
+      ...container.querySelectorAll(".settings-row--nav .settings-row__title"),
+    ].map((node) => node.textContent?.trim());
+    const availableTitles = [
+      ...container.querySelectorAll(".channels-item__detail .settings-row__title"),
+    ].map((node) => node.textContent?.trim());
+    expect(connectedTitles).toContain("Gmail");
+    expect(availableTitles).not.toContain("Gmail");
+  });
+
+  it("opens the guided Gmail setup instead of the generic wizard when Set up is clicked", () => {
+    const onStartSetup = vi.fn();
+    const props = createProps({
+      ts: 1,
+      channelOrder: [],
+      channelLabels: {},
+      channels: {},
+      channelAccounts: {},
+      channelDefaultAccountId: {},
+    });
+    props.onStartSetup = onStartSetup;
+    const container = document.createElement("div");
+    render(renderChannels(props), container);
+
+    const row = [...container.querySelectorAll<HTMLElement>(".channels-item")].find(
+      (element) => element.querySelector(".settings-row__title")?.textContent === "Gmail",
+    )!;
+    row.querySelector<HTMLButtonElement>(".btn")!.click();
+    expect(onStartSetup).toHaveBeenCalledExactlyOnceWith("gmail");
+  });
+
+  it("shows the not-connected state and a disconnect action once configured, in the detail overlay", () => {
+    const notConfiguredProps = createProps({
+      ts: 1,
+      channelOrder: [],
+      channelLabels: {},
+      channels: {},
+      channelAccounts: {},
+      channelDefaultAccountId: {},
+    });
+    notConfiguredProps.selectedChannel = "gmail";
+    const notConfiguredContainer = document.createElement("div");
+    render(renderChannels(notConfiguredProps), notConfiguredContainer);
+    expect(notConfiguredContainer.textContent).toContain("Not connected yet");
+    expect(notConfiguredContainer.querySelector("button.danger")).toBeNull();
+
+    const onRemove = vi.fn();
+    const configuredProps = createProps({
+      ts: 1,
+      channelOrder: [],
+      channelLabels: {},
+      channels: {},
+      channelAccounts: {},
+      channelDefaultAccountId: {},
+    });
+    configuredProps.configForm = imapConfigForm();
+    configuredProps.selectedChannel = "gmail";
+    configuredProps.onGmailRemove = onRemove;
+    const configuredContainer = document.createElement("div");
+    render(renderChannels(configuredProps), configuredContainer);
+    expect(configuredContainer.textContent).toContain("owner@example.com");
+    const disconnectButton = configuredContainer.querySelector<HTMLButtonElement>("button.danger")!;
+    expect(disconnectButton.textContent?.trim()).toBe("Disconnect");
+    disconnectButton.click();
+    expect(onRemove).toHaveBeenCalledOnce();
+  });
+
+  it("walks the guided setup: intro, then the connect form, then save", () => {
+    const onContinue = vi.fn();
+    const onFieldChange = vi.fn();
+    const onSave = vi.fn();
+    const props = createProps({
+      ts: 1,
+      channelOrder: [],
+      channelLabels: {},
+      channels: {},
+      channelAccounts: {},
+      channelDefaultAccountId: {},
+    });
+    props.gmailSetup = {
+      step: "intro",
+      email: "",
+      appPassword: "",
+      passwordVisible: false,
+      allowedSenders: "",
+      saving: false,
+      error: null,
+      fieldErrors: {},
+    };
+    props.onGmailSetupContinue = onContinue;
+    const container = document.createElement("div");
+    render(renderChannels(props), container);
+    expect(container.textContent).toContain("Turn on 2-Step Verification");
+
+    props.onGmailSetupFieldChange = onFieldChange;
+    props.onGmailSetupSave = onSave;
+    props.gmailSetup = { ...props.gmailSetup, step: "form" };
+    render(renderChannels(props), container);
+
+    const emailInput = container.querySelector<HTMLInputElement>("#gmail-setup-email")!;
+    emailInput.value = "owner@gmail.com";
+    emailInput.dispatchEvent(new Event("input"));
+    expect(onFieldChange).toHaveBeenCalledWith("email", "owner@gmail.com");
+
+    container.querySelector<HTMLButtonElement>(".channels-wizard__footer .btn.primary")!.click();
+    expect(onSave).toHaveBeenCalledOnce();
   });
 });
 
