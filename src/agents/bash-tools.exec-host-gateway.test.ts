@@ -4580,7 +4580,7 @@ EOF`,
 
     // Proves the block is a binary-identity check, not a substring match: a path that merely
     // contains "vasudev" (e.g. a per-user home directory name) must not be caught.
-    it("does not flag a path that only contains the CLI name as a substring", () => {
+    it("does not flag a path that only contains the CLI name as a substring", async () => {
       const executableResolution = {
         kind: "executable" as const,
         rawExecutable: "/home/vasudev-user/script.sh",
@@ -4597,7 +4597,7 @@ EOF`,
           policy: executableResolution,
         },
       };
-      expect(detectSelfCliInvocation([segment])).toBeNull();
+      expect(await detectSelfCliInvocation([segment])).toBeNull();
     });
   });
 });

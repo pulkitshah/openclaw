@@ -581,11 +581,21 @@ export async function analyzeNodeApprovalRequirement(params: {
   }
   // Hard, mode-independent gate: never let this agent shell out to its own CLI, regardless of
   // `full`/`allowlist`/`ask`/`auto` policy. See `../infra/exec-self-cli-deny.ts` for scope/limits.
-  const selfCliDenied =
-    params.request.denySelfCli === true &&
-    policyCommandEvals.some(
-      (entry) => detectSelfCliInvocation(entry.allowlistEval.segments) !== null,
-    );
+  let selfCliDenied = false;
+  if (params.request.denySelfCli === true) {
+    for (const entry of policyCommandEvals) {
+      const hit = await detectSelfCliInvocation(entry.allowlistEval.segments, {
+        cwd: entry.cwd,
+        env: analysisEnv,
+        platform: params.target.platform,
+        trustedSafeBinDirs: params.request.trustedSafeBinDirs,
+      });
+      if (hit) {
+        selfCliDenied = true;
+        break;
+      }
+    }
+  }
   const suppressionCommandEvals =
     preparedShellPayload && preparedShellPayload.trim().length > 0
       ? policyCommandEvals.filter(

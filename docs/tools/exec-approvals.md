@@ -307,9 +307,12 @@ This is a binary-identity check, not a substring match: it matches a
 command's resolved executable name (bare `PATH` lookup, or a path whose
 target is exactly `vasudev`/`openclaw`), so a path that merely contains one
 of those names — for example `/home/vasudev-user/script.sh` — is
-unaffected. Known limitation: invoking the underlying entry script directly
-through a generic interpreter (for example `node /path/to/openclaw.mjs
-...`) is not detected.
+unaffected. The check also recurses into a generic shell wrapper's inline
+payload (for example `bash -lc "vasudev ..."`, `sh -c "vasudev ..."`, or a
+nested `env bash -lc "vasudev ..."`), up to several levels of nesting, so
+wrapping the CLI in a shell does not bypass it. Known limitation: invoking the
+underlying entry script directly through a generic interpreter (for example
+`node /path/to/openclaw.mjs ...`) is not detected.
 
 Rationale: once an agent has dedicated tool-call paths for every
 legitimate CLI-shaped action (for example Team's `team_add`/`team_remove`/

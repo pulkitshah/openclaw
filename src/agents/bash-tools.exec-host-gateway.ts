@@ -548,7 +548,15 @@ export async function resolveGatewaySelfCliDenial(
     platform: process.platform,
     trustedSafeBinDirs: params.trustedSafeBinDirs,
   });
-  if (detectSelfCliInvocation(allowlistEval.segments)) {
+  if (
+    await detectSelfCliInvocation(allowlistEval.segments, {
+      cwd: params.workdir,
+      env: params.env,
+      platform: process.platform,
+      safeBins: params.safeBins,
+      trustedSafeBinDirs: params.trustedSafeBinDirs,
+    })
+  ) {
     return buildGatewayExecApprovalDeniedToolResult({
       deniedReason: "self-cli-denied",
       command: params.command,
@@ -601,7 +609,16 @@ export async function processGatewayAllowlist(
   });
   // Hard, mode-independent gate: never let this agent shell out to its own CLI, regardless of
   // `full`/`allowlist`/`ask`/`auto` policy. See `../infra/exec-self-cli-deny.ts` for scope/limits.
-  if (params.denySelfCli === true && detectSelfCliInvocation(allowlistEval.segments)) {
+  if (
+    params.denySelfCli === true &&
+    (await detectSelfCliInvocation(allowlistEval.segments, {
+      cwd: params.workdir,
+      env: params.env,
+      platform: process.platform,
+      safeBins: params.safeBins,
+      trustedSafeBinDirs: params.trustedSafeBinDirs,
+    }))
+  ) {
     return {
       deniedResult: buildGatewayExecApprovalDeniedToolResult({
         deniedReason: "self-cli-denied",

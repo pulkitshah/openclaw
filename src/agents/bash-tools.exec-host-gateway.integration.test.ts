@@ -277,4 +277,72 @@ describe.skipIf(process.platform === "win32")("gateway dispatch executable bindi
       expect(spawn.mock.calls.length).toBe(0);
     },
   );
+
+  // Fix-round regression: this exact `bash -lc "vasudev ..."`/`openclaw ...` shell-out was a live,
+  // unconditional bypass of `denySelfCli` under the full-trust `bypassApprovals` path (mode=full +
+  // bypassHostApprovalFloors) — `evaluateShellAllowlistWithAuthorization`'s returned segments never
+  // included the wrapped inner command, so `resolveGatewaySelfCliDenial` saw only a `bash` segment
+  // and let the command spawn for real. See `../infra/exec-self-cli-deny.test.ts` for the unit-level
+  // coverage of the underlying recursion fix.
+  describe("denySelfCli under full-trust bypass: shell-wrapper bypass regression", () => {
+    function makeFullBypassTool(denySelfCli: boolean) {
+      return createExecTool({
+        agentId: "main",
+        host: "gateway",
+        mode: "full",
+        bypassHostApprovalFloors: true,
+        denySelfCli,
+        safeBins: [],
+        cwd: root,
+        pathPrepend: [binDir, "/usr/bin", "/bin"],
+        runId: "self-cli-bypass-run",
+        messageProvider: "webchat",
+      });
+    }
+
+    it.each([
+      { executable: "vasudev", command: 'bash -lc "vasudev pairing approve whatsapp ABC123"' },
+      { executable: "openclaw", command: 'bash -lc "openclaw config set foo bar"' },
+      { executable: "vasudev", command: 'sh -c "vasudev pairing approve whatsapp ABC123"' },
+      { executable: "vasudev", command: 'env bash -lc "vasudev pairing approve whatsapp ABC123"' },
+    ])(
+      "denies $command and never spawns the real $executable binary",
+      async ({ executable, command }) => {
+        fs.writeFileSync(path.join(binDir, executable), "#!/bin/sh\necho REAL_SELF_CLI_RAN\n", {
+          mode: 0o755,
+        });
+        const result = await makeFullBypassTool(true).execute("self-cli-bypass-call", { command });
+        expect(result.details.status).not.toBe("completed");
+        expect(result.content[0]).toMatchObject({
+          text: expect.stringContaining("self-cli-denied"),
+        });
+        expect(spawn.mock.calls.length).toBe(0);
+        expect(callGatewayTool).not.toHaveBeenCalled();
+      },
+    );
+
+    it("leaves an ordinary command wrapped in bash -lc unaffected by denySelfCli (non-regression)", async () => {
+      const supervisor = createProcessSupervisor();
+      spawn.mockImplementation((input) => supervisor.spawn(input));
+      const result = await makeFullBypassTool(true).execute("self-cli-bypass-benign-call", {
+        command: 'bash -lc "printf ok-not-self-cli"',
+      });
+      expect(result.details).toMatchObject({ status: "completed", exitCode: 0 });
+      expect(result.content[0]).toMatchObject({ text: expect.stringContaining("ok-not-self-cli") });
+      expect(spawn.mock.calls.length).toBe(1);
+    });
+
+    it("is a no-op when denySelfCli is not set, even for the same bash -lc self-CLI command", async () => {
+      fs.writeFileSync(path.join(binDir, "vasudev"), "#!/bin/sh\necho REAL_SELF_CLI_RAN\n", {
+        mode: 0o755,
+      });
+      const supervisor = createProcessSupervisor();
+      spawn.mockImplementation((input) => supervisor.spawn(input));
+      const result = await makeFullBypassTool(false).execute("self-cli-bypass-off-call", {
+        command: 'bash -lc "vasudev pairing approve whatsapp ABC123"',
+      });
+      expect(result.details).toMatchObject({ status: "completed", exitCode: 0 });
+      expect(spawn.mock.calls.length).toBe(1);
+    });
+  });
 });

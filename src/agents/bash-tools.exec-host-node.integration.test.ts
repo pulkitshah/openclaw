@@ -274,6 +274,45 @@ it("leaves an unrelated node command unaffected by denySelfCli", async () => {
   expect(invokeCount).toBe(1);
 });
 
+// Fix-round regression: the node host's self-CLI check calls the exact same shared
+// `detectSelfCliInvocation` helper as the gateway host, and had the identical pre-existing gap —
+// `bash -lc "vasudev ..."` produced only a `bash` segment, so the inner `vasudev` token was never
+// seen and the command reached `system.run` for real. See `../infra/exec-self-cli-deny.test.ts` for
+// unit-level coverage of the underlying recursion fix.
+it.each([
+  'bash -lc "vasudev pairing approve whatsapp ABC123"',
+  'bash -lc "openclaw config set foo bar"',
+  'sh -c "vasudev pairing approve whatsapp ABC123"',
+  'env bash -lc "vasudev pairing approve whatsapp ABC123"',
+])(
+  "denies the shell-wrapped self-CLI bypass %s on the node host, before any dispatch",
+  async (command) => {
+    const result = await executeNodeHostCommand({
+      ...request,
+      command,
+      denySelfCli: true,
+    });
+    expect(result.details.status).toBe("failed");
+    expect(result.content[0]).toMatchObject({
+      type: "text",
+      text: expect.stringContaining("self-cli-denied"),
+    });
+    expect(rpc.mock.calls.some(([method]) => method === "exec.approval.request")).toBe(false);
+    expect(rpc.mock.calls.some(([method]) => method === "exec.approval.waitDecision")).toBe(false);
+    expect(invokeCount).toBe(0);
+  },
+);
+
+it("leaves an ordinary bash -lc command unaffected by denySelfCli on the node host (non-regression)", async () => {
+  const result = await executeNodeHostCommand({
+    ...request,
+    command: 'bash -lc "/usr/bin/printf node-policy-proof"',
+    denySelfCli: true,
+  });
+  expect(result.details).toMatchObject({ status: "completed", aggregated: "node-policy-proof" });
+  expect(invokeCount).toBe(1);
+});
+
 it.each([
   "printf node-policy-proof",
   "/usr/bin/printf *.txt",
