@@ -13,7 +13,11 @@ import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { OpenClawPluginApi } from "../api.js";
 import type { Ctx, Scope } from "./gateway-context.js";
 import type { TeamStore } from "./store.js";
-import { revokePairingEntries, writeTeamProjection } from "./team-write.js";
+import {
+  approvePendingPairingRequests,
+  revokePairingEntries,
+  writeTeamProjection,
+} from "./team-write.js";
 import {
   assertTeamProjectionSafe,
   normalizeTeamMemberId,
@@ -245,6 +249,23 @@ export function registerTeamGatewayMethods(deps: {
     ];
     assertTeamProjectionSafe(currentConfig(), prospective);
 
+    // The one sanctioned path from "pending pairing request" to "admitted, on the roster": before
+    // the roster row exists, approve any pending request matching one of these identities. This
+    // runs first, not last, because a failure here has no durable effect to undo (see
+    // `approvePendingPairingRequests`'s own doc comment) — putting it after the roster/config
+    // writes would mean a failure here had to unwind them instead of the other way around. An
+    // identity with no pending request is untouched: `writeTeamProjection`'s `allowFrom` write below
+    // is what admits a pre-emptively added member.
+    //
+    // Re-checked immediately before this durable pairing-store write, same discipline as the
+    // `assertStillAuthorized` immediately before `writeTeamProjection`'s config write below — the
+    // lookups above this point all await.
+    assertStillAuthorized(ctx);
+    const { approved: approvedPairings } = await approvePendingPairingRequests({
+      runtime: api.runtime,
+      identities: channels,
+    });
+
     const member = await store.addMember({ id: memberId, name, channels, addedBy: owner.id });
     try {
       const { warnings } = await writeTeamProjection({
@@ -252,10 +273,21 @@ export function registerTeamGatewayMethods(deps: {
         assertStillAuthorized: () => assertStillAuthorized(ctx),
       });
       safeEmit("changed", { team: true });
-      return { ok: true, member, warnings };
+      return { ok: true, member, warnings, pairingApproved: approvedPairings };
     } catch (error) {
-      // A rejected config write must not leave a roster row nothing enforces.
+      // A rejected config write must not leave a roster row nothing enforces. It must not leave a
+      // pairing approval standing either: nothing else in this call accounts for that identity once
+      // the roster row is gone, so a `team.add` that fails here but leaves the approval in place
+      // would still let this sender reach Vasu through the pairing store alone — exactly the
+      // disconnected admission this whole feature closes.
       await store.removeMember(memberId).catch(() => undefined);
+      if (approvedPairings.length > 0) {
+        await revokePairingEntries({
+          runtime: api.runtime,
+          cfg: currentConfig(),
+          identities: approvedPairings,
+        }).catch(() => undefined);
+      }
       throw error;
     }
   });

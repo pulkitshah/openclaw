@@ -57,6 +57,9 @@ describe("the Team page's own controls", () => {
       if (method === "team.add") {
         throw new Error(ADD_PROBE_ERROR);
       }
+      if (method === "channels.pairing.list") {
+        return { requests: [] };
+      }
       if (method === "team.owner.set") {
         // What the real handler does on a brand-new desk: seeds the roster's owner row, so the
         // next read answers a roster instead of the form.
@@ -118,6 +121,9 @@ describe("the Team page's own controls", () => {
       if (method === "team.add") {
         throw new Error(ADD_PROBE_ERROR);
       }
+      if (method === "channels.pairing.list") {
+        return { requests: [] };
+      }
       if (method === "team.setChannels") {
         return { ok: true };
       }
@@ -147,6 +153,70 @@ describe("the Team page's own controls", () => {
     }
   });
 
+  it("adds a pending pairing requester to the Team from the prompt's own button, no form to fill", async () => {
+    let members: Array<Record<string, unknown>> = [
+      {
+        id: "owner",
+        name: "Owner",
+        role: "owner",
+        channels: [{ channel: "telegram", senderId: "111" }],
+      },
+    ];
+    const request = vi.fn<RequestFn>(async (method, params) => {
+      if (method === "team.get") {
+        return { members, warnings: [] };
+      }
+      if (method === "channels.pairing.list") {
+        return {
+          requests: [
+            {
+              requestId: "req-1",
+              channel: "telegram",
+              channelLabel: "Telegram",
+              accountId: "default",
+              senderId: "5551234",
+              senderLabel: "Telegram user id",
+              metadata: { firstName: "Ashu" },
+              createdAt: "2026-01-01T00:00:00.000Z",
+              lastSeenAt: "2026-01-01T00:00:00.000Z",
+              expiresAt: "2026-01-01T01:00:00.000Z",
+              notifySupported: true,
+            },
+          ],
+        };
+      }
+      if (method === "team.add") {
+        if (!params || Object.keys(params).length === 0) {
+          // The page's own admin probe.
+          throw new Error(ADD_PROBE_ERROR);
+        }
+        members = [...members, { id: "ashu", name: "Ashu", role: "member", channels: [] }];
+        return { ok: true, member: members[1], pairingApproved: [] };
+      }
+      throw new Error(`unexpected ${method}`);
+    });
+    const { host, context } = testHost(request);
+    const container = document.createElement("div");
+    const mounted = createTeamPageMount(host)(container, context);
+    try {
+      await settle();
+      expect(container.textContent).toContain("Ashu");
+      expect(container.textContent).toContain("Waiting");
+      const addButton = container.querySelector<HTMLButtonElement>("[data-team-add-pending]")!;
+      expect(addButton).not.toBeNull();
+
+      addButton.click();
+      await settle();
+
+      expect(request).toHaveBeenCalledWith("team.add", {
+        name: "Ashu",
+        channels: [{ channel: "telegram", senderId: "5551234", accountId: "default" }],
+      });
+    } finally {
+      mounted?.dispose?.();
+    }
+  });
+
   it("refuses an empty target with a retryable message instead of calling the Gateway", async () => {
     const request = vi.fn<RequestFn>(async (method) => {
       if (method === "team.get") {
@@ -154,6 +224,9 @@ describe("the Team page's own controls", () => {
       }
       if (method === "team.add") {
         throw new Error(ADD_PROBE_ERROR);
+      }
+      if (method === "channels.pairing.list") {
+        return { requests: [] };
       }
       throw new Error(`unexpected ${method}`);
     });

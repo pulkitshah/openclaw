@@ -64,6 +64,94 @@ function channelAccountIds(cfg: OpenClawConfig, channel: string): string[] {
   return [...new Set([DEFAULT_ACCOUNT_ID, ...listAccountIds(cfg)])];
 }
 
+/** The one shape this module reads off `channels.pairing.list`'s `requests[]`
+ *  (`packages/gateway-protocol/src/schema/channel-pairing.ts`) — only the fields
+ *  `approvePendingPairingRequests` needs to match and then re-submit to `channels.pairing.approve`. */
+type PendingPairingRequest = {
+  requestId: string;
+  channel: string;
+  accountId: string;
+  senderId: string;
+};
+
+/**
+ * Looks up and approves any pending DM-pairing request matching one of the given identities, so
+ * `team.add` is the ONE sanctioned path from "pending request" to "admitted, on the roster" — never
+ * a separate `channels.pairing.approve` call that admits a sender the roster never named
+ * (`senderGateForDirect`, `src/channels/message-access/sender-gates.ts:55`, admits a pairing-store
+ * match independently of any allowlist, so an unrouted approval is a real, disconnected admission,
+ * not a formality).
+ *
+ * An identity with no matching pending request is left untouched — that is the owner adding someone
+ * pre-emptively, before they have ever messaged, and admission for that case is
+ * `writeTeamProjection`'s `allowFrom` write, not this. `channels.pairing.list` throwing (a channel
+ * with no pairing capability at all, or no pairing-policy account) is treated the same way: nothing
+ * to approve for that identity, not a `team.add` failure.
+ *
+ * Each approval is a real, already-committed pairing-store transaction
+ * (`resolveChannelPairingRequest` runs inside one SQLite write transaction,
+ * `src/pairing/pairing-store.ts:348-400`) — it does not roll back on its own. If a later identity's
+ * approval fails, or a later step in the caller's own flow fails, the caller must compensate by
+ * revoking exactly the identities this call reports approved, via `revokePairingEntries` — passing
+ * back `identity` with `accountId` set to the request's own `accountId` (never the original,
+ * possibly-absent identity accountId) so the compensating revoke targets the one account that was
+ * actually touched.
+ */
+export async function approvePendingPairingRequests(params: {
+  runtime: OpenClawPluginApi["runtime"];
+  identities: readonly TeamChannelIdentity[];
+}): Promise<{ approved: TeamChannelIdentity[] }> {
+  const approved: TeamChannelIdentity[] = [];
+  try {
+    for (const identity of params.identities) {
+      let pending: PendingPairingRequest[];
+      try {
+        const result = await params.runtime.gateway.request<{ requests?: PendingPairingRequest[] }>(
+          "channels.pairing.list",
+          {
+            channel: identity.channel,
+            ...(identity.accountId ? { accountId: identity.accountId } : {}),
+          },
+          { scopes: ["operator.pairing"] },
+        );
+        pending = (result.requests ?? []).filter((request) => request.senderId === identity.senderId);
+      } catch {
+        continue;
+      }
+      for (const match of pending) {
+        await params.runtime.gateway.request(
+          "channels.pairing.approve",
+          {
+            channel: match.channel,
+            accountId: match.accountId,
+            requestId: match.requestId,
+            notify: true,
+          },
+          { scopes: ["operator.pairing"] },
+        );
+        approved.push({ ...identity, accountId: match.accountId });
+      }
+    }
+  } catch (error) {
+    // An earlier identity in this same call was already approved — a committed pairing-store
+    // write — before a later one failed. Leaving it standing while `team.add` reports failure is
+    // exactly the disconnected admission this function exists to prevent, so it is undone here,
+    // best-effort, before the failure propagates.
+    if (approved.length > 0) {
+      await revokePairingEntries({
+        runtime: params.runtime,
+        // SAFETY: `cfg` is only read by `revokePairingEntries` to enumerate a channel's accounts
+        // for an identity with no `accountId` — every identity pushed onto `approved` above has one
+        // (the matched request's own account), so that branch never runs and `cfg` is never read.
+        cfg: {},
+        identities: approved,
+      }).catch(() => undefined);
+    }
+    throw error;
+  }
+  return { approved };
+}
+
 /**
  * Drops a removed identity from the channel's pairing store, on every account it could be paired on.
  *

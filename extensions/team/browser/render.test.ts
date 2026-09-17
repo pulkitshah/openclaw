@@ -104,4 +104,63 @@ describe("teamPanel", () => {
     expect(html).toContain("data-retry");
     expect(html).toContain("Pulkit");
   });
+
+  it("shows no pending-request prompt when nothing is pending", () => {
+    const html = teamPanel(teamView, true, { pending: [] });
+    expect(html).not.toContain("data-team-add-pending");
+  });
+
+  it("surfaces a pending pairing request as a one-click add, carrying the whole identity", () => {
+    const html = teamPanel(teamView, true, {
+      pending: [
+        {
+          requestId: "req-1",
+          channel: "telegram",
+          channelLabel: "Telegram",
+          accountId: "default",
+          senderId: "5559999",
+          metadata: { firstName: "Ashu" },
+        },
+      ],
+    });
+    expect(html).toContain("Ashu");
+    expect(html).toContain("5559999");
+    expect(html).toContain("data-team-add-pending");
+    expect(html).toContain('data-pending-name="Ashu"');
+    expect(html).toContain('data-pending-channel="telegram"');
+    expect(html).toContain('data-pending-account="default"');
+    expect(html).toContain('data-pending-sender="5559999"');
+  });
+
+  it("falls back to the sender id when a pending request has no captured name", () => {
+    const html = teamPanel(teamView, true, {
+      pending: [
+        {
+          requestId: "req-2",
+          channel: "whatsapp",
+          channelLabel: "WhatsApp",
+          accountId: "default",
+          senderId: "+919800011111",
+        },
+      ],
+    });
+    expect(html).toContain('data-pending-name="+919800011111"');
+  });
+
+  it("withholds the pending-request prompt without admin scope, same as every other write control", () => {
+    const html = teamPanel(teamView, false, {
+      pending: [
+        {
+          requestId: "req-1",
+          channel: "telegram",
+          channelLabel: "Telegram",
+          accountId: "default",
+          senderId: "5559999",
+          metadata: { firstName: "Ashu" },
+        },
+      ],
+    });
+    expect(html).not.toContain("data-team-add-pending");
+    expect(html).not.toContain("5559999");
+  });
 });

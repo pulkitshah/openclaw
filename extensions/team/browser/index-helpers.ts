@@ -32,11 +32,19 @@ export function coerceErrorMessage(error: unknown): string {
 
 /** The Team page's own click router — the `data-team-*` branches, plus the empty-roster owner
  *  form's `data-settings-save`. */
+export type PendingTeamMemberParams = {
+  name: string;
+  channel: string;
+  accountId: string;
+  senderId: string;
+};
+
 export function attachTeamClickRouter(
   root: HTMLElement,
   handlers: {
     getLastRetry: () => (() => void) | null;
     addTeamMember: () => void;
+    addPendingTeamMember: (params: PendingTeamMemberParams) => void;
     removeTeamMember: (memberId: string) => void;
     transferTeamOwnership: (memberId: string) => void;
     addTeamChannel: (memberId: string) => void;
@@ -46,7 +54,7 @@ export function attachTeamClickRouter(
   root.addEventListener("click", (event) => {
     // SAFETY: this listener is on `root`, an HTMLElement, so its click events always target an Element.
     const target = (event.target as HTMLElement).closest<HTMLElement>(
-      "[data-retry],[data-team-add],[data-team-remove],[data-team-transfer],[data-team-channel-add],[data-settings-save]",
+      "[data-retry],[data-team-add],[data-team-add-pending],[data-team-remove],[data-team-transfer],[data-team-channel-add],[data-settings-save]",
     );
     if (!target) {
       return;
@@ -59,6 +67,17 @@ export function attachTeamClickRouter(
     }
     if (dataset.teamAdd !== undefined) {
       handlers.addTeamMember();
+      return;
+    }
+    if (dataset.teamAddPending !== undefined) {
+      // The button itself carries the whole identity (`render.ts`'s `pendingRow`) — no separate
+      // lookup back into a pending list by request id.
+      handlers.addPendingTeamMember({
+        name: dataset.pendingName ?? "",
+        channel: dataset.pendingChannel ?? "",
+        accountId: dataset.pendingAccount ?? "",
+        senderId: dataset.pendingSender ?? "",
+      });
       return;
     }
     if (dataset.teamRemove !== undefined) {

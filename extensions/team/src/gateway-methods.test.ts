@@ -17,9 +17,14 @@ vi.mock("./team-write.js", () => ({
     },
   ),
   revokePairingEntries: vi.fn(async () => ({ warnings: [] })),
+  approvePendingPairingRequests: vi.fn(async () => ({ approved: [] })),
 }));
 
-import { revokePairingEntries, writeTeamProjection } from "./team-write.js";
+import {
+  approvePendingPairingRequests,
+  revokePairingEntries,
+  writeTeamProjection,
+} from "./team-write.js";
 
 /** The smallest config that satisfies `assertTeamProjectionSafe`: explicit ownership, one agent, a
  *  channel-wide binding per channel, and a non-empty allowlist on each channel Team will touch. */
@@ -310,6 +315,72 @@ describe("team.add", () => {
     });
     expect(result.ok).toBe(false);
     expect((await store.listMembers()).map((m) => m.id)).toEqual(["owner"]);
+  });
+
+  it("approves a matching pending pairing request as part of the same call, before the roster write", async () => {
+    const { call, store } = harness({ config: deskFixtureConfig() });
+    await call("team.owner.set", { channel: "telegram", target: "111" });
+    (approvePendingPairingRequests as Mock).mockResolvedValueOnce({
+      approved: [{ channel: "telegram", senderId: "5551234", accountId: "default", addedAt: 1 }],
+    });
+
+    const added = await call("team.add", {
+      name: "Ramesh",
+      channels: [{ channel: "telegram", senderId: "5551234" }],
+    });
+
+    expect(added.ok).toBe(true);
+    expect(approvePendingPairingRequests).toHaveBeenCalledWith(
+      expect.objectContaining({
+        identities: [expect.objectContaining({ channel: "telegram", senderId: "5551234" })],
+      }),
+    );
+    expect((added.result as { pairingApproved: unknown[] }).pairingApproved).toEqual([
+      { channel: "telegram", senderId: "5551234", accountId: "default", addedAt: 1 },
+    ]);
+    expect((await store.listMembers()).map((m) => m.id)).toEqual(["owner", "ramesh"]);
+  });
+
+  it("revokes an approval already made this call when the projection write is rejected afterward", async () => {
+    const { call, store } = harness({ config: deskFixtureConfig() });
+    await call("team.owner.set", { channel: "telegram", target: "111" });
+    const approvedIdentity = {
+      channel: "telegram",
+      senderId: "5551234",
+      accountId: "default",
+      addedAt: 1,
+    };
+    (approvePendingPairingRequests as Mock).mockResolvedValueOnce({ approved: [approvedIdentity] });
+    (writeTeamProjection as Mock).mockRejectedValueOnce(new Error("config write rejected"));
+    (revokePairingEntries as Mock).mockClear();
+
+    const result = await call("team.add", {
+      name: "Ramesh",
+      channels: [{ channel: "telegram", senderId: "5551234" }],
+    });
+
+    expect(result.ok).toBe(false);
+    // The roster row a rejected projection must not leave standing (existing guarantee) AND the
+    // pairing-store approval this call already committed above — leaving only the roster row
+    // reverted would still admit this sender through the pairing store alone.
+    expect((await store.listMembers()).map((m) => m.id)).toEqual(["owner"]);
+    expect(revokePairingEntries).toHaveBeenCalledWith(
+      expect.objectContaining({ identities: [approvedIdentity] }),
+    );
+  });
+
+  it("does not call revokePairingEntries on a rejected projection when nothing was approved", async () => {
+    const { call } = harness({ config: deskFixtureConfig() });
+    await call("team.owner.set", { channel: "telegram", target: "111" });
+    (writeTeamProjection as Mock).mockRejectedValueOnce(new Error("config write rejected"));
+    (revokePairingEntries as Mock).mockClear();
+
+    await call("team.add", {
+      name: "Ramesh",
+      channels: [{ channel: "telegram", senderId: "5551234" }],
+    });
+
+    expect(revokePairingEntries).not.toHaveBeenCalled();
   });
 });
 

@@ -33,7 +33,7 @@ function renderErrorBanner(message: string): string {
   return `<div class="error"><span>${esc(message)}</span><button class="btn" data-retry>Retry</button></div>`;
 }
 
-export type RenderOpts = { error?: string };
+export type RenderOpts = { error?: string; pending?: readonly TeamPendingRequestView[] };
 
 /** Alphabetical: the channel list the owner-target and add-someone forms offer, matching the
  *  channel plugins that can carry an approval/question to a person. */
@@ -64,6 +64,19 @@ type TeamMemberView = {
 };
 export type TeamView = { members: TeamMemberView[]; warnings?: string[] };
 
+/** The browser bundle's own structural view of one `channels.pairing.list` request
+ *  (`packages/gateway-protocol/src/schema/channel-pairing.ts`'s `ChannelsPairingRequest`) — only the
+ *  fields the "waiting to be added" prompt needs: enough to label the person and to hand straight
+ *  back to `team.add` as one `{ channel, senderId, accountId }` identity, unchanged. */
+export type TeamPendingRequestView = {
+  requestId: string;
+  channel: string;
+  channelLabel: string;
+  accountId: string;
+  senderId: string;
+  metadata?: Record<string, string>;
+};
+
 function teamRow(member: TeamMemberView, canAdmin: boolean): string {
   const role = member.role === "owner" ? "Owner" : "Member";
   const channels = member.channels
@@ -84,6 +97,51 @@ function teamRow(member: TeamMemberView, canAdmin: boolean): string {
       `<button class="btn" data-team-channel-add="${esc(member.id)}">Add a channel</button></span>`
     : "";
   return `<div class="teamrow"><span class="tname">${esc(member.name)}</span><span class="trole">${role}</span><span class="tchans">${channels}</span><span class="tacts">${actions}${addChannel}</span></div>`;
+}
+
+/** Best display name for a pending pairing request: channel plugins that capture a name at
+ *  challenge time (`extensions/whatsapp/src/inbound/access-control.ts`'s `meta.name` from the
+ *  WhatsApp push name, `extensions/telegram/src/dm-access.ts`'s `meta.firstName`/`lastName`) put it
+ *  in `metadata`; a channel that captures none falls back to the id itself, same as `senderLabel`
+ *  would describe it. */
+function pendingRequestName(request: TeamPendingRequestView): string {
+  const meta = request.metadata ?? {};
+  const fullName = [meta.firstName, meta.lastName].filter(Boolean).join(" ");
+  return meta.name || fullName || meta.username || request.senderId;
+}
+
+/** One `data-team-add-pending` button per pending request, carrying the whole identity it would
+ *  add — name, channel, account and sender id — as its own `data-pending-*` attributes, so the
+ *  click handler needs no lookup back into a list by `requestId`: the button IS the identity. */
+function pendingRow(request: TeamPendingRequestView): string {
+  const name = pendingRequestName(request);
+  return (
+    `<div class="pendingrow">` +
+    `<span class="tname">${esc(name)}</span>` +
+    `<span class="muted small">${esc(request.senderId)} · ${esc(request.channelLabel)}</span>` +
+    `<button class="btn primary" data-team-add-pending` +
+    ` data-pending-name="${esc(name)}"` +
+    ` data-pending-channel="${esc(request.channel)}"` +
+    ` data-pending-account="${esc(request.accountId)}"` +
+    ` data-pending-sender="${esc(request.senderId)}">Add to Team</button>` +
+    `</div>`
+  );
+}
+
+/** "Ashu (+91…) is waiting — add to Team?": one click picks a real pending requester instead of the
+ *  owner typing a number from memory, and folds `channels.pairing.approve` into that same
+ *  `team.add` call (`gateway-methods.ts`'s `approvePendingPairingRequests`) — never a bare pairing
+ *  approval that admits someone the roster never named. Empty when there is nothing pending, so it
+ *  adds no chrome to the common case. */
+function pendingSection(pending: readonly TeamPendingRequestView[]): string {
+  if (pending.length === 0) {
+    return "";
+  }
+  return (
+    `<div class="teampending"><h3 class="small muted">Waiting — add them to Team?</h3>` +
+    pending.map(pendingRow).join("") +
+    `</div>`
+  );
 }
 
 /** The whole content of the Team page — its own top-level sidebar item. Hiding the mutating
@@ -107,11 +165,15 @@ export function teamPanel(
     .map((w) => `<p class="muted small warn">${esc(w)}</p>`)
     .join("");
   const rows = view.members.map((m) => teamRow(m, canAdmin)).join("");
+  // Read-level callers never see this: `channels.pairing.list` carries raw sender ids, the same PII
+  // `team.get` itself withholds below admin scope, and the button it feeds only `team.add`, an
+  // admin-only write.
+  const pending = canAdmin ? pendingSection(opts?.pending ?? []) : "";
   const add = canAdmin
     ? `<div class="teamadd"><label class="fld"><span>Name</span><input type="text" data-team-name placeholder="Ramesh"></label>` +
       `<label class="fld"><span>Channel</span><select data-team-channel>${OWNER_CHANNELS.map((c) => `<option value="${c}">${c}</option>`).join("")}</select></label>` +
       `<label class="fld"><span>Their id on that channel</span><input type="text" data-team-sender placeholder="chat id, phone, @handle"></label>` +
       `<button class="btn primary" data-team-add>Add someone</button></div>`
     : "";
-  return `${errorBanner}<div><h3>Team</h3><p class="muted small">Who Vasu takes instructions from. Everyone here can reach Vasu on the channels listed.</p>${warnings}<div class="teamlist">${rows}</div>${add}</div>`;
+  return `${errorBanner}<div><h3>Team</h3><p class="muted small">Who Vasu takes instructions from. Everyone here can reach Vasu on the channels listed.</p>${warnings}${pending}<div class="teamlist">${rows}</div>${add}</div>`;
 }

@@ -40,11 +40,10 @@ export function createTeamPageMount(host: ControlUiHost): ControlUiView<Props> {
       if (context.signal.aborted) {
         return;
       }
-      root.innerHTML = teamPanel(
-        state.team,
-        state.canAdmin,
-        lastError ? { error: lastError } : undefined,
-      );
+      root.innerHTML = teamPanel(state.team, state.canAdmin, {
+        pending: state.pending,
+        ...(lastError ? { error: lastError } : {}),
+      });
     };
 
     const loaders = createTeamLoaders({
@@ -62,12 +61,14 @@ export function createTeamPageMount(host: ControlUiHost): ControlUiView<Props> {
       getTeam: () => state.team,
       clearError,
       loadTeam: loaders.loadTeam,
+      loadPending: loaders.loadPending,
       fail,
     });
 
     attachTeamClickRouter(root, {
       getLastRetry: () => lastRetry,
       addTeamMember: () => void teamActions.addTeamMember(),
+      addPendingTeamMember: (params) => void teamActions.addPendingTeamMember(params),
       removeTeamMember: (memberId) => void teamActions.removeTeamMember(memberId),
       transferTeamOwnership: (memberId) => void teamActions.transferTeamOwnership(memberId),
       addTeamChannel: (memberId) => void teamActions.addTeamChannel(memberId),
@@ -75,15 +76,20 @@ export function createTeamPageMount(host: ControlUiHost): ControlUiView<Props> {
     });
 
     // Keeps the roster live when another connection (or this same one, from a mutation above)
-    // changes it.
+    // changes it. The pending-request prompt has no matching push event (core's own channels page
+    // polls for the same reason — `ui/src/pages/channels/channels-page.ts`'s `pairingPolling`), so
+    // it refreshes on this same signal plus every load the mount already does below; a request that
+    // arrives while the page sits idle only surfaces on the next Team-roster change or reload.
     const offChanged = host.onEvent("plugin.team.changed", (payload) => {
       if (isRecord(payload) && payload.team === true) {
         void loaders.loadTeam();
+        void loaders.loadPending();
       }
     });
 
     draw();
     void loaders.loadTeam();
+    void loaders.loadPending();
     void loaders.probeAdmin();
 
     return {

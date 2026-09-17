@@ -151,6 +151,27 @@
   align-items: center;
   gap: 6px;
 }
+.dt .teampending {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0;
+}
+.dt .pendingrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px dashed var(--border-strong, var(--border));
+  border-radius: 8px;
+}
+.dt .pendingrow .tname {
+  font-weight: 600;
+}
+.dt .pendingrow button {
+  margin-left: auto;
+}
 .dt .teamadd {
   display: flex;
   flex-wrap: wrap;

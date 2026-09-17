@@ -1,7 +1,7 @@
 // Team roster mutations for the Team Control UI page: the DOM-reading actions behind the panel's
 // add-someone / add-a-channel / remove / transfer / save-owner controls.
 import type { ControlUiHost, ControlUiViewContext } from "openclaw/plugin-sdk/control-ui";
-import type { Props } from "./index-helpers.js";
+import type { PendingTeamMemberParams, Props } from "./index-helpers.js";
 import type { TeamView } from "./render.js";
 
 export function createTeamActions(deps: {
@@ -11,9 +11,10 @@ export function createTeamActions(deps: {
   getTeam: () => TeamView | undefined;
   clearError: () => void;
   loadTeam: () => Promise<void>;
+  loadPending: () => Promise<void>;
   fail: (error: unknown, retry: () => void) => void;
 }) {
-  const { host, getContext, root, getTeam, clearError, loadTeam, fail } = deps;
+  const { host, getContext, root, getTeam, clearError, loadTeam, loadPending, fail } = deps;
 
   const addTeamMember = async (): Promise<void> => {
     const name = root.querySelector<HTMLInputElement>("[data-team-name]")?.value.trim() ?? "";
@@ -30,10 +31,44 @@ export function createTeamActions(deps: {
       }
       clearError();
       await loadTeam();
+      // A name/id typed by hand can still land on someone with a pending pairing request
+      // (`team.add`'s own `channels.pairing.list` lookup approves it as part of the same call), so
+      // the "waiting" prompt must lose that entry too, not just a click through it.
+      await loadPending();
     } catch (error) {
       // A refusal (no channel-wide binding, a channel that would be narrowed, an id collision)
       // carries the whole message and the fix; show it rather than a generic one.
       fail(error, () => undefined);
+    }
+  };
+
+  /** The "waiting — add them to Team?" prompt's one click: the button already carries the whole
+   *  identity (`render.ts`'s `pendingRow`), so this is `team.add` with no form to read, and
+   *  `team.add` itself is what folds the matching `channels.pairing.approve` into the same call. */
+  const addPendingTeamMember = async (params: PendingTeamMemberParams): Promise<void> => {
+    if (!params.channel || !params.senderId) {
+      fail(new Error("That pending request is missing a channel or id."), () => undefined);
+      return;
+    }
+    try {
+      await host.request("team.add", {
+        name: params.name || params.senderId,
+        channels: [
+          {
+            channel: params.channel,
+            senderId: params.senderId,
+            ...(params.accountId ? { accountId: params.accountId } : {}),
+          },
+        ],
+      });
+      if (getContext().signal.aborted) {
+        return;
+      }
+      clearError();
+      await loadTeam();
+      await loadPending();
+    } catch (error) {
+      fail(error, () => void addPendingTeamMember(params));
     }
   };
 
@@ -132,6 +167,7 @@ export function createTeamActions(deps: {
 
   return {
     addTeamMember,
+    addPendingTeamMember,
     removeTeamMember,
     transferTeamOwnership,
     addTeamChannel,
