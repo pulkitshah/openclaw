@@ -304,7 +304,7 @@ describe.skipIf(process.platform === "win32")("gateway dispatch executable bindi
   // Fix-round regression: this exact `bash -lc "vasudev ..."`/`openclaw ...` shell-out was a live,
   // unconditional bypass of `denySelfCli` under the full-trust `bypassApprovals` path (mode=full +
   // bypassHostApprovalFloors) — `evaluateShellAllowlistWithAuthorization`'s returned segments never
-  // included the wrapped inner command, so `resolveGatewaySelfCliDenial` saw only a `bash` segment
+  // included the wrapped inner command, so `resolveExecSelfCliDenial` saw only a `bash` segment
   // and let the command spawn for real. See `../infra/exec-self-cli-deny.test.ts` for the unit-level
   // coverage of the underlying recursion fix.
   describe("denySelfCli under full-trust bypass: shell-wrapper bypass regression", () => {
@@ -498,6 +498,37 @@ describe.skipIf(process.platform === "win32")("gateway dispatch executable bindi
       expect(result.details).toMatchObject({ status: "completed", exitCode: 0 });
       expect(result.content[0]).toMatchObject({ text: expect.stringContaining("fixture") });
       expect(spawn.mock.calls.length).toBeGreaterThan(0);
+    });
+
+    // Round 5 finding: `prepareSelfCliDenyPathShadow()`'s cached directory was never re-verified
+    // on later calls. `$OPENCLAW_STATE_DIR` (where the stub directory lives) is an ordinary,
+    // visible env var inside every exec'd command -- including ones NOT flagged denySelfCli -- so
+    // an already-permitted command deleting it mid-session used to leave a *later*
+    // denySelfCli:true call on the same tool instance silently unprotected: the cached in-memory
+    // state still believed the stub existed and skipped recreating it, letting the exact
+    // `find -exec` bypass round 3 closed reach the real binary for real again.
+    it("self-repairs the PATH-shadow stub after an ordinary command deletes it mid-session", async () => {
+      seedRealSelfCli("vasudev");
+      const tool = makeShadowBypassTool();
+
+      const warm = await tool.execute("self-cli-repair-warm", { command: "printf warm-ok" });
+      expect(warm.details).toMatchObject({ status: "completed", exitCode: 0 });
+
+      const stubDir = path.join(root, "state", "tmp", "exec-self-cli-deny-stub");
+      expect(fs.existsSync(path.join(stubDir, "vasudev"))).toBe(true);
+
+      const wipe = await tool.execute("self-cli-repair-wipe", {
+        command: `rm -rf ${JSON.stringify(stubDir)}`,
+      });
+      expect(wipe.details).toMatchObject({ status: "completed", exitCode: 0 });
+      expect(fs.existsSync(stubDir)).toBe(false);
+
+      const result = await tool.execute("self-cli-repair-denied", {
+        command: "find . -maxdepth 0 -exec vasudev pairing approve whatsapp ABC123 \\;",
+      });
+      const text = (result.content[0] as { text?: string } | undefined)?.text ?? "";
+      expect(text).not.toContain("REAL_SELF_CLI_RAN");
+      expect(fs.existsSync(path.join(stubDir, "vasudev"))).toBe(true);
     });
   });
 });

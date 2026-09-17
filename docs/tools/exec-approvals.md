@@ -324,25 +324,46 @@ still has a `pnpm exec` prefix the shell-wrapper recursion does not match),
 such tool one at a time is an open-ended enumeration problem, not something
 a finite list can ever finish closing.
 
-**Layer 2: the PATH-shadow environment defense.** When `denySelfCli` is
-active, the Gateway host also prepends a small stub directory ahead of every
-other `PATH` entry in the spawned command's own environment. That directory
-contains executable files literally named `vasudev`/`openclaw` that
-immediately deny and exit non-zero. Because `PATH` search order is a
-property of the environment inherited by the *entire* process tree a
-command spawns — not something each wrapper tool has to individually
-support — this closes the whole class of "unrecognized indirection tool"
-bypasses at once (including `pnpm exec`, `find -exec`, `xargs`, and a
-scripting language's subprocess-by-name call), without needing layer 1 to
-recognize any of those tools by name. Layer 2 is additive: layer 1 still
-runs first and denies plenty of cases before anything is spawned.
+Layer 1 runs unconditionally on **every** exec host once `denySelfCli` is
+set — gateway, node, and sandbox alike. Each host has its own call site
+(there is no shared dispatch path across all three), so this is enforced
+per host: the gateway host runs it both on its normal allowlist path and
+independently on its full-trust `bypassApprovals` path (so an explicit
+full-session grant cannot skip it), the node host runs it unconditionally
+as part of dispatching to the remote device, and the sandbox host — which
+has no allowlist/approval layer of its own at all — runs it as the *only*
+gate standing between the command and the sandbox backend's spawn.
 
-Layer 2 is scoped to the Gateway (and, incidentally, sandbox env-building)
-host, the same way `tools.exec.pathPrepend` already is: the node host
-dispatches a command to a genuinely remote device, and this process never
-controls that device's `PATH`. Layer 1's static check already runs
-unconditionally on the node host regardless, so the node host's self-CLI
-defense today is layer 1 alone.
+**Layer 2: the PATH-shadow environment defense.** When `denySelfCli` is
+active, the gateway and sandbox hosts also prepend a small stub directory
+ahead of every other `PATH` entry in the spawned command's own environment.
+That directory contains executable files literally named
+`vasudev`/`openclaw` that immediately deny and exit non-zero. Because
+`PATH` search order is a property of the environment inherited by the
+*entire* process tree a command spawns — not something each wrapper tool
+has to individually support — this closes the whole class of "unrecognized
+indirection tool" bypasses at once (including `pnpm exec`, `find -exec`,
+`xargs`, and a scripting language's subprocess-by-name call), without
+needing layer 1 to recognize any of those tools by name. Layer 2 is
+additive: layer 1 still runs first and denies plenty of cases (including
+every direct/absolute-path invocation, on any host) before anything is
+spawned.
+
+Layer 2 is scoped to whichever hosts this process controls the spawned
+command's environment directly for, the same way `tools.exec.pathPrepend`
+already is: gateway and sandbox, not node. The node host dispatches a
+command to a genuinely remote device, and this process never controls that
+device's `PATH`. Layer 1's static check runs unconditionally on the node
+host regardless (see above), so the node host's self-CLI defense today is
+layer 1 alone — this is the one host where layer 2 does not apply, not
+sandbox.
+
+The shadow stub directory is re-verified (and, if missing, transparently
+recreated) on every exec call that needs it, not only the first: an
+ordinary, already-permitted command can delete the stub directory mid-session
+(`$OPENCLAW_STATE_DIR`, where it lives, is a visible env var inside every
+exec'd command, `denySelfCli` or not), and a later `denySelfCli:true` call
+in the same session must not silently lose layer 2 coverage because of that.
 
 **Known limitations (read honestly — this is not an unconditional "no
 chances" guarantee against every conceivable path):**
@@ -363,6 +384,14 @@ chances" guarantee against every conceivable path):**
 - Layer 2 does not extend to the node host (see above); a buried,
   unrecognized-indirection-tool invocation on a node host is covered only
   by layer 1.
+- The PATH-shadow stub directory's repair check runs at preparation time,
+  immediately before its path is used to build the spawned command's
+  environment — not atomically at the instant of spawn. A command that
+  deletes the directory concurrently with a separate, in-flight exec call
+  (as opposed to a strictly earlier, already-finished call) could in theory
+  still race that one in-flight spawn. This is an accepted, narrow TOCTOU
+  window, not the structural, permanent gap that a never-re-verified cache
+  used to be.
 
 Rationale: once an agent has dedicated tool-call paths for every
 legitimate CLI-shaped action (for example Team's `team_add`/`team_remove`/

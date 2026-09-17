@@ -45,6 +45,7 @@
 //    already covered by the static check's `resolvedPath`/`resolvedRealPath` identity matching on
 //    the outer/direct segment; this module only targets the bare-name-via-indirection gap the static
 //    check cannot structurally see.
+import { constants as fsConstants } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { resolveStateDir } from "../config/paths.js";
@@ -114,17 +115,74 @@ async function writeSelfCliDenyStubFiles(binDir: string): Promise<void> {
 }
 
 /**
+ * True when `dir` still looks like an intact shadow stub directory: the directory itself exists,
+ * and every self-CLI bin name has both its POSIX stub (present and owner-executable) and its
+ * Windows `.cmd` counterpart (present). This is a cheap existence/permission check, not a content
+ * diff -- a stub whose *bytes* were altered but which is still present and executable is left
+ * alone (mirrors the long-standing "reuses the cached directory... without re-preparing" contract
+ * for in-place mutation); only actual deletion/removal triggers a repair.
+ */
+async function selfCliDenyStubDirIsIntact(dir: string): Promise<boolean> {
+  try {
+    const dirStat = await fs.stat(dir);
+    if (!dirStat.isDirectory()) {
+      return false;
+    }
+  } catch {
+    return false;
+  }
+  for (const name of SELF_CLI_BIN_NAMES) {
+    try {
+      await fs.access(path.join(dir, name), fsConstants.X_OK);
+      await fs.access(path.join(dir, `${name}.cmd`), fsConstants.F_OK);
+    } catch {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
  * Idempotently prepares the PATH-shadow stub directory and returns its path. Safe to call
  * concurrently (and repeatedly) from multiple exec calls on the same desk: the first caller
  * creates the (static, never-changing) stub files once; concurrent and later callers await or
  * reuse the same result. Content is written atomically, so even a cross-process race writing the
  * same bytes to the same path is harmless.
+ *
+ * Callers must call this on every exec invocation that needs the shadow directory (not just once
+ * per tool/session) -- see `bash-tools.exec-run.ts`. `$OPENCLAW_STATE_DIR` (where this directory
+ * lives) is an ordinary, visible env var inside every exec'd command, including ones NOT flagged
+ * `denySelfCli`, so an unrelated already-permitted command can delete this directory mid-session.
+ * A permanently-trusted in-memory cache of "the directory exists" would let a later
+ * `denySelfCli:true` call silently lose its PATH-shadow coverage after that deletion (round 5
+ * finding). To close that: every call -- including one that would otherwise hit the cached-`dir`
+ * fast path -- re-verifies the directory and its stub files still exist via
+ * `selfCliDenyStubDirIsIntact` (a handful of cheap `fs.stat`/`fs.access` calls, not a rewrite) and
+ * transparently repairs (recreates) anything missing before returning.
+ *
+ * Residual gap (accepted, not "no chances" against a perfect adversarial race -- see
+ * `docs/tools/exec-approvals.md`): this check runs at preparation time, immediately before the
+ * directory path is used to build the spawned command's PATH. A concurrent command that deletes
+ * the directory in the narrow window between this check and the actual spawn could still slip
+ * through for that one in-flight call. This is a TOCTOU window, not the structural, permanent gap
+ * the reviewer's repro (delete, then a *separate, later* call) demonstrated; closing it fully
+ * would need re-verifying immediately before every spawn rather than at preparation time, which is
+ * disproportionate here since the practical mitigation (near-certain repair before each call)
+ * already defeats the sequential repro this finding is about.
  */
 export async function prepareSelfCliDenyPathShadow(
   options: { stateDir?: string } = {},
 ): Promise<string> {
   if (shadowState.dir) {
-    return shadowState.dir;
+    if (await selfCliDenyStubDirIsIntact(shadowState.dir)) {
+      return shadowState.dir;
+    }
+    // Tampered with (deleted, or a file/dir removed) since it was last verified: drop the stale
+    // cache entirely -- including the resolved `preparing` promise, which would otherwise still
+    // satisfy the `!shadowState.preparing` guard below and hand back the same stale directory
+    // without ever rewriting anything -- and fall through to repair it like a fresh preparation.
+    shadowState.dir = undefined;
+    shadowState.preparing = undefined;
   }
   if (!shadowState.preparing) {
     const binDir = path.join(options.stateDir ?? resolveStateDir(), SELF_CLI_DENY_STUB_DIR);

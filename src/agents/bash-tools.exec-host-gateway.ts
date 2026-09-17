@@ -518,8 +518,8 @@ async function resolveGatewayExecApprovalFollowupText(params: {
   }
 }
 
-/** Params needed to run only the self-CLI identity check on a gateway-host command. */
-export type GatewaySelfCliDenialParams = {
+/** Params needed to run only the self-CLI identity check on a command's already-resolved segments. */
+export type ExecSelfCliDenialParams = {
   command: string;
   workdir: string;
   env: Record<string, string>;
@@ -531,12 +531,20 @@ export type GatewaySelfCliDenialParams = {
 /**
  * Hard, mode-independent gate: never let this agent shell out to its own CLI, regardless of
  * `full`/`allowlist`/`ask`/`auto` policy — see `../infra/exec-self-cli-deny.ts` for scope/limits.
- * Callers must run this independent of `bypassHostApprovalFloors`/`bypassApprovals`: that flag only
- * waives approval-floor routing inside `processGatewayAllowlist`, never this identity check, so a
- * full-trust bypass session must still call this directly instead of skipping it via that gate.
+ * This is pure command-text/segment analysis (no dependency on how the command is actually
+ * spawned), so the same check covers every host that needs its own unconditional call site:
+ * - Gateway host, `bypassApprovals` path (`bash-tools.exec-run.ts`): callers must run this
+ *   independent of `bypassHostApprovalFloors`/`bypassApprovals`, since that flag only waives
+ *   approval-floor routing inside `processGatewayAllowlist`, never this identity check, so a
+ *   full-trust bypass session must still call this directly instead of skipping it via that gate.
+ * - Gateway host, normal path: `processGatewayAllowlist` below runs the equivalent check inline.
+ * - Sandbox host (`bash-tools.exec-run.ts`): the sandbox host has no allowlist/approval layer of
+ *   its own at all (`bash-tools.exec-run.ts` leaves `approvalPolicy` unconditionally `undefined`
+ *   for `host === "sandbox"`), so this is the *only* self-CLI coverage sandbox gets; it must run
+ *   unconditionally there too, not gated behind any sandbox-specific bypass flag.
  */
-export async function resolveGatewaySelfCliDenial(
-  params: GatewaySelfCliDenialParams,
+export async function resolveExecSelfCliDenial(
+  params: ExecSelfCliDenialParams,
 ): Promise<AgentToolResult<ExecToolDetails> | undefined> {
   const allowlistEval = await evaluateShellAllowlistWithAuthorization({
     command: params.command,

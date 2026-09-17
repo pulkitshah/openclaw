@@ -628,6 +628,56 @@ describe("exec security floor", () => {
     expect(callGatewayTool).not.toHaveBeenCalled();
   });
 
+  it.runIf(process.platform !== "win32")(
+    "denies self-CLI invocation on the sandbox host via an absolute path (Finding 1, round 5)",
+    async () => {
+      // Regression: `resolveExecSelfCliDenial` (the static self-CLI check) used to run only
+      // through the gateway host's two call sites (its own `bypassApprovals` gate above, or
+      // `processGatewayAllowlist`'s inline check) -- the sandbox host had neither, and
+      // `approvalPolicy` is unconditionally `undefined` for `host === "sandbox"`, so it had zero
+      // static self-CLI coverage. This reproduces the reviewer's exact repro: an absolute path to
+      // a seeded fake `vasudev` binary, run through a real (unmocked) `buildExecSpec`
+      // pass-through so a missed denial would really spawn the binary via the real
+      // ProcessSupervisor, not a canned response.
+      const root = tempRoot ?? os.tmpdir();
+      const binPath = path.join(root, "vasudev");
+      const markerPath = path.join(root, "vasudev-ran.marker");
+      fs.writeFileSync(binPath, `#!/bin/sh\ntouch "${markerPath}"\nprintf 'ran-for-real\\n'\n`, {
+        mode: 0o755,
+      });
+      const buildExecSpec = vi.fn(
+        async ({ command, env }: { command: string; env: Record<string, string> }) => ({
+          argv: ["/bin/sh", "-lc", command],
+          env,
+          stdinMode: "pipe-closed" as const,
+        }),
+      );
+      const tool = createExecTool({
+        host: "sandbox",
+        denySelfCli: true,
+        security: "full",
+        ask: "off",
+        sandbox: {
+          containerName: "sandbox-self-cli-deny-test",
+          workspaceDir: root,
+          containerWorkdir: "/workspace",
+          buildExecSpec,
+        },
+      });
+
+      const result = await tool.execute("call-sandbox-self-cli-denied", {
+        command: `${binPath} pairing approve whatsapp ABC123`,
+      });
+
+      expect(result.details.status).toBe("failed");
+      expect((result.content[0] as { text?: string }).text).toContain("self-cli-denied");
+      // The denial must happen before the sandbox backend is ever asked to spawn anything, and
+      // the fake binary must never actually run.
+      expect(buildExecSpec).not.toHaveBeenCalled();
+      expect(fs.existsSync(markerPath)).toBe(false);
+    },
+  );
+
   it.each([false, true])(
     "honors ask-only tightening without restoring full-session host floors (approved=%s)",
     async (approved) => {

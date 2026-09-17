@@ -35,7 +35,7 @@ import { markBackgrounded } from "./bash-process-registry.js";
 import { describeExecTool } from "./bash-tools.descriptions.js";
 import {
   processGatewayAllowlist,
-  resolveGatewaySelfCliDenial,
+  resolveExecSelfCliDenial,
 } from "./bash-tools.exec-host-gateway.js";
 import { executeNodeHostCommand } from "./bash-tools.exec-host-node.js";
 import {
@@ -136,11 +136,16 @@ export function createExecTool(
     defaults?.timeoutSec && defaults.timeoutSec > 0 ? defaults.timeoutSec : 1800;
   const defaultPathPrepend = normalizePathPrepend(defaults?.pathPrepend);
   // Kick off shadow-stub preparation as soon as the tool exists (cheap, idempotent, cached -- see
-  // `prepareSelfCliDenyPathShadow`) rather than per-call, so it is normally already resolved by the
-  // time the first call needs it. Only started when denySelfCli is actually configured for this
-  // tool instance.
-  const selfCliDenyPathShadowPromise =
-    defaults?.denySelfCli === true ? prepareSelfCliDenyPathShadow() : undefined;
+  // `prepareSelfCliDenyPathShadow`) as a warm-up, so it is normally already prepared by the time
+  // the first call needs it. This fire-and-forget warm-up's resolved value is intentionally never
+  // read directly (see the per-call re-`await` in `execute` below): the module reuses its own
+  // cached state internally, so re-invoking it there is cheap once warm, and it self-repairs if
+  // the stub directory was deleted since. Only started when denySelfCli is actually configured for
+  // this tool instance; a warm-up failure here is not fatal -- `execute` re-invokes and surfaces
+  // any persistent failure to the first real call instead.
+  if (defaults?.denySelfCli === true) {
+    prepareSelfCliDenyPathShadow().catch(() => undefined);
+  }
   const {
     safeBins,
     safeBinProfiles,
@@ -452,9 +457,12 @@ export function createExecTool(
             storeEnv.secretEgressBindings ?? [],
           );
         }
-        const selfCliDenyPathShadowDir = selfCliDenyPathShadowPromise
-          ? await selfCliDenyPathShadowPromise
-          : undefined;
+        // Re-invoked on every call, not just cached from the tool-construction warm-up above: see
+        // `prepareSelfCliDenyPathShadow`'s own doc comment for why a permanently-trusted cached
+        // value would let an unrelated command's mid-session deletion of the stub directory go
+        // undetected by a later `denySelfCli:true` call in the same session.
+        const selfCliDenyPathShadowDir =
+          defaults?.denySelfCli === true ? await prepareSelfCliDenyPathShadow() : undefined;
         const { env, requestedEnv } = resolvePreparedExecEnvironment({
           execParams: params,
           host,
@@ -537,7 +545,28 @@ export function createExecTool(
         // place this runs for the gateway host, but it is skipped entirely when bypassApprovals
         // is true, so this check runs unconditionally, ahead of and independent of that gate.
         if (host === "gateway" && bypassApprovals && defaults?.denySelfCli === true) {
-          const selfCliDeniedResult = await resolveGatewaySelfCliDenial({
+          const selfCliDeniedResult = await resolveExecSelfCliDenial({
+            command: params.command,
+            workdir,
+            env,
+            safeBins,
+            safeBinProfiles,
+            trustedSafeBinDirs,
+          });
+          if (selfCliDeniedResult) {
+            return attachExecApprovalReview(selfCliDeniedResult, approvalReview);
+          }
+        }
+
+        // Sandbox has no allowlist/approval layer of its own at all (`approvalPolicy` above is
+        // unconditionally `undefined` for `host === "sandbox"`), so this static check is the
+        // *only* self-CLI coverage the sandbox host gets. It must run unconditionally here, not
+        // gated behind any sandbox-specific bypass -- there is no other gate to hang it off of.
+        // This is pure command-text/segment analysis (see `resolveExecSelfCliDenial`'s own doc
+        // comment): it does not depend on how the sandbox backend actually spawns the process, so
+        // the same check the gateway host uses applies cleanly here too.
+        if (host === "sandbox" && defaults?.denySelfCli === true) {
+          const selfCliDeniedResult = await resolveExecSelfCliDenial({
             command: params.command,
             workdir,
             env,

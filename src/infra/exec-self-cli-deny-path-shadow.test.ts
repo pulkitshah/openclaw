@@ -75,4 +75,59 @@ describe("exec self-CLI deny PATH shadow", () => {
       expect(content).toBe("mutated");
     });
   });
+
+  // Round 5 finding: once cached, the directory was never re-verified on later calls, so an
+  // ordinary command deleting it mid-session (an easy thing to do -- $OPENCLAW_STATE_DIR is a
+  // visible env var in every exec'd command, denySelfCli or not) left every later denySelfCli
+  // call trusting a directory that no longer existed on disk.
+  it("repairs the stub directory on the next call after it is deleted (self-repair, round 5)", async () => {
+    await withTempDir("openclaw-self-cli-shadow-repair-dir-", async (stateDir) => {
+      const first = await prepareSelfCliDenyPathShadow({ stateDir });
+      await fs.rm(first, { recursive: true, force: true });
+      expect(
+        await fs.stat(first).then(
+          () => true,
+          () => false,
+        ),
+      ).toBe(false);
+
+      const second = await prepareSelfCliDenyPathShadow({ stateDir });
+
+      expect(second).toBe(first);
+      for (const name of SELF_CLI_BIN_NAMES) {
+        const posixStat = await fs.stat(path.join(second, name));
+        expect(posixStat.isFile()).toBe(true);
+        const cmdStat = await fs.stat(path.join(second, `${name}.cmd`));
+        expect(cmdStat.isFile()).toBe(true);
+      }
+    });
+  });
+
+  it("repairs a single missing stub file without disturbing the rest (self-repair, round 5)", async () => {
+    await withTempDir("openclaw-self-cli-shadow-repair-file-", async (stateDir) => {
+      const first = await prepareSelfCliDenyPathShadow({ stateDir });
+      await fs.rm(path.join(first, "vasudev"), { force: true });
+
+      const second = await prepareSelfCliDenyPathShadow({ stateDir });
+
+      expect(second).toBe(first);
+      const stat = await fs.stat(path.join(second, "vasudev"));
+      expect(stat.isFile()).toBe(true);
+    });
+  });
+
+  it("does not repair an intact directory (no unnecessary rewrite)", async () => {
+    await withTempDir("openclaw-self-cli-shadow-no-repair-", async (stateDir) => {
+      const first = await prepareSelfCliDenyPathShadow({ stateDir });
+      const before = await fs.stat(path.join(first, "vasudev"));
+
+      const second = await prepareSelfCliDenyPathShadow({ stateDir });
+
+      expect(second).toBe(first);
+      const after = await fs.stat(path.join(first, "vasudev"));
+      // Same inode/mtime: writeSelfCliDenyStubFiles never ran again.
+      expect(after.mtimeMs).toBe(before.mtimeMs);
+      expect(after.ino).toBe(before.ino);
+    });
+  });
 });
