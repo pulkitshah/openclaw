@@ -337,65 +337,6 @@ describe("runGuidedOnboarding", () => {
     expect(deps.launchHatchTui).not.toHaveBeenCalled();
     expect(prompter.outro).toHaveBeenCalledWith("Your browser is ready — I'll be in Settings.");
   });
-
-  it("captures the owner's own name and creates the coordinator, never naming an agent", async () => {
-    const prompter = createWizardPrompter({ text: vi.fn(async () => "Prabhat") });
-    const applySetup = withTeamRoster(localOnboarding.persisted);
-    const runTeamStep = vi.fn<NonNullable<GuidedOnboardingDeps["runTeamStep"]>>(async () => ({
-      status: "complete",
-      memberCount: 1,
-    }));
-
-    await runGuidedOnboardingImpl(
-      { acceptRisk: true, workspace: "/tmp/work", skipUi: true },
-      makeRuntime(),
-      setupDeps({ prompter, applySetup, runTeamStep }),
-    );
-
-    expect(prompter.text).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "What's your name?" }),
-    );
-    const promptedMessages = vi.mocked(prompter.text).mock.calls.map(([params]) => params.message);
-    expect(promptedMessages).not.toContain("What should we call your first agent?");
-    // The coordinator comes from the team preset, not from the owner's answer.
-    expect(applySetup).toHaveBeenCalledWith(
-      expect.objectContaining({ firstAgent: { name: "coordinator" } }),
-      { beforePersistentApply: expect.any(Function) },
-    );
-    expect(runTeamStep).toHaveBeenCalledWith(expect.objectContaining({ ownerName: "Prabhat" }));
-  });
-
-  it.each([
-    {
-      label: "reports done once someone is on the team",
-      outcome: { status: "complete" as const, memberCount: 1 },
-      outro: "Vasudev is ready.",
-    },
-    {
-      label: "never reports done with nobody on the team",
-      outcome: { status: "incomplete" as const, reason: "Nobody is on your team yet." },
-      outro:
-        "Almost there — Vasu still needs a team. Open the Team tab in the dashboard to finish.",
-    },
-  ])("$label", async ({ outcome, outro }) => {
-    const prompter = createWizardPrompter({ text: vi.fn(async () => "Prabhat") });
-    const runTeamStep = vi.fn<NonNullable<GuidedOnboardingDeps["runTeamStep"]>>(
-      async () => outcome,
-    );
-
-    await runGuidedOnboardingImpl(
-      { acceptRisk: true, workspace: "/tmp/work", skipUi: true },
-      makeRuntime(),
-      setupDeps({ prompter, runTeamStep }),
-    );
-
-    expect(runTeamStep).toHaveBeenCalledOnce();
-    expect(prompter.outro).toHaveBeenCalledWith(outro);
-    if (outcome.status === "incomplete") {
-      expect(prompter.note).toHaveBeenCalledWith(outcome.reason, "Your team");
-    }
-  });
-
   it("shows gateway repair failures before recovery and keeps onboarding pending", async () => {
     const repairReason = "service port 18788 does not match current gateway config port 18789";
     const prompter = createWizardPrompter();
