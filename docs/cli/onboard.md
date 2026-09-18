@@ -92,12 +92,13 @@ not overwrite the existing skill.
 
 - `--classic`: opens the full step-by-step wizard. It cannot be combined with
   `--non-interactive`; omit `--classic` for automated setup.
-- `--agent-name <name>`: names the first agent when no roster exists. Interactive
-  onboarding asks **What should we call your first agent?** and suggests `main`;
-  non-interactive onboarding keeps `main` unless this flag is provided. The id
-  `main` is not reserved: if you later recreate it beside a named agent, run
-  `openclaw doctor --fix` first when creation reports legacy-session or
-  shared-auth ownership still attached to the old `main` installation.
+- `--agent-name <name>`: renames the coordinator agent id when no roster exists;
+  it defaults to `coordinator`. Onboarding never asks for an agent name — it asks
+  for yours — and the coordinator's identity is always Vasu. The specialists
+  (`researcher`, `writer`, `reviewer`) keep their preset ids. If you later
+  recreate an agent beside a named one, run `openclaw doctor --fix` first when
+  creation reports legacy-session or shared-auth ownership still attached to an
+  old installation.
 - `--flow quickstart`: opens the classic wizard with minimal prompts, uses
   a generated Gateway secret by default, without asking you to choose token or
   password. Existing password-mode configurations are preserved. Explicit local Gateway flags such as
@@ -121,7 +122,7 @@ not overwrite the existing skill.
 ## Guided flow
 
 Plain `openclaw onboard` starts the guided flow. It shows the security notice,
-asks for the first agent's name when no roster exists, then asks one discovery
+asks **What's your name?** when no roster exists, then asks one discovery
 question up front: **full access** (recommended — setup looks for
 AI apps, keys, and local runtimes automatically) or **ask first** (setup asks
 once before looking around, or lets you configure manually). The

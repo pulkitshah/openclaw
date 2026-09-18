@@ -63,19 +63,16 @@ describe("applySystemAgentSetup transaction boundaries", () => {
     expect(mocks.state.persistedConfig).toMatchObject({
       agents: {
         defaults: { workspace: "/tmp/openclaw-workspace" },
-        entries: { main: { default: true } },
+        entries: { coordinator: { workspace: "/tmp/openclaw-workspace/coordinator" } },
       },
     });
     expect(mocks.events).toEqual(["agent-create", "commit", "workspace"]);
   });
 
-  it.each([false, true])(
-    "preserves the pre-roster verified route during creation (team: %s)",
-    async (team) => {
-      const firstAgent = {
-        name: team ? "coordinator" : "Research Buddy",
-        ...(team ? { team: true } : {}),
-      };
+  it.each(["coordinator", "Research Buddy"])(
+    "preserves the pre-roster verified route during creation (coordinator: %s)",
+    async (coordinatorName) => {
+      const firstAgent = { name: coordinatorName };
       const source = { agents: { defaults: { model: "openai/gpt-5.5" } } } satisfies OpenClawConfig;
       const runtimeConfig = {
         agents: {
@@ -101,12 +98,15 @@ describe("applySystemAgentSetup transaction boundaries", () => {
       expect(mocks.ensureOnboardingAgent).toHaveBeenCalledWith(
         expect.objectContaining({ firstAgent }),
       );
-      const agentId = team ? "coordinator" : "research-buddy";
-      expect(Object.keys(mocks.state.persistedConfig?.agents?.entries ?? {})).toEqual(
-        team ? [agentId, "researcher", "writer", "reviewer"] : [agentId],
-      );
+      const agentId = coordinatorName === "coordinator" ? "coordinator" : "research-buddy";
+      expect(Object.keys(mocks.state.persistedConfig?.agents?.entries ?? {})).toEqual([
+        agentId,
+        "researcher",
+        "writer",
+        "reviewer",
+      ]);
       expect(mocks.ensureWorkspace).toHaveBeenCalledWith(
-        team ? "/tmp/openclaw-workspace/coordinator" : "/tmp/openclaw-workspace",
+        `/tmp/openclaw-workspace/${agentId}`,
         runtime,
         expect.objectContaining({ agentId }),
       );
@@ -150,16 +150,6 @@ describe("applySystemAgentSetup transaction boundaries", () => {
     );
   });
 
-  it("reports an existing roster instead of silently skipping the requested first team", async () => {
-    await expect(
-      applySystemAgentSetup(baseParams({ firstAgent: { name: "coordinator", team: true } })),
-    ).rejects.toThrow("The requested team was not created because an agent roster already exists");
-
-    expect(mocks.ensureOnboardingAgent).not.toHaveBeenCalled();
-    expect(mocks.commit).not.toHaveBeenCalled();
-    expect(mocks.ensureWorkspace).not.toHaveBeenCalled();
-  });
-
   it("refuses a damaged pinned team before publishing setup configuration", async () => {
     const workspace = "/tmp/openclaw-workspace";
     const config = {
@@ -197,7 +187,7 @@ describe("applySystemAgentSetup transaction boundaries", () => {
     await expect(
       applySystemAgentSetup(
         baseParams({
-          firstAgent: { name: "coordinator", team: true },
+          firstAgent: { name: "coordinator" },
           assertCommitPreconditions: () => {},
           finalizeConfig: (config) => ({
             ...config,
@@ -245,7 +235,7 @@ describe("applySystemAgentSetup transaction boundaries", () => {
         model: { primary: "openai/gpt-5.5" },
         workspace: "/tmp/requested-workspace",
       },
-      entries: { main: { default: true } },
+      entries: { coordinator: { workspace: "/tmp/requested-workspace/coordinator" } },
     });
   });
 
@@ -292,12 +282,12 @@ describe("applySystemAgentSetup transaction boundaries", () => {
         );
         expect(mocks.state.persistedConfig?.agents).toMatchObject({
           defaults: { workspace: "/tmp/current-workspace" },
-          entries: { main: { default: true, workspace: "/tmp/current-workspace" } },
+          entries: { coordinator: { workspace: "/tmp/current-workspace/coordinator" } },
         });
         expect(mocks.ensureWorkspace).toHaveBeenCalledWith(
-          "/tmp/current-workspace",
+          "/tmp/current-workspace/coordinator",
           runtime,
-          expect.objectContaining({ agentId: "main" }),
+          expect.objectContaining({ agentId: "coordinator" }),
         );
       });
     },
@@ -337,12 +327,12 @@ describe("applySystemAgentSetup transaction boundaries", () => {
       );
       expect(mocks.state.persistedConfig?.agents).toMatchObject({
         defaults: { workspace: "/tmp/requested-workspace" },
-        entries: { main: { default: true, workspace: "/tmp/requested-workspace" } },
+        entries: { coordinator: { workspace: "/tmp/requested-workspace/coordinator" } },
       });
       expect(mocks.ensureWorkspace).toHaveBeenCalledWith(
-        "/tmp/requested-workspace",
+        "/tmp/requested-workspace/coordinator",
         runtime,
-        expect.objectContaining({ agentId: "main" }),
+        expect.objectContaining({ agentId: "coordinator" }),
       );
     });
   });

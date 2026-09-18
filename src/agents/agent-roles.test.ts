@@ -16,6 +16,16 @@ describe("bundled agent roles", () => {
     }
   });
 
+  it("names the coordinator Vasu on every install", async () => {
+    // The desk's coordinator is the product's own identity, not a role label and not derived from
+    // the owner's name. Emoji and theme stay per-install decoration.
+    const { identity, files } = await loadAgentRole("coordinator");
+    expect(identity.name).toBe("Vasu");
+    expect(identity.emoji).toBeTruthy();
+    expect(identity.theme).toBeTruthy();
+    expect(files["IDENTITY.md"]).toContain("**Name:** Vasu");
+  });
+
   it("rejects preset typos, unresolved role references, and colliding ids", async () => {
     const preset = await loadAgentTeamPreset();
     for (const invalid of [

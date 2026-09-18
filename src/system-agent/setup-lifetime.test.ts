@@ -119,7 +119,11 @@ it.each([
     vi.spyOn(fs, "access").mockImplementation(async (file, mode) => {
       if (
         (phase === "first-agent" || phase === "workspace") &&
-        file === path.join(workspace, "AGENTS.md")
+        // Onboarding creates the coordinator in its own directory under the workspace root, so the
+        // bootstrap probe lands on <workspace>/<agent>/AGENTS.md, not <workspace>/AGENTS.md.
+        typeof file === "string" &&
+        file.startsWith(`${workspace}${path.sep}`) &&
+        path.basename(file) === "AGENTS.md"
       ) {
         await pause();
       }
@@ -215,11 +219,27 @@ it.each([
       expect.soft(loadExecApprovalsReadOnly().agents?.openclaw).toBeUndefined();
       expect.soft(lines).not.toContain("[openclaw] done: openclaw.setup");
     } else {
-      expect(outcome).toMatchObject({ result: { applied: true, bootstrapPending: true } });
+      // A roster this run created is the coordinator team, whose bootstrap files are written by
+      // team creation itself; an authored roster still reports its own pending bootstrap.
+      const createdRoster = phase === "first-agent";
+      expect(outcome).toMatchObject({
+        result: { applied: true, bootstrapPending: !createdRoster },
+      });
       expect(afterRaw).not.toBe(beforeRaw);
-      expect(JSON.parse(afterRaw)).toHaveProperty("agents.entries.main");
-      expect(await fs.readFile(path.join(workspace, "AGENTS.md"), "utf8")).not.toBe("");
-      expect((await fs.stat(state.sessionsDir())).isDirectory()).toBe(true);
+      expect(JSON.parse(afterRaw)).toHaveProperty(
+        createdRoster ? "agents.entries.coordinator" : "agents.entries.main",
+      );
+      expect(
+        await fs.readFile(
+          createdRoster
+            ? path.join(workspace, "coordinator", "AGENTS.md")
+            : path.join(workspace, "AGENTS.md"),
+          "utf8",
+        ),
+      ).not.toBe("");
+      expect(
+        (await fs.stat(state.sessionsDir(createdRoster ? "coordinator" : "main"))).isDirectory(),
+      ).toBe(true);
       expect(loadExecApprovalsReadOnly().agents?.openclaw).toEqual({
         security: "full",
         ask: "off",

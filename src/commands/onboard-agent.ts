@@ -1,5 +1,5 @@
 // First-run main-agent creation through the canonical agent service.
-import { createAgent, validateAgentIdInput } from "../agents/agent-create.js";
+import { validateAgentIdInput } from "../agents/agent-create.js";
 import {
   listAgentEntries,
   resolveAmbientOwnerAgentId,
@@ -11,9 +11,10 @@ import { inheritLegacyDefaultAgentId } from "../config/legacy.default-agent-owne
 import { createMergePatch, applyMergePatch } from "../config/merge-patch.js";
 import { migrateLegacyMainSessionKeys } from "../config/sessions/legacy-main-session-migration.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
-import { normalizeAgentId } from "../routing/session-key.js";
 
-export type FirstOnboardingAgent = { name: string; team?: boolean };
+/** The coordinator onboarding creates. Onboarding has exactly one agent shape — coordinator plus
+ *  the preset's specialists — so this carries the coordinator's id and nothing else. */
+export type FirstOnboardingAgent = { name: string };
 
 export function validateFirstOnboardingAgentName(value: string | undefined): string | undefined {
   const name = value?.trim();
@@ -98,14 +99,6 @@ export async function ensureOnboardingAgent(params: {
   const hasCandidateRoster =
     candidateRoster.length > 0 &&
     (params.preserveCandidateRoster || !isInjectedMainRoster(params.config));
-  if (params.firstAgent?.team) {
-    before ??= await readConfigFileSnapshot();
-    if (hasCandidateRoster || hasResolvedRosterBeforeMigrations(before)) {
-      throw new Error(
-        "The requested team was not created because an agent roster already exists. Use `vasudev agents team create` to add a team.",
-      );
-    }
-  }
   if (hasCandidateRoster) {
     return {
       config: params.config,
@@ -134,35 +127,20 @@ export async function ensureOnboardingAgent(params: {
       createdAgent: false,
     };
   }
-  const firstAgentName = params.firstAgent ? params.firstAgent.name.trim() : "main";
-  const createOptions = {
+  // One shape only: the coordinator plus the preset's specialists, through the same lifecycle owner
+  // `vasudev agents team create` uses. An unnamed first agent falls back to the preset's own
+  // coordinator id rather than a bare `main`.
+  const { createAgentTeam } = await import("../agents/agent-team.js");
+  const created = await createAgentTeam({
     bootstrapFirstAgent: true,
     ...(hasExpectedConfigHash ? { expectedConfigHash: params.expectedConfigHash } : {}),
     beforePersistentApply: params.beforePersistentApply,
-  };
-  const created = params.firstAgent?.team
-    ? await (
-        await import("../agents/agent-team.js")
-      ).createAgentTeam({
-        ...createOptions,
-        coordinator: firstAgentName,
-        workspaceRoot: params.workspace,
-      })
-    : await createAgent({
-        ...createOptions,
-        entry: {
-          id: normalizeAgentId(firstAgentName),
-          name: firstAgentName,
-          workspace: params.workspace,
-        },
-        bootstrapMain: normalizeAgentId(firstAgentName) === "main",
-        skipBootstrap: params.config.agents?.defaults?.skipBootstrap,
-        skipOptionalBootstrapFiles: params.config.agents?.defaults?.skipOptionalBootstrapFiles,
-      });
+    ...(params.firstAgent ? { coordinator: params.firstAgent.name.trim() } : {}),
+    workspaceRoot: params.workspace,
+  });
   if (created.status === "error") {
     throw new Error(created.message);
   }
-  const createdTeam = "coordinatorId" in created;
   const after = await readConfigFileSnapshot();
   if (!after.valid) {
     throw new Error("Agent creation wrote an invalid Vasudev config.");
@@ -190,9 +168,9 @@ export async function ensureOnboardingAgent(params: {
   return {
     config,
     configBase: after.config,
-    agentId: createdTeam ? created.coordinatorId : created.agentId,
-    bootstrapPending: createdTeam ? false : created.bootstrapPending,
-    createdAgentIds: createdTeam ? created.agents.map((agent) => agent.agentId) : [created.agentId],
+    agentId: created.coordinatorId,
+    bootstrapPending: false,
+    createdAgentIds: created.agents.map((agent) => agent.agentId),
     createdAgent: created.status === "created",
     ...(created.configHash ? { configHash: created.configHash } : {}),
     ...(sessionMigrationWarnings.length > 0 ? { sessionMigrationWarnings } : {}),

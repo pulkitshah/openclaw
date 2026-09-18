@@ -37,6 +37,8 @@ describe("guided onboarding inference composition", () => {
     "advances through a real embedded probe and setup (%s)",
     { timeout: 300_000 },
     async (mode) => {
+      // Every mode now creates the coordinator team; "configured" is the rerun of an install that
+      // already has one.
       const team = mode !== "configured";
       const env = captureFullEnv();
       const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-guided-inference-e2e-"));
@@ -103,9 +105,9 @@ describe("guided onboarding inference composition", () => {
 
       const prompter = createWizardPrompter(
         {
-          text: vi.fn(async ({ initialValue }) => initialValue ?? ""),
+          text: vi.fn(async ({ initialValue }) => initialValue ?? "Owner"),
         },
-        { selectValues: [team ? "team" : "one", "full", "detected-ai"] },
+        { selectValues: ["full", "detected-ai"] },
       );
       const runSetupMemoryImportStep = vi.fn(async () => ({
         status: "skipped" as const,
@@ -221,18 +223,9 @@ describe("guided onboarding inference composition", () => {
           ],
         }),
       );
+      // No "one agent or a small team?" question: the desk always gets the coordinator team.
       expect(prompter.select).toHaveBeenNthCalledWith(
         2,
-        expect.objectContaining({
-          initialValue: "one",
-          options: [
-            { value: "one", label: "One agent" },
-            { value: "team", label: "A small team: a chief of staff plus specialists" },
-          ],
-        }),
-      );
-      expect(prompter.select).toHaveBeenNthCalledWith(
-        3,
         expect.objectContaining({
           options: expect.arrayContaining([expect.objectContaining({ value: "full" })]),
         }),
@@ -264,19 +257,19 @@ describe("guided onboarding inference composition", () => {
       expect(runAppRecommendations).toHaveBeenCalledWith(
         expect.objectContaining({
           modelRouteVerified: true,
-          workspaceDir: team ? path.join(workspace, "coordinator") : workspace,
+          // Onboarding creates the coordinator team in every mode, so the hatch and the
+          // recommendations always target the coordinator's own directory.
+          workspaceDir: path.join(workspace, "coordinator"),
         }),
       );
-      expect(launchHatchTui).toHaveBeenCalledWith(
-        team ? path.join(workspace, "coordinator") : workspace,
-      );
+      expect(launchHatchTui).toHaveBeenCalledWith(path.join(workspace, "coordinator"));
+      expect(Object.keys(persisted.sourceConfig.agents?.entries ?? {})).toEqual([
+        "coordinator",
+        "researcher",
+        "writer",
+        "reviewer",
+      ]);
       if (team) {
-        expect(Object.keys(persisted.sourceConfig.agents?.entries ?? {})).toEqual([
-          "coordinator",
-          "researcher",
-          "writer",
-          "reviewer",
-        ]);
         const { readLocalOnboardingState } = await import("../state/local-onboarding-state.js");
         expect(readLocalOnboardingState(configPath)).toMatchObject({
           status: "completed",

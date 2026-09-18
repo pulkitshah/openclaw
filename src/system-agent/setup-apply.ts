@@ -166,11 +166,6 @@ export async function applySystemAgentSetup(
   assertCommitPreconditions?.(snapshotConfig.sourceConfig);
   const configHashBefore = resolveConfigSnapshotHash(snapshot);
   const startedWithoutAuthoredRoster = !hasResolvedRosterBeforeMigrations(snapshot);
-  if (params.firstAgent?.team && !startedWithoutAuthoredRoster) {
-    throw new Error(
-      "The requested team was not created because an agent roster already exists. Use `vasudev agents team create` to add a team.",
-    );
-  }
   const onboardingSourceConfig =
     snapshot.sourceConfigBeforeMigrations ?? snapshotConfig.sourceConfig;
   const initialWorkspaceConflict = resolveOnboardingWorkspaceConflict(
@@ -181,9 +176,12 @@ export async function applySystemAgentSetup(
     initialWorkspaceConflict && !params.allowWorkspaceChange
       ? initialWorkspaceConflict.currentWorkspaceDir
       : workspace;
+  // Onboarding has one agent shape: the coordinator plus the preset's specialists. The coordinator
+  // is only this run's to name when this run is the one creating the roster.
+  const onboardingFirstAgent = params.firstAgent ?? { name: "coordinator" };
   let teamCoordinatorId =
     params.teamCoordinatorId ??
-    (params.firstAgent?.team ? normalizeAgentId(params.firstAgent.name) : undefined);
+    (startedWithoutAuthoredRoster ? normalizeAgentId(onboardingFirstAgent.name) : undefined);
   if (!teamCoordinatorId && assertCommitPreconditions) {
     const candidateId = resolveSystemAgentOnboardingTarget(snapshotConfig.runtimeConfig).agentId;
     if (
@@ -281,7 +279,7 @@ export async function applySystemAgentSetup(
       config: onboardingSourceConfig,
       workspace: setupWorkspace,
       baseConfig: onboardingSourceConfig,
-      firstAgent: params.firstAgent ?? { name: "main" },
+      firstAgent: onboardingFirstAgent,
       expectedConfigHash: configHashBefore ?? null,
       beforePersistentApply,
     });
@@ -304,7 +302,7 @@ export async function applySystemAgentSetup(
     ) {
       throw new Error("Vasudev first-agent ownership changed during setup. Retry setup.");
     }
-    coordinatorId = params.firstAgent?.team ? created.agentId : undefined;
+    coordinatorId = created.agentId;
     const rebasedRoute = await assertVerifiedRoute(snapshot, verifiedRoute, "before", true);
     verifiedRoute = rebasedRoute ?? verifiedRoute;
     guardModules ??= await Promise.all([

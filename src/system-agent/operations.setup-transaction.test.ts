@@ -486,7 +486,7 @@ describe("system-agent setup transaction", () => {
     expect(result.applied).toBe(true);
     expect(applySetup).toHaveBeenCalledWith(
       expect.objectContaining({
-        firstAgent: { name: "project-lead", team: true },
+        firstAgent: { name: "project-lead" },
         teamCoordinatorId: "project-lead",
       }),
       expect.anything(),

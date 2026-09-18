@@ -12,18 +12,23 @@ import type { RuntimeEnv } from "../runtime.js";
 import type { SetupInferenceDetection } from "../system-agent/setup-inference.js";
 import { resolveUserPath, shortenHomePath } from "../utils.js";
 import { t } from "../wizard/i18n/index.js";
-import type { WizardPrompter } from "../wizard/prompts.js";
 import {
   resolveOnboardingAgentTarget,
   resolveSystemAgentOnboardingTarget,
 } from "./onboard-agent-target.js";
-import { promptFirstOnboardingAgent, showSessionMigrationWarnings } from "./onboard-first-agent.js";
+import {
+  promptOnboardingOwnerName,
+  resolveFirstOnboardingAgent,
+  showSessionMigrationWarnings,
+} from "./onboard-first-agent.js";
 import {
   persistGuidedAccessMode,
   requestGuidedOnboardingConsent,
   type GuidedAccessMode,
 } from "./onboard-guided-consent.js";
 import { runManualStage } from "./onboard-guided-manual.js";
+import { runGuidedTeamStep } from "./onboard-guided-team.js";
+import type { GuidedOnboardingDeps } from "./onboard-guided.types.js";
 import { enableDefaultOnboardingInternalHooks } from "./onboard-hooks.js";
 import {
   hasInteractiveOnboardingTty,
@@ -32,35 +37,7 @@ import {
 } from "./onboard-interactive-runner.js";
 import type { OnboardOptions } from "./onboard-types.js";
 
-export type GuidedOnboardingDeps = {
-  runSystemAgentChat?: (
-    workspace: string,
-    runtime: RuntimeEnv,
-    acceptRisk: boolean,
-    agentName?: string,
-  ) => Promise<void>;
-  launchHatchTui?: (workspace: string) => Promise<void>;
-  runForegroundGateway?: typeof import("./onboard-quickstart-host.js").runQuickstartForegroundGateway;
-  detect?: typeof import("../system-agent/setup-inference.js").detectSetupInference;
-  activate?: typeof import("../system-agent/setup-inference.js").activateSetupInference;
-  createPrompter?: () => WizardPrompter | Promise<WizardPrompter>;
-  persistRiskAcknowledgement?: (config: OpenClawConfig) => Promise<string | void>;
-  persistAccessMode?: (mode: GuidedAccessMode) => Promise<void>;
-  listManualOptions?: typeof import("../system-agent/setup-inference.js").listManualSetupInferenceOptions;
-  /**
-   * "hatch" (default) runs the local custodian flow: discovery consent,
-   * explicit provider selection, deterministic setup apply, then the agent TUI.
-   * "chat" preserves the legacy handoff into the Vasudev system-agent chat —
-   * remote-gateway onboarding requires it because setup must apply remotely.
-   */
-  handoffMode?: "hatch" | "chat";
-  applySetup?: typeof import("../system-agent/setup-apply.js").applySystemAgentSetup;
-  runSetupMemoryImportStep?: typeof import("../wizard/setup.memory-import.js").runSetupMemoryImportStep;
-  runAppRecommendations?: typeof import("../wizard/setup.app-recommendations.js").setupAppRecommendations;
-  /** Browser-first local hatch handoff. Tests inject this to avoid real browser/Gateway work. */
-  runBrowserHandoff?: typeof import("./onboard-browser-handoff.js").runBrowserHatchHandoff;
-  platform?: NodeJS.Platform;
-};
+export type { GuidedOnboardingDeps };
 
 type GuidedOnboardingHandoff =
   | { workspace: string; next: "browser" }
@@ -135,18 +112,14 @@ async function runGuidedOnboardingFlow(
     : undefined;
   const resumingSetup = localSetup?.status === "pending";
   const hasAuthoredRoster = hasResolvedRosterBeforeMigrations(snapshot);
-  if (opts.team && hasAuthoredRoster) {
-    throw new Error(
-      "An agent roster already exists. Use `vasudev agents team create` to add a team.",
-    );
-  }
+  // Who the owner is, not what to call an agent: the desk's coordinator is always Vasu.
+  const ownerName = await promptOnboardingOwnerName(prompter, {
+    nonInteractive: hasAuthoredRoster || quickstart || opts.nonInteractive === true,
+  });
   const firstAgent =
     resumingSetup && localSetup?.teamCoordinatorId && !hasAuthoredRoster
-      ? { name: localSetup.teamCoordinatorId, team: true }
-      : await promptFirstOnboardingAgent(hasAuthoredRoster, opts.agentName, prompter, quickstart, {
-          team: opts.team,
-          offerTeam: opts.nonInteractive !== true,
-        });
+      ? { name: localSetup.teamCoordinatorId }
+      : await resolveFirstOnboardingAgent(hasAuthoredRoster, opts.agentName);
 
   // Reset removes config but keeps SQLite. Only the original, pre-acknowledgement
   // snapshot distinguishes a new installation from an interrupted previous run.
@@ -166,7 +139,7 @@ async function runGuidedOnboardingFlow(
     !snapshot.exists ||
     (previousLocalSetup?.status === "pending" && localSetup === undefined) ||
     (previousLocalSetup?.status === "completed" && isUnconfiguredConfigSource(existingConfig));
-  const handoffAgentId = firstAgent?.team
+  const handoffAgentId = firstAgent
     ? normalizeAgentId(firstAgent.name)
     : resumingSetup && hasAuthoredRoster
       ? (localSetup?.teamCoordinatorId ??
@@ -239,7 +212,7 @@ async function runGuidedOnboardingFlow(
 
   let teamCoordinatorId =
     (resumingSetup ? localSetup?.teamCoordinatorId : undefined) ??
-    (firstAgent?.team ? normalizeAgentId(firstAgent.name) : undefined);
+    (firstAgent ? normalizeAgentId(firstAgent.name) : undefined);
   if (resumingSetup && hasAuthoredRoster) {
     const { matchesLocalSetupWorkspace } = await import("../system-agent/setup-recovery.js");
     if (
@@ -471,7 +444,10 @@ async function runGuidedOnboardingFlow(
   const workspaceSelection = await resolveSetupWorkspaceSelection({
     baseConfig: existingConfig,
     requestedWorkspaceDir: workspace,
-    approvedWorkspaceDir: resumingSetup && teamCoordinatorId ? localSetup?.workspace : undefined,
+    // Only a receipt from a previous run approves a workspace that differs from the resolved
+    // fleet's. A coordinator id this run just derived is not that approval.
+    approvedWorkspaceDir:
+      resumingSetup && localSetup?.teamCoordinatorId ? localSetup?.workspace : undefined,
     prompter,
     canConfirmMove: !alreadyConfigured,
   });
@@ -651,6 +627,15 @@ async function runGuidedOnboardingFlow(
     }
     recommendationOutcome.commitResult();
   }
+  // Mandatory before this flow reports done: the roster needs its owner and one other person.
+  const teamOutcome = await runGuidedTeamStep({
+    config: persistedConfig,
+    prompter,
+    nonInteractive: opts.nonInteractive === true,
+    incompleteTitle: t("wizard.guided.teamTitle"),
+    ...(ownerName ? { ownerName } : {}),
+    ...(deps.runTeamStep ? { runTeamStep: deps.runTeamStep } : {}),
+  });
   const hatchWorkspace = handoffAgentId
     ? agentWorkspace
     : alreadyConfigured
@@ -667,7 +652,13 @@ async function runGuidedOnboardingFlow(
     };
   }
   if (opts.skipUi === true) {
-    await prompter.outro(t("wizard.guided.complete"));
+    await prompter.outro(
+      t(
+        teamOutcome.status === "incomplete"
+          ? "wizard.finalize.outroTeamIncomplete"
+          : "wizard.guided.complete",
+      ),
+    );
     return null;
   }
   if (opts.tui !== true) {

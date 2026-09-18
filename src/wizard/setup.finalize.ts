@@ -73,9 +73,52 @@ type FinalizeOnboardingOptions = {
   settings: GatewayWizardSettings;
   prompter: WizardPrompter;
   runtime: RuntimeEnv;
+  /** The owner's own name, captured at the top of onboarding, for the Team roster's owner row. */
+  ownerName?: string;
+  /** Test seam for the mandatory Team step's Gateway calls. Production builds one from the
+   *  Gateway this finalize just brought up. */
+  runTeamStep?: typeof import("../flows/team-onboarding.js").runTeamOnboardingStep;
 };
 
 const HATCH_TUI_TIMEOUT_MS = 5 * 60 * 1000;
+
+/**
+ * Drives onboarding's mandatory Team step against the Gateway this finalize just brought up.
+ * `team.add`/`team.owner.set` live in the Team plugin behind `operator.admin`, so the only way to
+ * reach them from the wizard is the same Gateway RPC the Team page uses — no onboarding-local copy
+ * of the roster write.
+ */
+async function runMandatoryTeamStep(params: {
+  config: OpenClawConfig;
+  prompter: WizardPrompter;
+  url: string;
+  token?: string;
+  password?: string;
+  ownerName?: string;
+  nonInteractive: boolean;
+  runTeamStep?: typeof import("../flows/team-onboarding.js").runTeamOnboardingStep;
+}): Promise<import("../flows/team-onboarding.js").TeamOnboardingOutcome> {
+  const run =
+    params.runTeamStep ?? (await import("../flows/team-onboarding.js")).runTeamOnboardingStep;
+  const { callGateway } = await import("../gateway/call.js");
+  const { ADMIN_SCOPE } = await import("../gateway/operator-scopes.js");
+  return await run({
+    config: params.config,
+    prompter: params.prompter,
+    nonInteractive: params.nonInteractive,
+    ...(params.ownerName ? { ownerName: params.ownerName } : {}),
+    request: async <T>(method: string, requestParams: Record<string, unknown>): Promise<T> =>
+      (await callGateway({
+        url: params.url,
+        ...(params.token ? { token: params.token } : {}),
+        ...(params.password ? { password: params.password } : {}),
+        config: params.config,
+        method,
+        params: requestParams,
+        scopes: [ADMIN_SCOPE],
+      })) as T,
+  });
+}
 
 function buildSessionGatewayAuthOverride(params: {
   nextConfig: OpenClawConfig;
@@ -1001,6 +1044,33 @@ export async function finalizeSetupWizard(
       );
     }
 
+    // Mandatory before this wizard reports done: the desk's roster needs its owner and at least one
+    // other person. It runs here because it is the first point where the owner's channel is
+    // connected AND the Gateway that owns `team.add` is answering.
+    const teamOutcome = gatewayProbe.ok
+      ? await runMandatoryTeamStep({
+          config: nextConfig,
+          prompter,
+          url: probeLinks.wsUrl,
+          ...(settings.authMode === "token" && settings.gatewayToken
+            ? { token: settings.gatewayToken }
+            : {}),
+          ...(settings.authMode === "password" && resolvedGatewayPassword
+            ? { password: resolvedGatewayPassword }
+            : {}),
+          ...(options.ownerName ? { ownerName: options.ownerName } : {}),
+          nonInteractive: opts.nonInteractive === true,
+          ...(options.runTeamStep ? { runTeamStep: options.runTeamStep } : {}),
+        })
+      : {
+          status: "incomplete" as const,
+          reason:
+            "Vasu's Gateway is not answering yet, so nobody could be added to your team. Start it, then open the Team tab to add your first teammate.",
+        };
+    if (teamOutcome.status === "incomplete") {
+      await prompter.note(teamOutcome.reason, "Your team");
+    }
+
     await prompter.note(t("wizard.finalize.whatNow"), t("wizard.finalize.whatNowTitle"));
 
     await prompter.outro(
@@ -1014,16 +1084,19 @@ export async function finalizeSetupWizard(
           ? t("wizard.finalize.outroHealthCheckFailed", {
               command: formatCliCommand("vasudev health"),
             })
-          : dashboardReady
-            ? t("wizard.finalize.outroDashboardLink")
-            : controlUiEnabled
-              ? [
-                  t("wizard.guided.complete"),
-                  t("wizard.finalize.dashboardWhenReady", {
-                    command: formatCliCommand("vasudev dashboard"),
-                  }),
-                ].join(" ")
-              : t("wizard.guided.complete"),
+          : // Setup is not "done" while the desk has no team: say what is left instead.
+            teamOutcome.status === "incomplete"
+            ? t("wizard.finalize.outroTeamIncomplete")
+            : dashboardReady
+              ? t("wizard.finalize.outroDashboardLink")
+              : controlUiEnabled
+                ? [
+                    t("wizard.guided.complete"),
+                    t("wizard.finalize.dashboardWhenReady", {
+                      command: formatCliCommand("vasudev dashboard"),
+                    }),
+                  ].join(" ")
+                : t("wizard.guided.complete"),
     );
 
     if (shouldLaunchTui) {

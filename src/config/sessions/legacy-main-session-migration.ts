@@ -77,6 +77,17 @@ function resolveArmingDecision(cfg: OpenClawConfig, legacyAgentId: string): Armi
       return { armed: true, ownerAgentId: normalized };
     }
   }
+  // A multi-agent roster has no sole agent, but it can still have one ambient owner — the desk's
+  // coordinator after onboarding creates the coordinator-plus-specialists roster. That agent is who
+  // the legacy implicit-main conversations belong to; without this the history would be stranded on
+  // a `main` agent the roster no longer has.
+  const ambientOwner = cfg.agents?.defaults?.systemAgent?.agentId?.trim();
+  if (ambientOwner) {
+    const normalized = normalizeAgentId(ambientOwner);
+    if (roster.has(normalized)) {
+      return { armed: true, ownerAgentId: normalized };
+    }
+  }
   return { armed: false, reason: "owner-unresolved" };
 }
 

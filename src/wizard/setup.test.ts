@@ -712,12 +712,12 @@ describe("runSetupWizard", () => {
     ensureOnboardingConfig.mockClear();
   });
 
-  it("prompts for and stages the named first agent on a fresh install", async () => {
-    const prompter = buildWizardPrompter({ text: vi.fn(async () => "robby") });
+  it("captures the owner's name and stages the coordinator on a fresh install", async () => {
+    const prompter = buildWizardPrompter({ text: vi.fn(async () => "Prabhat") });
     ensureOnboardingConfig.mockImplementationOnce(async ({ config, baseConfig }) => ({
       config,
       configBase: baseConfig,
-      agentId: "robby",
+      agentId: "coordinator",
       bootstrapPending: true,
       createdAgent: true,
       sessionMigrationWarnings: ["Run `vasudev doctor --fix` and retry setup."],
@@ -726,16 +726,14 @@ describe("runSetupWizard", () => {
     await runWizard({ workspace: "/tmp/openclaw-workspace" }, createRuntime(), prompter);
 
     expect(prompter.text).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: "What should we call your first agent?",
-        initialValue: "main",
-      }),
+      expect.objectContaining({ message: "What's your name?" }),
     );
+    // The owner's answer is their own name; the coordinator comes from the team preset.
     expect(ensureOnboardingConfig).toHaveBeenCalledWith(
       expect.objectContaining({
         workspace: "/tmp/openclaw-workspace",
         preserveCandidateRoster: false,
-        firstAgent: { name: "robby" },
+        firstAgent: { name: "coordinator" },
       }),
     );
     expect(prompter.note).toHaveBeenCalledWith(
@@ -1636,20 +1634,25 @@ describe("runSetupWizard", () => {
         expect(runtime.error).not.toHaveBeenCalled();
         expect(ensureOnboardingConfig).toHaveBeenCalledWith(
           expect.objectContaining({
-            ...(authored ? {} : { firstAgent: { name: "robby" } }),
+            ...(authored ? {} : { firstAgent: { name: requestedName ?? "coordinator" } }),
             workspace: workspaceDir,
             preserveCandidateRoster: authored,
           }),
         );
         expect(finalizeSetupWizard).toHaveBeenCalledOnce();
       }
-      const namePrompt = expect.objectContaining({
+      // Onboarding asks who the owner is, never what to call an agent — including when
+      // --agent-name already fixes the coordinator id.
+      const agentNamePrompt = expect.objectContaining({
         message: "What should we call your first agent?",
       });
-      if (!authored && !requestedName) {
-        expect(prompter.text).toHaveBeenCalledWith(namePrompt);
+      expect(prompter.text).not.toHaveBeenCalledWith(agentNamePrompt);
+      const ownerNamePrompt = expect.objectContaining({ message: "What's your name?" });
+      if (authored && requestedName) {
+        // The run is rejected before any question is asked.
+        expect(prompter.text).not.toHaveBeenCalledWith(ownerNamePrompt);
       } else {
-        expect(prompter.text).not.toHaveBeenCalledWith(namePrompt);
+        expect(prompter.text).toHaveBeenCalledWith(ownerNamePrompt);
       }
     },
   );

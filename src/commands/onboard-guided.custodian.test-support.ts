@@ -10,6 +10,7 @@ import {
   runGuidedOnboarding as runGuidedOnboardingImpl,
   type GuidedOnboardingDeps,
 } from "./onboard-guided.js";
+import { setupApplyResult, withTeamRoster } from "./onboard-guided.roster.test-support.js";
 
 const runGuidedOnboarding = (...[opts, ...rest]: Parameters<typeof runGuidedOnboardingImpl>) =>
   runGuidedOnboardingImpl({ agentName: "main", ...opts }, ...rest);
@@ -125,14 +126,29 @@ vi.mock("../state/local-onboarding-state.js", () => ({
   completeLocalOnboarding: localOnboarding.complete,
 }));
 vi.mock("./onboard-agent.js", () => ({
-  ensureOnboardingAgent: async ({ config }: { config: OpenClawConfig }) => ({
-    config: {
-      ...config,
-      agents: { ...config.agents, list: [{ id: "main", default: true }] },
-    },
-    agentId: "main",
-    bootstrapPending: true,
-  }),
+  ensureOnboardingAgent: async ({
+    config,
+    workspace,
+    firstAgent,
+  }: {
+    config: OpenClawConfig;
+    workspace: string;
+    firstAgent?: { name: string };
+  }) => {
+    // Onboarding creates the coordinator in its own directory under the workspace root.
+    const agentId = (firstAgent?.name ?? "main").toLowerCase();
+    return {
+      config: {
+        ...config,
+        agents: {
+          ...config.agents,
+          entries: { [agentId]: { workspace: `${workspace}/${agentId}` } },
+        },
+      },
+      agentId,
+      bootstrapPending: true,
+    };
+  },
   validateFirstOnboardingAgentName: () => undefined,
 }));
 
@@ -186,18 +202,6 @@ function detection(
   };
 }
 
-function setupApplyResult() {
-  return {
-    configPath: "/tmp/openclaw.json",
-    configHashBefore: null,
-    configHashAfter: null,
-    bootstrapPending: false,
-    workspaceReady: true,
-    gateway: { status: "ready" as const, action: "installed" as const },
-    lines: [],
-  };
-}
-
 function pendingLocalSetup(params: {
   runId: string;
   workspace: string;
@@ -226,6 +230,7 @@ function setupDeps(params: {
   runAppRecommendations?: GuidedOnboardingDeps["runAppRecommendations"];
   runBrowserHandoff?: GuidedOnboardingDeps["runBrowserHandoff"];
   applySetup?: GuidedOnboardingDeps["applySetup"];
+  runTeamStep?: GuidedOnboardingDeps["runTeamStep"];
   handoffMode?: GuidedOnboardingDeps["handoffMode"];
 }) {
   const runSystemAgentChat = vi.fn<NonNullable<GuidedOnboardingDeps["runSystemAgentChat"]>>(
@@ -237,7 +242,14 @@ function setupDeps(params: {
   return {
     createPrompter: () => params.prompter,
     persistAccessMode: vi.fn(async () => undefined),
-    applySetup: params.applySetup ?? vi.fn(async () => setupApplyResult()),
+    applySetup: withTeamRoster(localOnboarding.persisted, params.applySetup),
+    // The mandatory Team step talks to a live Gateway; tests drive it through its own suite.
+    runTeamStep:
+      params.runTeamStep ??
+      vi.fn<NonNullable<GuidedOnboardingDeps["runTeamStep"]>>(async () => ({
+        status: "complete",
+        memberCount: 1,
+      })),
     launchHatchTui: vi.fn(async () => undefined),
     runForegroundGateway: vi.fn(async () => undefined),
     listManualOptions: vi.fn(async () => ({

@@ -185,7 +185,7 @@ describe("runNonInteractiveLocalSetup default-agent ownership", () => {
   ])(
     "keeps auth and provisioning on the requested owner with $label config",
     async ({ agents, legacyState, agentName }) => {
-      const agentId = agentName ?? "main";
+      const agentId = agentName ?? "coordinator";
       await withTempHome(async (rawHome) => {
         const home = await fs.realpath(rawHome);
         const workspace = path.join(home, "requested-workspace");
@@ -251,7 +251,8 @@ describe("runNonInteractiveLocalSetup default-agent ownership", () => {
             target: {
               agentId,
               agentDir: path.join(home, ".openclaw", "agents", agentId, "agent"),
-              workspaceDir: expectedWorkspace,
+              // The coordinator always lives in its own directory under the workspace root.
+              workspaceDir: path.join(expectedWorkspace, agentId),
             },
             nextConfig: expect.objectContaining({
               agents: expect.objectContaining({
@@ -404,9 +405,14 @@ describe("runNonInteractiveLocalSetup default-agent ownership", () => {
           );
           expect(JSON.parse(persistedRaw).agents).toMatchObject({
             defaults: { workspace, model: { primary: "fixture/selected" } },
-            entries: { robby: { name: "robby", workspace } },
+            entries: { robby: { name: "robby", workspace: path.join(workspace, "robby") } },
           });
-          expect(Object.keys(JSON.parse(persistedRaw).agents.entries)).toEqual(["robby"]);
+          expect(Object.keys(JSON.parse(persistedRaw).agents.entries)).toEqual([
+            "robby",
+            "researcher",
+            "writer",
+            "reviewer",
+          ]);
           expect(mocks.logConfigUpdated).toHaveBeenCalledOnce();
         }
       });
@@ -555,7 +561,7 @@ describe("runNonInteractiveLocalSetup default-agent ownership", () => {
       mocks.ensureOnboardingAgent.mockImplementationOnce(ensureOnboardingAgent);
       mocks.commitConfig.mockImplementationOnce(commitNonInteractiveOnboardConfig);
 
-      await runNonInteractiveSetup({ ...localOptions, workspace, team: true, json: true }, runtime);
+      await runNonInteractiveSetup({ ...localOptions, workspace, json: true }, runtime);
 
       const after = await readConfigFileSnapshot();
       expect(after.valid).toBe(true);

@@ -115,9 +115,18 @@ it.each(["fresh", "interrupted", "replaced"] as const)(
     const snapshot = await readConfigFileSnapshot();
     expect(snapshot.valid).toBe(true);
     expect(snapshot.config.gateway?.mode).toBe("local");
-    expect(snapshot.config.agents?.entries?.starter?.workspace).toBe(workspace);
-    expect(Object.keys(snapshot.config.agents?.entries ?? {})).toEqual(["starter"]);
-    expect(await fs.readFile(path.join(workspace, "AGENTS.md"), "utf8")).not.toBe("");
+    // Onboarding always creates the coordinator plus the preset's specialists, each under the
+    // approved workspace root.
+    expect(snapshot.config.agents?.entries?.starter?.workspace).toBe(
+      path.join(workspace, "starter"),
+    );
+    expect(Object.keys(snapshot.config.agents?.entries ?? {})).toEqual([
+      "starter",
+      "researcher",
+      "writer",
+      "reviewer",
+    ]);
+    expect(await fs.readFile(path.join(workspace, "starter", "AGENTS.md"), "utf8")).not.toBe("");
     expect(readLocalOnboardingState(configPath)?.status).toBe("completed");
     expect(activate).not.toHaveBeenCalled();
     expect(launchHatchTui).not.toHaveBeenCalled();

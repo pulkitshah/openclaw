@@ -3,16 +3,14 @@ import { afterEach, describe, expect, it } from "vitest";
 import { useAutoCleanupTempDirTracker } from "../helpers/temp-dir.js";
 
 const dirs = useAutoCleanupTempDirTracker(afterEach);
-const helper = "scripts/e2e/lib/onboard/first-agent-flow.sh";
+const helper = "scripts/e2e/lib/onboard/owner-name-flow.sh";
 
-describe.skipIf(process.platform === "win32")("guided first-agent prompt handshake", () => {
+describe.skipIf(process.platform === "win32")("guided owner-name prompt handshake", () => {
   it.each([
-    ["legacy", "plain", 5],
-    ["legacy", "fragmented", 5],
-    ["team", "plain", 6],
-    ["team", "fragmented", 6],
-  ] as const)("drives the real guided sender through %s %s prompts", (layout, rendering, count) => {
-    const root = dirs.make("onboard-first-agent-flow-");
+    ["plain", 5],
+    ["fragmented", 5],
+  ] as const)("drives the real guided sender through %s prompts", (rendering, count) => {
+    const root = dirs.make("onboard-owner-name-flow-");
     const result = spawnSync(
       "bash",
       [
@@ -25,11 +23,7 @@ source scripts/e2e/lib/onboard/scenario.sh
 trap 'rm -rf "$ONBOARD_TMP_DIR"' EXIT
 WIZARD_LOG_PATH="$CASE_ROOT/prompts.log"
 export WIZARD_LOG_PATH
-prompts=("Help make OpenClaw better?")
-if [[ "$LAYOUT" == team ]]; then
-  prompts+=($'\\e[36mWhat would you like to create?\\e[39m\\n● One agent\\n○ A small team')
-fi
-prompts+=("What should we call your first agent?" "How should I set things up?" "Model/auth provider" "Use which detected AI?")
+prompts=("Help make OpenClaw better?" "What's your name?" "How should I set things up?" "Model/auth provider" "Use which detected AI?")
 index=0
 render() {
   "$NODE_BIN" -e 'const fs=require("node:fs"); const text=process.argv[2]; fs.writeFileSync(process.argv[1], process.env.RENDERING === "fragmented" ? text.split("").join("\\n") : text);' "$WIZARD_LOG_PATH" "$1"
@@ -43,7 +37,7 @@ wait_for_log() {
   fi
 }
 send() {
-  [[ "$1" == $'\\r' ]] || { echo 'unexpected keystroke' >&2; return 22; }
+  [[ "$1" == $'\\r' || "$1" == $'Owner\\r' ]] || { echo 'unexpected keystroke' >&2; return 22; }
   index=$((index + 1))
   render "\${prompts[$index]:-DONE}"
 }
@@ -58,7 +52,6 @@ printf 'responses=%s\\n' "$index"
         env: {
           ...process.env,
           CASE_ROOT: root,
-          LAYOUT: layout,
           RENDERING: rendering,
           NODE_BIN: process.execPath,
         },
@@ -69,10 +62,7 @@ printf 'responses=%s\\n' "$index"
     expect(result.stdout.trim()).toBe(`responses=${count}`);
   });
 
-  it.each([
-    ["incomplete", 0],
-    ["menu", 1],
-  ] as const)("does not send blindly or re-answer a stalled %s state", (mode, expectedInputs) => {
+  it("fails instead of sending blindly when the prompt never renders", () => {
     const result = spawnSync(
       "bash",
       [
@@ -80,24 +70,18 @@ printf 'responses=%s\\n' "$index"
         `
 source ${helper}
 count=0
-contains() {
-  case "$1" in
-    'What would you like to create?') return 0 ;;
-    'One agent') [[ "$MODE" == menu ]] ;;
-    *) return 1 ;;
-  esac
-}
+contains() { return 1; }
 send() { count=$((count + 1)); }
-wait_for_first_agent_prompt contains 1 0
+wait_for_owner_name_prompt contains 1
 status=$?
 printf 'inputs=%s\\n' "$count"
 exit "$status"
 `,
       ],
-      { encoding: "utf8", env: { ...process.env, MODE: mode }, timeout: 5_000 },
+      { encoding: "utf8", timeout: 5_000 },
     );
     expect(result.status).toBe(1);
-    expect(result.stdout.trim()).toBe(`inputs=${expectedInputs}`);
-    expect(result.stderr).toContain("Timeout waiting for first-agent prompt");
+    expect(result.stdout.trim()).toBe("inputs=0");
+    expect(result.stderr).toContain("Timeout waiting for owner-name prompt");
   });
 });

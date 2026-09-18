@@ -509,11 +509,13 @@ async function runSetupWizardOnce(
     }
     opts = inferred.choice ? { ...opts, authChoice: inferred.choice } : opts;
   }
-  const firstAgent = await firstAgentOnboarding.promptFirstOnboardingAgent(
+  // Who the owner is, not what to call an agent: the desk's coordinator is always Vasu.
+  const ownerName = await firstAgentOnboarding.promptOnboardingOwnerName(prompter, {
+    nonInteractive: opts.nonInteractive === true,
+  });
+  const firstAgent = await firstAgentOnboarding.resolveFirstOnboardingAgent(
     hasAuthoredRoster,
     opts.agentName,
-    prompter,
-    opts.nonInteractive,
   );
   let nextConfig: OpenClawConfig = applyLocalSetupWorkspaceConfig(
     baseConfig,
@@ -710,6 +712,7 @@ async function runSetupWizardOnce(
     settings: gateway.settings,
     prompter,
     runtime,
+    ...(ownerName ? { ownerName } : {}),
   });
   await acknowledgeMigrationPromotion?.();
   if (finalizeResult.launchedTui) {

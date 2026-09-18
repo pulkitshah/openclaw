@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  createAgent: vi.fn(),
+  createAgentTeam: vi.fn(),
   migrateLegacyMainSessionKeys: vi.fn(),
   readConfigFileSnapshot: vi.fn(),
 }));
 
-vi.mock("../agents/agent-create.js", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("../agents/agent-create.js")>()),
-  createAgent: mocks.createAgent,
+vi.mock("../agents/agent-team.js", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../agents/agent-team.js")>()),
+  createAgentTeam: mocks.createAgentTeam,
 }));
 vi.mock("../config/config.js", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../config/config.js")>()),
@@ -20,18 +20,26 @@ vi.mock("../config/sessions/legacy-main-session-migration.js", () => ({
 
 const { ensureOnboardingAgent } = await import("./onboard-agent.js");
 
-describe("onboarding main-agent creation", () => {
+const teamResult = (coordinatorId: string) => ({
+  status: "created" as const,
+  coordinatorId,
+  ambientOwnerId: coordinatorId,
+  agents: [coordinatorId, "researcher", "writer", "reviewer"].map((agentId) => ({
+    status: "created" as const,
+    agentId,
+    name: agentId,
+    workspace: `/tmp/work/${agentId}`,
+    agentDir: `/tmp/agent/${agentId}`,
+    bootstrapPending: false,
+  })),
+  config: {},
+  configHash: "hash-after-create",
+});
+
+describe("onboarding coordinator-team creation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.createAgent.mockResolvedValue({
-      status: "created",
-      agentId: "main",
-      name: "main",
-      workspace: "/tmp/work",
-      agentDir: "/tmp/agent",
-      bootstrapPending: true,
-      configHash: "hash-after-create",
-    });
+    mocks.createAgentTeam.mockResolvedValue(teamResult("coordinator"));
     mocks.migrateLegacyMainSessionKeys.mockResolvedValue({});
     mocks.readConfigFileSnapshot
       .mockResolvedValueOnce({
@@ -55,7 +63,7 @@ describe("onboarding main-agent creation", () => {
       });
   });
 
-  it("provisions explicit main through createAgent on a fresh install", async () => {
+  it("provisions the coordinator team on a fresh install", async () => {
     const result = await ensureOnboardingAgent({
       config: {
         agents: { defaults: { model: "openai/gpt-5.5" } },
@@ -64,15 +72,14 @@ describe("onboarding main-agent creation", () => {
       workspace: "/tmp/work",
     });
 
-    expect(mocks.createAgent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        entry: expect.objectContaining({ id: "main" }),
-        bootstrapMain: true,
-      }),
+    expect(mocks.createAgentTeam).toHaveBeenCalledWith(
+      expect.objectContaining({ bootstrapFirstAgent: true, workspaceRoot: "/tmp/work" }),
     );
-    expect(mocks.createAgent.mock.calls[0]?.[0]?.entry).not.toHaveProperty("default");
+    // No caller-supplied first agent: the preset's own coordinator id is used.
+    expect(mocks.createAgentTeam.mock.calls[0]?.[0]).not.toHaveProperty("coordinator");
     expect(result).toMatchObject({
-      agentId: "main",
+      agentId: "coordinator",
+      createdAgentIds: ["coordinator", "researcher", "writer", "reviewer"],
       config: {
         agents: {
           defaults: { model: "openai/gpt-5.5" },
@@ -83,16 +90,8 @@ describe("onboarding main-agent creation", () => {
     });
   });
 
-  it("stages a normalized named first agent and runs legacy-session convergence", async () => {
-    mocks.createAgent.mockResolvedValueOnce({
-      status: "created",
-      agentId: "robby",
-      name: "Robby!",
-      workspace: "/tmp/work",
-      agentDir: "/tmp/agent",
-      bootstrapPending: true,
-      configHash: "hash-after-create",
-    });
+  it("stages a normalized named coordinator and runs legacy-session convergence", async () => {
+    mocks.createAgentTeam.mockResolvedValueOnce(teamResult("robby"));
 
     await ensureOnboardingAgent({
       config: {},
@@ -100,8 +99,8 @@ describe("onboarding main-agent creation", () => {
       firstAgent: { name: "Robby!" },
     });
 
-    expect(mocks.createAgent).toHaveBeenCalledWith(
-      expect.objectContaining({ entry: { id: "robby", name: "Robby!", workspace: "/tmp/work" } }),
+    expect(mocks.createAgentTeam).toHaveBeenCalledWith(
+      expect.objectContaining({ coordinator: "Robby!", workspaceRoot: "/tmp/work" }),
     );
     expect(mocks.migrateLegacyMainSessionKeys).toHaveBeenCalledWith({
       cfg: expect.objectContaining({ agents: expect.any(Object) }),
@@ -126,7 +125,7 @@ describe("onboarding main-agent creation", () => {
       createdAgent: false,
     });
     expect(mocks.readConfigFileSnapshot).not.toHaveBeenCalled();
-    expect(mocks.createAgent).not.toHaveBeenCalled();
+    expect(mocks.createAgentTeam).not.toHaveBeenCalled();
   });
   it("reports the post-create config hash so callers can rebase their commit", async () => {
     // Regression (#112678): creating the first roster agent writes the config
@@ -150,7 +149,7 @@ describe("onboarding main-agent creation", () => {
     });
 
     expect(result.configHash).toBeUndefined();
-    expect(mocks.createAgent).not.toHaveBeenCalled();
+    expect(mocks.createAgentTeam).not.toHaveBeenCalled();
   });
 
   it("rejects a whitespace-only explicit first-agent name instead of defaulting to main", async () => {
@@ -163,7 +162,7 @@ describe("onboarding main-agent creation", () => {
     ).rejects.toThrow("Agent name is required");
 
     expect(mocks.readConfigFileSnapshot).not.toHaveBeenCalled();
-    expect(mocks.createAgent).not.toHaveBeenCalled();
+    expect(mocks.createAgentTeam).not.toHaveBeenCalled();
   });
 
   it("surfaces an incomplete legacy-session migration with a doctor recovery hint", async () => {
@@ -202,6 +201,6 @@ describe("onboarding main-agent creation", () => {
       }),
     ).rejects.toThrow("config changed before first-agent creation");
 
-    expect(mocks.createAgent).not.toHaveBeenCalled();
+    expect(mocks.createAgentTeam).not.toHaveBeenCalled();
   });
 });

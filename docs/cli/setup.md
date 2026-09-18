@@ -73,8 +73,8 @@ asking you to choose token or password. Existing password-mode configs are
 preserved. Use `--gateway-auth password` or `--gateway-password <value>` to
 choose a password explicitly; Tailscale Funnel still requires password mode.
 
-Use `setup --team` for the same small-team onboarding as `onboard --team`.
-`--agent-name <name>` names the first agent or, with `--team`, the coordinator.
+Setup always creates the coordinator (Vasu) plus the `researcher`, `writer`, and
+`reviewer` specialists. `--agent-name <name>` renames the coordinator agent id.
 
 <Note>
 `openclaw setup` is for mutable config installs. In Nix mode (`OPENCLAW_NIX_MODE=1`) Vasudev refuses setup writes because the config file is managed by Nix. Use the first-party [nix-openclaw Quick Start](https://github.com/openclaw/nix-openclaw#quick-start) or the equivalent source config for another Nix package.
@@ -90,7 +90,7 @@ Use `setup --team` for the same small-team onboarding as `onboard --team`.
 | `--baseline`                   | Create baseline config/workspace/session folders without onboarding.                                 |
 | `--wizard`                     | Force interactive onboarding.                                                                        |
 | `--classic`                    | Run the classic multi-step onboarding wizard; not valid with `--non-interactive`.                    |
-| `--agent-name <name>`          | Name for the first agent (default: `main`).                                                          |
+| `--agent-name <name>`          | Name for the coordinator agent (default: `coordinator`).                                             |
 | `--tui`                        | Use the terminal hatch instead of the browser handoff.                                               |
 | `--non-interactive`            | Run onboarding without prompts.                                                                      |
 | `--accept-risk`                | Acknowledge full-system agent access risk; required with `--non-interactive`.                        |
