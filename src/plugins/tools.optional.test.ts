@@ -3345,6 +3345,54 @@ describe("resolvePluginTools optional tools", () => {
     expect(factory).toHaveBeenCalledTimes(2);
   });
 
+  // Plugin owner gates are built out of this: a factory reads the assembling turn's admission facts
+  // once and closes over them, so a memoized factory result would serve one person's gate decision
+  // to the next person's turn. Memoizing on the registration would leave those gates silently open,
+  // which is why the per-assembly re-invocation is pinned here and not only stated in a comment.
+  it("re-invokes the same registration's factory with each assembly's own requester", async () => {
+    const seenSenderIds: (string | undefined)[] = [];
+    const factory = vi.fn((rawCtx: unknown) => {
+      const ctx = rawCtx as { requesterSenderId?: string };
+      seenSenderIds.push(ctx.requesterSenderId);
+      return {
+        ...makeTool("cached_requester_tool"),
+        async execute() {
+          return { content: [{ type: "text", text: ctx.requesterSenderId ?? "missing" }] };
+        },
+      };
+    });
+    setRegistry([
+      {
+        pluginId: "cache-requester-test",
+        optional: false,
+        source: "/tmp/cache-requester-test.js",
+        names: ["cached_requester_tool"],
+        factory,
+      },
+    ]);
+
+    const first = resolvePluginTools(
+      createResolveToolsParams({
+        context: { ...createContext(), requesterSenderId: "owner-sender" },
+      }),
+    );
+    const second = resolvePluginTools(
+      createResolveToolsParams({
+        context: { ...createContext(), requesterSenderId: "member-sender" },
+      }),
+    );
+
+    expectResolvedToolNames(first, ["cached_requester_tool"]);
+    expectResolvedToolNames(second, ["cached_requester_tool"]);
+    expect(factory).toHaveBeenCalledTimes(2);
+    expect(seenSenderIds).toEqual(["owner-sender", "member-sender"]);
+
+    await expect(second[0]?.execute("call", {}, undefined)).resolves.toEqual({
+      content: [{ type: "text", text: "member-sender" }],
+    });
+    expect(factory).toHaveBeenCalledTimes(2);
+  });
+
   it.each([
     ["direct-operator", "delegated"],
     ["delegated", "direct-operator"],

@@ -23,6 +23,8 @@ On a brand-new desk, the Team page shows "Tell Vasu where to reach you" instead 
 
 Transferring ownership moves the reporting line, not the person: the outgoing owner keeps their row, their channel identities, their sessions, and their admission — only which member holds `owner` changes.
 
+Team's `owner` role is not core's owner, and the roster never writes `commands.ownerAllowFrom` — the two are set in separate places and neither confers the other. A Team owner missing from `commands.ownerAllowFrom` is an ordinary sender to core and gets none of its owner-only tools; a core owner who is merely a Team `member` keeps those tools and still cannot change the roster.
+
 ## Adding and removing members
 
 Adding someone writes their roster row immediately — there is no agent to create, no naming ceremony, nothing to wait for. Their access starts the moment the row and the config projection it triggers both land.

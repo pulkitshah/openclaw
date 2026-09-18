@@ -140,6 +140,10 @@ export function registerTeamTools(params: { api: OpenClawPluginApi }): void {
       { name: tool.name },
     );
 
+  // Any future tool that mutates the roster must go through `registerOwnerOnly`, not `register`.
+  // `team.setChannels` and `team.owner.set` have no agent tool today and are the ones to watch:
+  // `setChannels` writes `allowFrom` entries exactly as `team.add` does, so exposing either through
+  // plain `register` would reopen the member-admits-a-stranger hole this gate closes.
   register({
     name: "team_list",
     label: "List the Team",
