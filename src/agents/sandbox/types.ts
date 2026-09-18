@@ -91,6 +91,14 @@ export type SandboxConfig = {
   browser: SandboxBrowserConfig;
   tools: SandboxToolPolicy;
   prune: SandboxPruneConfig;
+  /**
+   * Mirrors `tools.exec.denySelfCli` (global, overridden per-agent) so container-creating
+   * backends (Docker/Podman) can bind-mount the PATH-shadow deny-stub directory into the
+   * container's own filesystem at creation time -- see `exec-self-cli-deny-path-shadow.ts`.
+   * Backends that cannot reach a real filesystem for the spawned command (remote-shell/SSH)
+   * have no use for this and leave it unread.
+   */
+  denySelfCli?: boolean;
 };
 
 export type SandboxBrowserContext = {

@@ -104,6 +104,18 @@ class RemoteShellSandboxBackendImpl {
       remoteWorkspaceDir: this.params.runtimePaths.remoteWorkspaceDir,
       remoteAgentWorkspaceDir: this.params.runtimePaths.remoteAgentWorkspaceDir,
       buildExecSpec: async ({ command, workdir, env, usePty }) => {
+        // `env` (forwarded to the remote session below via `session.prepareExec`) carries
+        // `tools.exec.denySelfCli`'s PATH-shadow stub directory verbatim when that policy is
+        // active, exactly like every other host -- but this backend has no way to make that
+        // directory (or the deny-stub files in it) exist on the genuinely separate remote
+        // filesystem the session runs on. Unlike the Docker/Podman backend (`docker-backend.ts`,
+        // `docker.ts`'s `ensureSandboxContainerLifecycle`), which bind-mounts the stub directory
+        // into the container at the identical path, there is no bind-mount equivalent here: the
+        // PATH entry is a real string but resolves to nothing, so this backend's self-CLI defense
+        // is the static segment-analysis check alone (`exec-self-cli-deny.ts`), the same tier as
+        // the node host. Shipping stub files to an arbitrary remote host on every exec call would
+        // be disproportionate scope for this layer -- see `exec-self-cli-deny-path-shadow.ts`'s
+        // module comment and `docs/tools/exec-approvals.md`.
         const remoteWorkdir = workdir ?? this.params.runtimePaths.remoteWorkspaceDir;
         const remoteCommand = buildValidatedExecRemoteCommand({
           command,

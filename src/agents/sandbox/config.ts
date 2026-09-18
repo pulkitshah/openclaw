@@ -279,5 +279,10 @@ export function resolveSandboxConfigForAgent(
       globalPrune: agent?.prune,
       agentPrune: agentSandbox?.prune,
     }),
+    // Same simple global/per-agent override `??` shape `resolveExecToolConfig` uses for this
+    // one boolean flag (not the fuller `applyExecPolicyLayer` merge that field never needed) --
+    // duplicated narrowly here rather than importing the exec-tool resolver's much larger
+    // surface just for one field.
+    denySelfCli: agentConfig?.tools?.exec?.denySelfCli ?? cfg?.tools?.exec?.denySelfCli ?? false,
   };
 }

@@ -1,4 +1,5 @@
 import { withContainerEnvFile } from "../../infra/container-env-file.js";
+import { prepareSelfCliDenyPathShadow } from "../../infra/exec-self-cli-deny-path-shadow.js";
 import { markOpenClawExecEnv } from "../../infra/openclaw-exec-env.js";
 /**
  * Low-level Docker command helpers for sandbox runtimes.
@@ -615,6 +616,25 @@ async function ensureSandboxContainerLifecycle(
     workdir: params.cfg.docker.workdir,
     workspaceAccess: params.cfg.workspaceAccess,
   });
+  // `tools.exec.denySelfCli`'s PATH-shadow layer (see `exec-self-cli-deny-path-shadow.ts`) only
+  // shadows the real `vasudev`/`openclaw` binaries when the spawned command's own PATH lookup can
+  // actually resolve the stub directory. The exec-time env-building code always prepends this same
+  // host-absolute directory into the container's PATH verbatim (it never translates host paths to
+  // container paths for env vars), so the container's filesystem must expose a real directory at
+  // that exact literal path -- otherwise the PATH entry is a dangling no-op and self-CLI lookups
+  // fall through to whatever real binary a bind-mounted workspace happens to contain. Modeling it
+  // as one more identity-mapped (host path === container path) read-only "skill" mount reuses the
+  // existing mount-arg, hash-invalidation, and user-bind-collision-protection machinery below
+  // as-is, rather than adding a parallel bind-construction path.
+  const selfCliDenyStubHostDir = params.cfg.denySelfCli
+    ? await prepareSelfCliDenyPathShadow()
+    : undefined;
+  const containerReadOnlyMounts = selfCliDenyStubHostDir
+    ? [
+        ...readOnlyWorkspaceSkillMounts,
+        { hostPath: selfCliDenyStubHostDir, containerPath: selfCliDenyStubHostDir },
+      ]
+    : readOnlyWorkspaceSkillMounts;
   const genericConfigHash = computeSandboxConfigHash({
     docker: params.cfg.docker,
     dockerEnvPolicyEpoch: resolveDockerEnvPolicyEpoch(params.cfg.docker.env),
@@ -623,9 +643,8 @@ async function ensureSandboxContainerLifecycle(
     agentWorkspaceDir: params.agentWorkspaceDir,
     mountFormatVersion: SANDBOX_MOUNT_FORMAT_VERSION,
     createArgsEpoch: SANDBOX_DOCKER_CREATE_ARGS_EPOCH,
-    readOnlyWorkspaceSkillMounts: formatReadOnlyWorkspaceSkillMountHashState(
-      readOnlyWorkspaceSkillMounts,
-    ),
+    readOnlyWorkspaceSkillMounts:
+      formatReadOnlyWorkspaceSkillMountHashState(containerReadOnlyMounts),
   });
   const expectedHash =
     engine.id === "podman"
@@ -681,7 +700,7 @@ async function ensureSandboxContainerLifecycle(
       skillsWorkspaceDir: params.skillsWorkspaceDir,
       scopeKey: params.scopeKey,
       configHash: expectedHash,
-      readOnlyWorkspaceSkillMounts,
+      readOnlyWorkspaceSkillMounts: containerReadOnlyMounts,
       podmanRuntimeInfo,
     });
   } else if (!running) {

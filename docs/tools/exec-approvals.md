@@ -351,9 +351,9 @@ has no allowlist/approval layer of its own at all — runs it as the _only_
 gate standing between the command and the sandbox backend's spawn.
 
 **Layer 2: the PATH-shadow environment defense.** When `denySelfCli` is
-active, the gateway and sandbox hosts also prepend a small stub directory
-ahead of every other `PATH` entry in the spawned command's own environment.
-That directory contains executable files literally named
+active, every exec host's environment-building code prepends a small stub
+directory ahead of every other `PATH` entry in the spawned command's own
+environment. That directory contains executable files literally named
 `vasudev`/`openclaw` that immediately deny and exit non-zero. Because
 `PATH` search order is a property of the environment inherited by the
 _entire_ process tree a command spawns — not something each wrapper tool
@@ -365,14 +365,37 @@ additive: layer 1 still runs first and denies plenty of cases (including
 every direct/absolute-path invocation, on any host) before anything is
 spawned.
 
-Layer 2 is scoped to whichever hosts this process controls the spawned
-command's environment directly for, the same way `tools.exec.pathPrepend`
-already is: gateway and sandbox, not node. The node host dispatches a
-command to a genuinely remote device, and this process never controls that
-device's `PATH`. Layer 1's static check runs unconditionally on the node
-host regardless (see above), so the node host's self-CLI defense today is
-layer 1 alone — this is the one host where layer 2 does not apply, not
-sandbox.
+But putting the directory's path into `PATH` only helps if a real directory
+with real deny-stub files actually exists at that path *inside the
+filesystem the spawned command sees* — layer 2's real scope is therefore
+per sandbox backend, not a blanket "sandbox host" claim:
+
+- **Gateway host:** in scope. The command runs in this process's own
+  filesystem, where the stub directory genuinely lives.
+- **Sandbox via the Docker/Podman backend:** in scope. `docker-backend.ts`'s
+  container-provisioning code (`docker.ts`'s
+  `ensureSandboxContainerLifecycle`) bind-mounts the stub directory
+  read-only into the container at container-creation time, at the exact
+  same host-absolute path the PATH entry already carries, so PATH
+  resolution inside the container finds the real stub files.
+- **Sandbox via the remote-shell/SSH backend:** *not* in scope. This
+  backend's PATH-building runs through the same code as every other host,
+  so the stub directory's path still lands in the spawned command's `PATH`
+  string — but that directory is a local, host-side path with no
+  equivalent on the genuinely separate remote filesystem the command
+  actually runs on, and there is no bind-mount primitive over SSH to make
+  one appear there. The PATH entry is real but resolves to nothing.
+  Shipping stub files to an arbitrary remote host on every exec call would
+  be disproportionate scope for this layer, so this backend's self-CLI
+  defense is layer 1 alone — the same tier as the node host, below.
+- **Node host:** not in scope, for a different, structural reason: the node
+  host dispatches a command to a genuinely remote device via `system.run`,
+  and this process never controls that device's `PATH` (the same reason
+  `tools.exec.pathPrepend` is already documented as ignored for
+  `host=node`).
+
+Layer 1's static check runs unconditionally regardless of any of the above
+(see above), so it remains every host and every sandbox backend's floor.
 
 The shadow stub directory is re-verified (and, if missing, transparently
 recreated) on every exec call that needs it, not only the first: an
@@ -397,9 +420,9 @@ chances" guarantee against every conceivable path):**
   one. This is an accepted residual gap: it requires deliberately naming a
   PATH value, a materially higher bar than the zero-PATH-knowledge
   bypasses layer 2 closes.
-- Layer 2 does not extend to the node host (see above); a buried,
-  unrecognized-indirection-tool invocation on a node host is covered only
-  by layer 1.
+- Layer 2 does not extend to the node host or to the sandbox's
+  remote-shell/SSH backend (see above); a buried, unrecognized-indirection-
+  tool invocation on either is covered only by layer 1.
 - The PATH-shadow stub directory's repair check runs at preparation time,
   immediately before its path is used to build the spawned command's
   environment — not atomically at the instant of spawn. A command that

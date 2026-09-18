@@ -29,13 +29,23 @@
 //  - This is a defense-in-depth ADDITION alongside the existing static check, not a replacement:
 //    the static check still runs first and denies plenty of cases (including direct/absolute-path
 //    invocation) before a process is ever spawned.
-//  - Only meaningful where this process controls the spawned command's environment directly: the
-//    gateway host (and, incidentally, the sandbox host's env-building, though sandbox has its own
-//    separate deny posture and isn't part of `denySelfCli`'s current scope). The node host dispatches
-//    to a genuinely remote device via `system.run`; this process never controls that device's PATH
-//    (and, separately, `tools.exec.pathPrepend` is already documented as ignored for host=node for
-//    the same reason), so the node host's self-CLI defense remains the static check alone — which is
-//    already unconditional there, independent of this module.
+//  - Only meaningful where this process controls the spawned command's environment AND the
+//    spawned command's filesystem, since PATH resolution needs a real file at the resolved
+//    directory, not just the right string in PATH. That holds for the gateway host and for the
+//    Docker/Podman sandbox backends (`docker-backend.ts` bind-mounts this stub directory into the
+//    container at the identical host-absolute path used in PATH, at container-creation time --
+//    see `resolveSandboxConfigForAgent`'s `denySelfCli` field and `ensureSandboxContainerLifecycle`
+//    in `docker.ts`). It does NOT hold for the remote-shell/SSH sandbox backend
+//    (`remote-shell-backend.ts`): that backend's PATH env-building runs through the same code path
+//    as every other host, so the directory string still gets prepended into PATH, but the
+//    directory itself is a local, host-side path that cannot be made to exist on a genuinely
+//    separate remote filesystem by this process -- shipping stub files to an arbitrary remote host
+//    on every exec call is out of proportion for this layer, so that backend's self-CLI defense
+//    remains the static check alone (the same tier as the node host, below). The node host
+//    dispatches to a genuinely remote device via `system.run`; this process never controls that
+//    device's PATH (and, separately, `tools.exec.pathPrepend` is already documented as ignored for
+//    host=node for the same reason), so the node host's self-CLI defense remains the static check
+//    alone — which is already unconditional there, independent of this module.
 //  - A command that explicitly reassigns `PATH` before invoking the bare name (`env PATH=/usr/bin
 //    vasudev ...`, or a script doing `export PATH=...` then calling `vasudev`) can still reach the
 //    real binary if the reassigned PATH omits this shadow directory and still contains the real bin
