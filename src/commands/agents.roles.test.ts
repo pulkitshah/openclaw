@@ -70,7 +70,7 @@ function existingFleet(root: string): OpenClawConfig {
 
 describe("role and team creation through persisted configuration", () => {
   it.each([false, true])(
-    "rejects skipped team creation with an existing roster (stale proposal: %s)",
+    "leaves an existing roster untouched instead of creating a team (stale proposal: %s)",
     async (stale) => {
       await withState(async (root, configPath) => {
         const initial: OpenClawConfig = {
@@ -79,15 +79,15 @@ describe("role and team creation through persisted configuration", () => {
         const original = JSON.stringify(initial);
         await fs.writeFile(configPath, original);
         const workspace = path.join(root, "team");
+        // Onboarding always asks for the coordinator team; an install that already has a roster
+        // keeps it, writing neither config nor workspace.
         await expect(
           ensureOnboardingAgent({
             config: stale ? {} : initial,
             workspace,
-            firstAgent: { name: "coordinator", team: true },
+            firstAgent: { name: "coordinator" },
           }),
-        ).rejects.toThrow(
-          "The requested team was not created because an agent roster already exists",
-        );
+        ).resolves.toMatchObject({ createdAgent: false, agentId: "main" });
         expect(await fs.readFile(configPath, "utf8")).toBe(original);
         await expect(fs.access(workspace)).rejects.toMatchObject({ code: "ENOENT" });
       });

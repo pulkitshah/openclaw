@@ -322,6 +322,7 @@ export const en = {
       settingUp: "Setting up your workspace, gateway, and sessions…",
       setupDone: "Everything's in place.",
       complete: "Vasudev is ready.",
+      teamTitle: "Your team",
       completeWithoutAi: "Vasudev setup is saved. Connect AI before opening chat.",
       detected: "AI detection complete.",
       detectedCandidate: "{label} — {detail}{recommended}",
@@ -1234,6 +1235,8 @@ export const en = {
       webSearchUnavailableAction:
         "web_search will not work until the provider is re-enabled or a different provider is selected.",
       webUiUrl: "Web UI: {url}",
+      outroTeamIncomplete:
+        "Almost there — Vasu still needs a team. Open the Team tab in the dashboard to finish.",
       whatNow: 'What now: https://openclaw.ai/showcase ("What People Are Building").',
       whatNowTitle: "What now",
       workspaceBackupTitle: "Workspace backup",

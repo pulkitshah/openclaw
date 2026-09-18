@@ -13,6 +13,7 @@ import {
   runGuidedOnboarding as runGuidedOnboardingImpl,
   type GuidedOnboardingDeps,
 } from "./onboard-guided.js";
+import { setupApplyResult, withTeamRoster } from "./onboard-guided.roster.test-support.js";
 
 const runGuidedOnboarding = (...[opts, ...rest]: Parameters<typeof runGuidedOnboardingImpl>) =>
   runGuidedOnboardingImpl({ agentName: "main", ...opts }, ...rest);
@@ -183,16 +184,11 @@ function detection(
   };
 }
 
-function setupApplyResult() {
-  return {
-    configPath: "/tmp/openclaw.json",
-    configHashBefore: null,
-    configHashAfter: null,
-    bootstrapPending: false,
-    workspaceReady: true,
-    gateway: { status: "ready" as const, action: "installed" as const },
-    lines: [],
-  };
+/** Onboarding's only unconditional text prompt is the owner's own name. */
+function expectOnlyOwnerNamePrompt(text: WizardPrompter["text"]): void {
+  expect(vi.mocked(text).mock.calls.map(([params]) => params.message)).toEqual([
+    "What's your name?",
+  ]);
 }
 
 function recommendationOutcome(config: OpenClawConfig) {
@@ -209,6 +205,7 @@ function setupDeps(params: {
   runAppRecommendations?: GuidedOnboardingDeps["runAppRecommendations"];
   runBrowserHandoff?: GuidedOnboardingDeps["runBrowserHandoff"];
   applySetup?: GuidedOnboardingDeps["applySetup"];
+  runTeamStep?: GuidedOnboardingDeps["runTeamStep"];
   handoffMode?: GuidedOnboardingDeps["handoffMode"];
   platform?: NodeJS.Platform;
 }) {
@@ -221,7 +218,14 @@ function setupDeps(params: {
   return {
     createPrompter: () => params.prompter,
     persistAccessMode: vi.fn(async () => undefined),
-    applySetup: params.applySetup ?? vi.fn(async () => setupApplyResult()),
+    applySetup: withTeamRoster(localOnboarding.persisted, params.applySetup),
+    // The mandatory Team step talks to a live Gateway; tests drive it through its own suite.
+    runTeamStep:
+      params.runTeamStep ??
+      vi.fn<NonNullable<GuidedOnboardingDeps["runTeamStep"]>>(async () => ({
+        status: "complete",
+        memberCount: 1,
+      })),
     launchHatchTui: vi.fn(async () => undefined),
     listManualOptions: vi.fn(async () => ({
       manualProviders: [],
@@ -300,7 +304,7 @@ describe("runGuidedOnboarding", () => {
 
   it("hands the custodian hatch to the browser on Linux after apply and recommendations", async () => {
     const prompter = createWizardPrompter();
-    const applySetup = vi.fn(async () => setupApplyResult());
+    const applySetup = withTeamRoster(localOnboarding.persisted);
     const runAppRecommendations = vi.fn<NonNullable<GuidedOnboardingDeps["runAppRecommendations"]>>(
       async ({ config }) => recommendationOutcome(config),
     );
@@ -320,6 +324,8 @@ describe("runGuidedOnboarding", () => {
         wizard: { securityAcknowledgedAt: expect.any(String) },
       }),
       prompter,
+      // Onboarding always creates the coordinator, so the handoff always names it.
+      agentId: "main",
     });
     expect(runBrowserHandoff).toHaveBeenCalledOnce();
     expect(applySetup.mock.invocationCallOrder[0]).toBeLessThan(
@@ -332,50 +338,90 @@ describe("runGuidedOnboarding", () => {
     expect(prompter.outro).toHaveBeenCalledWith("Your browser is ready — I'll be in Settings.");
   });
 
-  it("prompts for and passes the named first agent into system-agent setup", async () => {
-    const prompter = createWizardPrompter({ text: vi.fn(async () => "robby") });
-    const applySetup = vi.fn(async () => setupApplyResult());
+  it("captures the owner's own name and creates the coordinator, never naming an agent", async () => {
+    const prompter = createWizardPrompter({ text: vi.fn(async () => "Prabhat") });
+    const applySetup = withTeamRoster(localOnboarding.persisted);
+    const runTeamStep = vi.fn<NonNullable<GuidedOnboardingDeps["runTeamStep"]>>(async () => ({
+      status: "complete",
+      memberCount: 1,
+    }));
 
     await runGuidedOnboardingImpl(
       { acceptRisk: true, workspace: "/tmp/work", skipUi: true },
       makeRuntime(),
-      setupDeps({ prompter, applySetup }),
+      setupDeps({ prompter, applySetup, runTeamStep }),
     );
 
     expect(prompter.text).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: "What should we call your first agent?",
-        initialValue: "main",
-      }),
+      expect.objectContaining({ message: "What's your name?" }),
     );
+    const promptedMessages = vi.mocked(prompter.text).mock.calls.map(([params]) => params.message);
+    expect(promptedMessages).not.toContain("What should we call your first agent?");
+    // The coordinator comes from the team preset, not from the owner's answer.
     expect(applySetup).toHaveBeenCalledWith(
-      expect.objectContaining({ firstAgent: { name: "robby" } }),
+      expect.objectContaining({ firstAgent: { name: "coordinator" } }),
       { beforePersistentApply: expect.any(Function) },
     );
+    expect(runTeamStep).toHaveBeenCalledWith(expect.objectContaining({ ownerName: "Prabhat" }));
+  });
+
+  it.each([
+    {
+      label: "reports done once someone is on the team",
+      outcome: { status: "complete" as const, memberCount: 1 },
+      outro: "Vasudev is ready.",
+    },
+    {
+      label: "never reports done with nobody on the team",
+      outcome: { status: "incomplete" as const, reason: "Nobody is on your team yet." },
+      outro:
+        "Almost there — Vasu still needs a team. Open the Team tab in the dashboard to finish.",
+    },
+  ])("$label", async ({ outcome, outro }) => {
+    const prompter = createWizardPrompter({ text: vi.fn(async () => "Prabhat") });
+    const runTeamStep = vi.fn<NonNullable<GuidedOnboardingDeps["runTeamStep"]>>(
+      async () => outcome,
+    );
+
+    await runGuidedOnboardingImpl(
+      { acceptRisk: true, workspace: "/tmp/work", skipUi: true },
+      makeRuntime(),
+      setupDeps({ prompter, runTeamStep }),
+    );
+
+    expect(runTeamStep).toHaveBeenCalledOnce();
+    expect(prompter.outro).toHaveBeenCalledWith(outro);
+    if (outcome.status === "incomplete") {
+      expect(prompter.note).toHaveBeenCalledWith(outcome.reason, "Your team");
+    }
   });
 
   it("shows gateway repair failures before recovery and keeps onboarding pending", async () => {
     const repairReason = "service port 18788 does not match current gateway config port 18789";
     const prompter = createWizardPrompter();
-    const applySetup = vi.fn(async () => ({
+    const applySetup = vi.fn<NonNullable<GuidedOnboardingDeps["applySetup"]>>(async () => ({
       ...setupApplyResult(),
       gateway: { status: "failed" as const, error: repairReason },
       lines: [`Gateway service: ${repairReason}`],
     }));
     const deps = setupDeps({ prompter, applySetup });
 
-    await runGuidedOnboarding({ acceptRisk: true, workspace: "/tmp/work" }, makeRuntime(), deps);
+    // Onboarding always creates a coordinator roster now, so a failed apply always reports the
+    // roster to inspect rather than dropping into a chat recovery that cannot repair it.
+    await expect(
+      runGuidedOnboarding({ acceptRisk: true, workspace: "/tmp/work" }, makeRuntime(), deps),
+    ).rejects.toThrow(`Onboarding did not complete: ${repairReason}`);
 
     const repairNotes = vi
       .mocked(prompter.note)
       .mock.calls.map(([message]) => message)
       .filter((message) => message.includes(repairReason));
-    expect(repairNotes).toHaveLength(2);
+    expect(repairNotes).toHaveLength(1);
     expect(repairNotes[0]).toBe(`Gateway service: ${repairReason}`);
     expect(localOnboarding.states.get("/tmp/openclaw.json")?.status).toBe("pending");
     expect(localOnboarding.complete).not.toHaveBeenCalled();
     expect(deps.launchHatchTui).not.toHaveBeenCalled();
-    expect(deps.runSystemAgentChat).toHaveBeenCalledOnce();
+    expect(deps.runSystemAgentChat).not.toHaveBeenCalled();
   });
 
   it("falls through to the terminal hatch when browser handoff does not connect", async () => {
@@ -393,7 +439,7 @@ describe("runGuidedOnboarding", () => {
     await runGuidedOnboarding({ acceptRisk: true, workspace: "/tmp/work" }, makeRuntime(), deps);
 
     expect(runBrowserHandoff).toHaveBeenCalledOnce();
-    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/work");
+    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/work/main");
     expect(prompter.outro).toHaveBeenCalledWith("Hatching your agent now…");
   });
 
@@ -413,7 +459,7 @@ describe("runGuidedOnboarding", () => {
     );
 
     expect(runBrowserHandoff).not.toHaveBeenCalled();
-    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/work");
+    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/work/main");
   });
 
   it("launches the guided terminal hatch through the running Gateway", async () => {
@@ -536,11 +582,11 @@ describe("runGuidedOnboarding", () => {
 
     await runGuidedOnboarding({ acceptRisk: true }, runtime, deps);
 
-    expect(text).not.toHaveBeenCalled();
+    expectOnlyOwnerNamePrompt(text);
     expect(deps.activate).toHaveBeenCalledWith(
       expect.objectContaining({ workspace: "/tmp/configured" }),
     );
-    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/configured");
+    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/configured/main");
   });
 
   it("uses the default workspace as context when none is configured", async () => {
@@ -551,11 +597,11 @@ describe("runGuidedOnboarding", () => {
 
     await runGuidedOnboarding({ acceptRisk: true }, runtime, deps);
 
-    expect(text).not.toHaveBeenCalled();
+    expectOnlyOwnerNamePrompt(text);
     expect(deps.activate).toHaveBeenCalledWith(
       expect.objectContaining({ workspace: "/tmp/openclaw-workspace" }),
     );
-    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/openclaw-workspace");
+    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/openclaw-workspace/main");
   });
 
   it("live-tests an unverified CLI only after its selection", async () => {
@@ -777,7 +823,7 @@ describe("runGuidedOnboarding", () => {
     );
     expect(activate).toHaveBeenNthCalledWith(1, expect.objectContaining({ prompter }));
     expect(activate).toHaveBeenNthCalledWith(2, expect.objectContaining({ prompter }));
-    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/work");
+    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/work/main");
     const retryNotes = JSON.stringify((prompter.note as ReturnType<typeof vi.fn>).mock.calls);
     expect(retryNotes).toContain(
       "Codex runtime artifact cannot attest injected runtime environment: NODE_PATH",
@@ -827,7 +873,7 @@ describe("runGuidedOnboarding", () => {
       }),
     );
     expect(text).toHaveBeenLastCalledWith(expect.objectContaining({ sensitive: true }));
-    expect(detect.mock.invocationCallOrder[0]).toBeLessThan(text.mock.invocationCallOrder[0]!);
+    expect(detect.mock.invocationCallOrder[0]).toBeLessThan(text.mock.invocationCallOrder.at(-1)!);
     expect(JSON.stringify((prompter.note as ReturnType<typeof vi.fn>).mock.calls)).not.toContain(
       enteredValue,
     );
@@ -889,7 +935,7 @@ describe("runGuidedOnboarding", () => {
         onCommitStarted: expect.any(Function),
       }),
     );
-    expect(text).not.toHaveBeenCalled();
+    expectOnlyOwnerNamePrompt(text);
   });
 
   it("routes detected local provider setup through its provider-owned flow", async () => {
@@ -932,7 +978,7 @@ describe("runGuidedOnboarding", () => {
       prompter,
       onCommitStarted: expect.any(Function),
     });
-    expect(prompter.text).not.toHaveBeenCalled();
+    expectOnlyOwnerNamePrompt(prompter.text);
   });
 
   it("lets the grouped provider picker skip without opening AI chat", async () => {
@@ -1010,7 +1056,7 @@ describe("runGuidedOnboarding", () => {
       "provider-auth",
       "provider-auth",
     ]);
-    expect(text).not.toHaveBeenCalled();
+    expectOnlyOwnerNamePrompt(text);
     expect(promptAuthChoiceGrouped).toHaveBeenCalledTimes(2);
     expect(runSystemAgentChat).not.toHaveBeenCalled();
     expect(deps.launchHatchTui).toHaveBeenCalledOnce();
@@ -1028,12 +1074,12 @@ describe("runGuidedOnboarding", () => {
 
     await runGuidedOnboarding({ acceptRisk: true, workspace: "/tmp/work" }, runtime, deps);
 
-    expect(text).not.toHaveBeenCalled();
+    expectOnlyOwnerNamePrompt(text);
     expect(deps.applySetup).toHaveBeenCalledWith(
       expect.objectContaining({ workspace: "/tmp/work", surface: "cli", runtime }),
       { beforePersistentApply: expect.any(Function) },
     );
-    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/work");
+    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/work/main");
     expect(runSystemAgentChat).not.toHaveBeenCalled();
   });
 

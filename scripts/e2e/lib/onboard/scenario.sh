@@ -3,7 +3,7 @@ set -euo pipefail
 trap "" PIPE
 export TERM=xterm-256color
 source scripts/lib/openclaw-e2e-instance.sh
-source scripts/e2e/lib/onboard/first-agent-flow.sh
+source scripts/e2e/lib/onboard/owner-name-flow.sh
 OPENCLAW_ONBOARD_SCENARIO_SOURCE_ONLY="${OPENCLAW_ONBOARD_SCENARIO_SOURCE_ONLY:-0}"
 if [ "$OPENCLAW_ONBOARD_SCENARIO_SOURCE_ONLY" != "1" ]; then
   openclaw_e2e_eval_test_state_from_b64 "${OPENCLAW_TEST_STATE_FUNCTION_B64:?missing OPENCLAW_TEST_STATE_FUNCTION_B64}"
@@ -246,8 +246,8 @@ send_skills_flow() {
 send_guided_skip_ui_flow() {
   wait_for_log "Help make OpenClaw better?" 120 || return $?
   send $'\r' 0.8
-  wait_for_first_agent_prompt log_contains 120 0.8 || return $?
-  send $'\r' 0.8
+  wait_for_owner_name_prompt log_contains 120 || return $?
+  send $'Owner\r' 0.8
   wait_for_log "How should I set things up?" 120 || return $?
   send $'\r' 0.8
   wait_for_log "Model/auth provider" 120 || return $?
@@ -263,7 +263,9 @@ validate_guided_skip_ui_log() {
     echo "Guided onboarding introduction was not rendered"
     return 1
   }
-  log_contains "OpenClaw is ready." || {
+  # No channel is connected in this scenario, so onboarding finishes by naming the team step
+  # that is still outstanding rather than reporting plain completion.
+  log_contains "OpenClaw is ready." || log_contains "still needs a team" || {
     echo "Guided onboarding did not reach its skip-UI completion"
     return 1
   }

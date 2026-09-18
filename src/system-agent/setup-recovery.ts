@@ -21,7 +21,7 @@ export type LocalSetupRecovery = {
     resume: true;
     teamCoordinatorId?: string;
     allowWorkspaceChange?: true;
-    firstAgent?: { name: string; team: true };
+    firstAgent?: { name: string };
     assertCommitPreconditions: (sourceConfig: OpenClawConfig) => void;
   };
   complete: (
@@ -154,7 +154,7 @@ export async function loadLocalSetupRecovery(
               ? { teamCoordinatorId, allowWorkspaceChange: true as const }
               : {}),
             ...(pending.teamCoordinatorId && !hasResolvedRosterBeforeMigrations(snapshot)
-              ? { firstAgent: { name: pending.teamCoordinatorId, team: true as const } }
+              ? { firstAgent: { name: pending.teamCoordinatorId } }
               : {}),
           },
         }

@@ -79,13 +79,13 @@ describe("onboarding authored config persistence", () => {
         const configDir = path.join(home, ".openclaw");
         const configPath = path.join(configDir, "openclaw.json");
         const includePath = path.join(configDir, "channels.json");
-        const includeRaw = JSON.stringify({ channels: { telegram: { enabled: true } } });
+        const includeRaw = JSON.stringify({ telegram: { enabled: true } });
         await fs.mkdir(configDir, { recursive: true });
         await fs.writeFile(includePath, includeRaw);
         await fs.writeFile(
           configPath,
           `{
-          $include: "./channels.json",
+          channels: { $include: "./channels.json" },
           gateway: { auth: { mode: "token", token: "\${OPENCLAW_TOKEN}" } }
         }`,
         );
@@ -108,11 +108,16 @@ describe("onboarding authored config persistence", () => {
 
         const persistedRaw = await fs.readFile(configPath, "utf8");
         expect(result).toMatchObject({ agentId: "roster-proof", createdAgent: true });
-        expect(JSON.parse(persistedRaw).agents.entries).toEqual({
-          "roster-proof": expect.objectContaining({
-            name: "roster-proof",
-            workspace: path.join(home, "workspace"),
-          }),
+        // Onboarding creates the coordinator plus the preset's specialists, each in its own
+        // directory under the requested workspace root.
+        expect(Object.keys(JSON.parse(persistedRaw).agents.entries)).toEqual([
+          "roster-proof",
+          "researcher",
+          "writer",
+          "reviewer",
+        ]);
+        expect(JSON.parse(persistedRaw).agents.entries["roster-proof"]).toMatchObject({
+          workspace: path.join(home, "workspace", "roster-proof"),
         });
         expect(persistedRaw).toContain("${OPENCLAW_TOKEN}");
         expect(persistedRaw).not.toContain("plaintext-secret");
@@ -349,7 +354,12 @@ describe("onboarding authored config persistence", () => {
           );
         expect.soft(readLedgerStatus()).toBeUndefined();
         const published = await readConfigFileSnapshot();
-        expect(Object.keys(published.config.agents?.entries ?? {})).toEqual(["robby"]);
+        expect(Object.keys(published.config.agents?.entries ?? {})).toEqual([
+          "robby",
+          "researcher",
+          "writer",
+          "reviewer",
+        ]);
         const log = { info: vi.fn(), warn: vi.fn() };
         await runSessionStartupMigration({
           cfg: published.config,

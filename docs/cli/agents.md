@@ -96,8 +96,8 @@ Options: `--preset <name>` (default and only bundled preset: `team`),
 `--coordinator <id>` (default: `coordinator`), `--prefix <p>`,
 `--workspace-root <dir>`, `--non-interactive`, `--json`.
 
-Creates a chief of staff (`coordinator`) plus `researcher`, `writer`, and `reviewer` from the role
-templates. Each workspace lives at `<workspace-root>/<agentId>`; the default
+Creates a chief of staff (`coordinator`, whose identity is **Vasu**) plus
+`researcher`, `writer`, and `reviewer` from the role templates. Each workspace lives at `<workspace-root>/<agentId>`; the default
 root is the installation's default workspace directory. `--prefix editorial`
 namespaces every id, producing `editorial-coordinator`, `editorial-researcher`,
 `editorial-writer`, and `editorial-reviewer`. It also prefixes a custom

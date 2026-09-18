@@ -205,15 +205,19 @@ describe("runGuidedOnboarding custodian flow", () => {
       })),
     });
 
-    await runGuidedOnboarding(
-      { acceptRisk: true, workspace: "/tmp/approved-workspace", tui: true },
-      makeRuntime(),
-      first,
-    );
+    // Every run now creates the coordinator roster, so a failed apply reports the roster to
+    // inspect instead of dropping into a chat recovery that cannot repair it.
+    await expect(
+      runGuidedOnboarding(
+        { acceptRisk: true, workspace: "/tmp/approved-workspace", tui: true },
+        makeRuntime(),
+        first,
+      ),
+    ).rejects.toThrow("Onboarding did not complete: service install failed");
 
     const pending = localOnboarding.states.get("/tmp/openclaw.json");
     expect(pending).toMatchObject({ status: "pending", workspace: "/tmp/approved-workspace" });
-    expect(first.runSystemAgentChat).toHaveBeenCalledOnce();
+    expect(first.runSystemAgentChat).not.toHaveBeenCalled();
 
     readConfigFileSnapshot.mockResolvedValue({
       exists: true,
@@ -222,10 +226,28 @@ describe("runGuidedOnboarding custodian flow", () => {
       issues: [],
       config: {
         agents: {
+          ownership: "explicit" as const,
           defaults: {
             model: { primary: "acme/workspace-model" },
             workspace: "/tmp/approved-workspace",
+            systemAgent: { agentId: "main" },
           },
+          // The interrupted run already created the coordinator roster under its approved root.
+          entries: Object.fromEntries(
+            ["main", "researcher", "writer", "reviewer"].map((id) => [
+              id,
+              {
+                workspace: `/tmp/approved-workspace/${id}`,
+                subagents:
+                  id === "main"
+                    ? {
+                        allowAgents: ["researcher", "writer", "reviewer"],
+                        delegationMode: "prefer" as const,
+                      }
+                    : { allowAgents: [] },
+              },
+            ]),
+          ),
         },
         gateway: { mode: "local" as const },
         wizard: { securityAcknowledgedAt: pending?.securityAcknowledgedAt },
@@ -252,7 +274,7 @@ describe("runGuidedOnboarding custodian flow", () => {
       status: "completed",
       runId: pending?.runId,
     });
-    expect(retry.launchHatchTui).toHaveBeenCalledWith("/tmp/approved-workspace");
+    expect(retry.launchHatchTui).toHaveBeenCalledWith("/tmp/approved-workspace/main");
   });
 
   it("leaves onboarding pending when the workspace could not be prepared", async () => {
@@ -261,11 +283,13 @@ describe("runGuidedOnboarding custodian flow", () => {
       applySetup: vi.fn(async () => ({ ...setupApplyResult(), workspaceReady: false })),
     });
 
-    await runGuidedOnboarding({ acceptRisk: true, workspace: "/tmp/work" }, makeRuntime(), deps);
+    await expect(
+      runGuidedOnboarding({ acceptRisk: true, workspace: "/tmp/work" }, makeRuntime(), deps),
+    ).rejects.toThrow("The agent workspace could not be prepared");
 
     expect(localOnboarding.states.get("/tmp/openclaw.json")?.status).toBe("pending");
     expect(localOnboarding.complete).not.toHaveBeenCalled();
-    expect(deps.runSystemAgentChat).toHaveBeenCalledOnce();
+    expect(deps.runSystemAgentChat).not.toHaveBeenCalled();
   });
 
   it("completes setup when daemon installation is intentionally unavailable", async () => {
@@ -554,11 +578,13 @@ describe("runGuidedOnboarding custodian flow", () => {
     });
     const deps = setupDeps({ prompter: createWizardPrompter(), applySetup });
 
-    await runGuidedOnboarding({ acceptRisk: true, workspace: "/tmp/work" }, makeRuntime(), deps);
+    await expect(
+      runGuidedOnboarding({ acceptRisk: true, workspace: "/tmp/work" }, makeRuntime(), deps),
+    ).rejects.toThrow("Another onboarding run replaced this setup operation");
 
     expect(setupEffects).not.toHaveBeenCalled();
     expect(localOnboarding.complete).not.toHaveBeenCalled();
-    expect(deps.runSystemAgentChat).toHaveBeenCalledOnce();
+    expect(deps.runSystemAgentChat).not.toHaveBeenCalled();
   });
 
   it("keeps onboarding pending when its configuration is replaced during setup", async () => {
@@ -572,11 +598,13 @@ describe("runGuidedOnboarding custodian flow", () => {
       }),
     });
 
-    await runGuidedOnboarding({ acceptRisk: true, workspace: "/tmp/work" }, makeRuntime(), deps);
+    await expect(
+      runGuidedOnboarding({ acceptRisk: true, workspace: "/tmp/work" }, makeRuntime(), deps),
+    ).rejects.toThrow("The onboarding configuration changed before setup could complete");
 
     expect(localOnboarding.states.get("/tmp/openclaw.json")?.status).toBe("pending");
     expect(localOnboarding.complete).not.toHaveBeenCalled();
-    expect(deps.runSystemAgentChat).toHaveBeenCalledOnce();
+    expect(deps.runSystemAgentChat).not.toHaveBeenCalled();
   });
 
   it("does not complete setup after its effective workspace changes", async () => {
@@ -592,10 +620,12 @@ describe("runGuidedOnboarding custodian flow", () => {
       }),
     });
 
-    await runGuidedOnboarding({ acceptRisk: true, workspace: "/tmp/work" }, makeRuntime(), deps);
+    await expect(
+      runGuidedOnboarding({ acceptRisk: true, workspace: "/tmp/work" }, makeRuntime(), deps),
+    ).rejects.toThrow("The onboarding configuration changed before setup could complete");
 
     expect(localOnboarding.complete).not.toHaveBeenCalled();
-    expect(deps.runSystemAgentChat).toHaveBeenCalledOnce();
+    expect(deps.runSystemAgentChat).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -608,11 +638,19 @@ describe("runGuidedOnboarding custodian flow", () => {
     },
     {
       label: "effective workspace",
+      // The receipt validates the roster's own directories, so a convincing move has to move
+      // every agent, not just the defaults key.
       replace: (config: OpenClawConfig): OpenClawConfig => ({
         ...config,
         agents: {
           ...config.agents,
           defaults: { ...config.agents?.defaults, workspace: "/tmp/changed-before-lock" },
+          entries: Object.fromEntries(
+            Object.entries(config.agents?.entries ?? {}).map(([id, entry]) => [
+              id,
+              { ...entry, workspace: `/tmp/changed-before-lock/${id}` },
+            ]),
+          ),
         },
       }),
     },
@@ -631,12 +669,14 @@ describe("runGuidedOnboarding custodian flow", () => {
         }),
       });
 
-      await runGuidedOnboarding({ acceptRisk: true, workspace: "/tmp/work" }, makeRuntime(), deps);
+      await expect(
+        runGuidedOnboarding({ acceptRisk: true, workspace: "/tmp/work" }, makeRuntime(), deps),
+      ).rejects.toThrow(/Onboarding did not complete|owns a different workspace/);
 
       expect(completionLock).toHaveBeenCalledOnce();
       expect(localOnboarding.states.get("/tmp/openclaw.json")?.status).toBe("pending");
       expect(localOnboarding.complete).not.toHaveBeenCalled();
-      expect(deps.runSystemAgentChat).toHaveBeenCalledOnce();
+      expect(deps.runSystemAgentChat).not.toHaveBeenCalled();
     },
   );
 
@@ -723,7 +763,7 @@ describe("runGuidedOnboarding custodian flow", () => {
 
     expect(deps.applySetup).toHaveBeenCalledOnce();
     expect(deps.runAppRecommendations).not.toHaveBeenCalled();
-    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/work");
+    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/work/main");
   });
 
   it("does not recommend local apps during remote chat handoff", async () => {
@@ -747,7 +787,7 @@ describe("runGuidedOnboarding custodian flow", () => {
 
     expect(deps.detect).toHaveBeenCalledOnce();
     expect(deps.listManualOptions).not.toHaveBeenCalled();
-    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/work");
+    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/work/main");
   });
 
   it("announces the lean surface after local-model activation", async () => {
@@ -782,7 +822,7 @@ describe("runGuidedOnboarding custodian flow", () => {
     await runGuidedOnboarding({ acceptRisk: true, workspace: "/tmp/work" }, makeRuntime(), deps);
 
     expect(deps.persistAccessMode).not.toHaveBeenCalled();
-    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/work");
+    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/work/main");
   });
 
   it("skips the picker without verifying or replacing a configured route", async () => {
@@ -899,8 +939,8 @@ describe("runGuidedOnboarding custodian flow", () => {
       expect.objectContaining({ initialValue: "quick" }),
     );
     expect(deps.applySetup).not.toHaveBeenCalled();
-    // Configured reruns hatch the persisted default workspace, not the probe context.
-    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/openclaw-workspace");
+    // Configured reruns hatch the coordinator's own directory.
+    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/work/main");
     expect(prompter.note).toHaveBeenCalledWith(
       expect.stringContaining("already set up"),
       expect.anything(),
@@ -933,10 +973,10 @@ describe("runGuidedOnboarding custodian flow", () => {
     await runGuidedOnboarding({ acceptRisk: true }, makeRuntime(), deps);
 
     expect(deps.applySetup).not.toHaveBeenCalled();
-    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/authored");
+    expect(deps.launchHatchTui).toHaveBeenCalledWith("/tmp/authored/main");
   });
 
-  it("falls back to the Vasudev chat when applying setup fails", async () => {
+  it("reports the roster to inspect when applying setup fails", async () => {
     const prompter = createWizardPrompter();
     const applySetup = vi.fn(async () => {
       throw new Error("config write raced");
@@ -944,11 +984,13 @@ describe("runGuidedOnboarding custodian flow", () => {
     const deps = setupDeps({ prompter, applySetup });
     const runtime = makeRuntime();
 
-    await runGuidedOnboarding({ acceptRisk: true, workspace: "/tmp/work" }, runtime, deps);
+    // A half-created coordinator roster is not something the recovery chat can repair, and every
+    // run creates one now, so the failure names the roster and the retry instead.
+    await expect(
+      runGuidedOnboarding({ acceptRisk: true, workspace: "/tmp/work" }, runtime, deps),
+    ).rejects.toThrow("Onboarding did not complete: config write raced");
 
     expect(deps.launchHatchTui).not.toHaveBeenCalled();
-    expect(deps.runSystemAgentChat).toHaveBeenCalledWith("/tmp/work", runtime, true, "main");
-    const notes = JSON.stringify((prompter.note as ReturnType<typeof vi.fn>).mock.calls);
-    expect(notes).toContain("config write raced");
+    expect(deps.runSystemAgentChat).not.toHaveBeenCalled();
   });
 });

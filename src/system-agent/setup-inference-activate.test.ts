@@ -296,7 +296,7 @@ describe("setup activation credentials and configuration", () => {
         config: activated.sourceConfig,
         baseConfig: activated.sourceConfig,
         workspace: setup.workspace,
-        firstAgent: { name: "coordinator", team: true },
+        firstAgent: { name: "coordinator" },
         expectedConfigHash: activated.hash ?? null,
       });
       expect(created.createdAgent).toBe(true);

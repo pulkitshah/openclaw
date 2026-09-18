@@ -226,38 +226,26 @@ export function resetSetupApplyMocks(): void {
   mocks.state.persistedConfig = undefined;
   mocks.ensureOnboardingAgent.mockImplementation(
     async ({ config: current, firstAgent, workspace }) => {
-      const name = firstAgent?.name ?? "main";
+      const name = firstAgent?.name ?? "coordinator";
       const id = name === "Research Buddy" ? "research-buddy" : name.toLowerCase();
-      const team = firstAgent?.team === true;
-      const createdAgentIds = team ? [id, "researcher", "writer", "reviewer"] : [id];
+      // Onboarding has one agent shape: the coordinator plus the preset's specialists.
+      const createdAgentIds = [id, "researcher", "writer", "reviewer"];
       const next = {
         ...current,
         agents: {
           ...current.agents,
-          ...(team
-            ? {
-                ownership: "explicit" as const,
-                defaults: { ...current.agents?.defaults, systemAgent: { agentId: id } },
-              }
-            : {}),
+          ownership: "explicit" as const,
+          defaults: { ...current.agents?.defaults, systemAgent: { agentId: id } },
           entries: Object.fromEntries(
             createdAgentIds.map((agentId) => [
               agentId,
               {
-                ...(!team ? { default: true } : {}),
-                workspace: team ? path.join(workspace, agentId) : workspace,
+                workspace: path.join(workspace, agentId),
                 agentDir: `/agents/${agentId}`,
-                ...(team
-                  ? {
-                      subagents:
-                        agentId === id
-                          ? {
-                              allowAgents: createdAgentIds.slice(1),
-                              delegationMode: "prefer" as const,
-                            }
-                          : { allowAgents: [] },
-                    }
-                  : {}),
+                subagents:
+                  agentId === id
+                    ? { allowAgents: createdAgentIds.slice(1), delegationMode: "prefer" as const }
+                    : { allowAgents: [] },
               },
             ]),
           ),

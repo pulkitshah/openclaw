@@ -773,7 +773,7 @@ describe("setupWizardCommand", () => {
   it.each([
     { agentName: "robby", agentId: "robby", scope: "config", reuseProfile: true },
     { agentName: "Robby!", agentId: "robby", scope: "config", reuseProfile: true },
-    { agentName: undefined, agentId: "main", scope: "config", reuseProfile: true },
+    { agentName: undefined, agentId: "coordinator", scope: "config", reuseProfile: true },
     { agentName: "robby", agentId: "robby", scope: "config+creds+sessions", reuseProfile: false },
     { agentName: "robby", agentId: "robby", scope: "full", reuseProfile: false },
   ] as const)(
@@ -951,7 +951,6 @@ describe("setupWizardCommand", () => {
 
   it.each([
     ["--agent-name", { agentName: "robby" }],
-    ["--team", { team: true }],
     ["--tui", { tui: true }],
     ["--skip-ui", { skipUi: true }],
     ["--suppress-gateway-token-output", { suppressGatewayTokenOutput: true }],

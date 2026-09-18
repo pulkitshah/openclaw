@@ -118,8 +118,7 @@ export function registerSetupCommand(program: Command): void {
       "--workspace <dir>",
       "Workspace proposal for guided setup; persisted by baseline/classic/non-interactive setup",
     )
-    .option("--agent-name <name>", "Name for the first agent (or team coordinator)")
-    .option("--team", "Create a coordinator with researcher, writer, and reviewer specialists")
+    .option("--agent-name <name>", "Name for the coordinator agent")
     .option("--wizard", "Run interactive onboarding", false)
     .option(
       "--baseline",

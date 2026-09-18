@@ -3161,7 +3161,7 @@ outer
   it("keeps real-TTY onboarding drivers aligned with the guided prompt sequence", () => {
     for (const script of [RELEASE_TYPED_ONBOARDING_SCENARIO_PATH, ONBOARD_SCENARIO_PATH]) {
       expect(readFileSync(script, "utf8")).toContain(
-        "source scripts/e2e/lib/onboard/first-agent-flow.sh",
+        "source scripts/e2e/lib/onboard/owner-name-flow.sh",
       );
     }
     expectOrderedScriptFragments(readFileSync(RELEASE_TYPED_ONBOARDING_SCENARIO_PATH, "utf8"), [
@@ -3169,16 +3169,16 @@ outer
       "send $'y\\r'",
       'wait_for_log "Help make OpenClaw better?"',
       "send $'\\r'",
-      "wait_for_first_agent_prompt onboarding_log_contains 60 0.4",
-      "send $'\\r'",
+      "wait_for_owner_name_prompt onboarding_log_contains 60",
+      "send $'Owner\\r'",
       'wait_for_log "to search"',
       "send $'ollama\\r'",
     ]);
     expectOrderedScriptFragments(readFileSync(ONBOARD_SCENARIO_PATH, "utf8"), [
       'wait_for_log "Help make OpenClaw better?"',
       "send $'\\r'",
-      "wait_for_first_agent_prompt log_contains 120 0.8",
-      "send $'\\r'",
+      "wait_for_owner_name_prompt log_contains 120",
+      "send $'Owner\\r'",
       'wait_for_log "How should I set things up?"',
       "send $'\\r'",
       'wait_for_log "Model/auth provider"',

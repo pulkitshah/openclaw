@@ -162,15 +162,7 @@ export async function runNonInteractiveLocalSetup(params: {
   });
   // Injected main is not authored membership; legacy workspace state still owns its guard.
   const hasAuthoredRoster = listAgentEntries(sourceConfigBeforeMigrations).length > 0;
-  if (opts.team && hasAuthoredRoster) {
-    rejectOnboardingOption(
-      opts,
-      runtime,
-      "An agent roster already exists. Use `vasudev agents team create` to add a team.",
-    );
-    return;
-  }
-  const firstAgentName = opts.agentName ?? (opts.team ? "coordinator" : "main");
+  const firstAgentName = opts.agentName ?? "coordinator";
   const workspaceConflict = resolveOnboardingWorkspaceConflict(
     sourceConfigBeforeMigrations,
     requestedWorkspaceDir,
@@ -199,14 +191,13 @@ export async function runNonInteractiveLocalSetup(params: {
   // that requested owner before first-agent creation is allowed to write.
   const authTarget = resolveOnboardingSetupTarget(
     nextConfig,
-    !hasAuthoredRoster && (opts.agentName || opts.team)
-      ? {
+    hasAuthoredRoster
+      ? undefined
+      : {
           name: firstAgentName,
-          workspaceDir: opts.team
-            ? path.join(workspaceDir, normalizeAgentId(firstAgentName))
-            : workspaceDir,
-        }
-      : undefined,
+          // The coordinator always lives in its own directory under the workspace root.
+          workspaceDir: path.join(workspaceDir, normalizeAgentId(firstAgentName)),
+        },
   );
 
   const inferredAuthChoice = opts.authChoice
@@ -270,7 +261,7 @@ export async function runNonInteractiveLocalSetup(params: {
     config: nextConfig,
     workspace: workspaceDir,
     baseConfig,
-    firstAgent: { name: firstAgentName, ...(opts.team ? { team: true } : {}) },
+    firstAgent: { name: firstAgentName },
     expectedConfigHash: baseHash ?? null,
   });
   for (const warning of created.sessionMigrationWarnings ?? []) {

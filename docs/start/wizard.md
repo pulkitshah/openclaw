@@ -139,54 +139,59 @@ replaces the configured model automatically; onboarding waits for your next choi
 later non-inference additions; use `openclaw onboard` for provider or auth route
 changes.
 
-## Choose one agent or a team
+## Who you are, and who else is on your team
 
-When guided onboarding creates the first agent, choose **One agent** (the
-default) or **A small team: a chief of staff plus specialists**. The team choice
-uses the same preset as `openclaw agents team create`: a chief of staff (`coordinator`), researcher,
-writer, and reviewer with separate workspaces, completed identities, and written
-role contracts. The chief of staff delegates suitable tasks and verifies specialist
-results before reporting to you.
+Onboarding's first question is **What's your name?** — the owner's own name, for
+the desk's Team roster. It never asks what to call an agent.
+
+Every desk gets the same agent shape, with no choice to make: the coordinator
+**Vasu** plus `researcher`, `writer`, and `reviewer` from the same preset
+`openclaw agents team create` uses, each with its own workspace, a completed
+identity, and a written role contract. Vasu delegates suitable work and verifies
+specialist results before reporting to you; the specialists have no channel
+presence of their own. `--agent-name <name>` renames the coordinator agent id
+only — Vasu's identity is fixed.
 
 Guided setup creates the team after the selected provider passes its connection
 check. A failed check returns to provider selection without creating team members.
 Choosing **Skip** creates the workspaces for later use and reports that AI access
-still needs configuration.
-Guided setup remembers the chosen coordinator across restarts, including an
-interruption after provider activation but before member creation.
+still needs configuration. Guided setup remembers the chosen coordinator across
+restarts, including an interruption after provider activation but before member
+creation.
 
-For a team, `--workspace` is the parent directory; every member uses
-`<workspace>/<agent-id>`. After all members have been created, interrupted setup
-keeps that parent as its recovery workspace. Retry
-`openclaw onboard --workspace <workspace>` without `--team` to finish setup. Completion
-checks the full team roster and every member's workspace before closing the
-setup receipt; an incomplete or changed team stays pending with an error.
+`--workspace` is the parent directory; every member uses `<workspace>/<agent-id>`.
+After all members have been created, interrupted setup keeps that parent as its
+recovery workspace. Retry `openclaw onboard --workspace <workspace>` to finish
+setup. Completion checks the full team roster and every member's workspace before
+closing the setup receipt; an incomplete or changed team stays pending with an
+error.
 
 If member creation itself fails, already-created members are retained and are
 not recreated automatically. Inspect `openclaw agents list` and repair the
 incomplete roster before retrying setup.
 
-Select the team directly in an interactive or non-interactive run with `--team`:
-
-```bash
-openclaw onboard --team
-openclaw onboard --non-interactive --team --accept-risk
-```
-
-The usual non-interactive provider and Gateway options still apply. Onboarding
-targets the coordinator explicitly for chat. It sets
+Onboarding targets the coordinator explicitly for chat. It sets
 `agents.defaults.systemAgent.agentId` to the coordinator only when no ambient
-owner is configured; an existing owner is preserved and reported. A team does
+owner is configured; an existing owner is preserved and reported. The team does
 not introduce a universal default agent or change global delegation or tool
-policy. To address it later, use an explicit target:
+policy. To address a specialist later, use an explicit target:
 
 ```bash
-openclaw agent --agent coordinator --message "Research a topic and prepare a draft."
+openclaw agent --agent researcher --message "Research a topic and prepare a draft."
 ```
 
-`--team` is for local first-agent setup. It cannot be combined with remote,
-classic, or import onboarding. If an agent roster already exists, use
-`openclaw agents team create` instead.
+## Add your team
+
+Once a channel is connected and the Gateway is answering, onboarding asks who
+else should be able to talk to Vasu, and does not report setup as done until at
+least one person is on the roster. Anyone already waiting in a channel's pairing
+queue is offered by name; picking them approves their pairing request and adds
+them in one step. This is the Team page's own `team.add` action, so a person
+added here is admitted exactly the same way as one added from the dashboard.
+
+If no channel is connected yet, or the Gateway is not answering, onboarding says
+what is still outstanding and points at the Team tab instead of reporting
+completion.
 
 See [Team preset](/concepts/multi-agent#team-preset) for the delegation config and
 [`agents team create`](/cli/agents#agents-team-create) to add a namespaced team

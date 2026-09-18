@@ -58,10 +58,8 @@ export type OnboardOptions = OnboardDynamicProviderOptions & {
   /** Force the terminal hatch instead of the guided browser handoff. */
   tui?: boolean;
   workspace?: string;
-  /** Name for the first persisted agent; defaults to `main` in non-interactive setup. */
+  /** Name for the coordinator agent; defaults to the team preset's own coordinator id. */
   agentName?: string;
-  /** Create the bundled coordinator and specialists on a fresh install. */
-  team?: boolean;
   nonInteractive?: boolean;
   /** Required for non-interactive setup; skips the interactive risk prompt when true. */
   acceptRisk?: boolean;

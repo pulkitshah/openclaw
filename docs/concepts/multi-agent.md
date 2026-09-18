@@ -119,7 +119,9 @@ openclaw agent --agent coordinator --message "Research the options and draft a r
 ```
 
 The preset creates a chief of staff (`coordinator`), researcher, writer, and
-reviewer, each with its own workspace and completed identity. The chief of staff remains the
+reviewer, each with its own workspace and completed identity. The coordinator's
+identity is **Vasu** on every install; its emoji and theme come from the role
+template. The chief of staff remains the
 human's point of contact: it discovers matching specialists, assigns bounded
 work, checks their artifacts, and reports a coherent result. Specialists return
 artifacts and evidence to the coordinator without delegating further. Their

@@ -305,17 +305,14 @@ async function validateResetAuthChoice(params: {
   }
   const target = resolveOnboardingSetupTarget(
     params.baseConfig,
-    params.opts.agentName || params.opts.team
-      ? {
-          name: params.opts.agentName ?? "coordinator",
-          workspaceDir: params.opts.team
-            ? path.join(
-                params.workspaceDir,
-                normalizeAgentId(params.opts.agentName ?? "coordinator"),
-              )
-            : params.workspaceDir,
-        }
-      : undefined,
+    {
+      name: params.opts.agentName ?? "coordinator",
+      // The coordinator always lives in its own directory under the workspace root.
+      workspaceDir: path.join(
+        params.workspaceDir,
+        normalizeAgentId(params.opts.agentName ?? "coordinator"),
+      ),
+    },
   );
   if (authChoice === "custom-api-key") {
     try {
@@ -537,21 +534,6 @@ export async function setupWizardCommand(
     }
   }
   if (!validatePreflightOptions(normalizedOpts, runtime)) {
-    return;
-  }
-  if (
-    normalizedOpts.team &&
-    (normalizedOpts.mode === "remote" ||
-      normalizedOpts.importFrom ||
-      normalizedOpts.importSource ||
-      normalizedOpts.flow === "import" ||
-      (!normalizedOpts.nonInteractive && wantsClassicInteractiveSetup(normalizedOpts)))
-  ) {
-    rejectOption(
-      normalizedOpts,
-      runtime,
-      "--team supports local guided or non-interactive onboarding. Remove classic, remote, or import options.",
-    );
     return;
   }
   if (normalizedOpts.classic && normalizedOpts.nonInteractive) {

@@ -5,7 +5,9 @@ agent:
   name: "Chief of staff"
   description: "Coordinates the others and is your single point of contact."
   identity:
-    name: "Chief of Staff"
+    # Fixed product identity: every desk's coordinator is Vasu. Emoji and theme stay
+    # per-install decoration, but the name is what the owner and their team address.
+    name: "Vasu"
     emoji: "🧭"
     theme: "calm, accountable coordination"
 workspace:
