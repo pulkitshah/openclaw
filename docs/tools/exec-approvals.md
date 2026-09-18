@@ -303,6 +303,22 @@ by default for the coordinator agent once a coordinator can be resolved,
 unless the operator has already made an explicit choice (`true` or `false`)
 for that agent — an explicit choice is never overridden.
 
+**`denySelfCli` is defense-in-depth, not the security boundary.** It guards
+an _executable name_, and the privileged capabilities behind that name are
+reachable without it: the Gateway serves them to any client presenting an
+operator-scoped credential, and `vasudev pairing approve` does not even go
+through the Gateway — it writes the shared pairing store directly. So treat
+`denySelfCli` as what it is: a cheap, effective stop against casual or
+accidental self-CLI use by the agent, layered under the real boundary.
+
+The real boundary for the capability this was originally aimed at — the agent
+approving a channel pairing, which admits a new person to instruct it — is
+Gateway scope enforcement. An agent-originated Gateway request is refused
+`channels.pairing.approve` and `channels.pairing.dismiss` at the router's
+authorization fence, before the `operator.admin` wildcard is consulted, so no
+scope set the agent can mint reaches them. See
+[Access control](/gateway/security/access-control).
+
 This is a binary-identity check, not a substring match: it matches a
 command's resolved executable name (bare `PATH` lookup, or a path whose
 target is exactly `vasudev`/`openclaw`), so a path that merely contains one
@@ -312,7 +328,7 @@ payload (for example `bash -lc "vasudev ..."`, `sh -c "vasudev ..."`, or a
 nested `env bash -lc "vasudev ..."`), up to several levels of nesting, so
 wrapping the CLI in a shell does not bypass it.
 
-**This is layer 1 of a two-layer defense.** It is a *static* check: it
+**This is layer 1 of a two-layer defense.** It is a _static_ check: it
 inspects the command's resolved segments before anything is spawned, and it
 can only recognize a bounded set of shapes (bare/path invocation, a
 transparent dispatch wrapper whose own resolved identity is the self-CLI
@@ -331,7 +347,7 @@ per host: the gateway host runs it both on its normal allowlist path and
 independently on its full-trust `bypassApprovals` path (so an explicit
 full-session grant cannot skip it), the node host runs it unconditionally
 as part of dispatching to the remote device, and the sandbox host — which
-has no allowlist/approval layer of its own at all — runs it as the *only*
+has no allowlist/approval layer of its own at all — runs it as the _only_
 gate standing between the command and the sandbox backend's spawn.
 
 **Layer 2: the PATH-shadow environment defense.** When `denySelfCli` is
@@ -340,7 +356,7 @@ ahead of every other `PATH` entry in the spawned command's own environment.
 That directory contains executable files literally named
 `vasudev`/`openclaw` that immediately deny and exit non-zero. Because
 `PATH` search order is a property of the environment inherited by the
-*entire* process tree a command spawns — not something each wrapper tool
+_entire_ process tree a command spawns — not something each wrapper tool
 has to individually support — this closes the whole class of "unrecognized
 indirection tool" bypasses at once (including `pnpm exec`, `find -exec`,
 `xargs`, and a scripting language's subprocess-by-name call), without
@@ -393,12 +409,44 @@ chances" guarantee against every conceivable path):**
   window, not the structural, permanent gap that a never-re-verified cache
   used to be.
 
-Rationale: once an agent has dedicated tool-call paths for every
-legitimate CLI-shaped action (for example Team's `team_add`/`team_remove`/
-`team_transfer_ownership`), there is no remaining legitimate reason for
-that agent to shell out to its own CLI — closing the whole binary is
-simpler and more complete than denying individual dangerous subcommands
-(`pairing approve`, `config set`, ...) one at a time.
+Rationale: an agent that reaches its own CLI is usually doing something it
+has a tool-call path for, and closing the whole binary is simpler than
+denying dangerous subcommands (`pairing approve`, `config set`, ...) one at
+a time. Note what this does _not_ claim: the coordinator's Team surface is
+read-only today (`team_list`), so roster writes have no agent tool path at
+all — an operator makes them from the Team page. `denySelfCli` removes the
+CLI shortcut for those; it does not replace it.
+
+**Open gap, stated plainly: the agent can still read the operator's Gateway
+credential.** `exec` has no read-path restrictions, so at the coordinator's
+default `security: "full"` it can read `gateway.auth.token` out of the config
+file (or the file a `SecretRef` points at — on a hosted desk,
+`/etc/openclaw/secrets/gateway-token`, mode `0600` owned by the same user the
+agent runs as), and `OPENCLAW_GATEWAY_TOKEN` stays in the exec environment.
+With that token it can talk to the loopback Gateway as a genuine operator,
+carrying none of the agent-origin markers the router checks, and reach
+privileged methods that way. Closing this needs token readability locked down
+in the exec context, which is deliberately deferred and not done. Until it is:
+
+- The Gateway fence stops the agent's own tool dispatch and any
+  agent-runtime-authenticated connection. It does not stop an agent that
+  impersonates an operator with the operator's own token.
+- `denySelfCli` raises the cost of the CLI route but, as above, is not a
+  boundary.
+
+**Second open gap, also stated plainly: the pairing store can be written with
+no Gateway method involved.** `vasudev pairing approve` writes the shared
+pairing store directly. That is not a CLI quirk — the agent's `exec` runs as
+the same OS user that owns the state directory, so any direct write to that
+SQLite file (a `sqlite3` invocation, a few lines of Node) reaches the same
+outcome. Neither `denySelfCli` nor the Gateway fence touches that class at all.
+Closing it needs OS-level isolation — running exec as a different,
+unprivileged user, or without the state directory reachable — which is
+explicitly out of scope for this round.
+
+Treat the coordinator's exec surface accordingly: on a desk where this matters,
+narrow `security`/allowlists for that agent rather than relying on these
+layers to make the credential or the state directory unreachable.
 
 ### `tools.exec.commandHighlighting`
 

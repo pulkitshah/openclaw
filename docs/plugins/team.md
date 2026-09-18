@@ -35,18 +35,35 @@ Team never changes a channel's `dmPolicy`. If a channel is left `open`, the rost
 
 Mail accounts are workspace inboxes, not people: a `TeamMember` has no email field, and having a message land in one of the [Gmail mailboxes a hosted desk watches](/hosted-desk#more-than-one-inbox) never by itself grants that sender permission to instruct the agent.
 
-## The coordinator cannot shell out to its own CLI
+## The coordinator cannot approve a pairing
 
-Once the coordinator has real tool calls for roster changes (`team_add`, `team_remove`,
-`team_transfer_ownership`), there is no legitimate reason for it to shell out to the `vasudev`/
-`openclaw` CLI itself — for pairing approval or anything else. Team sets
-`tools.exec.denySelfCli: true` on the coordinator agent by default (once a coordinator can be
-resolved), which makes exec deny that binary as a target, for any subcommand, direct or buried
-inside another command, regardless of the agent's exec mode. Every other exec command is
-unaffected. An operator who explicitly sets `denySelfCli` to `true` or `false` for that agent is
-never overridden — see [Exec approvals](/tools/exec-approvals#tools-exec-denyselfcli) for the full
-two-layer mechanism and its honestly-documented residual gaps (deliberate `PATH` reassignment, and
-invoking the entry script through a generic interpreter).
+Admitting a new person is the owner's decision. The coordinator's Team surface is read-only
+(`team_list`); roster writes happen on the Team page, where `team.add` also cleans up stale pairing
+approvals for identities it removes. Team itself never writes a pairing approval.
+
+The boundary that makes this hold is **Gateway scope enforcement**, not the exec layer: an
+agent-originated Gateway request is refused `channels.pairing.approve` and
+`channels.pairing.dismiss` at the router's authorization fence, ahead of the `operator.admin`
+wildcard, so no scope set the agent can mint reaches them. `channels.pairing.list` stays available,
+so the coordinator can still tell the owner who is waiting. A request from a real operator — the
+Team page, the Control UI, the owner's own CLI — is unaffected.
+
+Team also sets `tools.exec.denySelfCli: true` on the coordinator agent by default (once a
+coordinator can be resolved), which makes exec deny the `vasudev`/`openclaw` binary as a target for
+any subcommand, direct or buried inside another command, regardless of the agent's exec mode. Every
+other exec command is unaffected, and an operator who explicitly sets `denySelfCli` to `true` or
+`false` for that agent is never overridden. **That setting is defense-in-depth, not the boundary**:
+it guards an executable name, while the capability behind it is reachable through the Gateway by any
+client holding an operator-scoped credential.
+
+Two known open gaps, stated plainly. First, `exec` has no read-path restrictions, so the coordinator
+can read the Gateway auth token off disk and then talk to the loopback Gateway as a genuine operator,
+which carries none of the agent-origin markers the fence checks. Second, the pairing store itself is
+writable without any Gateway method: `exec` runs as the same OS user that owns the state directory, so
+a direct SQLite write reaches the same outcome that `channels.pairing.approve` would. Both are
+deliberately deferred — the second needs OS-level isolation. See
+[Exec approvals](/tools/exec-approvals#tools-exec-denyselfcli) for the full mechanism, both residuals,
+and the other documented `denySelfCli` gaps.
 
 ## Migrating from an earlier install
 

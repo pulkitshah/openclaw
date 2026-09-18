@@ -33,6 +33,8 @@ export function createSyntheticPluginRuntimeClient(params?: {
   runtimeContextFragments?: RuntimeContextFragment[];
   internalDeliverySuppressText?: boolean;
   pluginRuntimeOwnerId?: string;
+  /** Built-in agent tool dispatch; marks the request as the agent's own, not an operator's. */
+  agentOriginated?: boolean;
   nodeInvokeApprovalSessionKey?: string;
   pluginSubagentRequester?: PluginSubagentRequesterContext;
   runtimePluginToolGrant?: RuntimePluginToolGrant;
@@ -63,6 +65,7 @@ export function createSyntheticPluginRuntimeClient(params?: {
     },
     internal: {
       syntheticClient: true,
+      ...(params?.agentOriginated === true ? { agentOriginated: true as const } : {}),
       ...(params?.operatorRoleActor ? { operatorRoleActor: params.operatorRoleActor } : {}),
       ...(params?.sessionCreation ? { sessionCreation: params.sessionCreation } : {}),
       ...(params?.agentToolCaller ? { agentToolCaller: params.agentToolCaller } : {}),

@@ -6,12 +6,20 @@
 // cannot structurally recognize every possible indirection tool (see that module's doc comment and
 // the "Known limitation" section below for the exact split of what each layer covers).
 //
-// Rationale (Team v2 plan, "Exec restriction: deny agent self-CLI invocation"): once an agent has
-// real, agent-callable tools for roster management (`team_add`/`team_remove`/`team_transfer_ownership`),
-// there is no legitimate reason for that agent to shell out to its own CLI — every legitimate
-// CLI-shaped action (pairing approval, config edits, etc.) has a proper tool-call path instead.
-// Closing the whole binary is simpler and more complete than denying individual dangerous
-// subcommands (`pairing approve`, `config set`, ...) one at a time.
+// Rationale (Team v2 plan, "Exec restriction: deny agent self-CLI invocation"): an agent reaching its
+// own CLI is usually doing something a tool call covers, and closing the whole binary is simpler
+// than denying dangerous subcommands (`pairing approve`, `config set`, ...) one at a time.
+//
+// THIS IS DEFENSE-IN-DEPTH, NOT THE SECURITY BOUNDARY. It guards an executable *name*; the
+// capabilities behind that name do not need the binary. The boundary for pairing approval is Gateway
+// scope enforcement — `isAgentDeniedPrivilegedGatewayMethod` (`src/gateway/method-scopes.ts`) applied
+// at the router fence in `src/gateway/server-methods.ts`. Two things that remain reachable and are
+// documented as open in `docs/tools/exec-approvals.md`: reading `gateway.auth.token` from the exec
+// context and then calling the loopback Gateway as a genuine operator, and `vasudev pairing approve`
+// itself, which writes the pairing store directly (`src/cli/pairing-cli.ts`) without any Gateway
+// method. An earlier version of this comment claimed `team_add`/`team_remove`/
+// `team_transfer_ownership` tools stand in for the CLI; they were never registered — the
+// coordinator's Team surface is `team_list` only.
 //
 // Mechanism: this reuses the same resolved command segments `tools.exec.strictInlineEval` already
 // consults for its own mode-independent check (see `evaluateShellAllowlistWithAuthorization`) — no
