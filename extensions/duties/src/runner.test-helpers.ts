@@ -72,7 +72,7 @@ export function fakeDeps(over: Partial<RunnerDeps> = {}): RunnerDeps & { calls: 
       over.resolveRoute ??
       (async (_to, _channel, origin) => {
         if (origin?.kind === "chat") {
-          return { channel: "telegram", to: "222" };
+          return [{ channel: "telegram", to: "222" }];
         }
         throw new Error("no owner target configured — set it on the Duties page");
       }),

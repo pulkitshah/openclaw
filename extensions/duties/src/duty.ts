@@ -62,14 +62,14 @@ const INPUT_SOURCES = ["ask", "file", "mail", "trigger", "cred", "literal"] as c
 const TRIGGER_KINDS = ["manual", "mail", "chat"] as const;
 const DELIVER_ROUTES = ["trigger", "owner"] as const;
 
-/** A `deliver` target naming a person on the Team roster. `DELIVER_ROUTES` is unchanged, so
- *  `explicit` is already true for a `team:` target and the existing branch below already makes
- *  `params.channel` required for it — the owner's "always name the channel too" rule is enforced by
- *  code that is already there. */
+/** A target naming a person on the Team roster, shared by `deliver`'s `to` and `ask`'s `target`.
+ *  `DELIVER_ROUTES` is unchanged, so `explicit` is already true for a `deliver` `team:` target and
+ *  the existing branch below already makes `params.channel` required for it — the owner's "always
+ *  name the channel too" rule is enforced by code that is already there. */
 const TEAM_ROUTE_PREFIX = "team:";
 
 /** "team:ramesh" -> "ramesh"; anything else -> null. */
-export function parseTeamDeliverTarget(to: string): string | null {
+export function parseTeamRouteTarget(to: string): string | null {
   if (!to.startsWith(TEAM_ROUTE_PREFIX)) {
     return null;
   }
@@ -363,6 +363,17 @@ function validateAskParams(params: Record<string, unknown>, path: string, errors
     (typeof params.header !== "string" || params.header.length > MAX_ASK_HEADER_CHARS)
   ) {
     errors.push(`${path}.header: must be a string of at most ${MAX_ASK_HEADER_CHARS} characters`);
+  }
+  // Same "team:<memberId>" shape `deliver`'s `to` already uses. Omitted (or "owner") keeps today's
+  // behavior — the question goes to the owner's own session — an explicit `team:<id>` raises it in
+  // that member's session instead.
+  if (
+    params.target !== undefined &&
+    (typeof params.target !== "string" ||
+      !params.target.trim() ||
+      (params.target !== "owner" && !parseTeamRouteTarget(params.target)))
+  ) {
+    errors.push(`${path}.target: must be "owner" or "team:<memberId>"`);
   }
   if (params.options === undefined) {
     errors.push(

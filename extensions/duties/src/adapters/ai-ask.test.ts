@@ -294,4 +294,70 @@ describe("ask adapter", () => {
       ask.ask({ stepId: "otp", question: "Code?", header: "OTP", options: [] }),
     ).resolves.toEqual({ status: "timeout" });
   });
+
+  // Team v2 Task 6: an `ask` step naming `target` raises its question in that member's own
+  // session/route instead of the owner's — resolved through `memberTarget`, never `sessionKey`/
+  // `announce`, which stay wired to the owner for every ask that doesn't set a target.
+  describe("member-targeted ask (target)", () => {
+    it("resolves the session and announces through memberTarget, not the owner's sessionKey/announce", async () => {
+      const request = vi.fn(async (method: string, p: Record<string, unknown>) =>
+        method === "question.request"
+          ? { id: p.id, expiresAtMs: 1 }
+          : { status: "answered", answers: { answers: { ask_hold: ["Approve"] } } },
+      );
+      const ownerSessionKey = vi.fn(async () => "agent:krishna:main");
+      const ownerAnnounce = vi.fn(async () => {});
+      const memberAnnounced: Array<{ text: string; question?: unknown }> = [];
+      const ask = createAskAdapter({
+        request: asRequest(request),
+        sessionKey: ownerSessionKey,
+        announce: ownerAnnounce,
+        pollMs: 1,
+        memberTarget: async (memberId) => {
+          expect(memberId).toBe("ramesh");
+          return {
+            sessionKey: "agent:krishna:direct:ramesh",
+            announce: async (text, question) => {
+              memberAnnounced.push({ text, ...(question ? { question } : {}) });
+            },
+          };
+        },
+      });
+
+      await expect(
+        ask.ask({
+          stepId: "ask-hold",
+          question: "Hold this booking?",
+          header: "Hold?",
+          options: ["Approve", "Decline"],
+          target: "ramesh",
+        }),
+      ).resolves.toEqual({ status: "answered", answer: "Approve" });
+
+      const sent = request.mock.calls.find((c) => c[0] === "question.request")?.[1] as {
+        sessionKey?: string;
+      };
+      expect(sent.sessionKey).toBe("agent:krishna:direct:ramesh");
+      expect(ownerSessionKey).not.toHaveBeenCalled();
+      expect(ownerAnnounce).not.toHaveBeenCalled();
+      expect(memberAnnounced).toHaveLength(1);
+      expect(memberAnnounced[0]?.text).toContain("Hold this booking?");
+    });
+
+    it("throws when target is set but no memberTarget resolver is wired", async () => {
+      const request = vi.fn(async () => ({ id: "q1", expiresAtMs: 1 }));
+      const ask = createAskAdapter({ request: asRequest(request), sessionKey: "main", pollMs: 1 });
+      await expect(
+        ask.ask({
+          stepId: "ask-hold",
+          question: "Hold?",
+          header: "Hold?",
+          options: ["Approve", "Decline"],
+          target: "ramesh",
+        }),
+      ).rejects.toThrow(
+        'ask step "ask-hold" targets "team:ramesh" but no member routing is configured',
+      );
+    });
+  });
 });

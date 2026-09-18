@@ -59,6 +59,11 @@ A `deliver` step sends to one of:
 
 - `trigger` — back to whoever or whatever started this run (the chat it came from, else you).
 - `owner` — you, on the channel and target set on the Duties page.
+- `{ to: "team:<memberId>" }` — that Team member. Name `channel` alongside it to force one of
+  their channels (failing if they have no identity there); leave `channel` out and the step
+  fans out to every channel identity that member has, so they get the message wherever they
+  actually are. A channel that fails to send does not stop delivery on their other channels —
+  the step only fails if every channel failed.
 - an explicit channel target, which needs `channel` alongside it.
 
 Its `files` entries name earlier `template` steps (`{{file:<stepId>}}`) and nothing else — a Duty cannot attach an arbitrary path from disk.
@@ -70,7 +75,7 @@ An `ask` step is how a Duty stops and waits for you — typically in front of so
 Two rules matter when authoring one:
 
 - **2–4 distinct options.** A channel renders buttons only for 2–4 distinct choices. With one, five, or duplicated options the question arrives as plain text, and a typed reply does not answer it — so a Duty with unusable options is refused at save time. For genuinely free-form input, the agent should ask you directly in conversation rather than putting it in the Duty.
-- **The owner answers.** A question goes to your own chat even when the run was triggered from a group, because anyone who can see a card can tap it.
+- **The owner answers by default.** A question goes to your own chat even when the run was triggered from a group, because anyone who can see a card can tap it. Set `target: "team:<memberId>"` to raise it in that Team member's own session instead — resolved through the same routing an ordinary message from them would use, so whichever of their linked channels they actually answer from resolves it, the same "reply everywhere" behavior their chat already has.
 
 ### Gating edits to a live Duty
 
@@ -127,4 +132,4 @@ Duties keeps its own copy of this target (`duties.settings.set { owner }`) too, 
 
 ## Team
 
-Duties no longer owns the people list. Who may give the agent instructions, which channels they're reachable on, and delivering a step to `{ to: "team:<memberId>", channel: "whatsapp" }` are all the [Team plugin](/plugins/team)'s own responsibility — see that page for the full model. `duty.ts`'s `team:<memberId>` delivery-target parsing stays here (it's pure string-shape parsing with no roster access of its own), but resolving a target to an actual identity goes through Team's own Gateway method.
+Duties no longer owns the people list. Who may give the agent instructions, which channels they're reachable on, and delivering a step to `{ to: "team:<memberId>", channel: "whatsapp" }` or asking one with `{ target: "team:<memberId>" }` are all the [Team plugin](/plugins/team)'s own responsibility — see that page for the full model. `duty.ts`'s `team:<memberId>` target parsing (shared by both `deliver.to` and `ask.target`) stays here — it's pure string-shape parsing with no roster access of its own — but resolving a target to an actual identity, and to that identity's live session for an `ask`, goes through Team's own Gateway method.
