@@ -10,6 +10,7 @@ import {
 } from "../app-navigation.ts";
 import { isRouteId, isSessionRouteId } from "../app-route-paths.ts";
 import { PRODUCT_NAME } from "../app/brand.ts";
+import { frontDoorSignOutAvailable, signOutOfFrontDoor } from "../app/front-door-session.ts";
 import type { NativeGateway, NativeGatewaysSnapshot } from "../app/native-gateways.runtime.ts";
 import { isHomePanelAvailable } from "../app/panel-availability.ts";
 import { readPresenceEntries, resolveCurrentSelfUser } from "../app/user-profile.ts";
@@ -190,6 +191,31 @@ function renderSidebarWorkspaceHeader(host: AppSidebarRenderHost) {
   `;
 }
 
+/**
+ * Sign out of the shared front door that authenticated this browser. Rendered
+ * only where that front door exists (see app/front-door-session.ts): a desk
+ * opened directly has no `/logout` to reach, and the Gateway's own credential is
+ * not something the operator signs out of.
+ */
+function renderSidebarSignOut() {
+  if (!frontDoorSignOutAvailable()) {
+    return nothing;
+  }
+  const label = t("nav.signOut");
+  return html`
+    <openclaw-tooltip .content=${label}>
+      <button
+        type="button"
+        class="sidebar-brand__icon sidebar-brand__header-control sidebar-brand__sign-out"
+        aria-label=${label}
+        @click=${() => signOutOfFrontDoor()}
+      >
+        ${icons.logOut}
+      </button>
+    </openclaw-tooltip>
+  `;
+}
+
 export function renderAppSidebarBrand(
   host: AppSidebarRenderHost,
   teamNewSession: unknown = nothing,
@@ -200,6 +226,7 @@ export function renderAppSidebarBrand(
     <div class="sidebar-brand">
       ${host.sidebarAgentsMode === "roster" ? renderSidebarWorkspaceHeader(host) : renderSidebarAgentCard(host)}
       <div class="sidebar-brand__actions">
+        ${renderSidebarSignOut()}
         <openclaw-tooltip
           .content=${`${collapseLabel} (${formatKeyboardShortcutCombo(KEYBOARD_SHORTCUT_COMBOS.toggleSidebar)})`}
         >

@@ -33,3 +33,15 @@ export function getSafeLocalStorage(): Storage | null {
 export function getSafeSessionStorage(): Storage | null {
   return getSafeStorage("sessionStorage");
 }
+
+/** Best-effort removal: browser storage is optional, and a blocked or quota-failed
+ *  delete must never take down the caller that is clearing state. */
+export function removeStorageKeys(storage: Storage | null, keys: readonly string[]): void {
+  try {
+    for (const key of keys) {
+      storage?.removeItem(key);
+    }
+  } catch {
+    // best-effort
+  }
+}

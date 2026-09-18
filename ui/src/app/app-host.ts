@@ -357,6 +357,7 @@ class OpenClawShell
           if (snapshot) {
             this.ensureAgentsList(snapshot, agents);
           }
+          this.recoverUnknownRouteAgent();
         },
       )
       .effect(
@@ -552,6 +553,10 @@ class OpenClawShell
 
   recoverDeletedActiveSession(sessionState: ApplicationContext["sessions"]["state"]) {
     this.shellNavigation.recoverDeletedActiveSession(sessionState);
+  }
+
+  recoverUnknownRouteAgent() {
+    this.shellNavigation.recoverUnknownRouteAgent();
   }
 
   observeDeletedSessions(sessionState: ApplicationContext["sessions"]["state"]): void {

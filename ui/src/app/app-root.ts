@@ -19,6 +19,7 @@ import { SubscriptionsController } from "../lit/subscriptions-controller.ts";
 import type { ChatRouteData } from "../pages/chat/route-loader.ts";
 import { bootstrapApplication, type ApplicationRuntime } from "./bootstrap.ts";
 import { applicationContext, type ApplicationContext } from "./context.ts";
+import { retireRejectedGatewayCredential } from "./gateway-credential-retirement.ts";
 import {
   APPROVAL_PAGE_ELEMENT,
   DASHBOARD_DOCUMENT_ELEMENT,
@@ -198,6 +199,7 @@ export class OpenClawApp extends OpenClawLightDomElement {
     if (snapshot.phase === "connected") {
       this.loginGatePinned = false;
     }
+    retireRejectedGatewayCredential(gateway.connection, snapshot);
   }
 
   private syncLoginConnection(gateway = this.context?.gateway) {

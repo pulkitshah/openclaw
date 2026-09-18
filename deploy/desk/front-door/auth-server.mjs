@@ -28,6 +28,7 @@ const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const RATE_LIMIT_MAX_ATTEMPTS = 8;
 const SESSION_COOKIE = "vasudev_session";
+const FRONT_DOOR_MARKER_COOKIE = "vasudev_front_door";
 
 /** `{ "<email>": { "hash": "<bcrypt>" } }` — the SAME bcrypt hashes Caddy's basicauth used, so
  *  no client's password changes because of this migration. Re-read on every login attempt
@@ -174,6 +175,16 @@ function sessionCookie(sessionId, maxAgeSeconds) {
   return `${SESSION_COOKIE}=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAgeSeconds}`;
 }
 
+/** Readable companion to the HttpOnly session cookie, carrying no session material: it only
+ *  tells the Control UI (ui/src/app/front-door-session.ts) that this browser arrived through
+ *  this front door, so it can show a sign-out control that hits `/logout` below. A desk opened
+ *  directly never gets this cookie and shows no such control, because `/logout` is ours, not
+ *  the desk's. Set on login and cleared on logout alongside the session cookie; sessions that
+ *  predate this change pick the marker up at their next sign-in. */
+function frontDoorMarkerCookie(maxAgeSeconds) {
+  return `${FRONT_DOOR_MARKER_COOKIE}=1; Path=/; Secure; SameSite=Lax; Max-Age=${maxAgeSeconds}`;
+}
+
 const server = createServer(async (req, res) => {
   const url = new URL(req.url ?? "/", "http://internal");
   // Caddy always sits between this process and the real client (it proxies over loopback), so
@@ -235,8 +246,9 @@ const server = createServer(async (req, res) => {
     const sessionId = randomBytes(32).toString("base64url");
     sessions[sessionId] = { username, expiresAt: Date.now() + SESSION_MAX_AGE_MS };
     saveSessions();
+    const maxAgeSeconds = Math.floor(SESSION_MAX_AGE_MS / 1000);
     res.writeHead(302, {
-      "Set-Cookie": sessionCookie(sessionId, Math.floor(SESSION_MAX_AGE_MS / 1000)),
+      "Set-Cookie": [sessionCookie(sessionId, maxAgeSeconds), frontDoorMarkerCookie(maxAgeSeconds)],
       Location: "/",
     });
     res.end();
@@ -249,7 +261,10 @@ const server = createServer(async (req, res) => {
       delete sessions[cookies[SESSION_COOKIE]];
       saveSessions();
     }
-    res.writeHead(302, { "Set-Cookie": sessionCookie("", 0), Location: "/login" });
+    res.writeHead(302, {
+      "Set-Cookie": [sessionCookie("", 0), frontDoorMarkerCookie(0)],
+      Location: "/login",
+    });
     res.end();
     return;
   }

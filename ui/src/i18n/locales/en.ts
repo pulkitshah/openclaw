@@ -2281,6 +2281,7 @@ export const en: TranslationMap & {
     settingsSearchClear: "Clear settings search",
     settingsLoadFailed: "Settings navigation could not load.",
     exitSettings: "Back to app",
+    signOut: "Sign out",
     expand: "Expand sidebar",
     collapse: "Collapse sidebar",
     resize: "Resize sidebar",

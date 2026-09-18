@@ -168,6 +168,42 @@ export class ShellNavigationOwner {
     return true;
   }
 
+  /**
+   * A session route can name an agent this Gateway does not have: a bookmark, a
+   * shared link, or a path a tab kept while signing in to a different desk
+   * behind the same shared front door. Nothing else corrects it — the main and
+   * literal route shapes resolve without asking the Gateway, so they render a
+   * blank chat for the phantom agent and keep addressing its RPCs. The roster is
+   * the only evidence that settles it, so recover here when it lands, the same
+   * way a deleted active session does.
+   */
+  recoverUnknownRouteAgent(): void {
+    const context = this.host.context;
+    const routeId = this.host.routeState.routeId;
+    if (!context || !routeId || !isSessionRouteId(routeId)) {
+      return;
+    }
+    const agents = context.agents.state;
+    // A cached roster is the previously connected Gateway's answer, which is
+    // exactly the wrong evidence here; only a live list may retire a route.
+    if (agents.agentsListCached || !agents.agentsList?.agents.length) {
+      return;
+    }
+    const knownAgents = agents.agentsList.agents;
+    const isKnown = (agentId: string) =>
+      knownAgents.some((agent) => normalizeAgentId(agent.id) === normalizeAgentId(agentId));
+    const routeAgentId = parseAgentSessionKey(this.host.activeSessionKey.trim())?.agentId;
+    if (!routeAgentId || isKnown(routeAgentId)) {
+      return;
+    }
+    // Without a navigable replacement, replacing the route would only rebuild
+    // the same unknown owner and navigate forever.
+    if (!isKnown(resolveSessionNavigationAgentId(context))) {
+      return;
+    }
+    this.replaceChatWithCurrentSession();
+  }
+
   recoverDeletedActiveSession(_sessionState: ApplicationContext["sessions"]["state"]): void {
     const context = this.host.context;
     const routeId = this.host.routeState.routeId;

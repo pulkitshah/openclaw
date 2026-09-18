@@ -8,7 +8,7 @@ import { DEFAULT_SIDEBAR_ENTRIES, normalizeSidebarEntries } from "../app-navigat
 import { configuredUiDevGateway } from "../dev-gateway.ts";
 import { isSupportedLocale } from "../i18n/index.ts";
 import { normalizeBoardSessionViews, type BoardSessionViews } from "../lib/board/settings.ts";
-import { getSafeLocalStorage, getSafeSessionStorage } from "../local-storage.ts";
+import { getSafeLocalStorage, getSafeSessionStorage, removeStorageKeys } from "../local-storage.ts";
 import {
   normalizeSidebarSessionActivePanels,
   normalizeSidebarSessionLayouts,
@@ -403,6 +403,29 @@ export function resolveGatewayCredentialsForUrlEdit(
     token: sameTokenScope ? credentials.token : loadSessionToken(nextGatewayUrl),
     password: sameCredentialScope ? credentials.password : "",
   };
+}
+
+/**
+ * Forget everything this browser remembers about one Gateway origin: the tab's
+ * Gateway secret and the durable per-origin preferences that carry the session
+ * selection, the selected agent, and the pinned agent ids.
+ *
+ * A shared front door (deploy/desk/front-door) authenticates several customers
+ * at ONE origin and proxies each of them to their own desk, so
+ * `gatewayOriginScope` cannot tell those desks apart. Signing out is the only
+ * moment that knows the identity behind the origin is changing, so it owns this
+ * reset; without it the next sign-in in the same tab presents the previous
+ * desk's token and restores the previous desk's deep session path.
+ */
+export function clearStoredGatewaySession(gatewayUrl: string) {
+  persistSessionToken(gatewayUrl, "");
+  // Drop the in-memory fallback too: a later read must not resurrect the
+  // preferences this call is removing from storage.
+  unpersistedSettings = null;
+  removeStorageKeys(getSafeLocalStorage(), [
+    settingsKeyForGateway(gatewayUrl),
+    currentGatewaySelectionKeyForPage(deriveDefaultGatewayUrl().pageUrl),
+  ]);
 }
 
 export function persistSessionToken(gatewayUrl: string, token: string) {
