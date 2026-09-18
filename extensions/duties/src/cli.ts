@@ -274,15 +274,16 @@ function printDutiesSetup(params: {
 }
 
 /** The address `SetupConfigFacts.gmailAccount` should carry for the `--account <email>` checklist:
- *  the target address itself when it is configured somewhere (root or a named account — matching
- *  `mailStatusFromConfig`'s multi-account-aware resolution, so this checklist and the Duties page
- *  readout never disagree about whether an account is configured), otherwise whichever address IS
- *  configured (so a genuine mismatch is still reported by name), or undefined when none is. */
+ *  the target address itself when it is configured somewhere (a Gmail hook's root/named account,
+ *  or an IMAP account targeting the mail agent — matching `mailStatusFromConfig`'s multi-transport
+ *  resolution, so this checklist and the Duties page readout never disagree about whether an
+ *  account is configured), otherwise whichever address IS configured (so a genuine mismatch is
+ *  still reported by name), or undefined when none is. */
 function resolveGmailAccountForSetup(
-  hooks: OpenClawConfig["hooks"],
+  config: OpenClawConfig,
   targetAccount: string,
 ): string | undefined {
-  const addresses = configuredGmailAddresses(hooks);
+  const addresses = configuredGmailAddresses(config);
   if (addresses.length === 0) {
     return undefined;
   }
@@ -325,7 +326,7 @@ export function registerDutiesSetupCli(params: {
       const desk = health.hosted
         ? { keyfilePresent: await checkKeyfile(), displayOk: health.display === true }
         : undefined;
-      const resolvedGmailAccount = resolveGmailAccountForSetup(config.hooks, options.account);
+      const resolvedGmailAccount = resolveGmailAccountForSetup(config, options.account);
       const configFacts: SetupConfigFacts = {
         hooksEnabled: status.hooksEnabled,
         ...(resolvedGmailAccount ? { gmailAccount: resolvedGmailAccount } : {}),

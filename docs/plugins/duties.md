@@ -111,7 +111,14 @@ This is the narrowest opt-in available — it permits one address, unlike `dange
 
 ### Mail triggers
 
-Mail dispatch needs the Gmail push path plus a small dispatcher agent. The setup command prints all of it; the checklist is:
+The fastest way to wire this up is Settings → Connections → Channels' guided **[Gmail](/channels/gmail)**
+card: it writes a Gmail app-password IMAP account pointed at the `duties-mail` agent, with no Google
+Cloud project, `gcloud` auth, or public exposure needed. Use the `hooks.gmail`/Pub-Sub checklist
+below instead only if you specifically need a Gmail-hook feature the IMAP card does not provide,
+such as fetching attachment content via `gog gmail <read/download>` (the IMAP path only ever sees an
+attachment's filename) — see [Gmail vs. hooks.gmail](/channels/gmail#when-to-use-hooks-gmail/pub/sub-instead).
+
+Mail dispatch over `hooks.gmail` needs the Gmail push path plus a small dispatcher agent. The setup command prints all of it; the checklist is:
 
 1. `gogcli` installed and authenticated for the account (`gog auth add you@example.com`).
 2. `hooks.enabled: true` and `hooks.gmail.account` set to that account.

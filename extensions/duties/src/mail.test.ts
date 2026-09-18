@@ -1,6 +1,6 @@
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { describe, expect, it } from "vitest";
-import { MAIL_AGENT_ID, mailStatusFromConfig } from "./mail.js";
+import { configuredGmailAddresses, MAIL_AGENT_ID, mailStatusFromConfig } from "./mail.js";
 
 describe("mailStatusFromConfig", () => {
   it("reports nothing ready for an install with no hooks at all", () => {
@@ -173,5 +173,152 @@ describe("mailStatusFromConfig", () => {
     expect(status.gmailAccountSet).toBe(true);
     expect(status.gmailAccountCount).toBe(2);
     expect(JSON.stringify(status)).not.toContain("prasthan.in");
+  });
+
+  // The three IMAP-recognition gaps this suite closes: an IMAP account routed to the mail agent
+  // (via the Control UI's Gmail card, ui/src/pages/channels/gmail-setup.ts, or a hand-edited
+  // extensions/imap config) must read exactly as healthy as a fully wired Gmail hook, not "not
+  // configured".
+  it("recognizes an IMAP account routed to the mail agent as a fully configured mail path", () => {
+    const config: OpenClawConfig = {
+      plugins: {
+        entries: {
+          imap: {
+            enabled: true,
+            config: {
+              accounts: {
+                gmail: {
+                  host: "imap.gmail.com",
+                  user: "owner@example.com",
+                  password: "app-password",
+                  agentId: MAIL_AGENT_ID,
+                },
+              },
+            },
+          },
+        },
+      },
+      agents: { entries: { [MAIL_AGENT_ID]: {} } },
+    };
+    const status = mailStatusFromConfig(config, {});
+    expect(status).toEqual({
+      configured: true,
+      hooksEnabled: true,
+      gmailAccountSet: true,
+      gmailAccountCount: 1,
+      mappingPresent: true,
+      agentPresent: true,
+    });
+    // Never returns the address, matching this file's discipline for every other transport.
+    expect(JSON.stringify(status)).not.toContain("example.com");
+  });
+
+  it("does not count an IMAP account whose plugin entry is not enabled", () => {
+    const config: OpenClawConfig = {
+      plugins: {
+        entries: {
+          imap: {
+            // enabled left unset: an account object existing in config does not mean the plugin
+            // is actually running.
+            config: {
+              accounts: {
+                gmail: {
+                  host: "imap.gmail.com",
+                  user: "owner@example.com",
+                  password: "app-password",
+                  agentId: MAIL_AGENT_ID,
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    const status = mailStatusFromConfig(config, {});
+    expect(status.configured).toBe(false);
+    expect(status.gmailAccountSet).toBe(false);
+    expect(status.mappingPresent).toBe(false);
+  });
+
+  it("does not count an IMAP account routed to a different agent", () => {
+    const config: OpenClawConfig = {
+      plugins: {
+        entries: {
+          imap: {
+            enabled: true,
+            config: {
+              accounts: {
+                support: {
+                  host: "imap.example.com",
+                  user: "support@example.com",
+                  password: "x",
+                  agentId: "some-other-agent",
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    const status = mailStatusFromConfig(config, {});
+    expect(status.gmailAccountSet).toBe(false);
+    expect(status.gmailAccountCount).toBe(0);
+  });
+
+  it("combines a Gmail hook mailbox and an IMAP mailbox in the account count", () => {
+    const config: OpenClawConfig = {
+      hooks: {
+        enabled: true,
+        gmail: { account: "hook@example.com" },
+        mappings: [{ agentId: MAIL_AGENT_ID, match: { path: "gmail" } }],
+      },
+      plugins: {
+        entries: {
+          imap: {
+            enabled: true,
+            config: {
+              accounts: {
+                gmail: {
+                  host: "imap.gmail.com",
+                  user: "imap@example.com",
+                  password: "x",
+                  agentId: MAIL_AGENT_ID,
+                },
+              },
+            },
+          },
+        },
+      },
+      agents: { entries: { [MAIL_AGENT_ID]: {} } },
+    };
+    const status = mailStatusFromConfig(config, {});
+    expect(status.gmailAccountCount).toBe(2);
+    expect(status.mappingPresent).toBe(true);
+  });
+});
+
+describe("configuredGmailAddresses", () => {
+  it("includes an IMAP account's address alongside any Gmail hook addresses", () => {
+    const config: OpenClawConfig = {
+      hooks: { gmail: { account: "hook@example.com" } },
+      plugins: {
+        entries: {
+          imap: {
+            enabled: true,
+            config: {
+              accounts: {
+                gmail: {
+                  host: "imap.gmail.com",
+                  user: "imap@example.com",
+                  password: "x",
+                  agentId: MAIL_AGENT_ID,
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    expect(configuredGmailAddresses(config)).toEqual(["hook@example.com", "imap@example.com"]);
   });
 });

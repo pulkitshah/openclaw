@@ -350,4 +350,52 @@ describe("registerDutiesSetupCli", () => {
     expect(output).toContain("Gmail account configured: yes");
     expect(output).not.toContain("no Gmail account is configured for hooks");
   });
+
+  // Same regression, IMAP transport: a desk connected through the Control UI's Gmail card
+  // (extensions/imap, not hooks.gmail) must not be reported as unconfigured either.
+  it("agrees with mailStatusFromConfig that an IMAP-connected desk has a mail account configured", async () => {
+    const { program, run } = captureAction();
+    const logs: string[] = [];
+    const logSpy = vi.spyOn(console, "log").mockImplementation((line: string) => {
+      logs.push(line);
+    });
+    try {
+      registerDutiesSetupCli({
+        program,
+        config: {
+          plugins: {
+            entries: {
+              imap: {
+                enabled: true,
+                config: {
+                  accounts: {
+                    gmail: {
+                      host: "imap.gmail.com",
+                      user: "ops@example.com",
+                      agentId: MAIL_AGENT_ID,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        readDeskHealth: async () => ({ hosted: false }),
+        keyfilePresent: async () => false,
+      });
+      await run({ account: "ops@example.com" });
+    } finally {
+      logSpy.mockRestore();
+    }
+    const output = logs.join("\n");
+    expect(output).toContain("hooks enabled: yes");
+    expect(output).toContain("Gmail account configured: yes");
+    expect(output).toContain(`hook mapping to ${MAIL_AGENT_ID}: yes`);
+    // The three mail-transport checks must not falsely report a gap on an IMAP-only desk; the
+    // agent-entry and rendering-allowlist checks are independent of the mail transport and are
+    // still expected to fire here, since this fixture configures neither.
+    expect(output).not.toContain("hooks are not enabled");
+    expect(output).not.toContain("no Gmail account is configured for hooks");
+    expect(output).not.toContain(`no hook mapping routes Gmail to the ${MAIL_AGENT_ID} agent`);
+  });
 });

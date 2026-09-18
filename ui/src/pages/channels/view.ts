@@ -27,7 +27,9 @@ import { t } from "../../i18n/index.ts";
 import { resolveChannelAccounts } from "../../lib/channels/index.ts";
 import { formatUiExternalText } from "../../lib/format-error.ts";
 import { formatRelativeTimestamp } from "../../lib/format.ts";
+import { GMAIL_HUB_CHANNEL_ID, isGmailImapConfigured } from "./gmail-setup.ts";
 import { renderChannelDetail } from "./view.detail.ts";
+import { renderGmailSetupModal } from "./view.gmail.ts";
 import { renderChannelPairingPrompt, renderChannelPairingQueue } from "./view.pairing.ts";
 import {
   channelEnabled,
@@ -48,13 +50,27 @@ const RECOMMENDED_CHANNEL_ORDER: ChannelKey[] = [
   "signal",
   "imessage",
   "nostr",
+  // Gmail is not a two-way channel plugin (see gmail-setup.ts): it is a guided
+  // wizard over the generic extensions/imap plugin, listed here purely so it
+  // gets a card in this hub's "Add a channel" gallery.
+  GMAIL_HUB_CHANNEL_ID,
 ];
+
+/** Gmail never appears in the server's channels.status snapshot (it isn't a
+ *  ChannelPlugin), so its connected/available bucket is read from config
+ *  instead of channelEnabled's snapshot-derived check. */
+function isChannelConnectedForHub(key: ChannelKey, props: ChannelsProps): boolean {
+  if (key === GMAIL_HUB_CHANNEL_ID) {
+    return isGmailImapConfigured(props.configForm);
+  }
+  return channelEnabled(key, props);
+}
 
 export function renderChannels(props: ChannelsProps) {
   const channelOrder = resolveChannelOrder(props.snapshot);
   // Key both lists so status updates cannot retarget an in-flight channel click.
-  const connected = channelOrder.filter((key) => channelEnabled(key, props));
-  const available = channelOrder.filter((key) => !channelEnabled(key, props));
+  const connected = channelOrder.filter((key) => isChannelConnectedForHub(key, props));
+  const available = channelOrder.filter((key) => !isChannelConnectedForHub(key, props));
   const showingStaleSnapshot = Boolean(props.loading && props.snapshot && props.lastSuccessAt);
   const partialWarnings =
     props.snapshot?.warnings
@@ -166,6 +182,18 @@ export function renderChannels(props: ChannelsProps) {
           })
         : nothing
     }
+    ${
+      props.canAdmin
+        ? renderGmailSetupModal({
+            state: props.gmailSetup,
+            onFieldChange: props.onGmailSetupFieldChange,
+            onTogglePasswordVisibility: props.onGmailSetupTogglePasswordVisibility,
+            onContinue: props.onGmailSetupContinue,
+            onSave: props.onGmailSetupSave,
+            onClose: props.onGmailSetupClose,
+          })
+        : nothing
+    }
     ${renderChannelPairingPrompt(props)}
   `;
 }
@@ -197,6 +225,11 @@ function resolveChannelPlugin(props: ChannelsProps, key: string) {
 }
 
 function resolveChannelLabel(props: ChannelsProps, key: string): string {
+  if (key === GMAIL_HUB_CHANNEL_ID) {
+    // Not the underlying "IMAP email trigger" plugin's own name: this card is
+    // branded for the guided Gmail flow it actually runs.
+    return t("channels.gmail.title");
+  }
   const snapshot = props.snapshot;
   const labels = snapshot?.channelLabels;
   return (
@@ -290,7 +323,11 @@ function renderAvailableRow(key: ChannelKey, props: ChannelsProps) {
   const plugin = resolveChannelPlugin(props, key);
   const label = resolveChannelLabel(props, key);
   const description =
-    plugin?.description ?? resolveChannelDetailLabel(props, key) ?? t("channels.hub.guidedSetup");
+    key === GMAIL_HUB_CHANNEL_ID
+      ? t("channels.gmail.hubDescription")
+      : (plugin?.description ??
+        resolveChannelDetailLabel(props, key) ??
+        t("channels.hub.guidedSetup"));
   return html`
     <div class="settings-row channels-item">
       <button

@@ -10,8 +10,10 @@ import "../../components/modal-dialog.ts";
 import { resolveChannelAccounts } from "../../lib/channels/index.ts";
 import { formatUiExternalText } from "../../lib/format-error.ts";
 import { formatRelativeTimestamp } from "../../lib/format.ts";
+import { GMAIL_HUB_CHANNEL_ID } from "./gmail-setup.ts";
 import { channelDocsUrl } from "./hub-meta.ts";
 import { renderChannelConfigSection } from "./view.config.ts";
+import { renderGmailDetailCard } from "./view.gmail.ts";
 import { renderNostrCard } from "./view.nostr.ts";
 import { renderChannelPairingDetail } from "./view.pairing.ts";
 import {
@@ -183,6 +185,12 @@ function renderChannelStatusBody(
 function renderChannelBody(key: ChannelKey, props: ChannelsProps, data: ChannelsChannelData) {
   const accountCount = resolveChannelAccountCount(key, data.channelAccounts);
   switch (key) {
+    case GMAIL_HUB_CHANNEL_ID:
+      return renderGmailDetailCard({
+        props,
+        removing: props.gmailRemoving,
+        onRemove: () => props.onGmailRemove(),
+      });
     case "whatsapp":
       return renderWhatsAppCard({
         props,

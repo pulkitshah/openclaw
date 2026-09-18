@@ -39,6 +39,8 @@ export function createChannelsViewProps(
     nostrProfileFormState: null,
     nostrProfileAccountId: null,
     selectedChannel: null,
+    gmailSetup: null,
+    gmailRemoving: false,
     wizard: { phase: "idle" },
     wizardMultiselect: [],
     wizardTextValue: "",
@@ -74,6 +76,12 @@ export function createChannelsViewProps(
     onNostrProfileSave: () => {},
     onNostrProfileImport: () => {},
     onNostrProfileToggleAdvanced: () => {},
+    onGmailSetupFieldChange: () => {},
+    onGmailSetupTogglePasswordVisibility: () => {},
+    onGmailSetupContinue: () => {},
+    onGmailSetupSave: () => {},
+    onGmailSetupClose: () => {},
+    onGmailRemove: () => {},
     ...overrides,
   };
 }

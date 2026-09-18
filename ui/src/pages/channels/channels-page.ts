@@ -25,6 +25,11 @@ import {
 import { OpenClawLightDomElement } from "../../lit/openclaw-element.ts";
 import { PollController } from "../../lit/poll-controller.ts";
 import { SubscriptionsController } from "../../lit/subscriptions-controller.ts";
+import {
+  createGmailSetupHostForPage,
+  gmailChannelsProps,
+  routeStartSetup,
+} from "./gmail-setup-host.ts";
 import { importNostrProfile, parseValidationErrors, putNostrProfile } from "./nostr-profile-ops.ts";
 import { ChannelPluginPresentationController } from "./plugin-presentation-controller.ts";
 import { createNostrProfileFormState } from "./view.nostr-profile-form.ts";
@@ -88,6 +93,14 @@ class ChannelsPage extends OpenClawLightDomElement {
     getContext: () => this.context,
     requestUpdate: () => this.requestUpdate(),
     clearSelection: () => (this.selectedChannel = null),
+  });
+
+  private readonly gmailSetupHost = createGmailSetupHostForPage({
+    getContext: () => this.context,
+    requestUpdate: () => this.requestUpdate(),
+    closeGenericWizard: () => this.wizardHost.close(),
+    getSelectedChannel: () => this.selectedChannel,
+    setSelectedChannel: (channelId) => (this.selectedChannel = channelId),
   });
 
   private schemaLoadStarted = false;
@@ -252,6 +265,7 @@ class ChannelsPage extends OpenClawLightDomElement {
     this.pairingAccountFilter = null;
     this.pairingNotice = null;
     this.pairingPolling.stop();
+    this.gmailSetupHost.reset();
     this.pluginPresentation.reset();
     this.invalidateNostrForm();
     this.subscriptions.clear();
@@ -684,22 +698,21 @@ class ChannelsPage extends OpenClawLightDomElement {
           nostrProfileFormState: this.nostrProfileFormState,
           nostrProfileAccountId: this.nostrProfileAccountId,
           selectedChannel: this.selectedChannel,
+          ...gmailChannelsProps(this.gmailSetupHost),
           wizard: this.wizardHost.state,
           wizardMultiselect: this.wizardHost.multiselect,
           wizardTextValue: this.wizardHost.textValue,
           wizardSecretVisible: this.wizardHost.secretVisible,
           setupBlockedByDirtyConfig: this.wizardHost.blockedByDirtyConfig,
-          onShowDetail: (channelId) => {
-            this.selectedChannel = channelId;
-          },
-          onCloseDetail: () => {
-            this.selectedChannel = null;
-          },
-          onStartSetup: (channelId) => {
-            if (canAdmin) {
-              this.wizardHost.startSetup(channelId);
-            }
-          },
+          onShowDetail: (channelId) => (this.selectedChannel = channelId),
+          onCloseDetail: () => (this.selectedChannel = null),
+          onStartSetup: (channelId) =>
+            routeStartSetup({
+              channelId,
+              canAdmin,
+              gmailHost: this.gmailSetupHost,
+              startChannelWizard: (id) => this.wizardHost.startSetup(id),
+            }),
           onWizardAnswer: (value) => this.wizardHost.answer(value),
           onWizardToggleMultiselect: (value) => this.wizardHost.toggleMultiselect(value),
           onWizardTextInput: (value) => this.wizardHost.setTextValue(value),
@@ -713,9 +726,7 @@ class ChannelsPage extends OpenClawLightDomElement {
           onPairingApprove: (request) => this.openPairingPrompt("approve", request),
           onPairingDismiss: (request) => this.openPairingPrompt("dismiss", request),
           onPairingPromptChange: (patch) => this.patchPairingPrompt(patch),
-          onPairingPromptCancel: () => {
-            this.pairingPrompt = null;
-          },
+          onPairingPromptCancel: () => (this.pairingPrompt = null),
           onPairingPromptConfirm: () => void this.confirmPairingPrompt(),
           onWhatsAppStart: (force) =>
             void context.channels.startWhatsApp(force, this.wizardHost.whatsappAccountId),
