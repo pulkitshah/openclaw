@@ -98,7 +98,10 @@ export default definePluginEntry({
       async start(ctx) {
         try {
           const members = await store.listMembers();
-          const { applied, agentId } = await applyExecSelfCliDenyDefault({ members });
+          const { applied, agentId } = await applyExecSelfCliDenyDefault({
+            cfg: currentConfig(),
+            members,
+          });
           if (applied) {
             ctx.logger.info(
               `team: denied self-CLI exec by default for coordinator agent "${agentId}"`,

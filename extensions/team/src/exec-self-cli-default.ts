@@ -52,10 +52,31 @@ export function planExecSelfCliDenyDefault(params: {
   return { agentId, nextConfig };
 }
 
-/** Applies the default under the config mutation lock. A no-op plan returns `applied: false`. */
+/**
+ * Applies the default under the config mutation lock. A no-op plan returns `applied: false`
+ * WITHOUT opening a config write at all.
+ *
+ * The pre-check on `params.cfg` is load-bearing, not an optimization. `mutateConfigFile` commits a
+ * write cycle whether or not the mutator changed the draft: it rewrites the file, rereads it, and
+ * republishes the runtime config snapshot from that reread. This service runs from a plugin
+ * `start()`, i.e. before the Gateway reaches `ready` and arms its managed config reloader, so that
+ * republished snapshot (a) loses the startup-only plugin auto-enable overlay
+ * (`src/gateway/server-startup-config-helpers.ts`) and (b) reaches no reload owner that would
+ * re-stamp the already-published prepared-model catalog owner. The owner then holds a config that
+ * no longer hash-matches what every later reader passes, and every agent run fails with
+ * `PreparedModelCatalogConfigReplacedError`. Most desks land here — an empty roster or an operator
+ * choice already recorded both plan to "nothing to do".
+ *
+ * The draft is still re-planned inside the lock: `params.cfg` only decides whether to take the
+ * lock, never what to write.
+ */
 export async function applyExecSelfCliDenyDefault(params: {
+  cfg: OpenClawConfig;
   members: readonly TeamMember[];
 }): Promise<{ applied: boolean; agentId?: string }> {
+  if (!planExecSelfCliDenyDefault({ cfg: params.cfg, members: params.members })) {
+    return { applied: false };
+  }
   let outcome: { applied: boolean; agentId?: string } = { applied: false };
   await mutateConfigFile({
     mutate: (draft) => {
