@@ -155,6 +155,55 @@ export function registerTeamGatewayMethods(deps: {
   });
 
   /**
+   * Read-only, admin-scoped: which roster row, if any, a channel identity belongs to, plus the
+   * owner's display name.
+   *
+   * This is the roster's answer to "who is talking to Vasu right now", and it lives here — with the
+   * roster — rather than in any caller, so there is exactly one implementation of what counts as a
+   * match. `tools.ts`'s owner gate is its only caller today: it hands over the current turn's
+   * admission facts (channel + sender id + account id, all runtime-supplied, never model-authored)
+   * and refuses the roster-mutating tools unless the answer is the owner's row. A person with
+   * identities on several channels matches from any of them, because every identity on every row is
+   * considered — the roster, not the channel, is what makes them one person.
+   *
+   * The answer deliberately carries NO sender id: it names a row the caller already described, so
+   * echoing the identity back would add nothing and would put PII on a path that does not need it.
+   * `ownerName` is included because the refusal text names the owner, and a name is already visible
+   * to every member through `team_list`.
+   *
+   * Matching rules, in the roster's own terms (`TeamChannelIdentity`):
+   * - `channel` compares case-insensitively; channel ids are lowercase by convention everywhere.
+   * - `senderId` compares exactly after trimming — the same normalization core's own allowlist
+   *   check applies (`normalizeStringEntries` trims and nothing else, `isSenderIdAllowed` then does
+   *   an exact `includes`), so an identity that would be admitted by the projected access group is
+   *   the identity that matches here.
+   * - a roster identity with no `accountId` matches any account of that channel (that is what
+   *   omitting it means); one with an `accountId` matches only that account, and therefore does not
+   *   match a turn whose account is unknown.
+   */
+  register("team.identity.resolve", "operator.admin", async (params) => {
+    const channel = typeof params.channel === "string" ? params.channel.trim().toLowerCase() : "";
+    const senderId = typeof params.senderId === "string" ? params.senderId.trim() : "";
+    const accountId = typeof params.accountId === "string" ? params.accountId.trim() : "";
+    const members = await store.listMembers();
+    const matched =
+      channel && senderId
+        ? members.find((member) =>
+            member.channels.some(
+              (identity) =>
+                identity.channel.trim().toLowerCase() === channel &&
+                identity.senderId.trim() === senderId &&
+                (!identity.accountId?.trim() || identity.accountId.trim() === accountId),
+            ),
+          )
+        : undefined;
+    return {
+      member: matched ? { id: matched.id, name: matched.name, role: matched.role } : undefined,
+      ownerName: members.find((member) => member.role === "owner")?.name,
+    };
+  });
+
+  /**
    * Sets or moves the owner's own channel identity. On an empty roster this is the bootstrap step —
    * "Tell Vasu where to reach you" — that creates the owner row; on an existing roster it moves the
    * current owner's first identity, keeping every other identity they already have. This is the one

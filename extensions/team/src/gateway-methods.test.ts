@@ -609,3 +609,126 @@ describe("team.* authority", () => {
     expect((await store.ownerMember())?.id).toBe("owner");
   });
 });
+
+describe("team.identity.resolve", () => {
+  it("registers at operator.admin", () => {
+    const { methods } = harness();
+    expect(methods.get("team.identity.resolve")?.scope).toBe("operator.admin");
+  });
+
+  async function roster() {
+    const built = harness({ config: deskFixtureConfig() });
+    await built.store.seedOwner({
+      id: "owner",
+      name: "Radha",
+      addedBy: "owner",
+      channels: [
+        { channel: "telegram", senderId: "111", addedAt: 1 },
+        { channel: "whatsapp", senderId: "+919800000000", addedAt: 1 },
+      ],
+    });
+    await built.store.addMember({
+      id: "ramesh",
+      name: "Ramesh",
+      addedBy: "owner",
+      channels: [{ channel: "telegram", senderId: "5551234", accountId: "work", addedAt: 1 }],
+    });
+    return built;
+  }
+
+  it("names the owner from any channel identity they hold", async () => {
+    const { call, asAdmin } = await roster();
+
+    for (const identity of [
+      { channel: "telegram", senderId: "111" },
+      { channel: "whatsapp", senderId: "+919800000000" },
+    ]) {
+      const result = await call("team.identity.resolve", identity, asAdmin);
+      expect(result.result).toEqual({
+        member: { id: "owner", name: "Radha", role: "owner" },
+        ownerName: "Radha",
+      });
+    }
+  });
+
+  it("names an ordinary member as a member, never as the owner", async () => {
+    const { call, asAdmin } = await roster();
+    const result = await call(
+      "team.identity.resolve",
+      { channel: "telegram", senderId: "5551234", accountId: "work" },
+      asAdmin,
+    );
+    expect(result.result).toEqual({
+      member: { id: "ramesh", name: "Ramesh", role: "member" },
+      ownerName: "Radha",
+    });
+  });
+
+  it("never answers with a sender id", async () => {
+    const { call, asAdmin } = await roster();
+    const result = await call(
+      "team.identity.resolve",
+      { channel: "telegram", senderId: "111" },
+      asAdmin,
+    );
+    expect(JSON.stringify(result.result)).not.toContain("111");
+  });
+
+  it("matches a sender id only under its own channel key", async () => {
+    // The owner's Telegram id arriving on WhatsApp is a different person's id, not the owner's.
+    const { call, asAdmin } = await roster();
+    const result = await call(
+      "team.identity.resolve",
+      { channel: "whatsapp", senderId: "111" },
+      asAdmin,
+    );
+    expect(result.result).toEqual({ member: undefined, ownerName: "Radha" });
+  });
+
+  it("honours an account-scoped identity, including when the caller's account is unknown", async () => {
+    const { call, asAdmin } = await roster();
+    const identity = { channel: "telegram", senderId: "5551234" };
+
+    // The roster pins Ramesh's Telegram identity to the "work" account, so neither another account
+    // nor an unknown one is him.
+    expect(
+      (await call("team.identity.resolve", { ...identity, accountId: "personal" }, asAdmin)).result,
+    ).toEqual({ member: undefined, ownerName: "Radha" });
+    expect((await call("team.identity.resolve", identity, asAdmin)).result).toEqual({
+      member: undefined,
+      ownerName: "Radha",
+    });
+  });
+
+  it("matches an unscoped roster identity on any account of that channel", async () => {
+    const { call, asAdmin } = await roster();
+    const result = await call(
+      "team.identity.resolve",
+      { channel: "telegram", senderId: "111", accountId: "whichever" },
+      asAdmin,
+    );
+    expect(result.result).toMatchObject({ member: { id: "owner" } });
+  });
+
+  it("answers with no member and no owner name on an empty roster", async () => {
+    const { call, asAdmin } = harness();
+    const result = await call(
+      "team.identity.resolve",
+      { channel: "telegram", senderId: "111" },
+      asAdmin,
+    );
+    expect(result.result).toEqual({ member: undefined, ownerName: undefined });
+  });
+
+  it("answers with no member when the identity is incomplete", async () => {
+    const { call, asAdmin } = await roster();
+    expect((await call("team.identity.resolve", { channel: "telegram" }, asAdmin)).result).toEqual({
+      member: undefined,
+      ownerName: "Radha",
+    });
+    expect((await call("team.identity.resolve", { senderId: "111" }, asAdmin)).result).toEqual({
+      member: undefined,
+      ownerName: "Radha",
+    });
+  });
+});
