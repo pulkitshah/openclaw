@@ -83,13 +83,13 @@ Slash commands and directives are honored only for authorized senders. Configure
 
 `/exec` is a session-only convenience for authorized operators - it does not write config or change other sessions.
 
-## The agent cannot approve its own pairings
+## The agent cannot approve a pairing directly
 
-Approving a channel pairing admits a new person to instruct the agent, so it stays an operator
-decision. The Gateway refuses `channels.pairing.approve` and `channels.pairing.dismiss` to any
-**agent-originated** request at its authorization fence, ahead of the `operator.admin` wildcard, so
-no scope set the agent can present reaches them. `channels.pairing.list` stays available, so the
-agent can still tell you who is waiting.
+Approving a channel pairing admits a new person to instruct the agent, so the agent's own tool funnel
+does not get to do it. The Gateway refuses `channels.pairing.approve` and `channels.pairing.dismiss`
+to any **agent-originated** request at its authorization fence, ahead of the `operator.admin`
+wildcard, so no scope set the agent can present reaches them. `channels.pairing.list` stays
+available, so the agent can still tell you who is waiting.
 
 "Agent-originated" means either of two host-attested markers, never anything read from wire params:
 a built-in agent tool dispatching in process, or a connection authenticated with a verified agent
@@ -98,7 +98,15 @@ Team page, your own CLI, an admin HTTP client — are unaffected.
 
 A bundled plugin's own Gateway call is also not marked, and stays allowed: a plugin hard-codes which
 method it calls and with which scopes, while the agent's dispatch mints whatever the method asks for.
-No bundled plugin calls these pairing methods today.
+
+One bundled plugin does use that: Team's `team.add` calls `channels.pairing.list` and then
+`channels.pairing.approve` for a pending request whose sender the same call is adding to the roster.
+The agent can start it through the `team_add` tool, so there is an agent-reachable route to an
+approval, and it is the intended one — [Team](/plugins/team#the-coordinator-cannot-approve-a-pairing-directly)
+describes it. What the route cannot produce is a bare approval: `team.add` only ever approves an
+identity it is putting on the roster, a pending request nobody named is left waiting, and the roster
+row lands with it, so the admitted person is named and auditable rather than anonymous. The fence
+still holds for what it covers — no agent-originated request reaches either method.
 
 Device and node pairing (`node.pair.approve`, `device.pair.approve`) are deliberately **not** covered.
 They share the `operator.pairing` scope but attach hardware you already hold, and the `nodes` agent

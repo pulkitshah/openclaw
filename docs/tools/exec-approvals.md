@@ -412,10 +412,13 @@ chances" guarantee against every conceivable path):**
 Rationale: an agent that reaches its own CLI is usually doing something it
 has a tool-call path for, and closing the whole binary is simpler than
 denying dangerous subcommands (`pairing approve`, `config set`, ...) one at
-a time. Note what this does _not_ claim: the coordinator's Team surface is
-read-only today (`team_list`), so roster writes have no agent tool path at
-all — an operator makes them from the Team page. `denySelfCli` removes the
-CLI shortcut for those; it does not replace it.
+a time. Note what this does _not_ claim: roster writes do have an agent tool
+path — `team_add`, `team_remove`, `team_transfer_ownership` — and `team_add`
+approves a pending pairing request whose sender it is putting on the roster,
+in that same call. That path is the sanctioned one, and `denySelfCli`
+neither creates nor removes it. What `denySelfCli` removes is the unrouted
+CLI shortcut (`vasudev pairing approve`), which admits a sender with no
+roster row behind it.
 
 **Open gap, stated plainly: the agent can still read the operator's Gateway
 credential.** `exec` has no read-path restrictions, so at the coordinator's

@@ -17,9 +17,10 @@
 // documented as open in `docs/tools/exec-approvals.md`: reading `gateway.auth.token` from the exec
 // context and then calling the loopback Gateway as a genuine operator, and `vasudev pairing approve`
 // itself, which writes the pairing store directly (`src/cli/pairing-cli.ts`) without any Gateway
-// method. An earlier version of this comment claimed `team_add`/`team_remove`/
-// `team_transfer_ownership` tools stand in for the CLI; they were never registered — the
-// coordinator's Team surface is `team_list` only.
+// method. The `team_add`/`team_remove`/`team_transfer_ownership` tools land with the Team v2
+// agent-tool work, so roster writes do have an agent path, and `team_add` approves a pending pairing
+// request for the sender it is putting on the roster. That route is sanctioned and untouched here:
+// what this module closes is the CLI shortcut to the same store with no roster row behind it.
 //
 // Mechanism: this reuses the same resolved command segments `tools.exec.strictInlineEval` already
 // consults for its own mode-independent check (see `evaluateShellAllowlistWithAuthorization`) — no
