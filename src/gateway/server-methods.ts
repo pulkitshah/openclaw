@@ -27,6 +27,10 @@ import {
   tryBeginGatewayPreparedRestartRootWorkAdmission,
   tryBeginGatewayRootWorkAdmission,
 } from "../process/gateway-work-admission.js";
+import {
+  AGENT_ORIGIN_FORBIDDEN_DETAIL_CODE,
+  isAgentOriginatedGatewayRequest,
+} from "./agent-originated-request.js";
 import { formatControlPlaneActor, resolveControlPlaneActor } from "./control-plane-audit.js";
 import {
   consumeControlPlaneWriteBudget,
@@ -37,6 +41,7 @@ import {
   ADMIN_SCOPE,
   authorizeOperatorScopesForMethod,
   authorizeOperatorScopesForRequiredScope,
+  isAgentDeniedPrivilegedGatewayMethod,
   resolveLeastPrivilegeOperatorScopesForMethod,
 } from "./method-scopes.js";
 import {
@@ -79,6 +84,17 @@ function authorizeGatewayMethod(
   params: unknown,
   methodRegistry: GatewayMethodRegistry,
 ) {
+  // The agent mints its own synthetic client carrying exactly the scopes the called method needs,
+  // so a scope check alone cannot keep a privileged operator decision away from it. This fence runs
+  // before the pre-connect bail and before the `operator.admin` wildcard below, so no credential or
+  // scope set an agent-originated request can present reaches a denied method.
+  if (isAgentDeniedPrivilegedGatewayMethod(method) && isAgentOriginatedGatewayRequest(client)) {
+    return errorShape(
+      ErrorCodes.FORBIDDEN,
+      `${method} is not available to the agent; a person has to decide this one`,
+      { details: { code: AGENT_ORIGIN_FORBIDDEN_DETAIL_CODE, method } },
+    );
+  }
   // Pre-connect and health requests are allowed through; role/scope checks require the
   // authenticated connect metadata established by the gateway handshake.
   if (!client?.connect || method === "health") {

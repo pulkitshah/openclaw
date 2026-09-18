@@ -230,6 +230,10 @@ async function callAgentToolGatewayRequestBound<T>(
       ? undefined
       : (request.timeoutMs ?? DEFAULT_IN_PROCESS_GATEWAY_REQUEST_TIMEOUT_MS);
   const dispatchOptions = {
+    // Every call through this module is a built-in agent tool's Gateway call, and the scopes above
+    // are minted from the method's own requirement — so the router, not this caller, has to refuse
+    // the privileged operator decisions the agent must never make (`method-scopes.ts`).
+    agentOriginated: true,
     forceSyntheticClient: true,
     operatorRoleActor: { kind: "system" as const },
     ...(request.agentRunTracking ? { agentRunTracking: request.agentRunTracking } : {}),
@@ -339,6 +343,9 @@ async function callInProcessGatewayToolBound<T>(
       boundGateway,
       async (boundResolver) =>
         await dispatchGatewayMethodInProcess<T>(method, params, {
+          // Same reason as `callAgentToolGatewayRequestBound`: the agent's own dispatch is marked so
+          // the router can refuse privileged operator decisions whatever scopes it minted.
+          agentOriginated: true,
           forceSyntheticClient: true,
           operatorRoleActor: { kind: "system" as const },
           syntheticScopes: scopes,

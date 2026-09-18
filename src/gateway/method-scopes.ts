@@ -51,6 +51,45 @@ export const CLI_DEFAULT_OPERATOR_SCOPES: OperatorScope[] = [
   TALK_SECRETS_SCOPE,
 ];
 
+/**
+ * How each channel-pairing Gateway method is classified for an agent-originated request.
+ *
+ * Channel pairing is the door a NEW PERSON walks through to start instructing the agent, so
+ * approving or refusing one is the operator's decision, not the agent's. `authorizeGatewayMethod`
+ * (`src/gateway/server-methods.ts`) denies the `"deny"` entries to agent-originated requests before
+ * the `operator.admin` wildcard is consulted, so no scope set the agent can present reaches them —
+ * not `operator.pairing`, not `operator.admin`.
+ *
+ * `channels.pairing.list` stays reachable on purpose: telling the owner who is waiting is useful and
+ * grants nobody access. `src/gateway/method-scopes.agent-originated.test.ts` fails if a future
+ * channel-pairing method is added without a classification here.
+ *
+ * Scope of the fence: it keys on request origin, so a bundled or trusted-official plugin's own
+ * `api.runtime.gateway.request` is NOT marked and stays allowed. That is the intended line — a plugin
+ * hard-codes its method and scopes, while the agent's dispatch mints whatever the method asks for —
+ * and no bundled plugin calls these methods today.
+ *
+ * This table is deliberately narrow. It is NOT "every `operator.pairing` method": `node.pair.approve`
+ * and `device.pair.approve` share that scope but attach hardware the owner already holds, and the
+ * core `nodes` agent tool approves them today (`src/agents/tools/nodes-tool.ts:213-231`). Widening
+ * this to the whole scope would retire that shipped capability, which is a separate product decision.
+ */
+const CHANNEL_PAIRING_AGENT_ACCESS: Readonly<Record<string, "allow" | "deny">> = {
+  "channels.pairing.list": "allow",
+  "channels.pairing.approve": "deny",
+  "channels.pairing.dismiss": "deny",
+};
+
+/** Channel-pairing methods classified above, for the exhaustiveness guard test. */
+export function listAgentAccessClassifiedChannelPairingMethods(): string[] {
+  return Object.keys(CHANNEL_PAIRING_AGENT_ACCESS);
+}
+
+/** Returns true when no agent-originated request may invoke this method, whatever scopes it holds. */
+export function isAgentDeniedPrivilegedGatewayMethod(method: string): boolean {
+  return CHANNEL_PAIRING_AGENT_ACCESS[method] === "deny";
+}
+
 function resolveScopedMethod(method: string): OperatorScope | undefined {
   // Node/dynamic sentinels are not operator scopes.
   const explicitScope = resolveCoreOperatorGatewayMethodScope(method);

@@ -49,6 +49,7 @@ import {
   resolvePolicyTargetCandidatePath,
 } from "../infra/exec-command-resolution.js";
 import * as commandResolution from "../infra/exec-command-resolution.js";
+import { detectSelfCliInvocation } from "../infra/exec-self-cli-deny.js";
 import { executeSqliteQuerySync, getNodeSqliteKysely } from "../infra/kysely-sync.js";
 import * as mutableFilePolicy from "../infra/system-run-mutable-file-policy.js";
 import {
@@ -4435,6 +4436,168 @@ EOF`,
         >
       )[0]?.[0];
       expect(commitArgs?.allowAlwaysDecision).toBeDefined();
+    });
+  });
+
+  describe("denySelfCli", () => {
+    function selfCliSegment(argv: string[]): MockAllowlistSegment {
+      const executable = argv[0] ?? "";
+      const executableResolution = {
+        kind: "executable" as const,
+        rawExecutable: executable,
+        resolvedPath: `/usr/local/bin/${executable}`,
+        resolvedRealPath: `/usr/local/bin/${executable}`,
+        executableName: executable,
+      };
+      return {
+        argv,
+        resolution: {
+          kind: "command" as const,
+          execution: executableResolution,
+          policy: executableResolution,
+        },
+      };
+    }
+
+    it("denies invoking the product's own CLI binary even under mode=full", async () => {
+      evaluateShellAllowlistWithAuthorizationMock.mockReturnValueOnce({
+        allowlistMatches: [],
+        analysisOk: true,
+        allowlistSatisfied: false,
+        segments: [selfCliSegment(["vasudev", "pairing", "approve", "whatsapp", "ABC123"])],
+        segmentAllowlistEntries: [null],
+        segmentSatisfiedBy: [null],
+      });
+      resolveExecHostApprovalContextMock.mockReturnValueOnce({
+        approvals: { allowlist: [], file: { version: 1, agents: {} } },
+        hostSecurity: "full",
+        hostAsk: "off",
+        askFallback: "full",
+      });
+      const result = await runGatewayAllowlist({
+        command: "vasudev pairing approve whatsapp ABC123",
+        security: "full",
+        ask: "off",
+        denySelfCli: true,
+      });
+      expect(result.deniedResult?.details.status).toBe("failed");
+      expect(result.deniedResult?.content[0]).toMatchObject({ type: "text" });
+      const text = (result.deniedResult?.content[0] as { text?: string } | undefined)?.text ?? "";
+      expect(text).toContain("self-cli-denied");
+      expect(result.pendingResult).toBeUndefined();
+      // Denial happens before any process spawn or approval machinery runs.
+      expect(runExecProcessMock).not.toHaveBeenCalled();
+    });
+
+    it("denies the `openclaw` binary alias identically to `vasudev`", async () => {
+      evaluateShellAllowlistWithAuthorizationMock.mockReturnValueOnce({
+        allowlistMatches: [],
+        analysisOk: true,
+        allowlistSatisfied: false,
+        segments: [selfCliSegment(["openclaw", "config", "set", "foo", "bar"])],
+        segmentAllowlistEntries: [null],
+        segmentSatisfiedBy: [null],
+      });
+      resolveExecHostApprovalContextMock.mockReturnValueOnce({
+        approvals: { allowlist: [], file: { version: 1, agents: {} } },
+        hostSecurity: "full",
+        hostAsk: "off",
+        askFallback: "full",
+      });
+      const result = await runGatewayAllowlist({
+        command: "openclaw config set foo bar",
+        security: "full",
+        ask: "off",
+        denySelfCli: true,
+      });
+      expect(result.deniedResult?.details.status).toBe("failed");
+    });
+
+    it("leaves an unrelated command running under the same mode=full policy", async () => {
+      evaluateShellAllowlistWithAuthorizationMock.mockReturnValueOnce({
+        allowlistMatches: [],
+        analysisOk: true,
+        allowlistSatisfied: true,
+        segments: [selfCliSegment(["ls", "-la"])],
+        segmentAllowlistEntries: [null],
+        segmentSatisfiedBy: [null],
+      });
+      resolveExecHostApprovalContextMock.mockReturnValueOnce({
+        approvals: { allowlist: [], file: { version: 1, agents: {} } },
+        hostSecurity: "full",
+        hostAsk: "off",
+        askFallback: "full",
+      });
+      runExecProcessMock.mockResolvedValueOnce({
+        session: { id: "sess-self-cli-1" },
+        promise: Promise.resolve({
+          status: "completed",
+          exitCode: 0,
+          timedOut: false,
+          aggregated: "ok",
+        }),
+      });
+      const result = await runGatewayAllowlist({
+        command: "ls -la",
+        security: "full",
+        ask: "off",
+        denySelfCli: true,
+      });
+      expect(result.deniedResult).toBeUndefined();
+    });
+
+    it("is a no-op when denySelfCli is not set, even for a self-CLI command", async () => {
+      evaluateShellAllowlistWithAuthorizationMock.mockReturnValueOnce({
+        allowlistMatches: [],
+        analysisOk: true,
+        allowlistSatisfied: true,
+        segments: [selfCliSegment(["vasudev", "pairing", "list"])],
+        segmentAllowlistEntries: [null],
+        segmentSatisfiedBy: [null],
+      });
+      resolveExecHostApprovalContextMock.mockReturnValueOnce({
+        approvals: { allowlist: [], file: { version: 1, agents: {} } },
+        hostSecurity: "full",
+        hostAsk: "off",
+        askFallback: "full",
+      });
+      runExecProcessMock.mockResolvedValueOnce({
+        session: { id: "sess-self-cli-2" },
+        promise: Promise.resolve({
+          status: "completed",
+          exitCode: 0,
+          timedOut: false,
+          aggregated: "ok",
+        }),
+      });
+      const result = await runGatewayAllowlist({
+        command: "vasudev pairing list",
+        security: "full",
+        ask: "off",
+      });
+      expect(result.deniedResult).toBeUndefined();
+    });
+
+    // Proves the block is a binary-identity check, not a substring match: a path that merely
+    // contains "vasudev" (e.g. a per-user home directory name) must not be caught.
+    it("does not flag a path that only contains the CLI name as a substring", async () => {
+      const executableResolution = {
+        kind: "executable" as const,
+        rawExecutable: "/home/vasudev-user/script.sh",
+        resolvedPath: "/home/vasudev-user/script.sh",
+        resolvedRealPath: "/home/vasudev-user/script.sh",
+        executableName: "script.sh",
+      };
+      const segment: ExecCommandSegment = {
+        raw: "/home/vasudev-user/script.sh",
+        argv: ["/home/vasudev-user/script.sh"],
+        resolution: {
+          kind: "command",
+          execution: executableResolution,
+          policy: executableResolution,
+        },
+      };
+      expect(await detectSelfCliInvocation([segment])).toBeNull();
     });
   });
 });

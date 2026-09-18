@@ -57,6 +57,9 @@ describe("trusted in-process Gateway session creation", () => {
       "sessions.create",
       { agentId: "main" },
       {
+        // Every call through this module is the agent's own funnel; the router reads this mark to
+        // refuse privileged operator decisions (`src/gateway/method-scopes.ts`).
+        agentOriginated: true,
         forceSyntheticClient: true,
         operatorRoleActor: { kind: "system" },
         sessionCreation: creation,
@@ -190,6 +193,7 @@ describe("trusted in-process Gateway session creation", () => {
     mocks.dispatch.mockImplementationOnce(async (_method, _params, options) => {
       expect(dispatchThroughSelectedGateway(options)).toBe(admitted);
       expect(options).toEqual({
+        agentOriginated: true,
         forceSyntheticClient: true,
         operatorRoleActor: { kind: "system" },
         resolveGatewayContext: expect.any(Function),
@@ -327,6 +331,7 @@ describe("request-shaped in-process Gateway dispatch", () => {
       "agent",
       { sessionKey: "agent:main:worker", message: "run" },
       {
+        agentOriginated: true,
         forceSyntheticClient: true,
         operatorRoleActor: { kind: "system" },
         agentToolCaller,

@@ -149,8 +149,12 @@ function channelHasWideBinding(cfg: OpenClawConfig, channel: string): boolean {
 /** The one agent every Team member talks to: whichever agent already answers the owner's own
  *  channel, resolved through the SAME pre-Team-binding routing the owner already relies on (never
  *  through a binding Team itself wrote — that would be circular). Undefined when there is no owner
- *  yet, or the owner has no channel identity to resolve from. */
-function resolveCoordinatorAgentId(
+ *  yet, or the owner has no channel identity to resolve from.
+ *
+ *  Exported for `exec-self-cli-default.ts`, which needs the same coordinator identity to apply the
+ *  Team v2 exec self-CLI-deny default (Task 5) — a separate, narrower write than
+ *  `applyTeamProjection`, which deliberately never touches `tools` (see its doc comment above). */
+export function resolveCoordinatorAgentId(
   cfg: OpenClawConfig,
   members: readonly TeamMember[],
 ): string | undefined {

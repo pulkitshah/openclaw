@@ -82,3 +82,55 @@ Set per channel or per room/conversation - see [Groups](/channels/groups#context
 Slash commands and directives are honored only for authorized senders. Configure an explicit per-provider `commands.allowFrom` list, or let command authorization follow channel allowlists and pairing state. Access-group entries referenced by channel allowlists are resolved automatically; there is no opt-in toggle. If a channel allowlist is empty or includes `"*"`, commands are effectively open for that channel. See [Access groups](/channels/access-groups) and [Slash commands](/tools/slash-commands).
 
 `/exec` is a session-only convenience for authorized operators - it does not write config or change other sessions.
+
+## The agent cannot approve a pairing directly
+
+Approving a channel pairing admits a new person to instruct the agent, so the agent's own tool funnel
+does not get to do it. The Gateway refuses `channels.pairing.approve` and `channels.pairing.dismiss`
+to any **agent-originated** request at its authorization fence, ahead of the `operator.admin`
+wildcard, so no scope set the agent can present reaches them. `channels.pairing.list` stays
+available, so the agent can still tell you who is waiting.
+
+"Agent-originated" means either of two host-attested markers, never anything read from wire params:
+a built-in agent tool dispatching in process, or a connection authenticated with a verified agent
+runtime identity token (a worker or subagent). Requests from a real operator — the Control UI, the
+Team page, your own CLI, an admin HTTP client — are unaffected.
+
+A bundled plugin's own Gateway call is also not marked, and stays allowed: a plugin hard-codes which
+method it calls and with which scopes, while the agent's dispatch mints whatever the method asks for.
+
+One bundled plugin does use that: Team's `team.add` calls `channels.pairing.list` and then
+`channels.pairing.approve` for a pending request whose sender the same call is adding to the roster.
+The agent can start it through the `team_add` tool, so there is an agent-reachable route to an
+approval, and it is the intended one — [Team](/plugins/team#the-coordinator-cannot-approve-a-pairing-directly)
+describes it. What the route cannot produce is a bare approval: `team.add` only ever approves an
+identity it is putting on the roster, a pending request nobody named is left waiting, and the roster
+row lands with it, so the admitted person is named and auditable rather than anonymous. The fence
+still holds for what it covers — no agent-originated request reaches either method.
+
+Device and node pairing (`node.pair.approve`, `device.pair.approve`) are deliberately **not** covered.
+They share the `operator.pairing` scope but attach hardware you already hold, and the `nodes` agent
+tool approves them today. That is a separate decision from admitting a person.
+
+### Known open gaps
+
+Two routes are deliberately **not** closed this round. Both are stated here so the fence is not read
+as an absolute guarantee.
+
+**1. The agent can read the operator's credential.** The fence distinguishes origin, not credentials.
+`exec` has no read-path restrictions, so an agent with a broad `security` setting can read
+`gateway.auth.token` (or the file a `SecretRef` points at), and `OPENCLAW_GATEWAY_TOKEN` stays in its
+environment. Presenting that token to the loopback Gateway produces an ordinary operator connection
+carrying neither agent-origin marker, and the fence does not stop it. Locking down token readability
+from the exec context is deferred and not implemented.
+
+**2. The pairing store can be written without any Gateway method.** `openclaw pairing approve` on the
+CLI does not go through the Gateway at all — it writes the shared pairing store directly. This is
+broader than the CLI: the agent's `exec` runs as the same OS user that owns the state directory, so
+any direct write to that SQLite file (a `sqlite3` invocation, a few lines of Node) reaches the same
+outcome. Neither this fence nor `tools.exec.denySelfCli` touches that class. Closing it needs
+OS-level isolation — running exec as a different, unprivileged user, or without the state directory
+reachable — which is explicitly out of scope for this round.
+
+If either matters on your deployment, narrow that agent's exec `security` and allowlists rather than
+relying on the fence alone. See [Exec approvals](/tools/exec-approvals#tools-exec-denyselfcli).

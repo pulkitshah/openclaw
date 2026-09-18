@@ -20,6 +20,7 @@ import {
   rejectUnsafeExecLiveStateSqliteShellCommand,
 } from "../infra/exec-control-command-guard.js";
 import { resolveExecSafeBinRuntimePolicy } from "../infra/exec-safe-bin-runtime-policy.js";
+import { prepareSelfCliDenyPathShadow } from "../infra/exec-self-cli-deny-path-shadow.js";
 import { logInfo } from "../logger.js";
 import { parseAgentSessionKey, resolveAgentIdFromSessionKey } from "../routing/session-key.js";
 import {
@@ -32,7 +33,10 @@ import { normalizeDeliveryContext } from "../utils/delivery-context.shared.js";
 import { captureAgentToolSourceExecutionGuard } from "./agent-tool-source-execution-guard.js";
 import { markBackgrounded } from "./bash-process-registry.js";
 import { describeExecTool } from "./bash-tools.descriptions.js";
-import { processGatewayAllowlist } from "./bash-tools.exec-host-gateway.js";
+import {
+  processGatewayAllowlist,
+  resolveExecSelfCliDenial,
+} from "./bash-tools.exec-host-gateway.js";
 import { executeNodeHostCommand } from "./bash-tools.exec-host-node.js";
 import {
   assertSupportedExecParams,
@@ -131,6 +135,17 @@ export function createExecTool(
   const defaultTimeoutSec =
     defaults?.timeoutSec && defaults.timeoutSec > 0 ? defaults.timeoutSec : 1800;
   const defaultPathPrepend = normalizePathPrepend(defaults?.pathPrepend);
+  // Kick off shadow-stub preparation as soon as the tool exists (cheap, idempotent, cached -- see
+  // `prepareSelfCliDenyPathShadow`) as a warm-up, so it is normally already prepared by the time
+  // the first call needs it. This fire-and-forget warm-up's resolved value is intentionally never
+  // read directly (see the per-call re-`await` in `execute` below): the module reuses its own
+  // cached state internally, so re-invoking it there is cheap once warm, and it self-repairs if
+  // the stub directory was deleted since. Only started when denySelfCli is actually configured for
+  // this tool instance; a warm-up failure here is not fatal -- `execute` re-invokes and surfaces
+  // any persistent failure to the first real call instead.
+  if (defaults?.denySelfCli === true) {
+    prepareSelfCliDenyPathShadow().catch(() => undefined);
+  }
   const {
     safeBins,
     safeBinProfiles,
@@ -442,6 +457,12 @@ export function createExecTool(
             storeEnv.secretEgressBindings ?? [],
           );
         }
+        // Re-invoked on every call, not just cached from the tool-construction warm-up above: see
+        // `prepareSelfCliDenyPathShadow`'s own doc comment for why a permanently-trusted cached
+        // value would let an unrelated command's mid-session deletion of the stub directory go
+        // undetected by a later `denySelfCli:true` call in the same session.
+        const selfCliDenyPathShadowDir =
+          defaults?.denySelfCli === true ? await prepareSelfCliDenyPathShadow() : undefined;
         const { env, requestedEnv } = resolvePreparedExecEnvironment({
           execParams: params,
           host,
@@ -449,6 +470,7 @@ export function createExecTool(
           containerWorkdir,
           channelContext: defaults?.channelContext,
           defaultPathPrepend,
+          selfCliDenyPathShadowDir,
           pluginEnv: resolvedExecEnvState?.pluginEnv,
           storeEnv: host === "gateway" ? storeEnv.env : undefined,
           storeSecretEnv: useSecretEgress ? storeEnv.secretSentinels : undefined,
@@ -456,6 +478,14 @@ export function createExecTool(
           ...preparedRunEnvironment,
           warnings,
         });
+        // Used below for the gateway/sandbox `runExecProcess` calls (never reached for host="node",
+        // which already returned above): the shadow-stub directory always wins ahead of every other
+        // entry, including a real, working PATH entry like the Gateway's own agent-CLI shim
+        // (`../infra/openclaw-cli-shim.ts`) -- otherwise a buried invocation reaching bare
+        // `openclaw` could resolve to that real shim instead of the deny stub.
+        const pathPrependWithSelfCliShadow = selfCliDenyPathShadowDir
+          ? [selfCliDenyPathShadowDir, ...defaultPathPrepend]
+          : defaultPathPrepend;
 
         if (host === "node") {
           return executeNodeHostCommand({
@@ -485,6 +515,7 @@ export function createExecTool(
             autoReviewer,
             signal,
             strictInlineEval: defaults?.strictInlineEval,
+            denySelfCli: defaults?.denySelfCli,
             commandHighlighting: defaults?.commandHighlighting,
             trigger: defaults?.trigger,
             timeoutSec: params.timeoutSeconds,
@@ -509,13 +540,52 @@ export function createExecTool(
             ? preparedRunEnvironment.localIdentityEnv.GH_CONFIG_DIR
             : undefined;
 
+        // Hard, mode-independent gate: self-CLI denial must not be reachable through the
+        // full-trust `bypassApprovals` path. `processGatewayAllowlist` below is the only other
+        // place this runs for the gateway host, but it is skipped entirely when bypassApprovals
+        // is true, so this check runs unconditionally, ahead of and independent of that gate.
+        if (host === "gateway" && bypassApprovals && defaults?.denySelfCli === true) {
+          const selfCliDeniedResult = await resolveExecSelfCliDenial({
+            command: params.command,
+            workdir,
+            env,
+            safeBins,
+            safeBinProfiles,
+            trustedSafeBinDirs,
+          });
+          if (selfCliDeniedResult) {
+            return attachExecApprovalReview(selfCliDeniedResult, approvalReview);
+          }
+        }
+
+        // Sandbox has no allowlist/approval layer of its own at all (`approvalPolicy` above is
+        // unconditionally `undefined` for `host === "sandbox"`), so this static check is the
+        // *only* self-CLI coverage the sandbox host gets. It must run unconditionally here, not
+        // gated behind any sandbox-specific bypass -- there is no other gate to hang it off of.
+        // This is pure command-text/segment analysis (see `resolveExecSelfCliDenial`'s own doc
+        // comment): it does not depend on how the sandbox backend actually spawns the process, so
+        // the same check the gateway host uses applies cleanly here too.
+        if (host === "sandbox" && defaults?.denySelfCli === true) {
+          const selfCliDeniedResult = await resolveExecSelfCliDenial({
+            command: params.command,
+            workdir,
+            env,
+            safeBins,
+            safeBinProfiles,
+            trustedSafeBinDirs,
+          });
+          if (selfCliDeniedResult) {
+            return attachExecApprovalReview(selfCliDeniedResult, approvalReview);
+          }
+        }
+
         if (host === "gateway" && !bypassApprovals) {
           const gatewayResult = await processGatewayAllowlist({
             command: params.command,
             workdir,
             env,
             githubProfileDir,
-            pathPrepend: defaultPathPrepend,
+            pathPrepend: pathPrependWithSelfCliShadow,
             requestedEnv,
             pty: params.pty === true && !sandbox,
             timeoutSec: params.timeoutSeconds,
@@ -529,6 +599,7 @@ export function createExecTool(
             safeBins,
             safeBinProfiles,
             strictInlineEval: defaults?.strictInlineEval,
+            denySelfCli: defaults?.denySelfCli,
             commandHighlighting: defaults?.commandHighlighting,
             trigger: defaults?.trigger,
             agentId,
@@ -593,7 +664,7 @@ export function createExecTool(
           workdir,
           env,
           githubProfileDir,
-          pathPrepend: defaultPathPrepend,
+          pathPrepend: pathPrependWithSelfCliShadow,
           sandbox,
           containerWorkdir,
           usePty,
@@ -752,3 +823,4 @@ export function createExecTool(
 
 /** Default exec tool instance used by agent tool registries. */
 export const execTool = createExecTool();
+/* oxlint-disable max-lines -- TODO: split this grandfathered oversized file. */

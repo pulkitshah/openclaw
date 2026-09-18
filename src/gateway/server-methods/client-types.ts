@@ -67,6 +67,13 @@ export type GatewayClient = {
     controlUiAdmin?: true;
     /** Marks the server-constructed client used by trusted in-process dispatch. */
     syntheticClient?: true;
+    /**
+     * Marks a request the agent itself originated, so the router can refuse privileged operator
+     * decisions it must never make on the owner's behalf (`isAgentOriginatedGatewayRequest`).
+     * Set by built-in agent tool dispatch (`src/agents/tools/in-process-gateway.ts`); never
+     * accepted from Gateway wire params.
+     */
+    agentOriginated?: true;
     /** Host-owned role authority retained separately from an autonomous run principal. */
     operatorRoleActor?: GatewayOperatorRoleActor;
     /** Overrides persisted sender attribution without changing the authorizing client identity. */

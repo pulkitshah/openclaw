@@ -48,6 +48,7 @@ import {
   type ExecAutoReviewer,
 } from "../infra/exec-auto-review.js";
 import type { SafeBinProfile } from "../infra/exec-safe-bin-policy.js";
+import { detectSelfCliInvocation } from "../infra/exec-self-cli-deny.js";
 import { hasPosixShellStartupBeforeInlineCommand } from "../infra/exec-wrapper-resolution.js";
 import {
   prepareSystemRunMutableFileBinding,
@@ -119,6 +120,8 @@ type ProcessGatewayAllowlistParams = {
   safeBins: Set<string>;
   safeBinProfiles: Readonly<Record<string, SafeBinProfile>>;
   strictInlineEval?: boolean;
+  /** Unconditionally deny exec commands whose resolved executable is this product's own CLI. */
+  denySelfCli?: boolean;
   commandHighlighting?: boolean;
   trigger?: string;
   agentId?: string;
@@ -515,6 +518,62 @@ async function resolveGatewayExecApprovalFollowupText(params: {
   }
 }
 
+/** Params needed to run only the self-CLI identity check on a command's already-resolved segments. */
+export type ExecSelfCliDenialParams = {
+  command: string;
+  workdir: string;
+  env: Record<string, string>;
+  safeBins: Set<string>;
+  safeBinProfiles: Readonly<Record<string, SafeBinProfile>>;
+  trustedSafeBinDirs?: ReadonlySet<string>;
+};
+
+/**
+ * Hard, mode-independent gate: never let this agent shell out to its own CLI, regardless of
+ * `full`/`allowlist`/`ask`/`auto` policy — see `../infra/exec-self-cli-deny.ts` for scope/limits.
+ * This is pure command-text/segment analysis (no dependency on how the command is actually
+ * spawned), so the same check covers every host that needs its own unconditional call site:
+ * - Gateway host, `bypassApprovals` path (`bash-tools.exec-run.ts`): callers must run this
+ *   independent of `bypassHostApprovalFloors`/`bypassApprovals`, since that flag only waives
+ *   approval-floor routing inside `processGatewayAllowlist`, never this identity check, so a
+ *   full-trust bypass session must still call this directly instead of skipping it via that gate.
+ * - Gateway host, normal path: `processGatewayAllowlist` below runs the equivalent check inline.
+ * - Sandbox host (`bash-tools.exec-run.ts`): the sandbox host has no allowlist/approval layer of
+ *   its own at all (`bash-tools.exec-run.ts` leaves `approvalPolicy` unconditionally `undefined`
+ *   for `host === "sandbox"`), so this is the *only* self-CLI coverage sandbox gets; it must run
+ *   unconditionally there too, not gated behind any sandbox-specific bypass flag.
+ */
+export async function resolveExecSelfCliDenial(
+  params: ExecSelfCliDenialParams,
+): Promise<AgentToolResult<ExecToolDetails> | undefined> {
+  const allowlistEval = await evaluateShellAllowlistWithAuthorization({
+    command: params.command,
+    allowlist: [],
+    safeBins: params.safeBins,
+    safeBinProfiles: params.safeBinProfiles,
+    cwd: params.workdir,
+    env: params.env,
+    platform: process.platform,
+    trustedSafeBinDirs: params.trustedSafeBinDirs,
+  });
+  if (
+    await detectSelfCliInvocation(allowlistEval.segments, {
+      cwd: params.workdir,
+      env: params.env,
+      platform: process.platform,
+      safeBins: params.safeBins,
+      trustedSafeBinDirs: params.trustedSafeBinDirs,
+    })
+  ) {
+    return buildGatewayExecApprovalDeniedToolResult({
+      deniedReason: "self-cli-denied",
+      command: params.command,
+      cwd: params.workdir,
+    });
+  }
+  return undefined;
+}
+
 /** Processes gateway exec policy and returns execution/approval/denial outcome. */
 export async function processGatewayAllowlist(
   params: ProcessGatewayAllowlistParams,
@@ -556,6 +615,26 @@ export async function processGatewayAllowlist(
     platform: process.platform,
     trustedSafeBinDirs: params.trustedSafeBinDirs,
   });
+  // Hard, mode-independent gate: never let this agent shell out to its own CLI, regardless of
+  // `full`/`allowlist`/`ask`/`auto` policy. See `../infra/exec-self-cli-deny.ts` for scope/limits.
+  if (
+    params.denySelfCli === true &&
+    (await detectSelfCliInvocation(allowlistEval.segments, {
+      cwd: params.workdir,
+      env: params.env,
+      platform: process.platform,
+      safeBins: params.safeBins,
+      trustedSafeBinDirs: params.trustedSafeBinDirs,
+    }))
+  ) {
+    return {
+      deniedResult: buildGatewayExecApprovalDeniedToolResult({
+        deniedReason: "self-cli-denied",
+        command: params.command,
+        cwd: params.workdir,
+      }),
+    };
+  }
   const allowlistMatches = allowlistEval.allowlistMatches;
   const analysisOk = allowlistEval.analysisOk;
   const allowlistSatisfied =

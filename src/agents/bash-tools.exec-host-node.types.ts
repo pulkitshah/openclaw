@@ -38,6 +38,8 @@ export type ExecuteNodeHostCommandParams = {
   autoReviewer?: ExecAutoReviewer;
   signal?: AbortSignal;
   strictInlineEval?: boolean;
+  /** Unconditionally deny exec commands whose resolved executable is this product's own CLI. */
+  denySelfCli?: boolean;
   commandHighlighting?: boolean;
   timeoutSec?: number;
   defaultTimeoutSec: number;

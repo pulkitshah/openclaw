@@ -88,6 +88,11 @@ export function runWithOperatorToolGatewayCleanupContext<T>(run: () => T): T {
 }
 
 type DispatchGatewayMethodInProcessOptions = {
+  /**
+   * Set only by built-in agent tool dispatch (`src/agents/tools/in-process-gateway.ts`). The router
+   * refuses privileged operator decisions to a request marked this way, whatever scopes it asks for.
+   */
+  agentOriginated?: boolean;
   allowSyntheticModelOverride?: boolean;
   allowSyntheticCronRunContinuation?: boolean;
   agentToolCaller?: TrustedAgentToolCaller;
@@ -221,6 +226,7 @@ function resolveInProcessGatewayDispatch(
       ? { authenticatedUserProfile: operatorAuthority.authenticatedUserProfile }
       : {}),
     allowModelOverride: options?.allowSyntheticModelOverride === true,
+    ...(options?.agentOriginated === true ? { agentOriginated: true } : {}),
     agentToolCaller: options?.agentToolCaller,
     agentRunTracking: options?.agentRunTracking,
     ...(operatorRoleActor ? { operatorRoleActor } : {}),
@@ -271,7 +277,8 @@ function resolveInProcessGatewayDispatch(
       : baseSyntheticClient;
   const scopedClient = mergePluginRuntimeClientInternal(
     scope?.client,
-    pluginRuntimeOwnerId ||
+    options?.agentOriginated === true ||
+      pluginRuntimeOwnerId ||
       options?.agentRunTracking ||
       options?.pluginSubagentRequester ||
       options?.runtimePluginToolGrant ||
@@ -279,6 +286,9 @@ function resolveInProcessGatewayDispatch(
       options?.delegatedToolPolicyHandoff ||
       scope?.client?.internal?.delegatedToolPolicyHandoffId
       ? {
+          // The agent-origin mark has to survive here too: a scoped client is used whenever the
+          // caller did not force the synthetic one, and the router's fence reads only the client.
+          ...(options?.agentOriginated === true ? { agentOriginated: true as const } : {}),
           ...(options?.agentRunTracking ? { agentRunTracking: options.agentRunTracking } : {}),
           ...(pluginRuntimeOwnerId ? { pluginRuntimeOwnerId } : {}),
           ...(options?.pluginSubagentRequester

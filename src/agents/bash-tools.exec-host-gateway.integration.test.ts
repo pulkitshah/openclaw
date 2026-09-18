@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -5,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { onAgentEvent } from "../infra/agent-events.js";
 import { saveExecApprovals } from "../infra/exec-approvals.js";
 import type { ExecAutoReviewer } from "../infra/exec-auto-review.js";
+import { clearSelfCliDenyPathShadowForTest } from "../infra/exec-self-cli-deny-path-shadow.js";
 import { resolveExecutablePath } from "../infra/executable-path.js";
 import { pathLooksMutableForShellPayloadSync } from "../infra/system-run-mutable-file-policy.js";
 import { createProcessSupervisor } from "../process/supervisor/supervisor.js";
@@ -14,6 +16,23 @@ import { captureEnv, setTestEnvValue } from "../test-utils/env.js";
 import { resetProcessRegistryForTests } from "./bash-process-registry.test-support.js";
 import { createExecTool } from "./bash-tools.exec-run.js";
 import { callGatewayTool } from "./tools/gateway.js";
+
+/** Directory of a real binary on the *test runner's own* PATH, or undefined if not found. */
+function resolveRealBinDir(bin: string): string | undefined {
+  try {
+    const resolved =
+      process.platform === "win32"
+        ? execFileSync("where", [bin], { encoding: "utf8" })
+        : execFileSync("/bin/sh", ["-c", `command -v ${bin}`], { encoding: "utf8" });
+    const trimmed = resolved.trim();
+    return trimmed ? path.dirname(trimmed.split("\n")[0] ?? trimmed) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+const REAL_PNPM_DIR = resolveRealBinDir("pnpm");
+const REAL_PYTHON3_DIR = resolveRealBinDir("python3");
 
 const spawn = vi.hoisted(() => vi.fn<ProcessSupervisor["spawn"]>());
 vi.mock("../process/supervisor/index.js", () => ({
@@ -48,6 +67,10 @@ describe.skipIf(process.platform === "win32")("gateway dispatch executable bindi
     setTestEnvValue("PATH", `${binDir}:/usr/bin:/bin`);
     setTestEnvValue("SHELL", "/bin/sh");
     resetProcessRegistryForTests();
+    // The shadow-stub directory is a process-global singleton keyed off OPENCLAW_STATE_DIR; reset
+    // it every test so a later test with a fresh (different) state dir never reuses a prior test's
+    // already-deleted tempdir.
+    clearSelfCliDenyPathShadowForTest();
     saveExecApprovals({
       version: 1,
       defaults: { security: "allowlist", ask: "on-miss", askFallback: "deny" },
@@ -277,4 +300,235 @@ describe.skipIf(process.platform === "win32")("gateway dispatch executable bindi
       expect(spawn.mock.calls.length).toBe(0);
     },
   );
+
+  // Fix-round regression: this exact `bash -lc "vasudev ..."`/`openclaw ...` shell-out was a live,
+  // unconditional bypass of `denySelfCli` under the full-trust `bypassApprovals` path (mode=full +
+  // bypassHostApprovalFloors) — `evaluateShellAllowlistWithAuthorization`'s returned segments never
+  // included the wrapped inner command, so `resolveExecSelfCliDenial` saw only a `bash` segment
+  // and let the command spawn for real. See `../infra/exec-self-cli-deny.test.ts` for the unit-level
+  // coverage of the underlying recursion fix.
+  describe("denySelfCli under full-trust bypass: shell-wrapper bypass regression", () => {
+    function makeFullBypassTool(denySelfCli: boolean) {
+      return createExecTool({
+        agentId: "main",
+        host: "gateway",
+        mode: "full",
+        bypassHostApprovalFloors: true,
+        denySelfCli,
+        safeBins: [],
+        cwd: root,
+        pathPrepend: [binDir, "/usr/bin", "/bin"],
+        runId: "self-cli-bypass-run",
+        messageProvider: "webchat",
+      });
+    }
+
+    it.each([
+      { executable: "vasudev", command: 'bash -lc "vasudev pairing approve whatsapp ABC123"' },
+      { executable: "openclaw", command: 'bash -lc "openclaw config set foo bar"' },
+      { executable: "vasudev", command: 'sh -c "vasudev pairing approve whatsapp ABC123"' },
+      { executable: "vasudev", command: 'env bash -lc "vasudev pairing approve whatsapp ABC123"' },
+    ])(
+      "denies $command and never spawns the real $executable binary",
+      async ({ executable, command }) => {
+        fs.writeFileSync(path.join(binDir, executable), "#!/bin/sh\necho REAL_SELF_CLI_RAN\n", {
+          mode: 0o755,
+        });
+        const result = await makeFullBypassTool(true).execute("self-cli-bypass-call", { command });
+        expect(result.details.status).not.toBe("completed");
+        expect(result.content[0]).toMatchObject({
+          text: expect.stringContaining("self-cli-denied"),
+        });
+        expect(spawn.mock.calls.length).toBe(0);
+        expect(callGatewayTool).not.toHaveBeenCalled();
+      },
+    );
+
+    it("leaves an ordinary command wrapped in bash -lc unaffected by denySelfCli (non-regression)", async () => {
+      const supervisor = createProcessSupervisor();
+      spawn.mockImplementation((input) => supervisor.spawn(input));
+      const result = await makeFullBypassTool(true).execute("self-cli-bypass-benign-call", {
+        command: 'bash -lc "printf ok-not-self-cli"',
+      });
+      expect(result.details).toMatchObject({ status: "completed", exitCode: 0 });
+      expect(result.content[0]).toMatchObject({ text: expect.stringContaining("ok-not-self-cli") });
+      expect(spawn.mock.calls.length).toBe(1);
+    });
+
+    it("is a no-op when denySelfCli is not set, even for the same bash -lc self-CLI command", async () => {
+      fs.writeFileSync(path.join(binDir, "vasudev"), "#!/bin/sh\necho REAL_SELF_CLI_RAN\n", {
+        mode: 0o755,
+      });
+      const supervisor = createProcessSupervisor();
+      spawn.mockImplementation((input) => supervisor.spawn(input));
+      const result = await makeFullBypassTool(false).execute("self-cli-bypass-off-call", {
+        command: 'bash -lc "vasudev pairing approve whatsapp ABC123"',
+      });
+      expect(result.details).toMatchObject({ status: "completed", exitCode: 0 });
+      expect(spawn.mock.calls.length).toBe(1);
+    });
+  });
+
+  // Structural-pivot fix round: an adversarial re-review found that the static segment-analysis
+  // check (recursing only into recognized *shell wrapper* forms) never inspects a self-CLI
+  // invocation buried inside an unrecognized indirection tool -- `pnpm exec`, `find -exec`,
+  // `xargs`, a scripting language's subprocess-by-name call -- so these reach a real spawn even
+  // with denySelfCli:true. The PATH-shadow layer (`../infra/exec-self-cli-deny-path-shadow.ts`)
+  // closes the whole class at once: it makes bare `vasudev`/`openclaw` unresolvable via PATH for
+  // the *entire* process tree the outer command spawns, regardless of which indirection tool is
+  // used. Unlike the static check, this layer does not prevent the outer wrapper itself from
+  // spawning for real (the shell/pnpm/find process really runs) -- it denies only once something
+  // in that tree actually tries to resolve the forbidden bare name.
+  describe("denySelfCli PATH-shadow layer: buried/indirect invocation bypasses", () => {
+    function makeShadowBypassTool() {
+      return createExecTool({
+        agentId: "main",
+        host: "gateway",
+        mode: "full",
+        bypassHostApprovalFloors: true,
+        denySelfCli: true,
+        safeBins: [],
+        cwd: root,
+        pathPrepend: [binDir, "/usr/bin", "/bin"],
+        runId: "self-cli-shadow-run",
+        messageProvider: "webchat",
+      });
+    }
+
+    beforeEach(() => {
+      fs.writeFileSync(path.join(root, "package.json"), '{"name":"self-cli-shadow-fixture"}\n');
+      // Real pnpm/python3 are needed to actually exercise these indirection tools; append their
+      // real install directories after the narrow test PATH (never ahead of it).
+      const extra = [REAL_PNPM_DIR, REAL_PYTHON3_DIR].filter((dir): dir is string => Boolean(dir));
+      if (extra.length > 0) {
+        setTestEnvValue("PATH", `${binDir}:/usr/bin:/bin:${extra.join(":")}`);
+      }
+      const supervisor = createProcessSupervisor();
+      spawn.mockImplementation((input) => supervisor.spawn(input));
+    });
+
+    function seedRealSelfCli(executable: string) {
+      fs.writeFileSync(path.join(binDir, executable), "#!/bin/sh\necho REAL_SELF_CLI_RAN\n", {
+        mode: 0o755,
+      });
+    }
+
+    const buriedInvocationCases = [
+      {
+        name: "pnpm exec bash -c",
+        command: 'pnpm exec bash -c "vasudev pairing approve whatsapp ABC123"',
+        requires: REAL_PNPM_DIR,
+      },
+      {
+        name: "find -exec",
+        command: "find . -maxdepth 0 -exec vasudev pairing approve whatsapp ABC123 \\;",
+        requires: true,
+      },
+      {
+        name: "xargs",
+        command: "printf approve | xargs -I{} vasudev pairing {} whatsapp ABC123",
+        requires: true,
+      },
+      {
+        name: "sh -c exec",
+        command: "sh -c 'exec vasudev pairing approve whatsapp ABC123'",
+        requires: true,
+      },
+    ].filter((c) => c.requires);
+
+    it.each(buriedInvocationCases)(
+      "denies $name and never lets the real vasudev binary run",
+      async ({ command }) => {
+        seedRealSelfCli("vasudev");
+        const result = await makeShadowBypassTool().execute("self-cli-shadow-call", { command });
+        const text = (result.content[0] as { text?: string } | undefined)?.text ?? "";
+        // The security-relevant invariant: the real fake binary's marker never appears, however
+        // the denial happened. `pnpm exec`/`find -exec`/`xargs` are not recognized shell wrappers,
+        // so the static check cannot see the buried command at all -- these three only pass
+        // because of the PATH-shadow layer, proven below by a genuine outer-wrapper spawn. `sh -c
+        // 'exec ...'` happens to still be caught by the existing static check too (an `exec`
+        // builtin prefix does not hide it from that analysis), so it is included here as an
+        // additional adversarial variant without asserting *which* layer denied it.
+        expect(text).not.toContain("REAL_SELF_CLI_RAN");
+      },
+    );
+
+    it.each(buriedInvocationCases.filter((c) => c.name !== "sh -c exec"))(
+      "$name reaches a genuine outer-wrapper spawn (PATH-shadow layer, not a static pre-spawn denial)",
+      async ({ command }) => {
+        seedRealSelfCli("vasudev");
+        await makeShadowBypassTool().execute("self-cli-shadow-spawn-proof-call", { command });
+        expect(spawn.mock.calls.length).toBeGreaterThan(0);
+      },
+    );
+
+    it.skipIf(!REAL_PYTHON3_DIR)(
+      "denies python3 subprocess.run(['vasudev', ...]) and never spawns the real binary",
+      async () => {
+        seedRealSelfCli("vasudev");
+        const command =
+          "python3 -c \"import subprocess; subprocess.run(['vasudev', 'pairing', 'approve'])\"";
+        const result = await makeShadowBypassTool().execute("self-cli-shadow-python-call", {
+          command,
+        });
+        const text = (result.content[0] as { text?: string } | undefined)?.text ?? "";
+        expect(text).not.toContain("REAL_SELF_CLI_RAN");
+        expect(spawn.mock.calls.length).toBeGreaterThan(0);
+      },
+    );
+
+    it.skipIf(!REAL_PNPM_DIR)(
+      "still catches the openclaw alias through the same pnpm exec indirection",
+      async () => {
+        seedRealSelfCli("openclaw");
+        const result = await makeShadowBypassTool().execute("self-cli-shadow-openclaw-call", {
+          command: 'pnpm exec bash -c "openclaw config set foo bar"',
+        });
+        const text = (result.content[0] as { text?: string } | undefined)?.text ?? "";
+        expect(text).not.toContain("REAL_SELF_CLI_RAN");
+        expect(spawn.mock.calls.length).toBeGreaterThan(0);
+      },
+    );
+
+    it("leaves an ordinary pnpm exec / find -exec command unaffected (non-regression)", async () => {
+      fs.writeFileSync(path.join(root, "marker.txt"), "fixture");
+      const result = await makeShadowBypassTool().execute("self-cli-shadow-benign-call", {
+        command: "find . -maxdepth 1 -name marker.txt -exec cat {} \\;",
+      });
+      expect(result.details).toMatchObject({ status: "completed", exitCode: 0 });
+      expect(result.content[0]).toMatchObject({ text: expect.stringContaining("fixture") });
+      expect(spawn.mock.calls.length).toBeGreaterThan(0);
+    });
+
+    // Round 5 finding: `prepareSelfCliDenyPathShadow()`'s cached directory was never re-verified
+    // on later calls. `$OPENCLAW_STATE_DIR` (where the stub directory lives) is an ordinary,
+    // visible env var inside every exec'd command -- including ones NOT flagged denySelfCli -- so
+    // an already-permitted command deleting it mid-session used to leave a *later*
+    // denySelfCli:true call on the same tool instance silently unprotected: the cached in-memory
+    // state still believed the stub existed and skipped recreating it, letting the exact
+    // `find -exec` bypass round 3 closed reach the real binary for real again.
+    it("self-repairs the PATH-shadow stub after an ordinary command deletes it mid-session", async () => {
+      seedRealSelfCli("vasudev");
+      const tool = makeShadowBypassTool();
+
+      const warm = await tool.execute("self-cli-repair-warm", { command: "printf warm-ok" });
+      expect(warm.details).toMatchObject({ status: "completed", exitCode: 0 });
+
+      const stubDir = path.join(root, "state", "tmp", "exec-self-cli-deny-stub");
+      expect(fs.existsSync(path.join(stubDir, "vasudev"))).toBe(true);
+
+      const wipe = await tool.execute("self-cli-repair-wipe", {
+        command: `rm -rf ${JSON.stringify(stubDir)}`,
+      });
+      expect(wipe.details).toMatchObject({ status: "completed", exitCode: 0 });
+      expect(fs.existsSync(stubDir)).toBe(false);
+
+      const result = await tool.execute("self-cli-repair-denied", {
+        command: "find . -maxdepth 0 -exec vasudev pairing approve whatsapp ABC123 \\;",
+      });
+      const text = (result.content[0] as { text?: string } | undefined)?.text ?? "";
+      expect(text).not.toContain("REAL_SELF_CLI_RAN");
+      expect(fs.existsSync(path.join(stubDir, "vasudev"))).toBe(true);
+    });
+  });
 });

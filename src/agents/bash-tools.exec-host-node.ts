@@ -93,12 +93,29 @@ export async function executeNodeHostCommand(
     nodeSecurity,
     nodeAsk,
     inlineEvalHit,
+    selfCliDenied,
     requiresSecurityAuditSuppressionApproval,
     autoReviewBlockedByShellStartup,
     autoReviewEligibility,
     autoReviewArgv,
     allowAlwaysPersistence,
   } = approvalAnalysis;
+  // Hard, mode-independent gate: never let this agent shell out to its own CLI, regardless of
+  // `full`/`allowlist`/`ask`/`auto` policy. See `../infra/exec-self-cli-deny.ts` for scope/limits.
+  if (selfCliDenied) {
+    const text = `Exec denied (self-cli-denied): ${params.command}`;
+    return {
+      content: [{ type: "text", text }],
+      details: {
+        status: "failed",
+        exitCode: null,
+        durationMs: 0,
+        aggregated: text,
+        timedOut: false,
+        cwd: prepared.cwd,
+      },
+    };
+  }
   const approvalDecisionAsk =
     nodeApprovalPolicyKnown && nodeAsk !== undefined ? maxAsk(hostAsk, nodeAsk) : "always";
   const allowedDecisions = resolveExecApprovalAllowedDecisions({

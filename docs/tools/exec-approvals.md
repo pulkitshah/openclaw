@@ -285,6 +285,172 @@ Those paths skip strict inline-eval detection. Ask-only tightening of a full
 session restores the approval path while retaining its host-file-floor
 exception. See [Inline eval](/tools/exec#inline-eval-strictinlineeval).
 
+### `tools.exec.denySelfCli`
+
+<ParamField path="denySelfCli" type="boolean" default="false">
+  When `true`, host exec unconditionally denies any command whose resolved
+  executable is this product's own CLI binary (`vasudev`/`openclaw` —
+  `package.json`'s `bin` field aliases both names to the same entry point),
+  for any subcommand or arguments. Unlike `strictInlineEval`, a hit here is
+  terminal: there is no reviewer, no human approval, and no `full`/
+  `allowlist`/`ask`/`auto` mode that lets it through. Every other exec
+  command is unaffected and keeps its existing policy exactly as configured.
+</ParamField>
+
+Set globally under `tools.exec.denySelfCli` or per agent under
+`agents.entries.*.tools.exec.denySelfCli`. Team's plugin sets this to `true`
+by default for the coordinator agent once a coordinator can be resolved,
+unless the operator has already made an explicit choice (`true` or `false`)
+for that agent — an explicit choice is never overridden.
+
+**`denySelfCli` is defense-in-depth, not the security boundary.** It guards
+an _executable name_, and the privileged capabilities behind that name are
+reachable without it: the Gateway serves them to any client presenting an
+operator-scoped credential, and `vasudev pairing approve` does not even go
+through the Gateway — it writes the shared pairing store directly. So treat
+`denySelfCli` as what it is: a cheap, effective stop against casual or
+accidental self-CLI use by the agent, layered under the real boundary.
+
+The real boundary for the capability this was originally aimed at — the agent
+approving a channel pairing, which admits a new person to instruct it — is
+Gateway scope enforcement. An agent-originated Gateway request is refused
+`channels.pairing.approve` and `channels.pairing.dismiss` at the router's
+authorization fence, before the `operator.admin` wildcard is consulted, so no
+scope set the agent can mint reaches them. See
+[Access control](/gateway/security/access-control).
+
+This is a binary-identity check, not a substring match: it matches a
+command's resolved executable name (bare `PATH` lookup, or a path whose
+target is exactly `vasudev`/`openclaw`), so a path that merely contains one
+of those names — for example `/home/vasudev-user/script.sh` — is
+unaffected. The check also recurses into a generic shell wrapper's inline
+payload (for example `bash -lc "vasudev ..."`, `sh -c "vasudev ..."`, or a
+nested `env bash -lc "vasudev ..."`), up to several levels of nesting, so
+wrapping the CLI in a shell does not bypass it.
+
+**This is layer 1 of a two-layer defense.** It is a _static_ check: it
+inspects the command's resolved segments before anything is spawned, and it
+can only recognize a bounded set of shapes (bare/path invocation, a
+transparent dispatch wrapper whose own resolved identity is the self-CLI
+binary, and a recognized shell wrapper's inline payload). It cannot see a
+self-CLI invocation buried inside an indirection tool it does not itself
+unwrap — for example `pnpm exec bash -c "vasudev ..."` (the observed argv
+still has a `pnpm exec` prefix the shell-wrapper recursion does not match),
+`find . -exec vasudev ... \;`, or `xargs -I{} vasudev {}`. Recognizing every
+such tool one at a time is an open-ended enumeration problem, not something
+a finite list can ever finish closing.
+
+Layer 1 runs unconditionally on **every** exec host once `denySelfCli` is
+set — gateway, node, and sandbox alike. Each host has its own call site
+(there is no shared dispatch path across all three), so this is enforced
+per host: the gateway host runs it both on its normal allowlist path and
+independently on its full-trust `bypassApprovals` path (so an explicit
+full-session grant cannot skip it), the node host runs it unconditionally
+as part of dispatching to the remote device, and the sandbox host — which
+has no allowlist/approval layer of its own at all — runs it as the _only_
+gate standing between the command and the sandbox backend's spawn.
+
+**Layer 2: the PATH-shadow environment defense.** When `denySelfCli` is
+active, the gateway and sandbox hosts also prepend a small stub directory
+ahead of every other `PATH` entry in the spawned command's own environment.
+That directory contains executable files literally named
+`vasudev`/`openclaw` that immediately deny and exit non-zero. Because
+`PATH` search order is a property of the environment inherited by the
+_entire_ process tree a command spawns — not something each wrapper tool
+has to individually support — this closes the whole class of "unrecognized
+indirection tool" bypasses at once (including `pnpm exec`, `find -exec`,
+`xargs`, and a scripting language's subprocess-by-name call), without
+needing layer 1 to recognize any of those tools by name. Layer 2 is
+additive: layer 1 still runs first and denies plenty of cases (including
+every direct/absolute-path invocation, on any host) before anything is
+spawned.
+
+Layer 2 is scoped to whichever hosts this process controls the spawned
+command's environment directly for, the same way `tools.exec.pathPrepend`
+already is: gateway and sandbox, not node. The node host dispatches a
+command to a genuinely remote device, and this process never controls that
+device's `PATH`. Layer 1's static check runs unconditionally on the node
+host regardless (see above), so the node host's self-CLI defense today is
+layer 1 alone — this is the one host where layer 2 does not apply, not
+sandbox.
+
+The shadow stub directory is re-verified (and, if missing, transparently
+recreated) on every exec call that needs it, not only the first: an
+ordinary, already-permitted command can delete the stub directory mid-session
+(`$OPENCLAW_STATE_DIR`, where it lives, is a visible env var inside every
+exec'd command, `denySelfCli` or not), and a later `denySelfCli:true` call
+in the same session must not silently lose layer 2 coverage because of that.
+
+**Known limitations (read honestly — this is not an unconditional "no
+chances" guarantee against every conceivable path):**
+
+- Invoking the underlying entry script directly through a generic
+  interpreter (for example `node /path/to/openclaw.mjs ...`) is not
+  detected by either layer. Closing that would require binding argv-token
+  realpaths against the entry script itself, which is the kind of general
+  interpreter/loader coverage the exec-approvals engine already documents
+  as best-effort elsewhere — out of scope for this narrow identity check.
+- A command that explicitly reassigns `PATH` before invoking the bare name
+  (`env PATH=/usr/bin vasudev ...`, or a script doing `export PATH=...`
+  then calling `vasudev`) can still reach the real binary if the
+  reassigned value omits the shadow directory and still contains the real
+  one. This is an accepted residual gap: it requires deliberately naming a
+  PATH value, a materially higher bar than the zero-PATH-knowledge
+  bypasses layer 2 closes.
+- Layer 2 does not extend to the node host (see above); a buried,
+  unrecognized-indirection-tool invocation on a node host is covered only
+  by layer 1.
+- The PATH-shadow stub directory's repair check runs at preparation time,
+  immediately before its path is used to build the spawned command's
+  environment — not atomically at the instant of spawn. A command that
+  deletes the directory concurrently with a separate, in-flight exec call
+  (as opposed to a strictly earlier, already-finished call) could in theory
+  still race that one in-flight spawn. This is an accepted, narrow TOCTOU
+  window, not the structural, permanent gap that a never-re-verified cache
+  used to be.
+
+Rationale: an agent that reaches its own CLI is usually doing something it
+has a tool-call path for, and closing the whole binary is simpler than
+denying dangerous subcommands (`pairing approve`, `config set`, ...) one at
+a time. Note what this does _not_ claim: roster writes do have an agent tool
+path — `team_add`, `team_remove`, `team_transfer_ownership` — and `team_add`
+approves a pending pairing request whose sender it is putting on the roster,
+in that same call. That path is the sanctioned one, and `denySelfCli`
+neither creates nor removes it. What `denySelfCli` removes is the unrouted
+CLI shortcut (`vasudev pairing approve`), which admits a sender with no
+roster row behind it.
+
+**Open gap, stated plainly: the agent can still read the operator's Gateway
+credential.** `exec` has no read-path restrictions, so at the coordinator's
+default `security: "full"` it can read `gateway.auth.token` out of the config
+file (or the file a `SecretRef` points at — on a hosted desk,
+`/etc/openclaw/secrets/gateway-token`, mode `0600` owned by the same user the
+agent runs as), and `OPENCLAW_GATEWAY_TOKEN` stays in the exec environment.
+With that token it can talk to the loopback Gateway as a genuine operator,
+carrying none of the agent-origin markers the router checks, and reach
+privileged methods that way. Closing this needs token readability locked down
+in the exec context, which is deliberately deferred and not done. Until it is:
+
+- The Gateway fence stops the agent's own tool dispatch and any
+  agent-runtime-authenticated connection. It does not stop an agent that
+  impersonates an operator with the operator's own token.
+- `denySelfCli` raises the cost of the CLI route but, as above, is not a
+  boundary.
+
+**Second open gap, also stated plainly: the pairing store can be written with
+no Gateway method involved.** `vasudev pairing approve` writes the shared
+pairing store directly. That is not a CLI quirk — the agent's `exec` runs as
+the same OS user that owns the state directory, so any direct write to that
+SQLite file (a `sqlite3` invocation, a few lines of Node) reaches the same
+outcome. Neither `denySelfCli` nor the Gateway fence touches that class at all.
+Closing it needs OS-level isolation — running exec as a different,
+unprivileged user, or without the state directory reachable — which is
+explicitly out of scope for this round.
+
+Treat the coordinator's exec surface accordingly: on a desk where this matters,
+narrow `security`/allowlists for that agent rather than relying on these
+layers to make the credential or the state directory unreachable.
+
 ### `tools.exec.commandHighlighting`
 
 <ParamField path="commandHighlighting" type="boolean" default="false">
