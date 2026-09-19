@@ -60,6 +60,7 @@ export async function handleBuzzInbound(params: {
   const access = await resolveStableChannelMessageIngress({
     channelId: "buzz",
     accountId: account.accountId,
+    cfg,
     identity: { key: "buzz-pubkey", entryIdPrefix: "buzz-entry" },
     subject: { stableId: message.senderPubkey },
     conversation: {

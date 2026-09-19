@@ -258,8 +258,16 @@ export type CreateChannelIngressResolverParams = Pick<
   | "readStoreAllowFrom"
   | "useDefaultPairingStore"
 > & {
-  /** Config subset used for access groups and command behavior. */
-  cfg?: ChannelIngressConfigInput;
+  /**
+   * Config subset used for access groups and command behavior.
+   *
+   * Required, and not optional, on purpose: a resolver built without it silently drops every
+   * `accessGroup:<name>` allowlist reference, because the reference then resolves against no
+   * configured groups and authorizes nobody (`state.ts`'s `resolveAccessGroupEntries`). That
+   * failure is invisible at runtime, so omission has to be a type error. Pass `null` only for a
+   * surface that provably never reads channel allowlists.
+   */
+  cfg: ChannelIngressConfigInput;
   /** Global override for access-group expansion in this resolver. */
   useAccessGroups?: boolean | null;
   /** Default DM policy for message calls that omit it. */

@@ -111,7 +111,7 @@ function createFeishuIngressSubject(params: {
 }
 
 function createFeishuIngressResolver(params: {
-  cfg?: OpenClawConfig;
+  cfg: OpenClawConfig;
   accountId?: string | null;
   readAllowFromStore?: ResolveChannelMessageIngressParams["readStoreAllowFrom"];
 }) {

@@ -229,6 +229,7 @@ export function registerMatrixMonitorEvents(params: {
   });
   const { routeVerificationEvent, routeVerificationSummary } = createMatrixVerificationEventRouter({
     client,
+    cfg,
     allowFrom,
     dmEnabled,
     dmPolicy,

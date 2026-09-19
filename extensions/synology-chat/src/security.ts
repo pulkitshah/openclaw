@@ -6,6 +6,7 @@ import {
   resolveStableChannelMessageIngress,
   type ChannelIngressContextBinding,
 } from "openclaw/plugin-sdk/channel-ingress-runtime";
+import type { OpenClawConfig } from "openclaw/plugin-sdk/config-contracts";
 import { finiteSecondsToTimerSafeMilliseconds } from "openclaw/plugin-sdk/number-runtime";
 import { safeEqualSecret } from "openclaw/plugin-sdk/security-runtime";
 import { truncateUtf16Safe } from "openclaw/plugin-sdk/text-utility-runtime";
@@ -27,6 +28,8 @@ export function validateToken(received: string, expected: string): boolean {
 
 export async function authorizeUserForDmWithIngress(params: {
   accountId: string;
+  /** Config the allowlist is resolved against, including `accessGroups`. */
+  cfg: OpenClawConfig;
   userId: string;
   dmPolicy: "open" | "allowlist" | "disabled";
   allowedUserIds: string[];
@@ -35,6 +38,7 @@ export async function authorizeUserForDmWithIngress(params: {
   return await resolveStableChannelMessageIngress({
     channelId: "synology-chat",
     accountId: params.accountId,
+    cfg: params.cfg,
     identity: {
       key: "sender-id",
       entryIdPrefix: "synology-chat-entry",

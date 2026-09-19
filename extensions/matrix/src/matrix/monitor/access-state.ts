@@ -5,9 +5,12 @@ import {
   type ChannelIngressContextBinding,
   type ResolvedChannelMessageIngress,
 } from "openclaw/plugin-sdk/channel-ingress-runtime";
+import type { OpenClawConfig } from "openclaw/plugin-sdk/config-contracts";
 import { normalizeMatrixAllowList, resolveMatrixAllowListMatch } from "./allowlist.js";
 
 type MatrixMonitorAccessState = {
+  /** Carried so the command gate resolves access groups against the same config as the sender gate. */
+  cfg: OpenClawConfig;
   effectiveGroupAllowFrom: string[];
   effectiveRoomUsers: string[];
   messageIngress: ResolvedChannelMessageIngress;
@@ -57,6 +60,7 @@ function resolveMatrixGroupIngress(params: {
 }
 
 export async function resolveMatrixMonitorAccessState(params: {
+  cfg: OpenClawConfig;
   allowFrom: Array<string | number>;
   storeAllowFrom: Array<string | number>;
   dmPolicy?: "open" | "pairing" | "allowlist" | "disabled";
@@ -84,6 +88,7 @@ export async function resolveMatrixMonitorAccessState(params: {
     channelId: "matrix",
     accountId,
     identity: matrixIngressIdentity,
+    cfg: params.cfg,
     readStoreAllowFrom: async () => params.storeAllowFrom,
   });
   const resolveMessageIngress = async (
@@ -111,6 +116,7 @@ export async function resolveMatrixMonitorAccessState(params: {
   const resolved = await resolveMessageIngress();
 
   return {
+    cfg: params.cfg,
     effectiveGroupAllowFrom,
     effectiveRoomUsers,
     messageIngress: resolved,
@@ -136,6 +142,7 @@ export async function resolveMatrixMonitorCommandAccess(
     channelId: "matrix",
     accountId: state.accountId,
     identity: matrixIngressIdentity,
+    cfg: state.cfg,
   }).command({
     subject: { stableId: state.senderId },
     conversation: {

@@ -22,6 +22,7 @@ export {
 export type { ContextVisibilityDecision } from "../security/context-visibility.js";
 
 export {
+  ACCESS_GROUP_ALLOW_FROM_PREFIX,
   expandAllowFromWithAccessGroups,
   parseAccessGroupAllowFromEntry,
 } from "./access-groups.js";

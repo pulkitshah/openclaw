@@ -23,6 +23,49 @@ export function parseAccessGroupAllowFromEntry(entry: string): string | null {
 }
 
 /**
+ * Separator between the channel id and the channel account id in a `message.senders` member key.
+ */
+const MESSAGE_SENDER_GROUP_ACCOUNT_SEPARATOR = ":";
+
+/**
+ * Builds the account-scoped `message.senders` member key for one channel account.
+ */
+export function messageSenderGroupAccountKey(channelId: string, accountId: string): string {
+  return `${channelId}${MESSAGE_SENDER_GROUP_ACCOUNT_SEPARATOR}${accountId}`;
+}
+
+/**
+ * Returns the channel id a `message.senders` member key applies to, dropping any account scope.
+ */
+export function messageSenderGroupKeyChannelId(key: string): string {
+  const separator = key.indexOf(MESSAGE_SENDER_GROUP_ACCOUNT_SEPARATOR);
+  return separator > 0 ? key.slice(0, separator) : key;
+}
+
+/**
+ * Selects the `message.senders` entries that apply to one channel account.
+ *
+ * Three key forms, widest first: `"*"` for every channel, `"<channelId>"` for every account of
+ * that channel, and `"<channelId>:<accountId>"` for that one account only. The scoped form is the
+ * only way a member reaches exactly one account of a multi-account channel; without it a member
+ * listed for one account authorizes on all of them.
+ */
+export function messageSenderGroupEntries(params: {
+  members: Record<string, string[]>;
+  channelId: string;
+  accountId?: string;
+}): string[] {
+  const scopedKey = params.accountId
+    ? messageSenderGroupAccountKey(params.channelId, params.accountId)
+    : undefined;
+  return [
+    ...(params.members["*"] ?? []),
+    ...(params.members[params.channelId] ?? []),
+    ...(scopedKey && scopedKey !== params.channelId ? (params.members[scopedKey] ?? []) : []),
+  ];
+}
+
+/**
  * Merges configured DM allowFrom entries with pairing-store sender ids when policy allows it.
  */
 export function mergeDmAllowFromSources(params: {

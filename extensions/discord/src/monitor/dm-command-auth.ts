@@ -79,7 +79,7 @@ function createDiscordDynamicAccessGroupResolver(params: {
 
 function createDiscordIngressResolver(params: {
   accountId: string;
-  cfg?: OpenClawConfig;
+  cfg: OpenClawConfig;
   token?: string;
   rest?: RequestClient;
   readStoreAllowFrom?: ResolveChannelMessageIngressParams["readStoreAllowFrom"];
@@ -126,7 +126,7 @@ export async function resolveDiscordDmCommandAccess(params: {
   configuredAllowFrom: string[];
   sender: DiscordIngressSender;
   allowNameMatching: boolean;
-  cfg?: OpenClawConfig;
+  cfg: OpenClawConfig;
   token?: string;
   rest?: RequestClient;
   readStoreAllowFrom?: ResolveChannelMessageIngressParams["readStoreAllowFrom"];
@@ -183,7 +183,7 @@ export async function resolveDiscordTextCommandAccess(params: {
   allowNameMatching: boolean;
   allowTextCommands: boolean;
   hasControlCommand: boolean;
-  cfg?: OpenClawConfig;
+  cfg: OpenClawConfig;
   token?: string;
   rest?: RequestClient;
   conversationId?: string;

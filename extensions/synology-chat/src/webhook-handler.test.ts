@@ -17,7 +17,14 @@ const {
 } = await import("./webhook-handler.js");
 
 type TestDeliver = Parameters<typeof processSynologyWebhookIngressEvent>[0]["deliver"];
-type TestWebhookHandlerDeps = Omit<WebhookHandlerDeps, "receive"> & { deliver: TestDeliver };
+type TestWebhookHandlerDeps = Omit<WebhookHandlerDeps, "receive" | "resolveConfig"> & {
+  deliver: TestDeliver;
+  resolveConfig?: WebhookHandlerDeps["resolveConfig"];
+};
+
+/** These cases exercise token/rate-limit/allowlist policy, not access groups. */
+const emptyTestConfig: WebhookHandlerDeps["resolveConfig"] = () =>
+  ({}) as ReturnType<WebhookHandlerDeps["resolveConfig"]>;
 
 function createWebhookHandler(deps: TestWebhookHandlerDeps) {
   const lifecycle: SynologyIngressLifecycle = {
@@ -27,11 +34,14 @@ function createWebhookHandler(deps: TestWebhookHandlerDeps) {
     onDeferred: vi.fn(),
     onAbandoned: vi.fn(),
   };
+  const resolveConfig = deps.resolveConfig ?? emptyTestConfig;
   return createWebhookHandlerWithIngress({
     ...deps,
+    resolveConfig,
     receive: async (rawEvent) => {
       await processSynologyWebhookIngressEvent({
         account: deps.account,
+        resolveConfig,
         rawEvent,
         lifecycle,
         deliver: deps.deliver,
@@ -259,6 +269,7 @@ describe("createWebhookHandler", () => {
     });
     const receive = vi.fn(() => admission);
     const handler = createWebhookHandlerWithIngress({
+      resolveConfig: emptyTestConfig,
       account: makeAccount(),
       receive,
       log,
@@ -279,6 +290,7 @@ describe("createWebhookHandler", () => {
   it("returns 503 without acknowledging when durable admission fails", async () => {
     const receive = vi.fn().mockRejectedValue(new Error("sqlite unavailable"));
     const handler = createWebhookHandlerWithIngress({
+      resolveConfig: emptyTestConfig,
       account: makeAccount(),
       receive,
       log,
@@ -309,6 +321,7 @@ describe("createWebhookHandler", () => {
   it("returns 400 without admission when the request stream fails", async () => {
     const receive = vi.fn();
     const handler = createWebhookHandlerWithIngress({
+      resolveConfig: emptyTestConfig,
       account: makeAccount(),
       receive,
       log,

@@ -24,6 +24,9 @@ export {
   firstDefined,
   isSenderIdAllowed,
   mergeDmAllowFromSources,
+  messageSenderGroupAccountKey,
+  messageSenderGroupEntries,
+  messageSenderGroupKeyChannelId,
   resolveGroupAllowFromSources,
 } from "../channels/allow-from.js";
 export {

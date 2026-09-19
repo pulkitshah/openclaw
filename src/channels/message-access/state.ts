@@ -7,7 +7,7 @@ import {
   normalizeStringEntries,
   uniqueStrings,
 } from "@openclaw/normalization-core/string-normalization";
-import { parseAccessGroupAllowFromEntry } from "../allow-from.js";
+import { messageSenderGroupEntries, parseAccessGroupAllowFromEntry } from "../allow-from.js";
 import {
   identifierAuthenticationFrom,
   weakestIdentifierAuthentication,
@@ -157,10 +157,13 @@ function groupSenderEntries(params: { groupName: string; input: NormalizedStateI
   if (!group || group.type !== "message.senders") {
     return [];
   }
-  return normalizeStringEntries([
-    ...(group.members["*"] ?? []),
-    ...(group.members[params.input.channelId] ?? []),
-  ]);
+  return normalizeStringEntries(
+    messageSenderGroupEntries({
+      members: group.members,
+      channelId: params.input.channelId,
+      accountId: params.input.accountId,
+    }),
+  );
 }
 
 function eventSubjectMatchContext(input: NormalizedStateInput): "dm" | "group" {

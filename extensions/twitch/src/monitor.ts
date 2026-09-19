@@ -77,6 +77,7 @@ async function processTwitchMessage(params: {
     message,
     account,
     accountId,
+    cfg,
     botUsername: normalizeLowercaseStringOrEmpty(account.username),
     contextBinding: {
       agentId: route.agentId,
@@ -281,6 +282,7 @@ export async function monitorTwitchProvider(
         message,
         account,
         accountId,
+        cfg: config as OpenClawConfig,
         botUsername,
       });
 

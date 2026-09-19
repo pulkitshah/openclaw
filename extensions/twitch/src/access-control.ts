@@ -6,6 +6,7 @@ import {
   type ChannelIngressIdentitySubjectInput,
   type IngressReasonCode,
 } from "openclaw/plugin-sdk/channel-ingress-runtime";
+import type { OpenClawConfig } from "openclaw/plugin-sdk/config-contracts";
 import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { TwitchAccountConfig, TwitchChatMessage } from "./types.js";
 
@@ -50,6 +51,7 @@ export async function checkTwitchAccessControl(params: {
   message: TwitchChatMessage;
   account: TwitchAccountConfig;
   accountId: string;
+  cfg: OpenClawConfig;
   botUsername: string;
   contextBinding?: ChannelIngressContextBinding;
 }): Promise<TwitchAccessControlResult> {
@@ -58,6 +60,7 @@ export async function checkTwitchAccessControl(params: {
   const resolved = await createChannelIngressResolver({
     channelId: "twitch",
     accountId: params.accountId,
+    cfg: params.cfg,
     identity: policyKind === "role" ? twitchRoleIdentity : twitchUserIdentity,
   }).message({
     subject: twitchSubject(message),

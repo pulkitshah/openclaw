@@ -5,6 +5,7 @@
 
 import type { IncomingMessage, ServerResponse } from "node:http";
 import * as querystring from "node:querystring";
+import type { OpenClawConfig } from "openclaw/plugin-sdk/config-contracts";
 import { normalizeLowercaseStringOrEmpty } from "openclaw/plugin-sdk/string-coerce-runtime";
 import { truncateUtf16Safe } from "openclaw/plugin-sdk/text-utility-runtime";
 import {
@@ -338,6 +339,13 @@ function respondNoContent(res: ServerResponse) {
 
 export interface WebhookHandlerDeps {
   account: ResolvedSynologyChatAccount;
+  /**
+   * Reads the config each request authorizes against.
+   *
+   * A reader, not a captured snapshot: `accessGroup:<name>` allowlist references resolve here, and
+   * an operator can edit a roster between webhook requests.
+   */
+  resolveConfig: () => OpenClawConfig;
   receive: SynologyIngressMonitor["receive"];
   trustedProxies?: string[];
   allowRealIpFallback?: boolean;
@@ -420,6 +428,7 @@ async function parseWebhookPayloadRequest(params: {
 async function authorizeSynologyWebhook(params: {
   req: IncomingMessage;
   account: ResolvedSynologyChatAccount;
+  resolveConfig: () => OpenClawConfig;
   payload: SynologyWebhookPayload;
   invalidTokenRateLimiter: InvalidTokenRateLimiter;
   rateLimiter: RateLimiter;
@@ -449,6 +458,7 @@ async function authorizeSynologyWebhook(params: {
 
   const auth = await authorizeUserForDmWithIngress({
     accountId: params.account.accountId,
+    cfg: params.resolveConfig(),
     userId: params.payload.user_id,
     dmPolicy: params.account.dmPolicy,
     allowedUserIds: params.account.allowedUserIds,
@@ -493,6 +503,7 @@ async function parseAndAuthorizeSynologyWebhook(params: {
   req: IncomingMessage;
   res: ServerResponse;
   account: ResolvedSynologyChatAccount;
+  resolveConfig: () => OpenClawConfig;
   invalidTokenRateLimiter: InvalidTokenRateLimiter;
   rateLimiter: RateLimiter;
   trustedProxies?: string[];
@@ -508,6 +519,7 @@ async function parseAndAuthorizeSynologyWebhook(params: {
   const authorized = await authorizeSynologyWebhook({
     req: params.req,
     account: params.account,
+    resolveConfig: params.resolveConfig,
     payload: parsed.payload,
     invalidTokenRateLimiter: params.invalidTokenRateLimiter,
     rateLimiter: params.rateLimiter,
@@ -554,11 +566,13 @@ async function resolveSynologyReplyDeliveryUserId(params: {
 
 async function authorizeClaimedSynologyWebhook(params: {
   account: ResolvedSynologyChatAccount;
+  resolveConfig: () => OpenClawConfig;
   payload: SynologyWebhookPayload;
   contextBinding?: import("openclaw/plugin-sdk/channel-ingress-runtime").ChannelIngressContextBinding;
 }) {
   const auth = await authorizeUserForDmWithIngress({
     accountId: params.account.accountId,
+    cfg: params.resolveConfig(),
     userId: params.payload.user_id,
     dmPolicy: params.account.dmPolicy,
     allowedUserIds: params.account.allowedUserIds,
@@ -575,6 +589,7 @@ async function authorizeClaimedSynologyWebhook(params: {
 
 export async function processSynologyWebhookIngressEvent(params: {
   account: ResolvedSynologyChatAccount;
+  resolveConfig: () => OpenClawConfig;
   deliver: (
     msg: import("./inbound-context.js").SynologyInboundMessage,
     lifecycle: SynologyIngressLifecycle,
@@ -595,6 +610,7 @@ export async function processSynologyWebhookIngressEvent(params: {
   ) =>
     await authorizeClaimedSynologyWebhook({
       account: params.account,
+      resolveConfig: params.resolveConfig,
       payload,
       contextBinding,
     });
@@ -657,6 +673,7 @@ export function createWebhookHandler(deps: WebhookHandlerDeps) {
         req,
         res,
         account,
+        resolveConfig: deps.resolveConfig,
         invalidTokenRateLimiter,
         rateLimiter,
         trustedProxies: deps.trustedProxies,

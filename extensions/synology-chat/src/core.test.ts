@@ -65,6 +65,8 @@ async function expectDmAuthorization(params: {
 }): Promise<void> {
   const auth = await authorizeUserForDmWithIngress({
     accountId: "default",
+    // These cases exercise dmPolicy/allowlist decisions, not access groups.
+    cfg: {} as OpenClawConfig,
     userId: params.userId,
     dmPolicy: params.dmPolicy,
     allowedUserIds: params.allowedUserIds,
@@ -548,6 +550,7 @@ describe("synology-chat security helpers", () => {
   it("redacts Synology user IDs and allowlist entries from ingress state/decision", async () => {
     const auth = await authorizeUserForDmWithIngress({
       accountId: "default",
+      cfg: {} as OpenClawConfig,
       userId: "raw-sensitive-user-id",
       dmPolicy: "allowlist",
       allowedUserIds: ["raw-sensitive-user-id"],

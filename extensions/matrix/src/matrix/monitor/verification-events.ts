@@ -1,3 +1,4 @@
+import type { OpenClawConfig } from "openclaw/plugin-sdk/config-contracts";
 import { createLazyRuntimeModule } from "openclaw/plugin-sdk/lazy-runtime";
 import { normalizeNullableString } from "openclaw/plugin-sdk/string-coerce-runtime";
 // Matrix plugin module implements verification events behavior.
@@ -332,6 +333,7 @@ async function sendVerificationNotice(params: {
 }
 
 async function isVerificationNoticeAuthorized(params: {
+  cfg: OpenClawConfig;
   senderId: string;
   allowFrom: string[];
   dmEnabled: boolean;
@@ -352,6 +354,7 @@ async function isVerificationNoticeAuthorized(params: {
       ? await params.readStoreAllowFrom()
       : [];
   const accessState = await resolveMatrixMonitorAccessState({
+    cfg: params.cfg,
     allowFrom: params.allowFrom,
     storeAllowFrom,
     dmPolicy: params.dmPolicy,
@@ -374,6 +377,7 @@ async function isVerificationNoticeAuthorized(params: {
 
 export function createMatrixVerificationEventRouter(params: {
   client: MatrixClient;
+  cfg: OpenClawConfig;
   allowFrom: string[];
   dmEnabled: boolean;
   dmPolicy: "open" | "pairing" | "allowlist" | "disabled";
@@ -498,6 +502,7 @@ export function createMatrixVerificationEventRouter(params: {
     }
     if (
       !(await isVerificationNoticeAuthorized({
+        cfg: params.cfg,
         senderId: summary.otherUserId,
         allowFrom: params.allowFrom,
         dmEnabled: params.dmEnabled,
@@ -560,6 +565,7 @@ export function createMatrixVerificationEventRouter(params: {
       }
       if (
         !(await isVerificationNoticeAuthorized({
+          cfg: params.cfg,
           senderId,
           allowFrom: params.allowFrom,
           dmEnabled: params.dmEnabled,

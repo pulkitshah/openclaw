@@ -2,6 +2,7 @@
 import { uniqueStrings } from "../../packages/normalization-core/src/string-normalization.js";
 import {
   ACCESS_GROUP_ALLOW_FROM_PREFIX,
+  messageSenderGroupEntries,
   parseAccessGroupAllowFromEntry,
 } from "../channels/allow-from.js";
 import type { ChannelId } from "../channels/plugins/types.public.js";
@@ -64,11 +65,19 @@ export type ResolvedAccessGroupAllowFromState = {
 function resolveMessageSenderGroupEntries(params: {
   group: AccessGroupConfig;
   channel: ChannelId;
+  accountId?: string;
 }): string[] {
   if (params.group.type !== "message.senders") {
     return [];
   }
-  return [...(params.group.members["*"] ?? []), ...(params.group.members[params.channel] ?? [])];
+  // Same member-key grammar as the ingress resolver's own reader, including the
+  // `<channel>:<accountId>` scope, so a compatibility path cannot admit a member on an account
+  // the resolver would refuse.
+  return messageSenderGroupEntries({
+    members: params.group.members,
+    channelId: params.channel,
+    accountId: params.accountId,
+  });
 }
 
 /** Resolves `accessGroup:<name>` allowlist entries without changing the original allowlist. */
@@ -116,6 +125,7 @@ export async function resolveAccessGroupAllowFromState(params: {
     const senderEntries = resolveMessageSenderGroupEntries({
       group,
       channel: params.channel,
+      accountId: params.accountId,
     });
     if (
       senderEntries.length > 0 &&

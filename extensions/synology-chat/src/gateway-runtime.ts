@@ -4,6 +4,7 @@ import { registerPluginHttpRoute } from "openclaw/plugin-sdk/webhook-ingress";
 import { listAccountIds, resolveAccount } from "./accounts.js";
 import { resolveSynologyPublicWebhookRouteKey } from "./hosted-media-route.js";
 import { dispatchSynologyChatInboundEvent } from "./inbound-event.js";
+import { getSynologyRuntime } from "./runtime.js";
 import type { ResolvedSynologyChatAccount } from "./types.js";
 import {
   createWebhookHandler,
@@ -11,6 +12,17 @@ import {
   type WebhookHandlerDeps,
 } from "./webhook-handler.js";
 import { createSynologyIngressMonitor } from "./webhook-ingress.js";
+
+/**
+ * The config each inbound webhook authorizes against.
+ *
+ * Read per request rather than captured when the route is registered: `accessGroup:<name>`
+ * allowlist references resolve at authorization time, and an operator can edit a roster (or a Team
+ * member) while the route stays registered.
+ */
+function resolveLiveConfig(): OpenClawConfig {
+  return getSynologyRuntime().config.current() as OpenClawConfig;
+}
 
 const CHANNEL_ID = "synology-chat";
 
@@ -235,6 +247,7 @@ export async function registerSynologyWebhookRoute(params: {
     dispatch: async (rawEvent, lifecycle) => {
       await processSynologyWebhookIngressEvent({
         account,
+        resolveConfig: resolveLiveConfig,
         rawEvent,
         lifecycle,
         log: logAdapter,
@@ -252,6 +265,7 @@ export async function registerSynologyWebhookRoute(params: {
   ingress.start();
   const handler = createWebhookHandler({
     account,
+    resolveConfig: resolveLiveConfig,
     trustedProxies: cfg.gateway?.trustedProxies,
     allowRealIpFallback: cfg.gateway?.allowRealIpFallback === true,
     receive: ingress.receive,

@@ -15,7 +15,18 @@ import type { OpenClawConfig } from "openclaw/plugin-sdk/config-contracts";
 // Tlon helper module supports utils behavior.
 import { expectDefined } from "openclaw/plugin-sdk/expect-runtime";
 import { asNullableRecord, readStringField } from "openclaw/plugin-sdk/string-coerce-runtime";
+import { getTlonRuntime } from "../runtime.js";
 import { normalizeShip } from "../targets.js";
+
+/**
+ * Live config for ingress resolution.
+ *
+ * Read per call, not captured at monitor start: `accessGroup:<name>` allowlist references resolve
+ * against it, and an operator can edit a roster while the monitor is connected.
+ */
+function currentTlonConfig(): OpenClawConfig {
+  return getTlonRuntime().config.current() as OpenClawConfig;
+}
 
 export interface ParsedCite {
   type: "chan" | "group" | "desk" | "bait";
@@ -178,6 +189,7 @@ export async function resolveTlonMessageIngress(params: {
     channelId: "tlon",
     accountId: params.accountId ?? "default",
     identity: tlonIngressIdentity,
+    cfg: currentTlonConfig(),
     subject: { stableId: params.senderShip },
     conversation: params.conversation,
     contextBinding: params.contextBinding,
@@ -198,6 +210,7 @@ export async function resolveTlonCommandAuthorizationWithIngress(params: {
     channelId: "tlon",
     accountId: "default",
     identity: tlonIngressIdentity,
+    cfg: currentTlonConfig(),
     useAccessGroups: params.useAccessGroups,
     subject: { stableId: params.senderShip },
     conversation: {
