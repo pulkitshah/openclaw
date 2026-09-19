@@ -221,6 +221,65 @@ describe("applyTeamProjection", () => {
     ).toBe(false);
   });
 
+  it("drops accessGroup:team from a channel the roster no longer touches", () => {
+    // The entry used to be add-only: remove the last member on a channel and it stayed behind,
+    // pointing at a group that had emptied — a reference no roster edit could ever clear.
+    const withBoth = applyTeamProjection(deskConfig(), [OWNER, RAMESH]);
+    expect(withBoth.channels?.whatsapp?.allowFrom).toContain(TEAM_ACCESS_GROUP_ENTRY);
+
+    const afterRemoval = applyTeamProjection(withBoth, [OWNER]);
+    expect(afterRemoval.channels?.whatsapp?.allowFrom).toEqual(["+919800000000"]);
+    // …and the channel Team still owns keeps it.
+    expect(afterRemoval.channels?.telegram?.allowFrom).toEqual(["111", TEAM_ACCESS_GROUP_ENTRY]);
+  });
+
+  it("clears the last reference when the roster empties, leaving no dead allowlist entry", () => {
+    const projected = applyTeamProjection(deskConfig(), [OWNER, RAMESH]);
+    const emptied = applyTeamProjection(projected, []);
+    expect(emptied.channels?.telegram?.allowFrom).toEqual(["111"]);
+    expect(emptied.channels?.whatsapp?.allowFrom).toEqual(["+919800000000"]);
+    expect(emptied.accessGroups?.team).toEqual({ type: "message.senders", members: {} });
+  });
+
+  it("leaves an operator's own accessGroup:team entry on an untouched channel alone", () => {
+    // Team only removes from channels its PREVIOUS projection owned. A channel it never touched
+    // keeps whatever the operator wrote there, including this same entry.
+    const cfg = deskConfig();
+    cfg.channels = {
+      ...cfg.channels,
+      signal: { enabled: true, dmPolicy: "allowlist", allowFrom: [TEAM_ACCESS_GROUP_ENTRY] },
+      // SAFETY: fixture narrowing; only the keys this assertion reads are set.
+    } as OpenClawConfig["channels"];
+    const projected = applyTeamProjection(cfg, [OWNER, RAMESH]);
+    const afterRemoval = applyTeamProjection(projected, [OWNER]);
+    expect(afterRemoval.channels?.signal?.allowFrom).toEqual([TEAM_ACCESS_GROUP_ENTRY]);
+  });
+
+  it("scopes an account-bound identity to its own account key, not the whole channel", () => {
+    const scoped: TeamMember = {
+      ...RAMESH,
+      channels: [{ channel: "telegram", senderId: "5551234", accountId: "work", addedAt: 2 }],
+    };
+    const next = applyTeamProjection(deskConfig(), [OWNER, scoped]);
+    expect(next.accessGroups?.team).toEqual({
+      type: "message.senders",
+      // The owner has no accountId, so they stay channel-wide; Ramesh reaches "work" only.
+      members: { telegram: ["111"], "telegram:work": ["5551234"] },
+    });
+    // The identity link stays account-free: it keys a session, not an admission decision.
+    expect(next.session?.identityLinks?.ramesh).toEqual(["telegram:5551234"]);
+  });
+
+  it("still recognizes its own identity links when the previous projection was account-scoped", () => {
+    const scoped: TeamMember = {
+      ...RAMESH,
+      channels: [{ channel: "telegram", senderId: "5551234", accountId: "work", addedAt: 2 }],
+    };
+    const withScoped = applyTeamProjection(deskConfig(), [OWNER, scoped]);
+    const afterRemoval = applyTeamProjection(withScoped, [OWNER]);
+    expect(afterRemoval.session?.identityLinks).toEqual({ owner: ["telegram:111"] });
+  });
+
   it("every member's binding names the same coordinator agent — there is no per-member agent", () => {
     const next = applyTeamProjection(deskConfig(), [OWNER, RAMESH]);
     const memberBindings = next.bindings?.filter((b) => b.match?.peer) ?? [];
@@ -337,6 +396,112 @@ describe("assertTeamProjectionSafe", () => {
       // SAFETY: fixture narrowing; only the keys this assertion reads are set.
     } as OpenClawConfig["channels"];
     expect(assertTeamProjectionSafe(cfg, [OWNER, RAMESH])).toEqual([]);
+  });
+
+  it("refuses to narrow monitored group chats that have no groupAllowFrom of their own", () => {
+    // GC4: with groupAllowFrom unset, the group path falls back to the DM allowFrom Team writes.
+    // While that list is empty a chat listed under `groups` admits everyone in it; Team's first
+    // entry would turn it into a roster-only chat and silence every other participant.
+    const cfg = deskConfig();
+    cfg.channels = {
+      ...cfg.channels,
+      telegram: {
+        enabled: true,
+        dmPolicy: "pairing",
+        groupPolicy: "allowlist",
+        groups: { "-1001234567890": {} },
+      },
+      // SAFETY: fixture narrowing; only the keys this assertion reads are set.
+    } as OpenClawConfig["channels"];
+    expect(() => assertTeamProjectionSafe(cfg, [OWNER, RAMESH])).toThrow(
+      /telegram has monitored group chats and no groupAllowFrom/,
+    );
+  });
+
+  it("allows the same desk once groupAllowFrom is explicit, and on every later roster edit", () => {
+    const cfg = deskConfig();
+    cfg.channels = {
+      ...cfg.channels,
+      telegram: {
+        enabled: true,
+        dmPolicy: "pairing",
+        groupPolicy: "allowlist",
+        groupAllowFrom: ["111"],
+        groups: { "-1001234567890": {} },
+      },
+      // SAFETY: fixture narrowing; only the keys this assertion reads are set.
+    } as OpenClawConfig["channels"];
+    expect(assertTeamProjectionSafe(cfg, [OWNER, RAMESH])).toEqual([]);
+
+    // And a channel Team already governs never starts refusing later edits.
+    const projected = applyTeamProjection(deskConfig(), [OWNER]);
+    projected.channels = {
+      ...projected.channels,
+      telegram: {
+        ...projected.channels?.telegram,
+        groupPolicy: "allowlist",
+        groups: { "-1001234567890": {} },
+      },
+      // SAFETY: fixture narrowing; only the keys this assertion reads are set.
+    } as OpenClawConfig["channels"];
+    expect(() => assertTeamProjectionSafe(projected, [OWNER, RAMESH])).not.toThrow();
+  });
+
+  it("refuses when an account-level allowFrom would shadow the channel-level list Team writes", () => {
+    const cfg = deskConfig();
+    cfg.channels = {
+      ...cfg.channels,
+      telegram: {
+        enabled: true,
+        dmPolicy: "allowlist",
+        allowFrom: ["111"],
+        accounts: { work: { allowFrom: ["222"] } },
+      },
+      // SAFETY: fixture narrowing; only the keys this assertion reads are set.
+    } as OpenClawConfig["channels"];
+    expect(() => assertTeamProjectionSafe(cfg, [OWNER, RAMESH])).toThrow(
+      /telegram account work have their own allowFrom list/,
+    );
+  });
+
+  it("refuses a channel that cannot express the access-group symbol at all", () => {
+    const cfg = deskConfig();
+    cfg.channels = {
+      ...cfg.channels,
+      "voice-call": { enabled: true, dmPolicy: "allowlist", allowFrom: ["+919800000000"] },
+      // SAFETY: fixture narrowing; only the keys this assertion reads are set.
+    } as OpenClawConfig["channels"];
+    cfg.bindings = [
+      ...(cfg.bindings ?? []),
+      { agentId: "krishna", match: { channel: "voice-call", accountId: "*" } },
+    ];
+    const caller: TeamMember = {
+      ...RAMESH,
+      channels: [{ channel: "voice-call", senderId: "+919812345678", addedAt: 4 }],
+    };
+    expect(() => assertTeamProjectionSafe(cfg, [OWNER, caller])).toThrow(
+      /voice-call cannot express "accessGroup:team"/,
+    );
+  });
+
+  it("warns that a per-chat sender allowlist overrides the list Team writes", () => {
+    const cfg = deskConfig();
+    cfg.channels = {
+      ...cfg.channels,
+      telegram: {
+        enabled: true,
+        dmPolicy: "allowlist",
+        allowFrom: ["111"],
+        groupAllowFrom: ["111"],
+        groups: { "-1001234567890": { allowFrom: ["999"] } },
+      },
+      // SAFETY: fixture narrowing; only the keys this assertion reads are set.
+    } as OpenClawConfig["channels"];
+    expect(assertTeamProjectionSafe(cfg, [OWNER, RAMESH])).toEqual([
+      "telegram has its own sender allowlist on -1001234567890, which overrides the channel-level " +
+        'list Team writes — the roster does not apply in that chat. Add "accessGroup:team" there ' +
+        "too if Team should govern it.",
+    ]);
   });
 
   it("warns, but does not throw, when a touched channel is dmPolicy open", () => {
