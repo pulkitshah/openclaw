@@ -4,11 +4,11 @@ import {
   resolveCompiledAllowlistMatch,
   type AllowlistMatch,
 } from "openclaw/plugin-sdk/allow-from";
+import { parseAccessGroupAllowFromEntry } from "openclaw/plugin-sdk/security-runtime";
 import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/string-coerce-runtime";
 import {
   normalizeHyphenSlug,
   normalizeStringEntries,
-  normalizeStringEntriesLower,
 } from "openclaw/plugin-sdk/string-normalization-runtime";
 import { parseSlackTarget } from "../target-parsing.js";
 
@@ -37,8 +37,17 @@ export function normalizeAllowList(list?: Array<string | number>) {
   return normalizeStringEntries(list);
 }
 
+/**
+ * Lowercases Slack allowlist entries, except `accessGroup:<name>` references.
+ *
+ * Group names are matched case-sensitively (`parseAccessGroupAllowFromEntry`), so lowercasing a
+ * reference turns it into an ordinary sender entry that matches nobody — while still counting as a
+ * configured allowlist, which narrows the channel silently.
+ */
 export function normalizeAllowListLower(list?: Array<string | number>) {
-  return normalizeStringEntriesLower(list);
+  return normalizeStringEntries(list).map((entry) =>
+    parseAccessGroupAllowFromEntry(entry) != null ? entry : entry.toLowerCase(),
+  );
 }
 
 export function normalizeSlackAllowOwnerEntry(entry: string): string | undefined {
@@ -144,7 +153,7 @@ export function resolveSlackUserAllowListForTeam(params: {
   const allowList = normalizeAllowListLower(params.allowList);
   const teamId = normalizeOptionalLowercaseString(params.teamId);
   return allowList.flatMap((entry) => {
-    if (entry === "*") {
+    if (entry === "*" || parseAccessGroupAllowFromEntry(entry) != null) {
       return [entry];
     }
     if (!entry.startsWith("team:")) {
