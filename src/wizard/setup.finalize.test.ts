@@ -381,6 +381,11 @@ function createFinalizeArgs(
     },
     prompter: createLaterPrompter(),
     runtime: createRuntime(),
+    // The mandatory Team step reports "incomplete" until someone is on the roster, and the outro
+    // then says what is still missing instead of reporting success. These cases are about Gateway
+    // and dashboard behaviour, so they stand the step down rather than assert its message — a test
+    // that overrides this is asserting the Team step itself.
+    runTeamStep: async () => ({ status: "complete" as const, memberCount: 1 }),
     ...rest,
   };
 }
