@@ -6,6 +6,7 @@
  * `extensions/telegram/src/target-writeback.ts:148-161` (allowlist writeback) and
  * `extensions/feishu/src/dynamic-agent.ts:179-189` (binding materialization).
  */
+import { isDeepStrictEqual } from "node:util";
 import { createAccountListHelpers } from "openclaw/plugin-sdk/account-helpers";
 import { createChannelPairingController } from "openclaw/plugin-sdk/channel-pairing";
 import {
@@ -31,6 +32,11 @@ import {
  * A rejected write throws and changes nothing; `assertAutomaticBindingsWriteAllowed`
  * (`src/config/io.ownership-write-guard.ts`) surfaces here verbatim as CONFIG_WRITE_REJECTED when
  * `bindings` lives behind `$include-owned`.
+ *
+ * A projection that changes nothing commits no write. `replaceConfigFile` runs a full write cycle
+ * whether or not the payload differs — file rewrite, canonical reread, runtime republication — and
+ * this function is reached from `team:legacy-import`'s `start()` as well as from roster edits, so a
+ * projection-shaped no-op would spend a disk write and a reload cycle to change nothing.
  */
 export async function writeTeamProjection(params: {
   members: readonly TeamMember[];
@@ -40,6 +46,9 @@ export async function writeTeamProjection(params: {
   const current = structuredClone(snapshot.config ?? {}) as OpenClawConfig;
   const warnings = assertTeamProjectionSafe(current, params.members);
   const nextConfig = applyTeamProjection(current, params.members);
+  if (isDeepStrictEqual(nextConfig, current)) {
+    return { warnings, config: current };
+  }
   params.assertStillAuthorized();
   await replaceConfigFile({ nextConfig, snapshot, writeOptions, afterWrite: { mode: "auto" } });
   return { warnings, config: nextConfig };
@@ -114,7 +123,9 @@ export async function approvePendingPairingRequests(params: {
           },
           { scopes: ["operator.pairing"] },
         );
-        pending = (result.requests ?? []).filter((request) => request.senderId === identity.senderId);
+        pending = (result.requests ?? []).filter(
+          (request) => request.senderId === identity.senderId,
+        );
       } catch {
         continue;
       }

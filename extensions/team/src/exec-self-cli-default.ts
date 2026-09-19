@@ -12,30 +12,24 @@
  * resolved and `denySelfCli` is not already explicitly configured for that agent. An operator's
  * explicit `true` or `false` is left untouched, forever — this only fills in an unset default.
  */
-import { mutateConfigFile } from "openclaw/plugin-sdk/config-mutation";
+import {
+  readConfigFileSnapshotForWrite,
+  replaceConfigFile,
+} from "openclaw/plugin-sdk/config-mutation";
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { resolveCoordinatorAgentId, type TeamMember } from "./team.js";
 
 export type ExecSelfCliDenyDefaultPlan = {
   agentId: string;
-  nextConfig: OpenClawConfig;
 };
 
-/** Pure planning step (exported for tests): null when there is nothing to change. */
-export function planExecSelfCliDenyDefault(params: {
-  cfg: OpenClawConfig;
-  members: readonly TeamMember[];
-}): ExecSelfCliDenyDefaultPlan | null {
-  const agentId = resolveCoordinatorAgentId(params.cfg, params.members);
-  if (!agentId) {
-    return null;
-  }
-  const existing = params.cfg.agents?.entries?.[agentId]?.tools?.exec?.denySelfCli;
-  if (existing !== undefined) {
-    // An operator already made an explicit choice (on or off); never override it.
-    return null;
-  }
-  const nextConfig = structuredClone(params.cfg);
+function readExecSelfCliDeny(cfg: OpenClawConfig, agentId: string): boolean | undefined {
+  return cfg.agents?.entries?.[agentId]?.tools?.exec?.denySelfCli;
+}
+
+/** The one key this module owns, merged into `cfg` without disturbing anything else. */
+export function withExecSelfCliDenyDefault(cfg: OpenClawConfig, agentId: string): OpenClawConfig {
+  const nextConfig = structuredClone(cfg);
   const entries = { ...nextConfig.agents?.entries };
   const entry = entries[agentId] ?? {};
   entries[agentId] = {
@@ -49,44 +43,70 @@ export function planExecSelfCliDenyDefault(params: {
     },
   };
   nextConfig.agents = { ...nextConfig.agents, entries };
-  return { agentId, nextConfig };
+  return nextConfig;
 }
 
 /**
- * Applies the default under the config mutation lock. A no-op plan returns `applied: false`
- * WITHOUT opening a config write at all.
+ * The whole decision, taken once against one config: who the coordinator is, and whether the
+ * operator has already recorded a choice for it. Null means there is nothing to apply.
  *
- * The pre-check on `params.cfg` is load-bearing, not an optimization. `mutateConfigFile` commits a
- * write cycle whether or not the mutator changed the draft: it rewrites the file, rereads it, and
- * republishes the runtime config snapshot from that reread. This service runs from a plugin
- * `start()`, i.e. before the Gateway reaches `ready` and arms its managed config reloader, so that
- * republished snapshot (a) loses the startup-only plugin auto-enable overlay
- * (`src/gateway/server-startup-config-helpers.ts`) and (b) reaches no reload owner that would
- * re-stamp the already-published prepared-model catalog owner. The owner then holds a config that
- * no longer hash-matches what every later reader passes, and every agent run fails with
- * `PreparedModelCatalogConfigReplacedError`. Most desks land here — an empty roster or an operator
- * choice already recorded both plan to "nothing to do".
+ * `resolveCoordinatorAgentId` routes through `bindings` and `agents.defaults`, which on a desk
+ * rolling forward from a single-agent build exist only in the Gateway's runtime config
+ * (`materializeLegacyDefaultAgentRoles`, `src/config/legacy.default-agent-roles.ts`). So this is
+ * planned against the runtime config the Gateway is actually routing with — never once against the
+ * runtime config and again against the file draft, which can name different coordinators and leave
+ * a committed write that changes nothing.
+ */
+export function planExecSelfCliDenyDefault(params: {
+  cfg: OpenClawConfig;
+  members: readonly TeamMember[];
+}): ExecSelfCliDenyDefaultPlan | null {
+  const agentId = resolveCoordinatorAgentId(params.cfg, params.members);
+  if (!agentId) {
+    return null;
+  }
+  if (readExecSelfCliDeny(params.cfg, agentId) !== undefined) {
+    // An operator already made an explicit choice (on or off); never override it.
+    return null;
+  }
+  return { agentId };
+}
+
+/**
+ * Commits the planned default, or nothing at all.
  *
- * The draft is still re-planned inside the lock: `params.cfg` only decides whether to take the
- * lock, never what to write.
+ * A no-op plan opens no config write. `replaceConfigFile` commits a write cycle whether or not the
+ * payload differs from what is on disk: it rewrites the file, rereads it, and republishes the
+ * runtime config snapshot from that reread. This service runs from a plugin `start()`, before the
+ * Gateway reaches `ready`, which is the window that took a live desk down — see
+ * `registerLifecycleRuntimeConfigActivationOwner` (`src/config/runtime-snapshot.ts`) for the
+ * owner-level guard that now keeps that republication from desynchronising the published
+ * prepared-model catalog owner. Not writing at all is still the right answer here: most desks plan
+ * to "nothing to do" (an empty roster, or an operator choice already recorded), and a pointless
+ * write costs a disk rewrite and a hot-reload cycle.
+ *
+ * The plan is not recomputed against the file: the only thing rechecked before committing is the
+ * single precondition it rests on — that this exact key is still unset — so the recheck can cancel
+ * the write but never retarget it.
  */
 export async function applyExecSelfCliDenyDefault(params: {
   cfg: OpenClawConfig;
   members: readonly TeamMember[];
 }): Promise<{ applied: boolean; agentId?: string }> {
-  if (!planExecSelfCliDenyDefault({ cfg: params.cfg, members: params.members })) {
+  const plan = planExecSelfCliDenyDefault({ cfg: params.cfg, members: params.members });
+  if (!plan) {
     return { applied: false };
   }
-  let outcome: { applied: boolean; agentId?: string } = { applied: false };
-  await mutateConfigFile({
-    mutate: (draft) => {
-      const plan = planExecSelfCliDenyDefault({ cfg: draft, members: params.members });
-      if (!plan) {
-        return;
-      }
-      draft.agents = plan.nextConfig.agents;
-      outcome = { applied: true, agentId: plan.agentId };
-    },
+  const { snapshot, writeOptions } = await readConfigFileSnapshotForWrite();
+  const current = structuredClone(snapshot.config ?? {}) as OpenClawConfig;
+  if (readExecSelfCliDeny(current, plan.agentId) !== undefined) {
+    return { applied: false };
+  }
+  await replaceConfigFile({
+    nextConfig: withExecSelfCliDenyDefault(current, plan.agentId),
+    snapshot,
+    writeOptions,
+    afterWrite: { mode: "auto" },
   });
-  return outcome;
+  return { applied: true, agentId: plan.agentId };
 }
