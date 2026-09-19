@@ -11,13 +11,25 @@ import type {
 } from "openclaw/plugin-sdk/config-contracts";
 import { createDedupeCache } from "openclaw/plugin-sdk/dedupe-runtime";
 import { createSubsystemLogger } from "openclaw/plugin-sdk/runtime-env";
+import { parseAccessGroupAllowFromEntry } from "openclaw/plugin-sdk/security-runtime";
 import { normalizeOptionalString, uniqueStrings } from "openclaw/plugin-sdk/string-coerce-runtime";
 
 export type NormalizedAllowFrom = {
+  /** Concrete numeric Telegram sender user ids this allowlist matches directly. */
   entries: string[];
   hasWildcard: boolean;
+  /**
+   * Whether an allowlist is configured at all — not whether it has matchable sender ids.
+   *
+   * `accessGroup:<name>` references count: they are a configured restriction whose membership is
+   * resolved by the shared ingress resolver, not by this normalizer. Treating a
+   * group-reference-only list as unconfigured would make Telegram's "chat listed in `groups`, no
+   * sender allowlist" shortcut admit everybody (`group-access.ts`'s `allowlistMatched`).
+   */
   hasEntries: boolean;
   invalidEntries: string[];
+  /** `accessGroup:<name>` references, kept verbatim for the shared ingress resolver to resolve. */
+  accessGroupRefs: string[];
 };
 
 // Telegram owns this process-local warning bound; authorization output stays unchanged.
@@ -49,8 +61,12 @@ export const normalizeAllowFrom = (list?: Array<string | number>): NormalizedAll
     .map((value) => normalizeOptionalString(String(value)) ?? "")
     .filter(Boolean);
   const hasWildcard = entries.includes("*");
+  // Access-group references are separated out before any sender-id normalization: `accessGroup:`
+  // is channel-agnostic allowlist syntax, so stripping the `telegram:` prefix or applying the
+  // numeric-id rule to it would turn a valid reference into an invalid sender id.
+  const accessGroupRefs = entries.filter((value) => parseAccessGroupAllowFromEntry(value) != null);
   const normalized = entries
-    .filter((value) => value !== "*")
+    .filter((value) => value !== "*" && parseAccessGroupAllowFromEntry(value) == null)
     .map((value) => value.replace(/^(telegram|tg):/i, ""));
   const invalidEntries = normalized.filter((value) => !/^\d+$/.test(value));
   if (invalidEntries.length > 0) {
@@ -62,6 +78,7 @@ export const normalizeAllowFrom = (list?: Array<string | number>): NormalizedAll
     hasWildcard,
     hasEntries: entries.length > 0,
     invalidEntries,
+    accessGroupRefs,
   };
 };
 

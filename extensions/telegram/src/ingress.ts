@@ -24,7 +24,7 @@ export function createTelegramIngressSubject(senderId: string) {
 
 export function createTelegramIngressResolver(params: {
   accountId?: string;
-  cfg?: Pick<OpenClawConfig, "accessGroups" | "commands">;
+  cfg: Pick<OpenClawConfig, "accessGroups" | "commands"> | null;
 }) {
   return createChannelIngressResolver({
     channelId: TELEGRAM_CHANNEL_ID,
@@ -34,8 +34,15 @@ export function createTelegramIngressResolver(params: {
   });
 }
 
+/**
+ * Rebuilds the allowlist the shared ingress resolver sees from a Telegram-normalized one.
+ *
+ * `accessGroupRefs` must be included: the resolver owns access-group membership
+ * (`src/channels/message-access/state.ts`), and dropping the references here would hand it a list
+ * that authorizes nobody while still counting as configured.
+ */
 export function telegramAllowEntries(allow: NormalizedAllowFrom): string[] {
-  return [...(allow.hasWildcard ? ["*"] : []), ...allow.entries];
+  return [...(allow.hasWildcard ? ["*"] : []), ...allow.accessGroupRefs, ...allow.entries];
 }
 
 type TelegramOwnerCommandAccess = { ownerList: string[]; senderIsOwner: boolean };
@@ -99,6 +106,7 @@ export async function resolveTelegramCommandIngressAuthorization(params: {
 
 export async function resolveTelegramEventIngressAuthorization(params: {
   accountId: string;
+  cfg: OpenClawConfig;
   dmPolicy: DmPolicy;
   isGroup: boolean;
   chatId: number;
@@ -109,7 +117,10 @@ export async function resolveTelegramEventIngressAuthorization(params: {
   enforceGroupAuthorization: boolean;
   eventKind: Extract<ChannelIngressEventInput["kind"], "reaction" | "button">;
 }) {
-  const result = await createTelegramIngressResolver({ accountId: params.accountId }).event({
+  const result = await createTelegramIngressResolver({
+    accountId: params.accountId,
+    cfg: params.cfg,
+  }).event({
     subject: createTelegramIngressSubject(params.senderId),
     conversation: telegramConversation(params),
     event: {

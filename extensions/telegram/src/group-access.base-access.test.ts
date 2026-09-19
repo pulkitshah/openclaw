@@ -17,6 +17,7 @@ function allow(entries: string[], hasWildcard = false): NormalizedAllowFrom {
     hasWildcard,
     hasEntries: entries.length > 0 || hasWildcard,
     invalidEntries: [],
+    accessGroupRefs: [],
   };
 }
 
@@ -29,6 +30,7 @@ describe("evaluateTelegramGroupBaseAccess", () => {
       hasWildcard: false,
       hasEntries: true,
       invalidEntries: ["-1001234567890", "-100999", "@someone"],
+      accessGroupRefs: [],
     });
   });
 

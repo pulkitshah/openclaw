@@ -243,6 +243,7 @@ export function createTelegramHandlerAuthorization({
       });
       const eventAccess = await resolveTelegramEventIngressAuthorization({
         accountId,
+        cfg: authorizationCfg,
         dmPolicy,
         isGroup,
         chatId,
@@ -267,6 +268,7 @@ export function createTelegramHandlerAuthorization({
     if (isGroup && enforceGroupAllowlistAuthorization) {
       const eventAccess = await resolveTelegramEventIngressAuthorization({
         accountId,
+        cfg: authorizationCfg,
         dmPolicy,
         isGroup,
         chatId,
@@ -418,6 +420,7 @@ export function createTelegramHandlerAuthorization({
         params.dmAccess === "challenge"
           ? await enforceTelegramDmAccess({
               isGroup: params.isGroup,
+              cfg: authorizationCfg,
               dmPolicy,
               msg: params.msg,
               chatId: params.chatId,
@@ -428,6 +431,7 @@ export function createTelegramHandlerAuthorization({
               upsertPairingRequest: telegramDeps.upsertChannelPairingRequest,
             })
           : await isTelegramDmAccessAllowed({
+              cfg: authorizationCfg,
               dmPolicy,
               msg: params.msg,
               chatId: params.chatId,

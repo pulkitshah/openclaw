@@ -365,6 +365,7 @@ export const buildTelegramMessageContext = async ({
   if (
     !(await enforceTelegramDmAccess({
       isGroup,
+      cfg,
       dmPolicy: effectiveDmPolicy,
       msg,
       chatId,

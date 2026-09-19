@@ -48,6 +48,31 @@ describe("Telegram security audit findings", () => {
     readChannelAllowFromStoreMock.mockResolvedValue([]);
   });
 
+  it("does not call a Team roster accessGroup reference a malformed sender id", async () => {
+    // `openclaw doctor` used to warn that `accessGroup:team` was a non-numeric Telegram user id,
+    // sending operators to "fix" the one entry that makes the roster work.
+    const cfg: OpenClawConfig = {
+      accessGroups: { team: { type: "message.senders", members: { telegram: ["12345"] } } },
+      channels: {
+        telegram: {
+          enabled: true,
+          botToken: "t",
+          groupPolicy: "allowlist",
+          groups: { "-100123": {} },
+          allowFrom: ["accessGroup:team"],
+          groupAllowFrom: ["accessGroup:team"],
+        },
+      },
+    } as unknown as OpenClawConfig;
+    const findings = await collectTelegramSecurityAuditFindings({
+      cfg,
+      account: createTelegramAccount(getTelegramConfig(cfg)),
+    });
+    expect(findings.map((finding) => finding.checkId)).not.toContain(
+      "channels.telegram.allowFrom.invalid_entries",
+    );
+  });
+
   it("flags group commands without a sender allowlist", async () => {
     const cfg: OpenClawConfig = {
       channels: {

@@ -2,7 +2,7 @@
 import type { Bot } from "grammy";
 import type { Message } from "grammy/types";
 import { createChannelPairingChallengeIssuer } from "openclaw/plugin-sdk/channel-pairing";
-import type { DmPolicy } from "openclaw/plugin-sdk/config-contracts";
+import type { DmPolicy, OpenClawConfig } from "openclaw/plugin-sdk/config-contracts";
 import { upsertChannelPairingRequest } from "openclaw/plugin-sdk/conversation-runtime";
 import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
 import { withTelegramApiErrorLogging } from "./api-logging.js";
@@ -40,11 +40,15 @@ function resolveTelegramSenderIdentity(msg: Message, chatId: number): TelegramSe
 
 async function decideTelegramDmAccess(params: {
   accountId: string;
+  cfg: OpenClawConfig;
   dmPolicy: DmPolicy;
   sender: TelegramSenderIdentity;
   effectiveDmAllow: NormalizedAllowFrom;
 }) {
-  const result = await createTelegramIngressResolver({ accountId: params.accountId }).message({
+  const result = await createTelegramIngressResolver({
+    accountId: params.accountId,
+    cfg: params.cfg,
+  }).message({
     subject: createTelegramIngressSubject(params.sender.candidateId),
     conversation: {
       kind: "direct",
@@ -58,6 +62,7 @@ async function decideTelegramDmAccess(params: {
 }
 
 export async function isTelegramDmAccessAllowed(params: {
+  cfg: OpenClawConfig;
   dmPolicy: DmPolicy;
   msg: Message;
   chatId: number;
@@ -70,6 +75,7 @@ export async function isTelegramDmAccessAllowed(params: {
   const sender = resolveTelegramSenderIdentity(params.msg, params.chatId);
   const access = await decideTelegramDmAccess({
     accountId: params.accountId,
+    cfg: params.cfg,
     dmPolicy: params.dmPolicy,
     sender,
     effectiveDmAllow: params.effectiveDmAllow,
@@ -79,6 +85,7 @@ export async function isTelegramDmAccessAllowed(params: {
 
 export async function enforceTelegramDmAccess(params: {
   isGroup: boolean;
+  cfg: OpenClawConfig;
   dmPolicy: DmPolicy;
   msg: Message;
   chatId: number;
@@ -90,6 +97,7 @@ export async function enforceTelegramDmAccess(params: {
 }): Promise<boolean> {
   const {
     isGroup,
+    cfg,
     dmPolicy,
     msg,
     chatId,
@@ -109,6 +117,7 @@ export async function enforceTelegramDmAccess(params: {
   const sender = resolveTelegramSenderIdentity(msg, chatId);
   const access = await decideTelegramDmAccess({
     accountId,
+    cfg,
     dmPolicy,
     sender,
     effectiveDmAllow,

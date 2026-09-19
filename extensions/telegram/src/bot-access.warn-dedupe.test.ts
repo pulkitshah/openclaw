@@ -56,7 +56,23 @@ describe("normalizeAllowFrom invalid-entry warn dedupe", () => {
       hasWildcard: true,
       hasEntries: true,
       invalidEntries: ["@someone"],
+      accessGroupRefs: [],
     });
+    expect(warnMock).not.toHaveBeenCalled();
+  });
+
+  it("treats an accessGroup reference as a configured allowlist, not an invalid sender id", () => {
+    // It is neither a matchable Telegram user id nor a malformed one: the shared ingress resolver
+    // owns its membership. Counting it as invalid warned operators about the one entry that makes
+    // a Team roster work; counting it as absent would make a chat-listed group admit everyone.
+    expect(normalizeAllowFrom(["accessGroup:team"])).toEqual({
+      entries: [],
+      hasWildcard: false,
+      hasEntries: true,
+      invalidEntries: [],
+      accessGroupRefs: ["accessGroup:team"],
+    });
+    expect(normalizeOutsideTestGuard(["accessGroup:team"]).invalidEntries).toEqual([]);
     expect(warnMock).not.toHaveBeenCalled();
   });
 });

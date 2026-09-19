@@ -1,6 +1,7 @@
 // Telegram plugin module implements security audit behavior.
 import { readChannelAllowFromStore } from "openclaw/plugin-sdk/conversation-runtime";
 import { resolveNativeSkillsEnabled } from "openclaw/plugin-sdk/native-command-config-runtime";
+import { parseAccessGroupAllowFromEntry } from "openclaw/plugin-sdk/security-runtime";
 import { normalizeOptionalString } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { OpenClawConfig } from "../runtime-api.js";
 import type { ResolvedTelegramAccount } from "./accounts.js";
@@ -13,6 +14,11 @@ function collectInvalidTelegramAllowFromEntries(params: { entries: unknown; targ
   for (const entry of params.entries) {
     const normalized = normalizeTelegramAllowFromEntry(entry);
     if (!normalized || normalized === "*") {
+      continue;
+    }
+    // `accessGroup:<name>` is channel-agnostic allowlist syntax the shared ingress resolver
+    // resolves to concrete sender ids; it is not a malformed Telegram user id.
+    if (parseAccessGroupAllowFromEntry(normalized) != null) {
       continue;
     }
     if (!isNumericTelegramSenderUserId(normalized)) {

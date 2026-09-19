@@ -1,9 +1,6 @@
 // Telegram plugin module implements access groups behavior.
 import type { DmPolicy, OpenClawConfig } from "openclaw/plugin-sdk/config-contracts";
-import {
-  expandAllowFromWithAccessGroups,
-  parseAccessGroupAllowFromEntry,
-} from "openclaw/plugin-sdk/security-runtime";
+import { expandAllowFromWithAccessGroups } from "openclaw/plugin-sdk/security-runtime";
 import {
   isSenderAllowed,
   normalizeAllowFrom,
@@ -11,6 +8,20 @@ import {
   type NormalizedAllowFrom,
 } from "./bot-access.js";
 
+/**
+ * Appends the concrete sender id when an `accessGroup:<name>` reference in this allowlist admits
+ * them, leaving the references themselves in place.
+ *
+ * Telegram needs the concrete id because `shouldSkipTelegramGroupMessage` decides group admission
+ * synchronously, before the shared ingress resolver runs. Membership itself is never decided here:
+ * `expandAllowFromWithAccessGroups` (`src/plugin-sdk/access-groups.ts`) is the only matcher, and
+ * the documented compatibility path for callers that still need a flat allowlist
+ * (`docs/channels/access-groups.md`).
+ *
+ * The references are deliberately NOT dropped, on a match or otherwise. They are what tells
+ * `normalizeAllowFrom` that an allowlist is configured, and what lets the shared resolver reach
+ * the same verdict from the raw list.
+ */
 export async function expandTelegramAllowFromWithAccessGroups(params: {
   cfg?: OpenClawConfig;
   allowFrom?: Array<string | number>;
@@ -19,26 +30,21 @@ export async function expandTelegramAllowFromWithAccessGroups(params: {
 }): Promise<string[]> {
   const allowFrom = (params.allowFrom ?? []).map(String);
   const senderId = params.senderId?.trim() ?? "";
-  const expanded =
-    params.cfg && senderId
-      ? await expandAllowFromWithAccessGroups({
-          cfg: params.cfg,
-          allowFrom,
-          channel: "telegram",
-          accountId: params.accountId ?? "default",
-          senderId,
-          isSenderAllowed: (candidateSenderId, allowEntries) =>
-            isSenderAllowed({
-              allow: normalizeAllowFrom(allowEntries),
-              senderId: candidateSenderId,
-            }),
-        })
-      : allowFrom;
-  const originalEntries = new Set(allowFrom);
-  const matched = expanded.some((entry) => !originalEntries.has(entry));
-  return matched
-    ? expanded.filter((entry) => parseAccessGroupAllowFromEntry(entry) == null)
-    : expanded;
+  if (!params.cfg || !senderId) {
+    return allowFrom;
+  }
+  return await expandAllowFromWithAccessGroups({
+    cfg: params.cfg,
+    allowFrom,
+    channel: "telegram",
+    accountId: params.accountId ?? "default",
+    senderId,
+    isSenderAllowed: (candidateSenderId, allowEntries) =>
+      isSenderAllowed({
+        allow: normalizeAllowFrom(allowEntries),
+        senderId: candidateSenderId,
+      }),
+  });
 }
 
 export async function resolveTelegramDmAllow(params: {
