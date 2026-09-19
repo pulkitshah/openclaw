@@ -13,6 +13,7 @@ import {
   getRuntimeConfigSourceSnapshot,
   readConfigFileSnapshot,
   readConfigFileSnapshotWithPluginMetadata,
+  registerLifecycleRuntimeConfigActivationOwner,
   setAppliedRuntimeConfigSnapshot,
 } from "../config/io.js";
 import { normalizeStateDirEnv } from "../config/paths.js";
@@ -495,6 +496,16 @@ export async function prepareGatewayServerBootstrap(input: {
     ),
     preserveExistingOwnership: true,
   });
+  // `cfgAtStart` carries runtime-only startup overlays and is what the prepared-model runtime owners
+  // are stamped from. Claim runtime activation for this path now, so a config write committed before
+  // the managed reloader arms (plugin `start()`, startup maintenance) defers activation instead of
+  // republishing an overlay-free file read that no published owner hash-matches. The reloader's own
+  // registration releases this stand-in (`registerConfigWriteListener`); `resetConfigRuntimeState`
+  // retires it if startup never gets that far. A minimal test Gateway applies no startup overlay and
+  // arms no reloader, so it has no such window and keeps direct activation.
+  if (!minimalTestGateway) {
+    registerLifecycleRuntimeConfigActivationOwner(configSnapshot.path);
+  }
   const workerEnvironmentStartup = minimalTestGateway
     ? undefined
     : await startupTrace.measure("worker-environments.store-import", async () => {

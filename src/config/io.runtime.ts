@@ -44,6 +44,7 @@ import {
   preflightRuntimeSnapshotWrite,
   registerManagedRuntimeConfigWriteOwner,
   registerRuntimeConfigWriteListener,
+  releaseLifecycleRuntimeConfigActivationOwner,
   type RuntimeConfigSnapshotRefreshOptions,
   type RuntimeConfigWritePreparedCandidate,
 } from "./runtime-snapshot.js";
@@ -78,6 +79,11 @@ export function registerConfigWriteListener(
         options.preCommitRuntimePreflight,
       )
     : undefined;
+  if (options.ownsRuntimeActivationFor) {
+    // The real activation owner for this path has arrived; the lifecycle stand-in that deferred
+    // pre-`ready` writes on its behalf is done.
+    releaseLifecycleRuntimeConfigActivationOwner(options.ownsRuntimeActivationFor);
+  }
   const unregisterListener = registerRuntimeConfigWriteListener((event) => {
     const {
       preparedCandidate: _preparedCandidate,

@@ -113,6 +113,9 @@ vi.mock("../plugins/plugin-metadata-snapshot.js", () => ({
   isPluginMetadataSnapshotCompatible: () => true,
   loadPluginMetadataSnapshot: () => preparedModelRuntimeMocks.pluginMetadataSnapshot,
   resolvePluginMetadataSnapshot: () => preparedModelRuntimeMocks.pluginMetadataSnapshot,
+  // Config validation reaches this through `resolveConfigWidePluginMetadataSnapshot`, so a test
+  // reading or writing a real config file needs it. One fixed snapshot, one cache key.
+  resolvePluginMetadataSnapshotCacheKey: () => "prepared-model-runtime-harness",
 }));
 
 vi.mock("./prepared-model-catalog-worker.js", () => ({

@@ -231,6 +231,7 @@ export function setRuntimeConfigSourceSnapshotIfCurrent(params: {
 
 export function resetConfigRuntimeState(options: { preserveConfigEnv?: boolean } = {}): void {
   clearExecutablePathCache();
+  releaseLifecycleRuntimeConfigActivationOwner();
   runtimeConfigSnapshot = null;
   runtimeConfigSourceSnapshot = null;
   runtimeConfigSnapshotMetadata = null;
@@ -410,6 +411,53 @@ export async function preflightManagedRuntimeConfigWrite(
 
 export function hasManagedRuntimeConfigWriteOwner(configPath: string): boolean {
   return managedRuntimeConfigWriteOwners.has(configPath);
+}
+
+// Single slot on purpose: one process runs one Gateway lifecycle at a time, and
+// `resetConfigRuntimeState` retires it with the rest of the published runtime state.
+let lifecycleRuntimeConfigActivationOwner: { configPath: string; unregister: () => void } | null =
+  null;
+
+/**
+ * Claims runtime activation for the window between a Gateway lifecycle publishing its runtime
+ * snapshot and its managed reloader registering the real owner.
+ *
+ * Startup publishes a runtime-only config (plugin auto-enable plus legacy default-agent roles, see
+ * `src/gateway/server-startup-config-helpers.ts`) and stamps the prepared-model runtime owners from
+ * exactly that object, but nothing can activate a config write until the reloader arms after
+ * `ready`. Without an owner registered for that window, any write committed during plugin `start()`
+ * republishes the runtime snapshot from a fresh file read: the overlay is gone and, since
+ * `preparedModelRuntimeConfigsMatch` compares whole-config hashes
+ * (`src/agents/prepared-model-runtime.owner.ts`), the published catalog owner no longer matches what
+ * every later reader passes and every agent run fails `PreparedModelCatalogConfigReplacedError`.
+ *
+ * Holding this owner makes those writes take the same deferred path as post-`ready` managed writes:
+ * the file is still committed, the active runtime snapshot is left alone, and the reloader's initial
+ * watch reconcile (`src/gateway/config-reload.ts`) applies the committed bytes once hot reload arms.
+ */
+export function registerLifecycleRuntimeConfigActivationOwner(configPath: string): () => void {
+  releaseLifecycleRuntimeConfigActivationOwner();
+  const owner = {
+    configPath,
+    unregister: registerManagedRuntimeConfigWriteOwner(configPath),
+  };
+  lifecycleRuntimeConfigActivationOwner = owner;
+  return () => {
+    if (lifecycleRuntimeConfigActivationOwner === owner) {
+      lifecycleRuntimeConfigActivationOwner = null;
+    }
+    owner.unregister();
+  };
+}
+
+/** Hands runtime activation over to a real managed owner, or retires it with the runtime state. */
+export function releaseLifecycleRuntimeConfigActivationOwner(configPath?: string): void {
+  const owner = lifecycleRuntimeConfigActivationOwner;
+  if (!owner || (configPath !== undefined && owner.configPath !== configPath)) {
+    return;
+  }
+  lifecycleRuntimeConfigActivationOwner = null;
+  owner.unregister();
 }
 
 export function notifyRuntimeConfigWriteListeners(event: RuntimeConfigWriteNotification): void {
