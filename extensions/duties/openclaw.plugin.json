@@ -43,9 +43,9 @@
     }
   },
   "controlUi": {
-    "entry": "dist/control-ui/62458721afdc070d5f85d3e16f6ac77d13bdd6d20691debe76f2b6cabbdd496d/index.js",
+    "entry": "dist/control-ui/ddac0fb5829278929a5e74f1c4bd9bf41bb52bbb04a07a59f7b5fb484fc15168/index.js",
     "styles": [
-      "dist/control-ui/62458721afdc070d5f85d3e16f6ac77d13bdd6d20691debe76f2b6cabbdd496d/index.css"
+      "dist/control-ui/ddac0fb5829278929a5e74f1c4bd9bf41bb52bbb04a07a59f7b5fb484fc15168/index.css"
     ]
   }
 }
