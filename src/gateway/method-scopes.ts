@@ -66,8 +66,15 @@ export const CLI_DEFAULT_OPERATOR_SCOPES: OperatorScope[] = [
  *
  * Scope of the fence: it keys on request origin, so a bundled or trusted-official plugin's own
  * `api.runtime.gateway.request` is NOT marked and stays allowed. That is the intended line — a plugin
- * hard-codes its method and scopes, while the agent's dispatch mints whatever the method asks for —
- * and no bundled plugin calls these methods today.
+ * hard-codes its method and scopes, while the agent's dispatch mints whatever the method asks for.
+ * `dispatchTrustedPluginGatewayMethod` (`server-plugins.ts`) is what makes that structural rather
+ * than incidental: it always sets `forceSyntheticClient: true`, so the client is rebuilt from its own
+ * options and cannot inherit an outer marked client through the ambient request scope. One bundled
+ * plugin does use this: Team's `team.add` calls `channels.pairing.list` and then
+ * `channels.pairing.approve` for a pending request whose sender the same call puts on the roster
+ * (`extensions/team/src/team-write.ts`), so the agent-reachable `team_add` tool ends in an approval
+ * by design. Its own authority check is the owner gate in `extensions/team/src/tools.ts`, not this
+ * table — the `team.*` methods themselves are reachable with `operator.admin` alone.
  *
  * This table is deliberately narrow. It is NOT "every `operator.pairing` method": `node.pair.approve`
  * and `device.pair.approve` share that scope but attach hardware the owner already holds, and the
