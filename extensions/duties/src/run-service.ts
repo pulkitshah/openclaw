@@ -135,6 +135,9 @@ export class RunManager {
         origin: RunOrigin & { sessionKey: string },
         card: RunProgressCard,
       ) => Promise<void>;
+      /** Brings the browser panel up in front of the person whose session started the run, called
+       *  once, as the run's first browser step begins. Best-effort like `notify`. */
+      showBrowser?: (origin: RunOrigin & { sessionKey: string }) => Promise<void>;
       /** Cancels the Gateway question a parked run is waiting on, so `question.waitAnswer`
        *  returns and the run can unwind. Without it, cancelling a run parked on an owner question
        *  set a flag nothing would read until the question answered or timed out — up to fifteen
@@ -197,6 +200,21 @@ export class RunManager {
         }
       }),
     );
+  }
+
+  /** The person watching a chat-started run should see the browser the moment it starts driving
+   *  one, without hunting for the panel. Only a run with a session to show it in; swallows both a
+   *  synchronous throw and a rejection (no UI connected is the usual one) like `announce`. */
+  private showBrowser(run: DutyRun): void {
+    const origin = run.origin;
+    if (!this.params.showBrowser || !origin?.sessionKey) {
+      return;
+    }
+    try {
+      this.params.showBrowser({ ...origin, sessionKey: origin.sessionKey }).catch(() => {});
+    } catch {
+      // the panel is decoration; a UI that cannot take the command must not affect the run.
+    }
   }
 
   async recoverOrphans(): Promise<number> {
@@ -397,6 +415,7 @@ export class RunManager {
         await this.params.store.updateRun(run.id, { status: "running", startedAt: Date.now() });
         this.params.emit({ type: "run", runId: run.id, dutyId: duty.id, status: "running" });
         this.announce(run.origin, `Running ${duty.name}…`);
+        let browserShown = false;
         if (run.origin?.sessionKey && this.params.progress) {
           this.progress.set(run.id, {
             dutyName: duty.name,
@@ -432,6 +451,10 @@ export class RunManager {
               if (state) {
                 state.current = step.label;
                 this.postProgress(run, step.label);
+              }
+              if (step.kind.startsWith("browser") && !browserShown) {
+                browserShown = true;
+                this.showBrowser(run);
               }
             },
             onStep: (step) => {

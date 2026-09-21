@@ -313,6 +313,15 @@ export default definePluginEntry({
           ...(card.plan ? { plan: card.plan } : {}),
         });
       },
+      // Same command the agent's `screen` tool sends for browser_show: the connected Control UIs
+      // open their browser panel, which then lists tabs and streams the run's page.
+      showBrowser: async (origin) => {
+        await request("ui.command", {
+          command: { kind: "panel", panel: "browser", open: true, dock: "right" },
+          sessionKey: origin.sessionKey,
+          ...(origin.agentId ? { agentId: origin.agentId } : {}),
+        });
+      },
       // Cancelling the question a parked run waits on is what lets its ask return and the run
       // unwind; without it the run keeps its browser session until the question times out.
       cancelQuestion: async (questionId) => {

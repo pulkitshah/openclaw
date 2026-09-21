@@ -707,6 +707,32 @@ describe("RunManager", () => {
     expect(quiet).not.toHaveBeenCalled();
   });
 
+  it("brings up the browser panel once, as a chat-started run begins its first browser step", async () => {
+    const store = newStore();
+    const showBrowser = vi.fn<(origin: { sessionKey: string }) => Promise<void>>(async () => {
+      throw new Error("no ui client");
+    });
+    const mgr = new RunManager({ store, deps: () => deps(0), emit: () => {}, showBrowser });
+    const { runId } = await mgr.start({
+      duty: duty("shown"),
+      inputs: {},
+      trigger: "chat",
+      origin: { kind: "chat", sessionKey: "agent:main:direct:owner", agentId: "main" },
+    });
+    expect((await mgr.wait(runId)).status).toBe("ok");
+    expect(showBrowser).toHaveBeenCalledTimes(1);
+    expect(showBrowser.mock.calls[0]?.[0]).toMatchObject({ sessionKey: "agent:main:direct:owner" });
+
+    const mail = await mgr.start({
+      duty: duty("unseen"),
+      inputs: {},
+      trigger: "mail",
+      origin: { kind: "mail", agentId: "duties-mail" },
+    });
+    await mgr.wait(mail.runId);
+    expect(showBrowser).toHaveBeenCalledTimes(1);
+  });
+
   it("reports a failed chat run's failing step in its status line and never lets notify break the run", async () => {
     const store = newStore();
     const notify = vi.fn<Notify>(async () => {
