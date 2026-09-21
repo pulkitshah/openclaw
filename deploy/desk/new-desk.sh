@@ -21,6 +21,8 @@ on exit.
 Required:
   <desk-name>                A DNS-safe hostname for the desk, e.g. desk-acme.
   --ts-authkey-file <file>   File holding a Tailscale pre-auth key (single line).
+                             Optional when TAILSCALE_AUTHKEY is set in the repo's
+                             gitignored .env; that value is used automatically.
   --tg-token-file <file>     File holding the desk's Telegram bot token (single line).
                              Required for --profile owner; unused for --profile client.
   --owner-target <id>        Telegram user/chat id allowed to DM this desk's agent.
@@ -162,6 +164,26 @@ case "$profile" in
     exit 2
     ;;
 esac
+
+# Fall back to the operator's gitignored .env so the tailnet key does not have to be re-supplied
+# on every desk. The key is still only ever read from a file, never taken as an argument and never
+# printed: this materializes it into a 0600 mktemp file that is removed on exit. `.env.example`
+# documents the variable but must never hold the value — it is committed.
+if [[ -z "$ts_authkey_file" ]]; then
+  repo_env="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/.env"
+  if [[ -f "$repo_env" ]]; then
+    env_authkey="$(sed -n 's/^[[:space:]]*TAILSCALE_AUTHKEY[[:space:]]*=[[:space:]]*//p' "$repo_env" | tr -d '"'\''[:space:]' | head -n1)"
+    if [[ -n "$env_authkey" ]]; then
+      ts_authkey_file="$(mktemp -t desk-tsauthkey)"
+      chmod 600 "$ts_authkey_file"
+      printf '%s\n' "$env_authkey" >"$ts_authkey_file"
+      # shellcheck disable=SC2064
+      trap "rm -f '$ts_authkey_file'" EXIT
+      unset env_authkey
+      echo "new-desk.sh: using TAILSCALE_AUTHKEY from .env" >&2
+    fi
+  fi
+fi
 
 # A client desk renders no Telegram channel at all (see render-cloud-init.mjs --profile), so the
 # bot token and owner target it would configure are required only for the owner's own desk.
