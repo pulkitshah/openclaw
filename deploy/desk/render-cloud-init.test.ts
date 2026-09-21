@@ -629,9 +629,15 @@ describe("render-cloud-init.mjs", () => {
 
       // The plugins a desk ships stay available but unconfigured — the client turns them on from
       // the Control UI rather than finding someone else's accounts already connected.
+      //
+      // The one exception is the anthropic plugin's session catalog, which is OFF: it lists the
+      // Claude CLI's own transcript files in the sidebar under a "Claude Code" heading — one row
+      // per CLI process, so one per inbound email on a mail-triggered desk — which is both a
+      // branding leak on a Vasudev desk and unbounded sidebar growth. Anthropic models and the
+      // claude-cli runtime are unaffected; the Gateway's own sessions remain listed.
       expect(config.plugins).toEqual({
         entries: {
-          anthropic: { enabled: true },
+          anthropic: { enabled: true, config: { sessionCatalog: { enabled: false } } },
           duties: { enabled: true },
           telegram: { enabled: true },
           "llm-task": { enabled: true },
