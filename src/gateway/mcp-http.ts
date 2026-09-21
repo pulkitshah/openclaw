@@ -27,6 +27,7 @@ import {
   isAgentHarnessSessionKey,
   isAgentHarnessSessionStoreEntryProtected,
 } from "../sessions/agent-harness-session-key.js";
+import { runOutsideAsyncWork } from "../shared/async-work-scope.js";
 import {
   registerMcpLoopbackClientGrantRevocationListener,
   revokeMcpLoopbackClientGrantsForRuntime,
@@ -545,7 +546,11 @@ export async function ensureMcpLoopbackServer(port = 0): Promise<void> {
     return;
   }
   if (!activeMcpLoopbackServerPromise) {
-    activeMcpLoopbackServerPromise = startMcpLoopbackServer(port)
+    // The first CLI turn of a process starts this server from inside its own work scope (a
+    // heartbeat turn runs in a detached scope that drains when it ends). The listener would hand
+    // that scope to every later request handler, and plugin tools — which track cancellation in
+    // the current scope — would fail with "Async work scope is closed" for the rest of the process.
+    activeMcpLoopbackServerPromise = runOutsideAsyncWork(() => startMcpLoopbackServer(port))
       .then((close) => {
         closeActiveMcpLoopbackServer = close;
       })

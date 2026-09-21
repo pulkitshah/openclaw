@@ -118,6 +118,12 @@ export function captureAsyncWorkTracker(): typeof trackAsyncWork {
   return async (run) => await (scope ? scope.track(run) : currentWorkScope.exit(run));
 }
 
+/** Starts process-owned work outside the caller's scope, so an owner that outlives its first
+ *  caller (a listener, a long-lived server) never inherits a scope that closes with that caller. */
+export function runOutsideAsyncWork<T>(run: () => T): T {
+  return currentWorkScope.exit(run);
+}
+
 export function getAsyncWorkSignal(): AbortSignal | undefined {
   return currentWorkScope.getStore()?.signal;
 }

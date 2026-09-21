@@ -34,6 +34,7 @@ import {
   enqueueSystemEventWithReceipt,
   peekSystemEventEntries,
 } from "../infra/system-events.js";
+import { AsyncWorkScope, runWithTrackedCancellation } from "../shared/async-work-scope.js";
 import type { SkillLibraryAuthoringCapability } from "../skills/library/authoring.js";
 import { getFreePortBlockWithPermissionFallback } from "../test-utils/ports.js";
 import type { McpLoopbackRequestContext } from "./mcp-grant-store.js";
@@ -1136,6 +1137,34 @@ describe("buildMcpToolSchema", () => {
 });
 
 describe("mcp loopback server", () => {
+  it("serves tool calls after the work scope that started the server has closed", async () => {
+    // The server is process-owned but started lazily by whichever CLI turn comes first. A
+    // heartbeat turn runs inside a detached AsyncWorkScope that drains when the turn ends; a
+    // TCP listener created inside it hands that scope to every later request handler, and a
+    // plugin tool (bindPluginToolCallbacks → runWithTrackedCancellation) then fails with
+    // "Async work scope is closed" for the rest of the process.
+    mockScopedTools([
+      makeMessageTool({
+        execute: async (_toolCallId, _params, signal) =>
+          runWithTrackedCancellation(signal ?? new AbortController().signal, async () => ({
+            content: [{ type: "text", text: "tracked" }],
+          })),
+      }),
+    ]);
+    const startingTurn = new AsyncWorkScope();
+    await startingTurn.track(() => startLoopbackServerForTest());
+    await startingTurn.drain();
+
+    const payload = await callMainSessionTool({
+      token: getActiveMcpLoopbackRuntime()?.ownerToken,
+      name: "message",
+      args: { body: "hello" },
+    });
+
+    expect(payload.result?.content?.[0]?.text).toBe("tracked");
+    expectMcpResultText(payload, "tracked", false);
+  });
+
   it("keeps equal schemas quiet and dedupes genuine conflicts across HTTP cache misses", async () => {
     mockScopedTools([
       makeMockTool({
