@@ -252,9 +252,16 @@ export function registerDutyTools(params: { api: OpenClawPluginApi }): void {
       }
       const run = outcome.value;
       return jsonResult({
+        runId,
         status: run.status,
         steps: run.steps,
         outputs: run.outputs,
+        // A `template` step's whole point is the document it produced, and the run outcome already
+        // carries `files` (name, path, contentType, bytes). Dropping it here told the caller a
+        // document exists — the step summary even names it — while withholding where, so a
+        // dispatcher asked to mail the result had nothing to attach. `runId` likewise: the abort
+        // branch above returns it, the success branch did not.
+        files: run.files,
         failedStep: run.failedStep,
         report: run.report,
         targetId: run.targetId,

@@ -173,6 +173,31 @@ describe("duty tools as gateway clients", () => {
     });
   });
 
+  it("hands the caller the documents the run produced, and the run id", async () => {
+    // A template step's product is the file; without a path a dispatcher asked to mail the
+    // result has nothing to attach, even though the step summary names the document.
+    const file = {
+      stepId: "render-options",
+      name: "Flight options 2026-09-21.pdf",
+      path: "/runs/r1/Flight options 2026-09-21.pdf",
+      bytes: 50232,
+      contentType: "application/pdf",
+    };
+    const { run } = makeTools({
+      respond: ({ method }) =>
+        method === "duties.run"
+          ? { runId: "r1" }
+          : method === "duties.run.wait"
+            ? { run: { id: "r1", status: "ok", outputs: {}, files: [file] } }
+            : {},
+    });
+    expect(await run("duty_run", { id: "d1" })).toMatchObject({
+      runId: "r1",
+      status: "ok",
+      files: [file],
+    });
+  });
+
   it("reports the run's own errors instead of polling a run that was never started", async () => {
     const { run, calls } = makeTools({
       respond: ({ method }) =>
