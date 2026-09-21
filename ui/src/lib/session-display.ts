@@ -156,7 +156,24 @@ type SessionKeyInfo = {
   fallbackName: string;
   /** Raw account segment; only a fallback, Gateway rows carry the real one. */
   accountId?: string;
+  /** A per-peer member session, whose key segment IS the person's roster id rather than a
+   *  channel-specific address. Unlike a phone number, that id is the best name available, so it
+   *  outranks a title derived from whatever the person happened to type first. */
+  isMemberSession?: boolean;
 };
+
+/** `anuj-bansal` -> `Anuj Bansal`. Team ids are the member's name lowercased with spaces turned
+ *  into hyphens (`normalizeTeamMemberId`), so reversing that recovers the name without the UI
+ *  reaching into the Team plugin — `ui/**` must not import `extensions/**` internals. A name that
+ *  genuinely contains a hyphen comes back with a space; the id is still recognisable, and the
+ *  roster's own label wins anyway whenever the Gateway supplies one as `displayName`. */
+function humanizeMemberId(memberId: string): string {
+  return memberId
+    .split("-")
+    .filter(Boolean)
+    .map((part) => capitalize(part))
+    .join(" ");
+}
 
 /**
  * Two DMs from different accounts routinely share a name, so the account is the
@@ -219,6 +236,18 @@ function parseSessionKey(key: string): SessionKeyInfo {
   if (normalized.startsWith("cron:") || key.includes(":cron:")) {
     const prefix = typedSessionPrefix("automation");
     return { kind: "automation", prefix, fallbackName: prefix };
+  }
+
+  // Per-peer member chat: agent:<x>:(direct|dm):<memberId>, with NO channel segment —
+  // `dmScope: "per-peer"` omits it on purpose so a person's channels converge on one session
+  // (src/routing/session-key.ts:245). The id is therefore a roster id, not a channel address,
+  // and rendering it is the point rather than a leak.
+  const memberMatch = key.match(/^agent:[^:]+:(?:direct|dm):([^:]+)$/);
+  if (memberMatch) {
+    const memberId = memberMatch[1];
+    if (memberId) {
+      return { prefix: "", fallbackName: humanizeMemberId(memberId), isMemberSession: true };
+    }
   }
 
   // Direct chat: agent:<x>:<channel>[:<account>]:(direct|dm):<id>. Never render
@@ -288,7 +317,13 @@ export function resolveSessionDisplayName(
   const label = normalizeOptionalString(row?.label) ?? "";
   const displayName = normalizeOptionalString(row?.displayName) ?? "";
   const derivedTitle = normalizeOptionalString(row?.derivedTitle) ?? "";
-  const { kind, prefix, fallbackName, accountId: keyAccountId } = parseSessionKey(key);
+  const {
+    kind,
+    prefix,
+    fallbackName,
+    accountId: keyAccountId,
+    isMemberSession,
+  } = parseSessionKey(key);
   // The Gateway records the account on the row (src/gateway/session-classification.ts);
   // the key is parsed only for panes rendered before their row arrives.
   const accountId = normalizeOptionalString(row?.accountId) ?? keyAccountId;
@@ -322,6 +357,12 @@ export function resolveSessionDisplayName(
     const workSubtitle = row ? resolveSessionWorkSubtitle(row) : undefined;
     if (workSubtitle && row?.worktree) {
       return applyTypedPrefix(workSubtitle);
+    }
+    // A member session is named after the person, not after their opening line: "Anuj Bansal"
+    // beats "Hi". An explicit `label` or a Gateway-supplied `displayName` still wins above,
+    // so renaming a session by hand, or the roster's own name, is never overridden here.
+    if (isMemberSession) {
+      return fallbackName;
     }
     if (derivedTitle && derivedTitle !== key) {
       return applyTypedPrefix(derivedTitle);

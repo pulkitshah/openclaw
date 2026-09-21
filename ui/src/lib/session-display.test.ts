@@ -29,6 +29,34 @@ describe("isCronSessionKey", () => {
 });
 
 describe("resolveSessionDisplayName", () => {
+  it("names a per-peer member session after the person, not their opening line", () => {
+    // `dmScope: "per-peer"` omits the channel segment so a person's channels converge on one
+    // session, so this key shape did not match the channel-scoped direct-chat branch at all and
+    // fell through to whatever the transcript had derived — a session showing as "Hi".
+    expect(resolveSessionDisplayName("agent:main:direct:pulkit")).toBe("Pulkit");
+    expect(resolveSessionDisplayName("agent:main:direct:anuj-bansal")).toBe("Anuj Bansal");
+    expect(resolveSessionDisplayName("agent:main:direct:anuj-bansal", { derivedTitle: "Hi" })).toBe(
+      "Anuj Bansal",
+    );
+  });
+
+  it("still lets an explicit label or the Gateway's own name win over the member id", () => {
+    expect(
+      resolveSessionDisplayName("agent:main:direct:anuj-bansal", { label: "Renamed by hand" }),
+    ).toBe("Renamed by hand");
+    expect(
+      resolveSessionDisplayName("agent:main:direct:anuj-bansal", { displayName: "Anuj B." }),
+    ).toBe("Anuj B.");
+  });
+
+  it("leaves a channel-scoped direct session alone, where the id is an address not a name", () => {
+    // agent:<x>:<channel>[:<account>]:direct:<id> keeps its existing treatment: the identifier
+    // there is a phone number or handle, which must not be rendered as if it were a person.
+    expect(resolveSessionDisplayName("agent:main:whatsapp:direct:+919769480620")).not.toBe(
+      "+919769480620",
+    );
+  });
+
   it("uses the same friendly main-thread name for every agent", () => {
     for (const key of ["main", "agent:main:main", "agent:research:main", "agent:ops-team:main"]) {
       expect(resolveSessionDisplayName(key)).toBe("Main Session");
