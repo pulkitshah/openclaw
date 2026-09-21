@@ -510,10 +510,14 @@ export async function runDuty(
                 "a short, specific file name for this document, no extension, from the data",
             };
           }
-          const required = [
-            ...aiSlots.map((s) => s.name),
-            ...(wantsAiName ? [AI_FILENAME_KEY] : []),
-          ];
+          // The slots are required — a template with an unfilled slot cannot render. The file
+          // NAME is not: the naming chain below already falls back to "<template> <date>.pdf" and
+          // then to the step id when the model offers nothing, so requiring it only converts a
+          // cosmetic nicety into a failed run. Observed on a live desk: a 46-step run that had
+          // signed in, emulated the client and collected 132 flights was thrown away by
+          // "LLM JSON did not match schema: $filename: must have required property '$filename'".
+          // It stays in `properties` so a model that can name the document still does.
+          const required = aiSlots.map((s) => s.name);
           const filled = await deps.ai.extract({
             instruction:
               "Write the following template slots from the run's data. Return every slot; never invent facts that are not in the data.",

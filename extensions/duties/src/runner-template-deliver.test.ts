@@ -276,6 +276,55 @@ describe("template and deliver steps", () => {
     expect(outcome.files[0]!.name).toMatch(/^Plain quote \d{4}-\d{2}-\d{2}\.pdf$/u);
   });
 
+  it("still renders when the model omits the document name entirely", async () => {
+    // The naming chain already falls back without a model-written name, so requiring `$filename`
+    // in the extract schema only turned a cosmetic nicety into a failed run — observed live as
+    // "LLM JSON did not match schema: $filename: must have required property '$filename'" after
+    // 46 steps of real work. Slots stay required; a template cannot render with one unfilled.
+    const plainTpl: Template = {
+      id: "plain",
+      name: "Plain quote",
+      kind: "pdf",
+      updatedAt: 1,
+      html: "<p>{{slot:route}}</p>",
+      slots: [{ name: "route", kind: "text", description: "" }],
+    };
+    const schemas: { properties: string[]; required: string[] }[] = [];
+    const deps = fakeDeps({
+      templates: { get: async () => plainTpl, brand: async () => undefined },
+      ai: {
+        extract: async ({ schema }) => {
+          const props = schema.properties;
+          schemas.push({
+            properties: props && typeof props === "object" ? Object.keys(props) : [],
+            required: Array.isArray(schema.required) ? (schema.required as string[]) : [],
+          });
+          // The key is absent, not blank — exactly what the live model returned.
+          return {};
+        },
+      },
+    });
+
+    const outcome = await runDuty(
+      duty([
+        {
+          id: "t1",
+          kind: "template",
+          label: "Render the quote",
+          params: { template: "plain", fill: { route: { from: "IXU → COK" } } },
+        },
+      ]),
+      deps,
+      { inputs: {}, now: undefined } as never,
+    );
+
+    expect(outcome.status).toBe("ok");
+    expect(outcome.files[0]!.name).toMatch(/^Plain quote \d{4}-\d{2}-\d{2}\.pdf$/u);
+    // Offered to the model, but never demanded of it.
+    expect(schemas[0]?.properties).toContain("$filename");
+    expect(schemas[0]?.required).not.toContain("$filename");
+  });
+
   it("does not let a second document overwrite the first when both want one name", async () => {
     const plainTpl: Template = {
       id: "plain",
