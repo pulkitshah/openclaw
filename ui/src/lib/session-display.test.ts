@@ -52,8 +52,8 @@ describe("resolveSessionDisplayName", () => {
   it("leaves a channel-scoped direct session alone, where the id is an address not a name", () => {
     // agent:<x>:<channel>[:<account>]:direct:<id> keeps its existing treatment: the identifier
     // there is a phone number or handle, which must not be rendered as if it were a person.
-    expect(resolveSessionDisplayName("agent:main:whatsapp:direct:+919769480620")).not.toBe(
-      "+919769480620",
+    expect(resolveSessionDisplayName("agent:main:whatsapp:direct:+15550001234")).not.toBe(
+      "+15550001234",
     );
   });
 

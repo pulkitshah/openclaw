@@ -26,7 +26,7 @@ describe("resolveGatewaySessionDisplayName", () => {
     // Telegram, the contact name after WhatsApp. Naming the session after that leaks a channel
     // identity and flips as the person switches channels; the roster id is the stable name and
     // the UI renders it when the Gateway stays silent.
-    const entry = directEntry("P (@curious_pantomath) id:5995225650", "telegram:5995225650");
+    const entry = directEntry("P (@example_handle) id:4242424242", "telegram:4242424242");
     expect(resolveGatewaySessionDisplayName("agent:main:direct:pulkit", entry)).toBeUndefined();
     expect(resolveGatewaySessionDisplayName("agent:main:dm:anuj-bansal", entry)).toBeUndefined();
   });
@@ -40,7 +40,7 @@ describe("resolveGatewaySessionDisplayName", () => {
 
   it("lets an explicit label win on a member session", () => {
     const entry = {
-      ...directEntry("P (@curious_pantomath) id:5995225650", "telegram:5995225650"),
+      ...directEntry("P (@example_handle) id:4242424242", "telegram:4242424242"),
       label: "Pulkit (work)",
     } as SessionEntry;
     expect(resolveGatewaySessionDisplayName("agent:main:direct:pulkit", entry)).toBe(
@@ -49,7 +49,7 @@ describe("resolveGatewaySessionDisplayName", () => {
   });
 
   it("keeps suppressing dashboard origin labels", () => {
-    const entry = directEntry("askvasu@amigosalliance.com", "dashboard:askvasu");
+    const entry = directEntry("owner@example.com", "dashboard:owner");
     expect(
       resolveGatewaySessionDisplayName("agent:main:dashboard:0f9d5c1e-6d0f-4c9a", entry),
     ).toBeUndefined();
