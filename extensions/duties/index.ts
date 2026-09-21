@@ -259,11 +259,29 @@ export default definePluginEntry({
             // session/route instead of the owner's — resolved fresh per call, same as the owner
             // path above, so a config reload still picks up roster/routing changes mid-desk-life.
             memberTarget: async (memberId) => {
-              const { sessionKey, route } = await memberAskTarget(memberId);
+              const { sessionKey, routes } = await memberAskTarget(memberId);
               return {
                 sessionKey,
+                // Announce on the preferred channel, and only if that send FAILS try the next.
+                // Not a fan-out: every route resolves to `sessionKey` above, so a later announce
+                // carries the same question rather than a second one, and `question.resolve` is
+                // idempotent (ALREADY_TERMINAL) if both ever became answerable. Falling back on a
+                // definite send failure is what keeps an approval reaching someone when their
+                // preferred channel is down; it deliberately does not fall back on a slow send,
+                // which could leave a live card on a channel we then abandoned.
                 announce: async (text, question) => {
-                  await deliver.send({ route, text, ...(question ? { question } : {}) });
+                  let lastError: unknown;
+                  for (const route of routes) {
+                    try {
+                      await deliver.send({ route, text, ...(question ? { question } : {}) });
+                      return;
+                    } catch (error) {
+                      lastError = error;
+                    }
+                  }
+                  // Every channel refused. `ask` swallows this so the run still parks on its
+                  // question — rethrowing only preserves the reason for the caller's own logging.
+                  throw lastError ?? new Error(`no channel accepted the question for ${memberId}`);
                 },
               };
             },

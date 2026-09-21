@@ -128,9 +128,9 @@ describe("createMemberAskTarget", () => {
       { channel: "telegram", senderId: "5551234" },
     ],
   };
-  const cfg = {} as never;
+  const cfg = { channels: { whatsapp: {}, telegram: {} } } as never;
 
-  it("resolves the session and route through the member's first channel identity", async () => {
+  it("prefers whatsapp and keeps the rest as ordered fallbacks", async () => {
     const resolveRoute = vi.fn(() => ({ sessionKey: "agent:krishna:direct:ramesh" }) as never);
     const target = createMemberAskTarget({
       cfg,
@@ -139,13 +139,81 @@ describe("createMemberAskTarget", () => {
     });
     await expect(target("ramesh")).resolves.toEqual({
       sessionKey: "agent:krishna:direct:ramesh",
-      route: { channel: "whatsapp", to: "+919812345678", accountId: "work" },
+      routes: [
+        { channel: "whatsapp", to: "+919812345678", accountId: "work" },
+        { channel: "telegram", to: "5551234" },
+      ],
     });
+    // The session is resolved from the preferred channel; the others converge on it anyway.
     expect(resolveRoute).toHaveBeenCalledWith({
       cfg,
       channel: "whatsapp",
       peer: { kind: "direct", id: "+919812345678" },
     });
+  });
+
+  it("puts whatsapp first even when it was added to the roster last", async () => {
+    // Roster order is an accident of how the operator typed; it must not decide where an
+    // approval lands.
+    const telegramFirst: TeamMemberRoute = {
+      name: "Ramesh",
+      channels: [
+        { channel: "telegram", senderId: "5551234" },
+        { channel: "whatsapp", senderId: "+919812345678", accountId: "work" },
+      ],
+    };
+    const target = createMemberAskTarget({
+      cfg,
+      teamMember: async () => telegramFirst,
+      resolveRoute: () => ({ sessionKey: "agent:krishna:direct:ramesh" }) as never,
+    });
+    const { routes } = await target("ramesh");
+    expect(routes.map((route) => route.channel)).toEqual(["whatsapp", "telegram"]);
+  });
+
+  it("skips a channel this desk does not run", async () => {
+    const resolveRoute = vi.fn(() => ({ sessionKey: "agent:krishna:direct:ramesh" }) as never);
+    const target = createMemberAskTarget({
+      // WhatsApp present but disabled: the question must go to telegram, not to a dead channel.
+      cfg: { channels: { whatsapp: { enabled: false }, telegram: {} } } as never,
+      teamMember: async () => ramesh,
+      resolveRoute,
+    });
+    const { routes } = await target("ramesh");
+    expect(routes).toEqual([{ channel: "telegram", to: "5551234" }]);
+    expect(resolveRoute).toHaveBeenCalledWith(
+      expect.objectContaining({ channel: "telegram", peer: { kind: "direct", id: "5551234" } }),
+    );
+  });
+
+  it("keeps roster order among channels that are not preferred", async () => {
+    const exotic: TeamMemberRoute = {
+      name: "Ramesh",
+      channels: [
+        { channel: "slack", senderId: "U1" },
+        { channel: "discord", senderId: "D1" },
+      ],
+    };
+    const target = createMemberAskTarget({
+      cfg: { channels: { slack: {}, discord: {} } } as never,
+      teamMember: async () => exotic,
+      resolveRoute: () => ({ sessionKey: "agent:krishna:direct:ramesh" }) as never,
+    });
+    const { routes } = await target("ramesh");
+    expect(routes.map((route) => route.channel)).toEqual(["slack", "discord"]);
+  });
+
+  it("names the channels when the member has none this desk runs", async () => {
+    const target = createMemberAskTarget({
+      cfg: { channels: { telegram: {} } } as never,
+      teamMember: async () => ({
+        name: "Ramesh",
+        channels: [{ channel: "whatsapp", senderId: "+919812345678" }],
+      }),
+    });
+    await expect(target("ramesh")).rejects.toThrow(
+      'ask target "team:ramesh": Ramesh has no channel this desk runs — their channels are whatsapp; enable one under Channels',
+    );
   });
 
   it("throws on an unknown member id", async () => {

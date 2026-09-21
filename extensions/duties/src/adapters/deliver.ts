@@ -235,20 +235,63 @@ export function createRouteResolver(params: {
   };
 }
 
+/** Operator-facing order for raising an `ask` with a member, most-preferred first. Owners answer
+ *  approvals on WhatsApp in practice, and roster order is an accident of how someone was added —
+ *  it put the question wherever the operator happened to type first. Channels not named here keep
+ *  their roster order behind the ones that are. */
+const ASK_CHANNEL_PREFERENCE = ["whatsapp", "telegram"] as const;
+
+/** A channel the desk does not actually run cannot carry a question: `channels.<id>` absent, or
+ *  present with `enabled: false`. Skipping it here is what makes "WhatsApp, else the next one"
+ *  mean "next one this desk can actually send on" rather than "next one on the roster". */
+function isChannelConfigured(cfg: OpenClawConfig, channel: string): boolean {
+  const entry = (cfg.channels as Record<string, { enabled?: boolean } | undefined> | undefined)?.[
+    channel
+  ];
+  return Boolean(entry) && entry?.enabled !== false;
+}
+
+/** The member's channel identities ordered for an `ask`: preferred channels first in
+ *  ASK_CHANNEL_PREFERENCE order, then everything else in roster order, with channels this desk
+ *  does not run dropped entirely. */
+function orderAskIdentities<T extends { channel: string }>(
+  identities: readonly T[],
+  cfg: OpenClawConfig,
+): T[] {
+  const rank = (channel: string): number => {
+    const index = ASK_CHANNEL_PREFERENCE.indexOf(
+      channel as (typeof ASK_CHANNEL_PREFERENCE)[number],
+    );
+    return index === -1 ? ASK_CHANNEL_PREFERENCE.length : index;
+  };
+  return identities
+    .filter((identity) => isChannelConfigured(cfg, identity.channel))
+    .map((identity, position) => ({ identity, position }))
+    .sort((left, right) => {
+      const byRank = rank(left.identity.channel) - rank(right.identity.channel);
+      // Roster order breaks ties, so two unpreferred channels keep the order the operator added
+      // them and the choice stays deterministic.
+      return byRank !== 0 ? byRank : left.position - right.position;
+    })
+    .map((entry) => entry.identity);
+}
+
 /** Where a member-targeted `ask` raises its question: the session an ordinary inbound message on
  *  ANY of that member's linked channels would resolve to (proven identical across their channels
  *  by `dmScope: "per-peer"` + `session.identityLinks` — see
  *  `extensions/team/src/team.test.ts`'s "sends both of a member's channel identities to the
- *  coordinator agent, in the same session"), plus the route to announce the question on. Picking
- *  the member's first channel identity is therefore not a guess among several different outcomes;
- *  it is one deterministic choice among options `resolveAgentRoute` proves converge on the same
- *  session key. */
+ *  coordinator agent, in the same session"), plus the routes to announce the question on.
+ *
+ *  `routes` is ordered, not a fan-out: the caller announces on the first one that accepts the
+ *  send and stops. Because every route here converges on the SAME session key, a later route is
+ *  the same question announced somewhere else, never a second question — so falling back cannot
+ *  leave two live approvals. */
 export function createMemberAskTarget(params: {
   cfg: OpenClawConfig | (() => OpenClawConfig);
   teamMember: (id: string) => Promise<TeamMemberRoute | undefined>;
   /** Injectable so tests never load the host's routing tables. */
   resolveRoute?: typeof resolveAgentRoute;
-}): (memberId: string) => Promise<{ sessionKey: string; route: DeliverRoute }> {
+}): (memberId: string) => Promise<{ sessionKey: string; routes: DeliverRoute[] }> {
   return async (memberId) => {
     const member = await params.teamMember(memberId);
     if (!member) {
@@ -256,19 +299,32 @@ export function createMemberAskTarget(params: {
         `ask target "team:${memberId}": no Team member "${memberId}" — add them on the Team card`,
       );
     }
-    const identity = member.channels[0];
-    if (!identity) {
+    if (member.channels.length === 0) {
       throw new Error(
         `ask target "team:${memberId}": ${member.name} has no channel identity — add one on the Team card`,
       );
     }
+    const cfg = typeof params.cfg === "function" ? params.cfg() : params.cfg;
+    const ordered = orderAskIdentities(member.channels, cfg);
+    const identity = ordered[0];
+    if (!identity) {
+      // They have identities, but on channels this desk does not run — a different failure from
+      // having none at all, and the operator fixes it somewhere else (Channels, not the Team card).
+      throw new Error(
+        `ask target "team:${memberId}": ${member.name} has no channel this desk runs — their channels are ${[
+          ...new Set(member.channels.map((c) => c.channel)),
+        ].join(", ")}; enable one under Channels`,
+      );
+    }
     const resolve = params.resolveRoute ?? resolveAgentRoute;
+    // Every ordered identity converges on this same session key, so it is resolved from the
+    // preferred one and not re-resolved per route.
     const resolved = resolve({
-      cfg: typeof params.cfg === "function" ? params.cfg() : params.cfg,
+      cfg,
       channel: identity.channel,
       peer: { kind: "direct", id: identity.senderId },
     });
-    return { sessionKey: resolved.sessionKey, route: routeFromIdentity(identity) };
+    return { sessionKey: resolved.sessionKey, routes: ordered.map(routeFromIdentity) };
   };
 }
 
