@@ -165,6 +165,32 @@ describe("createBrowserAdapter", () => {
     expect(await b.evaluate("T1", "() => undefined")).toBeUndefined();
   });
 
+  it("sends a step's evaluate timeout in the /act body, not only as the HTTP timeout", async () => {
+    // The browser route derives the in-page Promise.race budget from the BODY's timeoutMs and
+    // otherwise defaults to 20_000 (minus 500ms headroom). Passing the step budget only as this
+    // call's HTTP timeout capped every Duty evaluate at 19_500ms regardless of the step.
+    const request = vi.fn(async (_m: string, _params: Record<string, unknown>) => ({
+      ok: true,
+      targetId: "T1",
+      url: "https://x",
+      result: "done",
+    }));
+    const b = createBrowserAdapter({ request: asRequest(request), profile: "chrome" });
+    await b.evaluate("T1", "() => 1", 120_000);
+    const call = request.mock.calls.find(
+      ([, p]) => ((p as { body?: { kind?: string } }).body ?? {}).kind === "evaluate",
+    )?.[1] as { body: { timeoutMs?: number }; timeoutMs?: number } | undefined;
+    expect(call?.body.timeoutMs).toBe(120_000);
+    expect(call?.timeoutMs).toBe(120_000);
+
+    request.mockClear();
+    await b.evaluate("T1", "() => 1");
+    const noBudget = request.mock.calls.find(
+      ([, p]) => ((p as { body?: { kind?: string } }).body ?? {}).kind === "evaluate",
+    )?.[1] as { body: Record<string, unknown> } | undefined;
+    expect(noBudget?.body).not.toHaveProperty("timeoutMs");
+  });
+
   it("labels the tab it opens with the duty it is replaying", async () => {
     const request = vi.fn(async (_m: string, _params: Record<string, unknown>) => ({
       targetId: "T1",

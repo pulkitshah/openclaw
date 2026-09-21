@@ -393,7 +393,18 @@ export function createBrowserAdapter(params: {
       return res.tabs.find((t) => t.targetId === targetId)?.url ?? "";
     },
     async evaluate(targetId, fn, timeoutMs) {
-      const r = await act<{ result?: unknown }>(targetId, { kind: "evaluate", fn }, timeoutMs);
+      // `timeoutMs` has to travel in the /act BODY, not only as this call's HTTP timeout: the
+      // browser route derives the in-page Promise.race budget from the body's timeoutMs
+      // (agent.act.normalize.ts "evaluate" -> pw-tools-core.interactions.actions.ts), defaulting
+      // to 20_000 minus 500ms of routing headroom when it is absent. Sending it only as the HTTP
+      // timeout left every Duty evaluate capped at 19_500ms however long the step asked for, so a
+      // step with `timeoutMs: 120000` still failed at 19.5s ("evaluate timed out after 19500ms")
+      // on a page that simply needed longer. `wait` above already passes it in the body.
+      const r = await act<{ result?: unknown }>(
+        targetId,
+        { kind: "evaluate", fn, ...(timeoutMs === undefined ? {} : { timeoutMs }) },
+        timeoutMs,
+      );
       return "result" in r ? r.result : undefined;
     },
     screenshotPath,
