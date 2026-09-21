@@ -36,6 +36,14 @@ export function resolveGatewaySessionDisplayName(key: string, entry?: SessionEnt
   const origin = sessionDeliveryOrigin(entry);
   const originLabel = origin?.label;
   const isDashboardSession = parsedAgent?.rest.startsWith("dashboard:") === true;
+  // agent:<x>:(direct|dm):<memberId> with NO channel segment is a per-peer member session:
+  // `dmScope: "per-peer"` omits the channel so a person's channels converge on one key
+  // (src/routing/session-key.ts:245), and the id is their roster id. Its origin label is only
+  // the identity of whichever channel they last wrote from — "P (@handle) id:5995…" after a
+  // Telegram message, the contact name after a WhatsApp one — so it names a channel, not the
+  // person, and flips as they switch. The roster id is the stable name; the UI renders it
+  // when the Gateway supplies nothing (ui/src/lib/session-display.ts, member sessions).
+  const isMemberSession = /^(?:direct|dm):[^:]+$/.test(parsedAgent?.rest ?? "");
   const isGroupSession = isGroupOrChannelDisplaySession(entry, parsed);
   const groupTitle = isGroupSession
     ? buildGroupDisplayTitle({ subject, topicName, groupChannel, space })
@@ -89,7 +97,8 @@ export function resolveGatewaySessionDisplayName(key: string, entry?: SessionEnt
     (channel === "imessage" ? undefined : compactGroupFallback) ??
     // Dashboard origin labels identify the authenticated sender. Using them as
     // titles leaks account names into the sidebar while the generated title is pending.
-    (isDashboardSession ? undefined : readableOriginLabel);
+    // Member sessions are suppressed for the same reason: the label is a channel identity.
+    (isDashboardSession || isMemberSession ? undefined : readableOriginLabel);
   return displayName;
 }
 
