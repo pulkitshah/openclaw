@@ -253,7 +253,11 @@ export class BrowserPanelStream {
       this.host.operations.isLive(recovery.epoch, recovery.client) &&
       !this.host.operations.hasPendingCapture
     ) {
-      void this.host.refreshView(recovery.targetId);
+      // Re-list rather than re-shoot the same target: the stream usually dies because the page
+      // behind it is gone (the browser was relaunched, the agent replaced the tab), and no event
+      // announces the replacement. Listing drops a vanished target and attaches to the live one;
+      // when the target is still there this reduces to the same screenshot refresh as before.
+      void this.host.refreshAll();
     }
   }
 

@@ -39,6 +39,10 @@ import { browserRouteKey, type BrowserRoute } from "./browser-target.ts";
 import { normalizeBrowserUrlDraft } from "./browser-url.ts";
 
 const ACTION_REFRESH_DELAY_MS = 350;
+/** How often an open panel re-lists tabs while it has nothing to show. The Gateway pushes no
+ *  browser state: a browser that starts (or restarts) after the panel was opened is only ever
+ *  discovered by listing again. */
+const IDLE_REFRESH_MS = 3_000;
 
 type BrowserPanelMode = "interact" | "annotate" | "inspect";
 
@@ -72,6 +76,7 @@ export class BrowserPanelController implements ReactiveController {
   urlDraftEditing = false;
   private readonly viewport = new BrowserPanelViewportController(this);
   private readonly snapshot = new BrowserPanelSnapshotController(this, this.viewport);
+  private idleRefreshTimer?: ReturnType<typeof setTimeout>;
 
   constructor(readonly host: BrowserPanelControllerHost) {
     this.operations = new BrowserPanelOperationOwnership(host);
@@ -95,6 +100,7 @@ export class BrowserPanelController implements ReactiveController {
   }
 
   suspendView(): void {
+    this.cancelIdleRefresh();
     this.native.cancelCapture();
     this.native.presentation.hide();
     this.input.cancelOverlayPointerGesture();
@@ -153,7 +159,26 @@ export class BrowserPanelController implements ReactiveController {
     return true;
   }
 
+  private cancelIdleRefresh(): void {
+    clearTimeout(this.idleRefreshTimer);
+    this.idleRefreshTimer = undefined;
+  }
+
+  /** Keeps an open panel with nothing to show re-listing until a tab appears; a closed or reset
+   *  panel cancels it, and a panel with a tab has the stream's own recovery instead. */
+  private scheduleIdleRefresh(): void {
+    this.cancelIdleRefresh();
+    this.idleRefreshTimer = setTimeout(() => {
+      this.idleRefreshTimer = undefined;
+      if (this.running === true && this.activeTargetId !== null) {
+        return;
+      }
+      void this.refreshAll();
+    }, IDLE_REFRESH_MS);
+  }
+
   private invalidateViewOperations(): void {
+    this.cancelIdleRefresh();
     this.download.cancel();
     this.stream.close();
     this.operations.invalidate();
@@ -250,6 +275,9 @@ export class BrowserPanelController implements ReactiveController {
     } finally {
       if (invocation.isCurrent() && !this.native.activeTab) {
         this.setState("loading", false);
+        if (this.running !== true || this.activeTargetId === null) {
+          this.scheduleIdleRefresh();
+        }
       }
     }
   }

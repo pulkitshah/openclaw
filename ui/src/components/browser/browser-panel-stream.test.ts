@@ -386,6 +386,76 @@ describe("Browser panel stream ownership", () => {
     expect(controller.view).toBeNull();
   });
 
+  // The Gateway pushes no browser state. When a Duty relaunches the desk browser, the streamed
+  // page is gone and the replacement tab has a new id; recovery that keeps re-shooting the old
+  // target leaves a frozen frame until the panel is closed and reopened.
+  it("re-lists tabs when the streamed target cannot be reattached", async () => {
+    let replaced = false;
+    const { controller, calls } = setup(async (envelope) => {
+      if (!replaced) {
+        return undefined;
+      }
+      if (envelope.path === "/tabs") {
+        return { running: true, tabs: [createBrowserPanelTestTab("tab-b", NEXT_URL, "Next")] };
+      }
+      if (envelope.path === "/screencast") {
+        return {
+          token: "t2",
+          wsPath: "/browser/screencast?token=t2",
+          targetId: "raw-b",
+          url: NEXT_URL,
+        };
+      }
+      if (envelope.path === "/screenshot") {
+        return { path: "/next.png", targetId: "raw-b", url: NEXT_URL };
+      }
+      return undefined;
+    });
+    const socket = await start(controller);
+    replaced = true;
+    socket.disconnect(1006);
+    await vi.advanceTimersByTimeAsync(0);
+    await flush();
+    expect(calls("/tabs")).toHaveLength(2);
+    expect(controller.activeTargetId).toBe("tab-b");
+    sockets.at(-1)!.receive(screencastFrame(NEXT_URL));
+    await flush();
+    expect(controller.view?.url).toBe(NEXT_URL);
+  });
+
+  it("keeps re-listing while the browser is not running, then attaches once it starts", async () => {
+    let started = false;
+    const { controller, calls } = setup(async (envelope) =>
+      envelope.path === "/tabs" && !started ? { running: false, tabs: [] } : undefined,
+    );
+    await controller.refreshAll();
+    expect(controller.running).toBe(false);
+    expect(controller.view).toBeNull();
+    await vi.advanceTimersByTimeAsync(3_000);
+    await flush();
+    expect(calls("/tabs")).toHaveLength(2);
+    started = true;
+    await vi.advanceTimersByTimeAsync(3_000);
+    await flush();
+    expect(calls("/tabs")).toHaveLength(3);
+    expect(controller.running).toBe(true);
+    expect(controller.activeTargetId).toBe("tab-a");
+    expect(calls("/screencast")).toHaveLength(1);
+    // A panel with a tab stops polling; the stream owns recovery from here.
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(calls("/tabs")).toHaveLength(3);
+  });
+
+  it("stops re-listing when the panel is closed", async () => {
+    const { controller, calls } = setup(async (envelope) =>
+      envelope.path === "/tabs" ? { running: false, tabs: [] } : undefined,
+    );
+    await controller.refreshAll();
+    controller.suspendView();
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(calls("/tabs")).toHaveLength(1);
+  });
+
   it("remembers unsupported streaming until the route or client changes", async () => {
     const { controller, calls, host } = setup(async (envelope) => {
       if (envelope.path === "/screencast") {
