@@ -296,7 +296,21 @@ export class ImapAccountWatcher {
       return true;
     }
     // Only consume plain text; avoid generating unused HTML and scanning untrusted links.
-    const mail = await simpleParser(message.source, { skipImageLinks: true, skipTextToHtml: true });
+    //
+    // A parse failure must skip this ONE message, never abort the sweep. Parsing happens before
+    // `evaluateImapSender`, so the sender gate has not run yet: letting the throw escape means any
+    // sender at all — allowlisted or not — can wedge the mailbox with one malformed message. The
+    // cursor is only advanced by the caller when this returns true, so a throw left the same
+    // message at the head of every later sweep and nothing behind it was ever processed. Observed
+    // live as a mailbox stuck on "sweep failed=Failed to parse HTML" once a minute while new mail
+    // piled up untouched.
+    let mail: Awaited<ReturnType<typeof simpleParser>>;
+    try {
+      mail = await simpleParser(message.source, { skipImageLinks: true, skipTextToHtml: true });
+    } catch {
+      await this.recordSkip(message.uid, undefined, "message-unparsable");
+      return true;
+    }
     const verdict = await evaluateImapSender({
       mail,
       raw: message.source,

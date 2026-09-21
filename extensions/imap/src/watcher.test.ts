@@ -8,6 +8,22 @@ import { resolveImapConfig, type ImapAccountConfig } from "./config.js";
 import { createImapAuthResult, createImapTestRuntime } from "./imap-test-support.js";
 import { ImapAccountWatcher } from "./watcher.js";
 
+// Real parser everywhere except one marked message: a parse failure has to be injected
+// deterministically to prove it skips that message instead of wedging the mailbox, and a
+// genuinely malformed body that reliably throws is not something to pin a regression test on.
+vi.mock("mailparser", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("mailparser")>();
+  return {
+    ...actual,
+    simpleParser: async (source: Parameters<typeof actual.simpleParser>[0], options?: unknown) => {
+      if (String(source).includes("Subject: UNPARSABLE")) {
+        throw new Error("Failed to parse HTML");
+      }
+      return actual.simpleParser(source, options as never);
+    },
+  };
+});
+
 type MailFixture = { uid: number; raw: string };
 
 class ScriptedImapServer {
@@ -481,6 +497,31 @@ describe("IMAP watcher protocol boundary", () => {
       { timeout: 5_000 },
     );
     expect(dispatchHookAgentTurn).toHaveBeenCalledTimes(1);
+  });
+
+  it("skips a message it cannot parse instead of wedging every message behind it", async () => {
+    // Parsing runs BEFORE the sender gate, so an unparsable message from anyone at all used to
+    // throw out of the sweep, leave the cursor unmoved, and strand the mailbox: the same message
+    // failed on every later sweep and nothing behind it was ever dispatched.
+    const { server, state, dispatchHookAgentTurn, waitForCursor } = await startWatcher();
+    expect(await state.cursors.lookup("inbox")).toMatchObject({ lastSeenUid: 1 });
+
+    server.append(
+      "From: whoever@example.com\r\nTo: reader@example.com\r\nSubject: UNPARSABLE\r\n\r\nbroken",
+    );
+    server.append(
+      "From: trusted@example.com\r\nTo: reader@example.com\r\nSubject: Behind the bad one\r\nMessage-ID: <behind@example.com>\r\n\r\nStill delivered",
+    );
+
+    // The cursor must move past BOTH: the bad one is skipped, the good one is dispatched.
+    await waitForCursor(3, 5_000);
+    expect(dispatchHookAgentTurn).toHaveBeenCalledTimes(1);
+    expect(dispatchHookAgentTurn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionKey: "hook:imap:inbox:17:3",
+        message: expect.stringContaining("Still delivered"),
+      }),
+    );
   });
 
   it("delivers mail that arrived during an IDLE connection interruption", async () => {
