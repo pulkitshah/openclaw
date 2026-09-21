@@ -250,6 +250,14 @@ name, text }] } } }`, adding a `{ name, path, text? }` input per dropped file th
    declares (its `name` matches the input's declared name). The Duty's own steps read the
    mail via `{{in:mail...}}` and any dropped file via `{{in:<name>...}}`.
 
+A request typed in chat by a Team member runs the same way, from the conversation agent: call
+`duty_run { id, inputs: { mail: { from: "<member name> via <channel>", subject: "Chat request",
+body: <their message verbatim> } } }`, plus any dropped file. The member's roster identity is the
+authorization — a chat trigger has no mail sender to check and does not need one; never refuse a
+roster member's run on those grounds. Anything the Duty still needs from a person is raised by its
+own `ask` steps; anything it cannot ask for, settle with the member in the conversation before
+starting the run.
+
 The dispatcher never opens a browser and never authors, edits, or otherwise touches a Duty's
 steps — it only reads mail, matches a trigger, and calls `duty_run`. Authoring stays with you,
 the authoring agent, exactly as described above.
