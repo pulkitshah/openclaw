@@ -302,6 +302,17 @@ export default definePluginEntry({
         const route = await ownerRoute(origin);
         await deliver.send({ route, text });
       },
+      // The chat that started a run gets the run's own progress card, through the same Gateway
+      // method the `progress_card` tool uses, so the person sees real steps move rather than a
+      // plan the agent wrote before `duty_run` blocked it.
+      progress: async (origin, card) => {
+        await request("progressCard.put", {
+          sessionKey: origin.sessionKey,
+          ...(origin.agentId ? { agentId: origin.agentId } : {}),
+          markdown: card.markdown,
+          ...(card.plan ? { plan: card.plan } : {}),
+        });
+      },
       // Cancelling the question a parked run waits on is what lets its ask return and the run
       // unwind; without it the run keeps its browser session until the question times out.
       cancelQuestion: async (questionId) => {

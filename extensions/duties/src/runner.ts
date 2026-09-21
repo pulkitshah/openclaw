@@ -129,6 +129,9 @@ export type RunnerDeps = {
   onFile?: (file: RunFile) => void;
   now?: () => number;
   onStep?: (evidence: StepEvidence) => void;
+  /** Called as each step begins, before any of its work; `onStep` only fires once it has ended, and
+   *  a browser step can take a minute, so this is what lets a watcher show "what is it doing now". */
+  onStepStart?: (step: { stepId: string; label: string; kind: string }) => void;
   /** Checked before every step and after every ask; a cancelled run halts instead of continuing
    *  to click, fill and submit until the browser work happens to finish. */
   isCancelled?: () => boolean;
@@ -717,6 +720,7 @@ export async function runDuty(
         reachedStop = true;
         throw new StopSignal(String(await resolve(node.reason)));
       }
+      deps.onStepStart?.({ stepId: node.id, label: node.label, kind: node.kind });
       await runStep(node);
     }
   };

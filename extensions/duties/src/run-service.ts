@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import type { Duty } from "./duty.js";
+import type { Duty, DutyNode } from "./duty.js";
 import { runDuty, type RunnerDeps } from "./runner.js";
 import type { DutyRun, DutyStore, RunFile, RunOrigin, RunStatus, StepEvidence } from "./store.js";
 
@@ -11,6 +11,58 @@ export type RunEvent = {
   status: RunStatus;
   step?: StepEvidence;
 };
+
+/** The session progress card a chat-started run keeps for the person who started it: the same
+ *  shape the `progress_card` tool writes, so the chat renders it exactly the way it renders the
+ *  agent's own cards. The agent cannot keep this itself — `duty_run` blocks until the run ends. */
+export type RunProgressCard = {
+  markdown: string;
+  plan?: Array<{ step: string; status: "pending" | "in_progress" | "completed" }>;
+};
+
+/** How many steps a run can pass through at most: every step on every branch, gates and stops
+ *  excluded because they leave no evidence. A branch not taken makes the bar end short of its
+ *  max, so a finished run pins the bar full rather than leaving it at 61/80. */
+function countRunnableSteps(nodes: DutyNode[]): number {
+  let total = 0;
+  for (const node of nodes) {
+    if (node.kind === "when") {
+      total += countRunnableSteps(node.then) + countRunnableSteps(node.else ?? []);
+    } else if (node.kind !== "stop") {
+      total += 1;
+    }
+  }
+  return total;
+}
+
+const PROGRESS_CARD_RECENT_STEPS = 5;
+
+type ProgressState = {
+  dutyName: string;
+  total: number;
+  done: string[];
+  current?: string;
+};
+
+function buildProgressCard(
+  state: ProgressState,
+  line: string,
+  terminal: "ok" | "other" | undefined,
+): RunProgressCard {
+  const { dutyName } = state;
+  const value = terminal === "ok" ? state.total : Math.min(state.done.length, state.total);
+  const label = `${dutyName} · ${value}/${state.total}`.replaceAll('"', "'");
+  const plan: NonNullable<RunProgressCard["plan"]> = state.done
+    .slice(-PROGRESS_CARD_RECENT_STEPS)
+    .map((step) => ({ step, status: "completed" as const }));
+  if (!terminal && state.current) {
+    plan.push({ step: state.current, status: "in_progress" });
+  }
+  return {
+    markdown: `<progress aria-label="${label}" value="${value}" max="${state.total}"></progress>\n**${dutyName}** — ${line}`,
+    ...(plan.length > 0 ? { plan } : {}),
+  };
+}
 type Pending = {
   run: DutyRun;
   duty: Duty;
@@ -76,6 +128,13 @@ export class RunManager {
        *  run came from, otherwise the configured owner. Best-effort: the run's outcome never
        *  depends on it, and it is never awaited on the critical path. */
       notify?: (origin: RunOrigin | undefined, text: string) => Promise<void>;
+      /** Replaces the progress card of the session a run was started from (only ever called with
+       *  an origin that names one). Best-effort like `notify`: a card that cannot be written never
+       *  touches the run. */
+      progress?: (
+        origin: RunOrigin & { sessionKey: string },
+        card: RunProgressCard,
+      ) => Promise<void>;
       /** Cancels the Gateway question a parked run is waiting on, so `question.waitAnswer`
        *  returns and the run can unwind. Without it, cancelling a run parked on an owner question
        *  set a flag nothing would read until the question answered or timed out — up to fifteen
@@ -111,6 +170,33 @@ export class RunManager {
     } catch {
       // status lines are decoration; a broken notifier must not affect the run.
     }
+  }
+
+  /** Per-run progress-card state, present only while a run that reports to a session is alive. */
+  private readonly progress = new Map<string, ProgressState>();
+  /** Per-run chain of card writes, so a slow write can never land after — and overwrite — a
+   *  later one; `finish` posts the terminal card through the same chain. */
+  private readonly progressChains = new Map<string, Promise<void>>();
+
+  private postProgress(run: DutyRun, line: string, terminal?: "ok" | "other"): void {
+    const state = this.progress.get(run.id);
+    const origin = run.origin;
+    if (!state || !this.params.progress || !origin?.sessionKey) {
+      return;
+    }
+    const card = buildProgressCard(state, line, terminal);
+    const target = { ...origin, sessionKey: origin.sessionKey };
+    const prior = this.progressChains.get(run.id) ?? Promise.resolve();
+    this.progressChains.set(
+      run.id,
+      prior.then(async () => {
+        try {
+          await this.params.progress?.(target, card);
+        } catch {
+          // the card is decoration; a session that cannot take it must not affect the run.
+        }
+      }),
+    );
   }
 
   async recoverOrphans(): Promise<number> {
@@ -311,6 +397,14 @@ export class RunManager {
         await this.params.store.updateRun(run.id, { status: "running", startedAt: Date.now() });
         this.params.emit({ type: "run", runId: run.id, dutyId: duty.id, status: "running" });
         this.announce(run.origin, `Running ${duty.name}…`);
+        if (run.origin?.sessionKey && this.params.progress) {
+          this.progress.set(run.id, {
+            dutyName: duty.name,
+            total: countRunnableSteps(duty.steps),
+            done: [],
+          });
+          this.postProgress(run, "Starting…");
+        }
         const deps = await this.params.deps(duty, run);
         const outcome = await runDuty(
           duty,
@@ -325,8 +419,27 @@ export class RunManager {
                 run.id,
                 prior.then(() => this.markWaiting(run, waitingOn)),
               );
+              const state = this.progress.get(run.id);
+              if (state) {
+                this.postProgress(
+                  run,
+                  waitingOn ? "Waiting for your answer" : (state.current ?? "Continuing…"),
+                );
+              }
+            },
+            onStepStart: (step) => {
+              const state = this.progress.get(run.id);
+              if (state) {
+                state.current = step.label;
+                this.postProgress(run, step.label);
+              }
             },
             onStep: (step) => {
+              const state = this.progress.get(run.id);
+              if (state) {
+                state.done.push(step.label);
+                state.current = undefined;
+              }
               const prior = this.appendChains.get(run.id) ?? Promise.resolve();
               this.appendChains.set(
                 run.id,
@@ -448,6 +561,12 @@ export class RunManager {
     };
     this.params.emit({ type: "run", runId: run.id, dutyId: run.dutyId, status: final.status });
     this.announce(run.origin, terminalStatusLine(final));
+    if (this.progress.has(run.id)) {
+      this.postProgress(run, terminalStatusLine(final), final.status === "ok" ? "ok" : "other");
+      this.progress.delete(run.id);
+      await (this.progressChains.get(run.id) ?? Promise.resolve());
+      this.progressChains.delete(run.id);
+    }
     const resolvers = this.waiters.get(run.id);
     if (resolvers) {
       for (const resolve of resolvers) {

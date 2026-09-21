@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import type { Duty } from "./duty.js";
-import { RunManager } from "./run-service.js";
+import { RunManager, type RunProgressCard } from "./run-service.js";
 import type { RunnerDeps } from "./runner.js";
 import { DutyStore } from "./store.js";
 import type { DutyRun, RunOrigin } from "./store.js";
@@ -666,6 +666,45 @@ describe("RunManager", () => {
     expect(quiet.mock.calls.map((c) => c[1])).toEqual(["Running quiet…", "Done — ok"]);
     // The origin reaches the notifier, which is what lets it route to the owner rather than guess.
     expect(quiet.mock.calls[0]?.[0]).toEqual({ kind: "manual" });
+  });
+
+  // The agent that calls `duty_run` is blocked until the run ends, so any progress card it wrote
+  // first sits at "1 of 5" for the whole booking. The run owns the card of the session it came
+  // from: a bar, the steps done so far, and the step in flight — and nothing for a run that has no
+  // session to report to.
+  it("keeps the starting session's progress card current as steps start and the run ends", async () => {
+    const store = newStore();
+    const progress = vi.fn<
+      (origin: { sessionKey: string }, card: RunProgressCard) => Promise<void>
+    >(async () => {});
+    const mgr = new RunManager({ store, deps: () => deps(0), emit: () => {}, progress });
+    const { runId } = await mgr.start({
+      duty: duty("card"),
+      inputs: {},
+      trigger: "chat",
+      origin: { kind: "chat", sessionKey: "agent:main:direct:owner", agentId: "main" },
+    });
+    const final = await mgr.wait(runId);
+    expect(final.status).toBe("ok");
+    const cards = progress.mock.calls.map((c) => c[1]);
+    expect(progress.mock.calls[0]?.[0]).toMatchObject({ sessionKey: "agent:main:direct:owner" });
+    expect(cards[0]?.markdown).toContain('<progress aria-label="card · 0/1" value="0" max="1">');
+    expect(cards[1]?.markdown).toContain("**card** — Open");
+    expect(cards[1]?.plan).toEqual([{ step: "Open", status: "in_progress" }]);
+    expect(cards.at(-1)?.markdown).toContain('value="1" max="1"');
+    expect(cards.at(-1)?.markdown).toContain("Done — ok");
+    expect(cards.at(-1)?.plan).toEqual([{ step: "Open", status: "completed" }]);
+
+    const quiet = vi.fn<typeof progress>(async () => {});
+    const mailMgr = new RunManager({ store, deps: () => deps(0), emit: () => {}, progress: quiet });
+    const mail = await mailMgr.start({
+      duty: duty("mail"),
+      inputs: {},
+      trigger: "mail",
+      origin: { kind: "mail", agentId: "duties-mail" },
+    });
+    await mailMgr.wait(mail.runId);
+    expect(quiet).not.toHaveBeenCalled();
   });
 
   it("reports a failed chat run's failing step in its status line and never lets notify break the run", async () => {

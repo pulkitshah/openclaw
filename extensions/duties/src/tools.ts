@@ -190,7 +190,7 @@ export function registerDutyTools(params: { api: OpenClawPluginApi }): void {
     name: "duty_run",
     label: "Run Duty",
     description:
-      "Starts the run and waits until it finishes (ok / failed / blocked / cancelled). An `ask` step inside the run waits for the owner's answer (up to 15 min) before this tool returns; use toStepId + keepOpen to build stage by stage.",
+      "Starts the run and waits until it finishes (ok / failed / blocked / cancelled). An `ask` step inside the run waits for the owner's answer (up to 15 min) before this tool returns; use toStepId + keepOpen to build stage by stage. The run keeps this session's progress card up to date itself while it runs — do not write a progress_card for it.",
     parameters: Type.Object({
       id: Type.String({ description: "Duty id." }),
       inputs: Type.Optional(
