@@ -1,3 +1,4 @@
+import type { Readable } from "node:stream";
 // Whatsapp plugin module implements media behavior.
 import type { proto, WAMessage } from "baileys";
 import { saveMediaStream, type SavedMedia } from "openclaw/plugin-sdk/media-store";
@@ -6,6 +7,21 @@ import type { createWaSocket } from "../session.js";
 import { extractContextInfo } from "./extract.js";
 import { resolveInboundMediaMimetype } from "./media-mimetype.js";
 import { downloadMediaMessage, normalizeMessageContent } from "./runtime-api.js";
+
+/**
+ * Baileys hands back a decrypt Transform that is already being fed from the network. A small
+ * ciphertext can finish piping — and fail its final AES check — before `saveMediaStream` has
+ * opened its temp file and started reading, and a stream `'error'` with no listener is fatal to
+ * the whole process (Prasthan's desk crash-looped on one such attachment for two days). Listen from
+ * the moment the stream exists; the async iterator that consumes it later rejects with the same
+ * error, which the message owner reports as an unavailable attachment.
+ */
+function holdStreamErrors(stream: unknown): AsyncIterable<unknown> {
+  if (stream && typeof (stream as Readable).on === "function") {
+    (stream as Readable).on("error", () => {});
+  }
+  return stream as AsyncIterable<unknown>;
+}
 
 function unwrapMessage(message: proto.IMessage | undefined): proto.IMessage | undefined {
   const normalized = normalizeMessageContent(message);
@@ -44,7 +60,7 @@ export async function downloadInboundMedia(
     },
   );
   const saved = await saveMediaStream(
-    stream as AsyncIterable<unknown>,
+    holdStreamErrors(stream),
     mimetype,
     "inbound",
     maxBytes,

@@ -1,5 +1,5 @@
 // Whatsapp tests cover media plugin behavior.
-import { Readable } from "node:stream";
+import { Readable, Transform } from "node:stream";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   mockExtractMessageContent,
@@ -169,6 +169,41 @@ describe("downloadInboundMedia", () => {
         0.25 * 1024 * 1024,
       ),
     ).rejects.toBe(limitError);
+  });
+
+  // Baileys returns a decrypt Transform already fed from the network. A small ciphertext ends —
+  // and fails its final AES check — before saveMediaStream opens its temp file and starts reading;
+  // an 'error' emitted with no listener is an uncaught exception that ends the Gateway process.
+  it("turns a decrypt failure emitted before consumption into a rejection, not a process crash", async () => {
+    const decrypt = new Transform({
+      transform(chunk, _encoding, callback) {
+        callback(null, chunk);
+      },
+      final(callback) {
+        callback(
+          Object.assign(new Error("error:1C800064:Provider routines::bad decrypt"), {
+            code: "ERR_OSSL_BAD_DECRYPT",
+          }),
+        );
+      },
+    });
+    downloadMediaMessage.mockResolvedValueOnce(decrypt);
+    // The network body finishes piping before anyone reads the decrypted side.
+    decrypt.end(Buffer.from("tiny"));
+    saveMediaStream.mockImplementationOnce(async (stream: AsyncIterable<unknown>) => {
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
+      for await (const chunk of stream) {
+        void chunk;
+      }
+      return { id: "never", path: "/tmp/never", size: 0, contentType: "image/jpeg" };
+    });
+    await expect(
+      downloadInboundMedia(
+        { message: { imageMessage: { mimetype: "image/jpeg" } } } as never,
+        mockSock as never,
+      ),
+    ).rejects.toThrow("bad decrypt");
   });
 
   it("propagates transport download failures to the message owner", async () => {
