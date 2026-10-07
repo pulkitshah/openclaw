@@ -27,11 +27,23 @@ export function createLlmOutputMeter(deps: {
   afterAppend?: () => Promise<void>;
   /** Told the id of every debit written, for the throttled `changed` event. */
   onDebit?: (entryId: string) => void;
+  /** Operator-facing diagnostics: the first event proves metering is live on a desk. */
+  log?: (message: string) => void;
 }): (event: LlmOutputEvent, ctx: MeterContext) => Promise<void> {
+  let seen = 0;
   return async (event, ctx) => {
+    seen += 1;
+    if (seen === 1) {
+      deps.log?.(
+        `wallet: metering active (first llm_output: ${event.provider}/${event.model}, trigger=${ctx.trigger ?? "?"}, usage=${event.usage ? "present" : "missing"})`,
+      );
+    }
     try {
       const u = event.usage;
       if (!u) {
+        deps.log?.(
+          `wallet: llm_output without usage from ${event.provider}/${event.model}; nothing debited`,
+        );
         return;
       }
       const tokens = {

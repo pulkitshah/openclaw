@@ -36,7 +36,12 @@ export function createBeforeAgentRun(deps: {
   const notified = new Set<string>();
   /** The `stoppedSince` the set was filled under; a different value is a new stop episode. */
   let episode: number | undefined;
+  let seen = 0;
   return async (event, ctx) => {
+    seen += 1;
+    if (seen === 1) {
+      deps.log(`wallet: gate active (first before_agent_run, session=${ctx.sessionKey ?? "?"})`);
+    }
     // A Duty run already in flight keeps its own model calls: stopping it midway would strand it.
     if (ctx.attribution?.kind === "duty") {
       return undefined;

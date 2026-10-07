@@ -213,6 +213,8 @@ export default function register(api: OpenClawPluginApi): void {
         counters.unrecorded += 1;
         api.logger.warn(`wallet: debit not recorded: ${coerceErrorMessage(error)}`);
       },
+      log: (message) => api.logger.info(message),
     }),
   );
+  api.logger.info("wallet: hooks registered (before_agent_run, llm_output)");
 }
