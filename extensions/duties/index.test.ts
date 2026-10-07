@@ -201,8 +201,11 @@ describe("duties plugin registration", () => {
     expect(mail.ai).toBe("agent:duties-mail:main");
     expect(mail.ask).not.toBe("agent:duties-mail:main");
     expect(mail.ask).toMatch(/^agent:/u);
+    // A manual run (Control UI Run, bare duties.run) names no session: its model calls use the
+    // owner's session — the one its asks go to — never an unowned "main", which a desk with
+    // several agents refuses.
     const manual = await sessionKeysFor(undefined);
-    expect(manual.ai).toBe("main");
+    expect(manual.ai).toBe(mail.ask);
     expect(manual.ask).toBe(mail.ask);
     expect(chat.ask).toBe(mail.ask);
   });
@@ -264,8 +267,15 @@ function registerForDeps() {
       aiAdapters.mockClear();
       askAdapters.mockClear();
       await params.deps({ id: "d1" }, { id: "r1", ...(origin ? { origin } : {}) });
+      // The ai session is a lazy resolver (a manual run looks the owner up only when a step
+      // actually calls the model); resolve it here the way the ai adapter does.
+      const aiKey = (
+        aiAdapters.mock.calls.at(-1)?.[0] as
+          | { sessionKey: string | undefined | (() => Promise<string | undefined>) }
+          | undefined
+      )?.sessionKey;
       return {
-        ai: (aiAdapters.mock.calls.at(-1)?.[0] as { sessionKey: string } | undefined)?.sessionKey,
+        ai: typeof aiKey === "function" ? await aiKey() : aiKey,
         ask: await askSessionKey(),
       };
     },
