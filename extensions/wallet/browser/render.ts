@@ -177,7 +177,7 @@ export function renderModels(summary: Summary): string {
       return `<div class="modelrow"><span class="mname">${esc(m.label)} <span class="chip mchip">${esc(providerDisplayName(m.provider, m.model))}</span>${unpriced}</span><span class="bamt mono">${esc(formatInr(spend(m.paise)))}</span><span class="bbar"><span class="bfill" style="width:${share}%"></span></span><span class="bshare muted small">${share}%</span><span class="mmeta muted small">${esc(formatTokens(m.tokens))} tokens · ${esc(m.calls)} ${m.calls === 1 ? "call" : "calls"}</span></div>`;
     })
     .join("");
-  return `<h2>By model</h2><div class="buckets models">${rows}</div>`;
+  return `<section class="section"><h2>By model</h2><div class="buckets models">${rows}</div></section>`;
 }
 
 export function renderActivities(bucket: Bucket, openRef: string | undefined): string {
@@ -257,7 +257,7 @@ export function renderStatement(entries: readonly WalletEntry[], hasMore = false
       ? `<p class="muted">No entries in this period.</p>`
       : `<table class="statement"><thead><tr><th>When (IST)</th><th>What</th><th>Model</th><th class="num">Tokens</th><th>Note</th><th class="num">Amount</th><th class="num">Balance</th></tr></thead><tbody>${rows}</tbody></table>`;
   const more = hasMore ? `<button class="btn" data-more>Load more</button>` : "";
-  return `<div class="stmthead"><h2>Statement</h2><button class="btn" data-export>Export CSV</button></div>${table}${more}`;
+  return `<section class="section"><div class="stmthead"><h2>Statement</h2><button class="btn" data-export>Export CSV</button></div>${table}${more}</section>`;
 }
 
 function field(

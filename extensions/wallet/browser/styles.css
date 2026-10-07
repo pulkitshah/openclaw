@@ -16,7 +16,14 @@
   letter-spacing: 0.7px;
   text-transform: uppercase;
   color: var(--muted);
-  margin: 24px 0 10px;
+  margin: 0 0 12px;
+}
+/* Sections space themselves; the host flattens bare heading margins, so spacing lives here. */
+.dt .section {
+  margin-top: 32px;
+}
+.dt .section + .section {
+  margin-top: 36px;
 }
 .dt p {
   margin: 0;
@@ -171,6 +178,9 @@
   gap: 8px;
   margin-top: 14px;
 }
+.dt .periodbar {
+  margin-top: 22px;
+}
 .dt .adminform {
   display: flex;
   flex-wrap: wrap;
@@ -215,7 +225,7 @@
 .dt .entries {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 .dt .bucket,
 .dt .activity {
@@ -308,14 +318,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 24px;
+  margin-bottom: 12px;
 }
 .dt .stmthead h2 {
   margin: 0;
 }
 .dt .statement {
   width: 100%;
-  margin-top: 10px;
   border-collapse: collapse;
 }
 .dt .statement th {

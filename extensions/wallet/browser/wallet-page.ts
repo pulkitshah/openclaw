@@ -132,15 +132,16 @@ export function createWalletPageMount(host: ControlUiHost): ControlUiView<Props>
         parts.push(renderHeader(get, state.canAdmin));
         parts.push(renderAdmin(get, state.openForm, state.canAdmin));
         parts.push(renderPeriodBar(state.period, state.custom));
-        parts.push(`<h2>Where it went</h2>`, renderBuckets(get.summary, state.openBucket));
-        parts.push(renderModels(get.summary));
+        // Each block carries its own spacing (`.section`): the host flattens bare heading margins.
         const bucket = get.summary.buckets.find((b) => b.activity === state.openBucket);
-        if (bucket) {
-          parts.push(renderActivities(bucket, state.openRef));
-          if (state.openRef) {
-            parts.push(renderEntries(state.refEntries));
-          }
-        }
+        const drill = bucket
+          ? renderActivities(bucket, state.openRef) +
+            (state.openRef ? renderEntries(state.refEntries) : "")
+          : "";
+        parts.push(
+          `<section class="section"><h2>Where it went</h2>${renderBuckets(get.summary, state.openBucket)}${drill}</section>`,
+        );
+        parts.push(renderModels(get.summary));
         parts.push(renderStatement(state.ledger, state.nextBefore !== undefined));
       }
       root.innerHTML = parts.join("");
