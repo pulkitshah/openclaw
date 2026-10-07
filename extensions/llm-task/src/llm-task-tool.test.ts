@@ -135,6 +135,19 @@ describe("llm-task tool (json-only)", () => {
     resetRunnerMocks();
   });
 
+  it("forwards the tool context's session and attribution to the completion", async () => {
+    const attribution = { kind: "duty", ref: "run-1", label: "Book mail" };
+    const tool = createLlmTaskTool(fakeApi(), {
+      sessionKey: "agent:main:direct:asha",
+      attribution,
+    });
+    await tool.execute("id", { prompt: "return foo" });
+    expect(firstIsolatedCompletionCall()).toMatchObject({
+      sessionKey: "agent:main:direct:asha",
+      attribution,
+    });
+  });
+
   it("returns parsed json", async () => {
     mockIsolatedCompletionJson({ foo: "bar" });
     const tool = createLlmTaskTool(fakeApi());

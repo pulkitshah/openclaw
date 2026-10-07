@@ -1,6 +1,8 @@
 // Runtime LLM helpers adapt plugin provider hooks into the core model runtime.
+import { randomUUID } from "node:crypto";
 import { asFiniteNumber, asFiniteNumberInRange } from "@openclaw/normalization-core";
 import { normalizeOptionalString } from "@openclaw/normalization-core/string-coerce";
+import { runAgentHarnessLlmOutputHook } from "../../agents/harness/lifecycle-hook-helpers.js";
 import { splitTrailingAuthProfile } from "../../agents/model-ref-profile.js";
 import { normalizeModelRef } from "../../agents/model-ref-shared.js";
 import type { UsageLike } from "../../agents/usage.js";
@@ -30,6 +32,7 @@ import {
 } from "./runtime-llm-isolated.js";
 import { writeRuntimeLog } from "./runtime-logging.js";
 import type {
+  LlmAttribution,
   LlmCompleteCaller,
   LlmCompleteParams,
   LlmCompleteResult,
@@ -222,6 +225,8 @@ export function finalizePluginLlmCompletion(params: {
   suppressUsage?: boolean;
   rawUsage: unknown;
   logger?: RuntimeLogger;
+  sessionKey?: string;
+  attribution?: LlmAttribution;
   result: Omit<LlmCompleteResult, "usage">;
 }): LlmCompleteResult {
   const normalized = normalizeUsage(params.rawUsage as UsageLike | undefined);
@@ -266,6 +271,26 @@ export function finalizePluginLlmCompletion(params: {
   const hasPositiveUsage = [input, output, cacheRead, cacheWrite, total, usage.costUsd].some(
     (value) => typeof value === "number" && Number.isFinite(value) && value > 0,
   );
+  if (params.suppressUsage !== true && hasPositiveUsage) {
+    // Plugin-runtime calls are not agent turns; llm_output is how metering plugins see them.
+    runAgentHarnessLlmOutputHook({
+      event: {
+        runId: randomUUID(),
+        sessionId: "",
+        provider: params.result.provider,
+        model: params.result.model,
+        resolvedRef: `${params.result.provider}/${params.result.model}`,
+        assistantTexts: [params.result.text],
+        usage: { input, output, cacheRead, cacheWrite, total },
+      },
+      ctx: {
+        sessionKey: params.sessionKey ?? params.result.audit.sessionKey,
+        agentId: params.result.agentId,
+        trigger: "tool",
+        attribution: params.attribution,
+      },
+    });
+  }
   if (params.suppressUsage !== true && isDiagnosticsEnabled(params.cfg) && hasPositiveUsage) {
     emitTrustedDiagnosticEvent(
       markHostPluginUsageDiagnosticEvent(
@@ -571,6 +596,8 @@ export function createRuntimeLlm(
           hostPluginId: pluginPolicyId,
           rawUsage: result.usage,
           logger,
+          sessionKey: params.sessionKey,
+          attribution: params.attribution,
           result: {
             text: result.text,
             provider: result.provider,
@@ -658,6 +685,8 @@ export function createRuntimeLlm(
                   !text.trim() || !["stop", "length", "toolUse"].includes(result.stopReason),
                 rawUsage: result.usage,
                 logger,
+                sessionKey: params.sessionKey,
+                attribution: params.attribution,
                 result: {
                   text,
                   provider: prepared.selection.provider,

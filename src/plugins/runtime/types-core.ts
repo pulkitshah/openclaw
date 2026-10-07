@@ -237,6 +237,9 @@ export type LlmCompleteUsage = {
   costUsd?: number;
 };
 
+/** Who a completion is billed or audited to; a metering plugin reads it from the `llm_output` hook context. */
+export type LlmAttribution = { kind: string; ref: string; label: string };
+
 type LlmCompleteCommonParams = {
   /** Model ref (e.g. "anthropic/claude-sonnet-4-6"); defaults to the target agent's configured model. */
   model?: string;
@@ -252,6 +255,10 @@ type LlmCompleteCommonParams = {
   purpose?: string;
   /** Agent whose model/credentials to use. Session-bound capabilities may disallow overrides. */
   agentId?: string;
+  /** Session the completion runs on behalf of; reported on the `llm_output` hook context. */
+  sessionKey?: string;
+  /** Attribution reported on the `llm_output` hook context. */
+  attribution?: LlmAttribution;
 };
 
 type LlmDirectCompleteParams = LlmCompleteCommonParams & {

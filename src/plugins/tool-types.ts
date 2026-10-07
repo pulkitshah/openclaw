@@ -31,6 +31,8 @@ export type OpenClawPluginToolContext = {
   agentDir?: string;
   agentId?: string;
   sessionKey?: string;
+  /** What this tool run is attributed to (e.g. a Duty run); forwarded to completions it makes. */
+  attribution?: { kind: string; ref: string; label: string };
   /** Ephemeral session UUID - regenerated on /new and /reset. Use for per-conversation isolation. */
   sessionId?: string;
   /** Out-of-band plugin-owned bindings attached by the current run initiator. */

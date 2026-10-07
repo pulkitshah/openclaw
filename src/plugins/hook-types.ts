@@ -296,6 +296,8 @@ export type PluginHookToolAuthority = {
 
 export type PluginHookAgentContext = {
   runId?: string;
+  /** What the run is attributed to (e.g. a Duty run), when the caller supplied it. */
+  attribution?: { kind: string; ref: string; label: string };
   jobId?: string;
   trace?: DiagnosticTraceContext;
   agentId?: string;

@@ -14,7 +14,7 @@ import {
   normalizeOptionalString,
 } from "openclaw/plugin-sdk/string-coerce-runtime";
 import { Type } from "typebox";
-import type { OpenClawPluginApi } from "../api.js";
+import type { OpenClawPluginApi, OpenClawPluginToolContext } from "../api.js";
 
 function stripCodeFences(s: string): string {
   const trimmed = s.trim();
@@ -123,7 +123,10 @@ export const llmTaskToolDefinition = {
   }),
 };
 
-export function createLlmTaskTool(api: OpenClawPluginApi) {
+export function createLlmTaskTool(
+  api: OpenClawPluginApi,
+  toolContext?: Pick<OpenClawPluginToolContext, "sessionKey" | "attribution">,
+) {
   return {
     ...llmTaskToolDefinition,
 
@@ -232,6 +235,8 @@ export function createLlmTaskTool(api: OpenClawPluginApi) {
         temperature: streamParams.temperature,
         signal,
         purpose: "llm-task",
+        sessionKey: toolContext?.sessionKey,
+        attribution: toolContext?.attribution,
         execution: {
           mode: "isolated-agent-runtime",
           authProfileId,

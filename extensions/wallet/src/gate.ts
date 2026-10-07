@@ -7,7 +7,7 @@ export type GateVerdict =
 
 // Structural subsets of the before_agent_run hook contract (not exported on the plugin SDK); the real types satisfy them.
 type GateEvent = { senderId?: string };
-type GateContext = { sessionKey?: string };
+type GateContext = { sessionKey?: string; attribution?: { kind: string } };
 export type GateDecision = { outcome: "block"; reason: string; message?: string };
 
 export function evaluateGate(state: WalletState, balancePaise: number): GateVerdict {
@@ -34,8 +34,7 @@ export function createBeforeAgentRun(deps: {
   /** The `stoppedSince` the set was filled under; a different value is a new stop episode. */
   let episode: number | undefined;
   return async (event, ctx) => {
-    // Task 8 adds the typed field
-    const attribution = (ctx as { attribution?: { kind: string } }).attribution;
+    const attribution = ctx.attribution;
     // A Duty run already in flight keeps its own model calls: stopping it midway would strand it.
     if (attribution?.kind === "duty") {
       return undefined;

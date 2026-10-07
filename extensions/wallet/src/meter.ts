@@ -10,7 +10,13 @@ type LlmOutputEvent = {
   model: string;
   usage?: { input?: number; output?: number; cacheRead?: number; cacheWrite?: number };
 };
-type MeterContext = { sessionKey?: string; agentId?: string; trigger?: string; jobId?: string };
+type MeterContext = {
+  sessionKey?: string;
+  agentId?: string;
+  trigger?: string;
+  jobId?: string;
+  attribution?: { kind: string; ref: string; label: string };
+};
 
 export function createLlmOutputMeter(deps: {
   store: WalletStore;
@@ -41,9 +47,7 @@ export function createLlmOutputMeter(deps: {
           sessionKey: ctx.sessionKey,
           agentId: ctx.agentId,
           trigger: ctx.trigger,
-          // Task 8 adds the typed field
-          attribution: (ctx as { attribution?: { kind: string; ref: string; label: string } })
-            .attribution,
+          attribution: ctx.attribution,
           jobName: ctx.jobId,
         },
         deps.lookups,
