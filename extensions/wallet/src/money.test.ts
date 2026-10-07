@@ -89,6 +89,7 @@ describe("resolveRateCard", () => {
     expect(resolveRateCard({ inrPerUsd: "x" }).inrPerUsd).toBe(DEFAULT_RATE_CARD.inrPerUsd);
     expect(Object.keys(DEFAULT_RATE_CARD.models)).toContain("claude-sonnet-5");
     expect(DEFAULT_RATE_CARD.services.hosting).toEqual({ unit: "day", inrPerUnit: 80 });
+    expect(DEFAULT_RATE_CARD.models["claude-opus-5"].cacheReadUsdPerM).toBe(0.5);
   });
 });
 

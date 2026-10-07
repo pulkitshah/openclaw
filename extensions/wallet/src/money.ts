@@ -27,32 +27,92 @@ export type TokenPrice = {
   };
 };
 
-// Anthropic list prices, USD per million tokens. Lookup from https://platform.claude.com/docs/pricing
-// on 2026-10-07: Opus 5 $5/$25, Sonnet 5 $2/$10, Haiku 4.5 $1/$5 input/output
-// Cache rates: 20% of input for reads, 25% of output for writes
+// USD per million tokens from the Claude API reference (pricing table cached 2026-09-25; cache read = 10% of input
+// and cache write = 125% of input unless the reference states otherwise: Opus 5.5 / Sonnet 5.5 read $0.20,
+// Fable 5.1 read $0.25). Re-check against https://platform.claude.com/docs/en/about-claude/pricing when repricing.
 const OPUS: TokenRates = {
   inputUsdPerM: 5,
   outputUsdPerM: 25,
-  cacheReadUsdPerM: 1,
+  cacheReadUsdPerM: 0.5,
   cacheWriteUsdPerM: 6.25,
 };
 const SONNET: TokenRates = {
   inputUsdPerM: 2,
   outputUsdPerM: 10,
-  cacheReadUsdPerM: 0.4,
+  cacheReadUsdPerM: 0.2,
   cacheWriteUsdPerM: 2.5,
 };
 const HAIKU: TokenRates = {
   inputUsdPerM: 1,
   outputUsdPerM: 5,
-  cacheReadUsdPerM: 0.2,
+  cacheReadUsdPerM: 0.1,
   cacheWriteUsdPerM: 1.25,
+};
+const OPUS_5_5: TokenRates = {
+  inputUsdPerM: 4,
+  outputUsdPerM: 20,
+  cacheReadUsdPerM: 0.2,
+  cacheWriteUsdPerM: 5,
+};
+const SONNET_5_5: TokenRates = {
+  inputUsdPerM: 2,
+  outputUsdPerM: 10,
+  cacheReadUsdPerM: 0.2,
+  cacheWriteUsdPerM: 2.5,
+};
+const OPUS_4_8: TokenRates = {
+  inputUsdPerM: 5,
+  outputUsdPerM: 25,
+  cacheReadUsdPerM: 0.5,
+  cacheWriteUsdPerM: 6.25,
+};
+const OPUS_4_7: TokenRates = {
+  inputUsdPerM: 5,
+  outputUsdPerM: 25,
+  cacheReadUsdPerM: 0.5,
+  cacheWriteUsdPerM: 6.25,
+};
+const OPUS_4_6: TokenRates = {
+  inputUsdPerM: 5,
+  outputUsdPerM: 25,
+  cacheReadUsdPerM: 0.5,
+  cacheWriteUsdPerM: 6.25,
+};
+const SONNET_4_6: TokenRates = {
+  inputUsdPerM: 3,
+  outputUsdPerM: 15,
+  cacheReadUsdPerM: 0.3,
+  cacheWriteUsdPerM: 3.75,
+};
+const FABLE_5_1: TokenRates = {
+  inputUsdPerM: 10,
+  outputUsdPerM: 50,
+  cacheReadUsdPerM: 0.25,
+  cacheWriteUsdPerM: 12.5,
+};
+const FABLE_5: TokenRates = {
+  inputUsdPerM: 10,
+  outputUsdPerM: 50,
+  cacheReadUsdPerM: 1.0,
+  cacheWriteUsdPerM: 12.5,
 };
 
 export const DEFAULT_RATE_CARD: RateCard = {
   inrPerUsd: 88,
   multiplier: 2,
-  models: { "claude-opus-5": OPUS, "claude-sonnet-5": SONNET, "claude-haiku-4-5": HAIKU },
+  models: {
+    "claude-opus-5": OPUS,
+    "claude-sonnet-5": SONNET,
+    "claude-haiku-4-5": HAIKU,
+    "claude-opus-5-5": OPUS_5_5,
+    "claude-sonnet-5-5": SONNET_5_5,
+    "claude-opus-4-8": OPUS_4_8,
+    "claude-opus-4-7": OPUS_4_7,
+    "claude-opus-4-6": OPUS_4_6,
+    "claude-sonnet-4-6": SONNET_4_6,
+    "claude-fable-5-1": FABLE_5_1,
+    "claude-fable-5": FABLE_5,
+  },
   fallback: OPUS,
   services: {
     hosting: { unit: "day", inrPerUnit: 80 },
