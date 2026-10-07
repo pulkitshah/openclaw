@@ -165,7 +165,7 @@ describe("renderEntries and renderStatement", () => {
 
 describe("renderAdmin", () => {
   it("offers Recharge, Adjust, Settings and Backfill", () => {
-    const html = renderAdmin(walletGet(), undefined);
+    const html = renderAdmin(walletGet(), undefined, true);
     for (const hook of [
       'data-open-form="recharge"',
       'data-open-form="adjust"',
@@ -176,9 +176,15 @@ describe("renderAdmin", () => {
     }
   });
   it("renders the open form pre-filled from state", () => {
-    const html = renderAdmin(walletGet(), "settings");
+    const html = renderAdmin(walletGet(), "settings", true);
     expect(html).toContain('data-submit="settings"');
     expect(html).toContain('value="500"');
     expect(html).toContain('value="2000"');
+  });
+  it("draws nothing without canAdmin", () => {
+    expect(renderAdmin(walletGet(), "recharge", false)).toBe("");
+  });
+  it("keeps fractional rupees out of the browser's reach with a 0.01 step", () => {
+    expect(renderAdmin(walletGet(), "recharge", true)).toContain('step="0.01"');
   });
 });

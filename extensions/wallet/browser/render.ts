@@ -24,7 +24,7 @@ type Bucket = Summary["buckets"][number];
 const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-function esc(value: unknown): string {
+export function esc(value: unknown): string {
   const text = typeof value === "string" ? value : String(value ?? "");
   return text
     .replaceAll("&", "&amp;")
@@ -199,25 +199,37 @@ export function renderStatement(entries: readonly WalletEntry[], hasMore = false
 function field(
   label: string,
   attr: string,
-  opts: { value?: string; placeholder?: string; type?: string } = {},
+  opts: { value?: string; placeholder?: string; type?: string; step?: string; min?: string } = {},
 ): string {
-  return `<label class="fld"><span>${esc(label)}</span><input type="${opts.type ?? "text"}" ${attr} value="${esc(opts.value ?? "")}" placeholder="${esc(opts.placeholder ?? "")}"></label>`;
+  return `<label class="fld"><span>${esc(label)}</span><input type="${opts.type ?? "text"}" ${attr}${opts.step ? ` step="${opts.step}"` : ""}${opts.min ? ` min="${opts.min}"` : ""} value="${esc(opts.value ?? "")}" placeholder="${esc(opts.placeholder ?? "")}"></label>`;
 }
 
 function formBody(get: WalletGet, form: WalletForm): string {
   if (form === "recharge") {
-    return `${field("Amount (₹)", "data-f-amount", { placeholder: "5000", type: "number" })}${field("Reference", "data-f-reference", { placeholder: "UPI or bank reference" })}${field("Note (optional)", "data-f-note")}<button class="btn primary" data-submit="recharge">Add recharge</button>`;
+    return `${field("Amount (₹)", "data-f-amount", { placeholder: "5000", type: "number", step: "0.01", min: "0.01" })}${field("Reference", "data-f-reference", { placeholder: "UPI or bank reference" })}${field("Note (optional)", "data-f-note")}<button class="btn primary" data-submit="recharge">Add recharge</button>`;
   }
   if (form === "adjust") {
-    return `${field("Amount (₹, negative to deduct)", "data-f-amount", { type: "number" })}${field("Note", "data-f-note", { placeholder: "Why this adjustment" })}<button class="btn primary" data-submit="adjust">Apply adjustment</button>`;
+    return `${field("Amount (₹, negative to deduct)", "data-f-amount", { type: "number", step: "0.01" })}${field("Note", "data-f-note", { placeholder: "Why this adjustment" })}<button class="btn primary" data-submit="adjust">Apply adjustment</button>`;
   }
   const { state } = get;
-  return `${field("Credit limit (₹)", "data-f-limit", { value: paiseToRupeeText(state.creditLimitPaise), type: "number" })}${field("Low-balance notice at (₹)", "data-f-low", { value: paiseToRupeeText(state.lowBalancePaise), type: "number" })}<label class="fld check"><input type="checkbox" data-f-enforce${state.enforce ? " checked" : ""}> <span>Pause the desk when the balance and credit limit run out</span></label><button class="btn primary" data-submit="settings">Save settings</button>`;
+  return `${field("Credit limit (₹)", "data-f-limit", { value: paiseToRupeeText(state.creditLimitPaise), type: "number", step: "0.01", min: "0" })}${field("Low-balance notice at (₹)", "data-f-low", { value: paiseToRupeeText(state.lowBalancePaise), type: "number", step: "0.01", min: "0" })}<label class="fld check"><input type="checkbox" data-f-enforce${state.enforce ? " checked" : ""}> <span>Pause the desk when the balance and credit limit run out</span></label><button class="btn primary" data-submit="settings">Save settings</button>`;
 }
 
-export function renderAdmin(get: WalletGet, openForm: WalletForm | undefined): string {
+/** Cosmetic gate: `wallet.*` writes are admin-scoped server-side; without `canAdmin` nothing draws. */
+export function renderAdmin(
+  get: WalletGet,
+  openForm: WalletForm | undefined,
+  canAdmin: boolean,
+): string {
+  if (!canAdmin) {
+    return "";
+  }
   const tab = (id: WalletForm, label: string) =>
     `<button class="btn${openForm === id ? " primary" : ""}" data-open-form="${id}">${label}</button>`;
   const form = openForm ? `<div class="adminform">${formBody(get, openForm)}</div>` : "";
   return `<section class="admin"><div class="adminbar">${tab("recharge", "Recharge")}${tab("adjust", "Adjust")}${tab("settings", "Settings")}<button class="btn" data-backfill>Import past usage</button></div>${form}</section>`;
+}
+
+export function renderNotice(text: string): string {
+  return `<div class="notice">${esc(text)}</div>`;
 }

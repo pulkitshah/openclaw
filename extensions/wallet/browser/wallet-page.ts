@@ -22,6 +22,7 @@ import {
   renderEntries,
   renderErrorBanner,
   renderHeader,
+  renderNotice,
   renderPeriodBar,
   renderStatement,
 } from "./render.js";
@@ -122,15 +123,13 @@ export function createWalletPageMount(host: ControlUiHost): ControlUiView<Props>
         parts.push(renderErrorBanner(state.error));
       }
       if (state.notice) {
-        parts.push(`<div class="notice">${renderNotice(state.notice)}</div>`);
+        parts.push(renderNotice(state.notice));
       }
       if (!get) {
         parts.push(`<p class="muted">Loading the wallet…</p>`);
       } else {
         parts.push(renderHeader(get, state.canAdmin));
-        if (state.canAdmin) {
-          parts.push(renderAdmin(get, state.openForm));
-        }
+        parts.push(renderAdmin(get, state.openForm, state.canAdmin));
         parts.push(renderPeriodBar(state.period, state.custom));
         parts.push(`<h2>Where it went</h2>`, renderBuckets(get.summary, state.openBucket));
         const bucket = get.summary.buckets.find((b) => b.activity === state.openBucket);
@@ -171,13 +170,17 @@ export function createWalletPageMount(host: ControlUiHost): ControlUiView<Props>
       lastRetry = null;
     };
 
-    const loadGet = async (): Promise<void> => {
+    // Each reload takes a sequence number; any response arriving after a newer reload started is
+    // dropped, so a slow earlier period cannot overwrite the newer one.
+    let reloadSeq = 0;
+
+    const loadGet = async (seq: number): Promise<void> => {
       const result = await host.request<WalletGet>("wallet.get", rangeFor(state, Date.now()));
-      if (!context.signal.aborted) {
+      if (!context.signal.aborted && seq === reloadSeq) {
         state.get = result;
       }
     };
-    const loadLedger = async (before?: number): Promise<void> => {
+    const loadLedger = async (seq: number, before?: number): Promise<void> => {
       const result = await host.request<{ entries: WalletEntry[]; nextBefore?: number }>(
         "wallet.ledger",
         {
@@ -186,7 +189,7 @@ export function createWalletPageMount(host: ControlUiHost): ControlUiView<Props>
           ...(before === undefined ? {} : { before }),
         },
       );
-      if (context.signal.aborted) {
+      if (context.signal.aborted || seq !== reloadSeq) {
         return;
       }
       state.ledger = before === undefined ? result.entries : [...state.ledger, ...result.entries];
@@ -196,29 +199,48 @@ export function createWalletPageMount(host: ControlUiHost): ControlUiView<Props>
         state.nextBefore = result.nextBefore;
       }
     };
-    const loadRefEntries = async (): Promise<void> => {
+    const loadRefEntries = async (seq: number): Promise<void> => {
       if (!state.openRef || !state.openBucket) {
         state.refEntries = [];
         return;
       }
-      const result = await host.request<{ entries: WalletEntry[] }>("wallet.ledger", {
-        ...rangeFor(state, Date.now()),
-        ref: state.openRef,
-        activity: state.openBucket,
-      });
-      if (!context.signal.aborted) {
-        state.refEntries = result.entries;
+      try {
+        const result = await host.request<{ entries: WalletEntry[] }>("wallet.ledger", {
+          ...rangeFor(state, Date.now()),
+          ref: state.openRef,
+          activity: state.openBucket,
+        });
+        if (!context.signal.aborted && seq === reloadSeq) {
+          state.refEntries = result.entries;
+        }
+      } catch (error) {
+        if (seq === reloadSeq) {
+          state.refEntries = [];
+        }
+        throw error;
       }
     };
 
+    /** The three loads settle independently: a failing drill-down never hides a balance that
+     *  loaded. Any failure shows the error banner and drops the success notice. */
     const reload = async (): Promise<void> => {
-      try {
-        await Promise.all([loadGet(), loadLedger(), loadRefEntries()]);
-        clearMessages();
-      } catch (error) {
-        fail(error, () => void reload());
+      const seq = ++reloadSeq;
+      const results = await Promise.allSettled([
+        loadGet(seq),
+        loadLedger(seq),
+        loadRefEntries(seq),
+      ]);
+      if (seq !== reloadSeq || context.signal.aborted) {
         return;
       }
+      const failed = results.find((r) => r.status === "rejected");
+      if (failed) {
+        delete state.notice;
+        fail(failed.reason, () => void reload());
+        return;
+      }
+      delete state.error;
+      lastRetry = null;
       draw();
     };
 
@@ -246,9 +268,8 @@ export function createWalletPageMount(host: ControlUiHost): ControlUiView<Props>
         return;
       }
       delete state.openForm;
-      await reload();
       state.notice = done;
-      draw();
+      await reload();
     };
 
     const submit = async (form: string): Promise<void> => {
@@ -306,12 +327,12 @@ export function createWalletPageMount(host: ControlUiHost): ControlUiView<Props>
           failed: number;
           paise: number;
         }>("wallet.backfill", {});
-        await reload();
         state.notice = `Imported ${r.days} ${r.days === 1 ? "day" : "days"} of past usage from ${r.sessions} ${r.sessions === 1 ? "chat" : "chats"} (${formatInr(r.paise)})${r.failed ? `; ${r.failed} could not be read` : ""}.`;
-        draw();
       } catch (error) {
         fail(error, () => void backfill());
+        return;
       }
+      await reload();
     };
 
     const exportCsv = async (): Promise<void> => {
@@ -383,7 +404,7 @@ export function createWalletPageMount(host: ControlUiHost): ControlUiView<Props>
         state.openRef = ref;
         state.refEntries = [];
         draw();
-        void loadRefEntries().then(draw, (error: unknown) => fail(error, () => undefined));
+        void loadRefEntries(reloadSeq).then(draw, (error: unknown) => fail(error, () => undefined));
       },
       openForm: (form) => {
         if (form === "recharge" || form === "adjust" || form === "settings") {
@@ -397,7 +418,7 @@ export function createWalletPageMount(host: ControlUiHost): ControlUiView<Props>
       exportCsv: () => void exportCsv(),
       more: () => {
         if (state.nextBefore !== undefined) {
-          void loadLedger(state.nextBefore).then(draw, (error: unknown) =>
+          void loadLedger(reloadSeq, state.nextBefore).then(draw, (error: unknown) =>
             fail(error, () => undefined),
           );
         }
@@ -421,8 +442,4 @@ export function createWalletPageMount(host: ControlUiHost): ControlUiView<Props>
       },
     };
   };
-}
-
-function renderNotice(text: string): string {
-  return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }

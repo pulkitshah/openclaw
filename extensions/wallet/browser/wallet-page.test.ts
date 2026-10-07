@@ -201,4 +201,90 @@ describe("the Wallet page", () => {
       vi.unstubAllGlobals();
     }
   });
+
+  it("shows the reload error, not the success notice, when the reload after a write fails", async () => {
+    let gets = 0;
+    const request = makeRequest({
+      "wallet.get": () => {
+        gets += 1;
+        if (gets > 1) {
+          throw new Error("gateway unavailable");
+        }
+        return GET;
+      },
+    });
+    const { container, dispose } = mount(request);
+    try {
+      await settle();
+      container.querySelector<HTMLElement>('[data-open-form="recharge"]')!.click();
+      container.querySelector<HTMLInputElement>("[data-f-amount]")!.value = "10";
+      container.querySelector<HTMLInputElement>("[data-f-reference]")!.value = "UPI-2";
+      container.querySelector<HTMLElement>('[data-submit="recharge"]')!.click();
+      await settle();
+      expect(request).toHaveBeenCalledWith("wallet.credit", expect.anything());
+      expect(container.textContent).toContain("gateway unavailable");
+      expect(container.textContent).not.toContain("Added");
+    } finally {
+      dispose();
+    }
+  });
+
+  it("keeps the newer reload's answer when an older wallet.get resolves late", async () => {
+    const resolvers: Array<(value: unknown) => void> = [];
+    let gets = 0;
+    const request = vi.fn<RequestFn>(async (method) => {
+      if (method === "wallet.get") {
+        gets += 1;
+        return new Promise((resolve) => resolvers.push(resolve));
+      }
+      if (method === "wallet.ledger") {
+        return { entries: [] };
+      }
+      if (method === "wallet.settings") {
+        return { state: GET.state };
+      }
+      throw new Error(`unexpected ${method}`);
+    });
+    const { container, emit, dispose } = mount(request);
+    try {
+      await settle();
+      emit("plugin.wallet.changed", {});
+      await settle();
+      expect(gets).toBe(2);
+      resolvers[1]!({ ...GET, balancePaise: 222_200 });
+      await settle();
+      resolvers[0]!({ ...GET, balancePaise: 111_100 });
+      await settle();
+      expect(container.textContent).toContain("₹2,222.00");
+      expect(container.textContent).not.toContain("₹1,111.00");
+    } finally {
+      dispose();
+    }
+  });
+
+  it("keeps the balance when only the drill-down fetch fails", async () => {
+    const request = vi.fn<RequestFn>(async (method, params) => {
+      if (method === "wallet.get") {
+        return GET;
+      }
+      if (method === "wallet.ledger") {
+        if (params?.ref) {
+          throw new Error("drill-down failed");
+        }
+        return { entries: [] };
+      }
+      return { state: GET.state };
+    });
+    const { container, dispose } = mount(request);
+    try {
+      await settle();
+      container.querySelector<HTMLElement>('[data-bucket="chat"]')!.click();
+      container.querySelector<HTMLElement>('[data-activity="r1"]')!.click();
+      await settle();
+      expect(container.textContent).toContain("drill-down failed");
+      expect(container.textContent).toContain("₹10,000.00");
+    } finally {
+      dispose();
+    }
+  });
 });
