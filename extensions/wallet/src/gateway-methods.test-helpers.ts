@@ -41,7 +41,8 @@ export async function harness(opts?: {
     request: opts?.request ?? (async () => ({ sessions: [] }) as never),
     lookups: {
       memberName: async () => undefined,
-      groupName: async () => undefined,
+      sessionName: async () => undefined,
+      jobName: async () => undefined,
       mailAgentIds: () => [],
     },
   });

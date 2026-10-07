@@ -62,7 +62,7 @@ export function createLlmOutputMeter(deps: {
           agentId: ctx.agentId,
           trigger: ctx.trigger,
           attribution: ctx.attribution,
-          jobName: ctx.jobId,
+          jobId: ctx.jobId,
         },
         deps.lookups,
       );

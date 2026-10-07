@@ -38,7 +38,8 @@ const RATE = {
 };
 const lookups = {
   memberName: async () => undefined,
-  groupName: async () => undefined,
+  sessionName: async () => undefined,
+  jobName: async () => undefined,
   mailAgentIds: () => ["duties-mail"],
 };
 const IST = { mode: "specific", timeZone: "Asia/Kolkata", utcOffset: "UTC+5:30" };

@@ -3,7 +3,9 @@ import { attribute } from "./attribution.js";
 
 const lookups = {
   memberName: async (id: string) => (id === "asha" ? "Asha" : undefined),
-  groupName: async () => "Ops group",
+  sessionName: async (key: string) =>
+    key.includes(":group:") ? "Ops group" : key.endsWith(":+919205077716") ? "sumit" : undefined,
+  jobName: async (id: string) => (id === "job-1" ? "daily-digest" : undefined),
   mailAgentIds: () => ["duties-mail"],
 };
 
@@ -37,10 +39,33 @@ describe("attribute", () => {
     });
     expect(
       await attribute(
-        { trigger: "cron", jobName: "daily-digest", sessionKey: "agent:main:cron:x" },
+        { trigger: "cron", jobId: "job-1", sessionKey: "agent:main:cron:job-1:run:x" },
         lookups,
       ),
-    ).toEqual({ activity: "system", ref: "cron:daily-digest", label: "System — daily-digest" });
+    ).toEqual({ activity: "system", ref: "cron:job-1", label: "System — daily-digest" });
+    // An unknown job keeps its id as the label rather than dropping the call.
+    expect(await attribute({ trigger: "cron", jobId: "job-9" }, lookups)).toEqual({
+      activity: "system",
+      ref: "cron:job-9",
+      label: "System — job-9",
+    });
+    // The host's own setup probes are system work, not a chat.
+    expect(
+      await attribute(
+        { sessionKey: "agent:main:setup-inference:incognito-probe-setup-inference-1" },
+        lookups,
+      ),
+    ).toEqual({
+      activity: "system",
+      ref: "agent:main:setup-inference:incognito-probe-setup-inference-1",
+      label: "System — host setup check",
+    });
+    // A direct chat with no roster entry takes the host's saved name for the session.
+    expect(await attribute({ sessionKey: "agent:main:direct:+919205077716" }, lookups)).toEqual({
+      activity: "chat",
+      ref: "agent:main:direct:+919205077716",
+      label: "Chat — sumit",
+    });
   });
   it("names member and group sessions, and never drops an unknown one", async () => {
     expect(

@@ -17,7 +17,8 @@ const card = resolveRateCard({
 });
 const lookups = {
   memberName: async () => "Asha",
-  groupName: async () => undefined,
+  sessionName: async () => undefined,
+  jobName: async () => undefined,
   mailAgentIds: () => ["duties-mail"],
 };
 const event = (usage?: { input: number; output: number; cacheRead: number; cacheWrite: number }) =>

@@ -20,6 +20,30 @@ import { WalletStore } from "./src/store.js";
 /** Shared with the wallet tool (Task 10): model calls whose debit could not be written. */
 export const counters = { unrecorded: 0 };
 
+/** Remembers a name per key for a while; a failed or empty lookup is retried on the next call.
+ *  Names change rarely (a renamed group, a renamed job), so a short memory is enough. */
+function cachedLookup(
+  resolve: (key: string) => Promise<string | undefined>,
+  ttlMs = 10 * 60_000,
+): (key: string) => Promise<string | undefined> {
+  const cache = new Map<string, { name: string; until: number }>();
+  return async (key) => {
+    const hit = cache.get(key);
+    if (hit && hit.until > Date.now()) {
+      return hit.name;
+    }
+    try {
+      const name = await resolve(key);
+      if (name) {
+        cache.set(key, { name, until: Date.now() + ttlMs });
+      }
+      return name;
+    } catch {
+      return undefined; // the label falls back to the key; the debit is never dropped
+    }
+  };
+}
+
 export default function register(api: OpenClawPluginApi): void {
   // Shared request helper for both tool-discovery and full modes
   const readRequest = (method: string, params: Record<string, unknown>) =>
@@ -98,7 +122,26 @@ export default function register(api: OpenClawPluginApi): void {
         return undefined; // Team not installed or no such member: the label falls back to the id
       }
     },
-    groupName: async () => undefined, // no group registry yet; the label falls back to the session key
+    // The host names sessions itself (a WhatsApp group's subject, a saved contact); read from the
+    // session list and remembered per key, so a busy desk does not list sessions on every call.
+    sessionName: cachedLookup(async (key) => {
+      const agentId = /^agent:([^:]+):/.exec(key)?.[1];
+      const res = await request<{
+        sessions?: Array<{ key?: string; displayName?: string; label?: string; subject?: string }>;
+      }>("sessions.list", { ...(agentId ? { agentId } : {}), limit: 500 });
+      const hit = res?.sessions?.find((s) => s.key === key);
+      const name = hit?.displayName ?? hit?.label ?? hit?.subject;
+      return typeof name === "string" && name.trim() ? name.trim() : undefined;
+    }),
+    // Cron rows read as the job's name, never its id. One list per unknown id, remembered after.
+    jobName: cachedLookup(async (jobId) => {
+      const res = await request<{ jobs?: Array<{ id?: string; name?: string }> }>("cron.list", {
+        includeDisabled: true,
+        limit: 500,
+      });
+      const name = res?.jobs?.find((j) => j.id === jobId)?.name;
+      return typeof name === "string" && name.trim() ? name.trim() : undefined;
+    }),
     mailAgentIds: () => {
       // `wallet.role` is this plugin's own key on an agent entry, so it is read as untyped JSON.
       const entries: unknown = currentConfig().agents?.entries;
