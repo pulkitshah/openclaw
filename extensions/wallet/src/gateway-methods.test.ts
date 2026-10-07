@@ -232,6 +232,8 @@ describe("wallet gateway methods", () => {
     await store.setState({ enforce: true });
     const res = await call("wallet.gate");
     expect(res.result).toMatchObject({ allowed: false, balancePaise: 0, creditLimitPaise: 0 });
-    expect((res.result as { message: string }).message).toMatch(/Balance exhausted.*Test Contact/);
+    expect((res.result as { message: string }).message).toBe(
+      "Vasu is paused: the wallet balance is exhausted. Ask Test Contact to recharge, then send your message again.",
+    );
   });
 });

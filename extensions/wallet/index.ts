@@ -172,7 +172,7 @@ export default function register(api: OpenClawPluginApi): void {
         store,
         rateCard,
         now: Date.now,
-        afterDebit: notices.afterDebit,
+        afterDebit: notices.reconcile,
         onChanged: async () =>
           events.emit("changed", {
             balancePaise: await store.balance(),
@@ -189,7 +189,7 @@ export default function register(api: OpenClawPluginApi): void {
   });
   api.on(
     "before_agent_run",
-    createBeforeAgentRun({ store, contact, onStopped: notices.afterStop }),
+    createBeforeAgentRun({ store, contact, log: (message) => api.logger.warn(message) }),
   );
   api.on(
     "llm_output",
@@ -197,7 +197,7 @@ export default function register(api: OpenClawPluginApi): void {
       store,
       rateCard,
       lookups,
-      afterAppend: notices.afterDebit,
+      afterAppend: notices.reconcile,
       onUnrecorded: (error) => {
         counters.unrecorded += 1;
         api.logger.warn(`wallet: debit not recorded: ${coerceErrorMessage(error)}`);

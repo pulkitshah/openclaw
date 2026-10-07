@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { postHostingDebits } from "./hosting.js";
+import { resolveRateCard } from "./money.js";
 import { createNotices } from "./notices.js";
 import { openTestStore } from "./store.test-helpers.js";
 
@@ -18,19 +20,20 @@ describe("notices", () => {
       label: "Recharge",
       amountPaise: 30_000,
     });
-    await n.afterDebit();
+    await n.reconcile();
     expect(send).not.toHaveBeenCalled();
     await store.append({ kind: "adjustment", by: "t", label: "d", amountPaise: -15_000 });
-    await n.afterDebit();
-    await n.afterDebit();
+    await n.reconcile();
+    await n.reconcile();
     expect(send).toHaveBeenCalledTimes(1);
     expect(send.mock.calls[0]![0]).toMatch(/^Balance ₹150\.00/);
     expect(send.mock.calls[0]![0]).toContain("Recharge: TripIn Studio");
     await store.append({ kind: "adjustment", by: "t", label: "d", amountPaise: -15_000 });
-    await n.afterDebit();
+    await n.reconcile();
     expect(send).toHaveBeenCalledTimes(2);
     expect(send.mock.calls[1]![0]).toBe("Vasu is paused — balance ₹0.00, allowance ₹0.00 used up.");
-    await n.afterStop();
+    expect((await store.getState()).stoppedSince).toBe(1_000);
+    await n.reconcile();
     expect(send).toHaveBeenCalledTimes(2);
     const credit = await store.append({
       kind: "credit",
@@ -44,7 +47,12 @@ describe("notices", () => {
     expect(send.mock.calls[2]![0]).toBe(
       "Recharged ₹5,000.00 (UPI-4471). Balance ₹5,000.00. Vasu is back on.",
     );
-    expect((await store.getState()).lastLowNoticeAt).toBeUndefined();
+    const after = await store.getState();
+    expect([after.lastLowNoticeAt, after.stoppedSince, after.lastStopNoticeAt]).toEqual([
+      undefined,
+      undefined,
+      undefined,
+    ]);
   });
   it("measures the low line against the credit limit, not zero", async () => {
     const store = await openTestStore();
@@ -52,10 +60,10 @@ describe("notices", () => {
     await store.setState({ enforce: true, creditLimitPaise: 500_000, lowBalancePaise: 20_000 });
     const n = createNotices({ store, contact: () => "TripIn Studio", send });
     await store.append({ kind: "adjustment", by: "t", label: "d", amountPaise: -470_000 });
-    await n.afterDebit();
+    await n.reconcile();
     expect(send).not.toHaveBeenCalled();
     await store.append({ kind: "adjustment", by: "t", label: "d", amountPaise: -15_000 });
-    await n.afterDebit();
+    await n.reconcile();
     expect(send).toHaveBeenCalledTimes(1);
   });
   it("omits 'back on' when the desk was not stopped", async () => {
@@ -104,11 +112,11 @@ describe("notices", () => {
     });
     await debit(0);
     await debit(1);
-    await n.afterDebit();
+    await n.reconcile();
     expect(send.mock.calls[0]![0]).not.toContain("days at this week's rate");
     await store.setState({ lastLowNoticeAt: undefined });
     await debit(2);
-    await n.afterDebit();
+    await n.reconcile();
     expect(send.mock.calls[1]![0]).toMatch(/about \d+ days at this week's rate/);
   });
   it("re-arms the low notice only when a credit lifts headroom above the low line", async () => {
@@ -131,7 +139,7 @@ describe("notices", () => {
     expect((await store.getState()).lastLowNoticeAt).toBe(1);
     send.mockClear();
     await store.append({ kind: "adjustment", by: "t", label: "d", amountPaise: -100 });
-    await n.afterDebit();
+    await n.reconcile();
     expect(send).not.toHaveBeenCalled();
     // Lifted above the line: re-armed, the next crossing notifies again.
     const big = await store.append({
@@ -146,11 +154,11 @@ describe("notices", () => {
     expect((await store.getState()).lastLowNoticeAt).toBeUndefined();
     send.mockClear();
     await store.append({ kind: "adjustment", by: "t", label: "d", amountPaise: -40_000 });
-    await n.afterDebit();
+    await n.reconcile();
     expect(send).toHaveBeenCalledTimes(1);
     expect(send.mock.calls[0]![0]).toMatch(/^Balance /);
   });
-  it("afterSettings clears a stop once the new limit allows it", async () => {
+  it("reconcile clears a stop once a new limit allows it", async () => {
     const store = await openTestStore();
     const send = vi.fn(async (_text: string) => {});
     await store.setState({
@@ -161,10 +169,44 @@ describe("notices", () => {
     });
     const n = createNotices({ store, contact: () => "TripIn Studio", send });
     await store.append({ kind: "adjustment", by: "t", label: "d", amountPaise: -100 });
-    await n.afterSettings();
+    await n.reconcile();
     expect((await store.getState()).stoppedSince).toBe(5);
     await store.setState({ creditLimitPaise: 500_000 });
-    await n.afterSettings();
+    await n.reconcile();
     expect((await store.getState()).stoppedSince).toBeUndefined();
+  });
+  it("sends no low or stopped notice while enforcement is off, even for a hosting debit", async () => {
+    const store = await openTestStore();
+    const send = vi.fn(async (_text: string) => {});
+    const n = createNotices({ store, contact: () => "TripIn Studio", send });
+    const posted = await postHostingDebits({
+      store,
+      rateCard: () => resolveRateCard({}),
+      now: () => Date.UTC(2026, 9, 7, 6, 0),
+      onChanged: () => {},
+      afterDebit: n.reconcile,
+    });
+    expect(posted).toBe(1);
+    expect(await store.balance()).toBe(-8_000);
+    expect(send).not.toHaveBeenCalled();
+    const state = await store.getState();
+    expect([state.lastLowNoticeAt, state.stoppedSince]).toEqual([undefined, undefined]);
+  });
+  it("opens a stop episode once, and closes it when a settings change allows work again", async () => {
+    let clock = 10;
+    const store = await openTestStore();
+    const send = vi.fn(async (_text: string) => {});
+    const n = createNotices({ store, contact: () => "TripIn Studio", send, now: () => clock });
+    await store.setState({ enforce: true, lowBalancePaise: 0 });
+    await store.append({ kind: "adjustment", by: "t", label: "d", amountPaise: -100 });
+    await n.reconcile();
+    clock = 20;
+    await n.reconcile();
+    expect(await store.getState()).toMatchObject({ stoppedSince: 10, lastStopNoticeAt: 10 });
+    expect(send).toHaveBeenCalledTimes(1);
+    await store.setState({ enforce: false });
+    await n.reconcile();
+    const cleared = await store.getState();
+    expect([cleared.stoppedSince, cleared.lastStopNoticeAt]).toEqual([undefined, undefined]);
   });
 });

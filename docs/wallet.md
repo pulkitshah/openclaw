@@ -59,10 +59,12 @@ A day that fails is reported in `failed` and the import is not marked done, so r
 
 With `enforce` on, once the balance falls to the negative of `creditLimitPaise` or below:
 
-- New chat turns and new Duty runs are refused with a message that names the `contact`. A refused Duty run appears on the Runs board as Blocked.
+- New chat turns and new Duty runs are refused with a message that names the `contact`: "Vasu is paused: the wallet balance is exhausted. Ask TripIn Studio to recharge, then send your message again." Each sender gets it once per stop; later messages in the same stop are refused silently. The core runner appends "(blocked by wallet)", and the channel may prefix "Your message could not be sent". A refused Duty run appears on the Runs board as Blocked.
 - Runs and turns already in progress finish.
 - Hosting debits keep accruing daily.
 - Credits always land, and service resumes once the balance is back above the limit.
+
+The owner is told once when the balance first drops below the low-balance level and once when the desk pauses; both notices go out only while `enforce` is on. A Recharged notice goes out on every credit. If the wallet cannot read its own database, turns are allowed rather than blocked.
 
 With `enforce` off (the default), the wallet meters usage without refusing anything. If the Wallet plugin is disabled or not installed, nothing is gated.
 

@@ -222,9 +222,7 @@ export function registerWalletGatewayMethods(deps: {
 
   register("wallet.gate", "operator.read", async () => {
     const verdict = evaluateGate(await store.getState(), await store.balance());
-    return verdict.allowed
-      ? verdict
-      : { ...verdict, message: exhaustedMessage(verdict, contact()) };
+    return verdict.allowed ? verdict : { ...verdict, message: exhaustedMessage(contact()) };
   });
 
   register("wallet.credit", "operator.admin", async (params, ctx) => {
@@ -262,7 +260,7 @@ export function registerWalletGatewayMethods(deps: {
       label: "Adjustment",
       note,
     });
-    await afterWrite(entry, "adjustment", async () => {});
+    await afterWrite(entry, "adjustment", () => notices.reconcile());
     return { entry };
   });
 
@@ -285,7 +283,7 @@ export function registerWalletGatewayMethods(deps: {
     // An empty patch is valid: the Control UI calls it as an admin probe and gets the state back.
     if (Object.keys(patch).length > 0) {
       await store.setState(patch);
-      await afterWrite(undefined, "settings", () => notices.afterSettings());
+      await afterWrite(undefined, "settings", () => notices.reconcile());
     }
     return { state: await store.getState() };
   });
@@ -308,7 +306,7 @@ export function registerWalletGatewayMethods(deps: {
     try {
       const result = await run;
       if (!result.alreadyDone && result.days > 0) {
-        await afterWrite(undefined, "debit", () => notices.afterDebit());
+        await afterWrite(undefined, "debit", () => notices.reconcile());
       }
       return result;
     } finally {
@@ -349,7 +347,7 @@ export function registerWalletGatewayMethods(deps: {
       ...(sessionKey ? { sessionKey } : {}),
       ...(runId ? { runId } : {}),
     });
-    await afterWrite(entry, "debit", () => notices.afterDebit());
+    await afterWrite(entry, "debit", () => notices.reconcile());
     return { entry };
   });
 }

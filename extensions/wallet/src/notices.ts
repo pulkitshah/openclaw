@@ -1,4 +1,6 @@
+import { evaluateGate } from "./gate.js";
 import { formatInr } from "./money.js";
+import type { StatePatch } from "./store-contract.js";
 import type { Credit, WalletStore } from "./store.js";
 
 export type NoticeKind = "low" | "stopped" | "recharged";
@@ -20,76 +22,83 @@ export async function daysLeft(
   return perDay > 0 ? Math.max(0, Math.floor(headroomPaise / perDay)) : undefined;
 }
 
+/**
+ * The one owner of the paused/low state. Every write path (meter, hosting, charges, credits,
+ * adjustments, settings, backfill) calls `reconcile()` after its write; the gate only reads the
+ * verdict. Low and stopped owner notices go out only while `enforce` is on; the Recharged notice
+ * goes out on every credit.
+ */
 export function createNotices(deps: {
   store: WalletStore;
   contact: () => string;
   send: (text: string) => Promise<void>;
   now?: () => number;
 }): {
-  afterDebit(): Promise<void>;
+  reconcile(): Promise<void>;
   afterCredit(credit: Credit): Promise<void>;
-  afterSettings(): Promise<void>;
-  afterStop(): Promise<void>;
 } {
   const now = () => deps.now?.() ?? Date.now();
 
-  const sendStopped = async (): Promise<void> => {
+  const reconcile = async (): Promise<void> => {
     const state = await deps.store.getState();
-    if (state.lastStopNoticeAt) {
+    const balance = await deps.store.balance();
+    const headroom = balance + state.creditLimitPaise;
+    const verdict = evaluateGate(state, balance);
+    if (!verdict.allowed) {
+      if (state.stoppedSince !== undefined && state.lastStopNoticeAt !== undefined) {
+        return;
+      }
+      // Recorded before the send so a failing channel cannot turn one stop into a stream of retries.
+      const at = now();
+      await deps.store.setState({
+        stoppedSince: state.stoppedSince ?? at,
+        lastStopNoticeAt: state.lastStopNoticeAt ?? at,
+      });
+      if (state.lastStopNoticeAt === undefined) {
+        await deps.send(
+          `Vasu is paused — balance ${formatInr(balance)}, allowance ${formatInr(state.creditLimitPaise)} used up.`,
+        );
+      }
       return;
     }
-    // Recorded before the send so a failing channel cannot turn one stop into a stream of retries.
-    await deps.store.setState({ lastStopNoticeAt: now() });
-    await deps.send(
-      `Vasu is paused — balance ${formatInr(await deps.store.balance())}, allowance ${formatInr(state.creditLimitPaise)} used up.`,
-    );
+    const patch: StatePatch = {};
+    if (state.stoppedSince !== undefined || state.lastStopNoticeAt !== undefined) {
+      patch.stoppedSince = null;
+      patch.lastStopNoticeAt = null;
+    }
+    let low: string | undefined;
+    if (headroom >= state.lowBalancePaise) {
+      // Re-armed only once headroom is back at or above the line; a partial top-up keeps it sent.
+      if (state.lastLowNoticeAt !== undefined) {
+        patch.lastLowNoticeAt = null;
+      }
+    } else if (state.enforce && state.lastLowNoticeAt === undefined) {
+      patch.lastLowNoticeAt = now();
+      const days = await daysLeft(deps.store, headroom, now());
+      const rate = days === undefined ? "" : ` — about ${days} days at this week's rate`;
+      low = `Balance ${formatInr(balance)} — Vasu will pause when it runs out${rate}. Recharge: ${deps.contact()}.`;
+    }
+    if (Object.keys(patch).length > 0) {
+      await deps.store.setState(patch);
+    }
+    if (low) {
+      await deps.send(low);
+    }
   };
 
   return {
-    async afterDebit() {
-      const state = await deps.store.getState();
-      const balance = await deps.store.balance();
-      const headroom = balance + state.creditLimitPaise;
-      if (state.enforce && headroom <= 0) {
-        await sendStopped();
-        return;
-      }
-      if (headroom >= state.lowBalancePaise || state.lastLowNoticeAt) {
-        return;
-      }
-      await deps.store.setState({ lastLowNoticeAt: now() });
-      const days = await daysLeft(deps.store, headroom, now());
-      const rate = days === undefined ? "" : ` — about ${days} days at this week's rate`;
-      await deps.send(
-        `Balance ${formatInr(balance)} — Vasu will pause when it runs out${rate}. Recharge: ${deps.contact()}.`,
-      );
-    },
-    afterStop: sendStopped,
+    reconcile,
     async afterCredit(credit) {
       const state = await deps.store.getState();
       const balance = await deps.store.balance();
-      const wasStopped = Boolean(state.stoppedSince || state.lastStopNoticeAt);
-      const funded = balance + state.creditLimitPaise > 0;
-      const back = wasStopped && funded ? " Vasu is back on." : "";
-      await deps.send(
-        `Recharged ${formatInr(credit.amountPaise)} (${credit.reference}). Balance ${formatInr(balance)}.${back}`,
-      );
-      if (funded) {
-        // The low notice re-arms only once headroom is back above the line; a partial top-up must not repeat it.
-        await deps.store.setState({
-          ...(balance + state.creditLimitPaise >= state.lowBalancePaise
-            ? { lastLowNoticeAt: undefined }
-            : {}),
-          lastStopNoticeAt: undefined,
-          stoppedSince: undefined,
-        });
-      }
-    },
-    async afterSettings() {
-      const state = await deps.store.getState();
-      const balance = await deps.store.balance();
-      if (state.stoppedSince && (!state.enforce || balance + state.creditLimitPaise > 0)) {
-        await deps.store.setState({ stoppedSince: undefined, lastStopNoticeAt: undefined });
+      const wasStopped = state.stoppedSince !== undefined || state.lastStopNoticeAt !== undefined;
+      const back = wasStopped && evaluateGate(state, balance).allowed ? " Vasu is back on." : "";
+      try {
+        await deps.send(
+          `Recharged ${formatInr(credit.amountPaise)} (${credit.reference}). Balance ${formatInr(balance)}.${back}`,
+        );
+      } finally {
+        await reconcile();
       }
     },
   };

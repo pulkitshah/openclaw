@@ -1,4 +1,4 @@
-import { formatInr } from "./money.js";
+import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import type { WalletState, WalletStore } from "./store.js";
 
 export type GateVerdict =
@@ -17,57 +17,58 @@ export function evaluateGate(state: WalletState, balancePaise: number): GateVerd
   return { allowed: true };
 }
 
-export function exhaustedMessage(
-  v: Extract<GateVerdict, { allowed: false }>,
-  contact: string,
-): string {
-  return `Balance exhausted (${formatInr(v.balancePaise)} of ${formatInr(v.creditLimitPaise)} allowed). Ask ${contact} to recharge — your message is kept and will be answered after recharge.`;
+/** What a blocked sender reads. Core appends "(blocked by wallet)" to the turn it refuses. */
+export function exhaustedMessage(contact: string): string {
+  return `Vasu is paused: the wallet balance is exhausted. Ask ${contact} to recharge, then send your message again.`;
 }
 
+/**
+ * `before_agent_run`: refuses new turns while the wallet is exhausted. It only reads the verdict;
+ * `stoppedSince` and the owner notice belong to `notices.reconcile()`. A bookkeeping failure never
+ * blocks a turn (spec §5): any store error is logged and the turn is allowed.
+ */
 export function createBeforeAgentRun(deps: {
   store: WalletStore;
   contact: () => string;
-  onStopped: () => Promise<void>;
+  log: (message: string) => void;
 }): (event: GateEvent, ctx: GateContext) => Promise<GateDecision | undefined> {
   /** Senders already told about the current stop; cleared as soon as the gate passes again. */
   const notified = new Set<string>();
   /** The `stoppedSince` the set was filled under; a different value is a new stop episode. */
   let episode: number | undefined;
   return async (event, ctx) => {
-    const attribution = ctx.attribution;
     // A Duty run already in flight keeps its own model calls: stopping it midway would strand it.
-    if (attribution?.kind === "duty") {
+    if (ctx.attribution?.kind === "duty") {
       return undefined;
     }
-    const state = await deps.store.getState();
-    const verdict = evaluateGate(state, await deps.store.balance());
-    if (verdict.allowed) {
-      notified.clear();
-      return undefined;
-    }
-    let stoppedSince = state.stoppedSince;
-    if (!stoppedSince) {
-      stoppedSince = Date.now();
-      await deps.store.setState({ stoppedSince });
-      try {
-        await deps.onStopped();
-      } catch {
-        // The notice is best effort; the block itself must still hold.
+    try {
+      const state = await deps.store.getState();
+      if (!state.enforce) {
+        return undefined;
       }
+      const verdict = evaluateGate(state, await deps.store.balance());
+      if (verdict.allowed) {
+        notified.clear();
+        return undefined;
+      }
+      const stoppedSince = state.stoppedSince ?? 0;
+      if (episode !== stoppedSince) {
+        notified.clear();
+        episode = stoppedSince;
+      }
+      const who = event.senderId ?? ctx.sessionKey ?? "";
+      if (notified.has(who)) {
+        return { outcome: "block", reason: "wallet_exhausted" };
+      }
+      notified.add(who);
+      return {
+        outcome: "block",
+        reason: "wallet_exhausted",
+        message: exhaustedMessage(deps.contact()),
+      };
+    } catch (error) {
+      deps.log(`wallet: gate check failed, allowing the turn: ${coerceErrorMessage(error)}`);
+      return undefined;
     }
-    if (episode !== stoppedSince) {
-      notified.clear();
-      episode = stoppedSince;
-    }
-    const who = event.senderId ?? ctx.sessionKey ?? "";
-    if (notified.has(who)) {
-      return { outcome: "block", reason: "wallet_exhausted" };
-    }
-    notified.add(who);
-    return {
-      outcome: "block",
-      reason: "wallet_exhausted",
-      message: exhaustedMessage(verdict, deps.contact()),
-    };
   };
 }
