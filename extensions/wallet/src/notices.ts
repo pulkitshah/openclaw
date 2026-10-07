@@ -1,13 +1,11 @@
+import { istDay } from "./hosting.js";
 import { formatInr } from "./money.js";
 import type { Credit, WalletStore } from "./store.js";
 
 export type NoticeKind = "low" | "stopped" | "recharged";
 
 const DAY_MS = 86_400_000;
-const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
 const MIN_DAYS_OF_DATA = 3;
-
-const istDay = (ms: number) => new Date(ms + IST_OFFSET_MS).toISOString().slice(0, 10);
 
 /** Headroom over this week's average daily spend; undefined until three distinct IST days have debits. */
 export async function daysLeft(

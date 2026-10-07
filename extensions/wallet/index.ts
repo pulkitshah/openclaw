@@ -6,6 +6,7 @@ import type { AttributionLookups } from "./src/attribution.js";
 import { createWalletEventService } from "./src/events.js";
 import { createBeforeAgentRun } from "./src/gate.js";
 import { registerWalletGatewayMethods } from "./src/gateway-methods.js";
+import { startHostingJob } from "./src/hosting.js";
 import { createLlmOutputMeter } from "./src/meter.js";
 import { resolveRateCard } from "./src/money.js";
 import { createNotices } from "./src/notices.js";
@@ -93,6 +94,29 @@ export default function register(api: OpenClawPluginApi): void {
   const events = createWalletEventService();
   api.registerService(events);
   registerWalletGatewayMethods({ api, store, rateCard, contact, notices, events, counters });
+  let stopHosting: (() => void) | undefined;
+  api.registerService({
+    id: "wallet:hosting",
+    start() {
+      stopHosting = startHostingJob({
+        store,
+        rateCard,
+        now: Date.now,
+        afterDebit: notices.afterDebit,
+        onChanged: async () =>
+          events.emit("changed", {
+            balancePaise: await store.balance(),
+            kind: "debit",
+            entryId: "",
+          }),
+        log: (message) => api.logger.warn(message),
+      });
+    },
+    stop() {
+      stopHosting?.();
+      stopHosting = undefined;
+    },
+  });
   api.on(
     "before_agent_run",
     createBeforeAgentRun({ store, contact, onStopped: notices.afterStop }),

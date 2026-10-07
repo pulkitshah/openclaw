@@ -3,11 +3,11 @@ import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { OpenClawPluginApi } from "../api.js";
 import { evaluateGate, exhaustedMessage } from "./gate.js";
 import type { Ctx, Scope } from "./gateway-context.js";
+import { IST_OFFSET_MS } from "./hosting.js";
 import { priceService, type RateCard } from "./money.js";
 import { daysLeft, type createNotices } from "./notices.js";
 import type { Activity, WalletEntry, WalletState, WalletStore } from "./store.js";
 
-const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
 const DEFAULT_LIMIT = 100;
 const MAX_LIMIT = 500;
 const ACTIVITIES: Activity[] = ["chat", "duty", "mail", "system", "hosting", "integration"];
