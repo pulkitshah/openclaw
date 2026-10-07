@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { createNotices } from "./notices.js";
-import { memoryStore } from "./store.test-helpers.js";
+import { openTestStore } from "./store.test-helpers.js";
 
 const DAY = 86_400_000;
 
 describe("notices", () => {
   it("sends low once when crossing the line, stopped once at the gate, recharged on every credit", async () => {
-    const store = memoryStore();
+    const store = await openTestStore();
     const send = vi.fn(async (_text: string) => {});
     await store.setState({ enforce: true, creditLimitPaise: 0, lowBalancePaise: 20_000 });
     const n = createNotices({ store, contact: () => "TripIn Studio", send, now: () => 1_000 });
@@ -47,7 +47,7 @@ describe("notices", () => {
     expect((await store.getState()).lastLowNoticeAt).toBeUndefined();
   });
   it("measures the low line against the credit limit, not zero", async () => {
-    const store = memoryStore();
+    const store = await openTestStore();
     const send = vi.fn(async (_text: string) => {});
     await store.setState({ enforce: true, creditLimitPaise: 500_000, lowBalancePaise: 20_000 });
     const n = createNotices({ store, contact: () => "TripIn Studio", send });
@@ -59,7 +59,7 @@ describe("notices", () => {
     expect(send).toHaveBeenCalledTimes(1);
   });
   it("omits 'back on' when the desk was not stopped", async () => {
-    const store = memoryStore();
+    const store = await openTestStore();
     const send = vi.fn(async (_text: string) => {});
     const n = createNotices({ store, contact: () => "TripIn Studio", send });
     const credit = await store.append({
@@ -80,7 +80,7 @@ describe("notices", () => {
         kind: "debit",
         charge: "service",
         activity: "hosting",
-        ref: "h",
+        ref: `hosting:${daysAgo}`,
         label: "Hosting",
         service: "hosting",
         units: 1,
@@ -90,7 +90,7 @@ describe("notices", () => {
         source: "live",
         at: now - daysAgo * DAY,
       });
-    const store = memoryStore();
+    const store = await openTestStore();
     const send = vi.fn(async (_text: string) => {});
     await store.setState({ enforce: true, creditLimitPaise: 0, lowBalancePaise: 20_000 });
     const n = createNotices({ store, contact: () => "TripIn Studio", send, now: () => now });
@@ -112,7 +112,7 @@ describe("notices", () => {
     expect(send.mock.calls[1]![0]).toMatch(/about \d+ days at this week's rate/);
   });
   it("re-arms the low notice only when a credit lifts headroom above the low line", async () => {
-    const store = memoryStore();
+    const store = await openTestStore();
     const send = vi.fn(async (_text: string) => {});
     await store.setState({ enforce: true, creditLimitPaise: 0, lowBalancePaise: 20_000 });
     const n = createNotices({ store, contact: () => "TripIn Studio", send });
@@ -151,7 +151,7 @@ describe("notices", () => {
     expect(send.mock.calls[0]![0]).toMatch(/^Balance /);
   });
   it("afterSettings clears a stop once the new limit allows it", async () => {
-    const store = memoryStore();
+    const store = await openTestStore();
     const send = vi.fn(async (_text: string) => {});
     await store.setState({
       enforce: true,

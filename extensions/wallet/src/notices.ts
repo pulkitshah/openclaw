@@ -1,4 +1,3 @@
-import { istDay } from "./hosting.js";
 import { formatInr } from "./money.js";
 import type { Credit, WalletStore } from "./store.js";
 
@@ -13,13 +12,11 @@ export async function daysLeft(
   headroomPaise: number,
   at: number,
 ): Promise<number | undefined> {
-  const debits = await store.list({ from: at - 7 * DAY_MS, kind: "debit" });
-  const days = new Set(debits.map((d) => istDay(d.at)));
-  if (days.size < MIN_DAYS_OF_DATA) {
+  const { spentPaise, days } = await store.spendSince(at - 7 * DAY_MS);
+  if (days < MIN_DAYS_OF_DATA) {
     return undefined;
   }
-  const spent = debits.reduce((sum, d) => sum - d.amountPaise, 0);
-  const perDay = spent / 7;
+  const perDay = spentPaise / 7;
   return perDay > 0 ? Math.max(0, Math.floor(headroomPaise / perDay)) : undefined;
 }
 

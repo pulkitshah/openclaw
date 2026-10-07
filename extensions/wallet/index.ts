@@ -1,6 +1,9 @@
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { sendDurableMessageBatch } from "openclaw/plugin-sdk/channel-outbound";
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 import type { OpenClawPluginApi } from "./api.js";
 import type { AttributionLookups } from "./src/attribution.js";
 import { createWalletCommand, createWalletStatusTool } from "./src/command.js";
@@ -30,7 +33,10 @@ export default function register(api: OpenClawPluginApi): void {
     return;
   }
 
-  if (api.registrationMode !== "full") return; // cli-metadata / discovery / setup-only modes add nothing yet
+  // cli-metadata / discovery / setup-only modes add nothing yet
+  if (api.registrationMode !== "full") {
+    return;
+  }
   api.session.controls.registerControlUiDescriptor({
     surface: "tab",
     id: "wallet",
@@ -50,7 +56,33 @@ export default function register(api: OpenClawPluginApi): void {
   const request = <T = unknown>(method: string, params: Record<string, unknown>) =>
     api.runtime.gateway.request<T>(method, params, { scopes: ["operator.admin"] });
 
-  const store = WalletStore.open(api);
+  // The ledger lives in the plugin's own database. The service start opens it with the host's state
+  // dir; a hook or method that runs earlier opens it on first use instead of dropping its write.
+  let serviceStateDir: string | undefined;
+  const store = WalletStore.deferred(() => {
+    if (!api.runtimeSource) {
+      throw new Error("Wallet requires a Vasudev host with runtime entrypoint metadata");
+    }
+    return {
+      stateDir: serviceStateDir ?? resolveStateDir(),
+      workerModuleUrl: new URL(
+        `./src/store.worker${path.extname(api.runtimeSource)}`,
+        pathToFileURL(api.runtimeSource),
+      ),
+    };
+  });
+  api.registerService({
+    id: "wallet:store",
+    async start(ctx) {
+      serviceStateDir = ctx.stateDir;
+      await store.ready();
+      // The live meter is registered on every start; the first start on a desk is the backfill cutover.
+      await store.ensureMeterStarted(Date.now());
+    },
+    async stop() {
+      await store.close();
+    },
+  });
   const rateCard = () =>
     resolveRateCard((pluginConfig() as { rateCard?: unknown } | undefined)?.rateCard);
   const lookups: AttributionLookups = {

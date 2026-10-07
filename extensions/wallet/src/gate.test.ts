@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createBeforeAgentRun, evaluateGate, exhaustedMessage } from "./gate.js";
-import { memoryStore } from "./store.test-helpers.js";
+import { openTestStore } from "./store.test-helpers.js";
 
 describe("evaluateGate", () => {
   it("allows while balance plus limit is positive, blocks at or below zero, ignores when not enforced", () => {
@@ -27,7 +27,7 @@ describe("evaluateGate", () => {
 
 describe("before_agent_run", () => {
   it("blocks with the message once per sender per stop, then silently, and lets a Duty run's own calls through", async () => {
-    const store = memoryStore();
+    const store = await openTestStore();
     await store.setState({ enforce: true, creditLimitPaise: 0 });
     await store.append({ kind: "adjustment", by: "t", label: "drain", amountPaise: -1 });
     const onStopped = vi.fn(async () => {});
@@ -57,7 +57,7 @@ describe("before_agent_run", () => {
     vi.useFakeTimers();
     try {
       vi.setSystemTime(1_000);
-      const store = memoryStore();
+      const store = await openTestStore();
       await store.setState({ enforce: true, creditLimitPaise: 0 });
       await store.append({ kind: "adjustment", by: "t", label: "drain", amountPaise: -1 });
       const gate = createBeforeAgentRun({
@@ -96,7 +96,7 @@ describe("before_agent_run", () => {
     }
   });
   it("passes when funded", async () => {
-    const store = memoryStore();
+    const store = await openTestStore();
     await store.setState({ enforce: true, stoppedSince: 1 });
     await store.append({
       kind: "credit",

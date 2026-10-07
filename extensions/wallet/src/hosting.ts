@@ -39,9 +39,11 @@ export async function postHostingDebits(deps: HostingDeps): Promise<number> {
     await deps.store.setState({ hostingStartedOn: started });
   }
   let posted = 0;
+  // One read per tick; the partial unique index on hosting refs is the backstop against a double post.
+  const hosted = new Set(await deps.store.hostingRefsSince(dayStartMs(started)));
   for (let ms = dayStartMs(started); istDay(ms) <= today; ms += DAY_MS) {
     const day = istDay(ms);
-    if (await deps.store.hasHosting(day)) {
+    if (hosted.has(`hosting:${day}`)) {
       continue;
     }
     await deps.store.append({

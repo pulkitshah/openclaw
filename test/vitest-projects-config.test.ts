@@ -514,7 +514,7 @@ describe("projects vitest config", () => {
     expect(testConfig.sequence).toMatchObject({ groupOrder: 1 });
   });
 
-  it.each(["logbook", "team-reports"])(
+  it.each(["logbook", "team-reports", "wallet"])(
     "runs %s database owners in main-thread hosts across focused and full suites",
     (pluginId) => {
       const project = "test/vitest/vitest.extension-database-workers.config.ts";
@@ -534,6 +534,7 @@ describe("projects vitest config", () => {
       expect(testConfig.include).toEqual([
         "logbook/**/*.test.ts",
         "team-reports/**/*.test.ts",
+        "wallet/**/*.test.ts",
         "imessage/src/approval-reactions.persistence.test.ts",
       ]);
       expect(requireTestConfig(createExtensionsVitestConfig({})).exclude).toContain(

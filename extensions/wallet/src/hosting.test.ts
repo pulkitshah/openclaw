@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { istDay, postHostingDebits, startHostingJob } from "./hosting.js";
 import { resolveRateCard } from "./money.js";
-import { memoryStore } from "./store.test-helpers.js";
+import { openTestStore } from "./store.test-helpers.js";
 
 const card = resolveRateCard({ services: { hosting: { unit: "day", inrPerUnit: 80 } } });
 const noHosting = { ...card, services: {} };
@@ -17,7 +17,7 @@ describe("istDay", () => {
 
 describe("postHostingDebits", () => {
   it("posts one hosting debit per IST day from hostingStartedOn through today, idempotently", async () => {
-    const store = memoryStore();
+    const store = await openTestStore();
     await store.setState({ hostingStartedOn: "2026-10-05" });
     const onChanged = vi.fn();
     const afterDebit = vi.fn(async () => {});
@@ -48,7 +48,7 @@ describe("postHostingDebits", () => {
   });
 
   it("does nothing when services.hosting is absent", async () => {
-    const store = memoryStore();
+    const store = await openTestStore();
     const onChanged = vi.fn();
     expect(
       await postHostingDebits({ store, rateCard: () => noHosting, now: () => now, onChanged }),
@@ -59,7 +59,7 @@ describe("postHostingDebits", () => {
   });
 
   it("sets hostingStartedOn to today on first run when unset", async () => {
-    const store = memoryStore();
+    const store = await openTestStore();
     const n = await postHostingDebits({
       store,
       rateCard: () => card,
@@ -72,10 +72,11 @@ describe("postHostingDebits", () => {
 });
 
 describe("startHostingJob", () => {
+  // Only the interval is faked: the database worker's own I/O keeps real timers.
   it("runs immediately and on the interval, logs errors, and stops", async () => {
-    vi.useFakeTimers({ now });
+    const store = await openTestStore();
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
     try {
-      const store = memoryStore();
       const log = vi.fn();
       let calls = 0;
       const stop = startHostingJob(
@@ -83,19 +84,20 @@ describe("startHostingJob", () => {
           store,
           rateCard: () => {
             calls += 1;
-            if (calls === 2) throw new Error("boom");
+            if (calls === 2) {
+              throw new Error("boom");
+            }
             return card;
           },
-          now: () => Date.now(),
+          now: () => now,
           onChanged: () => {},
           log,
         },
         1000,
       );
-      await vi.advanceTimersByTimeAsync(0);
-      expect(await store.hasHosting("2026-10-07")).toBe(true);
+      await vi.waitFor(async () => expect(await store.hasHosting("2026-10-07")).toBe(true));
       await vi.advanceTimersByTimeAsync(1000);
-      expect(log).toHaveBeenCalledWith(expect.stringContaining("boom"));
+      await vi.waitFor(() => expect(log).toHaveBeenCalledWith(expect.stringContaining("boom")));
       stop();
       await vi.advanceTimersByTimeAsync(5000);
       expect(calls).toBe(2);
@@ -105,33 +107,34 @@ describe("startHostingJob", () => {
   });
 
   it("skips a tick while the previous run is still in flight", async () => {
-    vi.useFakeTimers({ now });
+    const store = await openTestStore();
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
     try {
-      const store = memoryStore();
       let release: () => void = () => {};
       const gate = new Promise<void>((resolve) => {
         release = resolve;
       });
-      const realHas = store.hasHosting.bind(store);
-      vi.spyOn(store, "hasHosting").mockImplementation(async (day) => {
+      const realRefs = store.hostingRefsSince.bind(store);
+      const refs = vi.spyOn(store, "hostingRefsSince").mockImplementation(async (from) => {
         await gate;
-        return realHas(day);
+        return realRefs(from);
       });
       const stop = startHostingJob(
         {
           store,
           rateCard: () => card,
-          now: () => Date.now(),
+          now: () => now,
           onChanged: () => {},
           log: () => {},
         },
         1000,
       );
+      await vi.waitFor(() => expect(refs).toHaveBeenCalledTimes(1));
       await vi.advanceTimersByTimeAsync(1000);
       release();
-      await vi.advanceTimersByTimeAsync(0);
+      await vi.waitFor(async () => expect(await store.list({ kind: "debit" })).toHaveLength(1));
       stop();
-      expect(await store.list({ kind: "debit" })).toHaveLength(1);
+      expect(refs).toHaveBeenCalledTimes(1);
     } finally {
       vi.useRealTimers();
     }

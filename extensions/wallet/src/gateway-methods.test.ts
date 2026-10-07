@@ -4,8 +4,8 @@ import { harness } from "./gateway-methods.test-helpers.js";
 const hasMessage = (error: unknown) => (error as { message: string }).message;
 
 describe("wallet gateway methods", () => {
-  it("registers each method under its scope", () => {
-    const { methods } = harness();
+  it("registers each method under its scope", async () => {
+    const { methods } = await harness();
     const scopes = Object.fromEntries([...methods].map(([name, m]) => [name, m.scope]));
     expect(scopes).toEqual({
       "wallet.get": "operator.read",
@@ -36,7 +36,7 @@ describe("wallet gateway methods", () => {
       ],
     });
     // SAFETY: the fake answers sessions.usage only.
-    const { call, emit, store } = harness({ request: request as never });
+    const { call, emit, store } = await harness({ request: request as never });
     const first = await call("wallet.backfill");
     expect(first.ok).toBe(true);
     expect(first.result).toMatchObject({ sessions: 1, days: 1 });
@@ -67,7 +67,7 @@ describe("wallet gateway methods", () => {
       ],
     }));
     // SAFETY: the fake answers sessions.usage only.
-    const { call, store } = harness({ request: request as never });
+    const { call, store } = await harness({ request: request as never });
     const [a, b] = await Promise.all([call("wallet.backfill"), call("wallet.backfill")]);
     expect(request).toHaveBeenCalledTimes(1);
     expect((await store.list({})).length).toBe(1);
@@ -98,7 +98,7 @@ describe("wallet gateway methods", () => {
       ],
     });
     // SAFETY: the fake answers sessions.usage only.
-    const { call, emit, store } = harness({ request: request as never });
+    const { call, emit, store } = await harness({ request: request as never });
     const original = store.append.bind(store);
     const append = vi.spyOn(store, "append");
     append.mockImplementationOnce(original);
@@ -109,7 +109,7 @@ describe("wallet gateway methods", () => {
   });
 
   it("credits with a unique reference, emits changed, and refuses the duplicate", async () => {
-    const { call, emit, store } = harness();
+    const { call, emit, store } = await harness();
     const first = await call("wallet.credit", { amountPaise: 500_000, reference: "UTR-1" });
     expect(first.ok).toBe(true);
     expect(await store.balance()).toBe(500_000);
@@ -127,7 +127,7 @@ describe("wallet gateway methods", () => {
   });
 
   it("adjusts signed and records who did it", async () => {
-    const { call, store } = harness();
+    const { call, store } = await harness();
     await call("wallet.credit", { amountPaise: 10_000, reference: "UTR-1" });
     const res = await call(
       "wallet.adjust",
@@ -146,7 +146,7 @@ describe("wallet gateway methods", () => {
   });
 
   it("prices a service charge and refuses unknown services", async () => {
-    const { call, store } = harness();
+    const { call, store } = await harness();
     const res = await call("wallet.charge", { service: "apify", units: 10 });
     expect(res.result).toMatchObject({
       entry: {
@@ -164,7 +164,7 @@ describe("wallet gateway methods", () => {
   });
 
   it("reports balance, summary, days-left and contact in wallet.get", async () => {
-    const { call } = harness();
+    const { call } = await harness();
     await call("wallet.credit", { amountPaise: 100_000, reference: "UTR-1" });
     await call("wallet.charge", { service: "apify", units: 10 });
     const res = await call("wallet.get");
@@ -182,7 +182,7 @@ describe("wallet gateway methods", () => {
   });
 
   it("pages the ledger newest first and exports CSV with a header row", async () => {
-    const { call, store } = harness();
+    const { call, store } = await harness();
     for (let i = 1; i <= 3; i++) {
       await store.append({
         kind: "credit",
@@ -195,9 +195,12 @@ describe("wallet gateway methods", () => {
       });
     }
     const page = await call("wallet.ledger", { limit: 2 });
-    const body = page.result as { entries: Array<{ at: number }>; nextBefore?: number };
+    const body = page.result as {
+      entries: Array<{ at: number; id: string }>;
+      nextBefore?: number;
+    };
     expect(body.entries.map((e) => e.at)).toEqual([3000, 2000]);
-    expect(body.nextBefore).toBe(2000);
+    expect(body.nextBefore).toBe(Number(body.entries[1]!.id));
     const rest = await call("wallet.ledger", { limit: 2, before: body.nextBefore });
     const restBody = rest.result as { entries: unknown[]; nextBefore?: number };
     expect(restBody.entries).toHaveLength(1);
@@ -212,7 +215,7 @@ describe("wallet gateway methods", () => {
   });
 
   it("settings re-evaluate the stop: raising the limit un-pauses", async () => {
-    const { call, store } = harness();
+    const { call, store } = await harness();
     await store.setState({ enforce: true, stoppedSince: 1, lastStopNoticeAt: 1 });
     const res = await call("wallet.settings", { creditLimitPaise: 500_000 });
     expect(res.ok).toBe(true);
@@ -224,7 +227,7 @@ describe("wallet gateway methods", () => {
   });
 
   it("wallet.gate mirrors evaluateGate and includes the exhausted message", async () => {
-    const { call, store } = harness();
+    const { call, store } = await harness();
     expect((await call("wallet.gate")).result).toEqual({ allowed: true });
     await store.setState({ enforce: true });
     const res = await call("wallet.gate");

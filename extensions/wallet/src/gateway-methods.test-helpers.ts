@@ -1,10 +1,10 @@
-// Shared fixture for gateway-methods.test.ts: an in-memory WalletStore wired to the registered
+// Shared fixture for gateway-methods.test.ts: a temp-database WalletStore wired to the registered
 // Gateway methods, plus a `call` that resolves whatever a handler responded.
 import { vi } from "vitest";
 import { registerWalletGatewayMethods } from "./gateway-methods.js";
 import { DEFAULT_RATE_CARD } from "./money.js";
 import { createNotices } from "./notices.js";
-import { memoryStore } from "./store.test-helpers.js";
+import { openTestStore } from "./store.test-helpers.js";
 
 type Handler = (ctx: {
   params: Record<string, unknown>;
@@ -15,7 +15,7 @@ type Handler = (ctx: {
   };
 }) => Promise<void>;
 
-export function harness(opts?: {
+export async function harness(opts?: {
   request?: <T>(method: string, params: Record<string, unknown>) => Promise<T>;
 }) {
   const methods = new Map<string, { handler: Handler; scope: string }>();
@@ -25,7 +25,7 @@ export function harness(opts?: {
     logger: { warn: () => {} },
     // SAFETY: the Gateway methods under test only touch `registerGatewayMethod` and `logger`.
   } as never;
-  const store = memoryStore();
+  const store = await openTestStore();
   const emit = vi.fn<(name: "changed", payload: Record<string, unknown>) => void>();
   const send = vi.fn<(text: string) => Promise<void>>(async () => {});
   const counters = { unrecorded: 0 };

@@ -58,6 +58,15 @@ With `enforce` on, once the balance falls to the negative of `creditLimitPaise` 
 
 With `enforce` off (the default), the wallet meters usage without refusing anything. If the Wallet plugin is disabled or not installed, nothing is gated.
 
+## Storage
+
+The ledger lives in the plugin-owned database at
+`<state-dir>/plugins/wallet/wallet.sqlite`, with three tables: `wallet_entries` (the append-only
+ledger, one row per credit, debit, or adjustment), `wallet_state` (the single row of limit,
+threshold, `enforce`, and notice bookkeeping), and `wallet_backfill_marks` (one row per imported
+session-day). The database enforces one credit per `reference` and one hosting debit per day. The
+plugin closes it when disabled or restarted.
+
 ## The `/wallet` command and `wallet_status` tool
 
 `/wallet` replies with the balance and where it went this month, plus the recharge contact when paused. The `wallet_status` tool gives the agent the same read-only view (balance, usage this month, days remaining), so it can answer "how much is left?".

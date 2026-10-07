@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { backfillFromUsage } from "./backfill.js";
 import { resolveRateCard } from "./money.js";
-import { memoryStore } from "./store.test-helpers.js";
+import { openTestStore } from "./store.test-helpers.js";
 
 const card = resolveRateCard({
   inrPerUsd: 100,
@@ -55,8 +55,8 @@ function usageResult(extra: Array<Record<string, unknown>> = []) {
   };
 }
 
-function setup(result: unknown = usageResult()) {
-  const store = memoryStore();
+async function setup(result: unknown = usageResult()) {
+  const store = await openTestStore();
   const request = vi.fn(async () => result);
   const log = vi.fn();
   const run = () =>
@@ -74,7 +74,7 @@ function setup(result: unknown = usageResult()) {
 
 describe("backfillFromUsage", () => {
   it("turns each session-day into a labelled backfill debit at that IST noon", async () => {
-    const { store, request, run } = setup();
+    const { store, request, run } = await setup();
     const result = await run();
     expect(request).toHaveBeenCalledWith("sessions.usage", {
       range: "all",
@@ -126,7 +126,7 @@ describe("backfillFromUsage", () => {
   });
 
   it("is idempotent: a second run appends nothing", async () => {
-    const { store, run } = setup();
+    const { store, run } = await setup();
     await run();
     const before = await store.balance();
     expect(await run()).toEqual({ sessions: 0, days: 0, failed: 0, paise: 0 });
@@ -135,7 +135,7 @@ describe("backfillFromUsage", () => {
   });
 
   it("logs a failed day, keeps going, leaves it unmarked, and a rerun imports it", async () => {
-    const { store, log, run } = setup();
+    const { store, log, run } = await setup();
     const original = store.append.bind(store);
     const append = vi.spyOn(store, "append");
     append.mockImplementationOnce(original);
@@ -156,7 +156,7 @@ describe("backfillFromUsage", () => {
       key: `agent:a:main${i}`,
       usage: null,
     }));
-    const { request, log, run } = setup({ sessions });
+    const { request, log, run } = await setup({ sessions });
     await run();
     expect(request).toHaveBeenCalledTimes(1);
     expect(log).toHaveBeenCalledWith(expect.stringContaining("1000"));

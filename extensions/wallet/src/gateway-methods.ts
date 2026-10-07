@@ -208,7 +208,11 @@ export function registerWalletGatewayMethods(deps: {
     const limit = Math.min(MAX_LIMIT, Math.max(1, Math.floor(requested)));
     const entries = await store.list({ ...defined(listFilter(params)), limit });
     const last = entries.at(-1);
-    return { entries, ...(entries.length === limit && last ? { nextBefore: last.at } : {}) };
+    // The cursor is the integer entry id, so rows sharing a millisecond are never skipped.
+    return {
+      entries,
+      ...(entries.length === limit && last ? { nextBefore: Number(last.id) } : {}),
+    };
   });
 
   register("wallet.export", "operator.read", async (params) => {

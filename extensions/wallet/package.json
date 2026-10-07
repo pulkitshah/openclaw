@@ -8,6 +8,7 @@
   "peerDependencies": { "openclaw": ">=2026.9.4" },
   "peerDependenciesMeta": { "openclaw": { "optional": true } },
   "openclaw": {
+    "build": { "workerEntries": ["./src/store.worker.ts"] },
     "extensions": ["./index.ts"],
     "controlUi": "./browser/index.ts",
     "assetScripts": {

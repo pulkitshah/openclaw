@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createLlmOutputMeter } from "./meter.js";
 import { resolveRateCard } from "./money.js";
-import { memoryStore } from "./store.test-helpers.js";
+import { openTestStore } from "./store.test-helpers.js";
 
 const card = resolveRateCard({
   inrPerUsd: 100,
@@ -32,7 +32,7 @@ const event = (usage?: { input: number; output: number; cacheRead: number; cache
 
 describe("llm_output meter", () => {
   it("writes one priced tokens debit per model call with attribution", async () => {
-    const store = memoryStore();
+    const store = await openTestStore();
     const afterAppend = vi.fn(async () => {});
     const meter = createLlmOutputMeter({
       store,
@@ -66,7 +66,7 @@ describe("llm_output meter", () => {
     expect(afterAppend).toHaveBeenCalledTimes(1);
   });
   it("writes nothing for a call with no usage or all-zero usage, and never throws", async () => {
-    const store = memoryStore();
+    const store = await openTestStore();
     const meter = createLlmOutputMeter({
       store,
       rateCard: () => card,
@@ -78,7 +78,7 @@ describe("llm_output meter", () => {
     expect(await store.list()).toEqual([]);
   });
   it("reports a failed write instead of throwing into the hook", async () => {
-    const store = memoryStore();
+    const store = await openTestStore();
     store.append = async () => {
       throw new Error("disk full");
     };
@@ -90,7 +90,7 @@ describe("llm_output meter", () => {
     expect(onUnrecorded).toHaveBeenCalledTimes(1);
   });
   it("reports a failing afterAppend through onUnrecorded", async () => {
-    const store = memoryStore();
+    const store = await openTestStore();
     const onUnrecorded = vi.fn();
     const meter = createLlmOutputMeter({
       store,

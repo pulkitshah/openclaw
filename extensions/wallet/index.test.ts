@@ -31,13 +31,6 @@ function createMockFullApi(overrides?: { request?: ReturnType<typeof vi.fn> }): 
     runtime: {
       config: undefined,
       gateway: { request: overrides?.request ?? vi.fn() },
-      state: {
-        openKeyedStore: vi.fn().mockReturnValue({
-          get: vi.fn(),
-          set: vi.fn(),
-          delete: vi.fn(),
-        }),
-      },
     },
   } as unknown as OpenClawPluginApi;
 
