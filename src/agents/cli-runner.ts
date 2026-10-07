@@ -22,7 +22,10 @@ import {
   buildAgentHookContextIdentityFields,
 } from "../plugins/hook-agent-context.js";
 import { resolveBlockMessage } from "../plugins/hook-decision-types.js";
+import { getGlobalHookRunnerRegistry } from "../plugins/hook-runner-global-state.js";
 import { getGlobalHookRunner } from "../plugins/hook-runner-global.js";
+import { getPluginRuntimeGatewayRequestScope } from "../plugins/runtime/gateway-request-scope.js";
+import { getPluginRuntimeGenerationRegistry } from "../plugins/runtime/generation-state.js";
 import {
   loadAuthProfileStoreForRuntime,
   markAuthProfileFailure,
@@ -85,6 +88,35 @@ import {
 } from "./harness/lifecycle-hook-helpers.js";
 
 const log = createSubsystemLogger("agents/cli-runner");
+
+let hookInventoryLogged = false;
+/**
+ * Once per process, on the first turn, names which plugins' typed hooks the runner can see and
+ * which registry scopes are bound. A plugin whose hooks register at startup but never fire
+ * (seen live on a desk) is otherwise invisible: no error, no row, nothing in the journal.
+ */
+function logHookInventoryOnce(params: {
+  turnSideEffectsDisabled: boolean;
+  hasLlmOutputHooks: boolean;
+  hasBeforeAgentRunHooks: boolean;
+}): void {
+  if (hookInventoryLogged) {
+    return;
+  }
+  hookInventoryLogged = true;
+  const typedHooks = getGlobalHookRunnerRegistry()?.typedHooks ?? [];
+  const owners = (hookName: string) =>
+    typedHooks
+      .filter((hook) => hook.hookName === hookName)
+      .map((hook) => hook.pluginId)
+      .join(",") || "-";
+  log.info(
+    `hook inventory at first turn: before_agent_run=[${owners("before_agent_run")}] llm_output=[${owners("llm_output")}] ` +
+      `before_prompt_build=[${owners("before_prompt_build")}] sees(llm_output=${params.hasLlmOutputHooks}, before_agent_run=${params.hasBeforeAgentRunHooks}) ` +
+      `sideEffectsDisabled=${params.turnSideEffectsDisabled} generationScope=${getPluginRuntimeGenerationRegistry() !== undefined} ` +
+      `requestScope=${getPluginRuntimeGatewayRequestScope()?.pluginRegistry !== undefined}`,
+  );
+}
 const cliRunnerDeps = cliRunSettlementDeps;
 
 /** Overrides top-level CLI runner dependencies for tests. */
@@ -279,6 +311,11 @@ async function runPreparedCliAgentOwned(
   const hasLlmOutputHooks = hookRunner?.hasHooks("llm_output") === true;
   const hasAgentEndHooks = hookRunner?.hasHooks("agent_end") === true;
   const hasBeforeAgentRunHooks = hookRunner?.hasHooks("before_agent_run") === true;
+  logHookInventoryOnce({
+    turnSideEffectsDisabled,
+    hasLlmOutputHooks,
+    hasBeforeAgentRunHooks,
+  });
   const needsHookHistory = hasLlmInputHooks || hasAgentEndHooks || hasBeforeAgentRunHooks;
   let historyMessages: unknown[] = [];
   const promptForHooks = context.promptForHooks ?? params.prompt;
