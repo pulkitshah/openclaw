@@ -20,8 +20,8 @@ export async function harness(opts?: {
 }) {
   const methods = new Map<string, { handler: Handler; scope: string }>();
   const api = {
-    registerGatewayMethod: (name: string, handler: never, opts: { scope: string }) =>
-      methods.set(name, { handler, scope: opts.scope }),
+    registerGatewayMethod: (name: string, handler: never, registration: { scope: string }) =>
+      methods.set(name, { handler, scope: registration.scope }),
     logger: { warn: () => {} },
     // SAFETY: the Gateway methods under test only touch `registerGatewayMethod` and `logger`.
   } as never;
@@ -48,15 +48,17 @@ export async function harness(opts?: {
   const call = (
     name: string,
     params: Record<string, unknown> = {},
-    opts?: { scopes?: string[]; profileId?: string },
+    client?: { scopes?: string[]; profileId?: string },
   ) =>
     new Promise<{ ok: boolean; result?: unknown; error?: unknown }>((resolve) => {
       void methods.get(name)!.handler({
         params,
         respond: (ok, result, error) => resolve({ ok, result, error }),
         client: {
-          connect: { scopes: opts?.scopes ?? ["operator.admin"] },
-          ...(opts?.profileId ? { authenticatedUserProfile: { profileId: opts.profileId } } : {}),
+          connect: { scopes: client?.scopes ?? ["operator.admin"] },
+          ...(client?.profileId
+            ? { authenticatedUserProfile: { profileId: client.profileId } }
+            : {}),
         },
       });
     });

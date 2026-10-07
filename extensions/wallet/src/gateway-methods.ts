@@ -8,7 +8,7 @@ import type { Ctx, Scope } from "./gateway-context.js";
 import { IST_OFFSET_MS } from "./hosting.js";
 import { priceService, type RateCard } from "./money.js";
 import { daysLeft, type createNotices } from "./notices.js";
-import type { Activity, WalletEntry, WalletState, WalletStore } from "./store.js";
+import type { Activity, ListFilter, WalletEntry, WalletState, WalletStore } from "./store.js";
 
 const DEFAULT_LIMIT = 100;
 const MAX_LIMIT = 500;
@@ -38,16 +38,19 @@ const requiredText = (params: Record<string, unknown>, key: string): string => {
   }
   return value.trim();
 };
+/** An empty or whitespace-only string means "absent", like a missing key. */
 const optionalText = (params: Record<string, unknown>, key: string): string | undefined => {
   const value = params[key];
   if (value === undefined) {
     return undefined;
   }
-  if (typeof value !== "string" || !value.trim()) {
-    throw new Error(`${key} must be a non-empty string`);
+  if (typeof value !== "string") {
+    throw new Error(`${key} must be a string`);
   }
-  return value.trim();
+  return value.trim() || undefined;
 };
+const isActivity = (value: string): value is Activity => ACTIVITIES.some((a) => a === value);
+const isKind = (value: string): value is WalletEntry["kind"] => KINDS.some((k) => k === value);
 const paise = (params: Record<string, unknown>, key: string): number => {
   const value = params[key];
   if (typeof value !== "number" || !Number.isInteger(value)) {
@@ -66,17 +69,24 @@ const nonNegativePaise = (params: Record<string, unknown>, key: string): number 
   return value;
 };
 
+/** Quotes a text cell for CSV and defuses spreadsheet formulas. */
 const csvCell = (value: string | number): string => {
-  const text = String(value);
+  let text = String(value);
+  // A leading = + - @ tab or CR makes spreadsheets evaluate the cell; labels can come from outside
+  // mail subjects, so such cells get a leading quote (OWASP CSV injection).
+  if (/^[=+\-@\t\r]/.test(text)) {
+    text = `'${text}`;
+  }
   return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 };
+/** Amounts are numbers this module formats, never outside text, so a leading minus stays numeric. */
 const rupees = (amountPaise: number) => (amountPaise / 100).toFixed(2);
 
 function csvRow(entry: WalletEntry): string {
   const debit = entry.kind === "debit" ? entry : undefined;
   const tokens = debit?.charge === "tokens" ? debit : undefined;
   const service = debit?.charge === "service" ? debit : undefined;
-  return [
+  const before = [
     new Date(entry.at).toISOString(),
     entry.kind,
     debit?.charge ?? "",
@@ -86,18 +96,12 @@ function csvRow(entry: WalletEntry): string {
     tokens
       ? tokens.inputTokens + tokens.outputTokens + tokens.cacheReadTokens + tokens.cacheWriteTokens
       : "",
-    rupees(entry.amountPaise),
-    rupees(entry.balanceAfterPaise),
-    entry.kind === "credit" ? entry.reference : (entry.note ?? ""),
-  ]
-    .map(csvCell)
-    .join(",");
+  ].map(csvCell);
+  const after = csvCell(entry.kind === "credit" ? entry.reference : (entry.note ?? ""));
+  return [...before, rupees(entry.amountPaise), rupees(entry.balanceAfterPaise), after].join(",");
 }
 const CSV_HEADER =
   "at,kind,charge,activity,label,model/service,tokens,amount ₹,balance after ₹,reference/note";
-
-/** The Gateway client as far as `by` needs it; the host's profile carries `profileId`. */
-type AdminClient = { authenticatedUserProfile?: { profileId?: string } } | null;
 
 export function registerWalletGatewayMethods(deps: {
   api: OpenClawPluginApi;
@@ -157,29 +161,37 @@ export function registerWalletGatewayMethods(deps: {
       { scope },
     );
 
-  const actor = (ctx: Ctx): string =>
-    (ctx.client as AdminClient)?.authenticatedUserProfile?.profileId ?? "operator";
+  /** The admin's profile id when the Gateway client carries one (`authenticatedUserProfile`). */
+  const actor = (ctx: Ctx): string => {
+    const client: unknown = ctx.client;
+    const profile = isRecord(client) ? client.authenticatedUserProfile : undefined;
+    return isRecord(profile) && typeof profile.profileId === "string" && profile.profileId
+      ? profile.profileId
+      : "operator";
+  };
 
-  const listFilter = (params: Record<string, unknown>) => {
+  const listFilter = (params: Record<string, unknown>): ListFilter => {
     const activity = optionalText(params, "activity");
     const kind = optionalText(params, "kind");
-    if (activity !== undefined && !ACTIVITIES.includes(activity as Activity)) {
+    if (activity !== undefined && !isActivity(activity)) {
       throw new Error(`unknown activity: ${activity}`);
     }
-    if (kind !== undefined && !KINDS.includes(kind as WalletEntry["kind"])) {
+    if (kind !== undefined && !isKind(kind)) {
       throw new Error(`unknown kind: ${kind}`);
     }
+    const from = optionalNumber(params, "from");
+    const to = optionalNumber(params, "to");
+    const before = optionalNumber(params, "before");
+    const ref = optionalText(params, "ref");
     return {
-      from: optionalNumber(params, "from"),
-      to: optionalNumber(params, "to"),
-      before: optionalNumber(params, "before"),
-      ref: optionalText(params, "ref"),
-      ...(activity ? { activity: activity as Activity } : {}),
-      ...(kind ? { kind: kind as WalletEntry["kind"] } : {}),
+      ...(from !== undefined ? { from } : {}),
+      ...(to !== undefined ? { to } : {}),
+      ...(before !== undefined ? { before } : {}),
+      ...(ref !== undefined ? { ref } : {}),
+      ...(activity !== undefined ? { activity } : {}),
+      ...(kind !== undefined ? { kind } : {}),
     };
   };
-  const defined = <T extends object>(filter: T): T =>
-    Object.fromEntries(Object.entries(filter).filter(([, v]) => v !== undefined)) as T;
 
   register("wallet.get", "operator.read", async (params) => {
     const at = now();
@@ -206,7 +218,7 @@ export function registerWalletGatewayMethods(deps: {
   register("wallet.ledger", "operator.read", async (params) => {
     const requested = optionalNumber(params, "limit") ?? DEFAULT_LIMIT;
     const limit = Math.min(MAX_LIMIT, Math.max(1, Math.floor(requested)));
-    const entries = await store.list({ ...defined(listFilter(params)), limit });
+    const entries = await store.list({ ...listFilter(params), limit });
     const last = entries.at(-1);
     // The cursor is the integer entry id, so rows sharing a millisecond are never skipped.
     return {
@@ -216,7 +228,7 @@ export function registerWalletGatewayMethods(deps: {
   });
 
   register("wallet.export", "operator.read", async (params) => {
-    const entries = await store.list(defined(listFilter(params)));
+    const entries = await store.list(listFilter(params));
     return { csv: [CSV_HEADER, ...entries.map(csvRow)].join("\n") };
   });
 
@@ -324,8 +336,8 @@ export function registerWalletGatewayMethods(deps: {
     if (!priced) {
       throw new Error(`unknown service: ${service}`);
     }
-    const activity = optionalText(params, "activity") as Activity | undefined;
-    if (activity !== undefined && !ACTIVITIES.includes(activity)) {
+    const activity = optionalText(params, "activity");
+    if (activity !== undefined && !isActivity(activity)) {
       throw new Error(`unknown activity: ${activity}`);
     }
     const sessionKey = optionalText(params, "sessionKey");

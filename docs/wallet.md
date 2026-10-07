@@ -33,13 +33,16 @@ Reads (`wallet.get`, the statement) need only `operator.read`.
 
 Token usage is priced from `plugins.entries.wallet.config.rateCard`. Any field you leave out keeps its default.
 
-| Field        | Meaning                                                                                                                                          | Default                                                      |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------ |
-| `inrPerUsd`  | Exchange rate applied to USD prices.                                                                                                             | `88`                                                         |
-| `multiplier` | Markup on provider cost.                                                                                                                         | `2`                                                          |
-| `models`     | Per-model rates, keyed by model id, each with `inputUsdPerM`, `outputUsdPerM`, `cacheReadUsdPerM`, `cacheWriteUsdPerM` (USD per million tokens). | Built-in table of current Claude models                      |
-| `fallback`   | Rates for a model not in `models`; the debit is marked unpriced.                                                                                 | Opus rates                                                   |
-| `services`   | Non-token charges, keyed by service, each `{ unit, inrPerUnit }`.                                                                                | `hosting` at 80 per `day`, `apify` at 0.5 per `compute-unit` |
+| Field        | Meaning                                                                                                                                                    | Default                                                         |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `inrPerUsd`  | Exchange rate applied to USD prices.                                                                                                                       | `88`                                                            |
+| `multiplier` | Markup on provider cost.                                                                                                                                   | `2`                                                             |
+| `models`     | Per-model rates, keyed by model id, each with `inputUsdPerM`, `outputUsdPerM`, `cacheReadUsdPerM`, `cacheWriteUsdPerM` (USD per million tokens).           | Built-in table of current Claude models                         |
+| `fallback`   | Rates for a model not in `models`; the debit is marked unpriced.                                                                                           | Opus rates                                                      |
+| `aliases`    | Model names the runtime reports (such as claude-cli's `sonnet`) mapped to a `models` id. A leading `claude-cli/` or `anthropic/` is ignored before lookup. | `opus`, `sonnet`, `haiku`, and `default` (the fallback's model) |
+| `services`   | Non-token charges, keyed by service, each `{ unit, inrPerUnit }`.                                                                                          | `hosting` at 80 per `day`, `apify` at 0.5 per `compute-unit`    |
+
+Hosting is on by default at the `hosting` rate; set `services.hosting.inrPerUnit` to `0` to turn it off for a desk.
 
 `plugins.entries.wallet.config.contact` names who customers are told to ask for a recharge. It defaults to "TripIn Studio".
 

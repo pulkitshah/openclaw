@@ -236,4 +236,28 @@ describe("wallet gateway methods", () => {
       "Vasu is paused: the wallet balance is exhausted. Ask Test Contact to recharge, then send your message again.",
     );
   });
+
+  it("treats an empty note as absent", async () => {
+    const { call } = await harness();
+    const res = await call("wallet.credit", { amountPaise: 100, reference: "UTR-9", note: "" });
+    expect(res.ok).toBe(true);
+    expect((res.result as { entry: { note?: string } }).entry.note).toBeUndefined();
+    const blank = await call("wallet.credit", {
+      amountPaise: 100,
+      reference: "UTR-10",
+      note: "  ",
+    });
+    expect(blank.ok).toBe(true);
+  });
+
+  it("defuses spreadsheet formulas in exported text cells but keeps negative amounts numeric", async () => {
+    const { call } = await harness();
+    await call("wallet.charge", { service: "apify", units: 10, label: '=HYPERLINK("x")' });
+    await call("wallet.charge", { service: "apify", units: 10, label: "@SUM(A1)" });
+    const { csv } = (await call("wallet.export", {})).result as { csv: string };
+    const [, sum, link] = csv.split("\n");
+    expect(link).toContain(`,"'=HYPERLINK(""x"")",`);
+    expect(sum).toContain(",'@SUM(A1),");
+    expect(link).toContain(",-5.00,-5.00,");
+  });
 });

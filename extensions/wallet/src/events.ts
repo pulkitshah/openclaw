@@ -84,3 +84,48 @@ export function createWalletEventService(): OpenClawPluginService & {
     },
   };
 }
+
+/**
+ * Emits `changed` with `kind: "debit"` for token debits at most once per `intervalMs` per process:
+ * the first debit in a window goes out at once, later ones fold into one trailing event at the
+ * window's end that carries the balance at that moment.
+ */
+export function createDebitEventEmitter(deps: {
+  emit: (payload: Record<string, unknown>) => void;
+  balance: () => Promise<number>;
+  intervalMs?: number;
+  now?: () => number;
+}): (entryId: string) => void {
+  const intervalMs = deps.intervalMs ?? 2_000;
+  const now = deps.now ?? Date.now;
+  let lastAt = Number.NEGATIVE_INFINITY;
+  let pendingId: string | undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const send = (entryId: string) => {
+    lastAt = now();
+    void deps
+      .balance()
+      .then((balancePaise) => deps.emit({ balancePaise, kind: "debit", entryId }))
+      .catch(() => undefined);
+  };
+  return (entryId) => {
+    const wait = lastAt + intervalMs - now();
+    if (wait <= 0 && !timer) {
+      send(entryId);
+      return;
+    }
+    pendingId = entryId;
+    if (!timer) {
+      timer = setTimeout(
+        () => {
+          timer = undefined;
+          const id = pendingId ?? "";
+          pendingId = undefined;
+          send(id);
+        },
+        Math.max(0, wait),
+      );
+      timer.unref?.();
+    }
+  };
+}

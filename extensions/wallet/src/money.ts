@@ -1,5 +1,4 @@
-import { asFiniteNumber } from "@openclaw/normalization-core/number-coercion";
-import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
+import { asFiniteNumber, isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 
 export type TokenRates = {
   inputUsdPerM: number;
@@ -13,6 +12,8 @@ export type RateCard = {
   multiplier: number;
   models: Record<string, TokenRates>;
   fallback: TokenRates;
+  /** Short or runtime model names (`sonnet`, `default`) mapped to a `models` id. */
+  aliases: Record<string, string>;
   services: Record<string, ServiceRate>;
 };
 export type TokenCounts = { input: number; output: number; cacheRead: number; cacheWrite: number };
@@ -93,7 +94,7 @@ const FABLE_5_1: TokenRates = {
 const FABLE_5: TokenRates = {
   inputUsdPerM: 10,
   outputUsdPerM: 50,
-  cacheReadUsdPerM: 1.0,
+  cacheReadUsdPerM: 1,
   cacheWriteUsdPerM: 12.5,
 };
 
@@ -104,6 +105,7 @@ export const DEFAULT_RATE_CARD: RateCard = {
     "claude-opus-5": OPUS,
     "claude-sonnet-5": SONNET,
     "claude-haiku-4-5": HAIKU,
+    "claude-haiku-4-5-20251001": HAIKU,
     "claude-opus-5-5": OPUS_5_5,
     "claude-sonnet-5-5": SONNET_5_5,
     "claude-opus-4-8": OPUS_4_8,
@@ -114,6 +116,13 @@ export const DEFAULT_RATE_CARD: RateCard = {
     "claude-fable-5": FABLE_5,
   },
   fallback: OPUS,
+  // claude-cli reports the alias the desk was configured with; `default` is the fallback's model.
+  aliases: {
+    opus: "claude-opus-5-5",
+    sonnet: "claude-sonnet-5-5",
+    haiku: "claude-haiku-4-5-20251001",
+    default: "claude-opus-5",
+  },
   services: {
     hosting: { unit: "day", inrPerUnit: 80 },
     apify: { unit: "compute-unit", inrPerUnit: 0.5 },
@@ -121,14 +130,23 @@ export const DEFAULT_RATE_CARD: RateCard = {
 };
 
 function readRates(raw: unknown): TokenRates | undefined {
-  if (!isRecord(raw)) return undefined;
-  const r = {
-    inputUsdPerM: asFiniteNumber(raw.inputUsdPerM),
-    outputUsdPerM: asFiniteNumber(raw.outputUsdPerM),
-    cacheReadUsdPerM: asFiniteNumber(raw.cacheReadUsdPerM),
-    cacheWriteUsdPerM: asFiniteNumber(raw.cacheWriteUsdPerM),
-  };
-  return Object.values(r).every((v) => v !== undefined && v >= 0) ? (r as TokenRates) : undefined;
+  if (!isRecord(raw)) {
+    return undefined;
+  }
+  const inputUsdPerM = asFiniteNumber(raw.inputUsdPerM);
+  const outputUsdPerM = asFiniteNumber(raw.outputUsdPerM);
+  const cacheReadUsdPerM = asFiniteNumber(raw.cacheReadUsdPerM);
+  const cacheWriteUsdPerM = asFiniteNumber(raw.cacheWriteUsdPerM);
+  if (
+    inputUsdPerM === undefined ||
+    outputUsdPerM === undefined ||
+    cacheReadUsdPerM === undefined ||
+    cacheWriteUsdPerM === undefined ||
+    Math.min(inputUsdPerM, outputUsdPerM, cacheReadUsdPerM, cacheWriteUsdPerM) < 0
+  ) {
+    return undefined;
+  }
+  return { inputUsdPerM, outputUsdPerM, cacheReadUsdPerM, cacheWriteUsdPerM };
 }
 
 export function resolveRateCard(raw: unknown): RateCard {
@@ -138,25 +156,41 @@ export function resolveRateCard(raw: unknown): RateCard {
     return n !== undefined && n > 0 ? n : d;
   };
   const models: Record<string, TokenRates> = { ...DEFAULT_RATE_CARD.models };
-  if (isRecord(r.models))
+  if (isRecord(r.models)) {
     for (const [id, v] of Object.entries(r.models)) {
       const rates = readRates(v);
-      if (rates) models[id] = rates;
+      if (rates) {
+        models[id] = rates;
+      }
     }
+  }
   const services: Record<string, ServiceRate> = { ...DEFAULT_RATE_CARD.services };
-  if (isRecord(r.services))
+  if (isRecord(r.services)) {
     for (const [name, v] of Object.entries(r.services)) {
-      if (!isRecord(v)) continue;
+      if (!isRecord(v)) {
+        continue;
+      }
       const inrPerUnit = asFiniteNumber(v.inrPerUnit);
       const unit = typeof v.unit === "string" && v.unit.trim() ? v.unit.trim() : undefined;
-      if (inrPerUnit !== undefined && inrPerUnit >= 0 && unit)
+      if (inrPerUnit !== undefined && inrPerUnit >= 0 && unit) {
         services[name] = { unit, inrPerUnit };
+      }
     }
+  }
+  const aliases: Record<string, string> = { ...DEFAULT_RATE_CARD.aliases };
+  if (isRecord(r.aliases)) {
+    for (const [alias, target] of Object.entries(r.aliases)) {
+      if (typeof target === "string" && target.trim()) {
+        aliases[alias] = target.trim();
+      }
+    }
+  }
   return {
     inrPerUsd: positive(r.inrPerUsd, DEFAULT_RATE_CARD.inrPerUsd),
     multiplier: positive(r.multiplier, DEFAULT_RATE_CARD.multiplier),
     models,
     fallback: readRates(r.fallback) ?? DEFAULT_RATE_CARD.fallback,
+    aliases,
     services,
   };
 }
@@ -167,10 +201,14 @@ export function modelRates(
   model: string,
 ): { rates: TokenRates; unpriced: boolean } {
   const qualified = card.models[`${provider}/${model}`];
-  if (qualified) return { rates: qualified, unpriced: false };
-  const bare = card.models[model];
-  if (bare) return { rates: bare, unpriced: false };
-  return { rates: card.fallback, unpriced: true };
+  if (qualified) {
+    return { rates: qualified, unpriced: false };
+  }
+  // claude-cli and Anthropic ids price by the same bare Anthropic model id.
+  const bare = model.replace(/^(?:claude-cli|anthropic)\//, "");
+  const id = card.aliases[bare] ?? bare;
+  const rates = card.models[id] ?? card.models[`${provider}/${id}`];
+  return rates ? { rates, unpriced: false } : { rates: card.fallback, unpriced: true };
 }
 
 /** ₹ per million for one class: usd × inrPerUsd × multiplier. */
@@ -205,7 +243,9 @@ export function priceService(
   units: number,
 ): { paise: number; unitRatePaise: number; unit: string } | undefined {
   const rate = card.services[service];
-  if (!rate || !Number.isFinite(units) || units < 0) return undefined;
+  if (!rate || !Number.isFinite(units) || units < 0) {
+    return undefined;
+  }
   const unitRatePaise = Math.round(rate.inrPerUnit * 100 + 1e-9);
   return {
     paise: Math.round(units * rate.inrPerUnit * 100 + 1e-9),

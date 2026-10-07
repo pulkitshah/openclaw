@@ -65,10 +65,17 @@ describe("attribute", () => {
       ref: "agent:main:dashboard:0f9d",
       label: "Chat — agent:main:dashboard:0f9d",
     });
+  });
+  it("books a sessionless plugin-runtime call to System under its agent", async () => {
+    expect(await attribute({ agentId: "krishna" }, lookups)).toEqual({
+      activity: "system",
+      ref: "agent:krishna",
+      label: "System — krishna",
+    });
     expect(await attribute({}, lookups)).toEqual({
-      activity: "chat",
-      ref: "unknown",
-      label: "Chat — unknown",
+      activity: "system",
+      ref: "agent:unknown",
+      label: "System — unknown",
     });
   });
 });

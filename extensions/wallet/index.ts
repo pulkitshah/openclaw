@@ -4,10 +4,11 @@ import { sendDurableMessageBatch } from "openclaw/plugin-sdk/channel-outbound";
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
+import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { OpenClawPluginApi } from "./api.js";
 import type { AttributionLookups } from "./src/attribution.js";
 import { createWalletCommand, createWalletStatusTool } from "./src/command.js";
-import { createWalletEventService } from "./src/events.js";
+import { createDebitEventEmitter, createWalletEventService } from "./src/events.js";
 import { createBeforeAgentRun } from "./src/gate.js";
 import { registerWalletGatewayMethods } from "./src/gateway-methods.js";
 import { startHostingJob } from "./src/hosting.js";
@@ -83,8 +84,11 @@ export default function register(api: OpenClawPluginApi): void {
       await store.close();
     },
   });
-  const rateCard = () =>
-    resolveRateCard((pluginConfig() as { rateCard?: unknown } | undefined)?.rateCard);
+  const configField = (key: string): unknown => {
+    const config: unknown = pluginConfig();
+    return isRecord(config) ? config[key] : undefined;
+  };
+  const rateCard = () => resolveRateCard(configField("rateCard"));
   const lookups: AttributionLookups = {
     memberName: async (id) => {
       try {
@@ -96,17 +100,18 @@ export default function register(api: OpenClawPluginApi): void {
     },
     groupName: async () => undefined, // no group registry yet; the label falls back to the session key
     mailAgentIds: () => {
-      const entries = currentConfig().agents?.entries as
-        | Record<string, { wallet?: { role?: string } } | undefined>
-        | undefined;
-      const mail = Object.entries(entries ?? {})
-        .filter(([, entry]) => entry?.wallet?.role === "mail")
+      // `wallet.role` is this plugin's own key on an agent entry, so it is read as untyped JSON.
+      const entries: unknown = currentConfig().agents?.entries;
+      const mail = Object.entries(isRecord(entries) ? entries : {})
+        .filter(
+          ([, entry]) => isRecord(entry) && isRecord(entry.wallet) && entry.wallet.role === "mail",
+        )
         .map(([id]) => id);
       return ["duties-mail", ...mail];
     },
   };
   const contact = () => {
-    const configured = (pluginConfig() as { contact?: unknown } | undefined)?.contact;
+    const configured = configField("contact");
     return typeof configured === "string" && configured.trim()
       ? configured.trim()
       : "TripIn Studio";
@@ -147,6 +152,11 @@ export default function register(api: OpenClawPluginApi): void {
   });
   const events = createWalletEventService();
   api.registerService(events);
+  // A busy desk writes a debit per model call; the page needs the balance, not every row.
+  const debitEvents = createDebitEventEmitter({
+    emit: (payload) => events.emit("changed", payload),
+    balance: () => store.balance(),
+  });
   registerWalletGatewayMethods({
     api,
     store,
@@ -198,6 +208,7 @@ export default function register(api: OpenClawPluginApi): void {
       rateCard,
       lookups,
       afterAppend: notices.reconcile,
+      onDebit: debitEvents,
       onUnrecorded: (error) => {
         counters.unrecorded += 1;
         api.logger.warn(`wallet: debit not recorded: ${coerceErrorMessage(error)}`);

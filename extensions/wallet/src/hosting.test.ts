@@ -58,6 +58,15 @@ describe("postHostingDebits", () => {
     expect(onChanged).not.toHaveBeenCalled();
   });
 
+  it("posts nothing when the hosting rate is zero", async () => {
+    const store = await openTestStore();
+    const off = resolveRateCard({ services: { hosting: { unit: "day", inrPerUnit: 0 } } });
+    expect(
+      await postHostingDebits({ store, rateCard: () => off, now: () => now, onChanged: () => {} }),
+    ).toBe(0);
+    expect(await store.list({})).toEqual([]);
+  });
+
   it("sets hostingStartedOn to today on first run when unset", async () => {
     const store = await openTestStore();
     const n = await postHostingDebits({

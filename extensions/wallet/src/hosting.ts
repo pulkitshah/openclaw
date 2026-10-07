@@ -29,7 +29,8 @@ export type HostingDeps = {
 /** Posts one hosting debit per IST day from `hostingStartedOn` through today; returns rows posted. */
 export async function postHostingDebits(deps: HostingDeps): Promise<number> {
   const price = priceService(deps.rateCard(), "hosting", 1);
-  if (!price) {
+  // A zero rate is how a desk turns hosting off; it posts nothing rather than ₹0 rows.
+  if (!price || price.paise === 0) {
     return 0;
   }
   const today = istDay(deps.now());

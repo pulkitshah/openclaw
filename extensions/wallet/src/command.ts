@@ -43,7 +43,7 @@ export function walletStatusText(get: {
   // Format buckets in descending order, omit zeros
   const buckets = get.summary.buckets
     .filter((b) => b.paise !== 0)
-    .sort((a, b) => Math.abs(b.paise) - Math.abs(a.paise))
+    .toSorted((a, b) => Math.abs(b.paise) - Math.abs(a.paise))
     .map((b) => {
       const name = BUCKET_NAMES[b.activity] ?? b.activity;
       const amount = formatInr(-b.paise); // negate to display as positive
@@ -60,11 +60,9 @@ export function walletStatusText(get: {
     const days = get.daysLeft;
     const daysText = days === 1 ? "about 1 day" : `about ${days} days`;
     text += ` · ${daysText} at this rate.`;
-  } else {
-    // Remove trailing period if no days clause
-    if (!text.endsWith(".")) {
-      text += ".";
-    }
+  } else if (!text.endsWith(".")) {
+    // No days clause: end the sentence here.
+    text += ".";
   }
 
   // Add pause status
@@ -83,23 +81,27 @@ export type WalletGetResult = {
   contact: string;
 };
 
-const ACTIVITIES: ReadonlySet<string> = new Set([
+const ACTIVITIES: readonly Activity[] = [
   "chat",
   "duty",
   "mail",
   "system",
   "hosting",
   "integration",
-]);
+];
 const SHAPE_ERROR = "wallet.get returned an unexpected shape";
 
 function readNumber(value: unknown): number {
-  if (typeof value !== "number" || !Number.isFinite(value)) throw new Error(SHAPE_ERROR);
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw new Error(SHAPE_ERROR);
+  }
   return value;
 }
 
 function readState(value: unknown): WalletState {
-  if (!isRecord(value) || typeof value.enforce !== "boolean") throw new Error(SHAPE_ERROR);
+  if (!isRecord(value) || typeof value.enforce !== "boolean") {
+    throw new Error(SHAPE_ERROR);
+  }
   return {
     creditLimitPaise: readNumber(value.creditLimitPaise),
     lowBalancePaise: readNumber(value.lowBalancePaise),
@@ -109,22 +111,29 @@ function readState(value: unknown): WalletState {
 }
 
 function readActivity(value: unknown): Activity {
-  if (typeof value !== "string" || !ACTIVITIES.has(value)) throw new Error(SHAPE_ERROR);
-  // `ACTIVITIES` holds exactly the Activity union's members, so the string is one of them.
-  return value as Activity;
+  const activity = ACTIVITIES.find((a) => a === value);
+  if (!activity) {
+    throw new Error(SHAPE_ERROR);
+  }
+  return activity;
 }
 
 function readSummary(value: unknown): Summary {
-  if (!isRecord(value) || !Array.isArray(value.buckets)) throw new Error(SHAPE_ERROR);
+  if (!isRecord(value) || !Array.isArray(value.buckets)) {
+    throw new Error(SHAPE_ERROR);
+  }
   const buckets = value.buckets.map((bucket) => {
-    if (!isRecord(bucket) || !Array.isArray(bucket.activities)) throw new Error(SHAPE_ERROR);
+    if (!isRecord(bucket) || !Array.isArray(bucket.activities)) {
+      throw new Error(SHAPE_ERROR);
+    }
     return {
       activity: readActivity(bucket.activity),
       paise: readNumber(bucket.paise),
       tokens: readNumber(bucket.tokens),
       activities: bucket.activities.map((entry) => {
-        if (!isRecord(entry) || typeof entry.ref !== "string" || typeof entry.label !== "string")
+        if (!isRecord(entry) || typeof entry.ref !== "string" || typeof entry.label !== "string") {
           throw new Error(SHAPE_ERROR);
+        }
         return {
           ref: entry.ref,
           label: entry.label,
@@ -139,7 +148,9 @@ function readSummary(value: unknown): Summary {
 }
 
 export function readWalletGetResult(value: unknown): WalletGetResult {
-  if (!isRecord(value) || typeof value.contact !== "string") throw new Error(SHAPE_ERROR);
+  if (!isRecord(value) || typeof value.contact !== "string") {
+    throw new Error(SHAPE_ERROR);
+  }
   const daysLeft = value.daysLeft === null ? null : readNumber(value.daysLeft);
   return {
     balancePaise: readNumber(value.balancePaise),
@@ -165,13 +176,13 @@ export function createWalletStatusTool(
       const text = walletStatusText(get);
       return jsonResult({ text, balancePaise: get.balancePaise, state: get.state });
     },
-  } as AnyAgentTool;
+  };
 }
 
 /** Creates a /wallet command that calls wallet.get and returns formatted status. */
 export function createWalletCommand(
   request: (method: string, params: Record<string, unknown>) => Promise<unknown>,
-  unavailableText: string = "Wallet is unavailable right now — try again in a minute.",
+  unavailableText = "Wallet is unavailable right now — try again in a minute.",
 ): OpenClawPluginCommandDefinition {
   return {
     name: "wallet",

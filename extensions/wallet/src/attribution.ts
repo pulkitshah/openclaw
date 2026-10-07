@@ -24,7 +24,7 @@ const ACTIVITIES: readonly Activity[] = [
 ];
 const DIRECT_SESSION = /^agent:[^:]+:(?:[^:]+:)?(?:direct|dm):(.+)$/;
 
-/** Decides which activity a model call belongs to; never drops a call, unknown ones become chat. */
+/** Decides which activity a model call belongs to; never drops a call. */
 export async function attribute(
   input: AttributionInput,
   lookups: AttributionLookups,
@@ -49,7 +49,9 @@ export async function attribute(
   }
   const key = input.sessionKey;
   if (!key) {
-    return { activity: "chat", ref: "unknown", label: "Chat — unknown" };
+    // No session: a plugin-runtime completion (rule 3, internal), booked to the agent that ran it.
+    const agent = input.agentId ?? "unknown";
+    return { activity: "system", ref: `agent:${agent}`, label: `System — ${agent}` };
   }
   const direct = DIRECT_SESSION.exec(key);
   if (direct?.[1]) {

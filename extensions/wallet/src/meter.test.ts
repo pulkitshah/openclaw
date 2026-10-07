@@ -34,12 +34,14 @@ describe("llm_output meter", () => {
   it("writes one priced tokens debit per model call with attribution", async () => {
     const store = await openTestStore();
     const afterAppend = vi.fn(async () => {});
+    const onDebit = vi.fn();
     const meter = createLlmOutputMeter({
       store,
       rateCard: () => card,
       lookups,
       onUnrecorded: vi.fn(),
       afterAppend,
+      onDebit,
     });
     await meter(event({ input: 1_000_000, output: 0, cacheRead: 0, cacheWrite: 0 }), {
       sessionKey: "agent:main:direct:asha",
@@ -64,6 +66,7 @@ describe("llm_output meter", () => {
     });
     expect(await store.balance()).toBe(-20_000);
     expect(afterAppend).toHaveBeenCalledTimes(1);
+    expect(onDebit).toHaveBeenCalledWith(row!.id);
   });
   it("writes nothing for a call with no usage or all-zero usage, and never throws", async () => {
     const store = await openTestStore();

@@ -25,6 +25,8 @@ export function createLlmOutputMeter(deps: {
   onUnrecorded: (error: unknown) => void;
   /** Runs after a successful append (balance notices); its failure is reported like a failed write. */
   afterAppend?: () => Promise<void>;
+  /** Told the id of every debit written, for the throttled `changed` event. */
+  onDebit?: (entryId: string) => void;
 }): (event: LlmOutputEvent, ctx: MeterContext) => Promise<void> {
   return async (event, ctx) => {
     try {
@@ -52,7 +54,7 @@ export function createLlmOutputMeter(deps: {
         },
         deps.lookups,
       );
-      await deps.store.append({
+      const entry = await deps.store.append({
         kind: "debit",
         charge: "tokens",
         activity: a.activity,
@@ -72,6 +74,7 @@ export function createLlmOutputMeter(deps: {
         ...(ctx.agentId ? { agentId: ctx.agentId } : {}),
         ...(event.runId ? { runId: event.runId } : {}),
       });
+      deps.onDebit?.(entry.id);
       await deps.afterAppend?.();
     } catch (error) {
       deps.onUnrecorded(error);

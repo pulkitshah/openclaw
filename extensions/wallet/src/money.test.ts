@@ -72,6 +72,31 @@ describe("priceTokens", () => {
   });
 });
 
+describe("model aliases", () => {
+  it("prices the claude-cli `sonnet` alias at Sonnet, and strips provider prefixes", () => {
+    const sonnet = modelRates(DEFAULT_RATE_CARD, "claude-cli", "sonnet");
+    expect(sonnet).toEqual({
+      rates: DEFAULT_RATE_CARD.models["claude-sonnet-5-5"],
+      unpriced: false,
+    });
+    expect(modelRates(DEFAULT_RATE_CARD, "claude-cli", "anthropic/sonnet")).toEqual(sonnet);
+    expect(modelRates(DEFAULT_RATE_CARD, "x", "claude-cli/claude-sonnet-5-5")).toEqual(sonnet);
+    expect(modelRates(DEFAULT_RATE_CARD, "claude-cli", "haiku").unpriced).toBe(false);
+    expect(modelRates(DEFAULT_RATE_CARD, "claude-cli", "default")).toEqual({
+      rates: DEFAULT_RATE_CARD.fallback,
+      unpriced: false,
+    });
+  });
+  it("reads configured aliases over the defaults", () => {
+    const custom = resolveRateCard({ aliases: { sonnet: "claude-sonnet-4-6", bad: 3 } });
+    expect(modelRates(custom, "claude-cli", "sonnet").rates).toEqual(
+      DEFAULT_RATE_CARD.models["claude-sonnet-4-6"],
+    );
+    expect(custom.aliases.bad).toBeUndefined();
+    expect(custom.aliases.opus).toBe("claude-opus-5-5");
+  });
+});
+
 describe("priceService", () => {
   it("prices known services and refuses unknown ones", () => {
     expect(priceService(card, "apify", 10)).toEqual({
