@@ -201,4 +201,19 @@ describe("WalletStore", () => {
     await expect(s.append(credit2)).rejects.toThrow(/duplicate reference/);
     expect(await s.balance()).toBe(200);
   });
+  it("chains balance_after in posting order, including backfill-shaped rows and restarts", async () => {
+    const entries = memoryKeyed<never>();
+    const state = memoryKeyed<never>();
+    const open = () => new WalletStore({ entries, state, backfill: memoryKeyed() });
+    const s = open();
+    const now = Date.now();
+    await s.append(debit({ at: now, amountPaise: -100 }));
+    await s.append(debit({ at: now + 1, amountPaise: -200 }));
+    const backfilled = await s.append(debit({ at: now - 86_400_000, amountPaise: -50 }));
+    expect(backfilled.balanceAfterPaise).toBe(-350);
+    expect(await s.balance()).toBe(-350);
+    const restarted = open();
+    expect(await restarted.balance()).toBe(-350);
+    expect((await restarted.append(debit({ amountPaise: -10 }))).balanceAfterPaise).toBe(-360);
+  });
 });

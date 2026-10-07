@@ -89,7 +89,7 @@ type Keyed<T> = {
 // The running balance rides in the state row so append reads one row instead of scanning the ledger.
 type StoredState = WalletState & { balancePaise?: number };
 
-type LastRow = { at: number; id: string; balanceAfterPaise: number };
+type LastRow = { id: string; balanceAfterPaise: number };
 const STATE_KEY = "state";
 const BUCKET_ORDER: Activity[] = ["chat", "duty", "mail", "system", "hosting", "integration"];
 export const DEFAULT_STATE: WalletState = {
@@ -148,15 +148,14 @@ export class WalletStore {
       return publicState(next);
     });
   }
-  /** Ledger rows are the truth; the state row's balance is only a cache. Loaded once by scanning, then kept current. */
+  /** Ledger rows are the truth; the state row's balance is only a cache. Loaded once by scanning, then kept current.
+   * `balanceAfterPaise` is the running sum in posting (append) order, and ids are fixed-width so the greatest id is the last posted row. */
   private async loadLast(): Promise<LastRow | undefined> {
     if (this.lastRow === undefined) {
       const newest = (await this.stores.entries.entries())
         .map((e) => e.value)
-        .toSorted((a, b) => b.at - a.at || b.id.localeCompare(a.id))[0];
-      this.lastRow = newest
-        ? { at: newest.at, id: newest.id, balanceAfterPaise: newest.balanceAfterPaise }
-        : null;
+        .toSorted((a, b) => (a.id < b.id ? 1 : a.id > b.id ? -1 : 0))[0];
+      this.lastRow = newest ? { id: newest.id, balanceAfterPaise: newest.balanceAfterPaise } : null;
     }
     return this.lastRow ?? undefined;
   }
@@ -197,7 +196,7 @@ export class WalletStore {
         await this.stores.entries.register(`${String(at).padStart(15, "0")}:${row.id}`, row);
         // The row exists from here on: keep its reference and chain the next append from it.
         reservedReference = undefined;
-        this.lastRow = { at, id, balanceAfterPaise };
+        this.lastRow = { id, balanceAfterPaise };
         // A failure here leaves only the cache stale; the ledger row is authoritative.
         await this.stores.state.register(STATE_KEY, { ...state, balancePaise: balanceAfterPaise });
         return row;
@@ -208,6 +207,7 @@ export class WalletStore {
       }
     });
   }
+  // The statement is chronological (`at` desc) while `balanceAfterPaise` is in posting order, so a backfilled row dated last month can carry a newer running balance.
   async list(
     filter: {
       from?: number;
