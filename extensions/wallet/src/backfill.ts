@@ -1,3 +1,4 @@
+import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import { attribute, type AttributionLookups } from "./attribution.js";
 import { IST_OFFSET_MS, istDay } from "./hosting.js";
 import { priceTokens, type RateCard } from "./money.js";
@@ -22,7 +23,8 @@ const noonIst = (day: string): number => Date.parse(`${day}T12:00:00Z`) - IST_OF
 
 /**
  * One-time import of recorded session usage as ledger debits. Each (session, IST day) is marked
- * only after its row is written, so a failed run can simply be run again.
+ * only after its row is written; a day that fails is logged, counted in `failed`, and left
+ * unmarked so a rerun imports it.
  */
 export async function backfillFromUsage(deps: {
   store: WalletStore;
@@ -31,7 +33,7 @@ export async function backfillFromUsage(deps: {
   lookups: AttributionLookups;
   now?: () => number;
   log?: (message: string) => void;
-}): Promise<{ sessions: number; days: number; paise: number }> {
+}): Promise<{ sessions: number; days: number; failed: number; paise: number }> {
   const now = deps.now ?? Date.now;
   const { sessions } = await deps.request<{ sessions: UsageSession[] }>("sessions.usage", {
     range: "all",
@@ -46,6 +48,7 @@ export async function backfillFromUsage(deps: {
   }
   let contributing = 0;
   let days = 0;
+  let failed = 0;
   let paise = 0;
   for (const session of sessions) {
     const usage = session.usage;
@@ -81,35 +84,42 @@ export async function backfillFromUsage(deps: {
         },
         deps.lookups,
       );
-      await deps.store.append({
-        kind: "debit",
-        charge: "tokens",
-        activity,
-        ref,
-        label,
-        provider,
-        model,
-        inputTokens: tokens.input,
-        outputTokens: tokens.output,
-        cacheReadTokens: tokens.cacheRead,
-        cacheWriteTokens: tokens.cacheWrite,
-        rate: price.rate,
-        unpriced: price.unpriced,
-        amountPaise: -price.paise,
-        source: "backfill",
-        sessionKey: session.key,
-        ...(session.agentId ? { agentId: session.agentId } : {}),
-        at: noonIst(day.date),
-      });
-      await deps.store.markBackfill(session.key, day.date);
-      appended += 1;
-      days += 1;
-      paise += price.paise;
+      try {
+        await deps.store.append({
+          kind: "debit",
+          charge: "tokens",
+          activity,
+          ref,
+          label,
+          provider,
+          model,
+          inputTokens: tokens.input,
+          outputTokens: tokens.output,
+          cacheReadTokens: tokens.cacheRead,
+          cacheWriteTokens: tokens.cacheWrite,
+          rate: price.rate,
+          unpriced: price.unpriced,
+          amountPaise: -price.paise,
+          source: "backfill",
+          sessionKey: session.key,
+          ...(session.agentId ? { agentId: session.agentId } : {}),
+          at: noonIst(day.date),
+        });
+        appended += 1;
+        days += 1;
+        paise += price.paise;
+        await deps.store.markBackfill(session.key, day.date);
+      } catch (error) {
+        failed += 1;
+        deps.log?.(
+          `wallet: backfill failed for ${session.key} on ${day.date}: ${coerceErrorMessage(error)}`,
+        );
+      }
     }
     if (appended > 0) {
       contributing += 1;
     }
   }
   await deps.store.setState({ backfillDoneAt: now() });
-  return { sessions: contributing, days, paise };
+  return { sessions: contributing, days, failed, paise };
 }

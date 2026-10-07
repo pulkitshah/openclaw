@@ -286,8 +286,13 @@ export function registerWalletGatewayMethods(deps: {
     return { state: await store.getState() };
   });
 
+  // A double-clicked admin button must not import twice: overlapping calls share one run.
+  let backfillInFlight: ReturnType<typeof backfillFromUsage> | undefined;
   register("wallet.backfill", "operator.admin", async () => {
-    const result = await backfillFromUsage({
+    if (backfillInFlight) {
+      return backfillInFlight;
+    }
+    const run = backfillFromUsage({
       store,
       rateCard,
       request,
@@ -295,10 +300,16 @@ export function registerWalletGatewayMethods(deps: {
       now,
       log: (message) => api.logger.warn(message),
     });
-    if (result.days > 0) {
-      await afterWrite(undefined, "debit", () => notices.afterDebit());
+    backfillInFlight = run;
+    try {
+      const result = await run;
+      if (result.days > 0) {
+        await afterWrite(undefined, "debit", () => notices.afterDebit());
+      }
+      return result;
+    } finally {
+      backfillInFlight = undefined;
     }
-    return result;
   });
 
   register("wallet.charge", "operator.write", async (params) => {

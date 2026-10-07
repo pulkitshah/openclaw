@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { harness } from "./gateway-methods.test-helpers.js";
 
 const hasMessage = (error: unknown) => (error as { message: string }).message;
@@ -47,8 +47,65 @@ describe("wallet gateway methods", () => {
       expect.objectContaining({ kind: "debit", entryId: "" }),
     );
     const again = await call("wallet.backfill");
-    expect(again.result).toEqual({ sessions: 0, days: 0, paise: 0 });
+    expect(again.result).toEqual({ sessions: 0, days: 0, failed: 0, paise: 0 });
     expect(emit).toHaveBeenCalledTimes(1);
+  });
+
+  it("shares one run between overlapping wallet.backfill calls", async () => {
+    const request = vi.fn(async () => ({
+      sessions: [
+        {
+          key: "agent:krishna:main",
+          usage: {
+            input: 1_000_000,
+            output: 0,
+            cacheRead: 0,
+            cacheWrite: 0,
+            lastActivity: 1_790_000_000_000,
+          },
+        },
+      ],
+    }));
+    // SAFETY: the fake answers sessions.usage only.
+    const { call, store } = harness({ request: request as never });
+    const [a, b] = await Promise.all([call("wallet.backfill"), call("wallet.backfill")]);
+    expect(request).toHaveBeenCalledTimes(1);
+    expect((await store.list({})).length).toBe(1);
+    expect(a.result).toEqual(b.result);
+    expect(a.result).toMatchObject({ days: 1, failed: 0 });
+  });
+
+  it("still notifies when a backfill imported some days and failed others", async () => {
+    const day = (date: string) => ({
+      date,
+      input: 1_000_000,
+      output: 0,
+      cacheRead: 0,
+      cacheWrite: 0,
+    });
+    const request = async () => ({
+      sessions: [
+        {
+          key: "agent:krishna:main",
+          usage: {
+            input: 0,
+            output: 0,
+            cacheRead: 0,
+            cacheWrite: 0,
+            dailyBreakdown: [day("2026-09-10"), day("2026-09-11")],
+          },
+        },
+      ],
+    });
+    // SAFETY: the fake answers sessions.usage only.
+    const { call, emit, store } = harness({ request: request as never });
+    const original = store.append.bind(store);
+    const append = vi.spyOn(store, "append");
+    append.mockImplementationOnce(original);
+    append.mockRejectedValueOnce(new Error("disk full"));
+    const res = await call("wallet.backfill");
+    expect(res.result).toMatchObject({ days: 1, failed: 1 });
+    expect(emit).toHaveBeenCalledWith("changed", expect.objectContaining({ kind: "debit" }));
   });
 
   it("credits with a unique reference, emits changed, and refuses the duplicate", async () => {
