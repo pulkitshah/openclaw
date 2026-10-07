@@ -243,7 +243,11 @@ export default definePluginEntry({
           }),
           ai: createAiAdapter({
             request,
-            sessionKey: runSessionKey(run.origin),
+            // A chat or mail run bills and resolves its agent through its own session; a manual run
+            // (Control UI Run, bare `duties.run`) has none, so it uses the owner's session — the
+            // same one its `ask` steps would use — rather than an unowned "main".
+            sessionKey: async () =>
+              runSessionKey(run.origin) ?? (await askSession(run.origin).catch(() => undefined)),
             attribution: { kind: "duty", ref: run.id, label: runAttributionLabel(duty, run) },
           }),
           // An `ask` is the one step that waits for a person, so it is raised in the session that

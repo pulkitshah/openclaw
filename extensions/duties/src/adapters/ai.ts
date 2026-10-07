@@ -28,14 +28,19 @@ type Attribution = { kind: string; ref: string; label: string };
 
 export function createAiAdapter(params: {
   request: Request;
-  sessionKey: string;
+  /** Resolved per call, not when the adapter is built: a run with no origin session falls back
+   *  to the owner's session, which is looked up lazily for the same reason `ask` does. */
+  sessionKey: string | undefined | (() => Promise<string | undefined>);
   attribution?: Attribution;
 }): AiAdapter {
+  const resolveSessionKey = async () =>
+    typeof params.sessionKey === "function" ? await params.sessionKey() : params.sessionKey;
   return {
     async extract({ instruction, input, schema }) {
+      const sessionKey = await resolveSessionKey();
       const result = await params.request("tools.invoke", {
         name: "llm-task",
-        sessionKey: params.sessionKey,
+        ...(sessionKey ? { sessionKey } : {}),
         ...(params.attribution ? { attribution: params.attribution } : {}),
         args: { prompt: instruction, input, schema },
       });

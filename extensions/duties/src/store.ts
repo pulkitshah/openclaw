@@ -42,14 +42,18 @@ export type RunFile = {
  * remains the answer only for a run with no recorded origin, where a single-agent install resolves
  * it and a multi-agent one has nothing to resolve it to.
  */
-export function runSessionKey(origin: RunOrigin | undefined): string {
+/** The session a run's model calls belong to, when the origin names one. A run that recorded no
+ *  session and no agent (the Control UI's Run button, a bare `duties.run`) gets `undefined`: a bare
+ *  "main" has no owner once a desk has several agents, so every `ai` step of such a run was
+ *  refused before it ran. The caller resolves the owner's session instead. */
+export function runSessionKey(origin: RunOrigin | undefined): string | undefined {
   if (origin?.sessionKey) {
     return origin.sessionKey;
   }
   if (origin?.agentId) {
     return `agent:${origin.agentId}:main`;
   }
-  return "main";
+  return undefined;
 }
 export type StepEvidence = {
   stepId: string;

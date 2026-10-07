@@ -290,8 +290,10 @@ describe("runSessionKey", () => {
     expect(runSessionKey({ kind: "manual", agentId: "krishna" })).toBe("agent:krishna:main");
   });
 
-  it("uses main only when the run recorded no origin at all", () => {
-    expect(runSessionKey(undefined)).toBe("main");
-    expect(runSessionKey({ kind: "manual" })).toBe("main");
+  it("names no session when the run recorded neither a session nor an agent", () => {
+    // A bare "main" would be refused on any desk with several agents (the live failure of a
+    // Control UI Run); the caller resolves the owner's session instead.
+    expect(runSessionKey(undefined)).toBeUndefined();
+    expect(runSessionKey({ kind: "manual" })).toBeUndefined();
   });
 });
