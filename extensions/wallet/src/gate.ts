@@ -31,6 +31,8 @@ export function createBeforeAgentRun(deps: {
 }): (event: GateEvent, ctx: GateContext) => Promise<GateDecision | undefined> {
   /** Senders already told about the current stop; cleared as soon as the gate passes again. */
   const notified = new Set<string>();
+  /** The `stoppedSince` the set was filled under; a different value is a new stop episode. */
+  let episode: number | undefined;
   return async (event, ctx) => {
     // Task 8 adds the typed field
     const attribution = (ctx as { attribution?: { kind: string } }).attribution;
@@ -44,13 +46,19 @@ export function createBeforeAgentRun(deps: {
       notified.clear();
       return undefined;
     }
-    if (!state.stoppedSince) {
-      await deps.store.setState({ stoppedSince: Date.now() });
+    let stoppedSince = state.stoppedSince;
+    if (!stoppedSince) {
+      stoppedSince = Date.now();
+      await deps.store.setState({ stoppedSince });
       try {
         await deps.onStopped();
       } catch {
         // The notice is best effort; the block itself must still hold.
       }
+    }
+    if (episode !== stoppedSince) {
+      notified.clear();
+      episode = stoppedSince;
     }
     const who = event.senderId ?? ctx.sessionKey ?? "";
     if (notified.has(who)) {

@@ -53,6 +53,48 @@ describe("before_agent_run", () => {
     );
     expect(duty).toBeUndefined();
   });
+  it("tells each sender once per stop episode, even when a Duty call runs between a credit and the next stop", async () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(1_000);
+      const store = memoryStore();
+      await store.setState({ enforce: true, creditLimitPaise: 0 });
+      await store.append({ kind: "adjustment", by: "t", label: "drain", amountPaise: -1 });
+      const gate = createBeforeAgentRun({
+        store,
+        contact: () => "TripIn Studio",
+        onStopped: vi.fn(async () => {}),
+      });
+      const asha = { prompt: "hi", messages: [], senderId: "+911111111111" } as never;
+      const ravi = { prompt: "hi", messages: [], senderId: "+912222222222" } as never;
+      const message = async (e: never) =>
+        ((await gate(e, {} as never)) as { message?: string }).message;
+      expect(await message(asha)).toContain("Ask TripIn Studio");
+      expect(await message(ravi)).toContain("Ask TripIn Studio");
+      expect(await message(asha)).toBeUndefined();
+      // Recharge clears the stop (the credit path owns this); a Duty call then runs before any chat call.
+      await store.append({
+        kind: "credit",
+        source: "manual",
+        reference: "r1",
+        by: "t",
+        label: "Recharge",
+        amountPaise: 100,
+      });
+      await store.setState({ stoppedSince: undefined });
+      await gate(
+        { prompt: "x", messages: [] } as never,
+        { attribution: { kind: "duty", ref: "r", label: "l" } } as never,
+      );
+      vi.setSystemTime(5_000);
+      await store.append({ kind: "adjustment", by: "t", label: "drain", amountPaise: -100 });
+      expect(await message(asha)).toContain("Ask TripIn Studio");
+      expect(await message(ravi)).toContain("Ask TripIn Studio");
+      expect(await message(asha)).toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
   it("passes when funded", async () => {
     const store = memoryStore();
     await store.setState({ enforce: true, stoppedSince: 1 });

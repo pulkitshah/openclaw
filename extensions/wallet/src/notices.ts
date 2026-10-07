@@ -77,8 +77,11 @@ export function createNotices(deps: {
         `Recharged ${formatInr(credit.amountPaise)} (${credit.reference}). Balance ${formatInr(balance)}.${back}`,
       );
       if (funded) {
+        // The low notice re-arms only once headroom is back above the line; a partial top-up must not repeat it.
         await deps.store.setState({
-          lastLowNoticeAt: undefined,
+          ...(balance + state.creditLimitPaise >= state.lowBalancePaise
+            ? { lastLowNoticeAt: undefined }
+            : {}),
           lastStopNoticeAt: undefined,
           stoppedSince: undefined,
         });

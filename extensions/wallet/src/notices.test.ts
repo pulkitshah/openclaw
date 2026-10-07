@@ -111,6 +111,45 @@ describe("notices", () => {
     await n.afterDebit();
     expect(send.mock.calls[1]![0]).toMatch(/about \d+ days at this week's rate/);
   });
+  it("re-arms the low notice only when a credit lifts headroom above the low line", async () => {
+    const store = memoryStore();
+    const send = vi.fn(async (_text: string) => {});
+    await store.setState({ enforce: true, creditLimitPaise: 0, lowBalancePaise: 20_000 });
+    const n = createNotices({ store, contact: () => "TripIn Studio", send });
+    await store.append({ kind: "adjustment", by: "t", label: "d", amountPaise: -1_000 });
+    await store.setState({ lastLowNoticeAt: 1 });
+    // Funded again but still below the line: no second low notice.
+    const small = await store.append({
+      kind: "credit",
+      source: "manual",
+      reference: "c1",
+      by: "t",
+      label: "Recharge",
+      amountPaise: 6_000,
+    });
+    await n.afterCredit(small as never);
+    expect((await store.getState()).lastLowNoticeAt).toBe(1);
+    send.mockClear();
+    await store.append({ kind: "adjustment", by: "t", label: "d", amountPaise: -100 });
+    await n.afterDebit();
+    expect(send).not.toHaveBeenCalled();
+    // Lifted above the line: re-armed, the next crossing notifies again.
+    const big = await store.append({
+      kind: "credit",
+      source: "manual",
+      reference: "c2",
+      by: "t",
+      label: "Recharge",
+      amountPaise: 50_000,
+    });
+    await n.afterCredit(big as never);
+    expect((await store.getState()).lastLowNoticeAt).toBeUndefined();
+    send.mockClear();
+    await store.append({ kind: "adjustment", by: "t", label: "d", amountPaise: -40_000 });
+    await n.afterDebit();
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(send.mock.calls[0]![0]).toMatch(/^Balance /);
+  });
   it("afterSettings clears a stop once the new limit allows it", async () => {
     const store = memoryStore();
     const send = vi.fn(async (_text: string) => {});
