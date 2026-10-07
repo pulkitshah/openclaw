@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { NewEntry } from "./store.js";
-import { memoryStore } from "./store.test-helpers.js";
+import { WalletStore } from "./store.js";
+import { memoryKeyed, memoryStore } from "./store.test-helpers.js";
 
 const RATE = {
   inputInrPerM: 200,
@@ -150,5 +151,54 @@ describe("WalletStore", () => {
     expect(await s.hasHosting("2026-10-07")).toBe(false);
     await s.append(hostingDebit());
     expect(await s.hasHosting("2026-10-07")).toBe(true);
+  });
+  it("trusts the ledger over a tampered balance cache", async () => {
+    const entries = memoryKeyed<never>();
+    const state = memoryKeyed<never>();
+    const open = () => new WalletStore({ entries, state, backfill: memoryKeyed() });
+    const first = open();
+    await first.append({ kind: "adjustment", by: "admin", label: "Top up", amountPaise: 1_000 });
+    await state.register("state", {
+      creditLimitPaise: 0,
+      lowBalancePaise: 0,
+      enforce: false,
+      balancePaise: 999_999,
+    } as never);
+    const reopened = open();
+    expect(await reopened.balance()).toBe(1_000);
+    const next = await reopened.append(debit({ amountPaise: -100 }));
+    expect(next.balanceAfterPaise).toBe(900);
+    expect(await reopened.balance()).toBe(900);
+  });
+  it("frees a credit reference when the row write fails, keeps it when only the cache write fails", async () => {
+    const entries = memoryKeyed<never>();
+    const state = memoryKeyed<never>();
+    const s = new WalletStore({ entries, state, backfill: memoryKeyed() });
+    const credit = {
+      kind: "credit",
+      source: "manual",
+      reference: "UPI-5",
+      by: "admin",
+      label: "Recharge",
+      amountPaise: 100,
+    } as const;
+    const realRegister = entries.register;
+    entries.register = async () => {
+      throw new Error("disk full");
+    };
+    await expect(s.append(credit)).rejects.toThrow(/disk full/);
+    entries.register = realRegister;
+    await s.append(credit);
+    expect(await s.balance()).toBe(100);
+
+    const realState = state.register;
+    state.register = async () => {
+      throw new Error("cache down");
+    };
+    const credit2 = { ...credit, reference: "UPI-6" };
+    await expect(s.append(credit2)).rejects.toThrow(/cache down/);
+    state.register = realState;
+    await expect(s.append(credit2)).rejects.toThrow(/duplicate reference/);
+    expect(await s.balance()).toBe(200);
   });
 });

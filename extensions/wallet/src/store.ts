@@ -89,6 +89,7 @@ type Keyed<T> = {
 // The running balance rides in the state row so append reads one row instead of scanning the ledger.
 type StoredState = WalletState & { balancePaise?: number };
 
+type LastRow = { at: number; id: string; balanceAfterPaise: number };
 const STATE_KEY = "state";
 const BUCKET_ORDER: Activity[] = ["chat", "duty", "mail", "system", "hosting", "integration"];
 export const DEFAULT_STATE: WalletState = {
@@ -106,6 +107,8 @@ export class WalletStore {
   private chain: Promise<unknown> = Promise.resolve();
   private references?: Set<string>;
   private sequence = 0;
+  /** undefined = not loaded yet; null = empty ledger. */
+  private lastRow?: LastRow | null;
   constructor(
     private readonly stores: {
       entries: Keyed<WalletEntry>;
@@ -145,8 +148,21 @@ export class WalletStore {
       return publicState(next);
     });
   }
+  /** Ledger rows are the truth; the state row's balance is only a cache. Loaded once by scanning, then kept current. */
+  private async loadLast(): Promise<LastRow | undefined> {
+    if (this.lastRow === undefined) {
+      const newest = (await this.stores.entries.entries())
+        .map((e) => e.value)
+        .toSorted((a, b) => b.at - a.at || b.id.localeCompare(a.id))[0];
+      this.lastRow = newest
+        ? { at: newest.at, id: newest.id, balanceAfterPaise: newest.balanceAfterPaise }
+        : null;
+    }
+    return this.lastRow ?? undefined;
+  }
   async balance(): Promise<number> {
-    return (await this.readState()).balancePaise ?? 0;
+    const last = await this.loadLast();
+    return last ? last.balanceAfterPaise : ((await this.readState()).balancePaise ?? 0);
   }
   private serialize<T>(run: () => Promise<T>): Promise<T> {
     const next = this.chain.then(run, run);
@@ -155,6 +171,7 @@ export class WalletStore {
   }
   async append(entry: NewEntry): Promise<WalletEntry> {
     return this.serialize(async () => {
+      let reservedReference: string | undefined;
       if (entry.kind === "credit") {
         this.references ??= new Set(
           (await this.stores.entries.entries()).flatMap(({ value }) =>
@@ -164,19 +181,31 @@ export class WalletStore {
         if (this.references.has(entry.reference)) {
           throw new Error(`duplicate reference: ${entry.reference}`);
         }
+        // Reserved before the writes so a row that landed can never be credited twice.
+        this.references.add(entry.reference);
+        reservedReference = entry.reference;
       }
-      const state = await this.readState();
-      const balanceAfterPaise = (state.balancePaise ?? 0) + entry.amountPaise;
-      const at = entry.at ?? Date.now();
-      // The id sorts in append order (wall clock, then per-process counter) so rows sharing an `at` list stably.
-      const id = `${String(Date.now()).padStart(15, "0")}-${String(this.sequence++).padStart(8, "0")}-${randomUUID()}`;
-      const row = { ...entry, id, at, balanceAfterPaise } as WalletEntry;
-      await this.stores.entries.register(`${String(at).padStart(15, "0")}:${row.id}`, row);
-      await this.stores.state.register(STATE_KEY, { ...state, balancePaise: balanceAfterPaise });
-      if (row.kind === "credit") {
-        this.references?.add(row.reference);
+      try {
+        const last = await this.loadLast();
+        const state = await this.readState();
+        const base = last ? last.balanceAfterPaise : (state.balancePaise ?? 0);
+        const balanceAfterPaise = base + entry.amountPaise;
+        const at = entry.at ?? Date.now();
+        // The id sorts in append order (wall clock, then per-process counter) so rows sharing an `at` list stably.
+        const id = `${String(Date.now()).padStart(15, "0")}-${String(this.sequence++).padStart(8, "0")}-${randomUUID()}`;
+        const row = { ...entry, id, at, balanceAfterPaise } as WalletEntry;
+        await this.stores.entries.register(`${String(at).padStart(15, "0")}:${row.id}`, row);
+        // The row exists from here on: keep its reference and chain the next append from it.
+        reservedReference = undefined;
+        this.lastRow = { at, id, balanceAfterPaise };
+        // A failure here leaves only the cache stale; the ledger row is authoritative.
+        await this.stores.state.register(STATE_KEY, { ...state, balancePaise: balanceAfterPaise });
+        return row;
+      } finally {
+        if (reservedReference !== undefined) {
+          this.references?.delete(reservedReference);
+        }
       }
-      return row;
     });
   }
   async list(
