@@ -110,7 +110,10 @@ export type WalletOperations = {
     input: { agentId: string; from: number; to: number };
     output: TokenCounts;
   };
-  markBackfill: { input: { sessionKey: string; day: string }; output: boolean };
+  appendAgentDay: {
+    input: { entries: Array<NewEntry & { at: number }>; markKey: string; day: string };
+    output: WalletEntry[];
+  };
   hasBackfill: { input: { sessionKey: string; day: string }; output: boolean };
   hasHosting: { input: { ref: string }; output: boolean };
   hostingRefsSince: { input: { from: number }; output: string[] };

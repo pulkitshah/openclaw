@@ -378,21 +378,24 @@ class WalletSqlite {
     return last?.balance_after_paise ?? 0;
   }
 
+  /** Chains one entry from the current balance; callers hold the immediate transaction. */
+  private insertEntry(entry: NewEntry & { at: number }): WalletEntry {
+    const row = entryRow(entry, this.balance() + entry.amountPaise);
+    const inserted = executeSqliteQueryTakeFirstSync(
+      this.db,
+      this.query.insertInto("wallet_entries").values(row).returningAll(),
+    );
+    if (!inserted) {
+      throw new Error("wallet entry insert returned no row");
+    }
+    return readEntry(inserted);
+  }
+
   append(entry: NewEntry & { at: number }): WalletEntry {
     try {
       // Reading the last balance and inserting share one immediate transaction, so concurrent
       // appends (from any connection) always chain from the row before them.
-      return runSqliteImmediateTransactionSync(this.db, () => {
-        const row = entryRow(entry, this.balance() + entry.amountPaise);
-        const inserted = executeSqliteQueryTakeFirstSync(
-          this.db,
-          this.query.insertInto("wallet_entries").values(row).returningAll(),
-        );
-        if (!inserted) {
-          throw new Error("wallet entry insert returned no row");
-        }
-        return readEntry(inserted);
-      });
+      return runSqliteImmediateTransactionSync(this.db, () => this.insertEntry(entry));
     } catch (error) {
       if (entry.kind === "credit" && isUniqueViolation(error, "wallet_entries.reference")) {
         throw new Error(`duplicate reference: ${entry.reference}`, { cause: error });
@@ -554,15 +557,24 @@ class WalletSqlite {
     };
   }
 
-  markBackfill(sessionKey: string, day: string): boolean {
-    const result = executeSqliteQuerySync(
-      this.db,
-      this.query
-        .insertInto("wallet_backfill_marks")
-        .values({ session_key: sessionKey, day, marked_at: Date.now() })
-        .onConflict((conflict) => conflict.columns(["session_key", "day"]).doNothing()),
-    );
-    return result.numAffectedRows === 1n;
+  /**
+   * Writes one backfilled agent-day's entries and its mark in one immediate transaction, so a
+   * failure leaves neither and a rerun cannot double-write. An existing mark makes it a no-op.
+   */
+  appendAgentDay(entries: Array<NewEntry & { at: number }>, markKey: string, day: string) {
+    return runSqliteImmediateTransactionSync(this.db, () => {
+      if (this.hasBackfill(markKey, day)) {
+        return [];
+      }
+      const written = entries.map((entry) => this.insertEntry(entry));
+      executeSqliteQuerySync(
+        this.db,
+        this.query
+          .insertInto("wallet_backfill_marks")
+          .values({ session_key: markKey, day, marked_at: Date.now() }),
+      );
+      return written;
+    });
   }
 
   hasBackfill(sessionKey: string, day: string): boolean {
@@ -697,8 +709,12 @@ export function createSqliteWorkerBackend(_input: undefined, context: { database
             command.input.from,
             command.input.to,
           );
-        case "markBackfill":
-          return database.markBackfill(command.input.sessionKey, command.input.day);
+        case "appendAgentDay":
+          return database.appendAgentDay(
+            command.input.entries,
+            command.input.markKey,
+            command.input.day,
+          );
         case "hasBackfill":
           return database.hasBackfill(command.input.sessionKey, command.input.day);
         case "hasHosting":

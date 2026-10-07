@@ -53,10 +53,10 @@ Hosting is on by default at the `hosting` rate; set `services.hosting.inrPerUnit
 The cutover is the moment the live meter first started on the desk (when the Wallet plugin first ran there):
 
 - Days before the cutover day are imported in full.
-- On the cutover day, each agent imports only the tokens the live meter did not already record for it that day.
+- On the cutover day, each agent imports only the tokens the live meter did not already record for it that day. Live rows are matched by agent, so a live row recorded without an agent id is not subtracted, and that day can be over-imported by those tokens.
 - Days after the cutover are never imported; the live meter already covers them.
 
-The result reports the `days` and `agents` imported, the `paise` debited, and how many agent-days `failed`. An agent-day that fails is left unimported and the import is not marked done, so running it again imports just the failed agent-days. Once an import finishes with no failures, running it again does nothing and returns the earlier result with `alreadyDone: true`; the page then shows "Imported past usage on <date>" instead of the button. Only one backfill runs at a time. Because it reads aggregates rather than the session list, it covers every session, however many there are.
+The result reports the `days` and `agents` imported, the `paise` debited, and how many agent-days `failed`. Each agent-day's debits and its mark are written in one transaction, so an agent-day that fails is left wholly unimported and the import is not marked done, so running it again imports just the failed agent-days. Once an import finishes with no failures, running it again does nothing and returns the earlier result with `alreadyDone: true`; the page then shows "Imported past usage on <date>" instead of the button. Only one backfill runs at a time. Because it reads aggregates rather than the session list, it covers every session, however many there are.
 
 ## What pauses and what does not
 

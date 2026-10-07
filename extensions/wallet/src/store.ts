@@ -131,8 +131,13 @@ export class WalletStore {
     return this.execute("liveAgentTokens", { agentId, from, to });
   }
 
-  markBackfill(sessionKey: string, day: string): Promise<boolean> {
-    return this.execute("markBackfill", { sessionKey, day });
+  /** Writes a backfilled agent-day and its mark atomically; `[]` when it was already marked. */
+  appendAgentDay(entries: NewEntry[], markKey: string, day: string): Promise<WalletEntry[]> {
+    return this.execute("appendAgentDay", {
+      entries: entries.map((entry) => ({ ...entry, at: entry.at ?? Date.now() })),
+      markKey,
+      day,
+    });
   }
 
   hasBackfill(sessionKey: string, day: string): Promise<boolean> {

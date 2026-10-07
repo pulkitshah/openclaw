@@ -82,8 +82,8 @@ describe("wallet gateway methods", () => {
     const request = usageFake(["2026-09-10", "2026-09-11"]);
     // SAFETY: the fake answers sessions.usage only.
     const { call, emit, store } = await harness({ request: request as never });
-    const original = store.append.bind(store);
-    const append = vi.spyOn(store, "append");
+    const original = store.appendAgentDay.bind(store);
+    const append = vi.spyOn(store, "appendAgentDay");
     append.mockImplementationOnce(original);
     append.mockRejectedValueOnce(new Error("disk full"));
     const res = await call("wallet.backfill");

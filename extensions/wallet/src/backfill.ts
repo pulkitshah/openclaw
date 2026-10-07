@@ -114,13 +114,13 @@ export async function backfillFromUsage(deps: {
           mail: mailAgents.includes(agentId),
           card: deps.rateCard(),
         });
-        // Rows are built before any write, so a failed read or price writes nothing.
-        for (const row of rows) {
-          await deps.store.append(row);
+        // The rows and the mark commit together, so a failed agent-day leaves nothing behind and
+        // an agent-day marked meanwhile writes nothing.
+        const written = await deps.store.appendAgentDay(rows, markKey, day);
+        for (const row of written) {
           paise -= row.amountPaise;
         }
-        await deps.store.markBackfill(markKey, day);
-        if (rows.length > 0) {
+        if (written.length > 0) {
           importedDays.add(day);
           importedAgents.add(agentId);
         }
@@ -202,10 +202,16 @@ function agentDayRows(input: {
       continue;
     }
     // The chat row takes the rounded channel share; system takes the remainder, so the pair sums
-    // exactly to the model's tokens and price.
+    // exactly to the model's tokens and price. A side whose tokens all round to zero is dropped
+    // and its paise go to the other side.
     const chat = mapTokens((c) => Math.round(tokens[c] * chatShare));
     const system = mapTokens((c) => tokens[c] - chat[c]);
-    const chatPaise = Math.round(price.paise * chatShare);
+    const chatPaise =
+      sumTokens(chat) === 0
+        ? 0
+        : sumTokens(system) === 0
+          ? price.paise
+          : Math.round(price.paise * chatShare);
     if (sumTokens(chat) > 0) {
       rows.push(row("chat", `backfill:${day}:${agentId}:chat`, "Chat", chat, chatPaise));
     }

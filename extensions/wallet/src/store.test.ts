@@ -190,6 +190,30 @@ describe("WalletStore", () => {
     expectChain(await reopened.list());
   });
 
+  it("writes a backfilled agent-day and its mark together, or neither", async () => {
+    const s = await openTestStore();
+    await s.append(credit("UTR-1", 1_000));
+    const row = (over: Partial<Extract<NewEntry, { charge: "tokens" }>> = {}) =>
+      debit({ at: 100, source: "backfill", agentId: "main", ...over });
+    // SAFETY: a null label violates the NOT NULL column, failing the second insert mid-transaction.
+    const broken = row({ label: null as never });
+    await expect(s.appendAgentDay([row(), broken], "agent:main", "2026-09-21")).rejects.toThrow();
+    expect(await s.list({})).toHaveLength(1);
+    expect(await s.hasBackfill("agent:main", "2026-09-21")).toBe(false);
+
+    const written = await s.appendAgentDay(
+      [row(), row({ amountPaise: -50 })],
+      "agent:main",
+      "2026-09-21",
+    );
+    expect(written.map((e) => e.balanceAfterPaise)).toEqual([850, 800]);
+    expect(await s.hasBackfill("agent:main", "2026-09-21")).toBe(true);
+    // A second write of a marked agent-day is a no-op.
+    expect(await s.appendAgentDay([row()], "agent:main", "2026-09-21")).toEqual([]);
+    expect(await s.balance()).toBe(800);
+    expectChain(await s.list({}));
+  });
+
   it("tracks state, backfill marks, live tokens and hosting days", async () => {
     const s = await openTestStore();
     expect(await s.getState()).toEqual({
@@ -204,9 +228,9 @@ describe("WalletStore", () => {
     expect((await s.getState()).enforce).toBe(true);
     expect(await s.ensureMeterStarted(10)).toBe(10);
     expect(await s.ensureMeterStarted(20)).toBe(10);
-    expect(await s.markBackfill("agent:main:main", "2026-09-21")).toBe(true);
-    expect(await s.markBackfill("agent:main:main", "2026-09-21")).toBe(false);
-    expect(await s.hasBackfill("agent:main:main", "2026-09-21")).toBe(true);
+    expect(await s.hasBackfill("agent:main", "2026-09-21")).toBe(false);
+    expect(await s.appendAgentDay([], "agent:main", "2026-09-21")).toEqual([]);
+    expect(await s.hasBackfill("agent:main", "2026-09-21")).toBe(true);
     await s.append(debit({ at: 100, agentId: "main", inputTokens: 7 }));
     await s.append(debit({ at: 100, agentId: "main", inputTokens: 1_000, source: "backfill" }));
     await s.append(debit({ at: 100, agentId: "duties-mail", inputTokens: 50 }));

@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { backfillFromUsage } from "./backfill.js";
-import { resolveRateCard } from "./money.js";
+import { priceTokens, resolveRateCard } from "./money.js";
 import type { TokensDebit } from "./store.js";
 import { openTestStore } from "./store.test-helpers.js";
 
-// ₹200/M input, ₹2000/M output.
+// test-model: ₹200/M input, ₹2000/M output. second-model: ₹400/M input. pricey-model: 2,000
+// paise per output token, so one token's share of the price outweighs its rounded token share.
 const card = resolveRateCard({
   inrPerUsd: 100,
   multiplier: 2,
@@ -12,6 +13,18 @@ const card = resolveRateCard({
     "test-model": {
       inputUsdPerM: 1,
       outputUsdPerM: 10,
+      cacheReadUsdPerM: 0.1,
+      cacheWriteUsdPerM: 2,
+    },
+    "second-model": {
+      inputUsdPerM: 2,
+      outputUsdPerM: 20,
+      cacheReadUsdPerM: 0.2,
+      cacheWriteUsdPerM: 4,
+    },
+    "pricey-model": {
+      inputUsdPerM: 1,
+      outputUsdPerM: 100_000,
       cacheReadUsdPerM: 0.1,
       cacheWriteUsdPerM: 2,
     },
@@ -267,68 +280,167 @@ describe("backfillFromUsage", () => {
     expect(await store.balance()).toBe(-120_000);
   });
 
-  it.each([
-    [400, 600],
-    [1_500, 0],
-  ])(
-    "on the cutover day imports usage minus %i live tokens (%i), and skips later days",
-    async (liveInput, imported) => {
-      const day = agentDay([["claude-cli", "test-model", { input: 1_000 }]]);
-      const { store, request, run } = await setup({
-        days: [
-          ["2026-09-10", 1_000],
-          ["2026-09-11", 1_000],
-          ["2026-09-12", 1_000],
-        ],
-        agents: ["main"],
-        perDay: {
-          "2026-09-10": { main: day },
-          "2026-09-11": { main: day },
-          "2026-09-12": { main: day },
-        },
-      });
-      // The meter started at 09:00 IST on 11 Sep and recorded live tokens for main that day.
-      await store.ensureMeterStarted(Date.parse("2026-09-11T03:30:00Z"));
-      const live = {
-        kind: "debit" as const,
-        charge: "tokens" as const,
-        activity: "chat" as const,
-        ref: "agent:main:direct:asha",
+  /** Main on 10, 11 and 12 Sep with the meter started 09:00 IST on 11 Sep. */
+  async function cutoverSetup(
+    perDay: unknown,
+    live: Array<{ agentId: string; input: number; output?: number }>,
+  ) {
+    const ctx = await setup({
+      days: [
+        ["2026-09-10", 1_000],
+        ["2026-09-11", 1_000],
+        ["2026-09-12", 1_000],
+      ],
+      agents: ["main"],
+      perDay: {
+        "2026-09-10": { main: perDay },
+        "2026-09-11": { main: perDay },
+        "2026-09-12": { main: perDay },
+      },
+    });
+    await ctx.store.ensureMeterStarted(Date.parse("2026-09-11T03:30:00Z"));
+    for (const entry of live) {
+      await ctx.store.append({
+        kind: "debit",
+        charge: "tokens",
+        activity: "chat",
+        ref: `agent:${entry.agentId}:direct:asha`,
         label: "Chat — Asha",
         provider: "claude-cli",
         model: "test-model",
-        inputTokens: liveInput,
-        outputTokens: 0,
+        inputTokens: entry.input,
+        outputTokens: entry.output ?? 0,
         cacheReadTokens: 0,
         cacheWriteTokens: 0,
         rate: RATE,
         unpriced: false,
-        source: "live" as const,
-        agentId: "main",
+        source: "live",
+        agentId: entry.agentId,
         amountPaise: 0,
         at: NOON_11,
-      };
-      await store.append(live);
-      // Live tokens of another agent are not subtracted from main.
-      await store.append({
-        ...live,
-        agentId: "duties-mail",
-        inputTokens: 1_000,
       });
-      const result = await run();
-      expect(result.failed).toBe(0);
-      const backfilled = (await tokenRows(store)).filter((r) => r.source === "backfill");
-      expect(backfilled.map((r) => [r.at, r.inputTokens]).toSorted()).toEqual(
-        [[NOON_10, 1_000], ...(imported ? [[NOON_11, imported]] : [])].toSorted(),
-      );
-      expect(await store.hasBackfill("agent:main", "2026-09-11")).toBe(true);
-      expect(await store.hasBackfill("agent:main", "2026-09-12")).toBe(false);
-      expect(request).not.toHaveBeenCalledWith(
-        "sessions.usage",
-        expect.objectContaining({ startDate: "2026-09-12" }),
-      );
-    },
-  );
+    }
+    return ctx;
+  }
+  const backfilled = async (store: Awaited<ReturnType<typeof openTestStore>>) =>
+    (await tokenRows(store))
+      .filter((r) => r.source === "backfill")
+      .map((r) => [r.at, r.model, r.activity, r.inputTokens, r.outputTokens, r.amountPaise])
+      .toSorted();
+
+  it("on the cutover day imports usage minus the agent's live tokens, and skips later days", async () => {
+    const day = agentDay([["claude-cli", "test-model", { input: 1_000 }]]);
+    // Main's live meter recorded 400 input tokens; duties-mail's live tokens are not main's.
+    const { store, request, run } = await cutoverSetup(day, [
+      { agentId: "main", input: 400 },
+      { agentId: "duties-mail", input: 1_000 },
+    ]);
+    expect((await run()).failed).toBe(0);
+    // 1,000 input = 20 paise; 600 input = 12 paise.
+    expect(await backfilled(store)).toEqual(
+      [
+        [NOON_10, "test-model", "system", 1_000, 0, -20],
+        [NOON_11, "test-model", "system", 600, 0, -12],
+      ].toSorted(),
+    );
+    expect(await store.hasBackfill("agent:main", "2026-09-11")).toBe(true);
+    expect(await store.hasBackfill("agent:main", "2026-09-12")).toBe(false);
+    expect(request).not.toHaveBeenCalledWith(
+      "sessions.usage",
+      expect.objectContaining({ startDate: "2026-09-12" }),
+    );
+  });
+
+  it("imports nothing for the cutover day when the live meter recorded more than the usage", async () => {
+    const day = agentDay([["claude-cli", "test-model", { input: 1_000 }]]);
+    const { store, run } = await cutoverSetup(day, [{ agentId: "main", input: 1_500 }]);
+    expect((await run()).failed).toBe(0);
+    expect(await backfilled(store)).toEqual([[NOON_10, "test-model", "system", 1_000, 0, -20]]);
+    expect(await store.hasBackfill("agent:main", "2026-09-11")).toBe(true);
+  });
+
+  it("apportions the cutover day's live tokens across models per class, then splits a third to chat", async () => {
+    // test-model is 4,000 of 6,000 tokens (2/3), second-model 2,000 (1/3); 2,000 came via WhatsApp.
+    const day = agentDay(
+      [
+        ["claude-cli", "test-model", { input: 3_000, output: 1_000 }],
+        ["claude-cli", "second-model", { input: 2_000 }],
+      ],
+      2_000,
+    );
+    const { store, run } = await cutoverSetup(day, [
+      { agentId: "main", input: 1_500, output: 600 },
+    ]);
+    await run();
+    // Live input 1,500 → 1,000 / 500; live output 600 → 400 / 200 (second-model floors at 0).
+    const zero = { cacheRead: 0, cacheWrite: 0 };
+    const testPaise = priceTokens(card, "claude-cli", "test-model", {
+      input: 2_000,
+      output: 600,
+      ...zero,
+    }).paise;
+    const secondPaise = priceTokens(card, "claude-cli", "second-model", {
+      input: 1_500,
+      output: 0,
+      ...zero,
+    }).paise;
+    expect([testPaise, secondPaise]).toEqual([160, 60]);
+    const day11 = (await backfilled(store)).filter((r) => r[0] === NOON_11);
+    // Chat takes round(x / 3) of each class and of the price; system takes the remainder.
+    expect(day11).toEqual(
+      [
+        [NOON_11, "test-model", "chat", 667, 200, -53],
+        [NOON_11, "test-model", "system", 1_333, 400, -107],
+        [NOON_11, "second-model", "chat", 500, 0, -20],
+        [NOON_11, "second-model", "system", 1_000, 0, -40],
+      ].toSorted(),
+    );
+  });
+
+  it("gives a dropped chat row's paise to the system row", async () => {
+    // pricey-model is 1 of 5 tokens; a 40 % chat share rounds its one output token to 0.
+    const day = agentDay(
+      [
+        ["claude-cli", "pricey-model", { output: 1 }],
+        ["claude-cli", "test-model", { input: 4 }],
+      ],
+      2,
+    );
+    const { store, run } = await setup({
+      days: [["2026-09-10", 5]],
+      agents: ["main"],
+      perDay: { "2026-09-10": { main: day } },
+    });
+    await run();
+    const pricey = (await backfilled(store)).filter((r) => r[1] === "pricey-model");
+    expect(pricey).toEqual([[NOON_10, "pricey-model", "system", 0, 1, -2_000]]);
+  });
+
+  it("rolls back an agent-day whose write fails midway, and a rerun imports it once", async () => {
+    const { store, run } = await setup();
+    const original = store.appendAgentDay.bind(store);
+    const spy = vi.spyOn(store, "appendAgentDay");
+    // Main's first agent-day (10 Sep: chat + system) fails on its second insert, inside the
+    // transaction: a null label violates the column's NOT NULL.
+    spy.mockImplementationOnce((entries, markKey, day) =>
+      // SAFETY: deliberately invalid entry to force the insert to throw.
+      original([entries[0]!, { ...entries[1]!, label: null as never }], markKey, day),
+    );
+    const first = await run();
+    spy.mockRestore();
+    expect(first).toMatchObject({ failed: 1 });
+    const main10 = async () =>
+      (await tokenRows(store)).filter((r) => r.agentId === "main" && r.at === NOON_10);
+    expect(await main10()).toEqual([]);
+    expect(await store.hasBackfill("agent:main", "2026-09-10")).toBe(false);
+    expect(await store.balance()).toBe(-80_000);
+    expect((await store.getState()).backfillDoneAt).toBeUndefined();
+
+    expect(await run()).toEqual({ days: 1, agents: 1, failed: 0, paise: 40_000 });
+    expect(await main10()).toHaveLength(2);
+    expect(await tokenRows(store)).toHaveLength(6);
+    expect(await store.balance()).toBe(-120_000);
+  });
 
   it("logs a failed agent-day, keeps going, leaves it unmarked, and a rerun imports it", async () => {
     const { store, request, log, run } = await setup();
