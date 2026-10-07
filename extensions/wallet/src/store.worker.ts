@@ -16,7 +16,8 @@ import {
   type SqliteWorkerCommand,
 } from "openclaw/plugin-sdk/sqlite-runtime";
 import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
-import { modelDisplayName, type TokenCounts } from "./money.js";
+import { modelDisplayName, stripProviderPrefix, vendorOf } from "./model-names.js";
+import type { TokenCounts } from "./money.js";
 import type {
   Activity,
   BackfillResult,
@@ -539,35 +540,46 @@ class WalletSqlite {
         .where("at", "<=", range.to)
         .groupBy(["provider", "model"]),
     ).rows;
-    return (
-      rows
-        .flatMap((row) => {
-          if (row.model === null) {
-            return [];
-          }
-          const provider = row.provider ?? "";
-          const input = num(row.input);
-          const output = num(row.output);
-          const cacheRead = num(row.cacheRead);
-          const cacheWrite = num(row.cacheWrite);
-          return [
-            {
-              provider,
-              model: row.model,
-              label: modelDisplayName(provider, row.model),
-              paise: num(row.paise),
-              tokens: input + output + cacheRead + cacheWrite,
-              input,
-              output,
-              cacheRead,
-              cacheWrite,
-              calls: num(row.calls),
-              unpriced: num(row.unpriced) !== 0,
-            },
-          ];
-        })
-        // Debits are negative, so ascending puts the biggest spend first.
-        .toSorted((a, b) => a.paise - b.paise || a.model.localeCompare(b.model))
+    // The runtime that ran a model (`claude-cli`, `anthropic`) is not what the owner reads: rows
+    // merge by vendor and bare model id, so one model shows once however it was reached.
+    const merged = new Map<string, Summary["models"][number]>();
+    for (const row of rows) {
+      if (row.model === null) {
+        continue;
+      }
+      const provider = vendorOf(row.provider ?? "", row.model);
+      const model = stripProviderPrefix(row.model);
+      const key = `${provider}\u0000${model}`;
+      const input = num(row.input);
+      const output = num(row.output);
+      const cacheRead = num(row.cacheRead);
+      const cacheWrite = num(row.cacheWrite);
+      const current = merged.get(key) ?? {
+        provider,
+        model,
+        label: modelDisplayName(provider, model),
+        paise: 0,
+        tokens: 0,
+        input: 0,
+        output: 0,
+        cacheRead: 0,
+        cacheWrite: 0,
+        calls: 0,
+        unpriced: false,
+      };
+      current.paise += num(row.paise);
+      current.input += input;
+      current.output += output;
+      current.cacheRead += cacheRead;
+      current.cacheWrite += cacheWrite;
+      current.tokens += input + output + cacheRead + cacheWrite;
+      current.calls += num(row.calls);
+      current.unpriced = current.unpriced || num(row.unpriced) !== 0;
+      merged.set(key, current);
+    }
+    // Debits are negative, so ascending puts the biggest spend first.
+    return [...merged.values()].toSorted(
+      (a, b) => a.paise - b.paise || a.model.localeCompare(b.model),
     );
   }
 

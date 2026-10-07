@@ -23,6 +23,36 @@ const MODEL_NAMES: Record<string, string> = {
   "gpt-5-nano": "GPT-5 nano",
 };
 
+/** The vendor behind a provider id: the runtime (`claude-cli`) is not something the owner reads. */
+export function vendorOf(provider: string, model = ""): string {
+  const p = provider.toLowerCase();
+  if (p === "claude-cli" || p === "anthropic" || stripProviderPrefix(model).startsWith("claude-")) {
+    return "anthropic";
+  }
+  if (p === "google" || p === "gemini") {
+    return "google";
+  }
+  return p;
+}
+
+const VENDOR_NAMES: Record<string, string> = {
+  anthropic: "Anthropic",
+  google: "Google",
+  openai: "OpenAI",
+  ollama: "Ollama",
+  xai: "xAI",
+  groq: "Groq",
+  mistral: "Mistral",
+  deepseek: "DeepSeek",
+  openrouter: "OpenRouter",
+};
+
+/** What the page prints beside a model: the vendor's name, never a runtime id. */
+export function providerDisplayName(provider: string, model = ""): string {
+  const vendor = vendorOf(provider, model);
+  return VENDOR_NAMES[vendor] ?? vendor;
+}
+
 /** A friendly model name for the page and `/wallet`; the provider is shown separately, never in the label. */
 export function modelDisplayName(_provider: string, model: string): string {
   const bare = stripProviderPrefix(model);

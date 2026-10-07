@@ -219,7 +219,8 @@ describe("renderEntries and renderStatement", () => {
     const html = renderStatement([big, hosting, credit]);
     const rows = html.split("<tr").slice(2);
     expect(rows[0]).toContain("Claude Opus 5");
-    expect(rows[0]).toContain("claude-cli");
+    expect(rows[0]).toContain("Anthropic");
+    expect(rows[0]).not.toContain("claude-cli");
     expect(rows[0]).toContain("47.2 k");
     expect(rows[0]).toContain("₹−12.34");
     expect(rows[1]).toContain(">hosting<");
@@ -316,8 +317,9 @@ describe("renderModels", () => {
   it("shows label, provider chip, positive rupees, compact tokens, calls and shares", () => {
     const html = renderModels(summary());
     expect(html).toContain("Claude Opus 5");
-    expect(html).toContain('class="chip mchip">claude-cli<');
-    expect(html).toContain('class="chip mchip">google<');
+    expect(html).toContain('class="chip mchip">Anthropic<');
+    expect(html).not.toContain("claude-cli");
+    expect(html).toContain('class="chip mchip">Google<');
     expect(html).toContain("₹750.00");
     expect(html).toContain("38.7 M");
     expect(html).toContain("900 tokens");

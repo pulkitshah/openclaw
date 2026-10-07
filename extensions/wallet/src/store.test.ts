@@ -194,7 +194,7 @@ describe("WalletStore", () => {
     const { models } = await s.summarize({ from: 0, to: 6_000 });
     expect(models.map((m) => m.model)).toEqual(["claude-opus-5", "claude-sonnet-5", "mystery"]);
     expect(models[0]).toEqual({
-      provider: "claude-cli",
+      provider: "anthropic",
       model: "claude-opus-5",
       label: "Claude Opus 5",
       paise: -950,
@@ -207,6 +207,32 @@ describe("WalletStore", () => {
       unpriced: false,
     });
     expect(models[2]).toMatchObject({ provider: "google", label: "mystery", unpriced: true });
+  });
+
+  it("merges one model reached through different runtimes into a single vendor row", async () => {
+    const s = await openTestStore();
+    await s.append(
+      debit({ at: 1_000, amountPaise: -100, provider: "claude-cli", model: "claude-opus-5" }),
+    );
+    await s.append(
+      debit({ at: 2_000, amountPaise: -50, provider: "anthropic", model: "claude-opus-5" }),
+    );
+    await s.append(
+      debit({
+        at: 3_000,
+        amountPaise: -25,
+        provider: "claude-cli",
+        model: "claude-cli/claude-opus-5",
+      }),
+    );
+    const { models } = await s.summarize({ from: 0, to: 4_000 });
+    expect(models).toHaveLength(1);
+    expect(models[0]).toMatchObject({
+      provider: "anthropic",
+      model: "claude-opus-5",
+      paise: -175,
+      calls: 3,
+    });
   });
 
   it("pages five rows that share one millisecond without skipping any", async () => {

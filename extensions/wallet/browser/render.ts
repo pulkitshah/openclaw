@@ -2,7 +2,7 @@
 // host wiring and assigns these strings to `innerHTML`. This bundle is built independently of the
 // plugin's runtime, so the few helpers it shares with `../src/money.ts` (`formatInr`) are copied
 // here rather than runtime-imported; only types come from `../src`.
-import { modelDisplayName } from "../src/model-names.js";
+import { modelDisplayName, providerDisplayName } from "../src/model-names.js";
 import type { RateCard } from "../src/money.js";
 import type { Activity, Summary, WalletEntry, WalletState } from "../src/store.js";
 
@@ -174,7 +174,7 @@ export function renderModels(summary: Summary): string {
     .map((m) => {
       const share = Math.min(100, Math.max(0, Math.round((Math.abs(m.paise) / total) * 100)));
       const unpriced = m.unpriced ? ` <span class="warn-text">(not in rate card)</span>` : "";
-      return `<div class="modelrow"><span class="mname">${esc(m.label)} <span class="chip mchip">${esc(m.provider)}</span>${unpriced}</span><span class="bamt mono">${esc(formatInr(spend(m.paise)))}</span><span class="bbar"><span class="bfill" style="width:${share}%"></span></span><span class="bshare muted small">${share}%</span><span class="mmeta muted small">${esc(formatTokens(m.tokens))} tokens · ${esc(m.calls)} ${m.calls === 1 ? "call" : "calls"}</span></div>`;
+      return `<div class="modelrow"><span class="mname">${esc(m.label)} <span class="chip mchip">${esc(providerDisplayName(m.provider, m.model))}</span>${unpriced}</span><span class="bamt mono">${esc(formatInr(spend(m.paise)))}</span><span class="bbar"><span class="bfill" style="width:${share}%"></span></span><span class="bshare muted small">${share}%</span><span class="mmeta muted small">${esc(formatTokens(m.tokens))} tokens · ${esc(m.calls)} ${m.calls === 1 ? "call" : "calls"}</span></div>`;
     })
     .join("");
   return `<h2>By model</h2><div class="buckets models">${rows}</div>`;
@@ -231,7 +231,7 @@ function statementModel(entry: WalletEntry): string {
     return "";
   }
   if (entry.charge === "tokens") {
-    return `${esc(modelDisplayName(entry.provider, entry.model))} <span class="chip mchip">${esc(entry.provider)}</span>`;
+    return `${esc(modelDisplayName(entry.provider, entry.model))} <span class="chip mchip">${esc(providerDisplayName(entry.provider, entry.model))}</span>`;
   }
   return esc(entry.service);
 }
