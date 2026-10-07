@@ -1,0 +1,17 @@
+{
+  "id": "wallet",
+  "name": "Wallet",
+  "description": "Prepaid rupee balance: every model call and service charge is metered into it; the desk pauses below the credit limit.",
+  "categories": ["other"],
+  "enabledByDefault": true,
+  "activation": { "onStartup": true, "onCommands": ["wallet"] },
+  "contracts": { "tools": ["wallet_status"] },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "contact": { "type": "string", "description": "Who the customer is told to ask for a recharge (default: TripIn Studio)." },
+      "rateCard": { "type": "object", "additionalProperties": true, "description": "inrPerUsd, multiplier, models{id:{inputUsdPerM,outputUsdPerM,cacheReadUsdPerM,cacheWriteUsdPerM}}, fallback, services{name:{unit,inrPerUnit}}." }
+    }
+  }
+}
