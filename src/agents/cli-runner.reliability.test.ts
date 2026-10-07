@@ -4197,6 +4197,52 @@ describe("runCliAgent reliability", () => {
     expect(hookRunner.runLlmOutput).not.toHaveBeenCalled();
   });
 
+  it("emits llm_output with usage for a turn that ended without assistant text", async () => {
+    const hookRunner = {
+      hasHooks: vi.fn((hookName: string) => hookName === "llm_output"),
+      runLlmInput: vi.fn(async () => undefined),
+      runLlmOutput: vi.fn(async () => undefined),
+      runAgentEnd: vi.fn(async () => undefined),
+    };
+    setHookRunnerForTest(hookRunner);
+    const context = makeClaudePreparedContext({
+      model: "claude-sonnet-4-6",
+      allowEmptyAssistantReplyAsSilent: true,
+    });
+    context.preparedBackend.backend = {
+      ...context.preparedBackend.backend,
+      output: "jsonl",
+      input: "stdin",
+      jsonlDialect: "claude-stream-json",
+    };
+    context.backendResolved.config = context.preparedBackend.backend;
+    supervisorSpawnMock.mockResolvedValueOnce(
+      makeManagedRun({
+        stdout: `${[
+          JSON.stringify({ type: "system", subtype: "init", session_id: "cli-silent-1" }),
+          JSON.stringify({
+            type: "result",
+            subtype: "success",
+            session_id: "cli-silent-1",
+            result: "",
+            usage: { input_tokens: 40, output_tokens: 9 },
+          }),
+        ].join("\n")}\n`,
+      }),
+    );
+
+    await runPreparedCliAgent(context);
+
+    await vi.waitFor(() => expect(hookRunner.runLlmOutput).toHaveBeenCalledTimes(1));
+    const event = requireRecord(
+      callArg(hookRunner.runLlmOutput, 0, 0, "llm_output event"),
+      "llm_output event",
+    );
+    expect(event.assistantTexts).toEqual([]);
+    expect(event.lastAssistant).toBeUndefined();
+    expect(requireRecord(event.usage, "usage")).toMatchObject({ input: 40, output: 9 });
+  });
+
   it("returns silent payload for empty CLI output when silence is allowed", async () => {
     const hookRunner = {
       hasHooks: vi.fn((hookName: string) => hookName === "llm_output"),

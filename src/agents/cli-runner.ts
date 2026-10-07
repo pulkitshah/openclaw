@@ -430,7 +430,9 @@ async function runPreparedCliAgentOwned(
             stopReason: resolveCliAssistantStopReason(output),
           })
         : undefined;
-    if (assistantText.length > 0 && hasLlmOutputHooks) {
+    // A turn that answered through the message tool, or ended silently, still consumed tokens;
+    // usage consumers (metering) need its llm_output even without assistant text.
+    if (hasLlmOutputHooks && (assistantText.length > 0 || output.usage)) {
       runAgentHarnessLlmOutputHook({
         event: {
           runId: params.runId,
