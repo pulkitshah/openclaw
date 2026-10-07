@@ -1,0 +1,131 @@
+import { describe, expect, it, vi } from "vitest";
+import { createNotices } from "./notices.js";
+import { memoryStore } from "./store.test-helpers.js";
+
+const DAY = 86_400_000;
+
+describe("notices", () => {
+  it("sends low once when crossing the line, stopped once at the gate, recharged on every credit", async () => {
+    const store = memoryStore();
+    const send = vi.fn(async (_text: string) => {});
+    await store.setState({ enforce: true, creditLimitPaise: 0, lowBalancePaise: 20_000 });
+    const n = createNotices({ store, contact: () => "TripIn Studio", send, now: () => 1_000 });
+    await store.append({
+      kind: "credit",
+      source: "manual",
+      reference: "a",
+      by: "t",
+      label: "Recharge",
+      amountPaise: 30_000,
+    });
+    await n.afterDebit();
+    expect(send).not.toHaveBeenCalled();
+    await store.append({ kind: "adjustment", by: "t", label: "d", amountPaise: -15_000 });
+    await n.afterDebit();
+    await n.afterDebit();
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(send.mock.calls[0]![0]).toMatch(/^Balance ₹150\.00/);
+    expect(send.mock.calls[0]![0]).toContain("Recharge: TripIn Studio");
+    await store.append({ kind: "adjustment", by: "t", label: "d", amountPaise: -15_000 });
+    await n.afterDebit();
+    expect(send).toHaveBeenCalledTimes(2);
+    expect(send.mock.calls[1]![0]).toBe("Vasu is paused — balance ₹0.00, allowance ₹0.00 used up.");
+    await n.afterStop();
+    expect(send).toHaveBeenCalledTimes(2);
+    const credit = await store.append({
+      kind: "credit",
+      source: "manual",
+      reference: "UPI-4471",
+      by: "t",
+      label: "Recharge",
+      amountPaise: 500_000,
+    });
+    await n.afterCredit(credit as never);
+    expect(send.mock.calls[2]![0]).toBe(
+      "Recharged ₹5,000.00 (UPI-4471). Balance ₹5,000.00. Vasu is back on.",
+    );
+    expect((await store.getState()).lastLowNoticeAt).toBeUndefined();
+  });
+  it("measures the low line against the credit limit, not zero", async () => {
+    const store = memoryStore();
+    const send = vi.fn(async (_text: string) => {});
+    await store.setState({ enforce: true, creditLimitPaise: 500_000, lowBalancePaise: 20_000 });
+    const n = createNotices({ store, contact: () => "TripIn Studio", send });
+    await store.append({ kind: "adjustment", by: "t", label: "d", amountPaise: -470_000 });
+    await n.afterDebit();
+    expect(send).not.toHaveBeenCalled();
+    await store.append({ kind: "adjustment", by: "t", label: "d", amountPaise: -15_000 });
+    await n.afterDebit();
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+  it("omits 'back on' when the desk was not stopped", async () => {
+    const store = memoryStore();
+    const send = vi.fn(async (_text: string) => {});
+    const n = createNotices({ store, contact: () => "TripIn Studio", send });
+    const credit = await store.append({
+      kind: "credit",
+      source: "manual",
+      reference: "r1",
+      by: "t",
+      label: "Recharge",
+      amountPaise: 10_000,
+    });
+    await n.afterCredit(credit as never);
+    expect(send).toHaveBeenCalledWith("Recharged ₹100.00 (r1). Balance ₹100.00.");
+  });
+  it("shows days left only with three distinct days of debits", async () => {
+    const now = Date.UTC(2026, 9, 7, 6, 0, 0);
+    const debit = (daysAgo: number) =>
+      store.append({
+        kind: "debit",
+        charge: "service",
+        activity: "hosting",
+        ref: "h",
+        label: "Hosting",
+        service: "hosting",
+        units: 1,
+        unit: "day",
+        unitRatePaise: 1_000,
+        amountPaise: -1_000,
+        source: "live",
+        at: now - daysAgo * DAY,
+      });
+    const store = memoryStore();
+    const send = vi.fn(async (_text: string) => {});
+    await store.setState({ enforce: true, creditLimitPaise: 0, lowBalancePaise: 20_000 });
+    const n = createNotices({ store, contact: () => "TripIn Studio", send, now: () => now });
+    await store.append({
+      kind: "credit",
+      source: "manual",
+      reference: "a",
+      by: "t",
+      label: "Recharge",
+      amountPaise: 20_000,
+    });
+    await debit(0);
+    await debit(1);
+    await n.afterDebit();
+    expect(send.mock.calls[0]![0]).not.toContain("days at this week's rate");
+    await store.setState({ lastLowNoticeAt: undefined });
+    await debit(2);
+    await n.afterDebit();
+    expect(send.mock.calls[1]![0]).toMatch(/about \d+ days at this week's rate/);
+  });
+  it("afterSettings clears a stop once the new limit allows it", async () => {
+    const store = memoryStore();
+    const send = vi.fn(async (_text: string) => {});
+    await store.setState({
+      enforce: true,
+      creditLimitPaise: 0,
+      stoppedSince: 5,
+      lastStopNoticeAt: 5,
+    });
+    const n = createNotices({ store, contact: () => "TripIn Studio", send });
+    await store.append({ kind: "adjustment", by: "t", label: "d", amountPaise: -100 });
+    await n.afterSettings();
+    expect((await store.getState()).stoppedSince).toBe(5);
+    await store.setState({ creditLimitPaise: 500_000 });
+    await n.afterSettings();
+    expect((await store.getState()).stoppedSince).toBeUndefined();
+  });
+});

@@ -1,9 +1,12 @@
+import { sendDurableMessageBatch } from "openclaw/plugin-sdk/channel-outbound";
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import type { OpenClawPluginApi } from "./api.js";
 import type { AttributionLookups } from "./src/attribution.js";
+import { createBeforeAgentRun } from "./src/gate.js";
 import { createLlmOutputMeter } from "./src/meter.js";
 import { resolveRateCard } from "./src/money.js";
+import { createNotices } from "./src/notices.js";
 import { WalletStore } from "./src/store.js";
 
 /** Shared with the wallet tool (Task 5): model calls whose debit could not be written. */
@@ -45,12 +48,57 @@ export default function register(api: OpenClawPluginApi): void {
       return ["duties-mail", ...mail];
     },
   };
+  const contact = () => {
+    const configured = (pluginConfig() as { contact?: unknown } | undefined)?.contact;
+    return typeof configured === "string" && configured.trim()
+      ? configured.trim()
+      : "TripIn Studio";
+  };
+  // Owner route comes from Team, called in-process like Duties does; no owner means nothing to tell.
+  const send = async (text: string): Promise<void> => {
+    let owner: { channel: string; target: string } | undefined;
+    try {
+      owner = (await request<{ owner?: { channel: string; target: string } }>("team.owner.get", {}))
+        ?.owner;
+    } catch {
+      owner = undefined;
+    }
+    if (!owner) {
+      api.logger.info("wallet: no owner target configured; balance notice not sent");
+      return;
+    }
+    const result = await sendDurableMessageBatch({
+      cfg: currentConfig(),
+      channel: owner.channel,
+      to: owner.target,
+      payloads: [{ text }],
+    });
+    if (result.status !== "sent") {
+      throw new Error(`wallet notice delivery ${result.status}`);
+    }
+  };
+  const notices = createNotices({
+    store,
+    contact,
+    send: async (text) => {
+      try {
+        await send(text);
+      } catch (error) {
+        api.logger.warn(`wallet: notice not delivered: ${coerceErrorMessage(error)}`);
+      }
+    },
+  });
+  api.on(
+    "before_agent_run",
+    createBeforeAgentRun({ store, contact, onStopped: notices.afterStop }),
+  );
   api.on(
     "llm_output",
     createLlmOutputMeter({
       store,
       rateCard,
       lookups,
+      afterAppend: notices.afterDebit,
       onUnrecorded: (error) => {
         counters.unrecorded += 1;
         api.logger.warn(`wallet: debit not recorded: ${coerceErrorMessage(error)}`);
