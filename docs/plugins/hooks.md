@@ -27,6 +27,10 @@ there produces a warning, and the typed runner never invokes that registration.
 Use `api.on(...)` for every hook in the [hook
 catalog](/plugins/hooks/reference#hook-catalog).
 
+Typed hooks a plugin registers only in `"full"` [registration
+mode](/plugins/sdk-entrypoints/registration-mode) still fire during agent turns:
+Vasudev adopts them into the plugin registry each agent run uses.
+
 ## Quick start
 
 This example replies to a user message containing `hook-demo-check` without

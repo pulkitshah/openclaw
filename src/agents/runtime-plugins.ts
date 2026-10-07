@@ -6,6 +6,7 @@ import {
   registryContainsRuntimePluginIds,
 } from "../plugins/active-runtime-registry.js";
 import { withPluginMetadataSnapshotScope } from "../plugins/current-plugin-metadata-snapshot.js";
+import { adoptRuntimeTypedHookRegistrations } from "../plugins/hook-adoption.js";
 import { extractPluginInstallRecordsFromInstalledPluginIndex } from "../plugins/installed-plugin-index-install-records.js";
 import {
   acquirePluginRegistryForInspection,
@@ -136,7 +137,10 @@ function adoptAgentRuntimeRegistrations(pluginRegistry: PluginRegistry): {
   }
   const registry = bindPluginRegistryResourceOwner(
     adoptRuntimeWidgetPresenterRegistrations(
-      adoptRuntimeContextEngineRegistrations(pluginRegistry, activeRegistry),
+      adoptRuntimeContextEngineRegistrations(
+        adoptRuntimeTypedHookRegistrations(pluginRegistry, activeRegistry),
+        activeRegistry,
+      ),
       activeRegistry,
     ),
     pluginRegistry,

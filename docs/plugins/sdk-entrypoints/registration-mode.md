@@ -24,6 +24,10 @@ mode expects a plugin to register. Part of the
 | `"setup-runtime"`  | Setup flow with runtime available                  | Live        | Channel registration plus only the lightweight runtime needed during setup                                      |
 | `"cli-metadata"`   | Root help / CLI metadata capture                   | Unavailable | CLI descriptors only                                                                                            |
 
+Typed hooks registered with `api.on(...)` in `"full"` mode are adopted into the
+plugin registries that agent runs use, so a plugin does not need to register its
+hooks in `"discovery"` mode for them to fire during turns.
+
 In `"cli-metadata"` and `"setup-only"` modes, accessing a runtime capability throws an error naming the plugin and mode. Defer runtime access out of `register()` or declare root commands in the manifest's `cliCommands` so CLI metadata can be collected without executing the plugin.
 
 `defineChannelPluginEntry` handles this split automatically. If you use

@@ -1,7 +1,10 @@
 /** Verifies global hook runner sequencing, mutation, and error behavior. */
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { adoptRuntimeTypedHookRegistrations } from "./hook-adoption.js";
 import { createMockPluginRegistry } from "./hooks.test-fixtures.js";
+import { createPluginMetadataSnapshotFixture } from "./plugin-metadata.test-support.js";
 import { resetPluginRuntimeStateForTest, setActivePluginRegistry } from "./runtime.js";
+import { withPluginRuntimeGenerationScope } from "./runtime/generation-scope.js";
 
 async function importHookRunnerGlobalModule() {
   return import("./hook-runner-global.js");
@@ -151,6 +154,50 @@ describe("hook-runner-global", () => {
       releaseHandler?.();
       await pending.catch(() => undefined);
     }
+  });
+
+  it("dispatches full-mode typed hooks inside a generation only after adoption", async () => {
+    const handler = vi.fn();
+    const rootRegistry = createMockPluginRegistry([
+      { hookName: "llm_output", pluginId: "wallet", handler },
+    ]);
+    // Discovery-mode load of the same plugin: loaded, but its full-only hooks never ran.
+    const generationRegistry = createMockPluginRegistry([]);
+    generationRegistry.plugins = rootRegistry.plugins.map((plugin) => ({
+      ...plugin,
+      hookCount: 0,
+    }));
+    const mod = await importHookRunnerGlobalModule();
+    setActivePluginRegistry(rootRegistry);
+    mod.initializeGlobalHookRunner(rootRegistry);
+    const metadataSnapshot = createPluginMetadataSnapshotFixture({ plugins: [{ id: "wallet" }] });
+
+    await withPluginRuntimeGenerationScope(
+      { metadataSnapshot, pluginRegistry: generationRegistry },
+      async () => {
+        expect(expectGlobalHookRunner(mod.getGlobalHookRunner()).hasHooks("llm_output")).toBe(
+          false,
+        );
+      },
+    );
+
+    const adopted = adoptRuntimeTypedHookRegistrations(generationRegistry, rootRegistry);
+    await withPluginRuntimeGenerationScope(
+      { metadataSnapshot, pluginRegistry: adopted },
+      async () => {
+        const runner = expectGlobalHookRunner(mod.getGlobalHookRunner());
+        expect(runner.hasHooks("llm_output")).toBe(true);
+        const event = {
+          runId: "run-1",
+          sessionId: "session-1",
+          provider: "test",
+          model: "test-model",
+          assistantTexts: ["done"],
+        } as Parameters<typeof runner.runLlmOutput>[0];
+        await runner.runLlmOutput(event, { sessionId: "session-1" });
+      },
+    );
+    expect(handler).toHaveBeenCalledTimes(1);
   });
 
   it("bounds gateway_stop handlers and lets shutdown continue", async () => {
