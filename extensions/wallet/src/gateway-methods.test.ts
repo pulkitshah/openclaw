@@ -32,6 +32,38 @@ const usageFake = (days: string[]) =>
   );
 
 describe("wallet gateway methods", () => {
+  it("keeps admin actions on the operator's side: a front-door profile is refused unless listed", async () => {
+    const { call, store } = await harness({ operators: ["ops@tripinstudio.example"] });
+    // A desk's customer login holds operator.admin, yet must not recharge itself.
+    const customer = await call(
+      "wallet.credit",
+      { amountPaise: 100_000, reference: "UTR-C" },
+      { scopes: ["operator.admin"], profileId: "customer@example.com" },
+    );
+    expect(customer.ok).toBe(false);
+    expect(JSON.stringify(customer.error)).toMatch(/operator scope/u);
+    for (const [method, params] of [
+      ["wallet.adjust", { amountPaise: 100, note: "x" }],
+      ["wallet.settings", {}],
+      ["wallet.backfill", {}],
+    ] as const) {
+      const refused = await call(method, params, { profileId: "customer@example.com" });
+      expect(refused.ok, method).toBe(false);
+    }
+    expect(await store.balance()).toBe(0);
+    // A listed operator identity through the front door is allowed.
+    const listed = await call(
+      "wallet.credit",
+      { amountPaise: 100_000, reference: "UTR-O" },
+      { profileId: "ops@tripinstudio.example" },
+    );
+    expect(listed.ok).toBe(true);
+    // The operator's own local call carries no front-door profile and is allowed.
+    const local = await call("wallet.credit", { amountPaise: 100_000, reference: "UTR-L" });
+    expect(local.ok).toBe(true);
+    expect(await store.balance()).toBe(200_000);
+  });
+
   it("registers each method under its scope", async () => {
     const { methods } = await harness();
     const scopes = Object.fromEntries([...methods].map(([name, m]) => [name, m.scope]));
@@ -110,7 +142,7 @@ describe("wallet gateway methods", () => {
   });
 
   it("adjusts signed and records who did it", async () => {
-    const { call, store } = await harness();
+    const { call, store } = await harness({ operators: ["p-1"] });
     await call("wallet.credit", { amountPaise: 10_000, reference: "UTR-1" });
     const res = await call(
       "wallet.adjust",

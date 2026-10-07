@@ -113,10 +113,27 @@ export function registerWalletGatewayMethods(deps: {
   counters: { unrecorded: number };
   request: <T>(method: string, params: Record<string, unknown>) => Promise<T>;
   lookups: AttributionLookups;
+  /** Front-door identities (profile ids) allowed to run admin actions besides the operator's own
+   *  local calls. A desk's customer login holds `operator.admin` for everything else on the desk,
+   *  so scope alone cannot keep recharge, adjust, settings and backfill on the operator's side. */
+  operators?: () => string[];
   now?: () => number;
 }): void {
   const { api, store, rateCard, contact, notices, events, counters, request, lookups } = deps;
   const now = () => deps.now?.() ?? Date.now();
+
+  /** Admin actions belong to the operator (TripIn Studio): a call with no front-door profile is
+   *  the operator's own CLI/device session; a front-door profile must be listed in `operators`.
+   *  The refusal names "scope" so the Wallet page hides its admin controls for everyone else. */
+  const requireOperator = (ctx: Ctx): void => {
+    const client: unknown = ctx.client;
+    const profile = isRecord(client) ? client.authenticatedUserProfile : undefined;
+    const profileId =
+      isRecord(profile) && typeof profile.profileId === "string" ? profile.profileId : undefined;
+    if (profileId && !(deps.operators?.() ?? []).includes(profileId)) {
+      throw new Error(`missing operator scope: wallet admin actions are reserved for ${contact()}`);
+    }
+  };
 
   // The ledger row is committed before notices and events run; a failing channel or listener
   // must not turn that committed write into a reported failure.
@@ -238,6 +255,7 @@ export function registerWalletGatewayMethods(deps: {
   });
 
   register("wallet.credit", "operator.admin", async (params, ctx) => {
+    requireOperator(ctx);
     const amountPaise = paise(params, "amountPaise");
     if (amountPaise <= 0) {
       throw new Error("amountPaise must be greater than zero");
@@ -260,6 +278,7 @@ export function registerWalletGatewayMethods(deps: {
   });
 
   register("wallet.adjust", "operator.admin", async (params, ctx) => {
+    requireOperator(ctx);
     const amountPaise = paise(params, "amountPaise");
     if (amountPaise === 0) {
       throw new Error("amountPaise must not be zero");
@@ -276,7 +295,8 @@ export function registerWalletGatewayMethods(deps: {
     return { entry };
   });
 
-  register("wallet.settings", "operator.admin", async (params) => {
+  register("wallet.settings", "operator.admin", async (params, ctx) => {
+    requireOperator(ctx);
     const patch: Partial<WalletState> = {};
     const creditLimitPaise = nonNegativePaise(params, "creditLimitPaise");
     const lowBalancePaise = nonNegativePaise(params, "lowBalancePaise");
@@ -302,7 +322,8 @@ export function registerWalletGatewayMethods(deps: {
 
   // A double-clicked admin button must not import twice: overlapping calls share one run.
   let backfillInFlight: ReturnType<typeof backfillFromUsage> | undefined;
-  register("wallet.backfill", "operator.admin", async () => {
+  register("wallet.backfill", "operator.admin", async (_params, ctx) => {
+    requireOperator(ctx);
     if (backfillInFlight) {
       return backfillInFlight;
     }

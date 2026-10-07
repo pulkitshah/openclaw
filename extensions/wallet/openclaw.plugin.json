@@ -25,6 +25,13 @@
         "type": "string",
         "description": "Who the customer is told to ask for a recharge (default: TripIn Studio)."
       },
+      "operators": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Front-door identities allowed to recharge, adjust, change settings and backfill. The operator's own local CLI/device calls are always allowed; the desk's customer login is not."
+      },
       "rateCard": {
         "type": "object",
         "additionalProperties": true,

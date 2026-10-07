@@ -17,6 +17,7 @@ type Handler = (ctx: {
 
 export async function harness(opts?: {
   request?: <T>(method: string, params: Record<string, unknown>) => Promise<T>;
+  operators?: string[];
 }) {
   const methods = new Map<string, { handler: Handler; scope: string }>();
   const api = {
@@ -45,6 +46,7 @@ export async function harness(opts?: {
       jobName: async () => undefined,
       mailAgentIds: () => [],
     },
+    operators: () => opts?.operators ?? [],
   });
   const call = (
     name: string,

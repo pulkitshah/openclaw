@@ -83,3 +83,7 @@ plugin closes it when disabled or restarted.
 ## The `/wallet` command and `wallet_status` tool
 
 `/wallet` replies with the balance and where it went this month, plus the recharge contact when paused. The `wallet_status` tool gives the agent the same read-only view (balance, usage this month, days remaining), so it can answer "how much is left?".
+
+## Who may recharge
+
+Recharge, Adjust, Settings and Backfill belong to the operator (TripIn Studio), not to the desk's customer login, even though that login holds `operator.admin` for the rest of the desk. The wallet refuses these actions for any front-door identity unless it is listed in `plugins.entries.wallet.config.operators`; the operator's own local calls (`gateway call` over SSH, a paired device) are always allowed. The Wallet page hides the admin controls for everyone else.

@@ -230,6 +230,12 @@ export default function register(api: OpenClawPluginApi): void {
     counters,
     request,
     lookups,
+    operators: () => {
+      const configured = configField("operators");
+      return Array.isArray(configured)
+        ? configured.filter((id): id is string => typeof id === "string" && id.trim() !== "")
+        : [];
+    },
   });
 
   // Register the wallet_status tool and /wallet command in full mode
