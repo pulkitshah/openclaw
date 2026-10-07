@@ -147,6 +147,22 @@
 .dt .admin {
   margin-top: 14px;
 }
+.dt .adminfacts {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+}
+.dt .adminfacts .unrecorded {
+  color: var(--danger, #c9302c);
+  font-weight: 600;
+}
+.dt .wallet-limit {
+  display: block;
+  margin-top: 2px;
+}
 .dt .adminbar,
 .dt .periodbar {
   display: flex;

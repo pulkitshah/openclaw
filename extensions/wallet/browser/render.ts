@@ -2,6 +2,7 @@
 // host wiring and assigns these strings to `innerHTML`. This bundle is built independently of the
 // plugin's runtime, so the few helpers it shares with `../src/money.ts` (`formatInr`) are copied
 // here rather than runtime-imported; only types come from `../src`.
+import type { RateCard } from "../src/money.js";
 import type { Activity, Summary, WalletEntry, WalletState } from "../src/store.js";
 
 export type Period = "today" | "month" | "30d" | "custom";
@@ -15,7 +16,7 @@ export type WalletGet = {
   summary: Summary;
   contact: string;
   unrecorded: number;
-  rateCard: unknown;
+  rateCard: RateCard;
 };
 
 export type WalletForm = "recharge" | "adjust" | "settings";
@@ -95,8 +96,22 @@ export function renderHeader(get: WalletGet, canAdmin: boolean): string {
   const recharge = canAdmin
     ? ""
     : `<p class="small muted">To recharge, ask ${esc(get.contact)}.</p>`;
-  return `<section class="wallet-head"><div><div class="wallet-label">Balance</div><div class="wallet-balance mono">${esc(formatInr(get.balancePaise))}</div></div><div class="wallet-meta">${stateChip(get)}${days}${recharge}</div></section>`;
+  const limit =
+    get.state.creditLimitPaise > 0
+      ? `<span class="wallet-limit muted small">limit ${esc(formatRupees(get.state.creditLimitPaise))}</span>`
+      : "";
+  return `<section class="wallet-head"><div><div class="wallet-label">Balance</div><div class="wallet-balance mono">${esc(formatInr(get.balancePaise))}</div>${limit}</div><div class="wallet-meta">${stateChip(get)}${days}${recharge}</div></section>`;
 }
+
+/** Whole rupees without paise when there are none: "₹5,000", "₹12.50". The balance header is the
+ *  only place a signed amount is shown. */
+function formatRupees(paise: number): string {
+  const text = formatInr(paise);
+  return text.endsWith(".00") ? text.slice(0, -3) : text;
+}
+
+/** Debits are stored negative; buckets, activities and drill-down rows show spend as positive. */
+const spend = (paise: number): number => -paise;
 
 const PERIODS: Array<[Period, string]> = [
   ["today", "Today"],
@@ -126,11 +141,11 @@ export function renderBuckets(summary: Summary, open: Activity | undefined): str
   if (summary.buckets.length === 0) {
     return `<p class="muted">Nothing has been spent in this period.</p>`;
   }
-  const total = summary.totalPaise > 0 ? summary.totalPaise : 1;
+  const total = Math.abs(summary.totalPaise) || 1;
   const rows = summary.buckets
     .map((bucket) => {
-      const share = Math.round((bucket.paise / total) * 100);
-      return `<button class="bucket${bucket.activity === open ? " open" : ""}" data-bucket="${esc(bucket.activity)}"><span class="bname">${esc(BUCKET_LABELS[bucket.activity])}</span><span class="bamt mono">${esc(formatInr(bucket.paise))}</span><span class="bbar"><span class="bfill" style="width:${share}%"></span></span><span class="bshare muted small">${share}%</span></button>`;
+      const share = Math.min(100, Math.max(0, Math.round((Math.abs(bucket.paise) / total) * 100)));
+      return `<button class="bucket${bucket.activity === open ? " open" : ""}" data-bucket="${esc(bucket.activity)}"><span class="bname">${esc(BUCKET_LABELS[bucket.activity])}</span><span class="bamt mono">${esc(formatInr(spend(bucket.paise)))}</span><span class="bbar"><span class="bfill" style="width:${share}%"></span></span><span class="bshare muted small">${share}%</span></button>`;
     })
     .join("");
   return `<div class="buckets">${rows}</div>`;
@@ -143,7 +158,7 @@ export function renderActivities(bucket: Bucket, openRef: string | undefined): s
   const rows = bucket.activities
     .map(
       (item) =>
-        `<button class="activity${item.ref === openRef ? " open" : ""}" data-activity="${esc(item.ref)}"><span class="aname">${esc(item.label)}</span><span class="muted small">${esc(item.entries)} ${item.entries === 1 ? "call" : "calls"}</span><span class="mono">${esc(formatInr(item.paise))}</span></button>`,
+        `<button class="activity${item.ref === openRef ? " open" : ""}" data-activity="${esc(item.ref)}"><span class="aname">${esc(item.label)}</span><span class="muted small">${esc(item.entries)} ${item.entries === 1 ? "call" : "calls"}</span><span class="mono">${esc(formatInr(spend(item.paise)))}</span></button>`,
     )
     .join("");
   return `<div class="activities">${rows}</div>`;
@@ -168,7 +183,7 @@ export function renderEntries(entries: readonly WalletEntry[]): string {
   const rows = entries
     .map(
       (entry) =>
-        `<div class="entry"><span class="muted small mono">${esc(formatIstDateTime(entry.at))}</span><span>${esc(entry.label)}</span><span class="muted small">${esc(entryTokens(entry))}</span><span class="mono">${esc(formatInr(entry.amountPaise))}</span></div>`,
+        `<div class="entry"><span class="muted small mono">${esc(formatIstDateTime(entry.at))}</span><span>${esc(entry.label)}</span><span class="muted small">${esc(entryTokens(entry))}</span><span class="mono">${esc(formatInr(spend(entry.amountPaise)))}</span></div>`,
     )
     .join("");
   return `<div class="entries">${rows}</div>`;
@@ -227,7 +242,39 @@ export function renderAdmin(
   const tab = (id: WalletForm, label: string) =>
     `<button class="btn${openForm === id ? " primary" : ""}" data-open-form="${id}">${label}</button>`;
   const form = openForm ? `<div class="adminform">${formBody(get, openForm)}</div>` : "";
-  return `<section class="admin"><div class="adminbar">${tab("recharge", "Recharge")}${tab("adjust", "Adjust")}${tab("settings", "Settings")}<button class="btn" data-backfill>Import past usage</button></div>${form}</section>`;
+  const backfill =
+    get.state.backfillDoneAt === undefined
+      ? `<button class="btn" data-backfill>Import past usage</button>`
+      : "";
+  return `<section class="admin"><div class="adminbar">${tab("recharge", "Recharge")}${tab("adjust", "Adjust")}${tab("settings", "Settings")}${backfill}</div>${renderAdminFacts(get)}${form}</section>`;
+}
+
+function rateCardLine(card: RateCard): string {
+  const hosting = card.services.hosting;
+  const hostingText =
+    hosting && hosting.inrPerUnit > 0
+      ? `hosting ₹${hosting.inrPerUnit}/${hosting.unit}`
+      : "hosting off";
+  const fallback = card.aliases.default ?? "built-in";
+  return `₹${card.inrPerUsd}/USD × ${card.multiplier}; fallback ${fallback}; ${hostingText}`;
+}
+
+/** What TripIn Studio checks before acting: limit, effective card, backfill status, lost debits. */
+function renderAdminFacts(get: WalletGet): string {
+  const { state } = get;
+  const facts = [
+    `<li>Credit limit <span class="mono">${esc(formatRupees(state.creditLimitPaise))}</span> · low-balance notice at <span class="mono">${esc(formatRupees(state.lowBalancePaise))}</span> · contact ${esc(get.contact)}</li>`,
+    `<li>Rate card <span class="mono">${esc(rateCardLine(get.rateCard))}</span></li>`,
+  ];
+  if (state.backfillDoneAt !== undefined) {
+    facts.push(`<li>Imported past usage on ${esc(formatIstDate(state.backfillDoneAt))}</li>`);
+  }
+  if (get.unrecorded > 0) {
+    facts.push(
+      `<li class="unrecorded">${esc(get.unrecorded)} ${get.unrecorded === 1 ? "debit" : "debits"} not recorded — tell ${esc(get.contact)}</li>`,
+    );
+  }
+  return `<ul class="adminfacts small">${facts.join("")}</ul>`;
 }
 
 export function renderNotice(text: string): string {

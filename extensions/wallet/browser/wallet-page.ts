@@ -326,8 +326,11 @@ export function createWalletPageMount(host: ControlUiHost): ControlUiView<Props>
           days: number;
           failed: number;
           paise: number;
+          alreadyDone?: boolean;
         }>("wallet.backfill", {});
-        state.notice = `Imported ${r.days} ${r.days === 1 ? "day" : "days"} of past usage from ${r.sessions} ${r.sessions === 1 ? "chat" : "chats"} (${formatInr(r.paise)})${r.failed ? `; ${r.failed} could not be read` : ""}.`;
+        state.notice = r.alreadyDone
+          ? "Past usage was already imported."
+          : `Imported ${r.days} ${r.days === 1 ? "day" : "days"} of past usage from ${r.sessions} ${r.sessions === 1 ? "chat" : "chats"} (${formatInr(r.paise)})${r.failed ? `; ${r.failed} could not be read` : ""}.`;
       } catch (error) {
         fail(error, () => void backfill());
         return;

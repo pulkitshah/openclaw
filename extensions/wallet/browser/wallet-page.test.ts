@@ -44,21 +44,34 @@ const GET = {
   state: { creditLimitPaise: 0, lowBalancePaise: 20_000, enforce: false },
   daysLeft: null,
   period: { from: 0, to: 1 },
+  // Debits are stored negative, as wallet.get returns them.
   summary: {
-    totalPaise: 100,
+    totalPaise: -100,
     tokens: 10,
     buckets: [
       {
         activity: "chat",
-        paise: 100,
+        paise: -100,
         tokens: 10,
-        activities: [{ ref: "r1", label: "Ramesh", paise: 100, tokens: 10, entries: 1 }],
+        activities: [{ ref: "r1", label: "Ramesh", paise: -100, tokens: 10, entries: 1 }],
       },
     ],
   },
   contact: "TripIn Studio",
   unrecorded: 0,
-  rateCard: {},
+  rateCard: {
+    inrPerUsd: 88,
+    multiplier: 2,
+    models: {},
+    fallback: {
+      inputUsdPerM: 5,
+      outputUsdPerM: 25,
+      cacheReadUsdPerM: 0.5,
+      cacheWriteUsdPerM: 6.25,
+    },
+    aliases: { default: "claude-opus-5" },
+    services: { hosting: { unit: "day", inrPerUnit: 80 } },
+  },
 };
 
 function makeRequest(overrides: Record<string, () => unknown> = {}) {
@@ -101,6 +114,39 @@ describe("the Wallet page", () => {
       await settle();
       expect(container.querySelector('[data-activity="r1"]')).not.toBeNull();
       expect(container.textContent).toContain("Ramesh");
+      expect(container.querySelector(".bamt")!.textContent).toBe("₹1.00");
+      const width = Number(/width:(\d+)%/.exec(container.innerHTML)![1]);
+      expect(width).toBeGreaterThanOrEqual(0);
+      expect(width).toBeLessThanOrEqual(100);
+    } finally {
+      dispose();
+    }
+  });
+
+  it("Load more passes the ledger's integer-id cursor back", async () => {
+    const page = (id: string) => ({
+      id,
+      at: 1_000,
+      kind: "adjustment",
+      by: "t",
+      label: `Row ${id}`,
+      amountPaise: 1,
+      balanceAfterPaise: 1,
+    });
+    let calls = 0;
+    const request = makeRequest({
+      "wallet.ledger": () =>
+        ++calls === 1 ? { entries: [page("7")], nextBefore: 7 } : { entries: [page("3")] },
+    });
+    const { container, dispose } = mount(request);
+    try {
+      await settle();
+      container.querySelector<HTMLElement>("[data-more]")!.click();
+      await settle();
+      const ledgerCalls = request.mock.calls.filter(([m]) => m === "wallet.ledger");
+      expect(ledgerCalls.at(-1)![1]).toMatchObject({ before: 7 });
+      expect(container.textContent).toContain("Row 3");
+      expect(container.querySelector("[data-more]")).toBeNull();
     } finally {
       dispose();
     }

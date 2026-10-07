@@ -18,39 +18,52 @@ function walletGet(overrides: Partial<WalletGet> = {}): WalletGet {
     state: { creditLimitPaise: 50_000, lowBalancePaise: 200_000, enforce: true },
     daysLeft: 12,
     period: { from: 0, to: IST_DAY },
+    // Debits are stored negative, as wallet.get returns them.
     summary: {
-      totalPaise: 100_000,
+      totalPaise: -100_000,
       tokens: 5000,
       buckets: [
         {
           activity: "chat",
-          paise: 75_000,
+          paise: -75_000,
           tokens: 4000,
           activities: [
             {
               ref: "agent:main:telegram:1",
               label: "Ramesh",
-              paise: 50_000,
+              paise: -50_000,
               tokens: 3000,
               entries: 4,
             },
             {
               ref: "agent:main:telegram:2",
               label: "Suresh",
-              paise: 25_000,
+              paise: -25_000,
               tokens: 1000,
               entries: 2,
             },
           ],
         },
-        { activity: "duty", paise: 25_000, tokens: 1000, activities: [] },
+        { activity: "duty", paise: -25_000, tokens: 1000, activities: [] },
       ],
     },
     contact: "TripIn Studio",
     unrecorded: 0,
-    rateCard: {},
+    rateCard: {
+      inrPerUsd: 88,
+      multiplier: 2,
+      models: {},
+      fallback: {
+        inputUsdPerM: 5,
+        outputUsdPerM: 25,
+        cacheReadUsdPerM: 0.5,
+        cacheWriteUsdPerM: 6.25,
+      },
+      aliases: { default: "claude-opus-5" },
+      services: { hosting: { unit: "day", inrPerUnit: 80 } },
+    },
     ...overrides,
-  } as WalletGet;
+  };
 }
 
 const debit: WalletEntry = {
@@ -113,6 +126,11 @@ describe("renderHeader", () => {
     expect(html).toContain("Paused since 7 Oct 2026");
     expect(html).toContain("₹−600.00");
   });
+  it("shows the credit limit next to the balance when one is set", () => {
+    expect(renderHeader(walletGet(), true)).toContain("limit ₹500");
+    const none = walletGet({ state: { creditLimitPaise: 0, lowBalancePaise: 0, enforce: false } });
+    expect(renderHeader(none, true)).not.toContain("limit ₹");
+  });
   it("names the contact, not a person, for recharge", () => {
     expect(renderHeader(walletGet(), false)).toContain("TripIn Studio");
   });
@@ -126,6 +144,13 @@ describe("renderBuckets and renderActivities", () => {
     expect(html).toContain("₹250.00");
     expect(html).toContain("width:75%");
     expect(html).toContain("width:25%");
+    for (const [, width] of html.matchAll(/width:(-?\d+)%/g)) {
+      expect(Number(width)).toBeGreaterThanOrEqual(0);
+      expect(Number(width)).toBeLessThanOrEqual(100);
+    }
+    for (const [, amount] of html.matchAll(/class="bamt mono">([^<]*)</g)) {
+      expect(amount).not.toContain("−");
+    }
   });
   it("lists the open bucket's activities and marks the open one", () => {
     const summary = walletGet().summary;
@@ -150,7 +175,8 @@ describe("renderEntries and renderStatement", () => {
   it("renders drill-down rows with amount and tokens", () => {
     const html = renderEntries([debit]);
     expect(html).toContain("Reply to Ramesh");
-    expect(html).toContain("₹−12.34");
+    expect(html).toContain("₹12.34");
+    expect(html).not.toContain("₹−12.34");
     expect(html).toContain("150");
   });
   it("renders the statement with credits and balance after", () => {
@@ -180,6 +206,31 @@ describe("renderAdmin", () => {
     expect(html).toContain('data-submit="settings"');
     expect(html).toContain('value="500"');
     expect(html).toContain('value="2000"');
+  });
+  it("shows the limit, the effective rate card, and the backfill button until it has run", () => {
+    const html = renderAdmin(walletGet(), undefined, true);
+    expect(html).toContain("Credit limit");
+    expect(html).toContain("₹88/USD × 2; fallback claude-opus-5; hosting ₹80/day");
+    expect(html).toContain("data-backfill");
+    expect(html).not.toContain("not recorded");
+  });
+  it("replaces the backfill button with its date once done, and flags unrecorded debits", () => {
+    const html = renderAdmin(
+      walletGet({
+        state: {
+          creditLimitPaise: 50_000,
+          lowBalancePaise: 200_000,
+          enforce: true,
+          backfillDoneAt: IST_DAY,
+        },
+        unrecorded: 3,
+      }),
+      undefined,
+      true,
+    );
+    expect(html).not.toContain("data-backfill");
+    expect(html).toContain("Imported past usage on 7 Oct 2026");
+    expect(html).toContain("3 debits not recorded — tell TripIn Studio");
   });
   it("draws nothing without canAdmin", () => {
     expect(renderAdmin(walletGet(), "recharge", false)).toBe("");
