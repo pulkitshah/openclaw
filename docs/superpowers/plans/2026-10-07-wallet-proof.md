@@ -66,3 +66,18 @@ Signed in through the front door as the Amigos admin; the Wallet page rendered t
 - The claude-cli hook inventory line fired on that isolated probe turn (side effects disabled); log it on the first turn with side effects enabled.
 - Why the Gateway's active plugin registry was not reusable for agent runs on Amigos (reuse would have avoided the discovery-mode registry).
 - Prabhat and Prasthan desks are not rolled; they carry the hook gap for full-mode-only hooks and the older WhatsApp crash bug until rolled.
+
+## After the proof (owner-directed changes, same day)
+
+| Change | Commit / action |
+| --- | --- |
+| Ledger rewritten to show ₹11,237.00 consumed to date; test recharge removed; history trimmed; chain rebuilt (no backup, by instruction) | on-desk SQL |
+| Hosting ₹100/day, then ₹150/day | config, hot-reloaded |
+| Rate card ₹100 per $ × 1.3 on Amigos; today's rows repriced | config + on-desk SQL |
+| Statement names cron rows by job name, group chats by the host's saved name, host probes as System | `cd6344fa2a`, `a01fac08bf` (roll 7, 8) |
+| Recharge / Adjust / Settings / Backfill reserved for the operator; customer page hides them | `67d60930c6` (roll 9) |
+| By-model section; Model and Tokens on every statement entry; Gemini/GPT rate-card entries; default card ₹100 × 1.3 | `8054e0be80`, `44e6313c34` (roll 10) |
+
+Token packs / a per-client unit were considered and dropped by the owner. The System bucket on Amigos is
+almost entirely the `registered-requester-mail-watch` cron (a model turn every 5 minutes, ≈₹9 a run);
+its fate is the owner's decision.
