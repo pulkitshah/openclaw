@@ -9,6 +9,22 @@ const MIN_DAYS_OF_DATA = 3;
 
 const istDay = (ms: number) => new Date(ms + IST_OFFSET_MS).toISOString().slice(0, 10);
 
+/** Headroom over this week's average daily spend; undefined until three distinct IST days have debits. */
+export async function daysLeft(
+  store: WalletStore,
+  headroomPaise: number,
+  at: number,
+): Promise<number | undefined> {
+  const debits = await store.list({ from: at - 7 * DAY_MS, kind: "debit" });
+  const days = new Set(debits.map((d) => istDay(d.at)));
+  if (days.size < MIN_DAYS_OF_DATA) {
+    return undefined;
+  }
+  const spent = debits.reduce((sum, d) => sum - d.amountPaise, 0);
+  const perDay = spent / 7;
+  return perDay > 0 ? Math.max(0, Math.floor(headroomPaise / perDay)) : undefined;
+}
+
 export function createNotices(deps: {
   store: WalletStore;
   contact: () => string;
@@ -21,19 +37,6 @@ export function createNotices(deps: {
   afterStop(): Promise<void>;
 } {
   const now = () => deps.now?.() ?? Date.now();
-
-  /** Headroom over this week's average daily spend; undefined until three distinct days have debits. */
-  const daysLeft = async (headroomPaise: number): Promise<number | undefined> => {
-    const at = now();
-    const debits = await deps.store.list({ from: at - 7 * DAY_MS, kind: "debit" });
-    const days = new Set(debits.map((d) => istDay(d.at)));
-    if (days.size < MIN_DAYS_OF_DATA) {
-      return undefined;
-    }
-    const spent = debits.reduce((sum, d) => sum - d.amountPaise, 0);
-    const perDay = spent / 7;
-    return perDay > 0 ? Math.max(0, Math.floor(headroomPaise / perDay)) : undefined;
-  };
 
   const sendStopped = async (): Promise<void> => {
     const state = await deps.store.getState();
@@ -60,7 +63,7 @@ export function createNotices(deps: {
         return;
       }
       await deps.store.setState({ lastLowNoticeAt: now() });
-      const days = await daysLeft(headroom);
+      const days = await daysLeft(deps.store, headroom, now());
       const rate = days === undefined ? "" : ` — about ${days} days at this week's rate`;
       await deps.send(
         `Balance ${formatInr(balance)} — Vasu will pause when it runs out${rate}. Recharge: ${deps.contact()}.`,

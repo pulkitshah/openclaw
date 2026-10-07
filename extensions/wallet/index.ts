@@ -3,13 +3,15 @@ import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import type { OpenClawPluginApi } from "./api.js";
 import type { AttributionLookups } from "./src/attribution.js";
+import { createWalletEventService } from "./src/events.js";
 import { createBeforeAgentRun } from "./src/gate.js";
+import { registerWalletGatewayMethods } from "./src/gateway-methods.js";
 import { createLlmOutputMeter } from "./src/meter.js";
 import { resolveRateCard } from "./src/money.js";
 import { createNotices } from "./src/notices.js";
 import { WalletStore } from "./src/store.js";
 
-/** Shared with the wallet tool (Task 5): model calls whose debit could not be written. */
+/** Shared with the wallet tool (Task 10): model calls whose debit could not be written. */
 export const counters = { unrecorded: 0 };
 
 export default function register(api: OpenClawPluginApi): void {
@@ -88,6 +90,9 @@ export default function register(api: OpenClawPluginApi): void {
       }
     },
   });
+  const events = createWalletEventService();
+  api.registerService(events);
+  registerWalletGatewayMethods({ api, store, rateCard, contact, notices, events, counters });
   api.on(
     "before_agent_run",
     createBeforeAgentRun({ store, contact, onStopped: notices.afterStop }),
