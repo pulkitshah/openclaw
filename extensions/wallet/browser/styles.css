@@ -236,6 +236,44 @@
 .dt .activity.open {
   border-color: var(--accent);
 }
+.dt .modelrow {
+  display: grid;
+  grid-template-columns: 1fr 110px 1fr 40px;
+  grid-template-areas:
+    "name amt bar share"
+    "meta meta meta meta";
+  align-items: center;
+  gap: 4px 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-elevated);
+}
+.dt .modelrow .mname {
+  grid-area: name;
+}
+.dt .modelrow .bamt {
+  grid-area: amt;
+}
+.dt .modelrow .bbar {
+  grid-area: bar;
+}
+.dt .modelrow .bshare {
+  grid-area: share;
+}
+.dt .modelrow .mmeta {
+  grid-area: meta;
+}
+.dt .mchip {
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.dt .warn-text {
+  color: var(--warn, #b9820f);
+  font-size: 12px;
+}
 .dt .bamt,
 .dt .bshare {
   text-align: right;
@@ -308,7 +346,55 @@
   .dt .bbar {
     grid-column: 1 / -1;
   }
+  .dt .modelrow {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "name amt"
+      "bar bar"
+      "meta share";
+  }
   .dt .entry {
     grid-template-columns: 1fr auto;
+  }
+  /* Phone width: each statement row becomes a small card; model and tokens stack under "What". */
+  .dt .statement thead {
+    display: none;
+  }
+  .dt .statement,
+  .dt .statement tbody {
+    display: block;
+  }
+  .dt .statement tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .dt .statement td {
+    padding: 0;
+    border: 0;
+  }
+  .dt .statement .what {
+    grid-column: 1;
+  }
+  .dt .statement .smodel,
+  .dt .statement .stokens,
+  .dt .statement .snote {
+    grid-column: 1;
+    text-align: left;
+    color: var(--muted);
+  }
+  .dt .statement .stokens:empty,
+  .dt .statement .smodel:empty,
+  .dt .statement .snote:empty {
+    display: none;
+  }
+  .dt .statement td.num:not(.stokens) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .dt .statement td.num.muted {
+    grid-row: 2;
   }
 }

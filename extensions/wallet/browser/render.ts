@@ -2,6 +2,7 @@
 // host wiring and assigns these strings to `innerHTML`. This bundle is built independently of the
 // plugin's runtime, so the few helpers it shares with `../src/money.ts` (`formatInr`) are copied
 // here rather than runtime-imported; only types come from `../src`.
+import { modelDisplayName } from "../src/model-names.js";
 import type { RateCard } from "../src/money.js";
 import type { Activity, Summary, WalletEntry, WalletState } from "../src/store.js";
 
@@ -151,6 +152,33 @@ export function renderBuckets(summary: Summary, open: Activity | undefined): str
   return `<div class="buckets">${rows}</div>`;
 }
 
+/** Tokens as "950", "12.3 K" or "38.7 M". */
+function formatTokens(n: number): string {
+  if (n >= 1_000_000) {
+    return `${(n / 1_000_000).toFixed(1)} M`;
+  }
+  if (n >= 1_000) {
+    return `${(n / 1_000).toFixed(1)} k`;
+  }
+  return String(n);
+}
+
+/** The "By model" rows under the buckets; empty when no token debits carry a model. */
+export function renderModels(summary: Summary): string {
+  if (summary.models.length === 0) {
+    return "";
+  }
+  const total = summary.models.reduce((sum, m) => sum + Math.abs(m.paise), 0) || 1;
+  const rows = summary.models
+    .map((m) => {
+      const share = Math.min(100, Math.max(0, Math.round((Math.abs(m.paise) / total) * 100)));
+      const unpriced = m.unpriced ? ` <span class="warn-text">(not in rate card)</span>` : "";
+      return `<div class="modelrow"><span class="mname">${esc(m.label)} <span class="chip mchip">${esc(m.provider)}</span>${unpriced}</span><span class="bamt mono">${esc(formatInr(spend(m.paise)))}</span><span class="bbar"><span class="bfill" style="width:${share}%"></span></span><span class="bshare muted small">${share}%</span><span class="mmeta muted small">${esc(formatTokens(m.tokens))} tokens · ${esc(m.calls)} ${m.calls === 1 ? "call" : "calls"}</span></div>`;
+    })
+    .join("");
+  return `<h2>By model</h2><div class="buckets models">${rows}</div>`;
+}
+
 export function renderActivities(bucket: Bucket, openRef: string | undefined): string {
   if (bucket.activities.length === 0) {
     return `<p class="muted small">No detail for ${esc(BUCKET_LABELS[bucket.activity])}.</p>`;
@@ -196,17 +224,37 @@ function statementNote(entry: WalletEntry): string {
   return entry.note ?? "";
 }
 
+/** Model (friendly name plus a provider chip) or service name; blank for credits and adjustments. */
+function statementModel(entry: WalletEntry): string {
+  if (entry.kind !== "debit") {
+    return "";
+  }
+  if (entry.charge === "tokens") {
+    return `${esc(modelDisplayName(entry.provider, entry.model))} <span class="chip mchip">${esc(entry.provider)}</span>`;
+  }
+  return esc(entry.service);
+}
+
+function statementTokens(entry: WalletEntry): string {
+  if (entry.kind !== "debit" || entry.charge !== "tokens") {
+    return "";
+  }
+  return formatTokens(
+    entry.inputTokens + entry.outputTokens + entry.cacheReadTokens + entry.cacheWriteTokens,
+  );
+}
+
 export function renderStatement(entries: readonly WalletEntry[], hasMore = false): string {
   const rows = entries
     .map(
       (entry) =>
-        `<tr class="${entry.kind}"><td class="mono small">${esc(formatIstDateTime(entry.at))}</td><td>${esc(entry.label)}</td><td class="muted small">${esc(statementNote(entry))}</td><td class="mono num">${esc(formatInr(entry.amountPaise))}</td><td class="mono num muted">${esc(formatInr(entry.balanceAfterPaise))}</td></tr>`,
+        `<tr class="${entry.kind}"><td class="mono small">${esc(formatIstDateTime(entry.at))}</td><td class="what">${esc(entry.label)}</td><td class="smodel small">${statementModel(entry)}</td><td class="stokens mono small num">${esc(statementTokens(entry))}</td><td class="muted small snote">${esc(statementNote(entry))}</td><td class="mono num">${esc(formatInr(entry.amountPaise))}</td><td class="mono num muted">${esc(formatInr(entry.balanceAfterPaise))}</td></tr>`,
     )
     .join("");
   const table =
     entries.length === 0
       ? `<p class="muted">No entries in this period.</p>`
-      : `<table class="statement"><thead><tr><th>When (IST)</th><th>What</th><th>Note</th><th class="num">Amount</th><th class="num">Balance</th></tr></thead><tbody>${rows}</tbody></table>`;
+      : `<table class="statement"><thead><tr><th>When (IST)</th><th>What</th><th>Model</th><th class="num">Tokens</th><th>Note</th><th class="num">Amount</th><th class="num">Balance</th></tr></thead><tbody>${rows}</tbody></table>`;
   const more = hasMore ? `<button class="btn" data-more>Load more</button>` : "";
   return `<div class="stmthead"><h2>Statement</h2><button class="btn" data-export>Export CSV</button></div>${table}${more}`;
 }

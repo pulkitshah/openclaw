@@ -1,4 +1,5 @@
 import { asFiniteNumber, isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
+import { modelDisplayName, stripProviderPrefix } from "./model-names.js";
 
 export type TokenRates = {
   inputUsdPerM: number;
@@ -16,6 +17,7 @@ export type RateCard = {
   aliases: Record<string, string>;
   services: Record<string, ServiceRate>;
 };
+export { modelDisplayName };
 export type TokenCounts = { input: number; output: number; cacheRead: number; cacheWrite: number };
 export type TokenPrice = {
   paise: number;
@@ -98,9 +100,10 @@ const FABLE_5: TokenRates = {
   cacheWriteUsdPerM: 12.5,
 };
 
+// Default pricing is the owner's policy: Anthropic list price at ₹100 per dollar plus a 30% premium.
 export const DEFAULT_RATE_CARD: RateCard = {
-  inrPerUsd: 88,
-  multiplier: 2,
+  inrPerUsd: 100,
+  multiplier: 1.3,
   models: {
     "claude-opus-5": OPUS,
     "claude-sonnet-5": SONNET,
@@ -114,6 +117,58 @@ export const DEFAULT_RATE_CARD: RateCard = {
     "claude-sonnet-4-6": SONNET_4_6,
     "claude-fable-5-1": FABLE_5_1,
     "claude-fable-5": FABLE_5,
+    // Fetched 2026-10-07 from https://ai.google.dev/gemini-api/docs/pricing (paid tier, text; Gemini bills cache
+    // writes at the input rate plus hourly storage, so the input rate is used; 3.1 Pro is the <=200k-token tier).
+    "gemini-2.5-flash": {
+      inputUsdPerM: 0.3,
+      outputUsdPerM: 2.5,
+      cacheReadUsdPerM: 0.03,
+      cacheWriteUsdPerM: 0.3,
+    },
+    "gemini-2.5-flash-lite": {
+      inputUsdPerM: 0.1,
+      outputUsdPerM: 0.4,
+      cacheReadUsdPerM: 0.01,
+      cacheWriteUsdPerM: 0.1,
+    },
+    "gemini-3.1-pro-preview": {
+      inputUsdPerM: 2,
+      outputUsdPerM: 12,
+      cacheReadUsdPerM: 0.2,
+      cacheWriteUsdPerM: 2,
+    },
+    // Fetched 2026-10-07 from https://platform.openai.com/docs/models (OpenAI has no separate cache-write
+    // price, so cache writes use the input rate).
+    "gpt-5": {
+      inputUsdPerM: 1.25,
+      outputUsdPerM: 10,
+      cacheReadUsdPerM: 0.125,
+      cacheWriteUsdPerM: 1.25,
+    },
+    "gpt-5.2": {
+      inputUsdPerM: 1.75,
+      outputUsdPerM: 14,
+      cacheReadUsdPerM: 0.175,
+      cacheWriteUsdPerM: 1.75,
+    },
+    "gpt-5.4": {
+      inputUsdPerM: 2.5,
+      outputUsdPerM: 15,
+      cacheReadUsdPerM: 0.25,
+      cacheWriteUsdPerM: 2.5,
+    },
+    "gpt-5-mini": {
+      inputUsdPerM: 0.25,
+      outputUsdPerM: 2,
+      cacheReadUsdPerM: 0.025,
+      cacheWriteUsdPerM: 0.25,
+    },
+    "gpt-5-nano": {
+      inputUsdPerM: 0.05,
+      outputUsdPerM: 0.4,
+      cacheReadUsdPerM: 0.005,
+      cacheWriteUsdPerM: 0.05,
+    },
   },
   fallback: OPUS,
   // claude-cli reports the alias the desk was configured with; `default` is the fallback's model.
@@ -204,8 +259,8 @@ export function modelRates(
   if (qualified) {
     return { rates: qualified, unpriced: false };
   }
-  // claude-cli and Anthropic ids price by the same bare Anthropic model id.
-  const bare = model.replace(/^(?:claude-cli|anthropic)\//, "");
+  // Provider-prefixed ids price by the same bare model id.
+  const bare = stripProviderPrefix(model);
   const id = card.aliases[bare] ?? bare;
   const rates = card.models[id] ?? card.models[`${provider}/${id}`];
   return rates ? { rates, unpriced: false } : { rates: card.fallback, unpriced: true };

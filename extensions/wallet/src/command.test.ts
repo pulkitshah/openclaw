@@ -15,6 +15,7 @@ describe("walletStatusText", () => {
     baseSummary = {
       totalPaise: 0,
       tokens: 0,
+      models: [],
       buckets: [],
     };
   });
@@ -28,6 +29,7 @@ describe("walletStatusText", () => {
         summary: {
           totalPaise: -31000, // ₹310.00 spent
           tokens: 0,
+          models: [],
           buckets: [
             { activity: "duty", paise: -21200, tokens: 100, activities: [] }, // Duties ₹212.00
             { activity: "chat", paise: -7100, tokens: 50, activities: [] }, // Chat ₹71.00
@@ -51,6 +53,7 @@ describe("walletStatusText", () => {
         summary: {
           totalPaise: -20000, // ₹200.00 spent
           tokens: 0,
+          models: [],
           buckets: [
             { activity: "duty", paise: -20000, tokens: 100, activities: [] },
             { activity: "chat", paise: 0, tokens: 0, activities: [] }, // zero, should be omitted
@@ -73,6 +76,7 @@ describe("walletStatusText", () => {
         summary: {
           totalPaise: -60000, // ₹600.00 spent
           tokens: 0,
+          models: [],
           buckets: [
             { activity: "hosting", paise: -10000, tokens: 0, activities: [] }, // smallest (₹100)
             { activity: "chat", paise: -50000, tokens: 0, activities: [] }, // largest (₹500)
@@ -97,6 +101,7 @@ describe("walletStatusText", () => {
         summary: {
           totalPaise: -10000,
           tokens: 0,
+          models: [],
           buckets: [{ activity: "chat", paise: -10000, tokens: 0, activities: [] }],
         },
         contact: "TripIn Studio",
@@ -119,6 +124,7 @@ describe("walletStatusText", () => {
         summary: {
           totalPaise: -50000,
           tokens: 0,
+          models: [],
           buckets: [{ activity: "chat", paise: -50000, tokens: 0, activities: [] }],
         },
         contact: "TripIn Studio",
@@ -137,6 +143,7 @@ describe("walletStatusText", () => {
         summary: {
           totalPaise: -20000,
           tokens: 0,
+          models: [],
           buckets: [],
         },
         contact: "Custom Contact",
@@ -155,6 +162,7 @@ describe("walletStatusText", () => {
         summary: {
           totalPaise: -5000, // ₹50.00 spent
           tokens: 0,
+          models: [],
           buckets: [{ activity: "chat", paise: -5000, tokens: 0, activities: [] }],
         },
         contact: "TripIn Studio",
@@ -174,6 +182,7 @@ describe("walletStatusText", () => {
         summary: {
           totalPaise: 0,
           tokens: 0,
+          models: [],
           buckets: [
             { activity: "duty", paise: 0, tokens: 0, activities: [] },
             { activity: "chat", paise: 0, tokens: 0, activities: [] },
@@ -196,6 +205,7 @@ describe("walletStatusText", () => {
         summary: {
           totalPaise: 0,
           tokens: 0,
+          models: [],
           buckets: [],
         },
         contact: "TripIn Studio",
@@ -215,6 +225,7 @@ describe("walletStatusText", () => {
         summary: {
           totalPaise: -5000,
           tokens: 0,
+          models: [],
           buckets: [],
         },
         contact: "TripIn Studio",
@@ -231,6 +242,7 @@ describe("walletStatusText", () => {
         summary: {
           totalPaise: -10000,
           tokens: 0,
+          models: [],
           buckets: [],
         },
         contact: "TripIn Studio",
@@ -247,6 +259,7 @@ describe("walletStatusText", () => {
         summary: {
           totalPaise: -1000000, // ₹10,000.00
           tokens: 0,
+          models: [],
           buckets: [
             { activity: "duty", paise: -500000, tokens: 0, activities: [] },
             { activity: "chat", paise: -500000, tokens: 0, activities: [] },
@@ -268,6 +281,7 @@ describe("walletStatusText", () => {
         summary: {
           totalPaise: -5000,
           tokens: 0,
+          models: [],
           buckets: [],
         },
         contact: "TripIn Studio",
@@ -284,6 +298,7 @@ describe("walletStatusText", () => {
         summary: {
           totalPaise: -60000,
           tokens: 0,
+          models: [],
           buckets: [
             { activity: "chat", paise: -10000, tokens: 0, activities: [] },
             { activity: "duty", paise: -20000, tokens: 0, activities: [] },
@@ -302,6 +317,47 @@ describe("walletStatusText", () => {
       expect(text).toContain("System");
       expect(text).toContain("Hosting");
       expect(text).toContain("Integrations");
+    });
+
+    describe("models sentence", () => {
+      const m = (label: string, paise: number) => ({
+        provider: "claude-cli",
+        model: label,
+        label,
+        paise,
+        tokens: 1,
+        input: 1,
+        output: 0,
+        cacheRead: 0,
+        cacheWrite: 0,
+        calls: 1,
+        unpriced: false,
+      });
+      const text = (models: Summary["models"]) =>
+        walletStatusText({
+          balancePaise: 100000,
+          state: baseState,
+          daysLeft: null,
+          summary: { totalPaise: -500211, tokens: 4, models, buckets: [] },
+          contact: "TripIn Studio",
+        });
+
+      it("lists the top three models by spend", () => {
+        expect(
+          text([
+            m("Claude Opus 5", -500211),
+            m("Claude Sonnet 5", -875),
+            m("Gemini 2.5 Flash", -50),
+            m("GPT-5 nano", -1),
+          ]),
+        ).toContain(
+          " Models: Claude Opus 5 ₹5,002.11, Claude Sonnet 5 ₹8.75, Gemini 2.5 Flash ₹0.50.",
+        );
+      });
+
+      it("omits the sentence when there are no models", () => {
+        expect(text([])).not.toContain("Models:");
+      });
     });
   });
 });

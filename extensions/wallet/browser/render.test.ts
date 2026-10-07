@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import type { WalletEntry } from "../src/store.js";
+import type { Summary, WalletEntry } from "../src/store.js";
 import {
   renderActivities,
   renderAdmin,
   renderBuckets,
   renderEntries,
   renderHeader,
+  renderModels,
   renderStatement,
   type WalletGet,
 } from "./render.js";
@@ -22,6 +23,7 @@ function walletGet(overrides: Partial<WalletGet> = {}): WalletGet {
     summary: {
       totalPaise: -100_000,
       tokens: 5000,
+      models: [],
       buckets: [
         {
           activity: "chat",
@@ -187,6 +189,46 @@ describe("renderEntries and renderStatement", () => {
     expect(html).toContain("₹15,000.00");
     expect(html).toContain("data-export");
   });
+  it("shows model, tokens and price on each statement row", () => {
+    const hosting: WalletEntry = {
+      id: "e3",
+      at: IST_DAY,
+      kind: "debit",
+      charge: "service",
+      activity: "hosting",
+      ref: "hosting:2026-10-07",
+      service: "hosting",
+      units: 1,
+      unit: "day",
+      unitRatePaise: 8000,
+      source: "live",
+      amountPaise: -8000,
+      balanceAfterPaise: 900_000,
+      label: "Hosting — 7 Oct",
+    };
+    const big: WalletEntry = {
+      ...debit,
+      id: "e4",
+      provider: "claude-cli",
+      model: "claude-opus-5",
+      inputTokens: 40_000,
+      outputTokens: 2_000,
+      cacheReadTokens: 5_000,
+      cacheWriteTokens: 200,
+    };
+    const html = renderStatement([big, hosting, credit]);
+    const rows = html.split("<tr").slice(2);
+    expect(rows[0]).toContain("Claude Opus 5");
+    expect(rows[0]).toContain("claude-cli");
+    expect(rows[0]).toContain("47.2 k");
+    expect(rows[0]).toContain("₹−12.34");
+    expect(rows[1]).toContain(">hosting<");
+    expect(rows[1]).toContain(`<td class="stokens mono small num"></td>`);
+    expect(rows[2]).toContain(
+      '<td class="smodel small"></td><td class="stokens mono small num"></td>',
+    );
+    expect(html).toContain("<th>Model</th>");
+  });
 });
 
 describe("renderAdmin", () => {
@@ -237,5 +279,65 @@ describe("renderAdmin", () => {
   });
   it("keeps fractional rupees out of the browser's reach with a 0.01 step", () => {
     expect(renderAdmin(walletGet(), "recharge", true)).toContain('step="0.01"');
+  });
+});
+
+describe("renderModels", () => {
+  const usage = (over: Partial<Summary["models"][number]>): Summary["models"][number] => ({
+    provider: "claude-cli",
+    model: "claude-opus-5",
+    label: "Claude Opus 5",
+    paise: -75_000,
+    tokens: 38_700_000,
+    input: 1,
+    output: 1,
+    cacheRead: 1,
+    cacheWrite: 1,
+    calls: 12,
+    unpriced: false,
+    ...over,
+  });
+  const summary = (): Summary => ({
+    ...walletGet().summary,
+    models: [
+      usage({}),
+      usage({
+        provider: "google",
+        model: "mystery",
+        label: "mystery",
+        paise: -25_000,
+        tokens: 900,
+        calls: 1,
+        unpriced: true,
+      }),
+    ],
+  });
+
+  it("shows label, provider chip, positive rupees, compact tokens, calls and shares", () => {
+    const html = renderModels(summary());
+    expect(html).toContain("Claude Opus 5");
+    expect(html).toContain('class="chip mchip">claude-cli<');
+    expect(html).toContain('class="chip mchip">google<');
+    expect(html).toContain("₹750.00");
+    expect(html).toContain("38.7 M");
+    expect(html).toContain("900 tokens");
+    expect(html).toContain("12 calls");
+    expect(html).toContain("1 call<");
+    expect(html).toContain("width:75%");
+    expect(html).toContain("width:25%");
+    for (const [, width] of html.matchAll(/width:(-?\d+)%/g)) {
+      expect(Number(width)).toBeGreaterThanOrEqual(0);
+      expect(Number(width)).toBeLessThanOrEqual(100);
+    }
+    expect(html).not.toContain("−");
+  });
+
+  it("flags only the model missing from the rate card", () => {
+    const html = renderModels(summary());
+    expect(html.match(/\(not in rate card\)/g)).toHaveLength(1);
+  });
+
+  it("draws nothing without model rows", () => {
+    expect(renderModels({ ...summary(), models: [] })).toBe("");
   });
 });

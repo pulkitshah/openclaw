@@ -155,6 +155,60 @@ describe("WalletStore", () => {
     expect(await s.spendSince(0)).toEqual({ spentPaise: 8_600, days: 1 });
   });
 
+  it("summarizes tokens per provider and model, biggest spend first, skipping null models", async () => {
+    const s = await openTestStore();
+    await s.append(
+      debit({
+        at: 1_000,
+        amountPaise: -100,
+        model: "claude-sonnet-5",
+        inputTokens: 10,
+        outputTokens: 5,
+      }),
+    );
+    await s.append(
+      debit({
+        at: 2_000,
+        amountPaise: -900,
+        model: "claude-opus-5",
+        inputTokens: 100,
+        outputTokens: 50,
+        cacheReadTokens: 7,
+        cacheWriteTokens: 3,
+      }),
+    );
+    await s.append(
+      debit({
+        at: 3_000,
+        amountPaise: -50,
+        model: "claude-opus-5",
+        inputTokens: 1,
+        outputTokens: 1,
+      }),
+    );
+    await s.append(
+      debit({ at: 4_000, amountPaise: -20, provider: "google", model: "mystery", unpriced: true }),
+    );
+    await s.append(debit({ at: 9_000_000, amountPaise: -999, model: "out-of-range" }));
+    await s.append(hostingDebit({ at: 5_000 }));
+    const { models } = await s.summarize({ from: 0, to: 6_000 });
+    expect(models.map((m) => m.model)).toEqual(["claude-opus-5", "claude-sonnet-5", "mystery"]);
+    expect(models[0]).toEqual({
+      provider: "claude-cli",
+      model: "claude-opus-5",
+      label: "Claude Opus 5",
+      paise: -950,
+      tokens: 162,
+      input: 101,
+      output: 51,
+      cacheRead: 7,
+      cacheWrite: 3,
+      calls: 2,
+      unpriced: false,
+    });
+    expect(models[2]).toMatchObject({ provider: "google", label: "mystery", unpriced: true });
+  });
+
   it("pages five rows that share one millisecond without skipping any", async () => {
     const s = await openTestStore();
     for (let i = 0; i < 5; i++) {

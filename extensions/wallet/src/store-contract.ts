@@ -80,9 +80,25 @@ export type ListFilter = {
   /** Integer entry id: only rows appended before it. */
   before?: number;
 };
+export type ModelUsage = {
+  provider: string;
+  model: string;
+  /** Friendly name (`modelDisplayName`); the provider is shown separately. */
+  label: string;
+  paise: number;
+  tokens: number;
+  input: number;
+  output: number;
+  cacheRead: number;
+  cacheWrite: number;
+  calls: number;
+  unpriced: boolean;
+};
 export type Summary = {
   totalPaise: number;
   tokens: number;
+  /** Token debits grouped by provider and model, biggest spend first (debits are negative paise). */
+  models: ModelUsage[];
   buckets: Array<{
     activity: Activity;
     paise: number;

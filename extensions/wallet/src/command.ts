@@ -65,6 +65,15 @@ export function walletStatusText(get: {
     text += ".";
   }
 
+  const topModels = get.summary.models
+    .filter((m) => m.paise !== 0)
+    .toSorted((a, b) => a.paise - b.paise)
+    .slice(0, 3)
+    .map((m) => `${m.label} ${formatInr(-m.paise)}`);
+  if (topModels.length > 0) {
+    text += ` Models: ${topModels.join(", ")}.`;
+  }
+
   // Add pause status
   if (paused) {
     text = `Paused — ${text} Ask ${get.contact} to recharge.`;
@@ -118,6 +127,36 @@ function readActivity(value: unknown): Activity {
   return activity;
 }
 
+function readModels(value: unknown): Summary["models"] {
+  if (!Array.isArray(value)) {
+    throw new Error(SHAPE_ERROR);
+  }
+  return value.map((entry) => {
+    if (
+      !isRecord(entry) ||
+      typeof entry.provider !== "string" ||
+      typeof entry.model !== "string" ||
+      typeof entry.label !== "string" ||
+      typeof entry.unpriced !== "boolean"
+    ) {
+      throw new Error(SHAPE_ERROR);
+    }
+    return {
+      provider: entry.provider,
+      model: entry.model,
+      label: entry.label,
+      paise: readNumber(entry.paise),
+      tokens: readNumber(entry.tokens),
+      input: readNumber(entry.input),
+      output: readNumber(entry.output),
+      cacheRead: readNumber(entry.cacheRead),
+      cacheWrite: readNumber(entry.cacheWrite),
+      calls: readNumber(entry.calls),
+      unpriced: entry.unpriced,
+    };
+  });
+}
+
 function readSummary(value: unknown): Summary {
   if (!isRecord(value) || !Array.isArray(value.buckets)) {
     throw new Error(SHAPE_ERROR);
@@ -144,7 +183,12 @@ function readSummary(value: unknown): Summary {
       }),
     };
   });
-  return { totalPaise: readNumber(value.totalPaise), tokens: readNumber(value.tokens), buckets };
+  return {
+    totalPaise: readNumber(value.totalPaise),
+    tokens: readNumber(value.tokens),
+    models: readModels(value.models),
+    buckets,
+  };
 }
 
 export function readWalletGetResult(value: unknown): WalletGetResult {

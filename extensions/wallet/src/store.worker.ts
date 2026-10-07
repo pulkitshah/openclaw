@@ -16,7 +16,7 @@ import {
   type SqliteWorkerCommand,
 } from "openclaw/plugin-sdk/sqlite-runtime";
 import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
-import type { TokenCounts } from "./money.js";
+import { modelDisplayName, type TokenCounts } from "./money.js";
 import type {
   Activity,
   BackfillResult,
@@ -508,7 +508,67 @@ class WalletSqlite {
         },
       ];
     });
-    return { totalPaise, tokens: buckets.reduce((sum, b) => sum + b.tokens, 0), buckets };
+    return {
+      totalPaise,
+      tokens: buckets.reduce((sum, b) => sum + b.tokens, 0),
+      models: this.summarizeModels(range),
+      buckets,
+    };
+  }
+
+  private summarizeModels(range: { from: number; to: number }): Summary["models"] {
+    const rows = executeSqliteQuerySync(
+      this.db,
+      this.query
+        .selectFrom("wallet_entries")
+        .select((eb) => [
+          "provider",
+          "model",
+          eb.fn.sum<number>("amount_paise").as("paise"),
+          eb.fn.sum<number>(eb.fn.coalesce("input_tokens", eb.lit(0))).as("input"),
+          eb.fn.sum<number>(eb.fn.coalesce("output_tokens", eb.lit(0))).as("output"),
+          eb.fn.sum<number>(eb.fn.coalesce("cache_read_tokens", eb.lit(0))).as("cacheRead"),
+          eb.fn.sum<number>(eb.fn.coalesce("cache_write_tokens", eb.lit(0))).as("cacheWrite"),
+          eb.fn.countAll<number>().as("calls"),
+          eb.fn.max("unpriced").as("unpriced"),
+        ])
+        .where("kind", "=", "debit")
+        .where("charge", "=", "tokens")
+        .where("model", "is not", null)
+        .where("at", ">=", range.from)
+        .where("at", "<=", range.to)
+        .groupBy(["provider", "model"]),
+    ).rows;
+    return (
+      rows
+        .flatMap((row) => {
+          if (row.model === null) {
+            return [];
+          }
+          const provider = row.provider ?? "";
+          const input = num(row.input);
+          const output = num(row.output);
+          const cacheRead = num(row.cacheRead);
+          const cacheWrite = num(row.cacheWrite);
+          return [
+            {
+              provider,
+              model: row.model,
+              label: modelDisplayName(provider, row.model),
+              paise: num(row.paise),
+              tokens: input + output + cacheRead + cacheWrite,
+              input,
+              output,
+              cacheRead,
+              cacheWrite,
+              calls: num(row.calls),
+              unpriced: num(row.unpriced) !== 0,
+            },
+          ];
+        })
+        // Debits are negative, so ascending puts the biggest spend first.
+        .toSorted((a, b) => a.paise - b.paise)
+    );
   }
 
   spendSince(from: number): { spentPaise: number; days: number } {

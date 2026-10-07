@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_RATE_CARD,
   formatInr,
+  modelDisplayName,
   modelRates,
   priceService,
   priceTokens,
@@ -123,5 +124,42 @@ describe("formatInr", () => {
     expect(formatInr(124_050)).toBe("₹1,240.50");
     expect(formatInr(-31_200)).toBe("₹−312.00");
     expect(formatInr(12_345_678_900)).toBe("₹12,34,56,789.00");
+  });
+});
+
+describe("non-Claude rate card entries", () => {
+  const ids = [
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-3.1-pro-preview",
+    "gpt-5",
+    "gpt-5.2",
+    "gpt-5.4",
+    "gpt-5-mini",
+    "gpt-5-nano",
+  ];
+  it.each(ids)("prices %s", (id) => {
+    expect(modelRates(DEFAULT_RATE_CARD, "x", id).unpriced).toBe(false);
+  });
+  it("resolves provider-prefixed ids", () => {
+    const flash = modelRates(DEFAULT_RATE_CARD, "google", "gemini-2.5-flash");
+    expect(flash.rates.outputUsdPerM).toBe(2.5);
+    expect(modelRates(DEFAULT_RATE_CARD, "google", "google/gemini-2.5-flash")).toEqual(flash);
+    expect(modelRates(DEFAULT_RATE_CARD, "google", "gemini/gemini-2.5-flash")).toEqual(flash);
+    expect(modelRates(DEFAULT_RATE_CARD, "openai", "openai/gpt-5.4").rates.inputUsdPerM).toBe(2.5);
+  });
+});
+
+describe("modelDisplayName", () => {
+  it("names known models and falls back to the raw id", () => {
+    expect(modelDisplayName("claude-cli", "claude-opus-5")).toBe("Claude Opus 5");
+    expect(modelDisplayName("claude-cli", "claude-opus-5-5")).toBe("Claude Opus 5.5");
+    expect(modelDisplayName("claude-cli", "claude-sonnet-5")).toBe("Claude Sonnet 5");
+    expect(modelDisplayName("claude-cli", "claude-sonnet-5-5")).toBe("Claude Sonnet 5.5");
+    expect(modelDisplayName("claude-cli", "claude-haiku-4-5-20251001")).toBe("Claude Haiku 4.5");
+    expect(modelDisplayName("claude-cli", "claude-fable-5-1")).toBe("Claude Fable 5.1");
+    expect(modelDisplayName("google", "google/gemini-2.5-flash")).toBe("Gemini 2.5 Flash");
+    expect(modelDisplayName("openai", "gpt-5.4")).toBe("GPT-5.4");
+    expect(modelDisplayName("x", "mystery-1")).toBe("mystery-1");
   });
 });

@@ -48,6 +48,7 @@ const GET = {
   summary: {
     totalPaise: -100,
     tokens: 10,
+    models: [],
     buckets: [
       {
         activity: "chat",

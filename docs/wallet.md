@@ -31,16 +31,18 @@ Reads (`wallet.get`, the statement) need only `operator.read`.
 
 ## Rate card
 
-Token usage is priced from `plugins.entries.wallet.config.rateCard`. Any field you leave out keeps its default.
+Token usage is priced from `plugins.entries.wallet.config.rateCard`. Any field you leave out keeps its default. The default card is Anthropic list price at ₹100 per dollar × 1.3 (a 30% premium); `rateCard.inrPerUsd` and `multiplier` override it per desk.
 
-| Field        | Meaning                                                                                                                                                    | Default                                                         |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `inrPerUsd`  | Exchange rate applied to USD prices.                                                                                                                       | `88`                                                            |
-| `multiplier` | Markup on provider cost.                                                                                                                                   | `2`                                                             |
-| `models`     | Per-model rates, keyed by model id, each with `inputUsdPerM`, `outputUsdPerM`, `cacheReadUsdPerM`, `cacheWriteUsdPerM` (USD per million tokens).           | Built-in table of current Claude models                         |
-| `fallback`   | Rates for a model not in `models`; the debit is marked unpriced.                                                                                           | Opus rates                                                      |
-| `aliases`    | Model names the runtime reports (such as claude-cli's `sonnet`) mapped to a `models` id. A leading `claude-cli/` or `anthropic/` is ignored before lookup. | `opus`, `sonnet`, `haiku`, and `default` (the fallback's model) |
-| `services`   | Non-token charges, keyed by service, each `{ unit, inrPerUnit }`.                                                                                          | `hosting` at 80 per `day`, `apify` at 0.5 per `compute-unit`    |
+| Field        | Meaning                                                                                                                                                                                     | Default                                                         |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `inrPerUsd`  | Exchange rate applied to USD prices.                                                                                                                                                        | `100`                                                           |
+| `multiplier` | Markup on provider cost.                                                                                                                                                                    | `1.3`                                                           |
+| `models`     | Per-model rates, keyed by model id, each with `inputUsdPerM`, `outputUsdPerM`, `cacheReadUsdPerM`, `cacheWriteUsdPerM` (USD per million tokens).                                            | Built-in table of current Claude, Gemini and GPT models         |
+| `fallback`   | Rates for a model not in `models`; the debit is marked unpriced.                                                                                                                            | Opus rates                                                      |
+| `aliases`    | Model names the runtime reports (such as claude-cli's `sonnet`) mapped to a `models` id. A leading `claude-cli/`, `anthropic/`, `google/`, `gemini/` or `openai/` is ignored before lookup. | `opus`, `sonnet`, `haiku`, and `default` (the fallback's model) |
+| `services`   | Non-token charges, keyed by service, each `{ unit, inrPerUnit }`.                                                                                                                           | `hosting` at 80 per `day`, `apify` at 0.5 per `compute-unit`    |
+
+The built-in table covers the current Claude models plus `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-3.1-pro-preview`, `gpt-5`, `gpt-5.2`, `gpt-5.4`, `gpt-5-mini` and `gpt-5-nano`. A model that is not in the table (and not an alias) is priced at the `fallback` rates and flagged "(not in rate card)" under **By model**.
 
 Hosting is on by default at the `hosting` rate; set `services.hosting.inrPerUnit` to `0` to turn it off for a desk.
 
@@ -57,6 +59,10 @@ The cutover is the moment the live meter first started on the desk (when the Wal
 - Days after the cutover are never imported; the live meter already covers them.
 
 The result reports the `days` and `agents` imported, the `paise` debited, and how many agent-days `failed`. Each agent-day's debits and its mark are written in one transaction, so an agent-day that fails is left wholly unimported and the import is not marked done, so running it again imports just the failed agent-days. Once an import finishes with no failures, running it again does nothing and returns the earlier result with `alreadyDone: true`; the page then shows "Imported past usage on <date>" instead of the button. Only one backfill runs at a time. Because it reads aggregates rather than the session list, it covers every session, however many there are.
+
+## By model
+
+Under **Where it went**, the page lists **By model**: every model used in the selected period, with its provider, spend, tokens, and number of calls, biggest spend first. Hosting and other non-token charges are not part of it. `/wallet` adds the top three models by spend ("Models: Claude Opus 5 ₹5,002.11, Claude Sonnet 5 ₹8.75.").
 
 ## What pauses and what does not
 

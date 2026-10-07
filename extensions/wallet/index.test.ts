@@ -59,7 +59,7 @@ describe("wallet plugin registration", () => {
               balancePaise: 10000,
               state: { enforce: false, creditLimitPaise: 500000, lowBalancePaise: 50000 },
               daysLeft: 5,
-              summary: { totalPaise: -5000, tokens: 0, buckets: [] },
+              summary: { totalPaise: -5000, tokens: 0, models: [], buckets: [] },
               contact: "TripIn Studio",
             }),
           },
@@ -83,7 +83,7 @@ describe("wallet plugin registration", () => {
         balancePaise: 10000,
         state: { enforce: false, creditLimitPaise: 500000, lowBalancePaise: 50000 },
         daysLeft: 5,
-        summary: { totalPaise: -5000, tokens: 0, buckets: [] },
+        summary: { totalPaise: -5000, tokens: 0, models: [], buckets: [] },
         contact: "TripIn Studio",
       });
 
@@ -113,7 +113,7 @@ describe("wallet plugin registration", () => {
         balancePaise: 10000,
         state: { enforce: false, creditLimitPaise: 500000, lowBalancePaise: 50000 },
         daysLeft: 5,
-        summary: { totalPaise: -5000, tokens: 0, buckets: [] },
+        summary: { totalPaise: -5000, tokens: 0, models: [], buckets: [] },
         contact: "TripIn Studio",
       });
 
@@ -162,6 +162,7 @@ describe("wallet plugin registration", () => {
         summary: {
           totalPaise: -31_000,
           tokens: 10,
+          models: [],
           buckets: [
             { activity: "duty", paise: -21_200, tokens: 6, activities: [] },
             { activity: "chat", paise: -7_100, tokens: 4, activities: [] },

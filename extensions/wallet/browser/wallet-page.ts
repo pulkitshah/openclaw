@@ -19,6 +19,7 @@ import {
   renderActivities,
   renderAdmin,
   renderBuckets,
+  renderModels,
   renderEntries,
   renderErrorBanner,
   renderHeader,
@@ -132,6 +133,7 @@ export function createWalletPageMount(host: ControlUiHost): ControlUiView<Props>
         parts.push(renderAdmin(get, state.openForm, state.canAdmin));
         parts.push(renderPeriodBar(state.period, state.custom));
         parts.push(`<h2>Where it went</h2>`, renderBuckets(get.summary, state.openBucket));
+        parts.push(renderModels(get.summary));
         const bucket = get.summary.buckets.find((b) => b.activity === state.openBucket);
         if (bucket) {
           parts.push(renderActivities(bucket, state.openRef));
