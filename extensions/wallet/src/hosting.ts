@@ -72,12 +72,23 @@ export function startHostingJob(
   deps: HostingDeps & { log: (message: string) => void },
   intervalMs = 15 * 60_000,
 ): () => void {
-  const run = () =>
-    postHostingDebits(deps).catch((error: unknown) => {
-      deps.log(`wallet: hosting debit failed: ${coerceErrorMessage(error)}`);
-    });
-  void run();
-  const timer = setInterval(() => void run(), intervalMs);
+  // Overlapping runs could both pass hasHosting(day) before either appends, double-posting the day.
+  let inFlight: Promise<void> | undefined;
+  const run = () => {
+    if (inFlight) {
+      return;
+    }
+    inFlight = postHostingDebits(deps)
+      .then(() => undefined)
+      .catch((error: unknown) => {
+        deps.log(`wallet: hosting debit failed: ${coerceErrorMessage(error)}`);
+      })
+      .finally(() => {
+        inFlight = undefined;
+      });
+  };
+  run();
+  const timer = setInterval(run, intervalMs);
   timer.unref();
   return () => clearInterval(timer);
 }

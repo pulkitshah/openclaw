@@ -98,6 +98,7 @@ export default function register(api: OpenClawPluginApi): void {
   api.registerService({
     id: "wallet:hosting",
     start() {
+      stopHosting?.();
       stopHosting = startHostingJob({
         store,
         rateCard,

@@ -103,4 +103,37 @@ describe("startHostingJob", () => {
       vi.useRealTimers();
     }
   });
+
+  it("skips a tick while the previous run is still in flight", async () => {
+    vi.useFakeTimers({ now });
+    try {
+      const store = memoryStore();
+      let release: () => void = () => {};
+      const gate = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const realHas = store.hasHosting.bind(store);
+      vi.spyOn(store, "hasHosting").mockImplementation(async (day) => {
+        await gate;
+        return realHas(day);
+      });
+      const stop = startHostingJob(
+        {
+          store,
+          rateCard: () => card,
+          now: () => Date.now(),
+          onChanged: () => {},
+          log: () => {},
+        },
+        1000,
+      );
+      await vi.advanceTimersByTimeAsync(1000);
+      release();
+      await vi.advanceTimersByTimeAsync(0);
+      stop();
+      expect(await store.list({ kind: "debit" })).toHaveLength(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
