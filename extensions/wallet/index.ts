@@ -17,11 +17,16 @@ import { WalletStore } from "./src/store.js";
 export const counters = { unrecorded: 0 };
 
 export default function register(api: OpenClawPluginApi): void {
-  // Register the wallet_status tool in tool-discovery mode so agents can query wallet status
-  if (api.registrationMode === "tool-discovery") {
-    const readRequest = (method: string, params: Record<string, unknown>) =>
-      api.runtime.gateway.request(method, params, { scopes: ["operator.read"] });
+  // Shared request helper for both tool-discovery and full modes
+  const readRequest = (method: string, params: Record<string, unknown>) =>
+    api.runtime.gateway.request(method, params, { scopes: ["operator.read"] });
+
+  const registerStatusTool = () =>
     api.registerTool(createWalletStatusTool(readRequest), { name: "wallet_status" });
+
+  // Register the wallet_status tool in tool-discovery mode only
+  if (api.registrationMode === "tool-discovery") {
+    registerStatusTool();
     return;
   }
 
@@ -114,12 +119,8 @@ export default function register(api: OpenClawPluginApi): void {
     lookups,
   });
 
-  // Create a read-scoped request for tools and commands
-  const readRequest = (method: string, params: Record<string, unknown>) =>
-    api.runtime.gateway.request(method, params, { scopes: ["operator.read"] });
-
   // Register the wallet_status tool and /wallet command in full mode
-  api.registerTool(createWalletStatusTool(readRequest), { name: "wallet_status" });
+  registerStatusTool();
   api.registerCommand(createWalletCommand(readRequest));
 
   let stopHosting: (() => void) | undefined;

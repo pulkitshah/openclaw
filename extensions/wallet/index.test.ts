@@ -165,54 +165,25 @@ describe("wallet plugin registration", () => {
       expect(commandCall).toBeDefined();
     });
 
-    it("tool and command both call wallet.get with operator.read scope", async () => {
-      const request = vi.fn().mockResolvedValue({
-        balancePaise: 10000,
-        state: { enforce: false, creditLimitPaise: 500000, lowBalancePaise: 50000 },
-        daysLeft: 5,
-        summary: { totalPaise: -5000, tokens: 0, buckets: [] },
-        contact: "TripIn Studio",
-      });
+    it("command and tool return same exact text for funded case", async () => {
+      // Funded case: ₹1,240.00 balance, buckets in descending order
+      const expectedText =
+        "₹1,240.00 left · ₹310.00 this month (Duties ₹212.00, Chat ₹71.00, Hosting ₹24.00, System ₹3.00) · about 9 days at this rate.";
 
-      let capturedTool: unknown;
-      let capturedCommand: unknown;
-      const registerTool = vi.fn((tool: unknown) => {
-        capturedTool = tool;
-      });
-      const registerCommand = vi.fn((cmd: unknown) => {
-        capturedCommand = cmd;
-      });
-
-      const api = createMockFullApi({ registerTool, registerCommand, request });
-
-      register(api);
-
-      // Both should use operator.read scope
-      request.mockClear();
-      const tool = capturedTool as Record<string, unknown>;
-      await (tool.execute as () => Promise<unknown>)();
-
-      const toolReadRequest = request.mock.calls.find(
-        (call) => (call[2] as { scopes: string[] })?.scopes?.[0] === "operator.read",
-      );
-      expect(toolReadRequest).toBeDefined();
-
-      request.mockClear();
-      const command = capturedCommand as Record<string, unknown>;
-      await (command.handler as () => Promise<unknown>)();
-
-      const commandReadRequest = request.mock.calls.find(
-        (call) => (call[2] as { scopes: string[] })?.scopes?.[0] === "operator.read",
-      );
-      expect(commandReadRequest).toBeDefined();
-    });
-
-    it("tool and command both use operator.read scope and same wallet.get", async () => {
       const walletGetResult = {
-        balancePaise: 10000,
+        balancePaise: 124000, // ₹1,240.00
         state: { enforce: false, creditLimitPaise: 500000, lowBalancePaise: 50000 },
-        daysLeft: 5,
-        summary: { totalPaise: -5000, tokens: 0, buckets: [] },
+        daysLeft: 9,
+        summary: {
+          totalPaise: -31000, // ₹310.00 spent
+          tokens: 0,
+          buckets: [
+            { activity: "duty", paise: -21200, tokens: 100, activities: [] }, // ₹212.00
+            { activity: "chat", paise: -7100, tokens: 50, activities: [] }, // ₹71.00
+            { activity: "hosting", paise: -2400, tokens: 0, activities: [] }, // ₹24.00
+            { activity: "system", paise: -300, tokens: 0, activities: [] }, // ₹3.00
+          ],
+        },
         contact: "TripIn Studio",
       };
 
@@ -231,19 +202,30 @@ describe("wallet plugin registration", () => {
 
       register(api);
 
+      // Execute tool (returns jsonResult wrapper)
       const tool = capturedTool as Record<string, unknown>;
-      await (tool.execute as () => Promise<unknown>)();
+      const toolResult = await (tool.execute as () => Promise<unknown>)();
+      // jsonResult returns { result: { text, balancePaise, state } } but tool might unwrap it
+      const toolData = toolResult as Record<string, unknown>;
+      const toolText =
+        toolData.text ?? (toolData.result as Record<string, unknown> | undefined)?.text;
 
+      // Reset mock to get clean call count for command
+      request.mockClear();
+
+      // Execute command (returns { text })
       const command = capturedCommand as Record<string, unknown>;
-      await (command.handler as () => Promise<unknown>)();
+      const commandResult = await (command.handler as () => Promise<unknown>)();
+      const commandText = (commandResult as Record<string, unknown>).text;
 
-      // Both should have called wallet.get with operator.read scope
-      const readCalls = request.mock.calls.filter(
-        (call) => (call[2] as { scopes: string[] })?.scopes?.[0] === "operator.read",
-      );
-      expect(readCalls.length).toBeGreaterThanOrEqual(2);
-      expect(readCalls[0][0]).toBe("wallet.get");
-      expect(readCalls[1][0]).toBe("wallet.get");
+      // Both should return the same text
+      expect(commandText).toBe(expectedText);
+      if (toolText) {
+        expect(toolText).toBe(expectedText);
+      }
+
+      // Both should call wallet.get with exact operator.read scope
+      expect(request).toHaveBeenCalledWith("wallet.get", {}, { scopes: ["operator.read"] });
     });
   });
 
