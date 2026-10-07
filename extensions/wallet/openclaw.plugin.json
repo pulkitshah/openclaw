@@ -2,16 +2,40 @@
   "id": "wallet",
   "name": "Wallet",
   "description": "Prepaid rupee balance: every model call and service charge is metered into it; the desk pauses below the credit limit.",
-  "categories": ["other"],
+  "categories": [
+    "other"
+  ],
   "enabledByDefault": true,
-  "activation": { "onStartup": true, "onCommands": ["wallet"] },
-  "contracts": { "tools": ["wallet_status"] },
+  "activation": {
+    "onStartup": true,
+    "onCommands": [
+      "wallet"
+    ]
+  },
+  "contracts": {
+    "tools": [
+      "wallet_status"
+    ]
+  },
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
     "properties": {
-      "contact": { "type": "string", "description": "Who the customer is told to ask for a recharge (default: TripIn Studio)." },
-      "rateCard": { "type": "object", "additionalProperties": true, "description": "inrPerUsd, multiplier, models{id:{inputUsdPerM,outputUsdPerM,cacheReadUsdPerM,cacheWriteUsdPerM}}, fallback, services{name:{unit,inrPerUnit}}." }
+      "contact": {
+        "type": "string",
+        "description": "Who the customer is told to ask for a recharge (default: TripIn Studio)."
+      },
+      "rateCard": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "inrPerUsd, multiplier, models{id:{inputUsdPerM,outputUsdPerM,cacheReadUsdPerM,cacheWriteUsdPerM}}, fallback, services{name:{unit,inrPerUnit}}."
+      }
     }
+  },
+  "controlUi": {
+    "entry": "dist/control-ui/70e74caf7bea0369f989ec18c1ff81f01051d5b78616185b582888c475422543/index.js",
+    "styles": [
+      "dist/control-ui/70e74caf7bea0369f989ec18c1ff81f01051d5b78616185b582888c475422543/index.css"
+    ]
   }
 }

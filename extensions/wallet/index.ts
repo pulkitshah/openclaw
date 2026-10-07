@@ -31,6 +31,14 @@ export default function register(api: OpenClawPluginApi): void {
   }
 
   if (api.registrationMode !== "full") return; // cli-metadata / discovery / setup-only modes add nothing yet
+  api.session.controls.registerControlUiDescriptor({
+    surface: "tab",
+    id: "wallet",
+    label: "Wallet",
+    icon: "coins",
+    group: "control",
+    requiredScopes: ["operator.read"],
+  });
   const currentConfig = (): OpenClawConfig => {
     if (!api.runtime.config?.current) {
       return api.config;
