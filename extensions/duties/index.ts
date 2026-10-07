@@ -362,6 +362,7 @@ export default definePluginEntry({
 
     registerDutiesGatewayMethods({
       api,
+      request,
       store,
       runs,
       emit: (name, payload) => events.emit(name, payload),

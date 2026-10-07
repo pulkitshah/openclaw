@@ -1,0 +1,63 @@
+---
+doc-schema-version: 1
+summary: "Prepaid Wallet: balance, usage buckets, how TripIn Studio credits it, the rate card, backfill, and what pauses when it runs out"
+read_when:
+  - Reading or explaining the Wallet page, its balance, or its statement
+  - Crediting, adjusting, or configuring a desk's wallet
+  - Tuning the wallet rate card or importing past usage
+  - Working out why chats or Duty runs are being refused for balance
+title: "Wallet"
+---
+
+The Wallet plugin keeps a prepaid balance for a desk. Every model call, Duty run, mail reply, and daily hosting charge is a debit in an append-only ledger; credits are added by TripIn Studio. Amounts are in rupees, stored as paise.
+
+## What the Wallet page shows
+
+- **Balance** and a **state chip**: Active, Low (at or below the low-balance notice level), or Paused since a date (balance and credit limit both used up).
+- **Buckets** that split this month's spend: Chats, Duties, Mail, System, Hosting, and Integrations. Select a bucket to drill down to the individual chats, Duties, or services behind it.
+- **Statement**: the ledger, newest first, with a Load more control. **Export CSV** downloads it.
+
+## How TripIn Studio credits a desk
+
+On the Wallet page, the admin bar has **Recharge**, **Adjust**, and **Settings** tabs. The same operations are available over the Gateway with the `operator.admin` scope:
+
+| Method            | Purpose                                                              |
+| ----------------- | -------------------------------------------------------------------- |
+| `wallet.credit`   | Add a paid recharge.                                                 |
+| `wallet.adjust`   | Add a correcting entry (refund, goodwill, fix).                      |
+| `wallet.settings` | Set `creditLimitPaise`, the low-balance notice level, and `enforce`. |
+
+Reads (`wallet.get`, the statement) need only `operator.read`.
+
+## Rate card
+
+Token usage is priced from `plugins.entries.wallet.config.rateCard`. Any field you leave out keeps its default.
+
+| Field        | Meaning                                                                                                                                          | Default                                                      |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------ |
+| `inrPerUsd`  | Exchange rate applied to USD prices.                                                                                                             | `88`                                                         |
+| `multiplier` | Markup on provider cost.                                                                                                                         | `2`                                                          |
+| `models`     | Per-model rates, keyed by model id, each with `inputUsdPerM`, `outputUsdPerM`, `cacheReadUsdPerM`, `cacheWriteUsdPerM` (USD per million tokens). | Built-in table of current Claude models                      |
+| `fallback`   | Rates for a model not in `models`; the debit is marked unpriced.                                                                                 | Opus rates                                                   |
+| `services`   | Non-token charges, keyed by service, each `{ unit, inrPerUnit }`.                                                                                | `hosting` at 80 per `day`, `apify` at 0.5 per `compute-unit` |
+
+`plugins.entries.wallet.config.contact` names who customers are told to ask for a recharge. It defaults to "TripIn Studio".
+
+## Backfill
+
+`wallet.backfill` (the **Import past usage** button on the page; `operator.admin`) reads recorded session usage from `sessions.usage` and writes each (session, day) as a debit priced with the current rate card and attributed to a bucket. It is idempotent: a day already imported is skipped, and a day that fails is reported and retried on the next run. Only one backfill runs at a time. It reads up to 1000 sessions.
+
+## What pauses and what does not
+
+With `enforce` on, once the balance falls to the negative of `creditLimitPaise` or below:
+
+- New chat turns and new Duty runs are refused with a message that names the `contact`. A refused Duty run appears on the Runs board as Blocked.
+- Runs and turns already in progress finish.
+- Hosting debits keep accruing daily.
+- Credits always land, and service resumes once the balance is back above the limit.
+
+With `enforce` off (the default), the wallet meters usage without refusing anything. If the Wallet plugin is disabled or not installed, nothing is gated.
+
+## The `/wallet` command and `wallet_status` tool
+
+`/wallet` replies with the balance and where it went this month, plus the recharge contact when paused. The `wallet_status` tool gives the agent the same read-only view (balance, usage this month, days remaining), so it can answer "how much is left?".

@@ -166,6 +166,49 @@ describe("duties gateway methods", () => {
     expect((await call("duties.run.evidence", { runId: "nope", stepId: "s1" })).ok).toBe(false);
   });
 
+  it("duties.run refuses a new run, and records it as blocked, when the wallet gate says no", async () => {
+    const start = vi.fn<RunManager["start"]>();
+    const request = vi.fn(async () => ({
+      allowed: false,
+      message: "Balance exhausted — ask TripIn Studio to recharge.",
+    }));
+    const { emit, call, store } = harness({
+      runs: { start, cancel: vi.fn(), waitFor: vi.fn() },
+      request: request as never,
+    });
+    await call("duties.save", { duty: { ...baseDuty, status: "active" } });
+
+    const run = await call("duties.run", { id: "d1" });
+
+    expect(request).toHaveBeenCalledWith("wallet.gate", {});
+    expect(run.ok).toBe(false);
+    expect(JSON.stringify(run.error)).toContain("blocked — balance exhausted");
+    expect(start).not.toHaveBeenCalled();
+    const [row] = await store.listRuns("d1");
+    expect(row).toMatchObject({
+      status: "blocked",
+      report: "Balance exhausted — ask TripIn Studio to recharge.",
+    });
+    expect(emit).toHaveBeenCalledWith(
+      "run",
+      expect.objectContaining({ type: "run", dutyId: "d1", status: "blocked" }),
+    );
+  });
+
+  it("duties.run proceeds when the wallet gate is unavailable", async () => {
+    const start = vi.fn<RunManager["start"]>().mockResolvedValue({ runId: "r1", queued: false });
+    const { call } = harness({
+      runs: { start, cancel: vi.fn(), waitFor: vi.fn() },
+      request: async () => {
+        throw new Error("unknown method");
+      },
+    });
+    await call("duties.save", { duty: { ...baseDuty, status: "active" } });
+
+    expect((await call("duties.run", { id: "d1" })).ok).toBe(true);
+    expect(start).toHaveBeenCalledOnce();
+  });
+
   it("rejects duties.status transitions to building and runs/cancels via the RunManager", async () => {
     const start = vi.fn<RunManager["start"]>().mockResolvedValue({ runId: "r1", queued: false });
     const cancel = vi.fn<RunManager["cancel"]>().mockResolvedValue(true);

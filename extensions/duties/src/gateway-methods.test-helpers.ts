@@ -45,6 +45,8 @@ export function harness(params?: {
   previewDir?: string;
   notifyOwner?: (text: string) => Promise<void>;
   deskHealth?: () => Promise<DeskHealth>;
+  /** Defaults to rejecting, which the gate treats as a desk without a wallet: allowed. */
+  request?: <T = unknown>(method: string, params: Record<string, unknown>) => Promise<T>;
 }) {
   const methods = new Map<string, { handler: Handler; scope: string }>();
   const api = {
@@ -87,6 +89,7 @@ export function harness(params?: {
       },
     },
     previewDir: async () => params?.previewDir ?? tmpdir(),
+    request: params?.request ?? (async () => Promise.reject(new Error("unknown method"))),
     ...(params?.notifyOwner ? { notifyOwner: params.notifyOwner } : {}),
     ...(params?.deskHealth ? { deskHealth: params.deskHealth } : {}),
   });

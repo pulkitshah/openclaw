@@ -641,6 +641,7 @@ describe("render-cloud-init.mjs", () => {
           duties: { enabled: true },
           telegram: { enabled: true },
           "llm-task": { enabled: true },
+          wallet: { enabled: true },
         },
       });
       expect(config.tools).toEqual({ alsoAllow: ["llm-task"] });

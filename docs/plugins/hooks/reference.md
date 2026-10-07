@@ -141,6 +141,8 @@ contracts above; a modifying hook is not an observation hook.
 | `llm_input`                               | Observe | Provider input: system prompt, prompt, history                                                                     |
 | `llm_output`                              | Observe | Provider output, usage, and the resolved `contextTokenBudget` when available                                       |
 
+Plugin-runtime completions (`runtime.llm.complete`, for example the `llm-task` tool) also emit `llm_output` with `ctx.trigger: "tool"`. When `tools.invoke` carries one, `ctx.attribution` (`{ kind, ref, label }`) is passed along.
+
 **Tools**
 
 | Hook                   | Kind               | Purpose                                                    |

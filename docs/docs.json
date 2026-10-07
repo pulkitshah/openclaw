@@ -1958,6 +1958,7 @@
                     ]
                   },
                   "automation/imap",
+                  "wallet",
                   "automation/tasks",
                   "automation/taskflow",
                   "automation/standing-orders",

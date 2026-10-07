@@ -102,6 +102,8 @@ export function registerDutiesGatewayMethods(deps: {
   notifyOwner?: (text: string) => Promise<void>;
   /** Test injection point for `duties.desk.status`; defaults to `desk.ts`'s file-backed reader. */
   deskHealth?: () => Promise<DeskHealth>;
+  /** Gateway request as the plugin's own admin identity; reaches `wallet.gate`. */
+  request: <T = unknown>(method: string, params: Record<string, unknown>) => Promise<T>;
 }): void {
   const { api, store, runs, emit, creds, evidence, render, previewDir, notifyOwner } = deps;
   const currentConfig = (): OpenClawConfig => deps.config?.() ?? api.config;
@@ -419,6 +421,30 @@ export function registerDutiesGatewayMethods(deps: {
       return { ok: false, errors };
     }
     const origin = readOrigin(params.origin);
+    // The wallet is optional on a desk: a missing method, a disabled plugin, or any error means
+    // allowed. Only an explicit `allowed: false` refuses.
+    const gate = await deps
+      .request<{ allowed?: boolean; message?: string }>("wallet.gate", {})
+      .catch(() => ({ allowed: true }) as { allowed?: boolean; message?: string });
+    if (gate.allowed === false) {
+      const now = Date.now();
+      const runId = randomUUID();
+      await store.createRun({
+        id: runId,
+        dutyId: duty.id,
+        status: "blocked",
+        startedAt: now,
+        endedAt: now,
+        trigger: origin.kind,
+        inputs,
+        outputs: {},
+        steps: [],
+        report: gate.message ?? "balance exhausted",
+        origin,
+      });
+      safeEmit("run", { type: "run", runId, dutyId: duty.id, status: "blocked" });
+      throw new Error("blocked — balance exhausted");
+    }
     if (origin.kind === "mail") {
       await store.updateSettings({
         lastMailDispatchAt: Date.now(),
