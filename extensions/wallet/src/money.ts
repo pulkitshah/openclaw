@@ -214,6 +214,12 @@ export function resolveRateCard(raw: unknown): RateCard {
     const n = asFiniteNumber(v);
     return n !== undefined && n > 0 ? n : d;
   };
+  // A desk the operator does not bill for tokens sets `multiplier: 0`: tokens are still recorded
+  // and shown, every token row prices to ₹0, and service charges (hosting) still apply.
+  const nonNegative = (v: unknown, d: number) => {
+    const n = asFiniteNumber(v);
+    return n !== undefined && n >= 0 ? n : d;
+  };
   const models: Record<string, TokenRates> = { ...DEFAULT_RATE_CARD.models };
   if (isRecord(r.models)) {
     for (const [id, v] of Object.entries(r.models)) {
@@ -246,7 +252,7 @@ export function resolveRateCard(raw: unknown): RateCard {
   }
   return {
     inrPerUsd: positive(r.inrPerUsd, DEFAULT_RATE_CARD.inrPerUsd),
-    multiplier: positive(r.multiplier, DEFAULT_RATE_CARD.multiplier),
+    multiplier: nonNegative(r.multiplier, DEFAULT_RATE_CARD.multiplier),
     tokenMarkup: positive(r.tokenMarkup, DEFAULT_RATE_CARD.tokenMarkup),
     models,
     fallback: readRates(r.fallback) ?? DEFAULT_RATE_CARD.fallback,

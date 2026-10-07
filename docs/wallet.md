@@ -94,3 +94,5 @@ plugin closes it when disabled or restarted.
 ## Who may recharge
 
 Recharge, Adjust, Settings and Backfill belong to the operator (TripIn Studio), not to the desk's customer login, even though that login holds `operator.admin` for the rest of the desk. The wallet refuses these actions for any front-door identity unless it is listed in `plugins.entries.wallet.config.operators`; the operator's own local calls (`gateway call` over SSH, a paired device) are always allowed. The Wallet page hides the admin controls for everyone else.
+
+A desk you do not bill for tokens sets `rateCard.multiplier: 0`: every model call is still recorded with its tokens and shown on the page, prices as ₹0, and only service charges such as hosting reach the balance.

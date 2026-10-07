@@ -188,3 +188,24 @@ describe("modelDisplayName", () => {
     expect(modelDisplayName("x", "mystery-1")).toBe("mystery-1");
   });
 });
+
+describe("a zero multiplier", () => {
+  it("prices every token row at ₹0 while still recording the tokens; hosting is unaffected", () => {
+    const card = resolveRateCard({ multiplier: 0 });
+    expect(card.multiplier).toBe(0);
+    const price = priceTokens(card, "claude-cli", "claude-opus-5", {
+      input: 1_000,
+      output: 100,
+      cacheRead: 10_000,
+      cacheWrite: 1_000,
+    });
+    expect(price.paise).toBe(0);
+    expect(price.unpriced).toBe(false);
+    expect(markupTokens(card, { input: 10, output: 0, cacheRead: 0, cacheWrite: 0 }).input).toBe(
+      13,
+    );
+    expect(priceService(card, "hosting", 1)?.paise).toBe(8_000);
+    // A negative multiplier is rejected and falls back to the default.
+    expect(resolveRateCard({ multiplier: -1 }).multiplier).toBe(DEFAULT_RATE_CARD.multiplier);
+  });
+});
