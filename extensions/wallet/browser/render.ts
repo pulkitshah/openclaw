@@ -165,7 +165,8 @@ function formatTokens(n: number): string {
 
 /** The "By model" rows under the buckets; empty when no token debits carry a model. */
 export function renderModels(summary: Summary): string {
-  if (summary.models.length === 0) {
+  // Optional chaining: a page bundle can briefly meet a Gateway still answering without `models`.
+  if (!summary.models?.length) {
     return "";
   }
   const total = summary.models.reduce((sum, m) => sum + Math.abs(m.paise), 0) || 1;

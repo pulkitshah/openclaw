@@ -567,7 +567,7 @@ class WalletSqlite {
           ];
         })
         // Debits are negative, so ascending puts the biggest spend first.
-        .toSorted((a, b) => a.paise - b.paise)
+        .toSorted((a, b) => a.paise - b.paise || a.model.localeCompare(b.model))
     );
   }
 
