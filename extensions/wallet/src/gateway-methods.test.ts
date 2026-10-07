@@ -3,6 +3,34 @@ import { harness } from "./gateway-methods.test-helpers.js";
 
 const hasMessage = (error: unknown) => (error as { message: string }).message;
 
+const usageTotals = (input: number) => ({
+  input,
+  output: 0,
+  cacheRead: 0,
+  cacheWrite: 0,
+  totalTokens: input,
+});
+/** sessions.usage for agent main with 1M system-only input tokens on each given IST day. */
+const usageFake = (days: string[]) =>
+  vi.fn(async (_method: string, params: Record<string, unknown>) =>
+    params.range === "all"
+      ? {
+          aggregates: {
+            daily: days.map((date) => ({ date, tokens: 1_000_000 })),
+            byAgent: [{ agentId: "main" }],
+          },
+        }
+      : {
+          totals: usageTotals(1_000_000),
+          aggregates: {
+            byModel: [
+              { provider: "claude-cli", model: "claude-opus-5", totals: usageTotals(1_000_000) },
+            ],
+            byChannel: [],
+          },
+        },
+  );
+
 describe("wallet gateway methods", () => {
   it("registers each method under its scope", async () => {
     const { methods } = await harness();
@@ -21,25 +49,12 @@ describe("wallet gateway methods", () => {
   });
 
   it("backfills from sessions.usage once and emits one changed", async () => {
-    const request = async () => ({
-      sessions: [
-        {
-          key: "agent:krishna:main",
-          usage: {
-            input: 1_000_000,
-            output: 0,
-            cacheRead: 0,
-            cacheWrite: 0,
-            lastActivity: 1_790_000_000_000,
-          },
-        },
-      ],
-    });
+    const request = usageFake(["2026-09-10"]);
     // SAFETY: the fake answers sessions.usage only.
     const { call, emit, store } = await harness({ request: request as never });
     const first = await call("wallet.backfill");
     expect(first.ok).toBe(true);
-    expect(first.result).toMatchObject({ sessions: 1, days: 1 });
+    expect(first.result).toMatchObject({ days: 1, agents: 1, failed: 0 });
     expect(await store.balance()).toBeLessThan(0);
     expect(emit).toHaveBeenCalledTimes(1);
     expect(emit).toHaveBeenCalledWith(
@@ -52,51 +67,19 @@ describe("wallet gateway methods", () => {
   });
 
   it("shares one run between overlapping wallet.backfill calls", async () => {
-    const request = vi.fn(async () => ({
-      sessions: [
-        {
-          key: "agent:krishna:main",
-          usage: {
-            input: 1_000_000,
-            output: 0,
-            cacheRead: 0,
-            cacheWrite: 0,
-            lastActivity: 1_790_000_000_000,
-          },
-        },
-      ],
-    }));
+    const request = usageFake(["2026-09-10"]);
     // SAFETY: the fake answers sessions.usage only.
     const { call, store } = await harness({ request: request as never });
     const [a, b] = await Promise.all([call("wallet.backfill"), call("wallet.backfill")]);
-    expect(request).toHaveBeenCalledTimes(1);
+    // One overview read and one agent-day read.
+    expect(request).toHaveBeenCalledTimes(2);
     expect((await store.list({})).length).toBe(1);
     expect(a.result).toEqual(b.result);
     expect(a.result).toMatchObject({ days: 1, failed: 0 });
   });
 
   it("still notifies when a backfill imported some days and failed others", async () => {
-    const day = (date: string) => ({
-      date,
-      input: 1_000_000,
-      output: 0,
-      cacheRead: 0,
-      cacheWrite: 0,
-    });
-    const request = async () => ({
-      sessions: [
-        {
-          key: "agent:krishna:main",
-          usage: {
-            input: 0,
-            output: 0,
-            cacheRead: 0,
-            cacheWrite: 0,
-            dailyBreakdown: [day("2026-09-10"), day("2026-09-11")],
-          },
-        },
-      ],
-    });
+    const request = usageFake(["2026-09-10", "2026-09-11"]);
     // SAFETY: the fake answers sessions.usage only.
     const { call, emit, store } = await harness({ request: request as never });
     const original = store.append.bind(store);

@@ -104,8 +104,8 @@ function readBackfillResult(json: string | null): BackfillResult | undefined {
     return undefined;
   }
   return {
-    sessions: num(value.sessions),
     days: num(value.days),
+    agents: num(value.agents),
     failed: num(value.failed),
     paise: num(value.paise),
   };
@@ -529,7 +529,7 @@ class WalletSqlite {
     return { spentPaise: -num(row?.paise), days: num(row?.days) };
   }
 
-  liveTokens(sessionKey: string, from: number, to: number): TokenCounts {
+  liveAgentTokens(agentId: string, from: number, to: number): TokenCounts {
     const row = executeSqliteQueryTakeFirstSync(
       this.db,
       this.query
@@ -540,7 +540,7 @@ class WalletSqlite {
           eb.fn.sum<number>("cache_read_tokens").as("cacheRead"),
           eb.fn.sum<number>("cache_write_tokens").as("cacheWrite"),
         ])
-        .where("session_key", "=", sessionKey)
+        .where("agent_id", "=", agentId)
         .where("source", "=", "live")
         .where("charge", "=", "tokens")
         .where("at", ">=", from)
@@ -691,9 +691,9 @@ export function createSqliteWorkerBackend(_input: undefined, context: { database
           return database.summarize(command.input);
         case "spendSince":
           return database.spendSince(command.input.from);
-        case "liveTokens":
-          return database.liveTokens(
-            command.input.sessionKey,
+        case "liveAgentTokens":
+          return database.liveAgentTokens(
+            command.input.agentId,
             command.input.from,
             command.input.to,
           );

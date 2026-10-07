@@ -40,9 +40,6 @@ export async function attribute(
   if (input.trigger === "heartbeat") {
     return { activity: "system", ref: "heartbeat", label: "System — heartbeat" };
   }
-  if (input.trigger === "history") {
-    return { activity: "system", ref: "history", label: "System — history" };
-  }
   if (input.trigger === "cron") {
     const name = input.jobName ?? "cron";
     return { activity: "system", ref: `cron:${name}`, label: `System — ${name}` };

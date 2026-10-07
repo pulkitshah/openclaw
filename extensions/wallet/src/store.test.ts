@@ -207,11 +207,11 @@ describe("WalletStore", () => {
     expect(await s.markBackfill("agent:main:main", "2026-09-21")).toBe(true);
     expect(await s.markBackfill("agent:main:main", "2026-09-21")).toBe(false);
     expect(await s.hasBackfill("agent:main:main", "2026-09-21")).toBe(true);
-    await s.append(debit({ at: 100, sessionKey: "agent:main:main", inputTokens: 7 }));
-    await s.append(
-      debit({ at: 100, sessionKey: "agent:main:main", inputTokens: 1_000, source: "backfill" }),
-    );
-    expect(await s.liveTokens("agent:main:main", 0, 200)).toEqual({
+    await s.append(debit({ at: 100, agentId: "main", inputTokens: 7 }));
+    await s.append(debit({ at: 100, agentId: "main", inputTokens: 1_000, source: "backfill" }));
+    await s.append(debit({ at: 100, agentId: "duties-mail", inputTokens: 50 }));
+    await s.append(debit({ at: 300, agentId: "main", inputTokens: 90 }));
+    expect(await s.liveAgentTokens("main", 0, 200)).toEqual({
       input: 7,
       output: 5,
       cacheRead: 0,

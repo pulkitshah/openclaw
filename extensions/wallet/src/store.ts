@@ -127,8 +127,8 @@ export class WalletStore {
     return this.execute("spendSince", { from });
   }
 
-  liveTokens(sessionKey: string, from: number, to: number) {
-    return this.execute("liveTokens", { sessionKey, from, to });
+  liveAgentTokens(agentId: string, from: number, to: number) {
+    return this.execute("liveAgentTokens", { agentId, from, to });
   }
 
   markBackfill(sessionKey: string, day: string): Promise<boolean> {

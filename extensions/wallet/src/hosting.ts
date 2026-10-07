@@ -12,10 +12,13 @@ export const istDay = (ms: number): string =>
 
 const dayStartMs = (day: string): number => Date.parse(`${day}T00:00:00Z`) - IST_OFFSET_MS;
 
-const dayLabel = (day: string): string => {
+/** Short IST day name for ledger labels, e.g. "28 Sep". */
+export const dayName = (day: string): string => {
   const [, month, date] = day.split("-").map(Number);
-  return `Hosting — ${date} ${MONTHS[(month ?? 1) - 1]}`;
+  return `${date} ${MONTHS[(month ?? 1) - 1]}`;
 };
+
+const dayLabel = (day: string): string => `Hosting — ${dayName(day)}`;
 
 export type HostingDeps = {
   store: WalletStore;

@@ -48,15 +48,15 @@ Hosting is on by default at the `hosting` rate; set `services.hosting.inrPerUnit
 
 ## Backfill
 
-`wallet.backfill` (the **Import past usage** button on the page; `operator.admin`) is a one-time import. It reads recorded session usage from `sessions.usage`, split into India Standard Time days, and writes each (session, day) as a debit priced with the current rate card and attributed to a bucket.
+`wallet.backfill` (the **Import past usage** button on the page; `operator.admin`) is a one-time import. It reads recorded usage from the `sessions.usage` aggregates, split into India Standard Time days, and imports it per day, per agent, per model: each model's tokens for that agent-day become debits priced with the current rate card. A mail agent's usage is booked to Mail. For other agents, each model's usage is split between Chat and System by the share of that agent-day that came through a chat channel; the rest (cron, heartbeat, and other system work) goes to System. Rows are labelled like "Chat — 28 Sep (history)" and dated noon IST of their day.
 
 The cutover is the moment the live meter first started on the desk (when the Wallet plugin first ran there):
 
 - Days before the cutover day are imported in full.
-- On the cutover day, each session imports only the tokens the live meter did not already record for it that day.
+- On the cutover day, each agent imports only the tokens the live meter did not already record for it that day.
 - Days after the cutover are never imported; the live meter already covers them.
 
-A day that fails is reported in `failed` and the import is not marked done, so running it again imports just the failed days. Once an import finishes with no failures, running it again does nothing and returns the earlier result with `alreadyDone: true`; the page then shows "Imported past usage on <date>" instead of the button. Only one backfill runs at a time. It reads up to 1000 sessions.
+The result reports the `days` and `agents` imported, the `paise` debited, and how many agent-days `failed`. An agent-day that fails is left unimported and the import is not marked done, so running it again imports just the failed agent-days. Once an import finishes with no failures, running it again does nothing and returns the earlier result with `alreadyDone: true`; the page then shows "Imported past usage on <date>" instead of the button. Only one backfill runs at a time. Because it reads aggregates rather than the session list, it covers every session, however many there are.
 
 ## What pauses and what does not
 
@@ -77,7 +77,7 @@ The ledger lives in the plugin-owned database at
 `<state-dir>/plugins/wallet/wallet.sqlite`, with three tables: `wallet_entries` (the append-only
 ledger, one row per credit, debit, or adjustment), `wallet_state` (the single row of limit,
 threshold, `enforce`, and notice bookkeeping), and `wallet_backfill_marks` (one row per imported
-session-day). The database enforces one credit per `reference` and one hosting debit per day. The
+agent-day). The database enforces one credit per `reference` and one hosting debit per day. The
 plugin closes it when disabled or restarted.
 
 ## The `/wallet` command and `wallet_status` tool

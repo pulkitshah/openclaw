@@ -41,11 +41,6 @@ describe("attribute", () => {
         lookups,
       ),
     ).toEqual({ activity: "system", ref: "cron:daily-digest", label: "System — daily-digest" });
-    expect(await attribute({ trigger: "history" }, lookups)).toEqual({
-      activity: "system",
-      ref: "history",
-      label: "System — history",
-    });
   });
   it("names member and group sessions, and never drops an unknown one", async () => {
     expect(

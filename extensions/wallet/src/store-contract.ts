@@ -50,7 +50,7 @@ export type Credit = EntryBase & {
 };
 export type Adjustment = EntryBase & { kind: "adjustment"; by: string };
 export type WalletEntry = TokensDebit | ServiceDebit | Credit | Adjustment;
-export type BackfillResult = { sessions: number; days: number; failed: number; paise: number };
+export type BackfillResult = { days: number; agents: number; failed: number; paise: number };
 export type WalletState = {
   creditLimitPaise: number;
   lowBalancePaise: number;
@@ -106,8 +106,8 @@ export type WalletOperations = {
   list: { input: ListFilter; output: WalletEntry[] };
   summarize: { input: { from: number; to: number }; output: Summary };
   spendSince: { input: { from: number }; output: { spentPaise: number; days: number } };
-  liveTokens: {
-    input: { sessionKey: string; from: number; to: number };
+  liveAgentTokens: {
+    input: { agentId: string; from: number; to: number };
     output: TokenCounts;
   };
   markBackfill: { input: { sessionKey: string; day: string }; output: boolean };
