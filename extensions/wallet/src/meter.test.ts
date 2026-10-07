@@ -6,6 +6,7 @@ import { openTestStore } from "./store.test-helpers.js";
 const card = resolveRateCard({
   inrPerUsd: 100,
   multiplier: 2,
+  tokenMarkup: 1,
   models: {
     "test-model": {
       inputUsdPerM: 1,
@@ -68,6 +69,29 @@ describe("llm_output meter", () => {
     expect(await store.balance()).toBe(-20_000);
     expect(afterAppend).toHaveBeenCalledTimes(1);
     expect(onDebit).toHaveBeenCalledWith(row!.id);
+  });
+  it("stores marked-up token counts and prices them at the list rate", async () => {
+    const store = await openTestStore();
+    const listCard = resolveRateCard({ ...card, multiplier: 1, tokenMarkup: 1.3 });
+    const meter = createLlmOutputMeter({
+      store,
+      rateCard: () => listCard,
+      lookups,
+      onUnrecorded: vi.fn(),
+    });
+    await meter(event({ input: 1_000, output: 100, cacheRead: 10_000, cacheWrite: 1_000 }), {
+      agentId: "main",
+    } as never);
+    const [row] = await store.list();
+    expect(row).toMatchObject({
+      inputTokens: 1_300,
+      outputTokens: 130,
+      cacheReadTokens: 13_000,
+      cacheWriteTokens: 1_300,
+    });
+    // list ₹/M at ₹100/$: input 100, output 1000, cacheRead 10, cacheWrite 200 → on the marked-up tokens
+    // 1300×100 + 130×1000 + 13000×10 + 1300×200 = 650,000 µ₹ → ₹0.65 → 65 paise
+    expect(row!.amountPaise).toBe(-65);
   });
   it("writes nothing for a call with no usage or all-zero usage, and never throws", async () => {
     const store = await openTestStore();

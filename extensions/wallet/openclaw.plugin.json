@@ -35,7 +35,7 @@
       "rateCard": {
         "type": "object",
         "additionalProperties": true,
-        "description": "inrPerUsd, multiplier, models{id:{inputUsdPerM,outputUsdPerM,cacheReadUsdPerM,cacheWriteUsdPerM}}, fallback, aliases{name:modelId}, services{name:{unit,inrPerUnit}}."
+        "description": "inrPerUsd, multiplier, tokenMarkup, models{id:{inputUsdPerM,outputUsdPerM,cacheReadUsdPerM,cacheWriteUsdPerM}}, fallback, aliases{name:modelId}, services{name:{unit,inrPerUnit}}."
       }
     }
   },

@@ -1,5 +1,5 @@
 import { attribute, type AttributionLookups } from "./attribution.js";
-import { priceTokens, type RateCard } from "./money.js";
+import { markupTokens, priceTokens, type RateCard } from "./money.js";
 import type { WalletStore } from "./store.js";
 
 // The hook contract types are not on the plugin SDK, so these are the structural subsets of
@@ -46,16 +46,18 @@ export function createLlmOutputMeter(deps: {
         );
         return;
       }
-      const tokens = {
+      const card = deps.rateCard();
+      const raw = {
         input: u.input ?? 0,
         output: u.output ?? 0,
         cacheRead: u.cacheRead ?? 0,
         cacheWrite: u.cacheWrite ?? 0,
       };
-      if (tokens.input + tokens.output + tokens.cacheRead + tokens.cacheWrite <= 0) {
+      if (raw.input + raw.output + raw.cacheRead + raw.cacheWrite <= 0) {
         return;
       }
-      const price = priceTokens(deps.rateCard(), event.provider, event.model, tokens);
+      const tokens = markupTokens(card, raw);
+      const price = priceTokens(card, event.provider, event.model, tokens);
       const a = await attribute(
         {
           sessionKey: ctx.sessionKey,

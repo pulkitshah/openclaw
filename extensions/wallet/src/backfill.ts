@@ -1,7 +1,7 @@
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import type { AttributionLookups } from "./attribution.js";
 import { IST_OFFSET_MS, dayName, istDay } from "./hosting.js";
-import { priceTokens, type RateCard, type TokenCounts } from "./money.js";
+import { markupTokens, priceTokens, type RateCard, type TokenCounts } from "./money.js";
 import type { Activity, BackfillResult, NewEntry, WalletStore } from "./store.js";
 
 type Totals = TokenCounts & { totalTokens: number };
@@ -163,10 +163,15 @@ function agentDayRows(input: {
     // On the cutover day, the live meter's tokens for this agent are apportioned across its
     // models by their share of the day's tokens and subtracted per class.
     const weight = m.totals.totalTokens / modelTotal;
-    const tokens = mapTokens((c) =>
-      Math.max(0, m.totals[c] - (live ? Math.round(live[c] * weight) : 0)),
+    // Live rows hold marked-up tokens; divide by the markup to compare them with raw usage.
+    const rawTokens = mapTokens((c) =>
+      Math.max(
+        0,
+        m.totals[c] - (live ? Math.round((live[c] * weight) / input.card.tokenMarkup) : 0),
+      ),
     );
-    if (sumTokens(tokens) === 0) {
+    const tokens = markupTokens(input.card, rawTokens);
+    if (sumTokens(rawTokens) === 0) {
       continue;
     }
     const provider = m.provider ?? "claude-cli";

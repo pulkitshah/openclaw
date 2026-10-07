@@ -54,6 +54,7 @@ function walletGet(overrides: Partial<WalletGet> = {}): WalletGet {
     rateCard: {
       inrPerUsd: 88,
       multiplier: 2,
+      tokenMarkup: 1.3,
       models: {},
       fallback: {
         inputUsdPerM: 5,
@@ -253,7 +254,7 @@ describe("renderAdmin", () => {
   it("shows the limit, the effective rate card, and the backfill button until it has run", () => {
     const html = renderAdmin(walletGet(), undefined, true);
     expect(html).toContain("Credit limit");
-    expect(html).toContain("₹88/USD × 2; fallback claude-opus-5; hosting ₹80/day");
+    expect(html).toContain("₹88/USD × 2, tokens × 1.3; fallback claude-opus-5; hosting ₹80/day");
     expect(html).toContain("data-backfill");
     expect(html).not.toContain("not recorded");
   });

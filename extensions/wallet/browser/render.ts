@@ -305,7 +305,7 @@ function rateCardLine(card: RateCard): string {
       ? `hosting ₹${hosting.inrPerUnit}/${hosting.unit}`
       : "hosting off";
   const fallback = card.aliases.default ?? "built-in";
-  return `₹${card.inrPerUsd}/USD × ${card.multiplier}; fallback ${fallback}; ${hostingText}`;
+  return `₹${card.inrPerUsd}/USD × ${card.multiplier}, tokens × ${card.tokenMarkup}; fallback ${fallback}; ${hostingText}`;
 }
 
 /** What TripIn Studio checks before acting: limit, effective card, backfill status, lost debits. */

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { backfillFromUsage } from "./backfill.js";
+import { createLlmOutputMeter } from "./meter.js";
 import { priceTokens, resolveRateCard } from "./money.js";
 import type { TokensDebit } from "./store.js";
 import { openTestStore } from "./store.test-helpers.js";
@@ -9,6 +10,7 @@ import { openTestStore } from "./store.test-helpers.js";
 const card = resolveRateCard({
   inrPerUsd: 100,
   multiplier: 2,
+  tokenMarkup: 1,
   models: {
     "test-model": {
       inputUsdPerM: 1,
@@ -269,6 +271,63 @@ describe("backfillFromUsage", () => {
       backfillDoneAt: NOW,
       backfillResult: { days: 2, agents: 2, failed: 0, paise: 120_000 },
     });
+  });
+
+  it("imports marked-up tokens priced at the list rate", async () => {
+    const markedCard = resolveRateCard({ ...card, multiplier: 1, tokenMarkup: 1.3 });
+    const store = await openTestStore();
+    const request = vi.fn(async (_m: string, params: Record<string, unknown>) =>
+      params.range === "all"
+        ? overview([["2026-09-10", 1_000]], ["duties-mail"])
+        : agentDay([["claude-cli", "test-model", { input: 1_000, output: 100 }]]),
+    );
+    await backfillFromUsage({
+      store,
+      rateCard: () => markedCard,
+      request: request as never,
+      lookups,
+      now: () => NOW,
+    });
+    const [row] = await tokenRows(store);
+    expect(row).toMatchObject({ inputTokens: 1_300, outputTokens: 130 });
+    // list ₹/M input 100, output 1000: 1300×100 + 130×1000 = 260,000 µ₹ → 26 paise
+    expect(row!.amountPaise).toBe(-26);
+  });
+
+  it("nets the cutover day to zero when the meter wrote the live rows from the same raw usage", async () => {
+    const markedCard = resolveRateCard({ ...card, multiplier: 1, tokenMarkup: 1.3 });
+    const store = await openTestStore();
+    // The meter stamps rows with the real clock, so the cutover day is today (IST).
+    const started = Date.now();
+    const today = new Date(started + 19_800_000).toISOString().slice(0, 10);
+    await store.ensureMeterStarted(started);
+    const meter = createLlmOutputMeter({
+      store,
+      rateCard: () => markedCard,
+      lookups,
+      onUnrecorded: vi.fn(),
+    });
+    await meter(
+      {
+        provider: "claude-cli",
+        model: "test-model",
+        usage: { input: 1_000, output: 100, cacheRead: 0, cacheWrite: 0 },
+      } as never,
+      { agentId: "main" } as never,
+    );
+    const request = vi.fn(async (_m: string, params: Record<string, unknown>) =>
+      params.range === "all"
+        ? overview([[today, 1_100]], ["main"])
+        : agentDay([["claude-cli", "test-model", { input: 1_000, output: 100 }]]),
+    );
+    await backfillFromUsage({
+      store,
+      rateCard: () => markedCard,
+      request: request as never,
+      lookups,
+      now: () => started,
+    });
+    expect((await tokenRows(store)).filter((r) => r.source === "backfill")).toEqual([]);
   });
 
   it("is one-time: a second run returns the first result with alreadyDone and writes nothing", async () => {

@@ -3,6 +3,7 @@ import {
   DEFAULT_RATE_CARD,
   formatInr,
   modelDisplayName,
+  markupTokens,
   modelRates,
   priceService,
   priceTokens,
@@ -12,6 +13,7 @@ import {
 const card = resolveRateCard({
   inrPerUsd: 100,
   multiplier: 2,
+  tokenMarkup: 1,
   models: {
     "test-model": {
       inputUsdPerM: 1,
@@ -21,6 +23,29 @@ const card = resolveRateCard({
     },
   },
   services: { apify: { unit: "compute-unit", inrPerUnit: 0.5 } },
+});
+
+describe("token markup", () => {
+  it("defaults to list price with a 30% token markup", () => {
+    expect(DEFAULT_RATE_CARD.multiplier).toBe(1);
+    expect(DEFAULT_RATE_CARD.tokenMarkup).toBe(1.3);
+    const resolved = resolveRateCard({});
+    expect(resolved.multiplier).toBe(1);
+    expect(resolved.tokenMarkup).toBe(1.3);
+    expect(resolveRateCard({ tokenMarkup: 1.5 }).tokenMarkup).toBe(1.5);
+    expect(resolveRateCard({ tokenMarkup: 0 }).tokenMarkup).toBe(1.3);
+    expect(resolveRateCard({ tokenMarkup: -2 }).tokenMarkup).toBe(1.3);
+  });
+  it("scales each token class half-up and keeps zero at zero", () => {
+    const marked = markupTokens(DEFAULT_RATE_CARD, {
+      input: 7,
+      output: 0,
+      cacheRead: 1000,
+      cacheWrite: 5,
+    });
+    // 7 × 1.3 = 9.1 → 9; 5 × 1.3 = 6.5 → 7 (half-up despite float error)
+    expect(marked).toEqual({ input: 9, output: 0, cacheRead: 1300, cacheWrite: 7 });
+  });
 });
 
 describe("priceTokens", () => {

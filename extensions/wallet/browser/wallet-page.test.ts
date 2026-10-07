@@ -63,6 +63,7 @@ const GET = {
   rateCard: {
     inrPerUsd: 88,
     multiplier: 2,
+    tokenMarkup: 1.3,
     models: {},
     fallback: {
       inputUsdPerM: 5,

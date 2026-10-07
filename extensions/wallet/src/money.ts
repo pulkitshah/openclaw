@@ -11,6 +11,8 @@ export type ServiceRate = { unit: string; inrPerUnit: number };
 export type RateCard = {
   inrPerUsd: number;
   multiplier: number;
+  /** Every recorded token count is scaled by this before pricing and storage. */
+  tokenMarkup: number;
   models: Record<string, TokenRates>;
   fallback: TokenRates;
   /** Short or runtime model names (`sonnet`, `default`) mapped to a `models` id. */
@@ -100,10 +102,12 @@ const FABLE_5: TokenRates = {
   cacheWriteUsdPerM: 12.5,
 };
 
-// Default pricing is the owner's policy: Anthropic list price at ₹100 per dollar plus a 30% premium.
+// Default pricing is the owner's policy: list price at ₹100 per dollar; the 30% premium is shown as extra tokens,
+// not a higher rate.
 export const DEFAULT_RATE_CARD: RateCard = {
   inrPerUsd: 100,
-  multiplier: 1.3,
+  multiplier: 1,
+  tokenMarkup: 1.3,
   models: {
     "claude-opus-5": OPUS,
     "claude-sonnet-5": SONNET,
@@ -243,6 +247,7 @@ export function resolveRateCard(raw: unknown): RateCard {
   return {
     inrPerUsd: positive(r.inrPerUsd, DEFAULT_RATE_CARD.inrPerUsd),
     multiplier: positive(r.multiplier, DEFAULT_RATE_CARD.multiplier),
+    tokenMarkup: positive(r.tokenMarkup, DEFAULT_RATE_CARD.tokenMarkup),
     models,
     fallback: readRates(r.fallback) ?? DEFAULT_RATE_CARD.fallback,
     aliases,
@@ -264,6 +269,17 @@ export function modelRates(
   const id = card.aliases[bare] ?? bare;
   const rates = card.models[id] ?? card.models[`${provider}/${id}`];
   return rates ? { rates, unpriced: false } : { rates: card.fallback, unpriced: true };
+}
+
+/** The recorded token counts for a call: each class scaled by the card's `tokenMarkup`, half-up. */
+export function markupTokens(card: RateCard, tokens: TokenCounts): TokenCounts {
+  const scale = (n: number) => Math.round(n * card.tokenMarkup + 1e-9);
+  return {
+    input: scale(tokens.input),
+    output: scale(tokens.output),
+    cacheRead: scale(tokens.cacheRead),
+    cacheWrite: scale(tokens.cacheWrite),
+  };
 }
 
 /** ₹ per million for one class: usd × inrPerUsd × multiplier. */
