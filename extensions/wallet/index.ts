@@ -1,11 +1,9 @@
 import { sendDurableMessageBatch } from "openclaw/plugin-sdk/channel-outbound";
-import { jsonResult, type OpenClawConfig } from "openclaw/plugin-sdk/core";
+import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
-import type { AnyAgentTool } from "openclaw/plugin-sdk/plugin-entry";
-import { Type } from "typebox";
 import type { OpenClawPluginApi } from "./api.js";
 import type { AttributionLookups } from "./src/attribution.js";
-import { walletStatusText } from "./src/command.js";
+import { createWalletCommand, createWalletStatusTool } from "./src/command.js";
 import { createWalletEventService } from "./src/events.js";
 import { createBeforeAgentRun } from "./src/gate.js";
 import { registerWalletGatewayMethods } from "./src/gateway-methods.js";
@@ -21,37 +19,9 @@ export const counters = { unrecorded: 0 };
 export default function register(api: OpenClawPluginApi): void {
   // Register the wallet_status tool in tool-discovery mode so agents can query wallet status
   if (api.registrationMode === "tool-discovery") {
-    api.registerTool(
-      {
-        name: "wallet_status",
-        label: "Wallet Status",
-        description: "Get current wallet balance, usage this month, and days remaining.",
-        parameters: Type.Object({}),
-        execute: async () => {
-          type WalletGetResult = {
-            balancePaise: number;
-            state: unknown;
-            daysLeft: number | null;
-            summary: unknown;
-            contact: string;
-          };
-          const result = await api.runtime.gateway.request<WalletGetResult>(
-            "wallet.get",
-            {},
-            { scopes: ["operator.read"] },
-          );
-          const text = walletStatusText({
-            balancePaise: result.balancePaise,
-            state: result.state as Parameters<typeof walletStatusText>[0]["state"],
-            daysLeft: result.daysLeft,
-            summary: result.summary as Parameters<typeof walletStatusText>[0]["summary"],
-            contact: result.contact,
-          });
-          return jsonResult({ text, balancePaise: result.balancePaise, state: result.state });
-        },
-      } as AnyAgentTool,
-      { name: "wallet_status" },
-    );
+    const readRequest = (method: string, params: Record<string, unknown>) =>
+      api.runtime.gateway.request(method, params, { scopes: ["operator.read"] });
+    api.registerTool(createWalletStatusTool(readRequest), { name: "wallet_status" });
     return;
   }
 
@@ -144,57 +114,13 @@ export default function register(api: OpenClawPluginApi): void {
     lookups,
   });
 
-  // Register the wallet_status tool in full mode (also registered in tool-discovery mode)
-  api.registerTool(
-    {
-      name: "wallet_status",
-      label: "Wallet Status",
-      description: "Get current wallet balance, usage this month, and days remaining.",
-      parameters: Type.Object({}),
-      execute: async () => {
-        const result = await request<{
-          balancePaise: number;
-          state: unknown;
-          daysLeft: number | null;
-          summary: unknown;
-          contact: string;
-        }>("wallet.get", {});
-        const text = walletStatusText({
-          balancePaise: result.balancePaise,
-          state: result.state as Parameters<typeof walletStatusText>[0]["state"],
-          daysLeft: result.daysLeft,
-          summary: result.summary as Parameters<typeof walletStatusText>[0]["summary"],
-          contact: result.contact,
-        });
-        return jsonResult({ text, balancePaise: result.balancePaise, state: result.state });
-      },
-    } as AnyAgentTool,
-    { name: "wallet_status" },
-  );
+  // Create a read-scoped request for tools and commands
+  const readRequest = (method: string, params: Record<string, unknown>) =>
+    api.runtime.gateway.request(method, params, { scopes: ["operator.read"] });
 
-  // Register the /wallet command
-  api.registerCommand({
-    name: "wallet",
-    description: "Balance and where it went this month.",
-    acceptsArgs: false,
-    handler: async () => {
-      const result = await request<{
-        balancePaise: number;
-        state: unknown;
-        daysLeft: number | null;
-        summary: unknown;
-        contact: string;
-      }>("wallet.get", {});
-      const text = walletStatusText({
-        balancePaise: result.balancePaise,
-        state: result.state as Parameters<typeof walletStatusText>[0]["state"],
-        daysLeft: result.daysLeft,
-        summary: result.summary as Parameters<typeof walletStatusText>[0]["summary"],
-        contact: result.contact,
-      });
-      return { text };
-    },
-  });
+  // Register the wallet_status tool and /wallet command in full mode
+  api.registerTool(createWalletStatusTool(readRequest), { name: "wallet_status" });
+  api.registerCommand(createWalletCommand(readRequest));
 
   let stopHosting: (() => void) | undefined;
   api.registerService({

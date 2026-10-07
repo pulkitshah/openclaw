@@ -103,7 +103,7 @@ describe("walletStatusText", () => {
       });
 
       expect(text).toContain("₹50.00 left");
-      expect(text).toContain("1 day at this rate");
+      expect(text).toContain("about 1 day at this rate");
     });
   });
 
@@ -220,7 +220,7 @@ describe("walletStatusText", () => {
         contact: "TripIn Studio",
       });
 
-      expect(text).toContain("1 day at this rate");
+      expect(text).toContain("about 1 day at this rate");
     });
 
     it("handles zero days", () => {
