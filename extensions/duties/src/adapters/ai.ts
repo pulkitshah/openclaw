@@ -23,12 +23,20 @@ import type { AiAdapter } from "../runner.js";
 
 type Request = <T = unknown>(method: string, params: Record<string, unknown>) => Promise<T>;
 
-export function createAiAdapter(params: { request: Request; sessionKey: string }): AiAdapter {
+/** Structural twin of the core `LlmAttribution`: what a run is doing, shown beside its usage. */
+type Attribution = { kind: string; ref: string; label: string };
+
+export function createAiAdapter(params: {
+  request: Request;
+  sessionKey: string;
+  attribution?: Attribution;
+}): AiAdapter {
   return {
     async extract({ instruction, input, schema }) {
       const result = await params.request("tools.invoke", {
         name: "llm-task",
         sessionKey: params.sessionKey,
+        ...(params.attribution ? { attribution: params.attribution } : {}),
         args: { prompt: instruction, input, schema },
       });
       if (isRecord(result) && result.ok === false) {

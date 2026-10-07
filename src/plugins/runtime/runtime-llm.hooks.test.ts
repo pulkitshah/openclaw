@@ -105,6 +105,25 @@ describe("runtime.llm.complete llm_output hook", () => {
     });
   });
 
+  it("keeps the host-bound session over the request's sessionKey", async () => {
+    primeDirectCompletion({ input: 10, output: 5 });
+    const handler = registerLlmOutputHook();
+    const llm = createRuntimeLlm({
+      getConfig: () => cfg,
+      authority: { agentId: "main", sessionKey: "agent:main:direct:asha" },
+      logger: { debug() {}, info() {}, warn() {}, error() {} },
+    });
+
+    await llm.complete({
+      messages: [{ role: "user", content: "hi" }],
+      sessionKey: "agent:main:direct:someone-else",
+      purpose: "llm-task",
+    });
+
+    await vi.waitFor(() => expect(handler).toHaveBeenCalledTimes(1));
+    expect(handler.mock.calls[0]?.[1]).toMatchObject({ sessionKey: "agent:main:direct:asha" });
+  });
+
   it("emits nothing when the completion reports no usage", async () => {
     primeDirectCompletion({});
     const handler = registerLlmOutputHook();

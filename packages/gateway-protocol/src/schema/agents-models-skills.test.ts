@@ -521,6 +521,20 @@ describe("ToolsEffectiveResultSchema", () => {
 });
 
 describe("ToolsInvokeParamsSchema", () => {
+  it("accepts a closed, fully populated attribution", () => {
+    const attribution = { kind: "duty", ref: "run-1", label: "Book by mail" };
+    expectAccepted(ToolsInvokeParamsSchema, { name: "llm-task", attribution });
+    expectRejected(ToolsInvokeParamsSchema, {
+      name: "llm-task",
+      attribution: { ...attribution, extra: true },
+    });
+    expectRejected(ToolsInvokeParamsSchema, {
+      name: "llm-task",
+      attribution: { ...attribution, kind: "" },
+    });
+    expectRejected(ToolsInvokeParamsSchema, { name: "llm-task", attribution: { kind: "duty" } });
+  });
+
   it("accepts only the operation-local direct-operator marker", () => {
     expectAccepted(ToolsInvokeParamsSchema, {
       name: "message",

@@ -1562,6 +1562,19 @@ describe("tools.invoke Gateway RPC", () => {
     }
   });
 
+  it("hands the request's attribution to tool resolution, and nothing when omitted", async () => {
+    allowAgentsListForMain();
+    const attribution = { kind: "duty", ref: "run-1", label: "Book by mail" };
+
+    await invokeToolsRpc({ name: "agents_list", args: {}, sessionKey: "main", attribution }, [
+      "operator.write",
+    ]);
+    expect(lastCreateOpenClawToolsContext?.attribution).toEqual(attribution);
+
+    await invokeToolsRpc({ name: "agents_list", args: {}, sessionKey: "main" }, ["operator.write"]);
+    expect(lastCreateOpenClawToolsContext?.attribution).toBeUndefined();
+  });
+
   it("requires an operation-local marker for direct conversation reads", async () => {
     allowAgentsListForMain();
 

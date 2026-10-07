@@ -25,7 +25,7 @@ import { createDutiesEventService } from "./src/events.js";
 import { createRunFiles } from "./src/files.js";
 import { registerDutiesGatewayMethods } from "./src/gateway-methods.js";
 import { registerLegacyTeamExport } from "./src/legacy-team-export.js";
-import { RunManager } from "./src/run-service.js";
+import { RunManager, runAttributionLabel } from "./src/run-service.js";
 import { DutyStore, runSessionKey } from "./src/store.js";
 import { registerDutyTools } from "./src/tools.js";
 
@@ -241,7 +241,11 @@ export default definePluginEntry({
               },
             },
           }),
-          ai: createAiAdapter({ request, sessionKey: runSessionKey(run.origin) }),
+          ai: createAiAdapter({
+            request,
+            sessionKey: runSessionKey(run.origin),
+            attribution: { kind: "duty", ref: run.id, label: runAttributionLabel(duty, run) },
+          }),
           // An `ask` is the one step that waits for a person, so it is raised in the session that
           // person uses — the run's own chat, or the owner's — and announced through the same
           // route `deliver` would use, because `question.request` sends to no channel by itself.

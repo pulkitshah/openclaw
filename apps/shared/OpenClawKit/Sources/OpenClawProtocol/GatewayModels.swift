@@ -21763,6 +21763,7 @@ public struct ToolsInvokeParams: Codable, Sendable {
     public let confirm: Bool?
     public let idempotencykey: String?
     public let conversationreadorigin: String?
+    public let attribution: [String: AnyCodable]?
 
     public init(
         name: String,
@@ -21771,7 +21772,8 @@ public struct ToolsInvokeParams: Codable, Sendable {
         agentid: String? = nil,
         confirm: Bool? = nil,
         idempotencykey: String? = nil,
-        conversationreadorigin: String? = nil)
+        conversationreadorigin: String? = nil,
+        attribution: [String: AnyCodable]? = nil)
     {
         self.name = name
         self.args = args
@@ -21780,6 +21782,7 @@ public struct ToolsInvokeParams: Codable, Sendable {
         self.confirm = confirm
         self.idempotencykey = idempotencykey
         self.conversationreadorigin = conversationreadorigin
+        self.attribution = attribution
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -21790,6 +21793,7 @@ public struct ToolsInvokeParams: Codable, Sendable {
         case confirm
         case idempotencykey = "idempotencyKey"
         case conversationreadorigin = "conversationReadOrigin"
+        case attribution
     }
 }
 

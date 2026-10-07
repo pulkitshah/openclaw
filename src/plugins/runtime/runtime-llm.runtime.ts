@@ -284,7 +284,7 @@ export function finalizePluginLlmCompletion(params: {
         usage: { input, output, cacheRead, cacheWrite, total },
       },
       ctx: {
-        sessionKey: params.sessionKey ?? params.result.audit.sessionKey,
+        sessionKey: params.result.audit.sessionKey ?? params.sessionKey,
         agentId: params.result.agentId,
         trigger: "tool",
         attribution: params.attribution,

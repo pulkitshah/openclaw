@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import type { Duty } from "./duty.js";
-import { RunManager, type RunProgressCard } from "./run-service.js";
+import { RunManager, runAttributionLabel, type RunProgressCard } from "./run-service.js";
 import type { RunnerDeps } from "./runner.js";
 import { DutyStore } from "./store.js";
 import type { DutyRun, RunOrigin } from "./store.js";
@@ -780,5 +780,31 @@ describe("RunManager", () => {
     const final = await mgr.wait(runId);
     expect(final.status).toBe("ok");
     expect(await store.getDuty("delete-me")).toBeUndefined();
+  });
+});
+
+describe("runAttributionLabel", () => {
+  const named = { ...duty("d1"), name: "Book by mail" };
+  const run = (inputs: Record<string, unknown>): DutyRun =>
+    ({ id: "0123456789abcdef", inputs }) as DutyRun;
+
+  it("prefers a mail subject", () => {
+    expect(
+      runAttributionLabel(
+        named,
+        run({ mail: { from: "a@b.c", subject: "Re: invoice", body: "x" } }),
+      ),
+    ).toBe("Book by mail — Re: invoice");
+  });
+
+  it("falls back to the first string, top-level before nested", () => {
+    expect(runAttributionLabel(named, run({ n: 3, city: "Kochin" }))).toBe("Book by mail — Kochin");
+    expect(runAttributionLabel(named, run({ mail: { n: 1, from: "a@b.c" } }))).toBe(
+      "Book by mail — a@b.c",
+    );
+  });
+
+  it("uses the run id's first 8 characters when no input is a string", () => {
+    expect(runAttributionLabel(named, run({}))).toBe("Book by mail — 01234567");
   });
 });

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
+import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { Duty, DutyNode } from "./duty.js";
 import { runDuty, type RunnerDeps } from "./runner.js";
 import type { DutyRun, DutyStore, RunFile, RunOrigin, RunStatus, StepEvidence } from "./store.js";
@@ -101,6 +102,25 @@ function terminalStatusLine(run: Pick<DutyRun, "status" | "report" | "failedStep
     default:
       return "";
   }
+}
+
+/**
+ * Names a run for whoever reads its usage: the duty plus the first string in its inputs (a mail's
+ * subject when present, else the first string, top level before one object deep), or the run id's
+ * first 8 characters when the inputs carry no string.
+ */
+export function runAttributionLabel(
+  duty: Pick<Duty, "name">,
+  run: Pick<DutyRun, "id" | "inputs">,
+): string {
+  const values = Object.values(run.inputs);
+  const nested = values.flatMap((value) => (isRecord(value) ? [value] : []));
+  const subject = nested.map((value) => value.subject).find((v) => typeof v === "string");
+  const first =
+    subject ??
+    values.find((v) => typeof v === "string") ??
+    nested.flatMap((value) => Object.values(value)).find((v) => typeof v === "string");
+  return `${duty.name} — ${typeof first === "string" ? first : run.id.slice(0, 8)}`;
 }
 
 export class RunManager {

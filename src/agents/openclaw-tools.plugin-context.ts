@@ -2,12 +2,13 @@ import {
   normalizeConversationReadInvocationOrigin,
   type ConversationReadInvocationOrigin,
 } from "../channels/plugins/conversation-read-origin.js";
+import type { OpenClawConfig } from "../config/types.openclaw.js";
 /**
  * Runtime context resolver for Vasudev plugin tools.
  *
  * Normalizes workspace, delivery, browser, sandbox, and active-model inputs before plugin tool invocation.
  */
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { LlmAttribution } from "../plugins/runtime/types-core.js";
 import { normalizeDeliveryContext } from "../utils/delivery-context.shared.js";
 import { resolveAgentWorkspaceDir, resolveSessionAgentIds } from "./agent-scope.js";
 import type { ConversationRecallContext } from "./conversation-recall.types.js";
@@ -40,6 +41,7 @@ export type OpenClawPluginToolOptions = {
   requesterSenderId?: string | null;
   senderIsOwner?: boolean;
   conversationReadOrigin?: ConversationReadInvocationOrigin;
+  attribution?: LlmAttribution;
   requesterAgentIdOverride?: string;
   sessionId?: string;
   conversationRecall?: ConversationRecallContext;
@@ -122,6 +124,7 @@ export function resolveOpenClawPluginToolInputs(params: {
       conversationReadOrigin: normalizeConversationReadInvocationOrigin(
         options?.conversationReadOrigin,
       ),
+      attribution: options?.attribution,
       sandboxed: options?.sandboxed,
       oneShotCliRun: options?.oneShotCliRun,
     },

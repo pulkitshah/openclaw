@@ -7,6 +7,7 @@ import type { InboundEventKind } from "../channels/inbound-event/kind.js";
 import type { ConversationReadInvocationOrigin } from "../channels/plugins/conversation-read-origin.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 import type { ExecMode } from "../infra/exec-approvals.js";
+import type { LlmAttribution } from "../plugins/runtime/types-core.js";
 import type { SkillWorkshopRunOptions } from "../skills/workshop/types.js";
 import type { HookContext } from "./agent-tools.before-tool-call.js";
 import type { PreparedPairedComputerUse } from "./computer-use-node-capabilities.js";
@@ -114,6 +115,8 @@ export type OpenClawToolsOptions = {
   senderIsOwner?: boolean;
   /** Server-owned operation-local origin for conversation-read visibility policy. */
   conversationReadOrigin?: ConversationReadInvocationOrigin;
+  /** What the caller is doing this for; forwarded to plugin tool factories. */
+  attribution?: LlmAttribution;
   /** Restrict cron operations to the active cron job's self-scoped surface. */
   cronSelfRemoveOnlyJobId?: string;
   /** Require explicit message targets (no implicit last-route sends). */

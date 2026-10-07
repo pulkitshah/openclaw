@@ -18,6 +18,17 @@ describe("openclaw plugin tool context", () => {
     expect(result.context.requesterSenderId).toBe("trusted-sender");
   });
 
+  it("forwards the caller's attribution to plugin tool factories", () => {
+    const attribution = { kind: "duty", ref: "run-1", label: "Book by mail" };
+    expect(
+      resolveOpenClawPluginToolInputs({ options: { config: {} as never, attribution } }).context
+        .attribution,
+    ).toEqual(attribution);
+    expect(
+      resolveOpenClawPluginToolInputs({ options: { config: {} as never } }).context.attribution,
+    ).toBeUndefined();
+  });
+
   it("forwards the trusted owner bit", () => {
     const result = resolveOpenClawPluginToolInputs({
       options: {

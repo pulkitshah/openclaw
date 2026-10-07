@@ -21,6 +21,7 @@ import type { OpenClawConfig } from "../config/types.openclaw.js";
 import { formatErrorMessage } from "../infra/errors.js";
 import { logWarn } from "../logger.js";
 import { isTestDefaultMemorySlotDisabled } from "../plugins/config-state.js";
+import type { LlmAttribution } from "../plugins/runtime/types-core.js";
 import { defaultSlotIdForKey } from "../plugins/slots.js";
 import { getPluginToolMeta } from "../plugins/tool-metadata.js";
 import {
@@ -183,6 +184,8 @@ type InvokeGatewayToolParams = {
   senderIsOwner?: boolean;
   clientCaps?: string[];
   conversationReadOrigin?: ConversationReadInvocationOrigin;
+  /** Schema-validated by the RPC handler; the HTTP route's unvalidated body never sets it. */
+  attribution?: LlmAttribution;
   toolCallIdPrefix: string;
   approvalMode?: "request" | "report";
   signal?: AbortSignal;
@@ -351,6 +354,7 @@ async function invokeGatewayToolWithSignal(
       senderIsOwner: params.senderIsOwner,
       clientCaps: params.clientCaps,
       conversationReadOrigin,
+      attribution: params.attribution,
       allowGatewaySubagentBinding: true,
       allowMediaInvokeCommands: true,
       surface: "http",

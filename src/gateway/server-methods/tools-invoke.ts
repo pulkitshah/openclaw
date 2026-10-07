@@ -63,6 +63,7 @@ export const toolsInvokeHandlers: GatewayRequestHandlers = {
         client,
         requestedOrigin: params.conversationReadOrigin,
       }),
+      attribution: params.attribution,
       toolCallIdPrefix: "rpc",
       approvalMode: params.confirm === true ? "request" : "report",
     });

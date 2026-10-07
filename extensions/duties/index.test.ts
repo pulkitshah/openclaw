@@ -30,6 +30,7 @@ vi.mock("./src/run-service.js", () => ({
   RunManager: function RunManager(params: unknown) {
     runManagerParams(params);
   },
+  runAttributionLabel: (duty: { id: string }, run: { id: string }) => `label:${duty.id}:${run.id}`,
 }));
 
 const aiAdapters = vi.fn();
@@ -216,6 +217,10 @@ describe("duties plugin registration", () => {
       const { deps, askSessionKey } = registerForDeps();
       const built = await deps({ id: "d1" }, { id: "r1" });
       expect(built).toBeTruthy();
+      // The ai adapter is told which run it works for, so its usage can be named.
+      expect(aiAdapters.mock.calls.at(-1)?.[0]).toMatchObject({
+        attribution: { kind: "duty", ref: "r1", label: "label:d1:r1" },
+      });
       // The owner is needed only when the run actually raises a question.
       await expect(askSessionKey()).rejects.toThrow(/no owner target configured/u);
     } finally {

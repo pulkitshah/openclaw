@@ -42,6 +42,7 @@ import type { OpenClawConfig } from "../config/types.openclaw.js";
 import { resolveEventSessionRoutingPolicy } from "../infra/event-session-routing.js";
 import { resolveExactExecModeFromPolicy } from "../infra/exec-approvals.js";
 import { logWarn } from "../logger.js";
+import type { LlmAttribution } from "../plugins/runtime/types-core.js";
 import { getPluginToolMeta } from "../plugins/tool-metadata.js";
 import {
   DEFAULT_GATEWAY_HTTP_TOOL_DENY,
@@ -76,6 +77,7 @@ export function resolveGatewayScopedTools(
     agentThreadId?: string;
     senderIsOwner?: boolean;
     conversationReadOrigin?: ConversationReadInvocationOrigin;
+    attribution?: LlmAttribution;
     allowGatewaySubagentBinding?: boolean;
     allowMediaInvokeCommands?: boolean;
     surface?: GatewayScopedToolSurface;
@@ -305,6 +307,7 @@ export function resolveGatewayScopedTools(
     senderIsOwner: params.senderIsOwner,
     requesterSenderId: senderId,
     conversationReadOrigin: params.conversationReadOrigin,
+    attribution: params.attribution,
     allowGatewaySubagentBinding: params.allowGatewaySubagentBinding,
     skillWorkshop: params.skillWorkshop,
     allowMediaInvokeCommands: params.allowMediaInvokeCommands,

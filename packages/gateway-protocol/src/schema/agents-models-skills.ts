@@ -1341,6 +1341,10 @@ export const ToolsInvokeParamsSchema = closedObject({
    * Missing values remain delegated, and agent runtime identity wins server-side.
    */
   conversationReadOrigin: Type.Optional(Type.Literal("direct-operator")),
+  /** What this call is being done for; plugin tools may attribute usage to it. */
+  attribution: Type.Optional(
+    closedObject({ kind: NonEmptyString, ref: NonEmptyString, label: NonEmptyString }),
+  ),
 });
 
 /** Tool profile shown in catalog views. */
