@@ -3,15 +3,23 @@ import type { OpenClawPluginApi } from "./api.js";
 import register from "./index.js";
 
 /** Creates a minimal mock API for full mode registration testing. */
-function createMockFullApi(overrides?: {
-  registerTool?: ReturnType<typeof vi.fn>;
-  registerCommand?: ReturnType<typeof vi.fn>;
-  request?: ReturnType<typeof vi.fn>;
-}): OpenClawPluginApi {
-  return {
+function createMockFullApi(overrides?: { request?: ReturnType<typeof vi.fn> }): {
+  api: OpenClawPluginApi;
+  registeredTools: Map<string, unknown>;
+  registeredCommands: Map<string, unknown>;
+} {
+  const registeredTools = new Map<string, unknown>();
+  const registeredCommands = new Map<string, unknown>();
+
+  const api = {
     registrationMode: "full",
-    registerTool: overrides?.registerTool ?? vi.fn(),
-    registerCommand: overrides?.registerCommand ?? vi.fn(),
+    registerTool: vi.fn((tool: unknown, opts: { name: string }) => {
+      registeredTools.set(opts.name, tool);
+    }),
+    registerCommand: vi.fn((cmd: unknown) => {
+      const cmdDef = cmd as Record<string, unknown>;
+      registeredCommands.set(cmdDef.name as string, cmd);
+    }),
     registerService: vi.fn(),
     registerGatewayMethod: vi.fn(),
     registerHttpRoute: vi.fn(),
@@ -32,6 +40,8 @@ function createMockFullApi(overrides?: {
       },
     },
   } as unknown as OpenClawPluginApi;
+
+  return { api, registeredTools, registeredCommands };
 }
 
 describe("wallet plugin registration", () => {
@@ -140,92 +150,60 @@ describe("wallet plugin registration", () => {
 
   describe("full mode", () => {
     it("registers both wallet_status tool and wallet command", () => {
-      const registerTool = vi.fn();
-      const registerCommand = vi.fn();
-
-      const api = createMockFullApi({ registerTool, registerCommand });
+      const { api, registeredTools, registeredCommands } = createMockFullApi();
 
       register(api);
 
-      expect(registerTool).toHaveBeenCalled();
-      expect(registerCommand).toHaveBeenCalled();
+      expect(registeredTools.has("wallet_status")).toBe(true);
+      expect(registeredCommands.has("wallet")).toBe(true);
       expect(api.registerService).toHaveBeenCalled();
       expect(api.on).toHaveBeenCalled();
-
-      // Verify tool was registered
-      const toolCall = registerTool.mock.calls.find(
-        (call) => (call[1] as { name: string })?.name === "wallet_status",
-      );
-      expect(toolCall).toBeDefined();
-
-      // Verify command was registered
-      const commandCall = registerCommand.mock.calls.find(
-        (call) => (call as [{ name: string }])[0]?.name === "wallet",
-      );
-      expect(commandCall).toBeDefined();
     });
 
-    it("command and tool return same exact text for funded case", async () => {
-      // Funded case: ₹1,240.00 balance, buckets in descending order
-      const expectedText =
-        "₹1,240.00 left · ₹310.00 this month (Duties ₹212.00, Chat ₹71.00, Hosting ₹24.00, System ₹3.00) · about 9 days at this rate.";
-
-      const walletGetResult = {
-        balancePaise: 124000, // ₹1,240.00
-        state: { enforce: false, creditLimitPaise: 500000, lowBalancePaise: 50000 },
+    it("the tool and the command render the same status from one wallet.get answer", async () => {
+      const answer = {
+        balancePaise: 124_000,
+        state: { creditLimitPaise: 0, lowBalancePaise: 20_000, enforce: true },
         daysLeft: 9,
+        contact: "TripIn Studio",
         summary: {
-          totalPaise: -31000, // ₹310.00 spent
-          tokens: 0,
+          totalPaise: -31_000,
+          tokens: 10,
           buckets: [
-            { activity: "duty", paise: -21200, tokens: 100, activities: [] }, // ₹212.00
-            { activity: "chat", paise: -7100, tokens: 50, activities: [] }, // ₹71.00
-            { activity: "hosting", paise: -2400, tokens: 0, activities: [] }, // ₹24.00
-            { activity: "system", paise: -300, tokens: 0, activities: [] }, // ₹3.00
+            { activity: "duty", paise: -21_200, tokens: 6, activities: [] },
+            { activity: "chat", paise: -7_100, tokens: 4, activities: [] },
+            { activity: "hosting", paise: -2_400, tokens: 0, activities: [] },
+            { activity: "system", paise: -300, tokens: 0, activities: [] },
           ],
         },
-        contact: "TripIn Studio",
       };
-
-      const request = vi.fn().mockResolvedValue(walletGetResult);
-
-      let capturedTool: unknown;
-      let capturedCommand: unknown;
-      const registerTool = vi.fn((tool: unknown) => {
-        capturedTool = tool;
-      });
-      const registerCommand = vi.fn((cmd: unknown) => {
-        capturedCommand = cmd;
-      });
-
-      const api = createMockFullApi({ registerTool, registerCommand, request });
-
+      const expected =
+        "₹1,240.00 left · ₹310.00 this month (Duties ₹212.00, Chat ₹71.00, Hosting ₹24.00, System ₹3.00) · about 9 days at this rate.";
+      const request = vi.fn(async () => answer);
+      const { api, registeredTools, registeredCommands } = createMockFullApi({ request });
       register(api);
-
-      // Execute tool (returns jsonResult wrapper)
-      const tool = capturedTool as Record<string, unknown>;
-      const toolResult = await (tool.execute as () => Promise<unknown>)();
-      // jsonResult returns { result: { text, balancePaise, state } } but tool might unwrap it
-      const toolData = toolResult as Record<string, unknown>;
-      const toolText =
-        toolData.text ?? (toolData.result as Record<string, unknown> | undefined)?.text;
-
-      // Reset mock to get clean call count for command
-      request.mockClear();
-
-      // Execute command (returns { text })
-      const command = capturedCommand as Record<string, unknown>;
-      const commandResult = await (command.handler as () => Promise<unknown>)();
-      const commandText = (commandResult as Record<string, unknown>).text;
-
-      // Both should return the same text
-      expect(commandText).toBe(expectedText);
-      if (toolText) {
-        expect(toolText).toBe(expectedText);
-      }
-
-      // Both should call wallet.get with exact operator.read scope
+      const tool = registeredTools.get("wallet_status") as Record<string, unknown>;
+      const command = registeredCommands.get("wallet") as Record<string, unknown>;
+      const toolResult = await (
+        tool.execute as (callId: string, params: unknown, ctx: unknown) => Promise<unknown>
+      )("call-1", {}, undefined);
       expect(request).toHaveBeenCalledWith("wallet.get", {}, { scopes: ["operator.read"] });
+      request.mockClear();
+      const commandResult = await (
+        command.handler as (ctx: Record<string, unknown>) => Promise<unknown>
+      )({
+        channel: "whatsapp",
+        isAuthorizedSender: true,
+      });
+      expect(request).toHaveBeenCalledWith("wallet.get", {}, { scopes: ["operator.read"] });
+      expect((toolResult as Record<string, unknown>).details).toBeDefined();
+      const toolDetails = (toolResult as Record<string, unknown>).details as Record<
+        string,
+        unknown
+      >;
+      expect(toolDetails.text).toBe(expected);
+      expect((commandResult as Record<string, unknown>).text).toBe(expected);
+      expect((commandResult as Record<string, unknown>).text).toBe(toolDetails.text);
     });
   });
 
@@ -233,17 +211,15 @@ describe("wallet plugin registration", () => {
     it("command returns unavailable message when wallet.get throws", async () => {
       const request = vi.fn().mockRejectedValue(new Error("Connection failed"));
 
-      let capturedCommand: unknown;
-      const registerCommand = vi.fn((cmd: unknown) => {
-        capturedCommand = cmd;
-      });
-
-      const api = createMockFullApi({ registerCommand, request });
+      const { api, registeredCommands } = createMockFullApi({ request });
 
       register(api);
 
-      const command = capturedCommand as Record<string, unknown>;
-      const result = await (command.handler as () => Promise<unknown>)();
+      const command = registeredCommands.get("wallet") as Record<string, unknown>;
+      const result = await (command.handler as (ctx: Record<string, unknown>) => Promise<unknown>)({
+        channel: "whatsapp",
+        isAuthorizedSender: true,
+      });
 
       expect((result as Record<string, unknown>).text).toBe(
         "Wallet is unavailable right now — try again in a minute.",
@@ -253,19 +229,18 @@ describe("wallet plugin registration", () => {
     it("tool throws when wallet.get throws", async () => {
       const request = vi.fn().mockRejectedValue(new Error("Connection failed"));
 
-      let capturedTool: unknown;
-      const registerTool = vi.fn((tool: unknown) => {
-        capturedTool = tool;
-      });
-
-      const api = createMockFullApi({ registerTool, request });
+      const { api, registeredTools } = createMockFullApi({ request });
 
       register(api);
 
-      const tool = capturedTool as Record<string, unknown>;
+      const tool = registeredTools.get("wallet_status") as Record<string, unknown>;
 
       await expect(async () => {
-        await (tool.execute as () => Promise<unknown>)();
+        await (tool.execute as (callId: string, params: unknown, ctx: unknown) => Promise<unknown>)(
+          "call-1",
+          {},
+          undefined,
+        );
       }).rejects.toThrow();
     });
 
@@ -275,17 +250,15 @@ describe("wallet plugin registration", () => {
         // missing state, daysLeft, summary, contact
       });
 
-      let capturedCommand: unknown;
-      const registerCommand = vi.fn((cmd: unknown) => {
-        capturedCommand = cmd;
-      });
-
-      const api = createMockFullApi({ registerCommand, request });
+      const { api, registeredCommands } = createMockFullApi({ request });
 
       register(api);
 
-      const command = capturedCommand as Record<string, unknown>;
-      const result = await (command.handler as () => Promise<unknown>)();
+      const command = registeredCommands.get("wallet") as Record<string, unknown>;
+      const result = await (command.handler as (ctx: Record<string, unknown>) => Promise<unknown>)({
+        channel: "whatsapp",
+        isAuthorizedSender: true,
+      });
 
       expect((result as Record<string, unknown>).text).toBe(
         "Wallet is unavailable right now — try again in a minute.",

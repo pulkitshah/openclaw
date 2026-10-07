@@ -83,55 +83,69 @@ export type WalletGetResult = {
   contact: string;
 };
 
-/** Validates and narrows gateway result into WalletGetResult type. */
-function readWalletGetResult(value: unknown): WalletGetResult {
-  if (!isRecord(value)) {
-    throw new Error("wallet.get returned an unexpected shape");
-  }
+const ACTIVITIES: ReadonlySet<string> = new Set([
+  "chat",
+  "duty",
+  "mail",
+  "system",
+  "hosting",
+  "integration",
+]);
+const SHAPE_ERROR = "wallet.get returned an unexpected shape";
 
-  // Validate balancePaise
-  if (typeof value.balancePaise !== "number") {
-    throw new Error("wallet.get returned an unexpected shape");
-  }
+function readNumber(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) throw new Error(SHAPE_ERROR);
+  return value;
+}
 
-  // Validate state
-  if (!isRecord(value.state)) {
-    throw new Error("wallet.get returned an unexpected shape");
-  }
-  const state = value.state as Record<string, unknown>;
-  if (
-    typeof state.creditLimitPaise !== "number" ||
-    typeof state.lowBalancePaise !== "number" ||
-    typeof state.enforce !== "boolean"
-  ) {
-    throw new Error("wallet.get returned an unexpected shape");
-  }
-
-  // Validate daysLeft
-  if (value.daysLeft !== null && typeof value.daysLeft !== "number") {
-    throw new Error("wallet.get returned an unexpected shape");
-  }
-
-  // Validate summary
-  if (!isRecord(value.summary)) {
-    throw new Error("wallet.get returned an unexpected shape");
-  }
-  const summary = value.summary as Record<string, unknown>;
-  if (!Array.isArray(summary.buckets) || typeof summary.totalPaise !== "number") {
-    throw new Error("wallet.get returned an unexpected shape");
-  }
-
-  // Validate contact
-  if (typeof value.contact !== "string") {
-    throw new Error("wallet.get returned an unexpected shape");
-  }
-
-  // Build result from validated fields
+function readState(value: unknown): WalletState {
+  if (!isRecord(value) || typeof value.enforce !== "boolean") throw new Error(SHAPE_ERROR);
   return {
-    balancePaise: value.balancePaise,
-    state: value.state as WalletState,
-    daysLeft: value.daysLeft as number | null,
-    summary: value.summary as Summary,
+    creditLimitPaise: readNumber(value.creditLimitPaise),
+    lowBalancePaise: readNumber(value.lowBalancePaise),
+    enforce: value.enforce,
+    ...(typeof value.stoppedSince === "number" ? { stoppedSince: value.stoppedSince } : {}),
+  };
+}
+
+function readActivity(value: unknown): Activity {
+  if (typeof value !== "string" || !ACTIVITIES.has(value)) throw new Error(SHAPE_ERROR);
+  // `ACTIVITIES` holds exactly the Activity union's members, so the string is one of them.
+  return value as Activity;
+}
+
+function readSummary(value: unknown): Summary {
+  if (!isRecord(value) || !Array.isArray(value.buckets)) throw new Error(SHAPE_ERROR);
+  const buckets = value.buckets.map((bucket) => {
+    if (!isRecord(bucket) || !Array.isArray(bucket.activities)) throw new Error(SHAPE_ERROR);
+    return {
+      activity: readActivity(bucket.activity),
+      paise: readNumber(bucket.paise),
+      tokens: readNumber(bucket.tokens),
+      activities: bucket.activities.map((entry) => {
+        if (!isRecord(entry) || typeof entry.ref !== "string" || typeof entry.label !== "string")
+          throw new Error(SHAPE_ERROR);
+        return {
+          ref: entry.ref,
+          label: entry.label,
+          paise: readNumber(entry.paise),
+          tokens: readNumber(entry.tokens),
+          entries: readNumber(entry.entries),
+        };
+      }),
+    };
+  });
+  return { totalPaise: readNumber(value.totalPaise), tokens: readNumber(value.tokens), buckets };
+}
+
+export function readWalletGetResult(value: unknown): WalletGetResult {
+  if (!isRecord(value) || typeof value.contact !== "string") throw new Error(SHAPE_ERROR);
+  const daysLeft = value.daysLeft === null ? null : readNumber(value.daysLeft);
+  return {
+    balancePaise: readNumber(value.balancePaise),
+    state: readState(value.state),
+    daysLeft,
+    summary: readSummary(value.summary),
     contact: value.contact,
   };
 }
