@@ -307,7 +307,7 @@ export function registerWalletGatewayMethods(deps: {
     backfillInFlight = run;
     try {
       const result = await run;
-      if (result.days > 0) {
+      if (!result.alreadyDone && result.days > 0) {
         await afterWrite(undefined, "debit", () => notices.afterDebit());
       }
       return result;

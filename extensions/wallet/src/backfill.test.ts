@@ -80,7 +80,9 @@ describe("backfillFromUsage", () => {
       range: "all",
       agentScope: "all",
       limit: 1000,
+      mode: "specific",
       timeZone: "Asia/Kolkata",
+      utcOffset: "UTC+5:30",
     });
     const rows = (await store.list({})).toReversed();
     expect(rows).toHaveLength(3);
@@ -122,16 +124,84 @@ describe("backfillFromUsage", () => {
       source: "backfill",
       rate,
     });
-    expect((await store.getState()).backfillDoneAt).toBe(NOW);
+    expect(await store.getState()).toMatchObject({
+      backfillDoneAt: NOW,
+      backfillResult: { sessions: 2, days: 3, failed: 0, paise: 50_000 },
+    });
   });
 
-  it("is idempotent: a second run appends nothing", async () => {
-    const { store, run } = await setup();
-    await run();
+  it("is one-time: a second run returns the first result with alreadyDone and writes nothing", async () => {
+    const { store, request, run } = await setup();
+    const first = await run();
     const before = await store.balance();
-    expect(await run()).toEqual({ sessions: 0, days: 0, failed: 0, paise: 0 });
+    expect(await run()).toEqual({ ...first, alreadyDone: true });
+    expect(request).toHaveBeenCalledTimes(1);
     expect((await store.list({})).length).toBe(3);
     expect(await store.balance()).toBe(before);
+  });
+
+  it("imports only what the live meter missed on the cutover day, and nothing after it", async () => {
+    const day = (date: string, input: number) => ({
+      date,
+      input,
+      output: 0,
+      cacheRead: 0,
+      cacheWrite: 0,
+    });
+    const key = "agent:krishna:direct:asha";
+    const { store, run } = await setup({
+      sessions: [
+        {
+          key,
+          model: "test-model",
+          usage: {
+            ...zero,
+            dailyBreakdown: [
+              day("2026-09-10", 1_000_000),
+              day("2026-09-11", 1_000_000),
+              day("2026-09-12", 1_000_000),
+            ],
+          },
+        },
+      ],
+    });
+    // The meter started at 09:00 IST on 11 Sep and recorded 400k input tokens that day.
+    await store.ensureMeterStarted(Date.parse("2026-09-11T03:30:00Z"));
+    await store.append({
+      kind: "debit",
+      charge: "tokens",
+      activity: "chat",
+      ref: key,
+      label: "Chat — Asha",
+      provider: "claude-cli",
+      model: "test-model",
+      inputTokens: 400_000,
+      outputTokens: 0,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+      rate: {
+        inputInrPerM: 200,
+        outputInrPerM: 2000,
+        cacheReadInrPerM: 20,
+        cacheWriteInrPerM: 400,
+      },
+      unpriced: false,
+      source: "live",
+      sessionKey: key,
+      amountPaise: -8_000,
+      at: NOON_11,
+    });
+    const result = await run();
+    expect(result).toMatchObject({ days: 2, failed: 0 });
+    const imported = await store.list({ kind: "debit" });
+    const backfilled = imported.filter((r) => r.kind === "debit" && r.source === "backfill");
+    expect(
+      backfilled.map((r) => [r.at, r.kind === "debit" && r.charge === "tokens" && r.inputTokens]),
+    ).toEqual([
+      [NOON_11, 600_000],
+      [NOON_10, 1_000_000],
+    ]);
+    expect(await store.hasBackfill(key, "2026-09-12")).toBe(false);
   });
 
   it("logs a failed day, keeps going, leaves it unmarked, and a rerun imports it", async () => {

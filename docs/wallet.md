@@ -45,7 +45,15 @@ Token usage is priced from `plugins.entries.wallet.config.rateCard`. Any field y
 
 ## Backfill
 
-`wallet.backfill` (the **Import past usage** button on the page; `operator.admin`) reads recorded session usage from `sessions.usage` and writes each (session, day) as a debit priced with the current rate card and attributed to a bucket. It is idempotent: a day already imported is skipped, and a day that fails is reported and retried on the next run. Only one backfill runs at a time. It reads up to 1000 sessions.
+`wallet.backfill` (the **Import past usage** button on the page; `operator.admin`) is a one-time import. It reads recorded session usage from `sessions.usage`, split into India Standard Time days, and writes each (session, day) as a debit priced with the current rate card and attributed to a bucket.
+
+The cutover is the moment the live meter first started on the desk (when the Wallet plugin first ran there):
+
+- Days before the cutover day are imported in full.
+- On the cutover day, each session imports only the tokens the live meter did not already record for it that day.
+- Days after the cutover are never imported; the live meter already covers them.
+
+A day that fails is reported in `failed` and the import is not marked done, so running it again imports just the failed days. Once an import finishes with no failures, running it again does nothing and returns the earlier result with `alreadyDone: true`; the page then shows "Imported past usage on <date>" instead of the button. Only one backfill runs at a time. It reads up to 1000 sessions.
 
 ## What pauses and what does not
 

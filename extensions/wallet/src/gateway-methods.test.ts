@@ -47,7 +47,7 @@ describe("wallet gateway methods", () => {
       expect.objectContaining({ kind: "debit", entryId: "" }),
     );
     const again = await call("wallet.backfill");
-    expect(again.result).toEqual({ sessions: 0, days: 0, failed: 0, paise: 0 });
+    expect(again.result).toEqual({ ...(first.result as object), alreadyDone: true });
     expect(emit).toHaveBeenCalledTimes(1);
   });
 
