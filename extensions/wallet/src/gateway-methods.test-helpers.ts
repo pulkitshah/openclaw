@@ -15,12 +15,15 @@ type Handler = (ctx: {
   };
 }) => Promise<void>;
 
-export function harness() {
+export function harness(opts?: {
+  request?: <T>(method: string, params: Record<string, unknown>) => Promise<T>;
+}) {
   const methods = new Map<string, { handler: Handler; scope: string }>();
   const api = {
     registerGatewayMethod: (name: string, handler: never, opts: { scope: string }) =>
       methods.set(name, { handler, scope: opts.scope }),
-    // SAFETY: the Gateway methods under test only touch `registerGatewayMethod`.
+    logger: { warn: () => {} },
+    // SAFETY: the Gateway methods under test only touch `registerGatewayMethod` and `logger`.
   } as never;
   const store = memoryStore();
   const emit = vi.fn<(name: "changed", payload: Record<string, unknown>) => void>();
@@ -35,6 +38,12 @@ export function harness() {
     notices,
     events: { emit },
     counters,
+    request: opts?.request ?? (async () => ({ sessions: [] }) as never),
+    lookups: {
+      memberName: async () => undefined,
+      groupName: async () => undefined,
+      mailAgentIds: () => [],
+    },
   });
   const call = (
     name: string,

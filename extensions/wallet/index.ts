@@ -93,7 +93,17 @@ export default function register(api: OpenClawPluginApi): void {
   });
   const events = createWalletEventService();
   api.registerService(events);
-  registerWalletGatewayMethods({ api, store, rateCard, contact, notices, events, counters });
+  registerWalletGatewayMethods({
+    api,
+    store,
+    rateCard,
+    contact,
+    notices,
+    events,
+    counters,
+    request,
+    lookups,
+  });
   let stopHosting: (() => void) | undefined;
   api.registerService({
     id: "wallet:hosting",

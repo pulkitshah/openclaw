@@ -1,6 +1,8 @@
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 import { isRecord } from "openclaw/plugin-sdk/string-coerce-runtime";
 import type { OpenClawPluginApi } from "../api.js";
+import type { AttributionLookups } from "./attribution.js";
+import { backfillFromUsage } from "./backfill.js";
 import { evaluateGate, exhaustedMessage } from "./gate.js";
 import type { Ctx, Scope } from "./gateway-context.js";
 import { IST_OFFSET_MS } from "./hosting.js";
@@ -105,9 +107,11 @@ export function registerWalletGatewayMethods(deps: {
   notices: ReturnType<typeof createNotices>;
   events: { emit(name: "changed", payload: Record<string, unknown>): void };
   counters: { unrecorded: number };
+  request: <T>(method: string, params: Record<string, unknown>) => Promise<T>;
+  lookups: AttributionLookups;
   now?: () => number;
 }): void {
-  const { api, store, rateCard, contact, notices, events, counters } = deps;
+  const { api, store, rateCard, contact, notices, events, counters, request, lookups } = deps;
   const now = () => deps.now?.() ?? Date.now();
 
   // The ledger row is committed before notices and events run; a failing channel or listener
@@ -280,6 +284,21 @@ export function registerWalletGatewayMethods(deps: {
       await afterWrite(undefined, "settings", () => notices.afterSettings());
     }
     return { state: await store.getState() };
+  });
+
+  register("wallet.backfill", "operator.admin", async () => {
+    const result = await backfillFromUsage({
+      store,
+      rateCard,
+      request,
+      lookups,
+      now,
+      log: (message) => api.logger.warn(message),
+    });
+    if (result.days > 0) {
+      await afterWrite(undefined, "debit", () => notices.afterDebit());
+    }
+    return result;
   });
 
   register("wallet.charge", "operator.write", async (params) => {

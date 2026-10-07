@@ -16,7 +16,39 @@ describe("wallet gateway methods", () => {
       "wallet.credit": "operator.admin",
       "wallet.adjust": "operator.admin",
       "wallet.settings": "operator.admin",
+      "wallet.backfill": "operator.admin",
     });
+  });
+
+  it("backfills from sessions.usage once and emits one changed", async () => {
+    const request = async () => ({
+      sessions: [
+        {
+          key: "agent:krishna:main",
+          usage: {
+            input: 1_000_000,
+            output: 0,
+            cacheRead: 0,
+            cacheWrite: 0,
+            lastActivity: 1_790_000_000_000,
+          },
+        },
+      ],
+    });
+    // SAFETY: the fake answers sessions.usage only.
+    const { call, emit, store } = harness({ request: request as never });
+    const first = await call("wallet.backfill");
+    expect(first.ok).toBe(true);
+    expect(first.result).toMatchObject({ sessions: 1, days: 1 });
+    expect(await store.balance()).toBeLessThan(0);
+    expect(emit).toHaveBeenCalledTimes(1);
+    expect(emit).toHaveBeenCalledWith(
+      "changed",
+      expect.objectContaining({ kind: "debit", entryId: "" }),
+    );
+    const again = await call("wallet.backfill");
+    expect(again.result).toEqual({ sessions: 0, days: 0, paise: 0 });
+    expect(emit).toHaveBeenCalledTimes(1);
   });
 
   it("credits with a unique reference, emits changed, and refuses the duplicate", async () => {
