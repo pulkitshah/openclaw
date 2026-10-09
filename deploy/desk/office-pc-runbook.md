@@ -232,3 +232,47 @@ check needs `duties.status`; everything else is the same as a droplet.
 - [ ] `~/.claude/projects/-Users-pulkitshah-Developer-vasudev-openclaw/memory/office-pc-desk-migration.md`
       and `front-door-droplet.md` updated with the PC's tailnet IP and the date
 - [ ] decide whether to keep snapshot `248986226` ($0.06/GB-month) once the PC has run a week
+
+## 10. Give the desk the Windows desktop too (owner requirement)
+
+The owner wants the PC used "as it is": the desk must be able to see and operate the Windows desktop
+(native Windows apps), not only its own WSL Chromium. That is OpenClaw's **node mode**: the Windows side
+registers as a node with the Gateway inside WSL and offers `screen.snapshot` + `computer.act`, which the
+agent uses through its built-in `computer` tool (`docs/nodes/computer-use.md`). Do this after section 6.
+
+1. **Install Vasudev on the Windows side** (not inside WSL): Node 26 for Windows, then the fork's package
+   so `openclaw` exists in PowerShell (`docs/platforms/windows.md` §"Native Windows CLI and Gateway" has
+   the install; it is the same fork build, used here only as a node, never as a second Gateway).
+2. **Enable the Windows computer-use fulfiller** (experimental, `docs/nodes/computer-use.md`
+   §"Windows and Linux (experimental, direct SDK)"):
+   ```powershell
+   openclaw plugins enable cua-computer
+   openclaw doctor --lint --only cua-computer/driver-artifacts   # must print: no findings
+   ```
+3. **Point the node at the WSL Gateway.** With mirrored networking the Gateway is reachable from Windows
+   at `http://127.0.0.1:18789`; configure the node's gateway URL/token (the token is
+   `/etc/openclaw/secrets/gateway-token` inside WSL — copy its value into the node config file, never
+   into a command line), then from the **interactive, unlocked desktop session**:
+   ```powershell
+   openclaw node run
+   ```
+   Register it as a Scheduled Task that runs at logon of the desk's Windows account (not "at startup":
+   desktop control needs the logged-in session). The PC must stay signed in and unlocked while the desk
+   is expected to drive the desktop; a lock screen ends the session's control.
+4. **Approve the device and its command surface** inside WSL (two separate approvals):
+   ```bash
+   sudo -H -u openclaw node /opt/openclaw/openclaw.mjs devices list
+   sudo -H -u openclaw node /opt/openclaw/openclaw.mjs devices approve <deviceRequestId>
+   sudo -H -u openclaw node /opt/openclaw/openclaw.mjs nodes pending
+   sudo -H -u openclaw node /opt/openclaw/openclaw.mjs nodes approve <nodeRequestId>
+   sudo -H -u openclaw node /opt/openclaw/openclaw.mjs nodes status
+   ```
+   `screen.record`, `camera.snap`, `camera.clip` additionally need `gateway.nodes.commands.allow` opt-in
+   in `openclaw.json`; `screen.snapshot` and `computer.act` do not.
+5. **Prove it**: in the owner's chat ask the desk to "take a screenshot of the desktop and list the open
+   windows"; then one harmless action (open Notepad and type a line). Known limits of the Windows
+   fulfiller as of this writing: primary display only; no key holds, drags, or modifier-held clicks;
+   digits and punctuation go through `type`, not `key`.
+
+Desktop control and the WSL desk are independent: if node mode is down, chat, Duties with the WSL
+Chromium, mail and cron keep working; only desktop actions fail with a clear "no capable node" refusal.
