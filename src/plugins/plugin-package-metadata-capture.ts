@@ -627,10 +627,105 @@ export function createPluginPackageMetadataCapture(params: {
   };
 }
 
+const PLUGIN_SOURCE_CAPTURE_PREFIX = "openclaw-plugin-build-";
+// `<prefix><pid>-<random>`: the owning pid is part of the name so a later process can tell a
+// directory whose owner is gone from one that is still serving imports, without opening it.
+const PLUGIN_SOURCE_CAPTURE_NAME_RE = /^openclaw-plugin-build-(\d+)-/;
+
+const liveCaptureDirectories = new Set<string>();
+let exitReclaimRegistered = false;
+let staleCapturesReclaimed = false;
+
+/** Removes this process's remaining capture directories; only `fs` sync work, so it may run from
+ *  the `exit` event, where nothing asynchronous completes. Exported for its test. */
+export function reclaimPluginSourceCapturesOnExit() {
+  for (const directory of [...liveCaptureDirectories]) {
+    liveCaptureDirectories.delete(directory);
+    try {
+      fs.rmSync(directory, { recursive: true, force: true });
+    } catch {
+      // Best effort at exit: a directory this process can no longer remove is left for a later
+      // process's stale sweep (its owner pid will be gone).
+    }
+  }
+}
+
+// Liveness is judged in this process's pid namespace: the temp directory and the processes that
+// own captures in it are assumed to share one (true of the Gateway's host and of systemd's
+// PrivateTmp). A tmp volume shared across containers would make a live foreign pid look dead.
+function isProcessAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    // EPERM: the pid exists but belongs to another user; still alive. Only ESRCH means gone.
+    return (error as NodeJS.ErrnoException).code !== "ESRCH";
+  }
+}
+
+/** At most this many stale directories are removed per process: the sweep is synchronous and runs
+ *  inside the first plugin generation, so a large backlog (a crash loop) must cost a bounded slice
+ *  of startup; what is left goes on the next start. */
+const STALE_CAPTURE_SWEEP_LIMIT = 200;
+
+/** Removes capture directories left in the temp directory by processes that no longer exist: a
+ *  Gateway that was SIGKILLed mid-drain or crashed, or any short-lived CLI run before the exit
+ *  reclaim existed. Runs once per process, on its first capture, so a desk that restarts often
+ *  does not accumulate them (observed 2026-10-09: 44,000 directories, 46 GB, on one desk). Only
+ *  pid-named directories are considered; one from a live pid, another user, or the old unnamed
+ *  shape is left alone. Exported for its test. */
+export function reclaimStalePluginSourceCaptures(
+  root = tmpdir(),
+  limit = STALE_CAPTURE_SWEEP_LIMIT,
+): string[] {
+  const removed: string[] = [];
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(root, { withFileTypes: true });
+  } catch {
+    return removed;
+  }
+  for (const entry of entries) {
+    if (removed.length >= limit) {
+      break;
+    }
+    if (!entry.isDirectory() || !entry.name.startsWith(PLUGIN_SOURCE_CAPTURE_PREFIX)) {
+      continue;
+    }
+    const match = PLUGIN_SOURCE_CAPTURE_NAME_RE.exec(entry.name);
+    if (!match) {
+      continue;
+    }
+    const pid = Number(match[1]);
+    if (pid === process.pid || isProcessAlive(pid)) {
+      continue;
+    }
+    const directory = path.join(root, entry.name);
+    try {
+      fs.rmSync(directory, { recursive: true, force: true });
+      removed.push(directory);
+    } catch {
+      // Another user's directory, or one being removed concurrently: not ours to worry about.
+    }
+  }
+  return removed;
+}
+
 /** Admissions and failed-input receipts belong to one source acquisition lifetime. */
 export function createPluginSourceCapture(execute?: <T>(run: () => T) => T) {
-  const directory = fs.realpathSync(fs.mkdtempSync(path.join(tmpdir(), "openclaw-plugin-build-")));
+  if (!staleCapturesReclaimed) {
+    staleCapturesReclaimed = true;
+    reclaimStalePluginSourceCaptures();
+  }
+  if (!exitReclaimRegistered) {
+    exitReclaimRegistered = true;
+    process.once("exit", reclaimPluginSourceCapturesOnExit);
+  }
+  const directory = fs.realpathSync(
+    fs.mkdtempSync(path.join(tmpdir(), `${PLUGIN_SOURCE_CAPTURE_PREFIX}${process.pid}-`)),
+  );
   fs.chmodSync(directory, 0o700);
+  liveCaptureDirectories.add(directory);
   const inputs = new Map<string, PluginSourceInput>();
   const pendingInputs = new Set<string>();
   const additions = new Set<string>();
@@ -690,6 +785,7 @@ export function createPluginSourceCapture(execute?: <T>(run: () => T) => T) {
         }
       }
       captureFailures.clear();
+      liveCaptureDirectories.delete(directory);
       fs.rmSync(directory, { recursive: true, force: true });
     },
   };
