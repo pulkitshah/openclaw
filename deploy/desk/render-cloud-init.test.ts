@@ -765,6 +765,58 @@ describe("render-cloud-init.mjs", () => {
     });
   });
 
+  describe("--cloud oci", () => {
+    it("opens 80/443 in the image's host firewall and gives root the default user's key, and nothing else changes", () => {
+      const gatewayTokenFile = join(dir, "gateway-token");
+      writeFileSync(gatewayTokenFile, "fixed-gateway-token-fixture\n");
+      const fixedArgs = ["--gateway-token-file", gatewayTokenFile, "--profile", "client"];
+      const oci = render([...fixedArgs, "--cloud", "oci"]);
+      const droplet = render([...fixedArgs, "--cloud", "digitalocean"]);
+      const byDefault = render(fixedArgs);
+
+      expect(droplet).toBe(byDefault);
+      const ociDoc = parseYaml(oci) as CloudInitDoc;
+      const runcmd = ociDoc.runcmd.map((item) =>
+        Array.isArray(item) ? item.join(" ") : String(item),
+      );
+      const firewall = runcmd.find((line) => line.includes("iptables -I INPUT"));
+      expect(firewall).toContain('iptables -C INPUT -p tcp --dport "$port" -j ACCEPT');
+      expect(firewall).toContain("for port in 80 443");
+      expect(firewall).toContain("netfilter-persistent save");
+      const rootKey = runcmd.find((line) => line.includes("/root/.ssh/authorized_keys"));
+      expect(rootKey).toContain("/home/ubuntu/.ssh/authorized_keys");
+      // The oci lines land before the tailnet join so the box is reachable as root as soon as
+      // it is on the tailnet, not only after the multi-minute build.
+      expect(runcmd.indexOf(firewall ?? "")).toBeLessThan(
+        runcmd.findIndex((line) => line.includes("tailscale up --authkey")),
+      );
+      expect(byDefault).not.toContain("iptables -I INPUT");
+      expect(byDefault).not.toContain("/root/.ssh/authorized_keys");
+      // Those two runcmd items are the whole difference: every other part of the document is the
+      // same desk recipe (same files, same install/build steps, same units).
+      const defaultDoc = parseYaml(byDefault) as CloudInitDoc;
+      const ociRuncmdWithoutHostLines = ociDoc.runcmd.filter(
+        (item) =>
+          item !== ociDoc.runcmd[runcmd.indexOf(firewall ?? "")] &&
+          item !== ociDoc.runcmd[runcmd.indexOf(rootKey ?? "")],
+      );
+      expect(ociRuncmdWithoutHostLines).toEqual(defaultDoc.runcmd);
+      expect(ociDoc.write_files).toEqual(defaultDoc.write_files);
+      expect(ociDoc.packages).toEqual(defaultDoc.packages);
+    });
+
+    it("refuses an unknown cloud, printing nothing to stdout", () => {
+      try {
+        render(["--cloud", "aws"]);
+        expect.unreachable("render should have thrown for an unknown --cloud");
+      } catch (error) {
+        expect((error as { status?: number }).status).toBe(1);
+        expect(String((error as { stdout?: string }).stdout ?? "")).toBe("");
+        expect(String((error as { stderr?: string }).stderr ?? "")).toMatch(/--cloud/);
+      }
+    });
+  });
+
   it("leaves the owner profile byte-for-byte identical to the default render", () => {
     // The conditional sections exist for the client profile; the owner profile must render as if
     // they were never introduced, marker lines and all.

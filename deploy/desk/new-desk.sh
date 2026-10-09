@@ -88,6 +88,9 @@ DESK_READY_POLL_SECONDS="${DESK_READY_POLL_SECONDS:-1800}"
 DESK_READY_POLL_INTERVAL_SECONDS="${DESK_READY_POLL_INTERVAL_SECONDS:-10}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# The two readiness waits and the ready banner are shared with new-desk-oci.sh.
+# shellcheck source=lib/desk-wait.sh
+source "$SCRIPT_DIR/lib/desk-wait.sh"
 
 desk_name=""
 size="s-2vcpu-4gb"
@@ -306,35 +309,7 @@ echo "==> Attaching droplet $droplet_id to firewall $firewall_id" >&2
 doctl compute firewall add-droplets "$firewall_id" --droplet-ids "$droplet_id"
 
 echo "==> Waiting up to ${DESK_POLL_SECONDS}s for \"$desk_name\" to join the tailnet" >&2
-tailnet_host=""
-poll_deadline=$((SECONDS + DESK_POLL_SECONDS))
-tailnet_peer_filter='
-  .MagicDNSSuffix as $suffix
-  | [ (((.Peer // {}) | to_entries | map(.value)))[]
-      | select((.HostName // "") | ascii_downcase == ($name | ascii_downcase))
-      | select(.Online == true)
-      | .HostName + "." + ($suffix // "" | rtrimstr("."))
-    ]
-  | (.[0] // empty)
-'
-while (( SECONDS < poll_deadline )); do
-  status_json="$(tailscale status --json 2>/dev/null || true)"
-  if [[ -n "$status_json" ]]; then
-    # jq collects every match into an array and takes the first itself, rather than piping
-    # through `head -n1` — see the SSH-key lookup above for why that pattern is unsafe under
-    # `set -o pipefail`.
-    tailnet_host="$(
-      printf '%s' "$status_json" \
-        | jq -r --arg name "$desk_name" "$tailnet_peer_filter" 2>/dev/null
-    )"
-  fi
-  if [[ -n "$tailnet_host" ]]; then
-    break
-  fi
-  sleep 10
-done
-
-if [[ -z "$tailnet_host" ]]; then
+if ! tailnet_host="$(desk_wait_for_tailnet_host "$desk_name" "$DESK_POLL_SECONDS")"; then
   echo "new-desk.sh: \"$desk_name\" did not appear on the tailnet within ${DESK_POLL_SECONDS}s — check \`tailscale status\` and the droplet's cloud-init log (\`ssh ${DESK_SSH_USER}@${desk_name} 'cloud-init status --long'\` once it is reachable)" >&2
   exit 1
 fi
@@ -345,50 +320,11 @@ fi
 # directly before printing anything, so a printed URL always actually works.
 control_ui_url="https://${tailnet_host}"
 echo "==> Waiting up to ${DESK_READY_POLL_SECONDS}s for the Gateway at ${control_ui_url} to answer (checkout, install, build, Chromium, reboot — typically 15-25 minutes)" >&2
-gateway_ready=0
-ready_deadline=$((SECONDS + DESK_READY_POLL_SECONDS))
-next_progress_at=$((SECONDS + 60))
-while (( SECONDS < ready_deadline )); do
-  if curl -fsS --max-time 5 -o /dev/null "${control_ui_url}/healthz" 2>/dev/null; then
-    gateway_ready=1
-    break
-  fi
-  if (( SECONDS >= next_progress_at )); then
-    echo "==> Still building \"$desk_name\" ($(( SECONDS / 60 ))m elapsed)..." >&2
-    next_progress_at=$((SECONDS + 60))
-  fi
-  sleep "$DESK_READY_POLL_INTERVAL_SECONDS"
-done
-
-if [[ "$gateway_ready" -ne 1 ]]; then
+if ! desk_wait_for_gateway "$desk_name" "$control_ui_url" "$DESK_READY_POLL_SECONDS" "$DESK_READY_POLL_INTERVAL_SECONDS"; then
   echo "new-desk.sh: \"$desk_name\" joined the tailnet but its Gateway never answered ${control_ui_url}/healthz within ${DESK_READY_POLL_SECONDS}s — check \`ssh ${DESK_SSH_USER}@${desk_name} journalctl -u openclaw-gateway -u cloud-init-output --no-pager\`" >&2
   exit 4
 fi
 
-# A desk whose Chromium install or fork checkout failed still answers /healthz, so "the Gateway
-# is up" is not "provisioning succeeded" — cloud-init leaves /var/lib/openclaw/provision-failed
-# behind in either case (see cloud-init.yaml.tmpl). Surface it here rather than letting it show up
-# much later as a browser step dying mid-Duty; desk-health.sh reports the same marker as
-# `provisioned: false` to the Duties page's Desk card.
-if ssh -o BatchMode=yes "${DESK_SSH_USER}@${desk_name}" 'test -f /var/lib/openclaw/provision-failed' 2>/dev/null; then
-  echo >&2
-  echo "WARNING: \"$desk_name\" left /var/lib/openclaw/provision-failed behind — part of first boot failed (managed Chromium, or the fork checkout). The Gateway is up, but browser Duties will fail until it is fixed. Check: ssh ${DESK_SSH_USER}@${desk_name} journalctl -u cloud-init-output --no-pager" >&2
-fi
-
-echo
-echo "Desk \"$desk_name\" is up."
-echo "Control UI: ${control_ui_url}"
-# `ssh -t` (the Gateway refuses to print its token without a TTY on both ends) and `sudo -H` (so
-# the CLI reads the service user's own ~/.openclaw, not root's) are both required — without
-# either, this very first operator step fails.
-echo "Sign in:    ssh -t ${DESK_SSH_USER}@${desk_name} 'sudo -H -u openclaw node /opt/openclaw/openclaw.mjs gateway auth-token --show'"
-if [[ "$profile" == "client" ]]; then
-  # Nothing is configured beyond desk plumbing on a client desk, so say where the client picks up
-  # rather than leaving a Control UI that looks half-finished.
-  echo
-  echo "Client desk: the Control UI opens on the same onboarding a fresh install shows."
-  echo "  1. Model Setup - connect Claude by signing in."
-  echo "  2. First conversation - name the assistant when it asks."
-  echo "  3. Settings > Telegram - paste a BotFather token to add Telegram."
-  echo "See deploy/desk/README.md (\"Client desk\") for what to hand over."
-fi
+ssh_target="${DESK_SSH_USER}@${desk_name}"
+desk_warn_if_provision_failed "$ssh_target" "$desk_name"
+desk_print_ready "$desk_name" "$control_ui_url" "$ssh_target" "$profile"

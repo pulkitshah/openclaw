@@ -126,6 +126,53 @@ Gmail connect is a coming feature on a client desk: the mail-trigger setup below
 and per-desk Google Cloud work, so a client desk ships without hooks and without the webhook
 Funnel rather than with a half-configured one.
 
+## Oracle Cloud desk
+
+The same desk, on an Oracle Cloud Always Free Ampere A1 (arm64) instance instead of a droplet,
+so a client desk costs nothing to host. `new-desk-oci.sh` boots the identical cloud-init recipe
+with `--cloud oci`, which adds only what Oracle's Ubuntu image needs: its host firewall opened
+on 80/443 (the image rejects every inbound port but 22 on its own, independently of the VCN
+security list) and root given the default user's SSH key, so `ssh root@<desk-name>` and
+`roll.sh` work exactly as they do for a droplet. Everything else — units, Chromium, Claude CLI,
+gog (arm64 build, pinned checksum), the metadata guard — is the shared template.
+
+One-time setup on the operator's Mac: an Oracle tenancy (home region fixed at sign-up; a desk's
+latency to Indian clients is best from `ap-mumbai-1` or `ap-hyderabad-1`), an API key configured
+for the `oci` CLI (`pip install oci-cli` into a venv if Homebrew's formula misbehaves), and a
+VCN with an internet gateway, a default route, a public subnet (default name `vasudev-public`)
+and a security list allowing TCP 22 from the operator's IP, TCP 80/443 from anywhere and UDP
+41641 (Tailscale) from anywhere. Then:
+
+```sh
+deploy/desk/new-desk-oci.sh <desk-name> --profile client \
+  --ts-authkey-file <path-to-a-file-holding-one-tailscale-preauth-key>
+```
+
+Defaults are the Always Free shape: 1 OCPU / 6 GB, 60 GB boot volume, the newest Canonical
+Ubuntu 24.04 aarch64 image, the tenancy's root compartment and first availability domain. The
+allowance is **2 OCPUs and 12 GB per tenancy in total**, so two client desks fit, or one bigger
+one with `--ocpus 2 --memory-gb 12`; the script refuses anything above the allowance unless
+`--allow-paid` says the Oracle bill is intended.
+
+What is different in practice:
+
+- **Capacity.** The free A1 pool is usually full: the launch is refused with "Out of host
+  capacity" and the script retries every 5 minutes (`DESK_OCI_RETRY_SECONDS`) for up to a day
+  (`--retry-minutes`). Leave it running; a Pay-As-You-Go upgrade of the tenancy (still $0 inside
+  the free limits) noticeably improves the odds. Nothing is created until a launch succeeds.
+- **Build time.** First boot builds the fork on one A1 core, so the Gateway readiness wait can
+  run past the 15-25 minutes a 2 vCPU droplet takes; raise `DESK_READY_POLL_SECONDS` rather than
+  relaunching.
+- **Idle reclamation.** Oracle may reclaim an Always Free instance whose 7-day CPU, memory and
+  network all stay under 20%. A desk with a client talking to it and the health timer running
+  is well above that; a desk parked for a week is not.
+- **Public reachability.** The front door reaches a desk on its own box through the desk's own
+  Caddy on `<public-ip-with-dashes>.sslip.io` (the Prasthan pattern in
+  [Adding a client](#client-desk)); the script prints that host at the end. Caddy is not
+  installed by cloud-init — install it when wiring the route.
+- **Tear down.** `oci compute instance terminate --instance-id <id> --preserve-boot-volume
+false`, then remove the node from the tailnet admin console as for a droplet.
+
 ## First sign-in
 
 1. Run the command `new-desk.sh` printed to reveal the Gateway token:

@@ -6,7 +6,7 @@
  *   node deploy/desk/render-cloud-init.mjs \
  *     --name <desk> --ts-authkey-file <f> [--profile owner|client] \
  *     [--tg-token-file <f>] [--owner-target <id>] --git-ref <ref> \
- *     [--gateway-token-file <f>] [--repo-url <url>] [--preflight] \
+ *     [--gateway-token-file <f>] [--repo-url <url>] [--cloud digitalocean|oci] [--preflight] \
  *     > /tmp/<desk>.cloud-init.yaml
  *
  * Reads every secret input from a file (never from argv, so they never land in shell history or
@@ -25,6 +25,11 @@
  *          anyone — Model Setup, the first-conversation naming ritual, and Telegram added from
  *          Settings — instead of inheriting the operator's setup. `--tg-token-file` and
  *          `--owner-target` are then unused (nothing would read them) and may be omitted.
+ *
+ * `--cloud` picks the HOST the desk boots on (default digitalocean). The recipe is the same
+ * everywhere; `oci` (Oracle Cloud, used for the Always Free Ampere A1 desks) additionally opens
+ * 80/443 in the Ubuntu image's own host firewall and gives root the default user's SSH key, so
+ * the box is reachable the way a droplet is. See deploy/desk/new-desk-oci.sh.
  *
  * The desk clones the operator's own fork, never a name hardcoded in this file: `--repo-url`
  * (or the `DESK_FORK_REPO_URL` env var) overrides it explicitly, and by default it is read from
@@ -80,6 +85,13 @@ const PROFILES = {
   client: { TELEGRAM: false, GMAIL_HOOKS: false },
 };
 const DEFAULT_PROFILE = "owner";
+/** The hosts a desk boots on, and the host-specific cloud-init section each one renders. Same
+ *  idea as PROFILES: a `{{#IF:NAME}}` name the template may use, and a bug if one is unknown. */
+const CLOUDS = {
+  digitalocean: { OCI_HOST: false },
+  oci: { OCI_HOST: true },
+};
+const DEFAULT_CLOUD = "digitalocean";
 /** Config template per profile — see the `--profile` note in this file's header comment. */
 const CONFIG_TEMPLATE_BY_PROFILE = {
   owner: "openclaw.json.tmpl",
@@ -284,10 +296,10 @@ function renderOpenClawConfig(profile, substitutions) {
   return JSON.stringify(parsed, null, 2) + "\n";
 }
 
-function renderCloudInit({ profile, configSubstitutions, values }) {
+function renderCloudInit({ profile, sections, configSubstitutions, values }) {
   const template = applyConditionalSections(
     readFileSync(join(SCRIPT_DIR, "cloud-init.yaml.tmpl"), "utf8"),
-    PROFILES[profile],
+    sections,
   );
   const configJson = renderOpenClawConfig(profile, configSubstitutions);
 
@@ -372,6 +384,7 @@ function main() {
       "owner-target": { type: "string" },
       "git-ref": { type: "string" },
       "repo-url": { type: "string" },
+      cloud: { type: "string" },
       preflight: { type: "boolean", default: false },
     },
   });
@@ -383,7 +396,15 @@ function main() {
         `${Object.keys(PROFILES).join(", ")}`,
     );
   }
-  const sections = PROFILES[profile];
+  const cloud = values.cloud ?? DEFAULT_CLOUD;
+  if (!(cloud in CLOUDS)) {
+    fail(
+      `--cloud ${JSON.stringify(cloud)} is invalid: must be one of ${Object.keys(CLOUDS).join(", ")}`,
+    );
+  }
+  // Profile sections (whose desk) and cloud sections (which host) are disjoint by construction,
+  // so one merged map is what the template's conditional blocks resolve against.
+  const sections = { ...PROFILES[profile], ...CLOUDS[cloud] };
 
   // A client desk renders no Telegram channel, so it needs neither the bot token nor the owner
   // target; the owner's own desk still requires both.
@@ -448,7 +469,12 @@ function main() {
     templateValues.HOOKS_TOKEN = randomBytes(32).toString("base64url");
   }
 
-  const rendered = renderCloudInit({ profile, configSubstitutions, values: templateValues });
+  const rendered = renderCloudInit({
+    profile,
+    sections,
+    configSubstitutions,
+    values: templateValues,
+  });
 
   assertFullyRendered(rendered);
   process.stdout.write(rendered);

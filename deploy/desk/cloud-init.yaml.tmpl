@@ -162,6 +162,27 @@ runcmd:
   # Ownership of the state dir write_files created ahead of the openclaw user's home existing.
   - [install, -d, -o, openclaw, -g, openclaw, -m, '0700', /home/openclaw/.openclaw]
   - [install, -d, -o, root, -g, root, -m, '0755', /var/lib/openclaw]
+{{#IF:OCI_HOST}}
+
+  # Oracle Cloud host (render-cloud-init.mjs --cloud oci). Two things differ from a DigitalOcean
+  # droplet and both would otherwise surface as "the box is up but unreachable":
+  # 1. Oracle's Ubuntu image ships a host firewall (/etc/iptables/rules.v4, loaded by
+  #    netfilter-persistent) that rejects every inbound port but 22, independently of the VCN
+  #    security list. Open 80/443 for the desk's own Caddy and persist the rules so a reboot keeps
+  #    them. `-C` first so a re-run never stacks duplicates.
+  # 2. The image leaves a "Please login as the user ubuntu" stub in root's authorized_keys. The
+  #    operator scripts (roll.sh, migrations, the sign-in command new-desk prints) SSH in as root
+  #    the way they do on DigitalOcean, so give root the key the image gave the default user.
+  - >-
+    for port in 80 443; do
+    iptables -C INPUT -p tcp --dport "$port" -j ACCEPT 2>/dev/null ||
+    iptables -I INPUT -p tcp --dport "$port" -j ACCEPT;
+    done;
+    netfilter-persistent save 2>/dev/null || iptables-save > /etc/iptables/rules.v4
+  - >-
+    install -d -m 0700 -o root -g root /root/.ssh &&
+    install -m 0600 -o root -g root /home/ubuntu/.ssh/authorized_keys /root/.ssh/authorized_keys
+{{/IF}}
 
   # Apply the Chromium-sandbox sysctl write_files wrote above, before Chromium is ever installed
   # or launched (spec section 4.7; see the comment on that write_files entry for why).

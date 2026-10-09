@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-// Exercises new-desk.sh, roll.sh, and snapshot.sh against stub `doctl`/`ssh`/`tailscale`/`node`
+// Exercises new-desk.sh, new-desk-oci.sh, roll.sh, and snapshot.sh against stub `doctl`/`oci`/`ssh`/`tailscale`/`node`
 // executables placed ahead of the real PATH in a temp bin dir. Each stub logs its argv (one line
 // per invocation) to a log file and, for the handful of calls whose output the scripts actually
 // parse, prints canned JSON driven by env vars the test sets per case. `node` is a passthrough
@@ -18,6 +18,7 @@ const NEW_DESK = join(HERE, "new-desk.sh");
 const ROLL = join(HERE, "roll.sh");
 const ROLL_REMOTE = join(HERE, "remote", "roll-remote.sh");
 const SNAPSHOT = join(HERE, "snapshot.sh");
+const NEW_DESK_OCI = join(HERE, "new-desk-oci.sh");
 const REAL_NODE = process.execPath;
 
 const TS_AUTHKEY_SECRET = "tskey-auth-FIXTURE-SECRET-0123456789";
@@ -120,6 +121,59 @@ fi
 exit 0`,
   );
 
+  // new-desk-oci.sh's launch loop: the first OCI_LAUNCH_FAIL_COUNT `compute instance launch`
+  // calls fail the way Oracle's Always Free A1 pool usually does ("Out of host capacity"), then
+  // one succeeds with OCI_LAUNCH_JSON. Attempts are counted in a file because each call is a
+  // fresh process. Lookups answer the canned JSON the script parses.
+  writeStub(
+    binDir,
+    "oci",
+    `set -euo pipefail
+printf '%s\\n' "oci $*" >> "\${OCI_LOG:?}"
+args="$*"
+case "$args" in
+  compute\\ instance\\ launch*)
+    # Record whether the user-data handed over is gzip (magic 1f 8b): Oracle's 32 KB metadata cap
+    # is what the compression exists for, and the stub is the only place that sees the file.
+    user_data=""
+    while [ $# -gt 0 ]; do
+      if [ "$1" = "--user-data-file" ]; then user_data="$2"; fi
+      shift
+    done
+    if [ -n "$user_data" ] && [ "$(head -c 2 "$user_data" | od -An -tx1 | tr -d ' \\n')" = "1f8b" ]; then
+      printf '%s\\n' "oci user-data is gzip" >> "\${OCI_LOG:?}"
+    fi
+    count_file="\${OCI_LAUNCH_COUNT_FILE:?}"
+    count=0
+    if [ -f "$count_file" ]; then count="$(cat "$count_file")"; fi
+    count=$((count + 1))
+    printf '%s' "$count" > "$count_file"
+    if [ "$count" -le "\${OCI_LAUNCH_FAIL_COUNT:-0}" ]; then
+      printf '%s\\n' 'ServiceError:' '{' '    "code": "InternalError",' '    "message": "Out of host capacity.",' '    "status": 500' '}' >&2
+      exit 1
+    fi
+    if [ -n "\${OCI_LAUNCH_FATAL:-}" ]; then
+      printf '%s\\n' "$OCI_LAUNCH_FATAL" >&2
+      exit 1
+    fi
+    # The real CLI narrates --wait-for-state on stderr next to the JSON on stdout; a script that
+    # parses the two streams together mistakes this success for a failure.
+    printf '%s\\n' "Action completed. Waiting until the resource has entered state: ('RUNNING',)" >&2
+    printf '%s' "\${OCI_LAUNCH_JSON:-}" ;;
+  compute\\ instance\\ list-vnics*)
+    printf '%s' "\${OCI_VNICS_JSON:-}" ;;
+  iam\\ availability-domain\\ list*)
+    printf '%s' "\${OCI_AD_LIST_JSON:-}" ;;
+  network\\ subnet\\ list*)
+    printf '%s' "\${OCI_SUBNET_LIST_JSON:-}" ;;
+  compute\\ image\\ list*)
+    printf '%s' "\${OCI_IMAGE_LIST_JSON:-}" ;;
+  *)
+    : ;;
+esac
+exit 0`,
+  );
+
   writeStub(
     binDir,
     "node",
@@ -156,6 +210,8 @@ describe("deploy/desk operator scripts", () => {
   let dir: string;
   let binDir: string;
   let doctlLog: string;
+  let ociLog: string;
+  let ociLaunchCountFile: string;
   let sshLog: string;
   let tailscaleLog: string;
   let nodeLog: string;
@@ -168,12 +224,14 @@ describe("deploy/desk operator scripts", () => {
     mkdirSync(binDir);
     installStubs(binDir);
     doctlLog = join(dir, "doctl.log");
+    ociLog = join(dir, "oci.log");
+    ociLaunchCountFile = join(dir, "oci-launch-count");
     sshLog = join(dir, "ssh.log");
     tailscaleLog = join(dir, "tailscale.log");
     nodeLog = join(dir, "node.log");
     curlLog = join(dir, "curl.log");
     curlCountFile = join(dir, "curl-count");
-    for (const log of [doctlLog, sshLog, tailscaleLog, nodeLog, curlLog]) {
+    for (const log of [doctlLog, ociLog, sshLog, tailscaleLog, nodeLog, curlLog]) {
       writeFileSync(log, "");
     }
   });
@@ -187,6 +245,8 @@ describe("deploy/desk operator scripts", () => {
       PATH: `${binDir}:${process.env.PATH ?? ""}`,
       REAL_NODE,
       DOCTL_LOG: doctlLog,
+      OCI_LOG: ociLog,
+      OCI_LAUNCH_COUNT_FILE: ociLaunchCountFile,
       SSH_LOG: sshLog,
       TAILSCALE_LOG: tailscaleLog,
       NODE_LOG: nodeLog,
@@ -215,6 +275,7 @@ describe("deploy/desk operator scripts", () => {
   function allLogsAndOutput(...runs: RunResult[]): string {
     const logs = [
       readLog(doctlLog),
+      readLog(ociLog),
       readLog(sshLog),
       readLog(tailscaleLog),
       readLog(nodeLog),
@@ -602,6 +663,167 @@ describe("deploy/desk operator scripts", () => {
       expect(result.status).toBe(0);
       expect(result.stderr).not.toContain("provision-failed");
       expect(result.stdout).toContain(`Desk "${deskName}" is up.`);
+    });
+  });
+
+  describe("new-desk-oci.sh", () => {
+    let tsAuthkeyFile: string;
+    const deskName = "desk-oci-proof";
+    const instanceId = "ocid1.instance.oc1.ap-mumbai-1.fixtureinstance";
+
+    beforeEach(() => {
+      tsAuthkeyFile = join(dir, "ts-authkey");
+      writeFileSync(tsAuthkeyFile, `${TS_AUTHKEY_SECRET}\n`);
+      // The script embeds a local public key; point it at a fixture rather than the runner's own.
+      writeFileSync(join(dir, "fixture.pub"), "ssh-ed25519 AAAAfixture fixture@test\n");
+    });
+
+    function happyPathEnv(extra: Record<string, string> = {}): Record<string, string> {
+      return {
+        DESK_POLL_SECONDS: "5",
+        DESK_OCI_RETRY_SECONDS: "0",
+        DESK_OCI_COMPARTMENT_ID: "ocid1.tenancy.oc1..fixture",
+        DESK_SSH_PUBLIC_KEY: join(dir, "fixture.pub"),
+        OCI_AD_LIST_JSON: JSON.stringify({ data: [{ name: "XXXX:AP-MUMBAI-1-AD-1" }] }),
+        OCI_SUBNET_LIST_JSON: JSON.stringify({ data: [{ id: "ocid1.subnet.oc1..fixture" }] }),
+        OCI_IMAGE_LIST_JSON: JSON.stringify({ data: [{ id: "ocid1.image.oc1..fixture" }] }),
+        OCI_LAUNCH_JSON: JSON.stringify({ data: { id: instanceId, "lifecycle-state": "RUNNING" } }),
+        OCI_VNICS_JSON: JSON.stringify({ data: [{ "public-ip": "10.0.0.5" }] }),
+        TAILSCALE_STATUS_JSON: JSON.stringify({
+          MagicDNSSuffix: "tailnet-fixture.ts.net.",
+          Peer: { peer1: { HostName: deskName, Online: true } },
+        }),
+        ...extra,
+      };
+    }
+
+    it("renders the oci cloud-init, launches an A1 instance with it, retries capacity refusals, and prints the Control UI URL", () => {
+      const result = run(
+        NEW_DESK_OCI,
+        [deskName, "--profile", "client", "--ts-authkey-file", tsAuthkeyFile],
+        happyPathEnv({ OCI_LAUNCH_FAIL_COUNT: "2" }),
+      );
+      expect(result.status, result.stderr).toBe(0);
+
+      const nodeCalls = readLog(nodeLog);
+      expect(nodeCalls).toContain("render-cloud-init.mjs");
+      expect(nodeCalls).toContain("--cloud oci");
+      expect(nodeCalls).toContain("--profile client");
+
+      const ociCalls = readLog(ociLog);
+      const launches = ociCalls
+        .split("\n")
+        .filter((line) => line.includes("compute instance launch"));
+      expect(launches).toHaveLength(3);
+      expect(result.stderr).toContain("attempt 1: Out of host capacity.");
+      expect(result.stderr).toContain("attempt 2: Out of host capacity.");
+      const launch = launches[2];
+      expect(launch).toContain("--shape VM.Standard.A1.Flex");
+      expect(launch).toContain('--shape-config {"ocpus":1,"memoryInGBs":6}');
+      expect(launch).toContain("--image-id ocid1.image.oc1..fixture");
+      expect(launch).toContain("--subnet-id ocid1.subnet.oc1..fixture");
+      expect(launch).toContain("--availability-domain XXXX:AP-MUMBAI-1-AD-1");
+      expect(launch).toContain(`--display-name ${deskName} --hostname-label ${deskName}`);
+      expect(launch).toContain("--assign-public-ip true");
+      expect(launch).toContain("--user-data-file ");
+      expect(ociCalls).toContain("oci user-data is gzip");
+      expect(launch).toContain(`--ssh-authorized-keys-file ${join(dir, "fixture.pub")}`);
+      expect(launch).toContain("--boot-volume-size-in-gbs 60");
+      expect(launch).toContain("--wait-for-state RUNNING");
+      expect(ociCalls).toContain(`compute instance list-vnics --instance-id ${instanceId}`);
+      expect(result.stderr).toContain(`Instance ${instanceId} is RUNNING`);
+
+      expect(result.stdout).toContain(`Control UI: https://${deskName}.tailnet-fixture.ts.net`);
+      expect(result.stdout).toContain(`ssh -t root@${deskName}`);
+      expect(result.stdout).toContain("Public IP:  10.0.0.5");
+      expect(result.stdout).toContain("10-0-0-5.sslip.io");
+      expect(readLog(curlLog)).toContain(`https://${deskName}.tailnet-fixture.ts.net/healthz`);
+      // Secrets never reach argv, stdout or stderr - only the 0600 rendered file, which is gone.
+      expect(allLogsAndOutput(result)).not.toContain(TS_AUTHKEY_SECRET);
+    });
+
+    it("refuses a shape above the Always Free allowance unless --allow-paid is given", () => {
+      const refused = run(
+        NEW_DESK_OCI,
+        [deskName, "--profile", "client", "--ts-authkey-file", tsAuthkeyFile, "--ocpus", "3"],
+        happyPathEnv(),
+      );
+      expect(refused.status).toBe(2);
+      expect(refused.stderr).toContain("exceeds the Always Free A1 allowance");
+      expect(readLog(ociLog)).not.toContain("compute instance launch");
+      const bigDisk = run(
+        NEW_DESK_OCI,
+        [deskName, "--profile", "client", "--ts-authkey-file", tsAuthkeyFile, "--boot-gb", "250"],
+        happyPathEnv(),
+      );
+      expect(bigDisk.status).toBe(2);
+      expect(bigDisk.stderr).toContain("block-storage allowance");
+
+      const allowed = run(
+        NEW_DESK_OCI,
+        [
+          deskName,
+          "--profile",
+          "client",
+          "--ts-authkey-file",
+          tsAuthkeyFile,
+          "--ocpus",
+          "3",
+          "--memory-gb",
+          "18",
+          "--allow-paid",
+        ],
+        happyPathEnv(),
+      );
+      expect(allowed.status, allowed.stderr).toBe(0);
+      expect(readLog(ociLog)).toContain('--shape-config {"ocpus":3,"memoryInGBs":18}');
+    });
+
+    it("stops on a launch error that is not a capacity refusal, and gives up when the retry window runs out", () => {
+      const fatal = run(
+        NEW_DESK_OCI,
+        [deskName, "--profile", "client", "--ts-authkey-file", tsAuthkeyFile],
+        happyPathEnv({
+          OCI_LAUNCH_FATAL: '{"code": "LimitExceeded", "message": "boot volume quota"}',
+        }),
+      );
+      expect(fatal.status).toBe(1);
+      expect(fatal.stderr).toContain("launch failed");
+      expect(fatal.stderr).toContain("LimitExceeded");
+      expect(
+        readLog(ociLog)
+          .split("\n")
+          .filter((l) => l.includes("compute instance launch")),
+      ).toHaveLength(1);
+
+      writeFileSync(ociLaunchCountFile, "0");
+      const gaveUp = run(
+        NEW_DESK_OCI,
+        [
+          deskName,
+          "--profile",
+          "client",
+          "--ts-authkey-file",
+          tsAuthkeyFile,
+          "--retry-minutes",
+          "0",
+        ],
+        happyPathEnv({ OCI_LAUNCH_FAIL_COUNT: "5" }),
+      );
+      expect(gaveUp.status).toBe(1);
+      expect(gaveUp.stderr).toContain("gave up after 1 attempts");
+      expect(gaveUp.stderr).toContain("Pay-As-You-Go");
+    });
+
+    it("requires the Telegram token and owner target under the owner profile, like new-desk.sh", () => {
+      const result = run(
+        NEW_DESK_OCI,
+        [deskName, "--ts-authkey-file", tsAuthkeyFile],
+        happyPathEnv(),
+      );
+      expect(result.status).toBe(2);
+      expect(result.stderr).toContain("Usage: new-desk-oci.sh");
+      expect(readLog(ociLog)).not.toContain("compute instance launch");
     });
   });
 
