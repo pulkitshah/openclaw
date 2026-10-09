@@ -122,33 +122,16 @@ if [[ ! -f "$REMOTE_SCRIPT" ]]; then
   echo "roll.sh: the remote roll script is missing at $REMOTE_SCRIPT — run roll.sh from a complete checkout of this repo" >&2
   exit 1
 fi
+# The busy check is the shared one; like the remote script above, it ships in the tree next to
+# this script, so the same "run from a complete checkout" rule applies.
+# shellcheck source=lib/desk-ops.sh
+source "$SCRIPT_DIR/lib/desk-ops.sh"
 
 ssh_target="${DESK_SSH_USER}@${desk_name}"
 
 if [[ "$force" -eq 0 ]]; then
   echo "==> Checking whether \"$desk_name\" is busy" >&2
-  # `sudo -H`: stock Ubuntu sudoers is `env_reset` without `always_set_home`, so plain
-  # `sudo -u openclaw` leaves $HOME=/root and the CLI reads /root/.openclaw instead of the
-  # service user's own config (one `sudo -H` convention across this repo's desk commands).
-  # Trusted-proxy desks (a desk sitting behind the front door) have no token this local CLI
-  # call can present; per docs/gateway/trusted-proxy-auth.md, an internal same-host caller falls
-  # back to `gateway.auth.password` instead. When that secret file exists on the desk, read it
-  # and pass it through; a desk still on token auth has no such file and this stays a no-op.
-  remote_busy_check='PW_FILE=/etc/openclaw/secrets/gateway-admin-password; if [ -f "$PW_FILE" ]; then sudo -H -u openclaw node /opt/openclaw/openclaw.mjs gateway call duties.runs.recent --params "{\"limit\":10}" --json --password "$(cat "$PW_FILE")"; else sudo -H -u openclaw node /opt/openclaw/openclaw.mjs gateway call duties.runs.recent --params "{\"limit\":10}" --json; fi'
-  runs_json="$(ssh "$ssh_target" "$remote_busy_check")"
-  # The jq filter itself takes the first match (`.[0] // empty`) instead of piping through
-  # `head -n1` — under `set -o pipefail`, `head -n1` closing its read end after one line can
-  # deliver jq a SIGPIPE when more than one run is busy (the exact condition this check exists
-  # to catch), which would abort this script before it ever reaches the exit-3 message below.
-  busy_line="$(
-    printf '%s' "$runs_json" \
-      | jq -r '
-          [ .runs[]?
-            | select(.status == "running" or .status == "needs_input" or .status == "queued")
-            | "\(.id)\t\(.status)"
-          ] | (.[0] // empty)
-        '
-  )"
+  busy_line="$(desk_busy_run "$ssh_target")"
   if [[ -n "$busy_line" ]]; then
     busy_id="${busy_line%%$'\t'*}"
     busy_status="${busy_line##*$'\t'}"

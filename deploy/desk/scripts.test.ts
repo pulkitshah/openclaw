@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-// Exercises new-desk.sh, new-desk-oci.sh, roll.sh, and snapshot.sh against stub `doctl`/`oci`/`ssh`/`tailscale`/`node`
+// Exercises new-desk.sh, new-desk-oci.sh, roll.sh, migrate-desk.sh, and snapshot.sh against stub `doctl`/`oci`/`ssh`/`tailscale`/`node`
 // executables placed ahead of the real PATH in a temp bin dir. Each stub logs its argv (one line
 // per invocation) to a log file and, for the handful of calls whose output the scripts actually
 // parse, prints canned JSON driven by env vars the test sets per case. `node` is a passthrough
@@ -19,6 +19,7 @@ const ROLL = join(HERE, "roll.sh");
 const ROLL_REMOTE = join(HERE, "remote", "roll-remote.sh");
 const SNAPSHOT = join(HERE, "snapshot.sh");
 const NEW_DESK_OCI = join(HERE, "new-desk-oci.sh");
+const MIGRATE = join(HERE, "migrate-desk.sh");
 const REAL_NODE = process.execPath;
 
 const TS_AUTHKEY_SECRET = "tskey-auth-FIXTURE-SECRET-0123456789";
@@ -73,6 +74,9 @@ fi
 remote="\${*: -1}"
 case "$remote" in
   *duties.runs.recent*)
+    if [ "\${SSH_RUNS_RECENT_EXIT_CODE:-0}" != "0" ]; then
+      exit "\${SSH_RUNS_RECENT_EXIT_CODE}"
+    fi
     if [ -n "\${SSH_RUNS_RECENT_JSON:-}" ]; then
       printf '%s' "$SSH_RUNS_RECENT_JSON"
     else
@@ -88,6 +92,29 @@ case "$remote" in
     fi
     exit 1
     ;;
+  # migrate-desk.sh: both desks' refs (SSH_GIT_REF_MISMATCH makes the target differ), the
+  # source's Caddyfile, the target's public IP and tailnet name, and the copy pipeline.
+  *"rev-parse HEAD"*)
+    if [ "\${SSH_GIT_REF_MISMATCH:-0}" = "1" ] && [ "\${*: -2:1}" = "root@desk-target" ]; then
+      printf 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\\n'
+    else
+      printf 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\\n'
+    fi
+    ;;
+  "test -f /etc/caddy/Caddyfile")
+    [ -n "\${SSH_CADDYFILE:-}" ] ;;
+  "cat /etc/caddy/Caddyfile")
+    printf '%s' "\${SSH_CADDYFILE:-}" ;;
+  *api.ipify.org*)
+    printf '%s' "\${SSH_PUBLIC_IP:-}" ;;
+  *"tailscale status --json"*)
+    printf '%s' "\${SSH_TAILSCALE_SELF_JSON:-}" ;;
+  *"tar -C / -czf"*)
+    exit "\${SSH_COPY_EXIT_CODE:-0}" ;;
+  *"ip -4 route get"*)
+    printf '%s' "\${SSH_BIND_IP:-}" ;;
+  "systemctl disable --now openclaw-gateway")
+    if [ "\${*: -2:1}" = "root@desk-target" ]; then exit "\${SSH_TARGET_STOP_EXIT_CODE:-0}"; fi ;;
   *)
     : ;;
 esac
@@ -827,6 +854,185 @@ describe("deploy/desk operator scripts", () => {
     });
   });
 
+  describe("migrate-desk.sh", () => {
+    const sourceCaddyfile = [
+      "206-189-128-145.sslip.io {",
+      "\tbind 206.189.128.145",
+      "\tbasicauth {",
+      '\t\t"client@example.com" $2a$14$fixturehash',
+      "\t}",
+      "\treverse_proxy 127.0.0.1:18789 {",
+      "\t\theader_up X-Forwarded-User {http.auth.user.id}",
+      "\t}",
+      "}",
+      "",
+    ].join("\n");
+
+    function env(extra: Record<string, string> = {}): Record<string, string> {
+      return {
+        SSH_PUBLIC_IP: "10.9.8.7",
+        SSH_BIND_IP: "10.9.8.7",
+        SSH_TAILSCALE_SELF_JSON: JSON.stringify({
+          Self: { DNSName: "desk-target.tailnet-fixture.ts.net." },
+        }),
+        ...extra,
+      };
+    }
+
+    it("refuses when the two desks run different refs, before stopping anything", () => {
+      const result = run(
+        MIGRATE,
+        ["desk-source", "desk-target"],
+        env({ SSH_GIT_REF_MISMATCH: "1" }),
+      );
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain("roll the target to the same ref first");
+      expect(readLog(sshLog)).not.toContain("systemctl disable --now openclaw-gateway");
+    });
+
+    it("exits 3 and never stops the source when a Duty run is busy", () => {
+      const result = run(
+        MIGRATE,
+        ["desk-source", "desk-target"],
+        env({
+          SSH_RUNS_RECENT_JSON: JSON.stringify({ runs: [{ id: "run-busy", status: "running" }] }),
+        }),
+      );
+      expect(result.status).toBe(3);
+      expect(result.stderr).toContain("run run-busy is running");
+      expect(readLog(sshLog)).not.toContain("systemctl disable --now openclaw-gateway");
+    });
+
+    it("stops+disables the source, stops the target, streams the state, carries the Caddy front to the new host, and starts the target", () => {
+      const result = run(
+        MIGRATE,
+        ["desk-source", "desk-target"],
+        env({ SSH_CADDYFILE: sourceCaddyfile }),
+      );
+      expect(result.status, result.stderr).toBe(0);
+      const ssh = readLog(sshLog);
+      const lines = ssh.split("\n");
+      const at = (needle: string) => {
+        const index = lines.findIndex((line) => line.includes(needle));
+        expect(index, needle).toBeGreaterThanOrEqual(0);
+        return index;
+      };
+      const disableSource = at("root@desk-source systemctl disable --now openclaw-gateway");
+      const stopTarget = at("root@desk-target systemctl disable --now openclaw-gateway");
+      const copyOut = at(
+        "root@desk-source tar -C / -czf - --ignore-failed-read home/openclaw/.openclaw",
+      );
+      const copyIn = at(
+        "root@desk-target rm -rf /home/openclaw/.openclaw && tar -C / -xzpf - --same-owner",
+      );
+      const startTarget = at("root@desk-target systemctl enable --now openclaw-gateway");
+      expect(stopTarget).toBeLessThan(disableSource);
+      expect(disableSource).toBeLessThan(Math.min(copyOut, copyIn));
+      expect(Math.max(copyOut, copyIn)).toBeLessThan(startTarget);
+      // Everything that must move, nothing that must not.
+      for (const moved of [
+        "home/openclaw/.claude",
+        "home/openclaw/.gogcli",
+        "etc/openclaw/keyfile",
+        "etc/openclaw/secrets",
+      ]) {
+        expect(lines[copyOut]).toContain(moved);
+      }
+      expect(lines[copyOut]).not.toContain("home/openclaw/.cache");
+      expect(lines[copyOut]).not.toContain("opt/openclaw");
+      // The Caddyfile written to the target (captured from the ssh stdin) names the new host/IP
+      // and keeps the credential; the Gateway's allowed origins are rewritten the same way.
+      expect(ssh).toContain("10-9-8-7.sslip.io {");
+      expect(ssh).toContain("bind 10.9.8.7");
+      expect(ssh).toContain("$2a$14$fixturehash");
+      expect(ssh).not.toContain("206-189-128-145.sslip.io {");
+      expect(ssh).toContain("caddy validate --config /etc/caddy/Caddyfile");
+      expect(ssh).toContain("https://10-9-8-7.sslip.io");
+      expect(ssh).toContain("https://desk-target.tailnet-fixture.ts.net");
+      expect(result.stdout).toContain("Public host:    https://10-9-8-7.sslip.io");
+      expect(result.stdout).toContain("point this client's route at https://10-9-8-7.sslip.io");
+      // The source is never started again on the success path.
+      expect(ssh).not.toContain("root@desk-source systemctl enable --now openclaw-gateway");
+    });
+
+    it("skips the Caddy step for a desk without its own front, and honours --public-host", () => {
+      const plain = run(MIGRATE, ["desk-source", "desk-target"], env());
+      expect(plain.status, plain.stderr).toBe(0);
+      expect(readLog(sshLog)).not.toContain("caddy validate");
+      expect(plain.stdout).not.toContain("Public host:");
+
+      writeFileSync(sshLog, "");
+      const named = run(
+        MIGRATE,
+        ["desk-source", "desk-target", "--public-host", "desk.example.com"],
+        env({ SSH_CADDYFILE: sourceCaddyfile }),
+      );
+      expect(named.status, named.stderr).toBe(0);
+      expect(readLog(sshLog)).toContain("desk.example.com {");
+      expect(named.stdout).toContain("https://desk.example.com");
+    });
+
+    it("starts the source again and exits 5 when the copy fails, leaving the target stopped and disabled", () => {
+      const result = run(MIGRATE, ["desk-source", "desk-target"], env({ SSH_COPY_EXIT_CODE: "1" }));
+      expect(result.status).toBe(5);
+      expect(result.stderr).toContain("copying the state failed");
+      const ssh = readLog(sshLog);
+      expect(ssh).toContain("root@desk-source systemctl enable --now openclaw-gateway");
+      expect(ssh).not.toContain("root@desk-target systemctl enable --now openclaw-gateway");
+      expect(
+        ssh
+          .split("\n")
+          .filter((l) => l.includes("root@desk-target systemctl disable --now openclaw-gateway")),
+      ).toHaveLength(2);
+    });
+
+    it("leaves the source untouched when the target cannot be stopped, and treats a failed busy check as busy", () => {
+      const stop = run(
+        MIGRATE,
+        ["desk-source", "desk-target"],
+        env({ SSH_TARGET_STOP_EXIT_CODE: "1" }),
+      );
+      expect(stop.status).not.toBe(0);
+      expect(readLog(sshLog)).not.toContain(
+        "root@desk-source systemctl disable --now openclaw-gateway",
+      );
+
+      writeFileSync(sshLog, "");
+      const unknown = run(
+        MIGRATE,
+        ["desk-source", "desk-target"],
+        env({ SSH_RUNS_RECENT_EXIT_CODE: "255" }),
+      );
+      expect(unknown.status).not.toBe(0);
+      expect(readLog(sshLog)).not.toContain("systemctl disable --now openclaw-gateway");
+    });
+
+    it("binds Caddy to the address the target's interface holds, not the NATed public IP", () => {
+      const result = run(
+        MIGRATE,
+        ["desk-source", "desk-target"],
+        env({
+          SSH_CADDYFILE: sourceCaddyfile,
+          SSH_PUBLIC_IP: "129.1.2.3",
+          SSH_BIND_IP: "10.20.1.9",
+        }),
+      );
+      expect(result.status, result.stderr).toBe(0);
+      const ssh = readLog(sshLog);
+      expect(ssh).toContain("129-1-2-3.sslip.io {");
+      expect(ssh).toContain("bind 10.20.1.9");
+      expect(ssh).not.toContain("bind 129.1.2.3");
+    });
+
+    it("refuses the same desk twice, a bad name, or a missing argument before touching ssh", () => {
+      for (const args of [["desk-a", "desk-a"], ["desk-a"], ["Desk_A", "desk-b"]]) {
+        const result = run(MIGRATE, args, env());
+        expect(result.status, args.join(" ")).toBe(2);
+      }
+      expect(readLog(sshLog)).toBe("");
+    });
+  });
+
   describe("roll.sh", () => {
     const deskName = "desk-proof";
 
@@ -841,6 +1047,14 @@ describe("deploy/desk operator scripts", () => {
       expect(sshCalls).not.toContain("git checkout");
       expect(sshCalls).not.toContain("systemctl stop");
       expect(sshCalls).not.toContain("systemctl start");
+    });
+
+    it("stops rather than rolls when the busy check itself fails (ssh or Gateway down)", () => {
+      const result = run(ROLL, [deskName], { SSH_RUNS_RECENT_EXIT_CODE: "255" });
+      expect(result.status).not.toBe(0);
+      expect(result.status).not.toBe(3);
+      const sshCalls = readLog(sshLog);
+      expect(sshCalls).not.toContain("bash -s --");
     });
 
     it("treats a needs_input run as busy too", () => {

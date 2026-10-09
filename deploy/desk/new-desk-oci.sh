@@ -64,8 +64,8 @@ for cmd in "$OCI_CLI" jq tailscale curl ssh; do
 done
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=lib/desk-wait.sh
-source "$SCRIPT_DIR/lib/desk-wait.sh"
+# shellcheck source=lib/desk-ops.sh
+source "$SCRIPT_DIR/lib/desk-ops.sh"
 
 DESK_SSH_USER="${DESK_SSH_USER:-root}"
 DESK_POLL_SECONDS="${DESK_POLL_SECONDS:-900}"

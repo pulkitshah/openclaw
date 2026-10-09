@@ -424,6 +424,40 @@ restarted, in a window the operator picks — `unattended-upgrades` on the desk 
 its own; the Gateway stops the same way first (with the same failure recovery above), then the
 enabled unit starts it back up once the box comes back.
 
+## Migrate
+
+```sh
+deploy/desk/migrate-desk.sh <source-desk> <target-desk> [--public-host <host>] [--force]
+```
+
+Moves a desk's state onto another, already-provisioned desk (any `new-desk*.sh` box on the same
+fork ref — roll the target first if `/opt/openclaw` differs) and brings the Gateway up there:
+`~openclaw/.openclaw` whole (config, sessions, workspaces, plugin state, media), the Claude CLI
+login (`~openclaw/.claude`, `.claude.json`), gog's config and keyring in either layout, the
+credential keyfile and `/etc/openclaw/secrets`. Not `/opt/openclaw` (built from git on the
+target) and not `~openclaw/.cache` (the managed Chromium for the source's CPU architecture).
+
+Order matters and the script keeps it: the source is checked idle (exit 3 if a Duty run is
+busy; `--force` to override), the source Gateway is **stopped and disabled** — two Gateways on
+one Telegram bot or mailbox would fight over it, and a reboot must not bring the old one back —
+the target Gateway is stopped, the state is streamed over tar through the operator's machine
+(the desks hold no key for each other; a few GB takes some minutes), ownership is restored by
+name, and the target Gateway is started and waited for. If the source has its own Caddy front
+(a desk reached through the front door on `<ip>.sslip.io`), Caddy is installed on the target
+with the same Caddyfile for the target's public host (`--public-host`, default the target's
+own `<ip-with-dashes>.sslip.io`) and `controlUi.allowedOrigins` is rewritten for the new public
+host and tailnet name — bound to the address the target's interface holds, which on Oracle
+Cloud is not the public IP. Any failure after the source is stopped puts the source back and
+leaves the target stopped _and disabled_ (exit 5 for the copy and fix-ups, 6 when the target
+Gateway would not come up), so neither a retry nor a reboot of the target can start a second
+Gateway on the client's bot and mailboxes. The target is stopped before the source, so a target
+that cannot be stopped costs the client nothing.
+
+What stays manual, and the script prints it: the front door's route for this client (host and
+upstream change; the credential does not), a real sign-in through the front door to verify the
+new desk serves WebSocket RPC, and — once the client has used the new desk — removing the
+source from the tailnet admin console and destroying its box.
+
 ## Snapshot / restore
 
 ```sh

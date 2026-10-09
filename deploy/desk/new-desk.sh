@@ -89,8 +89,8 @@ DESK_READY_POLL_INTERVAL_SECONDS="${DESK_READY_POLL_INTERVAL_SECONDS:-10}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # The two readiness waits and the ready banner are shared with new-desk-oci.sh.
-# shellcheck source=lib/desk-wait.sh
-source "$SCRIPT_DIR/lib/desk-wait.sh"
+# shellcheck source=lib/desk-ops.sh
+source "$SCRIPT_DIR/lib/desk-ops.sh"
 
 desk_name=""
 size="s-2vcpu-4gb"

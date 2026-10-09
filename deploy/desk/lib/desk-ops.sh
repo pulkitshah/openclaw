@@ -1,9 +1,37 @@
-# Shared by new-desk.sh (DigitalOcean) and new-desk-oci.sh (Oracle Cloud): once a desk exists,
-# both wait the same two phases before printing anything — first for the desk to join the tailnet
-# (cloud-init runs `tailscale up` early), then for its Gateway to answer over the tailnet (the
-# fork checkout, install, build, managed-Chromium install and reboot all happen after the join, so
-# this second phase is the long one, typically 15-25 minutes). Sourced, not executed; the callers
-# own their own `set -euo pipefail` and the `tailscale`/`curl`/`ssh` prerequisite checks.
+# Shared by the operator scripts (new-desk.sh, new-desk-oci.sh, roll.sh, migrate-desk.sh): the
+# one copy of "is this desk busy?", the two readiness waits every create script runs (first for
+# the desk to join the tailnet — cloud-init runs `tailscale up` early — then for its Gateway to
+# answer over the tailnet, the long phase since checkout, install, build, Chromium and reboot all
+# happen after the join), and the ready banner. Sourced, not executed; the callers own their own
+# `set -euo pipefail` and the `tailscale`/`curl`/`ssh`/`jq` prerequisite checks.
+
+# Prints "<run-id>\t<status>" for the first running/needs_input/queued Duty run on the desk at
+# <ssh-target>, or nothing when it is idle. `sudo -H`: stock Ubuntu sudoers is `env_reset`
+# without `always_set_home`, so plain `sudo -u openclaw` leaves $HOME=/root and the CLI reads
+# /root/.openclaw instead of the service user's own config (one `sudo -H` convention across this
+# repo's desk commands). Trusted-proxy desks (a desk sitting behind the front door) have no token
+# this local CLI call can present; per docs/gateway/trusted-proxy-auth.md, an internal same-host
+# caller falls back to `gateway.auth.password` instead. When that secret file exists on the desk,
+# read it and pass it through; a desk still on token auth has no such file and this stays a no-op.
+desk_busy_run() {
+  local ssh_target="$1"
+  local remote_busy_check='PW_FILE=/etc/openclaw/secrets/gateway-admin-password; if [ -f "$PW_FILE" ]; then sudo -H -u openclaw node /opt/openclaw/openclaw.mjs gateway call duties.runs.recent --params "{\"limit\":10}" --json --password "$(cat "$PW_FILE")"; else sudo -H -u openclaw node /opt/openclaw/openclaw.mjs gateway call duties.runs.recent --params "{\"limit\":10}" --json; fi'
+  local runs_json
+  # A failed call (ssh down, Gateway down, call rejected) must read as "unknown", never as "idle":
+  # the caller's assignment then fails and its `set -e` stops it before it stops anything.
+  runs_json="$(ssh "$ssh_target" "$remote_busy_check")" || return 1
+  # The jq filter itself takes the first match (`.[0] // empty`) instead of piping through
+  # `head -n1` — under `set -o pipefail`, `head -n1` closing its read end after one line can
+  # deliver jq a SIGPIPE when more than one run is busy (the exact condition this check exists
+  # to catch), which would abort the caller before it ever reports the busy run.
+  printf '%s' "$runs_json" \
+    | jq -r '
+        [ .runs[]?
+          | select(.status == "running" or .status == "needs_input" or .status == "queued")
+          | "\(.id)\t\(.status)"
+        ] | (.[0] // empty)
+      '
+}
 
 # Polls `tailscale status` until a peer with HostName <desk-name> is online, for up to <seconds>.
 # Prints the desk's MagicDNS name (e.g. desk-acme.tailnet.ts.net) and returns 0; returns 1 with
