@@ -1130,6 +1130,20 @@ describe("deploy/desk operator scripts", () => {
       expect(result.stderr).toContain("desk is busy: run r-5 is running; retry later or --force");
     });
 
+    it("rejects an abbreviated commit hash before touching ssh, since the remote cannot fetch one", () => {
+      const result = run(ROLL, [deskName, "717f12ff11"], {
+        SSH_RUNS_RECENT_JSON: JSON.stringify({ runs: [] }),
+      });
+      expect(result.status).toBe(2);
+      expect(result.stderr).toContain("abbreviated commit hash");
+      expect(readLog(sshLog)).toBe("");
+      // A full hash is still accepted.
+      const full = run(ROLL, [deskName, "717f12ff1128023e5a5305aeac66c1d337af1745"], {
+        SSH_RUNS_RECENT_JSON: JSON.stringify({ runs: [] }),
+      });
+      expect(full.status, full.stderr).toBe(0);
+    });
+
     it("rejects a git-ref containing shell-unsafe characters before touching ssh", () => {
       const result = run(ROLL, [deskName, "main'; touch /tmp/pwned #"], {
         SSH_RUNS_RECENT_JSON: JSON.stringify({ runs: [] }),

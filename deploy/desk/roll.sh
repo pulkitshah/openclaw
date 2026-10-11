@@ -117,6 +117,13 @@ if ! [[ "$git_ref" =~ $GIT_REF_RE ]]; then
   echo "roll.sh: <git-ref> \"$git_ref\" is invalid: must match $GIT_REF_RE (letters, digits, '.', '_', '/', '-'; max 128 chars)" >&2
   exit 2
 fi
+# The remote rolls with `git fetch origin <git-ref>`, which resolves branches, tags and full
+# commit hashes but not abbreviated hashes ("couldn't find remote ref") — and by then the Gateway
+# is already stopped for the rebuild of the previous build. Refuse them here instead.
+if [[ "$git_ref" =~ ^[0-9a-f]{7,39}$ ]]; then
+  echo "roll.sh: <git-ref> \"$git_ref\" looks like an abbreviated commit hash, which the remote cannot fetch — pass the full 40-character hash (git rev-parse $git_ref), a branch or a tag" >&2
+  exit 2
+fi
 
 if [[ ! -f "$REMOTE_SCRIPT" ]]; then
   echo "roll.sh: the remote roll script is missing at $REMOTE_SCRIPT — run roll.sh from a complete checkout of this repo" >&2
