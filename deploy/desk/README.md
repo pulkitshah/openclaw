@@ -436,13 +436,20 @@ fork ref — roll the target first if `/opt/openclaw` differs) and brings the Ga
 login (`~openclaw/.claude`, `.claude.json`), gog's config and keyring in either layout, the
 credential keyfile and `/etc/openclaw/secrets`. Not `/opt/openclaw` (built from git on the
 target) and not `~openclaw/.cache` (the managed Chromium for the source's CPU architecture).
+When the two boxes differ in architecture, the script lists any binaries under
+`~openclaw/.local/bin` that came along (an agent-installed `typst`, say) for reinstalling on the
+target; everything else that moves is architecture-neutral.
 
 Order matters and the script keeps it: the source is checked idle (exit 3 if a Duty run is
 busy; `--force` to override), the source Gateway is **stopped and disabled** — two Gateways on
 one Telegram bot or mailbox would fight over it, and a reboot must not bring the old one back —
 the target Gateway is stopped, the state is streamed over tar through the operator's machine
 (the desks hold no key for each other; a few GB takes some minutes), ownership is restored by
-name, and the target Gateway is started and waited for. If the source has its own Caddy front
+name, and the target Gateway is started and waited for — up to 15 minutes by default
+(`DESK_MIGRATE_READY_SECONDS`), with a progress line every 30 s: before its first log line the
+Gateway copies and verifies the whole state database, which with a few hundred MB of state on a
+one-core Oracle box took close to four minutes; a unit that fails or restarts three times ends
+the wait early. If the source has its own Caddy front
 (a desk reached through the front door on `<ip>.sslip.io`), Caddy is installed on the target
 with the same Caddyfile for the target's public host (`--public-host`, default the target's
 own `<ip-with-dashes>.sslip.io`) and `controlUi.allowedOrigins` is rewritten for the new public

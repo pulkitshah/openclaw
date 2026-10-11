@@ -115,6 +115,13 @@ case "$remote" in
     printf '%s' "\${SSH_BIND_IP:-}" ;;
   "systemctl disable --now openclaw-gateway")
     if [ "\${*: -2:1}" = "root@desk-target" ]; then exit "\${SSH_TARGET_STOP_EXIT_CODE:-0}"; fi ;;
+  # migrate-desk.sh's on-target /healthz wait (a remote loop; the stub answers at once).
+  *"/healthz; then exit 0; fi"*)
+    exit "\${SSH_TARGET_HEALTH_EXIT_CODE:-0}" ;;
+  "uname -m")
+    if [ "\${*: -2:1}" = "root@desk-target" ]; then printf '%s' "\${SSH_TARGET_ARCH:-x86_64}"; else printf '%s' "\${SSH_SOURCE_ARCH:-x86_64}"; fi ;;
+  *"/home/openclaw/.local/bin/*"*)
+    printf '%s' "\${SSH_FOREIGN_BINARIES:-}" ;;
   *)
     : ;;
 esac
@@ -984,6 +991,44 @@ describe("deploy/desk operator scripts", () => {
           .split("\n")
           .filter((l) => l.includes("root@desk-target systemctl disable --now openclaw-gateway")),
       ).toHaveLength(2);
+    });
+
+    it("waits for /healthz with the configured budget, and exits 6 with the source back when the target never answers", () => {
+      const result = run(
+        MIGRATE,
+        ["desk-source", "desk-target"],
+        env({ SSH_TARGET_HEALTH_EXIT_CODE: "1", DESK_MIGRATE_READY_SECONDS: "1234" }),
+      );
+      expect(result.status).toBe(6);
+      expect(result.stderr).toContain("did not answer /healthz within 1234s");
+      const ssh = readLog(sshLog);
+      // The wait itself runs on the target with that budget and gives up on a crash loop.
+      expect(ssh).toContain("deadline=$((SECONDS + 1234))");
+      expect(ssh).toContain("NRestarts");
+      expect(ssh).toContain("root@desk-source systemctl enable --now openclaw-gateway");
+      expect(ssh).toContain("root@desk-target systemctl disable --now openclaw-gateway");
+    });
+
+    it("lists the service user's binaries that cannot run on a target of another architecture", () => {
+      const result = run(
+        MIGRATE,
+        ["desk-source", "desk-target"],
+        env({
+          SSH_SOURCE_ARCH: "x86_64",
+          SSH_TARGET_ARCH: "aarch64",
+          SSH_FOREIGN_BINARIES: "/home/openclaw/.local/bin/typst",
+        }),
+      );
+      expect(result.status, result.stderr).toBe(0);
+      expect(result.stdout).toContain("came from an x86_64 box and will not run on aarch64");
+      expect(result.stdout).toContain("/home/openclaw/.local/bin/typst");
+    });
+
+    it("never scans for foreign binaries when both desks share an architecture", () => {
+      const result = run(MIGRATE, ["desk-source", "desk-target"], env({}));
+      expect(result.status, result.stderr).toBe(0);
+      expect(result.stdout).not.toContain("will not run on");
+      expect(readLog(sshLog)).not.toContain("/home/openclaw/.local/bin/*");
     });
 
     it("leaves the source untouched when the target cannot be stopped, and treats a failed busy check as busy", () => {

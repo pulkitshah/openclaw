@@ -31,8 +31,12 @@ the target stopped and disabled for inspection: exit 5 for the copy and the targ
 6 when the target Gateway would not start or answer /healthz. Nothing on the source is deleted.
 
 Environment overrides:
-  DESK_SSH_USER        account to SSH into both desks as (default: root)
-  DESK_GATEWAY_PORT    Gateway HTTP port to health-check on the target (default: 18789)
+  DESK_SSH_USER              account to SSH into both desks as (default: root)
+  DESK_GATEWAY_PORT          Gateway HTTP port to health-check on the target (default: 18789)
+  DESK_MIGRATE_READY_SECONDS how long to wait for the target Gateway's /healthz (default: 900).
+                             Before its first log line the Gateway copies and verifies the whole
+                             state database; with a few hundred MB of state on a one-core box
+                             with a slow disk that alone is several minutes.
 EOF
 }
 
@@ -49,6 +53,7 @@ source "$SCRIPT_DIR/lib/desk-ops.sh"
 
 DESK_SSH_USER="${DESK_SSH_USER:-root}"
 GATEWAY_PORT="${DESK_GATEWAY_PORT:-18789}"
+READY_SECONDS="${DESK_MIGRATE_READY_SECONDS:-900}"
 DESK_NAME_RE='^[a-z0-9][a-z0-9-]{0,62}$'
 
 source_desk=""
@@ -129,6 +134,11 @@ if ! ssh -o BatchMode=yes "$dst" 'test -f /etc/systemd/system/openclaw-gateway.s
   echo "migrate-desk.sh: \"$target_desk\" is not a provisioned desk (no openclaw-gateway unit or openclaw user)" >&2
   exit 1
 fi
+# A different CPU architecture is fine for the state itself, but not for binaries the agent or a
+# Duty installed under the service user's home (seen: an x86-64 typst in ~/.local/bin moving to an
+# arm64 Oracle box). Those are listed after the copy for reinstalling by hand.
+src_arch="$(ssh -o BatchMode=yes "$src" 'uname -m' 2>/dev/null || true)"
+dst_arch="$(ssh -o BatchMode=yes "$dst" 'uname -m' 2>/dev/null || true)"
 
 if [[ "$force" -eq 0 ]]; then
   echo "==> Checking whether \"$source_desk\" is busy" >&2
@@ -245,8 +255,24 @@ fi
 echo "==> Starting the Gateway on \"$target_desk\"" >&2
 ssh -o BatchMode=yes "$dst" 'systemctl enable --now openclaw-gateway' \
   || fail_and_restore 6 "the target Gateway would not start"
-if ! ssh -o BatchMode=yes "$dst" "for _ in \$(seq 1 60); do curl -fsS -o /dev/null http://127.0.0.1:${GATEWAY_PORT}/healthz && exit 0; sleep 2; done; exit 1"; then
-  fail_and_restore 6 "the Gateway on \"$target_desk\" did not answer /healthz within 120s (check: ssh ${dst} journalctl -u openclaw-gateway --no-pager)"
+# The wait runs on the target so a flaky operator link cannot fail it. Progress every 30s on
+# stderr (the pre-config database preflight is silent for minutes on a small box); a unit that
+# has failed or restarted three times is a crash loop and is not worth waiting out.
+if ! ssh -o BatchMode=yes "$dst" "deadline=\$((SECONDS + ${READY_SECONDS})); next_note=30
+while :; do
+  if curl -fsS -o /dev/null http://127.0.0.1:${GATEWAY_PORT}/healthz; then exit 0; fi
+  state=\$(systemctl show openclaw-gateway -p ActiveState --value); restarts=\$(systemctl show openclaw-gateway -p NRestarts --value)
+  if [ \"\$state\" = failed ] || [ \"\${restarts:-0}\" -ge 3 ]; then echo \"openclaw-gateway is \$state after \$restarts restarts\" >&2; exit 2; fi
+  if [ \"\$SECONDS\" -ge \"\$deadline\" ]; then exit 1; fi
+  if [ \"\$SECONDS\" -ge \"\$next_note\" ]; then echo \"    still starting (\${SECONDS}s, unit \$state, last log: \$(journalctl -u openclaw-gateway -n 1 -o cat --no-pager 2>/dev/null | cut -c1-80))\" >&2; next_note=\$((next_note + 30)); fi
+  sleep 5
+done"; then
+  fail_and_restore 6 "the Gateway on \"$target_desk\" did not answer /healthz within ${READY_SECONDS}s (check: ssh ${dst} journalctl -u openclaw-gateway --no-pager; DESK_MIGRATE_READY_SECONDS raises the budget)"
+fi
+
+foreign_binaries=""
+if [[ -n "$src_arch" && -n "$dst_arch" && "$src_arch" != "$dst_arch" ]]; then
+  foreign_binaries="$(ssh -o BatchMode=yes "$dst" 'for f in /home/openclaw/.local/bin/*; do [ -f "$f" ] || continue; head -c 4 "$f" | LC_ALL=C grep -q "^.ELF" && echo "$f"; done' 2>/dev/null || true)"
 fi
 
 echo
@@ -263,3 +289,7 @@ if [[ -n "$public_host" ]]; then
 fi
 echo "  2. Verify a real sign-in through the front door reaches ${target_desk} (watch its journal for served [ws] RPC)."
 echo "  3. Remove ${source_desk} from the tailnet admin console and destroy its box once the client has used the new desk."
+if [[ -n "$foreign_binaries" ]]; then
+  echo "  4. These binaries under ~openclaw/.local/bin came from an ${src_arch} box and will not run on ${dst_arch}; reinstall them for ${dst_arch}:"
+  while IFS= read -r f; do echo "       $f"; done <<<"$foreign_binaries"
+fi
