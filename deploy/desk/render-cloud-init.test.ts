@@ -446,8 +446,12 @@ describe("render-cloud-init.mjs", () => {
     // token, the Gateway token and the hooks token — readable, unauthenticated, from the
     // link-local metadata service for the droplet's life, to any local process including the
     // service user that runs untrusted-mail-driven Duties.
-    expect(guard?.content).toContain("iptables -I OUTPUT -d 169.254.169.254");
-    expect(guard?.content).toContain("-m owner ! --uid-owner 0 -j REJECT");
+    // Scoped to the metadata HTTP port: on Oracle Cloud the same address is also the VCN DNS
+    // resolver and NTP server, which resolved and chrony reach as non-root users.
+    expect(guard?.content).toContain(
+      "iptables -I OUTPUT -d 169.254.169.254 -p tcp --dport 80 -m owner ! --uid-owner 0 -j REJECT",
+    );
+    expect(guard?.content).not.toMatch(/-d 169\.254\.169\.254 -m owner/);
     expect(guard?.content).toContain("Type=oneshot");
     expect(guard?.content).toContain("WantedBy=multi-user.target");
     // ip6tables is best effort (a leading "-" on the ExecStart): the metadata service is IPv4

@@ -520,8 +520,11 @@ local process. Two things follow:
 - **Use a single-use (ephemeral) and tagged Tailscale auth key** when creating a desk. The copy
   left in user-data is then already spent, instead of being a standing way onto your tailnet. If
   you used a reusable key, treat it as compromised and rotate it once the desk is up.
-- Every desk boots `desk-metadata-guard.service`, which rejects egress to `169.254.169.254` for
-  every non-root uid (`iptables … -m owner ! --uid-owner 0 -j REJECT`). It is enabled as the last
+- Every desk boots `desk-metadata-guard.service`, which rejects HTTP egress to `169.254.169.254`
+  (tcp 80, the only port the metadata service speaks) for every non-root uid
+  (`iptables … -p tcp --dport 80 -m owner ! --uid-owner 0 -j REJECT`). Only port 80 is blocked
+  because on Oracle Cloud the same address also serves the VCN DNS resolver and NTP, which
+  `systemd-resolved` and `chrony` reach as non-root users. It is enabled as the last
   provisioning step (cloud-init itself needs the metadata service) and re-applied on every boot, so
   the `openclaw` service user — and anything a Duty or an `exec` step runs as it — cannot read the
   user-data. Root still can. Check it with
