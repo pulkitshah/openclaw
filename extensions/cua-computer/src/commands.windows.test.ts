@@ -89,6 +89,58 @@ describe("cua-computer Windows foreground delivery", () => {
     },
   );
 
+  it("falls back to background delivery when Windows keeps the foreground on the shell", async () => {
+    const native = windowDriver();
+    native.callTool.mockImplementation(async (name) => {
+      if (name === "list_windows") {
+        return cuaToolResult(CUA_DRIVER_CONTRACT_FIXTURES.listWindows);
+      }
+      if (name === "get_window_state") {
+        return cuaToolResult(CUA_DRIVER_CONTRACT_FIXTURES.windowState, { image: true });
+      }
+      if (name === "bring_to_front") {
+        // Observed when explorer owned the foreground: raised in z-order, not activated.
+        return cuaToolResult(
+          {},
+          {
+            isError: true,
+            errorCode: "foreground_unavailable",
+            text: "bring_to_front: exact target hwnd 0xb0d56 was raised in z-order, but Windows kept foreground on hwnd 0x100ec; foreground activation failed.",
+          },
+        );
+      }
+      return cuaToolResult({});
+    });
+    const computer = await execution(native.session, "win32");
+    try {
+      const target = await observeWindow(computer);
+      const response = JSON.parse(
+        await computer.act(
+          JSON.stringify({
+            action: "left_click",
+            ...target,
+            x: 20,
+            y: 30,
+            deliveryMode: "foreground",
+          }),
+        ),
+      );
+      expect(native.callTool).toHaveBeenLastCalledWith(
+        "click",
+        expect.objectContaining({ pid: 4242, window_id: 99, delivery_mode: "background" }),
+        undefined,
+      );
+      expect(response).toMatchObject({
+        ok: true,
+        details: {
+          foregroundFallback: expect.stringContaining("Windows kept foreground on hwnd 0x100ec"),
+        },
+      });
+    } finally {
+      await computer.close("completion");
+    }
+  });
+
   it("surfaces a failed raise instead of sending input the lock would drop", async () => {
     const native = windowDriver();
     native.callTool.mockImplementation(async (name) => {

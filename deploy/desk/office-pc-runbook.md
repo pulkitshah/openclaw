@@ -39,12 +39,13 @@ What actually ran, and where it differs from the plan below:
   the printed link and pasted the code back.
 - The owner's MacBook is paired as a browser-only node (`openclaw connect <join-url> --service
 --commands browser.proxy,browser.inspect`, from a fork checkout built at the same sha as the desk).
-  **Open issue:** its connection through the desk's Tailscale serve address drops with code 1006 about
-  once a minute and reconnects; the Gateway falls back to the PC's own Chromium when the node is down
-  mid-request, so browser Duties still run, but not through the laptop. Not yet diagnosed.
-- Section 10 (Windows node for desktop control) and the Clicky-style overlay are the next steps; the
-  owner's target application is Tally, which has its own HTTP XML interface on port 9000 (reachable from
-  the distro as localhost under mirrored networking) - prefer it over screen control for data.
+  **Parked by the owner:** its connection through the desk's Tailscale serve address drops with code
+  1006 about once a minute and reconnects; the Gateway falls back to the PC's own Chromium when the node
+  is down mid-request, so browser Duties still run, but not through the laptop. Not diagnosed.
+- Section 10 (Windows node for desktop control) was executed on 2026-10-13/14; the driver defects it
+  surfaced are fixed in `bdb36ca0a7b` and the desk runs that commit. Next: the Clicky-style overlay and
+  Tally; Tally has its own HTTP XML interface on port 9000 (reachable from the distro as localhost under
+  mirrored networking) - prefer it over screen control for data.
 
 ## 0. Situation you are walking into
 
@@ -275,31 +276,62 @@ check needs `duties.status`; everything else is the same as a droplet.
 
 ## 10. Give the desk the Windows desktop too (owner requirement)
 
+**Status 2026-10-14: executed.** The Windows side runs the fork natively as a logon task and is paired as
+the node "Office PC desktop" with `screen.snapshot` + `computer.act`. The first click-driven trial
+surfaced three driver defects, fixed in fork commit `bdb36ca0a7b` and rolled to the desk and the node the
+same night; the as-executed recipe below replaces the plan.
+
 The owner wants the PC used "as it is": the desk must be able to see and operate the Windows desktop
 (native Windows apps), not only its own WSL Chromium. That is OpenClaw's **node mode**: the Windows side
 registers as a node with the Gateway inside WSL and offers `screen.snapshot` + `computer.act`, which the
-agent uses through its built-in `computer` tool (`docs/nodes/computer-use.md`). Do this after section 6.
+agent uses through its built-in `computer` tool (`docs/nodes/computer-use.md`).
 
-1. **Install Vasudev on the Windows side** (not inside WSL): Node 26 for Windows, then the fork's package
-   so `openclaw` exists in PowerShell (`docs/platforms/windows.md` §"Native Windows CLI and Gateway" has
-   the install; it is the same fork build, used here only as a node, never as a second Gateway).
-2. **Enable the Windows computer-use fulfiller** (experimental, `docs/nodes/computer-use.md`
-   §"Windows and Linux (experimental, direct SDK)"):
+Everything below is driven from the operator's Mac through WSL interop: `ssh root@tripin-studio` then
+`/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -Command '...' </dev/null`.
+That PowerShell runs as the desk's Windows account in the interactive session, so GUI apps it starts
+appear on the PC's screen. Two traps: redirect its stdin from `/dev/null` (otherwise it swallows the
+rest of a script piped over `ssh 'bash -s'`), and never `Stop-Process`/`pkill` by a pattern that can
+match your own command line (it kills the SSH session).
+
+1. **Build the fork on the Windows side** (not inside WSL). GitHub runs at ~100 KB/s from the PC, so
+   the checkout is copied from the desk instead of cloned: `rsync -a /opt/openclaw/ /mnt/c/opt/openclaw/`
+   (excluding `node_modules` and `dist`), then in PowerShell with the existing Node 24:
    ```powershell
-   openclaw plugins enable cua-computer
-   openclaw doctor --lint --only cua-computer/driver-artifacts   # must print: no findings
+   corepack enable --install-directory C:\opt\bin        # pnpm pinned by package.json
+   cd C:\opt\openclaw; corepack prepare (node -p "require('./package.json').packageManager") --activate
+   $env:npm_config_fetch_timeout = "900000"; $env:npm_config_minimum_release_age = "0"
+   pnpm install --frozen-lockfile --ignore-scripts      # retry on ETIMEDOUT; the link is slow
+   pnpm build
    ```
-3. **Point the node at the WSL Gateway.** With mirrored networking the Gateway is reachable from Windows
-   at `http://127.0.0.1:18789`; configure the node's gateway URL/token (the token is
-   `/etc/openclaw/secrets/gateway-token` inside WSL — copy its value into the node config file, never
-   into a command line), then from the **interactive, unlocked desktop session**:
+   Run long jobs with `Start-Process -WindowStyle Hidden` and log files under `C:\opt\` so an SSH drop
+   does not kill them. `node C:\opt\openclaw\dist\index.js` is the CLI; no global install exists.
+2. **Enable the Windows computer-use fulfiller** (`docs/nodes/computer-use.md` §"Windows and Linux"):
    ```powershell
-   openclaw node run
+   node C:\opt\openclaw\dist\index.js plugins enable cua-computer
+   node C:\opt\openclaw\dist\index.js doctor --lint --only cua-computer/driver-artifacts   # no findings
    ```
-   Register it as a Scheduled Task that runs at logon of the desk's Windows account (not "at startup":
-   desktop control needs the logged-in session). The PC must stay signed in and unlocked while the desk
-   is expected to drive the desktop; a lock screen ends the session's control.
-4. **Approve the device and its command surface** inside WSL (two separate approvals):
+3. **Give Windows a way in.** The Gateway only admits trusted-proxy identities, and its advertised join
+   URL is the ts.net name, which Windows cannot reach (Tailscale lives inside the distro). The desk's
+   Caddy therefore has a second, loopback-only listener `http://127.0.0.1:18790` that proxies to the
+   Gateway and injects `X-Forwarded-User <owner email>` plus `X-Forwarded-For <PC tailnet IP>` (the
+   client is loopback, which is itself the trusted proxy address, so the chain would otherwise be
+   empty). **Tradeoff, accepted by the owner:** any process running under the PC's Windows account
+   reaches the desk as the owner. Remove the listener block from `/etc/caddy/Caddyfile` to revoke.
+4. **Pair and install the node.** On the desk mint a join code and fetch its payload through the
+   loopback entrance (the payload's own URL is the unreachable ts.net name):
+   ```bash
+   sudo -H -u openclaw node /opt/openclaw/openclaw.mjs devices join-code --json   # code + payload url
+   curl -s http://127.0.0.1:18790/j/<code> | base64 -w0 | tr '+/' '-_' | tr -d '='   # base64url payload
+   ```
+   Then on Windows, from the interactive session:
+   ```powershell
+   node C:\opt\openclaw\dist\index.js node run --pair <base64url payload> --host 127.0.0.1 --port 18790 --no-tls
+   node C:\opt\openclaw\dist\index.js node install --host 127.0.0.1 --port 18790 --no-tls --display-name "Office PC desktop"
+   ```
+   `node install` creates the Scheduled Task "OpenClaw Node" (runs at logon of the desk's account, script
+   `%USERPROFILE%\.openclaw\node.cmd`, logs in `%LOCALAPPDATA%\Temp\openclaw\openclaw-<date>.log`).
+   The PC must stay signed in and unlocked while the desk is expected to drive the desktop.
+5. **Approve the device and its command surface** inside WSL (two separate approvals):
    ```bash
    sudo -H -u openclaw node /opt/openclaw/openclaw.mjs devices list
    sudo -H -u openclaw node /opt/openclaw/openclaw.mjs devices approve <deviceRequestId>
@@ -307,12 +339,43 @@ agent uses through its built-in `computer` tool (`docs/nodes/computer-use.md`). 
    sudo -H -u openclaw node /opt/openclaw/openclaw.mjs nodes approve <nodeRequestId>
    sudo -H -u openclaw node /opt/openclaw/openclaw.mjs nodes status
    ```
-   `screen.record`, `camera.snap`, `camera.clip` additionally need `gateway.nodes.commands.allow` opt-in
-   in `openclaw.json`; `screen.snapshot` and `computer.act` do not.
-5. **Prove it**: in the owner's chat ask the desk to "take a screenshot of the desktop and list the open
-   windows"; then one harmless action (open Notepad and type a line). Known limits of the Windows
-   fulfiller as of this writing: primary display only; no key holds, drags, or modifier-held clicks;
-   digits and punctuation go through `type`, not `key`.
+6. **What the first trial taught (all fixed in `bdb36ca0a7b`, see `docs/nodes/computer-use.md`):**
+   - every `computer` call failed with `COMPUTER_HOST_BUSY` roughly 30 s after the previous one: the
+     Gateway's loopback tool cache rebuilt the tool with a new execution id and never closed the old
+     one; the node now serves one execution per CLI run;
+   - the Windows key cannot be injected by this driver at all; a bare `win` tap is delivered as
+     `ctrl+escape` (opens Start) and `win+<key>` chords are refused;
+   - Windows' foreground lock denied the driver's own window activation (`foreground_unavailable ...
+     no mouse input was sent`); foreground delivery now raises the window with `bring_to_front` first,
+     and when the shell itself holds the foreground (desktop/Start/taskbar) the raise is refused too,
+     so the action goes through the background route and the result says `foregroundFallback`. The
+     only host-side cure is per-user `ForegroundLockTimeout = 0` plus a sign-in; not applied (owner's
+     call, see `docs/nodes/computer-use.md`);
+   - clicks on Start/taskbar landed but were reported as errors; they now come back `unverifiable`.
+   Proof after the roll (coordinator, 16 calls incl. a 48 s idle gap): no `COMPUTER_HOST_BUSY`; a
+   bare `win` tap opened Start; Word's stuck privacy dialog was closed through the node (the raise was
+   refused because explorer held the foreground, so the click went through the background route).
+7. **Rolling the node later.** The node runs `dist\index.js` and bundled plugins run from
+   `dist\extensions\<id>\index.js`, which import shared chunks from the parent `dist` by hashed file
+   names, so `dist` is one build unit: after rolling the WSL desk (section 8) copy the **whole** built
+   tree across (it is platform-neutral JavaScript; native code lives in `node_modules`), never a single
+   plugin directory (the node then logs `cua-computer failed during load ... Cannot find module
+   '../../media-runtime-<hash>.mjs'` and silently stops advertising `computer.act`). Exclude the
+   per-plugin `node_modules` under `dist/extensions`: on the desk they are symlinks into the pnpm
+   store, on Windows they are real directories the Windows build created. Then restart the
+   task; `schtasks /end` does not kill the `node.exe` under the task's `cmd.exe`, so stop that process
+   by id (match its command line, never a pattern that could match your own shell):
+   ```bash
+   rsync -a --delete --exclude 'extensions/*/node_modules' /opt/openclaw/dist/ /mnt/c/opt/openclaw/dist/
+   powershell.exe -NoProfile -Command 'schtasks /end /tn "OpenClaw Node"; Get-CimInstance Win32_Process | Where-Object { $_.Name -eq "node.exe" -and $_.CommandLine -like "*node run --host 127.0.0.1*" } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }; Start-Sleep 2; schtasks /run /tn "OpenClaw Node"' </dev/null
+   ```
+   Confirm with the node log (`advertised commands:` must list `computer.act` and `screen.snapshot`) and
+   `nodes status` on the desk. The Windows source checkout is bookkeeping only; a fresh fetch there
+   fails on CRLF-dirty files unless forced, and nothing runs from it. A rebuild on Windows is never
+   needed for a roll. Restarting the task also clears any execution the node still holds for a Gateway
+   that is gone.
 
 Desktop control and the WSL desk are independent: if node mode is down, chat, Duties with the WSL
 Chromium, mail and cron keep working; only desktop actions fail with a clear "no capable node" refusal.
+Layers above this (companion overlay, Tally) start from here; Tally's own HTTP XML interface on port
+9000 stays the preferred route for data.

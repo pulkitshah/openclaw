@@ -209,12 +209,43 @@ async function handleTargetedAct(
   // whenever the node host is not the input owner, which is the normal case
   // for a background service: the action fails with foreground_unavailable and
   // no input is sent. bring_to_front attaches to the foreground thread instead
-  // and succeeds, so raise the target first. It stays raised afterward.
+  // and succeeds, so raise the target first; it stays raised afterward. When
+  // the shell itself holds the foreground (desktop, Start, taskbar) even that
+  // raise is refused, and nothing in-process can take the foreground, so the
+  // action is delivered through the background route instead and the result
+  // says so.
+  let foregroundFallback: string | undefined;
   if (platform === "win32" && params.deliveryMode === "foreground") {
-    await callWindowTool(driver, state, "bring_to_front", base, signal);
+    foregroundFallback = await raiseForForegroundDelivery(driver, state, base, signal);
+    if (foregroundFallback) {
+      args.delivery_mode = "background";
+    }
   }
   const result = await callWindowTool(driver, state, tool, args, signal);
-  return JSON.stringify(actionEnvelope(result));
+  return JSON.stringify(
+    actionEnvelope(result, foregroundFallback ? { foregroundFallback } : undefined),
+  );
+}
+
+const FOREGROUND_RAISE_REFUSED = /^COMPUTER_REFUSED_foreground_unavailable:/u;
+
+/** Raises the target; returns the driver's reason when Windows kept the foreground elsewhere. */
+async function raiseForForegroundDelivery(
+  driver: CuaDriverSession,
+  state: CuaFrameState,
+  target: { pid: number; window_id: number },
+  signal?: AbortSignal,
+): Promise<string | undefined> {
+  try {
+    await callWindowTool(driver, state, "bring_to_front", target, signal);
+    return undefined;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!FOREGROUND_RAISE_REFUSED.test(message)) {
+      throw error;
+    }
+    return message.slice(message.indexOf(":") + 1).trim();
+  }
 }
 
 export type { CuaComputerActParams } from "./action-targets.js";
