@@ -6,6 +6,46 @@ this implements is `docs/superpowers/specs/2026-10-07-tripin-studio-desk-migrati
 directory; the file is force-added, so `git show HEAD:docs/superpowers/specs/2026-10-07-tripin-studio-desk-migration-design.md`
 prints it).
 
+## Status 2026-10-13: executed as a FRESH desk (sections 3-5 parked)
+
+What actually ran, and where it differs from the plan below:
+
+- The owner chose a **fresh TripIn Studio desk** (no restore of the old desk's snapshot; sections 3-5 are
+  parked, the snapshot `248986226` is kept). Agents were created by the Control UI onboarding.
+- Section 1 was done on the PC by the owner (WSL2 Ubuntu 24.04, mirrored networking, 6 GB, systemd,
+  Tailscale inside the distro with `--ssh`, hostname `tripin-studio`, boot task "WSL Boot"). The
+  operator reaches it with Tailscale SSH (`ssh root@tripin-studio`; a browser check is asked once per
+  12 h).
+- Section 2 is now a script: `DESK_GIT_REF=<full sha> DESK_FORK_REPO_URL=<fork> bash provision-wsl.sh`
+  run as root on the PC (copy it there first; do not feed it over `bash -s` - its apt/playwright steps
+  read stdin). It is idempotent; two things bit on first run: the Playwright CDN download timed out
+  while pnpm saturated the link (just re-run), and the office network advertises a dead IPv6 prefix, so
+  Node stalled on every download until `/etc/sysctl.d/61-openclaw-desk-no-ipv6.conf` disabled IPv6 in
+  the distro.
+- The desk's own Caddy (bound to the PC's tailnet IP, `http://100.95.17.69:8443`, basic auth, plain HTTP
+  because WireGuard already encrypts the hop) fronts the loopback Gateway with `X-Forwarded-User`, the
+  same shape as Prabhat. `openclaw.json` is the client template plus the trusted-proxy block
+  (`allowUsers` = the owner's email, `identityScopes` + `pulkitshah@github`, `allowedOrigins` for the
+  front door and the ts.net name, `gateway.nodes.browser.mode: "auto"`). Do NOT add `agents.defaults`
+  without `agents.entries`: the Gateway refuses to start (exit 78). `/etc/openclaw/secrets` must be
+  0755 (files 0600) or the password secret provider fails as the service user.
+- Front door: `vasudev-front-door` joined the tailnet (100.64.91.103); `users.json` got the owner's
+  login (keep the file `openclaw:openclaw 0600` - a root-only file crashes the login service on every
+  sign-in, which happened for an hour on 2026-10-13); the `@tripin` route proxies to
+  `http://100.95.17.69:8443` with `header_up Host 100.95.17.69:8443` (without it the PC's Caddy answers
+  an empty 200 for everything) and the basic-auth header, placed above the 403 fallthrough.
+- Claude sign-in on the desk: `claude auth login` inside `tmux` as the service user needs
+  `env SHELL=/bin/bash` (its login shell is nologin, so tmux otherwise exits at once); the owner opened
+  the printed link and pasted the code back.
+- The owner's MacBook is paired as a browser-only node (`openclaw connect <join-url> --service
+--commands browser.proxy,browser.inspect`, from a fork checkout built at the same sha as the desk).
+  **Open issue:** its connection through the desk's Tailscale serve address drops with code 1006 about
+  once a minute and reconnects; the Gateway falls back to the PC's own Chromium when the node is down
+  mid-request, so browser Duties still run, but not through the laptop. Not yet diagnosed.
+- Section 10 (Windows node for desktop control) and the Clicky-style overlay are the next steps; the
+  owner's target application is Tally, which has its own HTTP XML interface on port 9000 (reachable from
+  the distro as localhost under mirrored networking) - prefer it over screen control for data.
+
 ## 0. Situation you are walking into
 
 - Vasudev is this fork of OpenClaw (`pulkitshah/openclaw`, branch `main` == `staging/team-v2-test`). A
