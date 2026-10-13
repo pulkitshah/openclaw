@@ -93,6 +93,10 @@ export function resolveGatewayScopedTools(
     /** Current node inventory predicate; evaluated with the resolved exec binding. */
     nodeExecAvailable?: (node?: string) => boolean;
     pairedNodeComputerUse?: import("../agents/computer-use-node-capabilities.js").PreparedPairedComputerUse;
+    /** Caller-owned computer execution shared across rebuilds of the same run's tools. */
+    computerExecutionId?: string;
+    /** Registers run-owned cleanup for tools that hold node resources. */
+    registerRunCleanup?: (cleanup: (reason: string) => Promise<void>) => void;
     skillWorkshop?: SkillWorkshopRunOptions;
   },
 ) {
@@ -321,6 +325,8 @@ export function resolveGatewayScopedTools(
     modelId: params.modelId,
     modelHasVision: params.modelHasVision,
     pairedNodeComputerUse: params.pairedNodeComputerUse,
+    computerExecutionId: params.computerExecutionId,
+    registerRunCleanup: params.registerRunCleanup,
     clientCaps: params.clientCaps,
     pinnedWidgetAuthoring: surface === "loopback" ? params.pinnedWidgetAuthoring : undefined,
     workspaceDir,

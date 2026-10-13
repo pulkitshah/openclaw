@@ -57,9 +57,31 @@ function unsupportedKey(message: string): Error {
 
 function modifierAlias(value: string, platform: NodeJS.Platform): string | undefined {
   const normalized = MODIFIER_ALIASES.get(value.toLowerCase());
-  // CUA's macOS backend silently ignores meta; Linux requires that spelling.
-  // Resolve against the provider's platform for both chords and pointer input.
-  return platform === "darwin" && normalized === "meta" ? "cmd" : normalized;
+  if (normalized !== "meta") {
+    return normalized;
+  }
+  // Each backend spells the platform key differently: CUA's macOS backend
+  // silently ignores meta, Linux requires meta, and the Windows driver's key
+  // vocabulary is ctrl/shift/alt/win. Resolve against the provider's platform
+  // for both chords and pointer input.
+  return platform === "darwin" ? "cmd" : platform === "win32" ? "win" : "meta";
+}
+
+// The Windows driver accepts "win" and reports the key as sent, but never
+// injects it: a bare tap and win+<key> chords do nothing on either the desktop
+// or the window route (verified against SDK 0.23.2). A bare tap has a keyboard
+// equivalent, ctrl+escape, which the driver does deliver; chords do not, so
+// they are refused toward actions that work instead of silently misfiring.
+function windowsKeyChord(chord: { key: string; modifiers: string[] }) {
+  if (chord.key === "win" && chord.modifiers.length === 0) {
+    return { key: "escape", modifiers: ["ctrl"] };
+  }
+  if (chord.key === "win" || chord.modifiers.includes("win")) {
+    throw unsupportedKey(
+      "the Windows driver cannot inject the Win key; press win alone (delivered as ctrl+escape) to open Start, or use launch_app",
+    );
+  }
+  return chord;
 }
 
 function normalizeModifierList(entries: string[], platform: NodeJS.Platform): string[] {
@@ -109,7 +131,8 @@ export function parseKeyChord(value: string | undefined, platform: NodeJS.Platfo
     throw unsupportedKey("key chord is empty");
   }
   const modifiers = normalizeModifierList(segments, platform);
-  return { key: normalizeKey(rawKey, platform), modifiers };
+  const chord = { key: normalizeKey(rawKey, platform), modifiers };
+  return platform === "win32" ? windowsKeyChord(chord) : chord;
 }
 
 export function scalePoint(

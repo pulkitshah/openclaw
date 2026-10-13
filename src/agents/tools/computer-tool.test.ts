@@ -142,6 +142,29 @@ async function executeComputerAction(params: Record<string, unknown>) {
   return readLastComputerActParams();
 }
 
+describe("computer tool execution ownership", () => {
+  beforeEach(() => {
+    resetComputerToolMocks();
+    listNodesMock.mockResolvedValue([macComputerNode()]);
+    callGatewayToolMock.mockResolvedValue(screenshotPayload());
+  });
+
+  it("uses the caller-owned execution id on every node call", async () => {
+    const tool = createVisionComputerTool({ executionId: "run-owned-execution" });
+    await tool.execute("shot", { action: "screenshot" });
+    const body = callGatewayToolMock.mock.calls.at(-1)?.[2] as ComputerActBody;
+    expect(body.command).toBe("screen.snapshot");
+    expect(body.params?.executionId).toBe("run-owned-execution");
+  });
+
+  it("mints a private execution id when no owner supplies one", async () => {
+    const tool = createVisionComputerTool();
+    await tool.execute("shot", { action: "screenshot" });
+    const body = callGatewayToolMock.mock.calls.at(-1)?.[2] as ComputerActBody;
+    expect(body.params?.executionId).toMatch(/^[0-9a-f-]{36}$/);
+  });
+});
+
 describe("createComputerTool v1 execution", () => {
   beforeEach(resetComputerToolMocks);
 

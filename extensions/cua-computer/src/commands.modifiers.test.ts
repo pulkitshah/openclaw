@@ -8,7 +8,7 @@ import {
 const platforms = [
   { platform: "darwin", command: "cmd" },
   { platform: "linux", command: "meta" },
-  { platform: "win32", command: "meta" },
+  { platform: "win32", command: "win" },
 ] as const;
 
 function windowDriver() {
@@ -40,13 +40,18 @@ describe("cua-computer platform modifiers", () => {
   it.each(
     platforms.flatMap(({ platform, command }) =>
       (["desktop", "window"] as const).flatMap((scope) => [
-        {
-          platform,
-          scope,
-          keys: "Command+Shift+Left",
-          expected: { key: "left", modifiers: [command, "shift"] },
-        },
-        { platform, scope, keys: "Cmd", expected: { key: command, modifiers: [] } },
+        // The Windows driver never injects the Win key; its chords are refused below.
+        ...(platform === "win32"
+          ? [{ platform, scope, keys: "Cmd", expected: { key: "escape", modifiers: ["ctrl"] } }]
+          : [
+              {
+                platform,
+                scope,
+                keys: "Command+Shift+Left",
+                expected: { key: "left", modifiers: [command, "shift"] },
+              },
+              { platform, scope, keys: "Cmd", expected: { key: command, modifiers: [] } },
+            ]),
         { platform, scope, keys: "Ctrl+Return", expected: { key: "enter", modifiers: ["ctrl"] } },
       ]),
     ),
@@ -73,23 +78,28 @@ describe("cua-computer platform modifiers", () => {
   });
 
   it.each(
-    (["desktop", "window"] as const).flatMap((scope) =>
-      ["+a", "Hyper+a"].map((keys) => ({ scope, keys })),
-    ),
-  )("rejects malformed $keys on $scope input before dispatch", async ({ scope, keys }) => {
-    const native = windowDriver();
-    const computer = await execution(native.session, "darwin");
-    try {
-      const target = scope === "window" ? await observeWindow(computer) : {};
-      await expect(
-        computer.act(JSON.stringify({ action: "key", keys, ...target })),
-      ).rejects.toThrow("COMPUTER_UNSUPPORTED_KEY");
-      expect(native.pressKey).not.toHaveBeenCalled();
-      expect(native.callTool).toHaveBeenCalledTimes(scope === "window" ? 2 : 0);
-    } finally {
-      await computer.close("completion");
-    }
-  });
+    (["desktop", "window"] as const).flatMap((scope) => [
+      ...["+a", "Hyper+a"].map((keys) => ({ scope, keys, platform: "darwin" as const })),
+      { scope, keys: "Command+Shift+Left", platform: "win32" as const },
+      { scope, keys: "win+r", platform: "win32" as const },
+    ]),
+  )(
+    "rejects malformed $keys on $platform $scope input before dispatch",
+    async ({ scope, keys, platform }) => {
+      const native = windowDriver();
+      const computer = await execution(native.session, platform);
+      try {
+        const target = scope === "window" ? await observeWindow(computer) : {};
+        await expect(
+          computer.act(JSON.stringify({ action: "key", keys, ...target })),
+        ).rejects.toThrow("COMPUTER_UNSUPPORTED_KEY");
+        expect(native.pressKey).not.toHaveBeenCalled();
+        expect(native.callTool).toHaveBeenCalledTimes(scope === "window" ? 2 : 0);
+      } finally {
+        await computer.close("completion");
+      }
+    },
+  );
 
   it.each(platforms)(
     "preserves Command+Shift on $platform window click",

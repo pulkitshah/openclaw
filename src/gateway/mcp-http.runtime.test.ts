@@ -449,6 +449,110 @@ describe("McpLoopbackToolCache", () => {
     expect(resolveGatewayScopedTools).toHaveBeenCalledTimes(3);
   });
 
+  it("continues one computer execution across rebuilds of a grant's tools", async () => {
+    vi.useFakeTimers();
+    const cache = new McpLoopbackToolCache();
+    const cleanups: Array<ReturnType<typeof vi.fn>> = [];
+    resolveGatewayScopedTools.mockImplementation(({ computerExecutionId, registerRunCleanup }) => {
+      const cleanup = vi.fn(async () => {});
+      cleanups.push(cleanup);
+      registerRunCleanup?.(cleanup);
+      return { agentId: "main", tools: [{ name: `computer:${computerExecutionId}` }] };
+    });
+
+    const first = await cache.resolve(scopeParams({ grantToken: "grant-a" }));
+    vi.advanceTimersByTime(30_000);
+    const rebuilt = await cache.resolve(scopeParams({ grantToken: "grant-a" }));
+    const other = await cache.resolve(scopeParams({ grantToken: "grant-b" }));
+
+    expect(first.tools[0]?.name).toMatch(/^computer:[0-9a-f-]{36}$/);
+    expect(rebuilt.tools[0]?.name).toBe(first.tools[0]?.name);
+    expect(other.tools[0]?.name).not.toBe(first.tools[0]?.name);
+    expect(cleanups).toHaveLength(3);
+
+    expect(cache.evictGrant("grant-a")).toBe(true);
+    await vi.runAllTimersAsync();
+    expect(cleanups[0]).toHaveBeenCalledExactlyOnceWith("grant-revoked");
+    expect(cleanups[1]).toHaveBeenCalledExactlyOnceWith("grant-revoked");
+    expect(cleanups[2]).not.toHaveBeenCalled();
+
+    cache.clear();
+    await vi.runAllTimersAsync();
+    expect(cleanups[2]).toHaveBeenCalledExactlyOnceWith("runtime-shutdown");
+  });
+
+  it("keeps a grant's computer execution when another grant's revocation overtakes discovery", async () => {
+    const cache = new McpLoopbackToolCache();
+    const cleanups = new Map<string, Array<ReturnType<typeof vi.fn>>>();
+    resolveGatewayScopedTools.mockImplementation(({ computerExecutionId, registerRunCleanup }) => {
+      const cleanup = vi.fn(async () => {});
+      cleanups.set(computerExecutionId, [...(cleanups.get(computerExecutionId) ?? []), cleanup]);
+      registerRunCleanup?.(cleanup);
+      return { agentId: "main", tools: [{ name: `computer:${computerExecutionId}` }] };
+    });
+    const paramsA = scopeParams({ nodeExecAllowed: true, grantToken: "grant-a" });
+    const settled = await cache.resolve(paramsA);
+    const executionA = settled.tools[0]!.name.slice("computer:".length);
+
+    const entered = createDeferred();
+    const inventory = createDeferred<unknown[]>();
+    listNodes.mockImplementationOnce(() => {
+      entered.resolve();
+      return inventory.promise;
+    });
+    vi.useFakeTimers();
+    vi.advanceTimersByTime(30_000);
+    const pending = cache.resolve(paramsA);
+    await entered.promise;
+    await cache.resolve(scopeParams({ grantToken: "grant-b" }));
+    cache.evictGrant("grant-b");
+    inventory.resolve([]);
+    const rebuilt = await pending;
+    await vi.runAllTimersAsync();
+
+    expect(rebuilt.tools[0]!.name).toBe(`computer:${executionA}`);
+    expect(cleanups.get(executionA)).toHaveLength(2);
+    for (const cleanup of cleanups.get(executionA)!) {
+      expect(cleanup).not.toHaveBeenCalled();
+    }
+    cache.evictGrant("grant-a");
+    await vi.runAllTimersAsync();
+    for (const cleanup of cleanups.get(executionA)!) {
+      expect(cleanup).toHaveBeenCalledExactlyOnceWith("grant-revoked");
+    }
+  });
+
+  it("closes tools registered after their own grant's revocation overtook discovery", async () => {
+    const cache = new McpLoopbackToolCache();
+    const cleanup = vi.fn(async () => {});
+    resolveGatewayScopedTools.mockImplementation(({ registerRunCleanup }) => {
+      registerRunCleanup?.(cleanup);
+      return scopedToolFixture(["computer"]);
+    });
+    const entered = createDeferred();
+    const inventory = createDeferred<unknown[]>();
+    listNodes.mockImplementationOnce(() => {
+      entered.resolve();
+      return inventory.promise;
+    });
+    const pending = cache.resolve(scopeParams({ nodeExecAllowed: true, grantToken: "gone" }));
+    await entered.promise;
+    cache.evictGrant("gone");
+    inventory.resolve([]);
+    await pending;
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(cleanup).toHaveBeenCalledExactlyOnceWith("grant-revoked");
+  });
+
+  it("builds ungranted loopback tools without a shared computer execution", async () => {
+    const cache = new McpLoopbackToolCache();
+    await cache.resolve(scopeParams());
+    expect(resolveGatewayScopedTools.mock.calls[0]?.[0]).toMatchObject({
+      computerExecutionId: undefined,
+      registerRunCleanup: undefined,
+    });
+  });
+
   it("does not share cache rows across different grant allowlists", async () => {
     const cache = new McpLoopbackToolCache();
     const cfg = {} as OpenClawConfig;

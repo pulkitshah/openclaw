@@ -1,5 +1,6 @@
 // MCP loopback runtime scope cache.
 // Resolves Gateway-visible tools for MCP clients with short-lived schema caching.
+import { randomUUID } from "node:crypto";
 import { stableStringify } from "@openclaw/normalization-core/stable-stringify";
 import type { AuthProfileStore } from "../agents/auth-profiles/types.js";
 import {
@@ -16,6 +17,7 @@ import type { PreparedRootedExecutionCapability } from "../agents/rooted-run-par
 import { normalizeToolPolicyName } from "../agents/tool-policy.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 import { DirectoryCache } from "../infra/outbound/directory-cache.js";
+import { logDebug } from "../logger.js";
 import { getPluginToolMeta } from "../plugins/tool-metadata.js";
 import type { SkillLibraryAuthoringCapability } from "../skills/library/authoring.js";
 import type { McpLoopbackRequestContext } from "./mcp-grant-store.js";
@@ -60,10 +62,53 @@ type McpLoopbackScopeParams = {
   onYield?: (message: string, acknowledgment?: string) => Promise<void> | void;
   nodeExecAvailability?: Awaited<ReturnType<typeof loadNodeExecAvailability>>;
   pairedComputerUseAvailability?: PairedComputerUseAvailability;
+  /** Grant-owned computer execution that outlives individual cached tool rows. */
+  computerExecution?: GrantComputerExecution;
   signal?: AbortSignal;
 };
 
 type LoopbackToolsAllowMode = "exact" | "policy";
+
+type ExecutionCleanup = (reason: string) => Promise<void>;
+
+/**
+ * One provider execution per loopback grant. Cached tool rows expire every
+ * TOOL_CACHE_TTL_MS and are rebuilt, but a paired node serves exactly one
+ * execution id; a rebuilt computer tool with a fresh id is refused as a second
+ * owner until the node reconnects. The grant (one CLI run) therefore owns the
+ * id, every rebuilt tool continues it, and revoking the grant closes it.
+ */
+class GrantComputerExecution {
+  readonly executionId = randomUUID();
+  readonly #cleanups: ExecutionCleanup[] = [];
+  #closedReason: string | undefined;
+
+  readonly registerRunCleanup = (cleanup: ExecutionCleanup): void => {
+    // Tools built while their grant's revocation overtook discovery land here
+    // after close(); nothing will revoke them later, so run their cleanup now.
+    if (this.#closedReason !== undefined) {
+      void runExecutionCleanups([cleanup], this.#closedReason);
+      return;
+    }
+    this.#cleanups.push(cleanup);
+  };
+
+  async close(reason: string): Promise<void> {
+    this.#closedReason ??= reason;
+    await runExecutionCleanups(this.#cleanups.splice(0), reason);
+  }
+}
+
+async function runExecutionCleanups(cleanups: ExecutionCleanup[], reason: string): Promise<void> {
+  const results = await Promise.allSettled(cleanups.map(async (cleanup) => await cleanup(reason)));
+  for (const result of results) {
+    if (result.status === "rejected") {
+      // The node closes the execution itself when the Gateway disconnects, so a
+      // failed best-effort close is only worth a diagnostic.
+      logDebug(`mcp loopback computer execution cleanup failed: ${String(result.reason)}`);
+    }
+  }
+}
 
 function resolveMediatedNativeTools(
   toolsAllow: string[] | undefined,
@@ -218,6 +263,8 @@ function resolveMcpLoopbackTools(
     includeNodeExecTool,
     nodeExecAvailable: params.nodeExecAvailability?.isAvailable,
     pairedNodeComputerUse: params.pairedComputerUseAvailability?.prepared,
+    computerExecutionId: params.computerExecution?.executionId,
+    registerRunCleanup: params.computerExecution?.registerRunCleanup,
   });
   return {
     agentId: scoped.agentId,
@@ -317,11 +364,30 @@ export class McpLoopbackToolCache {
   #entries = new DirectoryCache<CachedScopedTools>(TOOL_CACHE_TTL_MS, TOOL_CACHE_MAX_ENTRIES);
   // Revocation needs the config scopes where one grant may have cached tools.
   #grantConfigScopes = new Map<string, Set<OpenClawConfig>>();
+  #grantComputerExecutions = new Map<string, GrantComputerExecution>();
   #epoch = 0;
+
+  #computerExecutionFor(grantToken: string | undefined): GrantComputerExecution | undefined {
+    if (!grantToken) {
+      return undefined;
+    }
+    let execution = this.#grantComputerExecutions.get(grantToken);
+    if (!execution) {
+      execution = new GrantComputerExecution();
+      this.#grantComputerExecutions.set(grantToken, execution);
+    }
+    return execution;
+  }
 
   async resolve(input: McpLoopbackScopeParams): Promise<CachedScopedTools> {
     const epoch = this.#epoch;
-    const nodeExecParams = await resolveNodeExecScope(input, "exact");
+    // Policy resolution below builds the real tool closures and serves them as
+    // the final catalog when there is no paired inventory, so the grant's
+    // computer execution must already be attached here.
+    const nodeExecParams = await resolveNodeExecScope(
+      { ...input, computerExecution: this.#computerExecutionFor(input.grantToken) },
+      "exact",
+    );
     input.signal?.throwIfAborted();
     // A policy-excluded computer scope has no inventory component. It can use
     // the ordinary cached catalog without touching Gateway again.
@@ -349,6 +415,10 @@ export class McpLoopbackToolCache {
       toolSchema: buildMcpToolSchema(next.tools),
     };
     // Revocation may overtake discovery before a grant owns any cached rows.
+    // Any grant's revocation bumps the epoch, so this says nothing about this
+    // grant's computer execution: if its own grant was revoked meanwhile, the
+    // execution is already closed and the tools above registered into that
+    // closed state; otherwise it stays live for the rows still in the cache.
     if (epoch !== this.#epoch) {
       return nextEntry;
     }
@@ -361,8 +431,18 @@ export class McpLoopbackToolCache {
     return nextEntry;
   }
 
+  #closeComputerExecution(token: string | undefined, reason: string): void {
+    const execution = token ? this.#grantComputerExecutions.get(token) : undefined;
+    if (!execution) {
+      return;
+    }
+    this.#grantComputerExecutions.delete(token!);
+    void execution.close(reason);
+  }
+
   evictGrant(token: string): boolean {
     this.#epoch += 1;
+    this.#closeComputerExecution(token, "grant-revoked");
     const scopes = this.#grantConfigScopes.get(token);
     if (!scopes) {
       return false;
@@ -377,6 +457,9 @@ export class McpLoopbackToolCache {
 
   clear(): void {
     this.#epoch += 1;
+    for (const token of [...this.#grantComputerExecutions.keys()]) {
+      this.#closeComputerExecution(token, "runtime-shutdown");
+    }
     this.#entries.clear();
     this.#grantConfigScopes.clear();
   }

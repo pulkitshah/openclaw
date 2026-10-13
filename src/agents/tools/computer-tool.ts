@@ -50,8 +50,14 @@ export function createComputerTool(options?: {
   pairedNodeComputerUse?: PreparedPairedComputerUse;
   /** Attempt owner for deterministic provider-execution cleanup. */
   registerRunCleanup?: (cleanup: (reason: string) => Promise<void>) => void;
+  /**
+   * Caller-owned provider execution id. Successive tool instances built for one
+   * run share it so the node keeps serving the same execution instead of
+   * refusing the newcomer as a second owner.
+   */
+  executionId?: string;
 }): AnyAgentTool {
-  const executionId = crypto.randomUUID();
+  const executionId = options?.executionId ?? crypto.randomUUID();
   const hasCleanupOwner = options?.registerRunCleanup !== undefined;
   const availableActions = (actions: readonly ComputerUseV2ActionName[]) =>
     availableComputerActions(actions, hasCleanupOwner);

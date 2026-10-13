@@ -205,6 +205,14 @@ async function handleTargetedAct(
       throw new Error(`COMPUTER_UNSUPPORTED_ACTION: ${params.action}`);
   }
 
+  // Windows' foreground lock denies the driver's own SetForegroundWindow swap
+  // whenever the node host is not the input owner, which is the normal case
+  // for a background service: the action fails with foreground_unavailable and
+  // no input is sent. bring_to_front attaches to the foreground thread instead
+  // and succeeds, so raise the target first. It stays raised afterward.
+  if (platform === "win32" && params.deliveryMode === "foreground") {
+    await callWindowTool(driver, state, "bring_to_front", base, signal);
+  }
   const result = await callWindowTool(driver, state, tool, args, signal);
   return JSON.stringify(actionEnvelope(result));
 }

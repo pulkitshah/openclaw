@@ -38,6 +38,15 @@ export const ClickButton = {
 } as const;
 export type ClickButton = (typeof ClickButton)[keyof typeof ClickButton];
 
+// Effect/route values a fulfiller may assert itself when it knows more than
+// the driver's verdict (see commands.ts desktopPointerResult).
+export const ActionEffect = {
+  Unverifiable: 2 as import("@trycua/cua-driver").ActionEffect,
+} as const;
+export const ActionRoute = {
+  GlobalInput: 2 as import("@trycua/cua-driver").ActionRoute,
+} as const;
+
 export const ScrollDirection = {
   Up: 0 as DriverScrollDirection,
   Down: 1 as DriverScrollDirection,

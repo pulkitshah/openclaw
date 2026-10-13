@@ -13,6 +13,8 @@ import { createRastermill } from "rastermill";
 import { z } from "zod";
 import { normalizeModifiers, parseKeyChord, scalePoint } from "./actions.js";
 import {
+  ActionEffect,
+  ActionRoute,
   ClickButton,
   ScrollDirection,
   createCuaDriver,
@@ -148,6 +150,38 @@ function assertToolSuccess(result: CuaToolResult, tool: string): CuaToolResult {
     throw new Error(`${code}: ${result.text || `${tool} failed`}`);
   }
   return result;
+}
+
+// The Windows driver verifies that the window under a desktop pointer action
+// owns the foreground afterward. Shell surfaces (Start, taskbar, tray) always
+// fail that check because the shell opens a different window: verified on
+// SDK 0.23.2, Start opened and the driver still reported foreground_unavailable.
+// The driver's "no input was sent" variants mean nothing happened and stay
+// errors; the post-action variants mean the input landed but could not be
+// verified, which is exactly the unverifiable effect.
+const WINDOWS_FOREGROUND_UNAVAILABLE = /^foreground_unavailable\b/u;
+const WINDOWS_INPUT_NOT_SENT = /no (?:mouse |keyboard )?input was sent/u;
+
+function desktopPointerResult(
+  platform: NodeJS.Platform,
+  result: CuaToolResult,
+  tool: string,
+): CuaToolResult {
+  if (
+    platform === "win32" &&
+    result.isError &&
+    (result.errorCode === "foreground_unavailable" ||
+      WINDOWS_FOREGROUND_UNAVAILABLE.test(result.text)) &&
+    !WINDOWS_INPUT_NOT_SENT.test(result.text)
+  ) {
+    return {
+      ...result,
+      isError: false,
+      errorCode: undefined,
+      action: { effect: ActionEffect.Unverifiable, route: ActionRoute.GlobalInput },
+    };
+  }
+  return assertToolSuccess(result, tool);
 }
 
 function structuredContent(result: CuaToolResult, tool: string): Record<string, unknown> {
@@ -324,7 +358,8 @@ async function handleDesktopAct(
         left: ScrollDirection.Left,
         right: ScrollDirection.Right,
       }[desktopParams.scrollDirection];
-      result = assertToolSuccess(
+      result = desktopPointerResult(
+        platform,
         await driver.scroll(
           {
             direction,
@@ -358,7 +393,8 @@ async function handleDesktopAct(
               : desktopParams.action === "triple_click"
                 ? 3
                 : 1;
-          result = assertToolSuccess(
+          result = desktopPointerResult(
+            platform,
             await driver.click(clickArgs(platform, frame, desktopParams, button, count), signal),
             "click",
           );
@@ -366,13 +402,18 @@ async function handleDesktopAct(
         }
         case "mouse_move": {
           const point = scalePoint(frame, desktopParams.x, desktopParams.y, desktopParams.action);
-          result = assertToolSuccess(await driver.moveCursor(point, signal), "move_cursor");
+          result = desktopPointerResult(
+            platform,
+            await driver.moveCursor(point, signal),
+            "move_cursor",
+          );
           break;
         }
         case "left_click_drag": {
           const from = scalePoint(frame, desktopParams.fromX, desktopParams.fromY, "drag start");
           const to = scalePoint(frame, desktopParams.x, desktopParams.y, "drag end");
-          result = assertToolSuccess(
+          result = desktopPointerResult(
+            platform,
             await driver.drag(
               {
                 fromX: from.x,

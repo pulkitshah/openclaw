@@ -105,6 +105,8 @@ export type OpenClawToolsOptions = {
   computerContextEpoch?: { value: number };
   computerTransport?: import("./tools/computer-tool.js").ComputerToolTransport | null;
   pairedNodeComputerUse?: PreparedPairedComputerUse;
+  /** Run-owned computer execution id shared by every computer tool built for that run. */
+  computerExecutionId?: string;
   /** Registers run-owned cleanup for tools that hold node resources. */
   registerRunCleanup?: (cleanup: (reason: string) => Promise<void>) => void;
   /** Internal review-run restrictions and proposal provenance. */
