@@ -379,3 +379,30 @@ if (( skip_pairing == 1 )); then
   desk_print_ready "$desk_name" "$control_ui_url" "vasudev@${tailnet_host}" client
   exit 0
 fi
+
+# Phase 4: the desktop node, paired over the Gateway's own Tailscale ingress.
+pair_json="$tmpdir/pair.json"
+: > "$pair_json"
+chmod 600 "$pair_json"
+display_name="${client} desktop"
+jq -cn --arg tailnetHost "$tailnet_host" --arg gatewayAdminPassword "$(env_get GATEWAY_ADMIN_PASSWORD)" --arg displayName "$display_name" \
+  '{tailnetHost:$tailnetHost, gatewayAdminPassword:$gatewayAdminPassword, displayName:$displayName}' > "$pair_json"
+echo "==> Pairing the desktop node \"$display_name\"" >&2
+set +e
+pair_out="$(ssh_vm_script "$tailnet_host" "$WINDOWS_DIR/pair-node.ps1" "$pair_json")"
+set -e
+printf '%s\n' "$pair_out" | grep -v -i 'password' >&2 || true
+if printf '%s' "$pair_out" | grep -q '^pair-node: ingress-unreachable'; then
+  echo "new-desk-azure.sh: the Gateway's Tailscale ingress is not reachable from the VM itself — see windows-desk-runbook.md \"Loopback entrance fallback\", then rerun with --resume" >&2
+  exit 7
+fi
+if ! printf '%s' "$pair_out" | grep -q '^pair-node: ok'; then
+  echo "new-desk-azure.sh: pair-node.ps1 failed" >&2
+  exit 1
+fi
+echo
+echo "Desk \"$desk_name\" is up."
+echo "Control UI: ${control_ui_url}   (front door; add the route — see windows-desk-runbook.md)"
+echo "Desktop node: ${display_name}"
+echo "SSH:        ssh vasudev@${tailnet_host}"
+echo "Health:     ssh vasudev@${tailnet_host} 'powershell -File C:\\opt\\openclaw\\deploy\\desk\\windows\\desk-health.ps1'"

@@ -1845,6 +1845,58 @@ exit 0`,
       expect(result.stdout).toContain("Control UI: https://vasudev.tripinstudio.com");
       expect(readLog(nodeLog)).not.toContain("pnpm build");
     });
+
+    it("pairs the desktop node over the Tailscale ingress and prints the ready banner", () => {
+      const head = spawnSync("git", ["-C", HERE, "rev-parse", "HEAD"], {
+        encoding: "utf8",
+      }).stdout.trim();
+      const fakeDist = join(dir, "fake-dist");
+      mkdirSync(fakeDist, { recursive: true });
+      writeFileSync(join(fakeDist, "index.js"), "console.log(1)\n");
+      writeFileSync(join(fakeDist, ".provision-built-ref"), `${head}\n`);
+      const result = run(
+        NEW_DESK_AZURE,
+        [deskName, "--env-file", envFile, "--resume", "--git-ref", head],
+        azureEnv({
+          AZ_VM_EXISTS: "1",
+          SSH_LOG: sshLog,
+          SSH_STDIN_LOG: join(dir, "ssh-stdin.log"),
+          SSH_STDOUT:
+            "first-boot: ok\nreceive-build: ok 2 files\nprovision-desk: ok\npair-node: ok",
+          DESK_BUILD_DIR: fakeDist,
+        }),
+      );
+      expect(result.status, result.stderr).toBe(0);
+      expect(readLog(sshLog)).toContain("-File C:\\opt\\stage\\pair-node.ps1");
+      const stdin = readFileSync(join(dir, "ssh-stdin.log"), "utf8");
+      expect(stdin).toContain('"displayName":"acme desktop"');
+      expect(stdin).toContain('"tailnetHost":"acme-az.tailnet-fixture.ts.net"');
+      expect(result.stdout).toContain("Desktop node: acme desktop");
+      expect(result.stdout).toContain("ssh vasudev@acme-az.tailnet-fixture.ts.net");
+    });
+
+    it("stops with exit 7 and points at the runbook when the Gateway's ingress is unreachable from the VM", () => {
+      const head = spawnSync("git", ["-C", HERE, "rev-parse", "HEAD"], {
+        encoding: "utf8",
+      }).stdout.trim();
+      const fakeDist = join(dir, "fake-dist");
+      mkdirSync(fakeDist, { recursive: true });
+      writeFileSync(join(fakeDist, "index.js"), "console.log(1)\n");
+      writeFileSync(join(fakeDist, ".provision-built-ref"), `${head}\n`);
+      const result = run(
+        NEW_DESK_AZURE,
+        [deskName, "--env-file", envFile, "--resume", "--git-ref", head],
+        azureEnv({
+          AZ_VM_EXISTS: "1",
+          SSH_LOG: sshLog,
+          SSH_STDOUT:
+            "first-boot: ok\nreceive-build: ok 2 files\nprovision-desk: ok\npair-node: ingress-unreachable https://acme-az.tailnet-fixture.ts.net",
+          DESK_BUILD_DIR: fakeDist,
+        }),
+      );
+      expect(result.status).toBe(7);
+      expect(result.stderr).toContain("Loopback entrance fallback");
+    });
   });
 
   describe("windows/push-build.sh", () => {
