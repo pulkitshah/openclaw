@@ -147,6 +147,13 @@ describe("first-boot.ps1", () => {
   // first boot (cloud-init) and the Windows one did not (onboarding failed live 2026-10-16 with
   // "Claude CLI is not authenticated on this host" because there was no CLI at all). npm 11
   // skips install scripts by default and claude-code needs its postinstall.
+  // The onboarding wizard and `tailscale` CLI calls look in PATH; the MSI installs to Program
+  // Files without adding it (the wizard warned "Tailscale binary not found in PATH", live
+  // 2026-10-16, although the Gateway finds the install directory itself).
+  it("puts the Tailscale install directory on the machine PATH", () => {
+    expect(script).toContain('"C:\\Program Files\\Tailscale"');
+  });
+
   it("installs the Claude CLI with npm, allowing its install scripts", () => {
     expect(script).toContain("--allow-scripts=@anthropic-ai/claude-code @anthropic-ai/claude-code");
     expect(script).toContain("claude --version");

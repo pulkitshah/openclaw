@@ -80,7 +80,7 @@ if (-not (Test-Path "C:\Windows\System32\vcruntime140.dll")) {
 if (-not (Test-Path "C:\Program Files\nodejs\node.exe")) { Install-Msi (Get-Pinned "node") @() }
 if (-not (Test-Path "$opt\git\cmd\git.exe")) { Expand-Archive (Get-Pinned "git") -DestinationPath "$opt\git" -Force }
 $machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
-foreach ($p in "C:\Program Files\nodejs", "$opt\git\cmd", "$opt\bin", "$opt\caddy") {
+foreach ($p in "C:\Program Files\nodejs", "C:\Program Files\Tailscale", "$opt\git\cmd", "$opt\bin", "$opt\caddy") {
   if ($machinePath -notlike "*$p*") { $machinePath = "$machinePath;$p" }
 }
 [Environment]::SetEnvironmentVariable("Path", $machinePath, "Machine")
