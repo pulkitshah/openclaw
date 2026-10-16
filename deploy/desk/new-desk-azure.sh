@@ -263,3 +263,43 @@ if [[ "$stop_after" == "create" ]]; then
   echo "==> Stopping after create (--stop-after create)" >&2
   exit 0
 fi
+
+ssh_opts=(-o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts_vasudev_desks")
+# Runs one PowerShell command on the VM. Output comes back as-is (CRLF stripped).
+ssh_vm() {
+  local host="$1"
+  shift
+  ssh "${ssh_opts[@]}" "vasudev@${host}" "$@" | tr -d '\r'
+}
+# Runs a local .ps1 on the VM. Two SSH calls: the script body is written to C:\opt\stage\<name>
+# from stdin (no command-line length limit, no quoting), then executed with the JSON parameters on
+# stdin, so no secret is ever in argv or in a file on the VM.
+ssh_vm_script() {
+  local host="$1" script="$2" json_file="$3"
+  local name
+  name="$(basename "$script")"
+  ssh "${ssh_opts[@]}" "vasudev@${host}" "powershell.exe -NoProfile -NonInteractive -Command \"New-Item -ItemType Directory -Force -Path C:\\opt\\stage | Out-Null; [IO.File]::WriteAllText('C:\\opt\\stage\\${name}', [Console]::In.ReadToEnd())\"" < "$script"
+  ssh "${ssh_opts[@]}" "vasudev@${host}" "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File C:\\opt\\stage\\${name}" < "$json_file" | tr -d '\r'
+}
+
+echo "==> Bootstrapping OpenSSH on the VM (run-command, no secrets)" >&2
+"$AZ_CLI" vm run-command invoke --resource-group "$DESK_AZ_RESOURCE_GROUP" --name "$desk_name" \
+  --command-id RunPowerShellScript --scripts "@${WINDOWS_DIR}/bootstrap-ssh.ps1" \
+  --parameters "PublicKey=$(cat "$ssh_public_key")" --output json > "$tmpdir/bootstrap.json"
+if ! jq -e '.value[]?.message | select(contains("bootstrap-ssh: ok"))' "$tmpdir/bootstrap.json" >/dev/null; then
+  echo "new-desk-azure.sh: bootstrap-ssh.ps1 did not report ok:" >&2
+  jq -r '.value[]?.message' "$tmpdir/bootstrap.json" >&2
+  exit 1
+fi
+echo "==> Waiting up to ${DESK_SSH_WAIT_SECONDS}s for SSH at ${public_ip}" >&2
+ssh_deadline=$((SECONDS + DESK_SSH_WAIT_SECONDS))
+until ssh_vm "$public_ip" 'Write-Output ready' 2>/dev/null | grep -q '^ready$'; do
+  if (( SECONDS >= ssh_deadline )); then
+    echo "new-desk-azure.sh: SSH to vasudev@${public_ip} never answered — check the NSG rule and \`az vm run-command invoke\` output" >&2
+    exit 1
+  fi
+  sleep 10
+done
+if (( skip_first_boot == 1 )); then
+  exit 0
+fi

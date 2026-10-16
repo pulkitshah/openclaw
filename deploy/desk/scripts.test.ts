@@ -79,6 +79,16 @@ printf '%s\\n' "ssh $*" >> "\${SSH_LOG:?}"
 stdin_content="$(cat)"
 if [ -n "$stdin_content" ]; then
   printf '%s\\n' "$stdin_content" >> "\${SSH_LOG:?}"
+  if [ -n "\${SSH_STDIN_LOG:-}" ]; then printf '%s\\n' "$stdin_content" >> "$SSH_STDIN_LOG"; fi
+fi
+# new-desk-azure.sh: the SSH readiness probe must answer "ready" on its own; every other call
+# prints the canned SSH_STDOUT (all lines, the script greps for markers) and exits SSH_EXIT_CODE.
+case "$*" in
+  *"Write-Output ready"*) printf 'ready\\n'; exit 0 ;;
+esac
+if [ -n "\${SSH_STDOUT:-}" ]; then
+  printf '%s\\n' "$SSH_STDOUT"
+  exit "\${SSH_EXIT_CODE:-0}"
 fi
 remote="\${*: -1}"
 case "$remote" in
@@ -1711,6 +1721,23 @@ exit 0`,
       expect(log).not.toContain("vnet create");
       expect(log).not.toContain("nsg create --resource-group");
       expect(log).toContain("vm create");
+    });
+
+    it("bootstraps OpenSSH with a run-command that carries the operator key and no secrets, then waits for SSH", () => {
+      const result = run(
+        NEW_DESK_AZURE,
+        [deskName, "--env-file", envFile, "--stop-after", "first-boot", "--skip-first-boot"],
+        azureEnv({ SSH_LOG: sshLog, SSH_STDIN_LOG: join(dir, "ssh-stdin.log") }),
+      );
+      expect(result.status, result.stderr).toBe(0);
+      const log = readLog(azLog);
+      const runCommand =
+        log.split("\n").find((line) => line.includes("vm run-command invoke")) ?? "";
+      expect(runCommand).toContain("--command-id RunPowerShellScript");
+      expect(runCommand).toContain("--scripts @");
+      expect(runCommand).toContain("--parameters PublicKey=ssh-ed25519 AAAAfixture fixture@test");
+      expect(runCommand).not.toContain("Fixture-Admin-Pass-1!");
+      expect(readLog(sshLog)).toContain("vasudev@20.0.0.5");
     });
   });
 });
