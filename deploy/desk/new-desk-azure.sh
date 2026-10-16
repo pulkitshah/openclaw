@@ -48,6 +48,8 @@ Environment overrides:
   DESK_SSH_WAIT_SECONDS    wait for SSH on the public IP (default: 600)
   DESK_POLL_SECONDS        wait for the tailnet hostname (default: 900)
   DESK_REBOOT_WAIT_SECONDS wait for the post-first-boot reboot over the tailnet (default: 900)
+  DESK_AZ_STORAGE_SKU      OS disk type (default: Premium_LRS; sizes without an "s" in their
+                           name need StandardSSD_LRS)
   DESK_FORK_REPO_URL       fork to clone on the VM (default: this checkout's `origin`)
   DESK_FRONT_DOOR_ORIGIN   Control UI origin (default: https://vasudev.tripinstudio.com)
 EOF
@@ -70,6 +72,7 @@ DESK_AZ_RESOURCE_GROUP="${DESK_AZ_RESOURCE_GROUP:-vasudev}"
 DESK_AZ_VNET="${DESK_AZ_VNET:-vasudev}"
 DESK_AZ_SUBNET="${DESK_AZ_SUBNET:-desks}"
 DESK_AZ_NSG="${DESK_AZ_NSG:-vasudev-desks}"
+DESK_AZ_STORAGE_SKU="${DESK_AZ_STORAGE_SKU:-Premium_LRS}"
 DESK_SSH_WAIT_SECONDS="${DESK_SSH_WAIT_SECONDS:-600}"
 DESK_POLL_SECONDS="${DESK_POLL_SECONDS:-900}"
 DESK_REBOOT_WAIT_SECONDS="${DESK_REBOOT_WAIT_SECONDS:-900}"
@@ -135,6 +138,10 @@ if ! [[ "$os_disk_gb" =~ ^[0-9]+$ ]]; then
 fi
 tailnet_name="${desk_name#vasudev-}"
 client="${client:-${tailnet_name%-az}}"
+# Windows computer names are capped at 15 characters (the VM name is not), so the VM gets the
+# tailnet name as its computer name, truncated if a client slug is long.
+computer_name="${tailnet_name:0:15}"
+computer_name="${computer_name%-}"
 git_ref="${git_ref:-$(git -C "$SCRIPT_DIR" rev-parse HEAD)}"
 
 # The env file is the only place secrets live on this side. It must be private, and its values
@@ -317,8 +324,8 @@ else
   echo "==> Creating VM $desk_name ($size, $os_disk_gb GB, Windows Server 2022 Azure Edition)" >&2
   if ! "$AZ_CLI" vm create --resource-group "$DESK_AZ_RESOURCE_GROUP" --name "$desk_name" --location "$location" \
     --image "MicrosoftWindowsServer:WindowsServer:2022-datacenter-azure-edition:latest" --size "$size" \
-    --os-disk-size-gb "$os_disk_gb" --storage-sku Premium_LRS \
-    --admin-username vasudev --admin-password "@${admin_password_file}" \
+    --os-disk-size-gb "$os_disk_gb" --storage-sku "$DESK_AZ_STORAGE_SKU" \
+    --computer-name "$computer_name" --admin-username vasudev --admin-password "@${admin_password_file}" \
     --vnet-name "$DESK_AZ_VNET" --subnet "$DESK_AZ_SUBNET" --nsg "$DESK_AZ_NSG" --nsg-rule NONE \
     --public-ip-sku Standard --public-ip-address "${desk_name}-ip" \
     --license-type None --output json > "$tmpdir/vm-create.json"; then

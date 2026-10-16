@@ -1716,6 +1716,7 @@ exit 0`,
       expect(create).toContain("--os-disk-size-gb 128");
       expect(create).toContain("--storage-sku Premium_LRS");
       expect(create).toContain("--admin-username vasudev");
+      expect(create).toContain("--computer-name acme-az ");
       expect(create).toContain("--nsg vasudev-desks");
       expect(create).toContain("--public-ip-sku Standard");
       expect(create).not.toContain("Fixture-Admin-Pass-1!");
