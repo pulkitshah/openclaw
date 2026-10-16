@@ -100,8 +100,10 @@ describe("terminal controller lifecycle", () => {
     expect(runtimeMocks.create).toHaveBeenCalledWith(
       expect.objectContaining({ parent: host, runtime }),
     );
-    expect(removeEventListener).toHaveBeenCalledTimes(1);
+    // Ghostty's document mouseup listener and the runtime's own shadow-root mousedown shim.
+    expect(removeEventListener).toHaveBeenCalledTimes(2);
     expect(removeEventListener).toHaveBeenCalledWith("mouseup", handleMouseUp);
+    expect(removeEventListener).toHaveBeenCalledWith("mousedown", expect.any(Function));
     expect(removeEventListener.mock.invocationCallOrder[0]).toBeLessThan(
       underlyingDispose.mock.invocationCallOrder[0] ?? Number.POSITIVE_INFINITY,
     );

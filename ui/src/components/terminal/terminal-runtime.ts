@@ -31,6 +31,21 @@ export async function createIsolatedGhosttyTerminal(options: CreateGhosttyTermin
   terminal.registerLinkProvider(linkProvider);
   const mouseUpCandidate = asOptionalRecord(terminal)?.handleMouseUp;
   let handleMouseUp = isEventListener(mouseUpCandidate) ? mouseUpCandidate : undefined;
+  // ghostty-web 0.4.0 records the document-level mousedown target and clears the selection on
+  // any click whose document-level target lies outside its canvas. The panel renders the
+  // terminal inside a shadow root, which retargets both to the host, so every drag-selection
+  // was wiped by its own click: the text still reached the clipboard (copy-on-select) but the
+  // highlight vanished. Re-record the composed target after ghostty's listener (registered at
+  // open, so it runs first) so an in-canvas click keeps the selection; clicks elsewhere still
+  // clear it.
+  const selectionManager = asOptionalRecord(terminal)?.selectionManager;
+  const recordComposedMouseDownTarget = (event: MouseEvent) => {
+    const canvas = options.parent.querySelector("canvas");
+    if (selectionManager && canvas && event.composedPath().includes(canvas)) {
+      selectionManager.mouseDownTarget = canvas;
+    }
+  };
+  document.addEventListener("mousedown", recordComposedMouseDownTarget);
   let disposed = false;
   // Ghostty 0.4.0 drops resize notifications during its 50ms fit lock. Measure
   // through its public addon, but let one owner apply every final layout size.
@@ -51,6 +66,7 @@ export async function createIsolatedGhosttyTerminal(options: CreateGhosttyTermin
     observer?.disconnect();
     measurement.dispose();
     linkProvider.dispose();
+    document.removeEventListener("mousedown", recordComposedMouseDownTarget);
     // ghostty-web 0.4.0 clears isOpen before cleanup, skipping this listener removal.
     if (handleMouseUp) {
       document.removeEventListener("mouseup", handleMouseUp);
