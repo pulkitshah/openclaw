@@ -91,6 +91,7 @@ case "$*" in
     fi
     printf 'ready\\n'; exit 0 ;;
   *"first-boot-fresh"*) printf '%s\\n' "\${SSH_FRESH_BOOT:-first-boot-fresh}"; exit 0 ;;
+  *"first-boot.done"*) printf '%s\\n' "\${SSH_FIRST_BOOT_MARKER:-first-boot-done}"; exit 0 ;;
 esac
 if [ -n "\${SSH_STDOUT:-}" ]; then
   printf '%s\\n' "$SSH_STDOUT"
@@ -1791,7 +1792,7 @@ exit 0`,
         .filter((line) => line.startsWith("ssh "))
         .join("\n");
       expect(sshArgv).not.toContain("first-boot.ps1");
-      expect(result.stderr).toContain("already answers over the tailnet");
+      expect(result.stderr).toContain("first boot complete; skipping");
       expect(result.stdout).toContain("SSH:        ssh vasudev@acme-az.tailnet-fixture.ts.net");
     });
 

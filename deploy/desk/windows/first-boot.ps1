@@ -80,7 +80,16 @@ foreach ($p in "C:\Program Files\nodejs", "$opt\git\cmd", "$opt\bin", "$opt\cadd
 }
 [Environment]::SetEnvironmentVariable("Path", $machinePath, "Machine")
 $env:Path = $machinePath
-& "C:\Program Files\nodejs\corepack.cmd" enable --install-directory "$opt\bin" | Out-Null
+# Node 25+ no longer ships corepack with the MSI; install it with npm (same as provision-wsl.sh),
+# then let it put the pnpm shims in C:\opt\bin, which is on the machine PATH.
+$ErrorActionPreference = "Continue"
+if (-not (Get-Command corepack -ErrorAction SilentlyContinue)) {
+  & "C:\Program Files\nodejs\npm.cmd" install -g corepack 2>&1 | Out-Null
+  $env:Path = "$env:APPDATA\npm;$env:Path"
+}
+& corepack enable --install-directory "$opt\bin" 2>&1 | Out-Null
+$ErrorActionPreference = "Stop"
+if (-not (Test-Path "$opt\bin\pnpm.cmd")) { "first-boot: corepack/pnpm shim missing"; exit 4 }
 
 # 4. Caddy as a startup scheduled task (Caddy has no Windows service mode of its own).
 if (-not (Test-Path "$opt\caddy\caddy.exe")) { Expand-Archive (Get-Pinned "caddy") -DestinationPath "$opt\caddy" -Force }

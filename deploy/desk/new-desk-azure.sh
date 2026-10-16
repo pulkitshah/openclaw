@@ -310,9 +310,13 @@ if "$AZ_CLI" vm show --resource-group "$DESK_AZ_RESOURCE_GROUP" --name "$desk_na
   if found="$(tailnet_lookup)" && [[ -n "$found" ]]; then
     tailnet_host="${found%% *}"
     tailnet_ip="${found##* }"
-    if ssh_ready "$tailnet_host"; then
+    # Only a COMPLETED first boot (its marker file) is skipped: a desk that joined the tailnet
+    # but failed later in first boot must run it again, over the public SSH path.
+    if ssh_vm "$tailnet_host" 'if (Test-Path C:\opt\first-boot.done) { Write-Output first-boot-done } else { Write-Output first-boot-pending }' 2>/dev/null | grep -q '^first-boot-done$'; then
       desk_online=1
-      echo "==> ${tailnet_host} (${tailnet_ip}) already answers over the tailnet; skipping bootstrap and first boot" >&2
+      echo "==> ${tailnet_host} (${tailnet_ip}) already answers over the tailnet with first boot complete; skipping bootstrap and first boot" >&2
+    else
+      echo "==> ${tailnet_host} is on the tailnet but first boot did not complete; running it again" >&2
     fi
   fi
 else
