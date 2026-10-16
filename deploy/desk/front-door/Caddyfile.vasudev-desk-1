@@ -11,6 +11,11 @@
 # on this box, and add one more `@clientname header X-Forwarded-User <their-email>` + its own
 # `reverse_proxy` route below (with a synthesized `Authorization` header if their own desk still
 # gates itself with basicauth using the same credential, as Prasthan's does).
+# Azure Windows desks (deploy/desk/new-desk-azure.sh) use the same shape: the target is
+# http://<desk tailnet IP>:8443 (the desk's own Caddy, basic auth, plain HTTP over WireGuard), with
+# `header_up Host <ip>:8443` and the desk's basic-auth header (DESK_FRONT_PASSWORD from the desk's
+# env file). Never the desk's ts.net name: that is the Gateway's managed-Tailscale ingress and
+# rejects a chained proxy.
 vasudev.tripinstudio.com {
 	bind 159.89.160.42
 	encode gzip

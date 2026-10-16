@@ -173,6 +173,48 @@ What is different in practice:
 - **Tear down.** `oci compute instance terminate --instance-id <id> --preserve-boot-volume
 false`, then remove the node from the tailnet admin console as for a droplet.
 
+## Azure Windows desk
+
+A desk whose Gateway _and_ desktop node run on one Windows Server VM, for clients whose work lives
+in Windows applications (Tally, Travelport Galileo). Design:
+`docs/superpowers/specs/2026-10-16-azure-windows-desk-design.md`; as-executed notes, the exit codes
+and the fallbacks: `deploy/desk/windows-desk-runbook.md`.
+
+Prerequisites on the Mac: `az` (Homebrew `azure-cli`, then `az login --tenant <id>`; device-code
+login is blocked by the tenant's security defaults), `tailscale` on the desk's tailnet, `jq`,
+`python3`, PowerShell 7 for the script tests (`pwsh` on PATH, or the release tarball unpacked to
+`~/.local/powershell`, or `VASUDEV_PWSH=<path>`), and this checkout at the commit to deploy
+(`windows/push-build.sh` builds `dist/` when it is missing or stale).
+
+Per desk, a 0600 env file `~/cashew-secrets/<desk>.env` with `OWNER_EMAIL`, `TS_AUTHKEY`
+(reusable off, 90 days), `DESK_ADMIN_PASSWORD` (the VM's `vasudev` account; Azure requires 12+
+characters with three character classes), `GATEWAY_ADMIN_PASSWORD`, `DESK_FRONT_PASSWORD` (the
+front door's basic auth to this desk), `VNC_PASSWORD` (6-8 characters), `WHITELIST_ADDRESSES`
+(comma-separated, may be empty). Secrets travel to the VM on SSH stdin only.
+
+```bash
+deploy/desk/new-desk-azure.sh vasudev-acme-az --env-file ~/cashew-secrets/acme-az.env --client acme --location jioindiawest
+```
+
+What it does, in order: resource group / VNet / NSG (no inbound rules), a temporary SSH rule for
+this machine's public IP, the VM (B2as v2, Windows Server 2022 Datacenter Azure Edition, 128 GB),
+OpenSSH through a run-command, `windows/first-boot.ps1` over SSH (Tailscale unattended, TightVNC
+loopback only, Caddy startup task, Node 26 + MinGit + pnpm, auto sign-in, update and lock policies,
+reboot), removal of the SSH rule, `windows/push-build.sh`, `windows/provision-desk.ps1` (checkout,
+`pnpm install`, config from `windows/openclaw.windows-desk.json.tmpl`, Gateway task),
+`windows/pair-node.ps1` (the desktop node over the Gateway's Tailscale ingress, approvals), then the
+ready banner. Rerun with `--resume` after any failure once the VM exists; the script never deletes
+a VM. Installers are pinned with sha256 digests in `windows/downloads.json`.
+
+Then: add the front-door route (`@<client> header X-Forwarded-User <email>` →
+`http://<tailnet-ip>:8443` with `header_up Host` and the basic-auth header, above the 403; see
+`front-door/Caddyfile.vasudev-desk-1`), run `windows/desk-health.ps1` over SSH, and set the
+whitelisted routes on the egress device (runbook §6).
+
+Rolling: `git checkout <sha>` here, `deploy/desk/windows/push-build.sh <tailnet-host>`, then over
+SSH `node C:\opt\openclaw\dist\index.js gateway restart` and restart the "OpenClaw Node" task
+(`office-pc-runbook.md` §10.7 explains why the whole `dist` goes every time).
+
 ## First sign-in
 
 1. Run the command `new-desk.sh` printed to reveal the Gateway token:
