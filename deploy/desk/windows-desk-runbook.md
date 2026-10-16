@@ -39,6 +39,14 @@ and every deviation from the plan.
 
 Generate: `openssl rand -base64 24` for passwords, `openssl rand -base64 6 | cut -c1-8` for the VNC one.
 
+Where the secrets go: the create script never puts a value in argv on the Mac (the env file is read
+on stdin by `jq`; `az vm create` takes the admin password from a 0600 file) and sends each phase's
+values to the VM as one JSON document on SSH stdin. On the VM, Tailscale reads the key from a
+temporary file (`--auth-key=file:`), Caddy hashes the front password from stdin, and three tools
+take a secret as an argument because they offer nothing else: msiexec (`VALUE_OF_PASSWORD` for
+TightVNC, once at install), Sysinternals Autologon, and the desk CLI's `--password` for the
+approvals and the health check. The script redacts every secret value from the output it echoes.
+
 ## 3. Create
 
 ```bash
@@ -113,11 +121,14 @@ here by the live run.
 
 ## 8. Rolling, restarting, stopping
 
-- Roll: `git checkout <sha>` on the Mac, `deploy/desk/windows/push-build.sh <tailnet-host>`
-  (builds when needed, verifies a manifest on the VM), then over SSH
-  `node C:\opt\openclaw\dist\index.js gateway restart` and restart the node task
-  (`Stop-ScheduledTask`/`Start-ScheduledTask -TaskName "OpenClaw Node"`; if `node.exe` survives,
-  stop it by process id as `office-pc-runbook.md` §10.7 describes).
+- Roll: `git checkout <sha>` on the Mac and push it to the fork (the VM fetches by sha),
+  `deploy/desk/windows/push-build.sh <tailnet-host>` (builds when needed, verifies an ordinal-sorted
+  sha256 manifest on the VM), then over SSH `node C:\opt\openclaw\dist\index.js gateway restart`
+  and restart the node task (`Stop-ScheduledTask`/`Start-ScheduledTask -TaskName "OpenClaw Node"`;
+  if `node.exe` survives, stop it by process id as `office-pc-runbook.md` §10.7 describes). When
+  `pnpm-lock.yaml` changed, run the create script with `--resume` instead: it skips first boot
+  (the desk already answers SSH over the tailnet) and reruns `provision-desk.ps1`, which refreshes
+  the checkout and `node_modules`.
 - Stop/start the VM: `az vm deallocate` / `az vm start --resource-group vasudev --name <vm>`; auto
   sign-in brings the console, Gateway, node, Caddy and TightVNC back without a hand on the box.
 - Windows Update is notify-only (`AUOptions=2`); apply updates in the agreed weekly window, then rerun

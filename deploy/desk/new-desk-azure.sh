@@ -15,7 +15,8 @@ Creates the Azure resources (resource group, VNet, NSG, VM), opens SSH from this
 IP for the first minutes only, bootstraps OpenSSH on the VM, runs the Windows first-boot and desk
 provisioning scripts over SSH, pushes the fork build from this checkout, pairs the desktop node,
 closes the temporary SSH rule, and prints the Control UI URL. Idempotent: rerun with --resume to
-continue a run that stopped after the VM existed. The script never deletes a VM.
+continue a run that stopped after the VM existed (first boot is skipped once the desk answers SSH
+over the tailnet). The script never deletes a VM.
 
 Required:
   <desk-name>          VM name, e.g. vasudev-acme-az. The tailnet hostname is <desk-name> minus
@@ -26,11 +27,12 @@ Required:
 
 Optional:
   --client <slug>      Display name slug for the node ("<slug> desktop"); default: from desk-name.
-  --git-ref <ref>      Fork commit to deploy (default: this checkout's HEAD).
+  --git-ref <ref>      Fork commit to deploy (default: this checkout's HEAD). It must be pushed to
+                       the fork remote: the VM fetches it by sha.
   --size <sku>         VM size (default: Standard_B2as_v2).
   --location <region>  Azure region (default: centralindia).
   --os-disk-gb <n>     OS disk size (default: 128).
-  --resume             Skip creation of resources that already exist and continue.
+  --resume             Continue a run whose VM already exists.
   --stop-after <phase> Stop after "create" (resources only) or "first-boot" (tests and rehearsal).
 
 Testing only:
@@ -45,14 +47,14 @@ Environment overrides:
   DESK_SSH_PUBLIC_KEY      public key for the vasudev account (default: ~/.ssh/id_ed25519.pub)
   DESK_SSH_WAIT_SECONDS    wait for SSH on the public IP (default: 600)
   DESK_POLL_SECONDS        wait for the tailnet hostname (default: 900)
-  DESK_READY_POLL_SECONDS  wait for the Gateway /healthz (default: 1800)
+  DESK_REBOOT_WAIT_SECONDS wait for the post-first-boot reboot over the tailnet (default: 900)
   DESK_FORK_REPO_URL       fork to clone on the VM (default: this checkout's `origin`)
   DESK_FRONT_DOOR_ORIGIN   Control UI origin (default: https://vasudev.tripinstudio.com)
 EOF
 }
 
 AZ_CLI="${AZ_CLI:-az}"
-for cmd in "$AZ_CLI" jq tailscale curl ssh tar; do
+for cmd in "$AZ_CLI" jq tailscale curl ssh tar python3; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
     echo "new-desk-azure.sh: \"$cmd\" is required but not found on PATH — see deploy/desk/README.md (Azure Windows desk)" >&2
     exit 1
@@ -70,8 +72,7 @@ DESK_AZ_SUBNET="${DESK_AZ_SUBNET:-desks}"
 DESK_AZ_NSG="${DESK_AZ_NSG:-vasudev-desks}"
 DESK_SSH_WAIT_SECONDS="${DESK_SSH_WAIT_SECONDS:-600}"
 DESK_POLL_SECONDS="${DESK_POLL_SECONDS:-900}"
-DESK_READY_POLL_SECONDS="${DESK_READY_POLL_SECONDS:-1800}"
-DESK_READY_POLL_INTERVAL_SECONDS="${DESK_READY_POLL_INTERVAL_SECONDS:-10}"
+DESK_REBOOT_WAIT_SECONDS="${DESK_REBOOT_WAIT_SECONDS:-900}"
 OPERATOR_RULE_NAME="operator-ssh-temp"
 
 desk_name=""
@@ -136,9 +137,11 @@ tailnet_name="${desk_name#vasudev-}"
 client="${client:-${tailnet_name%-az}}"
 git_ref="${git_ref:-$(git -C "$SCRIPT_DIR" rev-parse HEAD)}"
 
-# The env file is the only place secrets live on this side. Values are read one key at a time
-# with sed, never sourced, so nothing from it reaches this process's environment or a child's
-# argv. It must be private: a readable env file is the whole desk's keys in one place.
+# The env file is the only place secrets live on this side. It must be private, and its values
+# never reach argv: `env_json` turns it into a JSON document on stdout that the per-phase payloads
+# are built from on stdin (jq --arg is used for the non-secret fields only). Three Windows tools
+# take a secret as an argument on the VM (msiexec for the VNC password, Autologon, the desk CLI's
+# --password); the runbook says so.
 if [[ ! -f "$env_file" ]]; then
   echo "new-desk-azure.sh: env file not found: $env_file" >&2
   exit 2
@@ -154,13 +157,23 @@ for key in OWNER_EMAIL TS_AUTHKEY DESK_ADMIN_PASSWORD GATEWAY_ADMIN_PASSWORD DES
     exit 2
   fi
 done
-env_get() { sed -n "s/^$1=//p" "$env_file" | head -n1; }
-owner_email="$(env_get OWNER_EMAIL)"
-vnc_password="$(env_get VNC_PASSWORD)"
-if (( ${#vnc_password} < 6 || ${#vnc_password} > 8 )); then
+env_json() {
+  jq -Rn '[inputs | capture("^(?<key>[A-Z_]+)=(?<value>.*)$")] | from_entries' < "$env_file"
+}
+owner_email="$(env_json | jq -r '.OWNER_EMAIL')"
+vnc_len="$(env_json | jq -r '.VNC_PASSWORD | length')"
+if (( vnc_len < 6 || vnc_len > 8 )); then
   echo "new-desk-azure.sh: VNC_PASSWORD must be 6-8 characters (TightVNC uses the first 8)" >&2
   exit 2
 fi
+# Strips every secret value from text before it is echoed (PowerShell error records can quote a
+# command line). Reads the text on stdin.
+redact() {
+  local script
+  script="$(env_json | jq -r 'to_entries[] | select(.key != "OWNER_EMAIL" and .key != "WHITELIST_ADDRESSES" and (.value | length) > 0) | .value' \
+    | sed -e 's/[\/&|.*^$[]/\\&/g' -e 's#^.*$#s|&|<redacted>|g#')"
+  if [[ -n "$script" ]]; then sed -e "$script"; else cat; fi
+}
 
 ssh_public_key="${DESK_SSH_PUBLIC_KEY:-}"
 if [[ -z "$ssh_public_key" ]]; then
@@ -186,19 +199,69 @@ fi
   exit 1
 }
 
-# Temporary files carry secrets for az (@file arguments) and the SSH payloads; 0600 and deleted on
-# exit. The operator SSH rule is closed on exit too, but only once the VM exists and first boot
-# has not failed on the Tailscale join (the operator needs SSH to fix that).
+ssh_opts=(-o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts_vasudev_desks")
+# Runs one PowerShell command on the VM. Output comes back as-is (CRLF stripped).
+ssh_vm() {
+  local host="$1"
+  shift
+  ssh "${ssh_opts[@]}" "vasudev@${host}" "$@" | tr -d '\r'
+}
+# Runs a local .ps1 on the VM. Two SSH calls: the script body is written to C:\opt\stage\<name>
+# from stdin (no command-line length limit, no quoting), then executed with the JSON parameters on
+# stdin, so no secret is ever in argv or in a file on the VM.
+ssh_vm_script() {
+  local host="$1" script="$2" json_file="$3"
+  local name
+  name="$(basename "$script")"
+  ssh "${ssh_opts[@]}" "vasudev@${host}" "powershell.exe -NoProfile -NonInteractive -Command \"New-Item -ItemType Directory -Force -Path C:\\opt\\stage | Out-Null; [IO.File]::WriteAllText('C:\\opt\\stage\\${name}', [Console]::In.ReadToEnd())\"" < "$script"
+  ssh "${ssh_opts[@]}" "vasudev@${host}" "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File C:\\opt\\stage\\${name}" < "$json_file" | tr -d '\r'
+}
+ssh_ready() {
+  ssh_vm "$1" 'Write-Output ready' 2>/dev/null | grep -q '^ready$'
+}
+tailnet_lookup() {
+  tailscale status --json 2>/dev/null | jq -r --arg h "$tailnet_name" '
+    .MagicDNSSuffix as $suffix
+    | [ (((.Peer // {}) | to_entries | map(.value)))[]
+        | select((.HostName // "") | ascii_downcase == ($h | ascii_downcase))
+        | select(.Online == true)
+        | (.HostName + "." + ($suffix // "" | rtrimstr("."))) + " " + (.TailscaleIPs[0] // "") ]
+    | (.[0] // empty)'
+}
+print_windows_ready() {
+  echo
+  echo "Desk \"$desk_name\" is up."
+  echo "Control UI: ${control_ui_url}   (front door; add the route — see windows-desk-runbook.md)"
+  if [[ -n "${display_name:-}" ]]; then echo "Desktop node: ${display_name}"; fi
+  echo "SSH:        ssh vasudev@${tailnet_host}"
+  echo "Health:     ssh vasudev@${tailnet_host} 'powershell -File C:\\opt\\openclaw\\deploy\\desk\\windows\\desk-health.ps1'"
+}
+
+# Temporary files carry secrets for az (@file arguments) and the SSH payloads; 0600 inside a 0700
+# dir, deleted on exit. The operator SSH rule is closed on exit whenever this run opened it, except
+# after a Tailscale join failure (the operator needs that SSH to fix the key).
 tmpdir="$(mktemp -d)"
 chmod 700 "$tmpdir"
 vm_exists=0
+rule_opened=0
 keep_operator_ssh=0
+azure_open_operator_ssh() {
+  "$AZ_CLI" network nsg rule create --resource-group "$DESK_AZ_RESOURCE_GROUP" --nsg-name "$DESK_AZ_NSG" \
+    --name "$OPERATOR_RULE_NAME" --priority 100 --direction Inbound --access Allow --protocol Tcp \
+    --source-address-prefixes "${operator_ip}/32" --destination-port-ranges 22 --output none
+  rule_opened=1
+}
 azure_close_operator_ssh() {
   "$AZ_CLI" network nsg rule delete --resource-group "$DESK_AZ_RESOURCE_GROUP" --nsg-name "$DESK_AZ_NSG" --name "$OPERATOR_RULE_NAME" --output none 2>/dev/null || true
+  rule_opened=0
+}
+azure_vm_public_ip() {
+  "$AZ_CLI" vm list-ip-addresses --resource-group "$DESK_AZ_RESOURCE_GROUP" --name "$desk_name" --output json \
+    | jq -r '.[0].virtualMachine.network.publicIpAddresses[0].ipAddress // empty'
 }
 cleanup() {
   local status=$?
-  if (( vm_exists == 1 && keep_operator_ssh == 0 )); then
+  if (( rule_opened == 1 && keep_operator_ssh == 0 )); then
     azure_close_operator_ssh
   fi
   rm -rf "$tmpdir"
@@ -222,128 +285,139 @@ echo "==> Security group $DESK_AZ_NSG (no inbound rules except the temporary ope
 if ! "$AZ_CLI" network nsg show --resource-group "$DESK_AZ_RESOURCE_GROUP" --name "$DESK_AZ_NSG" --output none 2>/dev/null; then
   "$AZ_CLI" network nsg create --resource-group "$DESK_AZ_RESOURCE_GROUP" --name "$DESK_AZ_NSG" --location "$location" --output none
 fi
-azure_open_operator_ssh() {
-  "$AZ_CLI" network nsg rule create --resource-group "$DESK_AZ_RESOURCE_GROUP" --nsg-name "$DESK_AZ_NSG" \
-    --name "$OPERATOR_RULE_NAME" --priority 100 --direction Inbound --access Allow --protocol Tcp \
-    --source-address-prefixes "${operator_ip}/32" --destination-port-ranges 22 --output none
-}
-azure_vm_public_ip() {
-  "$AZ_CLI" vm list-ip-addresses --resource-group "$DESK_AZ_RESOURCE_GROUP" --name "$desk_name" --output json \
-    | jq -r '.[0].virtualMachine.network.publicIpAddresses[0].ipAddress // empty'
-}
-azure_open_operator_ssh
 
+tailnet_host=""
+tailnet_ip=""
+desk_online=0
 if "$AZ_CLI" vm show --resource-group "$DESK_AZ_RESOURCE_GROUP" --name "$desk_name" --output none 2>/dev/null; then
+  vm_exists=1
   if (( resume == 0 )); then
     echo "new-desk-azure.sh: VM \"$desk_name\" already exists — rerun with --resume to continue provisioning it" >&2
     exit 1
   fi
-  vm_exists=1
   echo "==> VM $desk_name exists; resuming" >&2
+  # A desk that already answers SSH over the tailnet finished first boot: no public SSH, no
+  # bootstrap, no first boot again (they are not safe to repeat on a live desk).
+  if found="$(tailnet_lookup)" && [[ -n "$found" ]]; then
+    tailnet_host="${found%% *}"
+    tailnet_ip="${found##* }"
+    if ssh_ready "$tailnet_host"; then
+      desk_online=1
+      echo "==> ${tailnet_host} (${tailnet_ip}) already answers over the tailnet; skipping bootstrap and first boot" >&2
+    fi
+  fi
 else
+  azure_open_operator_ssh
   # az reads an argument from a file when the value is @<path>, so the password never sits in
   # argv; the file is 0600 inside the 0700 tmpdir and deleted on exit.
   admin_password_file="$tmpdir/admin-password"
   : > "$admin_password_file"
   chmod 600 "$admin_password_file"
-  env_get DESK_ADMIN_PASSWORD > "$admin_password_file"
+  env_json | jq -r '.DESK_ADMIN_PASSWORD' > "$admin_password_file"
   echo "==> Creating VM $desk_name ($size, $os_disk_gb GB, Windows Server 2022 Azure Edition)" >&2
-  "$AZ_CLI" vm create --resource-group "$DESK_AZ_RESOURCE_GROUP" --name "$desk_name" --location "$location" \
+  if ! "$AZ_CLI" vm create --resource-group "$DESK_AZ_RESOURCE_GROUP" --name "$desk_name" --location "$location" \
     --image "MicrosoftWindowsServer:WindowsServer:2022-datacenter-azure-edition:latest" --size "$size" \
     --os-disk-size-gb "$os_disk_gb" --storage-sku Premium_LRS \
     --admin-username vasudev --admin-password "@${admin_password_file}" \
     --vnet-name "$DESK_AZ_VNET" --subnet "$DESK_AZ_SUBNET" --nsg "$DESK_AZ_NSG" --nsg-rule NONE \
     --public-ip-sku Standard --public-ip-address "${desk_name}-ip" \
-    --license-type None --output json > "$tmpdir/vm-create.json"
-  vm_exists=1
-fi
-public_ip="$(azure_vm_public_ip)"
-echo "==> Public IP: ${public_ip:-unknown} (SSH from ${operator_ip} only, until first boot completes)" >&2
-if [[ "$stop_after" == "create" ]]; then
-  echo "==> Stopping after create (--stop-after create)" >&2
-  exit 0
-fi
-
-ssh_opts=(-o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts_vasudev_desks")
-# Runs one PowerShell command on the VM. Output comes back as-is (CRLF stripped).
-ssh_vm() {
-  local host="$1"
-  shift
-  ssh "${ssh_opts[@]}" "vasudev@${host}" "$@" | tr -d '\r'
-}
-# Runs a local .ps1 on the VM. Two SSH calls: the script body is written to C:\opt\stage\<name>
-# from stdin (no command-line length limit, no quoting), then executed with the JSON parameters on
-# stdin, so no secret is ever in argv or in a file on the VM.
-ssh_vm_script() {
-  local host="$1" script="$2" json_file="$3"
-  local name
-  name="$(basename "$script")"
-  ssh "${ssh_opts[@]}" "vasudev@${host}" "powershell.exe -NoProfile -NonInteractive -Command \"New-Item -ItemType Directory -Force -Path C:\\opt\\stage | Out-Null; [IO.File]::WriteAllText('C:\\opt\\stage\\${name}', [Console]::In.ReadToEnd())\"" < "$script"
-  ssh "${ssh_opts[@]}" "vasudev@${host}" "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File C:\\opt\\stage\\${name}" < "$json_file" | tr -d '\r'
-}
-
-echo "==> Bootstrapping OpenSSH on the VM (run-command, no secrets)" >&2
-"$AZ_CLI" vm run-command invoke --resource-group "$DESK_AZ_RESOURCE_GROUP" --name "$desk_name" \
-  --command-id RunPowerShellScript --scripts "@${WINDOWS_DIR}/bootstrap-ssh.ps1" \
-  --parameters "PublicKey=$(cat "$ssh_public_key")" --output json > "$tmpdir/bootstrap.json"
-if ! jq -e '.value[]?.message | select(contains("bootstrap-ssh: ok"))' "$tmpdir/bootstrap.json" >/dev/null; then
-  echo "new-desk-azure.sh: bootstrap-ssh.ps1 did not report ok:" >&2
-  jq -r '.value[]?.message' "$tmpdir/bootstrap.json" >&2
-  exit 1
-fi
-echo "==> Waiting up to ${DESK_SSH_WAIT_SECONDS}s for SSH at ${public_ip}" >&2
-ssh_deadline=$((SECONDS + DESK_SSH_WAIT_SECONDS))
-until ssh_vm "$public_ip" 'Write-Output ready' 2>/dev/null | grep -q '^ready$'; do
-  if (( SECONDS >= ssh_deadline )); then
-    echo "new-desk-azure.sh: SSH to vasudev@${public_ip} never answered — check the NSG rule and \`az vm run-command invoke\` output" >&2
+    --license-type None --output json > "$tmpdir/vm-create.json"; then
+    # Azure may have created the VM before the call failed (a timeout, a late provisioning
+    # error): report it as resumable rather than letting a second run collide with it.
+    if "$AZ_CLI" vm show --resource-group "$DESK_AZ_RESOURCE_GROUP" --name "$desk_name" --output none 2>/dev/null; then
+      vm_exists=1
+    fi
+    echo "new-desk-azure.sh: az vm create failed — check the Azure portal for \"$desk_name\"; if it exists, rerun with --resume" >&2
     exit 1
   fi
-  sleep 10
-done
-if (( skip_first_boot == 1 )); then
+  vm_exists=1
+fi
+if [[ "$stop_after" == "create" ]]; then
+  public_ip="$(azure_vm_public_ip)"
+  echo "==> Public IP: ${public_ip:-unknown}; stopping after create (--stop-after create)" >&2
   exit 0
 fi
 
-# Phase 2: first boot over SSH. The script is sent self-contained (downloads.json and the Caddyfile
-# template substituted in), the secrets go on stdin as one JSON document.
-first_boot_script="$tmpdir/first-boot.ps1"
-python3 - "$WINDOWS_DIR/first-boot.ps1" "$WINDOWS_DIR/downloads.json" "$WINDOWS_DIR/Caddyfile.tmpl" "$first_boot_script" <<'PY'
+if (( desk_online == 0 )); then
+  if (( rule_opened == 0 )); then
+    azure_open_operator_ssh
+  fi
+  public_ip="$(azure_vm_public_ip)"
+  echo "==> Public IP: ${public_ip:-unknown} (SSH from ${operator_ip} only, until first boot completes)" >&2
+  echo "==> Bootstrapping OpenSSH on the VM (run-command, no secrets)" >&2
+  "$AZ_CLI" vm run-command invoke --resource-group "$DESK_AZ_RESOURCE_GROUP" --name "$desk_name" \
+    --command-id RunPowerShellScript --scripts "@${WINDOWS_DIR}/bootstrap-ssh.ps1" \
+    --parameters "PublicKey=$(cat "$ssh_public_key")" --output json > "$tmpdir/bootstrap.json"
+  if ! jq -e '.value[]?.message | select(contains("bootstrap-ssh: ok"))' "$tmpdir/bootstrap.json" >/dev/null; then
+    echo "new-desk-azure.sh: bootstrap-ssh.ps1 did not report ok:" >&2
+    jq -r '.value[]?.message' "$tmpdir/bootstrap.json" >&2
+    exit 1
+  fi
+  echo "==> Waiting up to ${DESK_SSH_WAIT_SECONDS}s for SSH at ${public_ip}" >&2
+  ssh_deadline=$((SECONDS + DESK_SSH_WAIT_SECONDS))
+  until ssh_ready "$public_ip"; do
+    if (( SECONDS >= ssh_deadline )); then
+      echo "new-desk-azure.sh: SSH to vasudev@${public_ip} never answered — check the NSG rule and \`az vm run-command invoke\` output" >&2
+      exit 1
+    fi
+    sleep 10
+  done
+  if (( skip_first_boot == 1 )); then
+    exit 0
+  fi
+
+  # Phase 2: first boot over SSH. The script is sent self-contained (downloads.json and the
+  # Caddyfile template substituted in); the secrets go on stdin as one JSON document built from
+  # the env file on stdin, never from argv.
+  first_boot_script="$tmpdir/first-boot.ps1"
+  python3 - "$WINDOWS_DIR/first-boot.ps1" "$WINDOWS_DIR/downloads.json" "$WINDOWS_DIR/Caddyfile.tmpl" "$first_boot_script" <<'PY'
 import sys
 src, downloads, caddy, out = sys.argv[1:5]
 text = open(src).read().replace("{{DOWNLOADS_JSON}}", open(downloads).read().strip()).replace("{{CADDYFILE_TMPL}}", open(caddy).read().strip())
 open(out, "w").write(text)
 PY
-first_boot_json="$tmpdir/first-boot.json"
-: > "$first_boot_json"
-chmod 600 "$first_boot_json"
-jq -cn --arg tailnetName "$tailnet_name" --arg tsAuthKey "$(env_get TS_AUTHKEY)" --arg adminPassword "$(env_get DESK_ADMIN_PASSWORD)" \
-  --arg vncPassword "$vnc_password" --arg frontPassword "$(env_get DESK_FRONT_PASSWORD)" --arg ownerEmail "$owner_email" --arg gitRef "$git_ref" \
-  '{tailnetName:$tailnetName, tsAuthKey:$tsAuthKey, adminPassword:$adminPassword, vncPassword:$vncPassword, frontPassword:$frontPassword, ownerEmail:$ownerEmail, gitRef:$gitRef}' > "$first_boot_json"
-echo "==> First boot (Tailscale, TightVNC, Caddy, Node, auto sign-in); the VM reboots at the end" >&2
-set +e
-first_boot_out="$(ssh_vm_script "$public_ip" "$first_boot_script" "$first_boot_json")"
-first_boot_status=$?
-set -e
-printf '%s\n' "$first_boot_out" | grep -v -i 'password\|authkey' >&2 || true
-if printf '%s' "$first_boot_out" | grep -q 'first-boot: tailscale-failed'; then
-  keep_operator_ssh=1
-  echo "new-desk-azure.sh: the VM could not join the tailnet (see above). SSH from ${operator_ip} to vasudev@${public_ip} stays open; fix TS_AUTHKEY in the env file and rerun with --resume" >&2
-  exit 3
+  first_boot_json="$tmpdir/first-boot.json"
+  : > "$first_boot_json"
+  chmod 600 "$first_boot_json"
+  env_json | jq -c --arg tailnetName "$tailnet_name" --arg gitRef "$git_ref" \
+    '{tailnetName:$tailnetName, tsAuthKey:.TS_AUTHKEY, adminPassword:.DESK_ADMIN_PASSWORD, vncPassword:.VNC_PASSWORD, frontPassword:.DESK_FRONT_PASSWORD, ownerEmail:.OWNER_EMAIL, gitRef:$gitRef}' > "$first_boot_json"
+  echo "==> First boot (Tailscale, TightVNC, Caddy, Node, auto sign-in); the VM reboots at the end" >&2
+  set +e
+  first_boot_out="$(ssh_vm_script "$public_ip" "$first_boot_script" "$first_boot_json")"
+  first_boot_status=$?
+  set -e
+  printf '%s\n' "$first_boot_out" | redact >&2 || true
+  if printf '%s' "$first_boot_out" | grep -q 'first-boot: tailscale-failed'; then
+    keep_operator_ssh=1
+    echo "new-desk-azure.sh: the VM could not join the tailnet (see above). SSH from ${operator_ip} to vasudev@${public_ip} stays open; fix TS_AUTHKEY in the env file and rerun with --resume" >&2
+    exit 3
+  fi
+  # The reboot drops the SSH session, so a non-zero status with "first-boot: ok" in the output is success.
+  if ! printf '%s' "$first_boot_out" | grep -q 'first-boot: ok'; then
+    echo "new-desk-azure.sh: first-boot.ps1 failed (exit ${first_boot_status})" >&2
+    exit 1
+  fi
+  echo "==> Closing the temporary operator SSH rule; everything else goes over the tailnet" >&2
+  azure_close_operator_ssh
+  echo "==> Waiting up to ${DESK_POLL_SECONDS}s for \"$tailnet_name\" on the tailnet" >&2
+  if ! tailnet_host="$(desk_wait_for_tailnet_host "$tailnet_name" "$DESK_POLL_SECONDS")"; then
+    echo "new-desk-azure.sh: \"$tailnet_name\" did not appear on the tailnet — check \`tailscale status\` and the Tailscale admin console" >&2
+    exit 1
+  fi
+  tailnet_ip="$(tailscale status --json | jq -r --arg h "$tailnet_name" '[.Peer[] | select((.HostName | ascii_downcase) == ($h | ascii_downcase)) | .TailscaleIPs[0]] | first // empty')"
+  echo "==> ${tailnet_host} (${tailnet_ip})" >&2
+  # The peer showed Online before the reboot too; wait for SSH to answer from a FRESH boot (uptime
+  # under 15 minutes) so the build is not pushed into a machine that is shutting down.
+  echo "==> Waiting up to ${DESK_REBOOT_WAIT_SECONDS}s for the VM to come back from its reboot" >&2
+  reboot_deadline=$((SECONDS + DESK_REBOOT_WAIT_SECONDS))
+  until ssh_vm "$tailnet_host" 'if ((New-TimeSpan -Start (Get-CimInstance Win32_OperatingSystem).LastBootUpTime).TotalMinutes -lt 15) { Write-Output first-boot-fresh } else { Write-Output first-boot-stale }' 2>/dev/null | grep -q '^first-boot-fresh$'; do
+    if (( SECONDS >= reboot_deadline )); then
+      echo "new-desk-azure.sh: \"$tailnet_host\" did not come back from the first-boot reboot — check the Azure serial console" >&2
+      exit 1
+    fi
+    sleep 15
+  done
 fi
-# The reboot drops the SSH session, so a non-zero status with "first-boot: ok" in the output is success.
-if ! printf '%s' "$first_boot_out" | grep -q 'first-boot: ok'; then
-  echo "new-desk-azure.sh: first-boot.ps1 failed (exit ${first_boot_status})" >&2
-  exit 1
-fi
-echo "==> Closing the temporary operator SSH rule; everything else goes over the tailnet" >&2
-azure_close_operator_ssh
-echo "==> Waiting up to ${DESK_POLL_SECONDS}s for \"$tailnet_name\" on the tailnet" >&2
-if ! tailnet_host="$(desk_wait_for_tailnet_host "$tailnet_name" "$DESK_POLL_SECONDS")"; then
-  echo "new-desk-azure.sh: \"$tailnet_name\" did not appear on the tailnet — check \`tailscale status\` and the Tailscale admin console" >&2
-  exit 1
-fi
-tailnet_ip="$(tailscale status --json | jq -r --arg h "$tailnet_name" '[.Peer[] | select((.HostName | ascii_downcase) == ($h | ascii_downcase)) | .TailscaleIPs[0]] | first // empty')"
-echo "==> ${tailnet_host} (${tailnet_ip})" >&2
 if [[ "$stop_after" == "first-boot" ]]; then
   exit 0
 fi
@@ -361,22 +435,21 @@ provision_json="$tmpdir/provision.json"
 chmod 600 "$provision_json"
 fork_repo_url="${DESK_FORK_REPO_URL:-$(git -C "$SCRIPT_DIR" remote get-url origin)}"
 front_door_origin="${DESK_FRONT_DOOR_ORIGIN:-https://vasudev.tripinstudio.com}"
-jq -cn --arg gitRef "$git_ref" --arg forkRepoUrl "$fork_repo_url" --arg ownerEmail "$owner_email" \
-  --arg gatewayAdminPassword "$(env_get GATEWAY_ADMIN_PASSWORD)" --arg frontPassword "$(env_get DESK_FRONT_PASSWORD)" \
-  --arg tailnetHost "$tailnet_host" --arg tailnetIp "$tailnet_ip" --arg frontDoorOrigin "$front_door_origin" --arg clientName "$client" \
-  '{gitRef:$gitRef, forkRepoUrl:$forkRepoUrl, ownerEmail:$ownerEmail, gatewayAdminPassword:$gatewayAdminPassword, frontPassword:$frontPassword, tailnetHost:$tailnetHost, tailnetIp:$tailnetIp, frontDoorOrigin:$frontDoorOrigin, clientName:$clientName}' > "$provision_json"
+env_json | jq -c --arg gitRef "$git_ref" --arg forkRepoUrl "$fork_repo_url" --arg tailnetHost "$tailnet_host" --arg tailnetIp "$tailnet_ip" \
+  --arg frontDoorOrigin "$front_door_origin" --arg clientName "$client" \
+  '{gitRef:$gitRef, forkRepoUrl:$forkRepoUrl, ownerEmail:.OWNER_EMAIL, gatewayAdminPassword:.GATEWAY_ADMIN_PASSWORD, frontPassword:.DESK_FRONT_PASSWORD, tailnetHost:$tailnetHost, tailnetIp:$tailnetIp, frontDoorOrigin:$frontDoorOrigin, clientName:$clientName}' > "$provision_json"
 echo "==> Provisioning the desk (checkout, pnpm install, config, Gateway task)" >&2
 set +e
 provision_out="$(ssh_vm_script "$tailnet_host" "$provision_script" "$provision_json")"
 set -e
-printf '%s\n' "$provision_out" | grep -v -i 'password' >&2 || true
+printf '%s\n' "$provision_out" | redact >&2 || true
 if ! printf '%s' "$provision_out" | grep -q '^provision-desk: ok'; then
   echo "new-desk-azure.sh: provision-desk.ps1 failed" >&2
   exit 1
 fi
 control_ui_url="$front_door_origin"
 if (( skip_pairing == 1 )); then
-  desk_print_ready "$desk_name" "$control_ui_url" "vasudev@${tailnet_host}" client
+  print_windows_ready
   exit 0
 fi
 
@@ -385,13 +458,13 @@ pair_json="$tmpdir/pair.json"
 : > "$pair_json"
 chmod 600 "$pair_json"
 display_name="${client} desktop"
-jq -cn --arg tailnetHost "$tailnet_host" --arg gatewayAdminPassword "$(env_get GATEWAY_ADMIN_PASSWORD)" --arg displayName "$display_name" \
-  '{tailnetHost:$tailnetHost, gatewayAdminPassword:$gatewayAdminPassword, displayName:$displayName}' > "$pair_json"
+env_json | jq -c --arg tailnetHost "$tailnet_host" --arg displayName "$display_name" \
+  '{tailnetHost:$tailnetHost, gatewayAdminPassword:.GATEWAY_ADMIN_PASSWORD, displayName:$displayName}' > "$pair_json"
 echo "==> Pairing the desktop node \"$display_name\"" >&2
 set +e
 pair_out="$(ssh_vm_script "$tailnet_host" "$WINDOWS_DIR/pair-node.ps1" "$pair_json")"
 set -e
-printf '%s\n' "$pair_out" | grep -v -i 'password' >&2 || true
+printf '%s\n' "$pair_out" | redact >&2 || true
 if printf '%s' "$pair_out" | grep -q '^pair-node: ingress-unreachable'; then
   echo "new-desk-azure.sh: the Gateway's Tailscale ingress is not reachable from the VM itself — see windows-desk-runbook.md \"Loopback entrance fallback\", then rerun with --resume" >&2
   exit 7
@@ -400,9 +473,4 @@ if ! printf '%s' "$pair_out" | grep -q '^pair-node: ok'; then
   echo "new-desk-azure.sh: pair-node.ps1 failed" >&2
   exit 1
 fi
-echo
-echo "Desk \"$desk_name\" is up."
-echo "Control UI: ${control_ui_url}   (front door; add the route — see windows-desk-runbook.md)"
-echo "Desktop node: ${display_name}"
-echo "SSH:        ssh vasudev@${tailnet_host}"
-echo "Health:     ssh vasudev@${tailnet_host} 'powershell -File C:\\opt\\openclaw\\deploy\\desk\\windows\\desk-health.ps1'"
+print_windows_ready

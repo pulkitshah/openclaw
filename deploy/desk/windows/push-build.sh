@@ -39,7 +39,9 @@ ssh_opts=(-o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-
 echo "==> Staging receive-build.ps1 on ${host}" >&2
 ssh "${ssh_opts[@]}" "vasudev@${host}" "powershell.exe -NoProfile -NonInteractive -Command \"New-Item -ItemType Directory -Force -Path C:\\opt\\stage | Out-Null; [IO.File]::WriteAllText('C:\\opt\\stage\\receive-build.ps1', [Console]::In.ReadToEnd())\"" < "$SCRIPT_DIR/receive-build.ps1"
 echo "==> Streaming ${count} files to ${host}" >&2
-out="$(tar -C "$dist" --exclude='./extensions/*/node_modules' -cf - . \
+# bsdtar on macOS adds AppleDouble ._* entries for files with extended attributes unless told not
+# to; tar.exe on the VM would extract them as real files and the count would disagree.
+out="$(COPYFILE_DISABLE=1 tar -C "$dist" --no-mac-metadata --no-xattrs --exclude='./extensions/*/node_modules' -cf - . \
   | ssh "${ssh_opts[@]}" "vasudev@${host}" "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File C:\\opt\\stage\\receive-build.ps1 -GitRef ${git_ref} -ExpectedCount ${count} -ExpectedManifest ${manifest}" | tr -d '\r')"
 printf '%s\n' "$out" >&2
 if ! printf '%s' "$out" | grep -q '^receive-build: ok'; then

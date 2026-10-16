@@ -85,7 +85,12 @@ fi
 # new-desk-azure.sh: the SSH readiness probe must answer "ready" on its own; every other call
 # prints the canned SSH_STDOUT (all lines, the script greps for markers) and exits SSH_EXIT_CODE.
 case "$*" in
-  *"Write-Output ready"*) printf 'ready\\n'; exit 0 ;;
+  *"Write-Output ready"*)
+    if [ -n "\${SSH_READY_HOSTS:-}" ]; then
+      case "$*" in *"$SSH_READY_HOSTS"*) printf 'ready\\n'; exit 0 ;; *) exit 255 ;; esac
+    fi
+    printf 'ready\\n'; exit 0 ;;
+  *"first-boot-fresh"*) printf '%s\\n' "\${SSH_FRESH_BOOT:-first-boot-fresh}"; exit 0 ;;
 esac
 if [ -n "\${SSH_STDOUT:-}" ]; then
   printf '%s\\n' "$SSH_STDOUT"
@@ -280,7 +285,7 @@ case "$args" in
   "network vnet show"*)       if [ "\${AZ_VNET_EXISTS:-0}" = 1 ]; then printf '{"name":"vasudev"}'; else exit 3; fi ;;
   "network nsg show"*)        if [ "\${AZ_NSG_EXISTS:-0}" = 1 ]; then printf '{"name":"vasudev-desks"}'; else exit 3; fi ;;
   "vm show"*)                 if [ "\${AZ_VM_EXISTS:-0}" = 1 ]; then printf '%s' '{"name":"existing"}'; else exit 3; fi ;;
-  "vm create"*)               printf '%s' '{"publicIpAddress":"20.0.0.5"}' ;;
+  "vm create"*)               if [ "\${AZ_VM_CREATE_EXIT:-0}" != 0 ]; then echo "az: create failed (fixture)" >&2; exit "\${AZ_VM_CREATE_EXIT}"; fi; printf '%s' '{"publicIpAddress":"20.0.0.5"}' ;;
   "vm list-ip-addresses"*)    printf '%s' '[{"virtualMachine":{"network":{"publicIpAddresses":[{"ipAddress":"20.0.0.5"}]}}}]' ;;
   "vm run-command invoke"*)   printf '%s' "\${AZ_RUN_COMMAND_JSON:-}"; [ -n "\${AZ_RUN_COMMAND_JSON:-}" ] || printf '%s' '{"value":[{"message":"bootstrap-ssh: ok"}]}' ;;
   *) : ;;
@@ -1732,6 +1737,63 @@ exit 0`,
       expect(log).toContain("vm create");
     });
 
+    it("never opens the operator SSH rule when the VM already exists and --resume was not given", () => {
+      const result = run(
+        NEW_DESK_AZURE,
+        [deskName, "--env-file", envFile, "--stop-after", "create"],
+        azureEnv({ AZ_VM_EXISTS: "1" }),
+      );
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain("--resume");
+      expect(readLog(azLog)).not.toContain("nsg rule create");
+    });
+
+    it("closes the operator SSH rule when az vm create fails", () => {
+      const result = run(
+        NEW_DESK_AZURE,
+        [deskName, "--env-file", envFile, "--stop-after", "create"],
+        azureEnv({ AZ_VM_CREATE_EXIT: "1" }),
+      );
+      expect(result.status).not.toBe(0);
+      const log = readLog(azLog);
+      expect(log).toContain("nsg rule create");
+      expect(log).toContain("nsg rule delete");
+      expect(result.stderr).toContain("--resume");
+    });
+
+    it("skips the bootstrap and first boot on --resume when the desk already answers SSH over the tailnet", () => {
+      const head = spawnSync("git", ["-C", HERE, "rev-parse", "HEAD"], {
+        encoding: "utf8",
+      }).stdout.trim();
+      const fakeDist = join(dir, "fake-dist");
+      mkdirSync(fakeDist, { recursive: true });
+      writeFileSync(join(fakeDist, "index.js"), "console.log(1)\n");
+      writeFileSync(join(fakeDist, ".provision-built-ref"), `${head}\n`);
+      const result = run(
+        NEW_DESK_AZURE,
+        [deskName, "--env-file", envFile, "--resume", "--skip-pairing", "--git-ref", head],
+        azureEnv({
+          AZ_VM_EXISTS: "1",
+          SSH_LOG: sshLog,
+          SSH_STDIN_LOG: join(dir, "ssh-stdin.log"),
+          SSH_READY_HOSTS: "acme-az.tailnet-fixture.ts.net",
+          SSH_STDOUT: "receive-build: ok 2 files\nprovision-desk: ok",
+          DESK_BUILD_DIR: fakeDist,
+        }),
+      );
+      expect(result.status, result.stderr).toBe(0);
+      expect(readLog(azLog)).not.toContain("vm run-command invoke");
+      expect(readLog(azLog)).not.toContain("nsg rule create");
+      // argv lines only: the staged provisioning script's own comments mention first-boot.ps1.
+      const sshArgv = readLog(sshLog)
+        .split("\n")
+        .filter((line) => line.startsWith("ssh "))
+        .join("\n");
+      expect(sshArgv).not.toContain("first-boot.ps1");
+      expect(result.stderr).toContain("already answers over the tailnet");
+      expect(result.stdout).toContain("SSH:        ssh vasudev@acme-az.tailnet-fixture.ts.net");
+    });
+
     it("bootstraps OpenSSH with a run-command that carries the operator key and no secrets, then waits for SSH", () => {
       const result = run(
         NEW_DESK_AZURE,
@@ -1780,6 +1842,8 @@ exit 0`,
       expect(log.indexOf("nsg rule delete")).toBeGreaterThan(log.indexOf("vm create"));
       expect(result.stderr).toContain("acme-az.tailnet-fixture.ts.net");
       expect(result.stderr).toContain("100.64.0.9");
+      // After the reboot the script waits for a fresh boot over the tailnet, not just for the peer.
+      expect(readLog(sshLog)).toContain("first-boot-fresh");
     });
 
     it("keeps the operator SSH rule open and stops when the tailnet join fails", () => {

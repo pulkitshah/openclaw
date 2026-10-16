@@ -190,7 +190,10 @@ Per desk, a 0600 env file `~/cashew-secrets/<desk>.env` with `OWNER_EMAIL`, `TS_
 (reusable off, 90 days), `DESK_ADMIN_PASSWORD` (the VM's `vasudev` account; Azure requires 12+
 characters with three character classes), `GATEWAY_ADMIN_PASSWORD`, `DESK_FRONT_PASSWORD` (the
 front door's basic auth to this desk), `VNC_PASSWORD` (6-8 characters), `WHITELIST_ADDRESSES`
-(comma-separated, may be empty). Secrets travel to the VM on SSH stdin only.
+(comma-separated, may be empty). Secrets travel to the VM on SSH stdin; on the VM three tools take
+one as an argument because they offer nothing else (msiexec for the VNC password, Sysinternals
+Autologon, the desk CLI's `--password`), and the create script redacts every secret value from
+the output it echoes.
 
 ```bash
 deploy/desk/new-desk-azure.sh vasudev-acme-az --env-file ~/cashew-secrets/acme-az.env --client acme --location jioindiawest
@@ -211,9 +214,13 @@ Then: add the front-door route (`@<client> header X-Forwarded-User <email>` →
 `front-door/Caddyfile.vasudev-desk-1`), run `windows/desk-health.ps1` over SSH, and set the
 whitelisted routes on the egress device (runbook §6).
 
-Rolling: `git checkout <sha>` here, `deploy/desk/windows/push-build.sh <tailnet-host>`, then over
-SSH `node C:\opt\openclaw\dist\index.js gateway restart` and restart the "OpenClaw Node" task
-(`office-pc-runbook.md` §10.7 explains why the whole `dist` goes every time).
+Rolling: `git checkout <sha>` here and push it to the fork (the VM fetches the commit by sha),
+`deploy/desk/windows/push-build.sh <tailnet-host>`, then over SSH
+`node C:\opt\openclaw\dist\index.js gateway restart` and restart the "OpenClaw Node" task
+(`office-pc-runbook.md` §10.7 explains why the whole `dist` goes every time). When
+`pnpm-lock.yaml` changed between the two commits, rerun the create script with `--resume` instead:
+it skips first boot and reruns `provision-desk.ps1`, which refreshes the checkout and
+`node_modules` before restarting the Gateway.
 
 ## First sign-in
 

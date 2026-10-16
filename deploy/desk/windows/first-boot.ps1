@@ -29,16 +29,29 @@ function Install-Msi([string]$file, [string[]]$props) {
 
 # 1. Tailscale, unattended (runs before sign-in), joins with the pre-auth key. Failure here is
 #    reported and stops the script WITHOUT rebooting: the operator still has SSH on the public IP.
+#    Native commands run under "Continue": with "Stop", PowerShell 5.1 turns any stderr line of a
+#    `2>&1`-redirected native command into a terminating error, which would skip the marker below.
 $ts = "C:\Program Files\Tailscale\tailscale.exe"
 if (-not (Test-Path $ts)) { Install-Msi (Get-Pinned "tailscale") @() }
-$status = $null
-try { $status = & $ts status --json 2>$null | ConvertFrom-Json } catch { $status = $null }
-if (-not $status -or $status.BackendState -ne "Running") {
-  $env:TS_AUTHKEY_TMP = $params.tsAuthKey
-  $out = & $ts up --unattended=true --accept-routes --hostname=$($params.tailnetName) --authkey=$env:TS_AUTHKEY_TMP 2>&1
-  Remove-Item Env:TS_AUTHKEY_TMP
-  try { $status = & $ts status --json 2>$null | ConvertFrom-Json } catch { $status = $null }
-  if (-not $status -or $status.BackendState -ne "Running") { "first-boot: tailscale-failed $out"; exit 3 }
+function Get-TailscaleState {
+  $ErrorActionPreference = "Continue"
+  try { $s = & $ts status --json 2>$null | ConvertFrom-Json; return $s.BackendState } catch { return "" }
+}
+if ((Get-TailscaleState) -ne "Running") {
+  # The key goes through a 0600-equivalent file (`file:` reference), never argv.
+  $keyFile = "$opt\ts-authkey.tmp"
+  Set-Content -Path $keyFile -Value $params.tsAuthKey -NoNewline -Encoding ascii
+  icacls $keyFile /inheritance:r /grant "vasudev:F" /grant "SYSTEM:F" | Out-Null
+  $out = ""
+  $ErrorActionPreference = "Continue"
+  for ($attempt = 1; $attempt -le 6; $attempt++) {
+    $out = (& $ts up --unattended=true --accept-routes --hostname=$($params.tailnetName) --auth-key="file:$keyFile" 2>&1 | Out-String)
+    if ((Get-TailscaleState) -eq "Running") { break }
+    Start-Sleep -Seconds 10
+  }
+  $ErrorActionPreference = "Stop"
+  Remove-Item -Force $keyFile -ErrorAction SilentlyContinue
+  if ((Get-TailscaleState) -ne "Running") { "first-boot: tailscale-failed $out"; exit 3 }
 }
 
 # 2. TightVNC service: loopback only, VncAuth, no HTTP viewer, no tray icon. The password is an MSI
@@ -53,8 +66,10 @@ if (-not (Get-Service tvnserver -ErrorAction SilentlyContinue)) {
     "SET_RUNCONTROLINTERFACE=1", "VALUE_OF_RUNCONTROLINTERFACE=0",
     "SET_REMOVEWALLPAPER=1", "VALUE_OF_REMOVEWALLPAPER=0", "SET_RFBPORT=1", "VALUE_OF_RFBPORT=5900")
 }
+# Administrators keep full control so a rerun can rewrite the file; the node reads it as vasudev.
+if (Test-Path "$opt\vnc-password.txt") { icacls "$opt\vnc-password.txt" /grant "Administrators:F" | Out-Null }
 Set-Content -Path "$opt\vnc-password.txt" -Value $params.vncPassword -NoNewline -Encoding ascii
-icacls "$opt\vnc-password.txt" /inheritance:r /grant "vasudev:R" /grant "SYSTEM:F" | Out-Null
+icacls "$opt\vnc-password.txt" /inheritance:r /grant "vasudev:R" /grant "Administrators:F" /grant "SYSTEM:F" | Out-Null
 
 # 3. Node 26, MinGit, pnpm via corepack.
 if (-not (Test-Path "C:\Program Files\nodejs\node.exe")) { Install-Msi (Get-Pinned "node") @() }
@@ -70,7 +85,8 @@ $env:Path = $machinePath
 # 4. Caddy as a startup scheduled task (Caddy has no Windows service mode of its own).
 if (-not (Test-Path "$opt\caddy\caddy.exe")) { Expand-Archive (Get-Pinned "caddy") -DestinationPath "$opt\caddy" -Force }
 $tailnetIp = (& $ts ip -4).Trim()
-$bcrypt = (& "$opt\caddy\caddy.exe" hash-password --plaintext $params.frontPassword).Trim()
+# The front password goes to caddy on stdin, not as --plaintext in argv.
+$bcrypt = ($params.frontPassword | & "$opt\caddy\caddy.exe" hash-password).Trim()
 $caddyfile = @'
 {{CADDYFILE_TMPL}}
 '@
@@ -102,5 +118,6 @@ foreach ($path in $policies.Keys) {
   foreach ($kv in $policies[$path].GetEnumerator()) { New-ItemProperty -Path $path -Name $kv.Key -Value $kv.Value -Force | Out-Null }
 }
 
+Set-Content -Path "$opt\first-boot.done" -Value (Get-Date -Format o) -Encoding ascii
 "first-boot: ok"
 Restart-Computer -Force

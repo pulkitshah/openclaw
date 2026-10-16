@@ -1,5 +1,13 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir, userInfo } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -107,4 +115,46 @@ describe("openclaw.windows-desk.json.tmpl", () => {
     expect(result.status).not.toBe(0);
     expect(result.output).toContain("allowTailscale");
   });
+});
+
+describe("receive-build.ps1 manifest", () => {
+  it.runIf(pwsh !== undefined)(
+    "matches push-build.sh's bash manifest on mixed-case names, hidden files and excluded plugin node_modules",
+    () => {
+      const dist = mkdtempSync(join(tmpdir(), "dist-parity-"));
+      try {
+        writeFileSync(join(dist, "index.js"), "a\n");
+        writeFileSync(join(dist, "chunk-B1.mjs"), "b\n");
+        writeFileSync(join(dist, "chunk-a2.mjs"), "c\n");
+        writeFileSync(join(dist, "chunk_z.mjs"), "d\n");
+        writeFileSync(join(dist, ".provision-built-ref"), "abc\n");
+        mkdirSync(join(dist, "extensions", "demo", "node_modules", "dep"), { recursive: true });
+        writeFileSync(join(dist, "extensions", "demo", "index.js"), "e\n");
+        writeFileSync(join(dist, "extensions", "demo", "node_modules", "dep", "x.js"), "ignored\n");
+        const bash = spawnSync(
+          "bash",
+          [
+            "-c",
+            "cd \"$1\" && find . -type f -not -path './extensions/*/node_modules/*' | LC_ALL=C sort | xargs shasum -a 256 | shasum -a 256 | cut -d' ' -f1; find . -type f -not -path './extensions/*/node_modules/*' | wc -l | tr -d ' '",
+            "_",
+            dist,
+          ],
+          { encoding: "utf8" },
+        );
+        expect(bash.status, bash.stderr).toBe(0);
+        const [bashManifest, bashCount] = bash.stdout.trim().split("\n");
+        const ps = spawnSync(
+          pwsh as string,
+          ["-NoProfile", "-File", join(HERE, "receive-build.ps1"), "-ManifestOnly", dist],
+          { encoding: "utf8" },
+        );
+        expect(ps.status, ps.stdout + ps.stderr).toBe(0);
+        const [psManifest, psCount] = ps.stdout.trim().split(" ");
+        expect(psCount).toBe(bashCount);
+        expect(psManifest).toBe(bashManifest);
+      } finally {
+        rmSync(dist, { recursive: true, force: true });
+      }
+    },
+  );
 });

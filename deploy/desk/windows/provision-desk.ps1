@@ -10,23 +10,36 @@ $root = "C:\opt\openclaw"; $secrets = "C:\opt\secrets"; $state = "$env:USERPROFI
 New-Item -ItemType Directory -Force -Path $secrets, $state | Out-Null
 icacls $secrets /inheritance:r /grant "vasudev:(OI)(CI)F" /grant "SYSTEM:(OI)(CI)F" | Out-Null
 
-# 1. Checkout at the pinned commit (shallow; the build itself comes from the Mac).
-if (-not (Test-Path "$root\package.json")) {
-  git clone --depth 1 --no-checkout $params.forkRepoUrl $root
+# 1. Checkout at the pinned commit (shallow; the build itself comes from the Mac). push-build.sh
+#    has already filled C:\opt\openclaw\dist, so this is init + fetch into a non-empty directory,
+#    never `git clone`, which refuses one. dist/ is git-ignored by the checkout.
+function Assert-Native([string]$what) { if ($LASTEXITCODE -ne 0) { "provision-desk: $what failed ($LASTEXITCODE)"; exit 4 } }
+if (-not (Test-Path "$root\.git")) {
+  New-Item -ItemType Directory -Force -Path $root | Out-Null
+  git -C $root init -q
+  Assert-Native "git init"
+  git -C $root remote add origin $params.forkRepoUrl
+  Assert-Native "git remote add"
 }
-git -C $root fetch --depth 1 origin $params.gitRef
-git -C $root checkout --detach FETCH_HEAD
 git -C $root config core.autocrlf false
+git -C $root fetch --depth 1 origin $params.gitRef
+Assert-Native "git fetch $($params.gitRef) (is the commit pushed to the fork?)"
+git -C $root checkout -q --detach FETCH_HEAD
+Assert-Native "git checkout"
 
 # 2. pnpm pinned by the checkout, then the runtime dependencies (native win32 packages included).
 $pm = node -p "require('$($root.Replace('\', '/'))/package.json').packageManager"
+Assert-Native "reading packageManager"
 corepack prepare $pm --activate | Out-Null
+Assert-Native "corepack prepare $pm"
 Push-Location $root
 $env:npm_config_minimum_release_age = "0"
 $env:npm_config_minimum_release_age_strict = "false"
 $env:npm_config_fetch_timeout = "900000"
 pnpm install --frozen-lockfile --ignore-scripts
+$installExit = $LASTEXITCODE
 Pop-Location
+if ($installExit -ne 0) { "provision-desk: pnpm install failed ($installExit)"; exit 4 }
 $builtRef = if (Test-Path "$root\dist\.provision-built-ref") { (Get-Content "$root\dist\.provision-built-ref" -Raw).Trim() } else { "" }
 if ($builtRef -ne $params.gitRef) {
   "provision-desk: dist is not built for $($params.gitRef) (have '$builtRef') - run deploy/desk/windows/push-build.sh first"
