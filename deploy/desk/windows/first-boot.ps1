@@ -71,7 +71,12 @@ if (Test-Path "$opt\vnc-password.txt") { icacls "$opt\vnc-password.txt" /grant "
 Set-Content -Path "$opt\vnc-password.txt" -Value $params.vncPassword -NoNewline -Encoding ascii
 icacls "$opt\vnc-password.txt" /inheritance:r /grant "vasudev:R" /grant "Administrators:F" /grant "SYSTEM:F" | Out-Null
 
-# 3. Node 26, MinGit, pnpm via corepack.
+# 3. Visual C++ runtime (pnpm 12 ships a native pnpm-native.exe that needs vcruntime140.dll; a
+#    clean Server image has none - observed live as exit 0xC0000135), Node 26, MinGit, pnpm.
+if (-not (Test-Path "C:\Windows\System32\vcruntime140.dll")) {
+  $p = Start-Process (Get-Pinned "vcredist") -ArgumentList "/install", "/quiet", "/norestart" -Wait -PassThru
+  if ($p.ExitCode -notin 0, 3010, 1638) { throw "first-boot: vc_redist exited $($p.ExitCode)" }
+}
 if (-not (Test-Path "C:\Program Files\nodejs\node.exe")) { Install-Msi (Get-Pinned "node") @() }
 if (-not (Test-Path "$opt\git\cmd\git.exe")) { Expand-Archive (Get-Pinned "git") -DestinationPath "$opt\git" -Force }
 $machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")

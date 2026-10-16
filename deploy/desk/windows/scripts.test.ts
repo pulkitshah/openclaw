@@ -63,7 +63,15 @@ describe("downloads.json", () => {
       expect(entry.sha256, name).toMatch(/^[0-9a-f]{64}$/);
     }
     expect(Object.keys(entries)).toEqual(
-      expect.arrayContaining(["tailscale", "tightvnc", "caddy", "node", "git", "autologon"]),
+      expect.arrayContaining([
+        "tailscale",
+        "tightvnc",
+        "caddy",
+        "node",
+        "git",
+        "autologon",
+        "vcredist",
+      ]),
     );
   });
 });
