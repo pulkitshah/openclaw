@@ -53,6 +53,16 @@ ssh_opts=(-o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-
 # stalled after 128 KB, both through PowerShell and straight into tar.exe), so the tar and the
 # receiver script go up with sftp, which uses its own channel, and the receiver reads the tar
 # from disk.
+# Same content already on the VM (the receiver records the manifest it verified): only refresh
+# the commit marker instead of uploading 275 MB again. A desk is rolled for code changes; a
+# docs-only commit produces the same unit.
+remote_manifest="$(ssh "${ssh_opts[@]}" "vasudev@${host}" "powershell.exe -NoProfile -NonInteractive -Command \"if (Test-Path C:\\opt\\openclaw\\dist\\.provision-built-manifest) { Get-Content C:\\opt\\openclaw\\dist\\.provision-built-manifest -Raw } else { Write-Output none }; exit 0\"" 2>/dev/null | tr -d '\r\n' || true)"
+if [[ "$remote_manifest" == "$manifest" ]]; then
+  echo "==> ${host} already holds this build (manifest ${manifest:0:12}); updating the commit marker only" >&2
+  ssh "${ssh_opts[@]}" "vasudev@${host}" "powershell.exe -NoProfile -NonInteractive -Command \"Set-Content -Path C:\\opt\\openclaw\\dist\\.provision-built-ref -Value ${git_ref} -NoNewline -Encoding ascii; exit 0\"" >/dev/null
+  echo "push-build: ok ${git_ref} ${count}"
+  exit 0
+fi
 tarfile="$(mktemp -t vasudev-dist).tar"
 trap 'rm -f "$tarfile"' EXIT
 # bsdtar on macOS adds AppleDouble ._* entries for files with extended attributes unless told not

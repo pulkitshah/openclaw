@@ -64,4 +64,6 @@ Get-ChildItem "$tmp\packages" -Directory -ErrorAction SilentlyContinue | ForEach
 }
 Remove-Item -Recurse -Force $tmp
 Set-Content -Path "$dist\.provision-built-ref" -Value $GitRef -NoNewline -Encoding ascii
+# push-build.sh compares this before uploading: an identical unit only needs the ref marker.
+Set-Content -Path "$dist\.provision-built-manifest" -Value $m.manifest -NoNewline -Encoding ascii
 "receive-build: ok $($m.count) files"

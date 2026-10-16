@@ -2013,6 +2013,36 @@ exit 0`,
       expect(result.stdout).toContain(`push-build: ok ${head} 4`);
     });
 
+    it("skips the upload when the VM already holds the same manifest and only refreshes the commit marker", () => {
+      const head = spawnSync("git", ["-C", HERE, "rev-parse", "HEAD"], {
+        encoding: "utf8",
+      }).stdout.trim();
+      const root = join(dir, "fake-root");
+      mkdirSync(join(root, "dist"), { recursive: true });
+      writeFileSync(join(root, "dist", "index.js"), "console.log(1)\n");
+      writeFileSync(join(root, "dist", ".provision-built-ref"), `${head}\n`);
+      const manifest = spawnSync(
+        "bash",
+        [
+          "-c",
+          "cd \"$1\" && find ./dist -type f | LC_ALL=C sort | xargs shasum -a 256 | shasum -a 256 | cut -d' ' -f1",
+          "_",
+          root,
+        ],
+        { encoding: "utf8" },
+      ).stdout.trim();
+      const result = run(PUSH_BUILD, ["acme-az.tailnet-fixture.ts.net", "--git-ref", head], {
+        SSH_LOG: sshLog,
+        SSH_STDOUT: manifest,
+        DESK_BUILD_ROOT: root,
+      });
+      expect(result.status, result.stderr).toBe(0);
+      expect(result.stderr).toContain("already holds this build");
+      expect(readLog(sshLog)).not.toContain("sftp -b");
+      expect(readLog(sshLog)).toContain(`.provision-built-ref -Value ${head}`);
+      expect(result.stdout).toContain(`push-build: ok ${head} 2`);
+    });
+
     it("refuses to push when this checkout is not at the requested commit", () => {
       const result = run(
         PUSH_BUILD,
