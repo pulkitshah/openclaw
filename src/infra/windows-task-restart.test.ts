@@ -139,7 +139,7 @@ describe("relaunchGatewayScheduledTask", () => {
       'vasudev restart attempt source=windows-task-handoff target="OpenClaw Gateway (work)"',
     );
     expect(script).toContain(
-      `powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "$task = Get-ScheduledTask -TaskName 'OpenClaw Gateway (work)' -ErrorAction SilentlyContinue; if ($null -ne $task -and $task.State -eq 'Running') { exit 0 }; exit 1" >nul 2>&1`,
+      `powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "$task = Get-ScheduledTask -TaskName 'OpenClaw Gateway (work)' -ErrorAction SilentlyContinue;`,
     );
     expect(script).not.toContain("findstr");
     expect(script).toContain('schtasks /Run /TN "OpenClaw Gateway (work)" >>');
@@ -147,6 +147,37 @@ describe("relaunchGatewayScheduledTask", () => {
       script.indexOf('schtasks /Run /TN "OpenClaw Gateway (work)"'),
     );
     expect(script).toContain('del "%~f0" >nul 2>&1');
+  });
+
+  // Live 2026-10-16: the Gateway handed off, the helper saw the task "Running" (the instance that
+  // was about to exit), assumed another restart path had started it, and quit; the Gateway then
+  // exited and nothing relaunched it. The helper must wait for the current instance to stop, end
+  // one that outlives the supervisor's stop budget, and only skip when a newer instance started.
+  it("waits for the current task instance to stop before running it, ending a stale one", () => {
+    spawnMock.mockImplementation((_file: string, args: string[]) => {
+      createdScriptPaths.add(decodeCmdPathArg(expectDefined(args[3], "command argument")));
+      return { unref: vi.fn() };
+    });
+    const before = Date.now();
+    relaunchGatewayScheduledTask({ OPENCLAW_PROFILE: "work" });
+    const script = fs.readFileSync([...createdScriptPaths][0] ?? "", "utf8");
+
+    // Probe: 0 = the stale instance still runs, 1 = not running, 2 = a newer instance runs.
+    const probe = script.match(/-Command "(\$task = Get-ScheduledTask[^"]*)"/)?.[1] ?? "";
+    expect(probe).toContain("if ($null -eq $task -or $task.State -ne 'Running') { exit 1 }");
+    expect(probe).toContain("Get-ScheduledTaskInfo -TaskName 'OpenClaw Gateway (work)'");
+    const since = probe.match(/\[DateTime\]::Parse\('([^']+)'\)/)?.[1] ?? "";
+    expect(Date.parse(since)).toBeGreaterThanOrEqual(before - 1000);
+    expect(probe).toContain("$info.LastRunTime -gt [DateTime]::Parse(");
+    expect(probe).toMatch(/\{ exit 2 \}; exit 0$/);
+    expect(script).toContain("if errorlevel 2 goto cleanup");
+    expect(script).toContain("if errorlevel 1 goto run");
+    expect(script).toContain("timeout /t 5 /nobreak >nul");
+    expect(script).toContain('schtasks /End /TN "OpenClaw Gateway (work)" >>');
+    expect(script.indexOf("schtasks /End")).toBeLessThan(script.indexOf("schtasks /Run"));
+    expect(script.indexOf("if errorlevel 2 goto cleanup")).toBeLessThan(
+      script.indexOf("if errorlevel 1 goto run"),
+    );
   });
 
   it("prefers OPENCLAW_WINDOWS_TASK_NAME overrides", () => {
@@ -184,7 +215,7 @@ describe("relaunchGatewayScheduledTask", () => {
     );
     const script = fs.readFileSync(scriptPath, "utf8");
     expect(script).toContain(
-      `-Command "$task = Get-ScheduledTask -TaskName 'Vasudev Gateway (Bob''s work)' -ErrorAction SilentlyContinue; if ($null -ne $task -and $task.State -eq 'Running') { exit 0 }; exit 1"`,
+      `-Command "$task = Get-ScheduledTask -TaskName 'Vasudev Gateway (Bob''s work)' -ErrorAction SilentlyContinue; if ($null -eq $task -or $task.State -ne 'Running') { exit 1 }; $info = Get-ScheduledTaskInfo -TaskName 'Vasudev Gateway (Bob''s work)' -ErrorAction SilentlyContinue;`,
     );
     expect(script).not.toContain("findstr");
   });
