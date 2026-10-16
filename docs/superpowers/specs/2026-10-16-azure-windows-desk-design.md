@@ -35,8 +35,8 @@ the same recipe becomes the Windows client deployment. Approved in conversation 
 | Egress for whitelisted destinations    | A paired desktop node chosen **in the portal** advertises the desk's whitelist as /32 Tailscale routes; the desk accepts routes. Not an exit node. For this build the Mac is that node; until the portal feature ships (section 9) the same routes are set on the Mac by hand as a documented stopgap. | Owner 2026-10-16: "I should be able to connect any system from Vasudev itself for IP whitelist routing"; a node app plus Tailscale defines "any system". Only whitelisted traffic depends on that machine being awake (see memory `desk-egress-via-laptop`). |
 | Build                                  | `dist/` built on the Mac at the pinned commit and pushed to the VM; `pnpm install` runs on the VM for native platform packages                                                                                                                                                                         | A 2-vCPU VM should not run the tsdown build (needs ~4.3 GB heap, took hours with retries on the office PC). `dist/` is one unit (see office-pc runbook §10).                                                                                                 |
 | Windows Update                         | Notify-only with a weekly maintenance window chosen by the owner                                                                                                                                                                                                                                       | The office PC rebooted mid-day on 2026-10-14 from an unattended update and the node stayed down until someone signed in.                                                                                                                                     |
-| Administration                         | WinRM over HTTPS bound to the Tailscale interface, from the Mac; no public inbound ports at all (NSG default-deny, no RDP)                                                                                                                                                                             | Tailscale SSH is not available on Windows; Tailscale provides the only path in.                                                                                                                                                                              |
-| Secrets                                | Per-desk env file on the Mac (`~/cashew-secrets/<desk>.env`), piped over WinRM into files with restricted ACLs; never in chat, git, or Azure custom-data                                                                                                                                               | Same rule as every other desk.                                                                                                                                                                                                                               |
+| Administration                         | OpenSSH Server (Windows optional feature) with PowerShell as the default shell and key auth only; reachable on the VM's public IP from the operator's IP during first boot only, then on the Tailscale interface; no public inbound ports at all afterwards (NSG default-deny, no RDP)                 | Tailscale SSH is not available on Windows; OpenSSH reuses every `ssh`-based wait and push the Linux desks already have, and needs no WinRM client on the Mac.                                                                                                |
+| Secrets                                | Per-desk env file on the Mac (`~/cashew-secrets/<desk>.env`), piped over SSH into files with restricted ACLs; never in chat, git, or Azure custom-data                                                                                                                                                 | Same rule as every other desk.                                                                                                                                                                                                                               |
 
 ## 3. Topology
 
@@ -76,18 +76,18 @@ Committed under `deploy/desk/`:
    protected settings. Waits for the VM to appear on the tailnet (reuses `lib/desk-ops.sh` waits
    where they apply), then runs step 3.
 2. **`windows-first-boot.ps1`** (runs once as SYSTEM on the VM): installs Tailscale (MSI, joins
-   with the pre-auth key, `--accept-routes`, hostname from the env), enables WinRM over HTTPS on
-   the Tailscale interface only, installs Node 26 + corepack/pnpm + git via winget or MSI,
+   with the pre-auth key, `--accept-routes`, hostname from the env), enables OpenSSH Server, firewall-limited to
+   the Tailscale interface, installs Node 26 + corepack/pnpm + git via winget or MSI,
    TightVNC (MSI, `ADDLOCAL=Server`, `SET_LOOPBACKONLY=1`, `SET_ALLOWLOOPBACK=1`,
    `SET_ACCEPTHTTPCONNECTIONS=0`, `SET_USEVNCAUTHENTICATION=1`, password from the env), Caddy
    (zip → `C:\opt\caddy`, scheduled task at startup), creates `C:\opt`, sets auto sign-in
    (`HKLM\...\Winlogon` AutoAdminLogon with the account password stored by `Autologon` /
    LSA secret, not plain text), disables screen saver and lock, sets Windows Update to notify
    only, and reboots into the signed-in console.
-3. **`provision-windows.ps1`** (pushed and run over WinRM from the Mac after the reboot, as the
+3. **`provision-windows.ps1`** (pushed and run over SSH from the Mac after the reboot, as the
    `vasudev` user): clones the fork into `C:\opt\openclaw` at the pinned commit,
    `pnpm install --frozen-lockfile --ignore-scripts` (native platform packages: cua-driver
-   win32-x64), receives `dist/` from the Mac (`tar` over WinRM; the Mac builds it with the same
+   win32-x64), receives `dist/` from the Mac (`tar` over SSH; the Mac builds it with the same
    commands as `roll.sh` at the same commit), writes `%USERPROFILE%\.openclaw\openclaw.json` from
    `openclaw.client.json.tmpl` converted to the trusted-proxy shape (`gateway.auth`,
    `gateway.trustedProxies`, `controlUi.allowedOrigins`, `gateway.nodes.commands.allow:
@@ -112,7 +112,7 @@ Committed under `deploy/desk/`:
 ## 5. Desktop behaviour
 
 - The `vasudev` local administrator is the only account; it is auto signed in at boot and never
-  locked. Operators administer through WinRM or through the portal's Desktop view, never RDP
+  locked. Operators administer through SSH or through the portal's Desktop view, never RDP
   while a run is active.
 - The cua-computer driver runs in-process in the node host on the interactive console, so the
   Windows fixes from 2026-10-14 (one execution per run, Win key as Ctrl+Esc, foreground raise
