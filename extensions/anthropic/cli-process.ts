@@ -8,6 +8,10 @@ import {
   type SpawnStdioEntry,
 } from "openclaw/plugin-sdk/process-runtime";
 import { sliceUtf16Safe } from "openclaw/plugin-sdk/text-utility-runtime";
+import {
+  materializeWindowsSpawnProgram,
+  resolveWindowsSpawnProgram,
+} from "openclaw/plugin-sdk/windows-spawn";
 
 type ClaudeCliSpawnOptions = Pick<
   CliBackendExecuteContext,
@@ -22,6 +26,39 @@ const STDERR_CAPTURE_CHARS = 8_192;
 const STDERR_PREVIEW_CHARS = 2_000;
 const STDERR_DRAIN_GRACE_MS = 200;
 
+/**
+ * The program `child_process.spawn` actually launches. On Windows the npm-installed CLI is a
+ * `claude.cmd` shim around bin\claude.exe, which a raw spawn cannot run: the spawn fails
+ * asynchronously and the first prompt write dies with EPIPE (live 2026-10-16). Resolve the shim
+ * to its executable the way the Gateway's own child adapter does; other platforms spawn as is.
+ */
+export function resolveClaudeCliSpawnInvocation(params: {
+  command: string;
+  args: string[];
+  env?: NodeJS.ProcessEnv;
+  platform?: NodeJS.Platform;
+  execPath?: string;
+}): { command: string; args: string[]; shell?: boolean; windowsHide?: boolean } {
+  const platform = params.platform ?? process.platform;
+  if (platform !== "win32") {
+    return { command: params.command, args: params.args, shell: undefined, windowsHide: undefined };
+  }
+  const program = resolveWindowsSpawnProgram({
+    command: params.command,
+    platform,
+    env: params.env,
+    execPath: params.execPath,
+    packageName: "@anthropic-ai/claude-code",
+  });
+  const invocation = materializeWindowsSpawnProgram(program, params.args);
+  return {
+    command: invocation.command,
+    args: invocation.argv,
+    shell: invocation.shell,
+    windowsHide: invocation.windowsHide,
+  };
+}
+
 function spawnClaudeCliProcess(
   options: ClaudeCliSpawnOptions,
   secretInput: ClaudeCliSecretInput | undefined,
@@ -29,14 +66,21 @@ function spawnClaudeCliProcess(
 ): ChildProcessWithoutNullStreams {
   const stdio: ["pipe", "pipe", "pipe", ...SpawnStdioEntry[]] = ["pipe", "pipe", "pipe"];
   using secretDelivery = prepareSecretInputStdio(stdio, secretInput);
-  const child = spawn(options.command, options.args, {
-    argv0: options.argv0,
+  const invocation = resolveClaudeCliSpawnInvocation({
+    command: options.command,
+    args: options.args,
+    env: options.env,
+  });
+  const child = spawn(invocation.command, invocation.args, {
+    // A caller's argv0 names the configured command; it does not apply to a resolved shim target.
+    argv0: invocation.command === options.command ? options.argv0 : undefined,
     cwd: options.cwd,
     detached: process.platform !== "win32",
     env: options.env,
     signal: options.signal,
     stdio,
     windowsHide: true,
+    ...(invocation.shell ? { shell: true } : {}),
   }) as ChildProcessWithoutNullStreams; // SAFETY: stdio[0..2] are pipes.
   // Drain independently of stdout: a full diagnostic pipe must never stall a turn.
   observeStderr(child);

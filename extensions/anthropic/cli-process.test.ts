@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type {
@@ -9,7 +9,7 @@ import type {
 import { formatErrorMessageForDisplay } from "openclaw/plugin-sdk/error-runtime";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildAnthropicCliBackend } from "./cli-backend.js";
-import type { ClaudeCliSecretInput } from "./cli-process.js";
+import { type ClaudeCliSecretInput, resolveClaudeCliSpawnInvocation } from "./cli-process.js";
 import { executeClaudeCli } from "./cli.runtime.js";
 
 const roots: string[] = [];
@@ -118,6 +118,63 @@ function attachLiveSession(context: CliBackendExecuteContext) {
   };
   return () => current;
 }
+
+describe("resolveClaudeCliSpawnInvocation", () => {
+  // On Windows the npm-installed CLI is a `claude.cmd` shim around bin\claude.exe; Node's raw
+  // spawn("claude") cannot run it, the spawn fails asynchronously and the first prompt write
+  // dies with EPIPE (live 2026-10-16 on the Azure desk: every turn failed, no claude.exe ever
+  // started). The plugin resolves the shim to its executable the way the Gateway's own child
+  // adapter does.
+  it("resolves the Windows npm shim to the executable it forwards to", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "openclaw-claude-shim-"));
+    roots.push(root);
+    const exeDir = path.join(root, "node_modules", "@anthropic-ai", "claude-code", "bin");
+    await mkdir(exeDir, { recursive: true });
+    const exePath = path.join(exeDir, "claude.exe");
+    await writeFile(exePath, "");
+    await writeFile(
+      path.join(root, "claude.cmd"),
+      [
+        "@ECHO off",
+        "GOTO start",
+        ":find_dp0",
+        "SET dp0=%~dp0",
+        "EXIT /b",
+        ":start",
+        "SETLOCAL",
+        "CALL :find_dp0",
+        '"%dp0%\\node_modules\\@anthropic-ai\\claude-code\\bin\\claude.exe"   %*',
+        "",
+      ].join("\r\n"),
+    );
+
+    const invocation = resolveClaudeCliSpawnInvocation({
+      command: "claude",
+      args: ["-p", "--output-format", "stream-json"],
+      env: { PATH: root, PATHEXT: ".COM;.EXE;.BAT;.CMD" },
+      platform: "win32",
+      execPath: "C:\\node\\node.exe",
+    });
+
+    expect(invocation).toEqual({
+      command: exePath,
+      args: ["-p", "--output-format", "stream-json"],
+      shell: undefined,
+      windowsHide: true,
+    });
+  });
+
+  it("leaves the command alone off Windows", () => {
+    expect(
+      resolveClaudeCliSpawnInvocation({
+        command: "claude",
+        args: ["-p"],
+        env: { PATH: "/usr/local/bin" },
+        platform: "linux",
+      }),
+    ).toEqual({ command: "claude", args: ["-p"], shell: undefined, windowsHide: undefined });
+  });
+});
 
 describe("Claude subprocess diagnostics through the direct CLI transport", () => {
   it("drains pipe-sized stderr and reports a bounded redacted fatal diagnostic", async () => {
