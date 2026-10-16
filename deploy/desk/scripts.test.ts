@@ -29,6 +29,7 @@ const SNAPSHOT = join(HERE, "snapshot.sh");
 const NEW_DESK_OCI = join(HERE, "new-desk-oci.sh");
 const MIGRATE = join(HERE, "migrate-desk.sh");
 const NEW_DESK_AZURE = join(HERE, "new-desk-azure.sh");
+const PUSH_BUILD = join(HERE, "windows", "push-build.sh");
 const REAL_NODE = process.execPath;
 
 const TS_AUTHKEY_SECRET = "tskey-auth-FIXTURE-SECRET-0123456789";
@@ -232,6 +233,14 @@ exit 0`,
     "node",
     `printf '%s\\n' "node $*" >> "\${NODE_LOG:?}"
 exec "\${REAL_NODE:?}" "$@"`,
+  );
+
+  // windows/push-build.sh builds with `pnpm build` when dist is stale; the stub only records it.
+  writeStub(
+    binDir,
+    "pnpm",
+    `printf '%s\\n' "pnpm $*" >> "\${NODE_LOG:?}"
+exit 0`,
   );
 
   // Simulates new-desk.sh's post-tailnet-join Control UI /healthz poll: fails the first
@@ -1801,6 +1810,44 @@ exit 0`,
       );
       expect(result.status).not.toBe(0);
       expect(readLog(azLog)).toContain("network nsg rule delete");
+    });
+  });
+
+  describe("windows/push-build.sh", () => {
+    it("builds when dist was not built from this commit, streams a tar over ssh, and reports the sha and count", () => {
+      const head = spawnSync("git", ["-C", HERE, "rev-parse", "HEAD"], {
+        encoding: "utf8",
+      }).stdout.trim();
+      const fakeDist = join(dir, "fake-dist");
+      mkdirSync(join(fakeDist, "extensions", "demo", "node_modules"), { recursive: true });
+      writeFileSync(join(fakeDist, "index.js"), "console.log(1)\n");
+      writeFileSync(join(fakeDist, "extensions", "demo", "index.js"), "export {}\n");
+      writeFileSync(join(fakeDist, "extensions", "demo", "node_modules", "dep.js"), "ignored\n");
+      const result = run(PUSH_BUILD, ["acme-az.tailnet-fixture.ts.net", "--git-ref", head], {
+        SSH_LOG: sshLog,
+        SSH_STDOUT: "receive-build: ok 2 files",
+        DESK_BUILD_DIR: fakeDist,
+      });
+      expect(result.status, result.stderr).toBe(0);
+      expect(readLog(nodeLog)).toContain("pnpm build");
+      expect(readFileSync(join(fakeDist, ".provision-built-ref"), "utf8").trim()).toBe(head);
+      const sshCalls = readLog(sshLog);
+      expect(sshCalls).toContain("vasudev@acme-az.tailnet-fixture.ts.net");
+      expect(sshCalls).toContain("receive-build.ps1");
+      // index.js, extensions/demo/index.js and the ref file travel; the plugin node_modules does not.
+      expect(sshCalls).toContain(`-GitRef ${head} -ExpectedCount 3 -ExpectedManifest `);
+      expect(result.stdout).toContain(`push-build: ok ${head} 3`);
+    });
+
+    it("refuses to push when this checkout is not at the requested commit", () => {
+      const result = run(
+        PUSH_BUILD,
+        ["acme-az.tailnet-fixture.ts.net", "--git-ref", "0000000000000000000000000000000000000000"],
+        { SSH_LOG: sshLog },
+      );
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain("check out the commit");
+      expect(readLog(sshLog)).toBe("");
     });
   });
 });
