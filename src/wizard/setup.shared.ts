@@ -66,9 +66,10 @@ export function formatQuickstartGatewaySummary(
       : []),
     t("wizard.setup.quickstartGatewayAuth", {
       auth:
-        defaults.authMode === "token"
+        defaults.keptAuthMode ??
+        (defaults.authMode === "token"
           ? t("wizard.setup.quickstartAuthTokenDefault")
-          : t("common.password"),
+          : t("common.password")),
     }),
     t("wizard.setup.quickstartTailscaleExposure", {
       exposure: t(`wizard.gatewayTailscale.${defaults.tailscaleMode}`),
@@ -222,8 +223,16 @@ export function resolveQuickstartGatewayDefaults(
       : "loopback";
 
   let authMode: GatewayAuthChoice = "token";
-  if (baseConfig.gateway?.auth?.mode === "token" || baseConfig.gateway?.auth?.mode === "password") {
-    authMode = baseConfig.gateway.auth.mode;
+  const existingAuthMode = baseConfig.gateway?.auth?.mode;
+  // A desk behind a reverse proxy keeps a password for local CLI use; reading that password as
+  // "the auth mode is password" rewrote trusted-proxy to password and cut the desk off from its
+  // front door (live 2026-10-16). Modes QuickStart does not manage are kept, not translated.
+  const keptAuthMode =
+    existingAuthMode === "trusted-proxy" || existingAuthMode === "none"
+      ? existingAuthMode
+      : undefined;
+  if (existingAuthMode === "token" || existingAuthMode === "password") {
+    authMode = existingAuthMode;
   } else if (baseConfig.gateway?.auth?.token) {
     authMode = "token";
   } else if (baseConfig.gateway?.auth?.password) {
@@ -249,6 +258,7 @@ export function resolveQuickstartGatewayDefaults(
     port: overrides.gatewayPort ?? resolveGatewayPort(baseConfig),
     bind: overrides.gatewayBind ?? bind,
     authMode: explicitAuthMode ?? authMode,
+    ...(keptAuthMode && explicitAuthMode === undefined ? { keptAuthMode } : {}),
     tailscaleMode: overrides.tailscale ?? tailscaleMode,
     token:
       overrides.gatewayTokenRefEnv !== undefined

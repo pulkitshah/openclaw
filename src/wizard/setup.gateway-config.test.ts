@@ -321,6 +321,36 @@ describe("configureGatewayForSetup", () => {
     }
   });
 
+  it("leaves trusted-proxy auth untouched in quickstart and asks for no password", async () => {
+    const baseConfig = {
+      gateway: {
+        auth: {
+          mode: "trusted-proxy" as const,
+          trustedProxy: { userHeader: "x-forwarded-user" },
+          password: "local-cli-password",
+        },
+      },
+    };
+    const prompter = createPrompter({ selectQueue: [], textQueue: [] });
+    const result = await configureGatewayForSetup({
+      flow: "quickstart",
+      baseConfig,
+      nextConfig: baseConfig,
+      localPort: 18789,
+      quickstartGateway: {
+        ...createQuickstartGateway("password"),
+        hasExisting: true,
+        keptAuthMode: "trusted-proxy",
+        password: "local-cli-password",
+      },
+      prompter,
+      runtime: createRuntime(),
+    });
+
+    expect(result.nextConfig.gateway?.auth).toEqual(baseConfig.gateway.auth);
+    expect(prompter.text).not.toHaveBeenCalled();
+  });
+
   it("does not add a Control UI auth bypass for fresh quickstart loopback setups", async () => {
     mocks.randomToken.mockReturnValue("generated-token");
 

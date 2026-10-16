@@ -177,14 +177,19 @@ export async function configureGatewayForSetup(
     customBindHost = undefined;
   }
 
-  if (tailscaleMode === "funnel" && authMode !== "password") {
+  // QuickStart keeps an auth mode it does not manage (trusted-proxy, none) untouched; only the
+  // advanced flow, where the operator chose token or password, rewrites gateway.auth.
+  const keepAuth = flow === "quickstart" && quickstartGateway.keptAuthMode !== undefined;
+  if (!keepAuth && tailscaleMode === "funnel" && authMode !== "password") {
     await prompter.note(t("wizard.gatewayNotes.tailscaleFunnelPassword"), t("wizard.gateway.auth"));
     authMode = "password";
   }
 
   let gatewayToken: string | undefined;
   let gatewayTokenInput: SecretInput | undefined;
-  if (authMode === "token") {
+  if (keepAuth) {
+    // nothing to write: gateway.auth stays as configured
+  } else if (authMode === "token") {
     const quickstartTokenString = normalizeSecretInputString(quickstartGateway.token);
     const quickstartTokenRef = resolveSecretInputRef({
       value: quickstartGateway.token,
@@ -246,7 +251,7 @@ export async function configureGatewayForSetup(
     }
   }
 
-  if (authMode === "password") {
+  if (!keepAuth && authMode === "password") {
     const existingPasswordRef = resolveSecretInputRef({
       value: quickstartGateway.password,
       defaults: nextConfig.secrets?.defaults,

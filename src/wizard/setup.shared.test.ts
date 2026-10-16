@@ -116,6 +116,21 @@ describe("resolveQuickstartGatewayDefaults", () => {
     });
   });
 
+  // A desk behind a reverse proxy runs trusted-proxy auth with a password kept for local CLI
+  // use. QuickStart "keeping your current gateway settings" reported that as "Password" and
+  // rewrote gateway.auth.mode, which cut the desk off from its front door (live 2026-10-16).
+  it("keeps an auth mode QuickStart does not manage instead of downgrading it to password", () => {
+    const defaults = resolveQuickstartGatewayDefaults({
+      gateway: {
+        auth: { mode: "trusted-proxy", password: "local-cli-password" },
+      },
+    });
+    expect(defaults.keptAuthMode).toBe("trusted-proxy");
+    expect(formatQuickstartGatewaySummary(defaults, defaults.hasExisting)).toContain(
+      "trusted-proxy",
+    );
+  });
+
   it("preserves stored quickstart defaults when no override is defined", () => {
     expect(resolveQuickstartGatewayDefaults(storedConfig)).toEqual({
       hasExisting: true,
