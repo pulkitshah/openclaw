@@ -164,6 +164,12 @@ here by the live run.
   `pnpm-lock.yaml` changed, run the create script with `--resume` instead: it skips first boot
   (the desk already answers SSH over the tailnet) and reruns `provision-desk.ps1`, which refreshes
   the checkout and `node_modules`.
+- A failed agent turn ("write EPIPE", nothing in the log): set `OPENCLAW_CLI_BACKEND_LOG_OUTPUT=1`
+  as a user environment variable, restart the Gateway task, and the log gains a `cli argv:` line
+  with the exact command; a `Register-CimIndicationEvent Win32_ProcessStartTrace` watch during
+  the turn shows whether the child ever starts (a failed CreateProcess leaves no event). Isolated
+  `vasudev agent --local` runs are refused while the Gateway holds its machine-wide lock. Run
+  `desk-health.ps1` with `powershell -File`; under `-Command "& …"` its node check misreads.
 - Stop/start the VM: `az vm deallocate` / `az vm start --resource-group vasudev --name <vm>`; auto
   sign-in brings the console, Gateway, node, Caddy and TightVNC back without a hand on the box.
 - Windows Update is notify-only (`AUOptions=2`); apply updates in the agreed weekly window, then rerun

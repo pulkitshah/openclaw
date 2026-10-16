@@ -107,6 +107,11 @@ if (-not (Get-Command claude -ErrorAction SilentlyContinue)) {
 $claudeVersion = & "$env:APPDATA\npm\claude.cmd" --version 2>$null
 if (-not $claudeVersion) { "first-boot: claude --version failed after install"; exit 4 }
 
+# The console user is this same account; Server Manager (and its Azure Arc popup) must not open
+# over the desktop the agent drives at every logon (seen in the portal's desktop view).
+New-Item -Path "HKCU:\Software\Microsoft\ServerManager" -Force | Out-Null
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\ServerManager" -Name DoNotOpenServerManagerAtLogon -Value 1 -Type DWord
+
 # 4. Caddy as a startup scheduled task (Caddy has no Windows service mode of its own).
 if (-not (Test-Path "$opt\caddy\caddy.exe")) { Expand-Archive (Get-Pinned "caddy") -DestinationPath "$opt\caddy" -Force }
 $tailnetIp = (& $ts ip -4).Trim()

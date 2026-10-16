@@ -150,6 +150,12 @@ describe("first-boot.ps1", () => {
   // The onboarding wizard and `tailscale` CLI calls look in PATH; the MSI installs to Program
   // Files without adding it (the wizard warned "Tailscale binary not found in PATH", live
   // 2026-10-16, although the Gateway finds the install directory itself).
+  // Server Manager (and its Azure Arc popup) opens on every console logon and sits on top of the
+  // desktop the agent drives (seen in the portal's desktop view, 2026-10-16).
+  it("keeps Server Manager from opening at logon", () => {
+    expect(script).toContain("DoNotOpenServerManagerAtLogon");
+  });
+
   it("puts the Tailscale install directory on the machine PATH", () => {
     expect(script).toContain('"C:\\Program Files\\Tailscale"');
   });
