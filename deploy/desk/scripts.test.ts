@@ -1739,5 +1739,68 @@ exit 0`,
       expect(runCommand).not.toContain("Fixture-Admin-Pass-1!");
       expect(readLog(sshLog)).toContain("vasudev@20.0.0.5");
     });
+
+    it("sends first-boot.ps1 with the env secrets on stdin, closes the operator SSH rule, and waits for the tailnet host", () => {
+      const result = run(
+        NEW_DESK_AZURE,
+        [deskName, "--env-file", envFile, "--stop-after", "first-boot"],
+        azureEnv({
+          SSH_LOG: sshLog,
+          SSH_STDIN_LOG: join(dir, "ssh-stdin.log"),
+          SSH_STDOUT: "first-boot: ok",
+        }),
+      );
+      expect(result.status, result.stderr).toBe(0);
+      // The ssh stub appends stdin to the same log; the argv lines are the ones that must stay
+      // free of secrets (a process list shows argv, never stdin).
+      const sshCalls = readLog(sshLog)
+        .split("\n")
+        .filter((line) => line.startsWith("ssh "))
+        .join("\n");
+      expect(sshCalls).toContain("-File C:\\opt\\stage\\first-boot.ps1");
+      expect(sshCalls).not.toContain(TS_AUTHKEY_SECRET);
+      expect(sshCalls).not.toContain("Fixture-Admin-Pass-1!");
+      const stdinLog = readFileSync(join(dir, "ssh-stdin.log"), "utf8");
+      expect(stdinLog).toContain(`"tsAuthKey":"${TS_AUTHKEY_SECRET}"`);
+      expect(stdinLog).toContain('"tailnetName":"acme-az"');
+      // The staged script is self-contained: the pins and the Caddyfile template travel inside it.
+      expect(stdinLog).toContain("tailscale-setup-");
+      expect(stdinLog).toContain("reverse_proxy 127.0.0.1:18789");
+      const log = readLog(azLog);
+      expect(log).toContain("network nsg rule delete");
+      expect(log.indexOf("nsg rule delete")).toBeGreaterThan(log.indexOf("vm create"));
+      expect(result.stderr).toContain("acme-az.tailnet-fixture.ts.net");
+      expect(result.stderr).toContain("100.64.0.9");
+    });
+
+    it("keeps the operator SSH rule open and stops when the tailnet join fails", () => {
+      const result = run(
+        NEW_DESK_AZURE,
+        [deskName, "--env-file", envFile, "--stop-after", "first-boot"],
+        azureEnv({
+          SSH_LOG: sshLog,
+          SSH_STDOUT: "first-boot: tailscale-failed invalid key",
+          SSH_EXIT_CODE: "3",
+        }),
+      );
+      expect(result.status).toBe(3);
+      expect(readLog(azLog)).not.toContain("network nsg rule delete");
+      expect(result.stderr).toContain("tailscale-failed");
+      expect(result.stderr).toContain("--resume");
+    });
+
+    it("closes the operator SSH rule when a later step fails", () => {
+      const result = run(
+        NEW_DESK_AZURE,
+        [deskName, "--env-file", envFile, "--stop-after", "first-boot"],
+        azureEnv({
+          SSH_LOG: sshLog,
+          SSH_STDOUT: "first-boot: ok",
+          TAILSCALE_STATUS_JSON: JSON.stringify({ MagicDNSSuffix: "x.ts.net.", Peer: {} }),
+        }),
+      );
+      expect(result.status).not.toBe(0);
+      expect(readLog(azLog)).toContain("network nsg rule delete");
+    });
   });
 });

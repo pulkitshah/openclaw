@@ -303,3 +303,47 @@ done
 if (( skip_first_boot == 1 )); then
   exit 0
 fi
+
+# Phase 2: first boot over SSH. The script is sent self-contained (downloads.json and the Caddyfile
+# template substituted in), the secrets go on stdin as one JSON document.
+first_boot_script="$tmpdir/first-boot.ps1"
+python3 - "$WINDOWS_DIR/first-boot.ps1" "$WINDOWS_DIR/downloads.json" "$WINDOWS_DIR/Caddyfile.tmpl" "$first_boot_script" <<'PY'
+import sys
+src, downloads, caddy, out = sys.argv[1:5]
+text = open(src).read().replace("{{DOWNLOADS_JSON}}", open(downloads).read().strip()).replace("{{CADDYFILE_TMPL}}", open(caddy).read().strip())
+open(out, "w").write(text)
+PY
+first_boot_json="$tmpdir/first-boot.json"
+: > "$first_boot_json"
+chmod 600 "$first_boot_json"
+jq -cn --arg tailnetName "$tailnet_name" --arg tsAuthKey "$(env_get TS_AUTHKEY)" --arg adminPassword "$(env_get DESK_ADMIN_PASSWORD)" \
+  --arg vncPassword "$vnc_password" --arg frontPassword "$(env_get DESK_FRONT_PASSWORD)" --arg ownerEmail "$owner_email" --arg gitRef "$git_ref" \
+  '{tailnetName:$tailnetName, tsAuthKey:$tsAuthKey, adminPassword:$adminPassword, vncPassword:$vncPassword, frontPassword:$frontPassword, ownerEmail:$ownerEmail, gitRef:$gitRef}' > "$first_boot_json"
+echo "==> First boot (Tailscale, TightVNC, Caddy, Node, auto sign-in); the VM reboots at the end" >&2
+set +e
+first_boot_out="$(ssh_vm_script "$public_ip" "$first_boot_script" "$first_boot_json")"
+first_boot_status=$?
+set -e
+printf '%s\n' "$first_boot_out" | grep -v -i 'password\|authkey' >&2 || true
+if printf '%s' "$first_boot_out" | grep -q 'first-boot: tailscale-failed'; then
+  keep_operator_ssh=1
+  echo "new-desk-azure.sh: the VM could not join the tailnet (see above). SSH from ${operator_ip} to vasudev@${public_ip} stays open; fix TS_AUTHKEY in the env file and rerun with --resume" >&2
+  exit 3
+fi
+# The reboot drops the SSH session, so a non-zero status with "first-boot: ok" in the output is success.
+if ! printf '%s' "$first_boot_out" | grep -q 'first-boot: ok'; then
+  echo "new-desk-azure.sh: first-boot.ps1 failed (exit ${first_boot_status})" >&2
+  exit 1
+fi
+echo "==> Closing the temporary operator SSH rule; everything else goes over the tailnet" >&2
+azure_close_operator_ssh
+echo "==> Waiting up to ${DESK_POLL_SECONDS}s for \"$tailnet_name\" on the tailnet" >&2
+if ! tailnet_host="$(desk_wait_for_tailnet_host "$tailnet_name" "$DESK_POLL_SECONDS")"; then
+  echo "new-desk-azure.sh: \"$tailnet_name\" did not appear on the tailnet — check \`tailscale status\` and the Tailscale admin console" >&2
+  exit 1
+fi
+tailnet_ip="$(tailscale status --json | jq -r --arg h "$tailnet_name" '[.Peer[] | select((.HostName | ascii_downcase) == ($h | ascii_downcase)) | .TailscaleIPs[0]] | first // empty')"
+echo "==> ${tailnet_host} (${tailnet_ip})" >&2
+if [[ "$stop_after" == "first-boot" ]]; then
+  exit 0
+fi
