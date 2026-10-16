@@ -154,6 +154,27 @@ stopgap when the portal-managed egress device lands.
 and caddy are all true. The six acceptance checks from the spec §6 and their evidence are recorded
 here by the live run.
 
+As executed on `vasudev-tripin-az`, 2026-10-16 (IST):
+
+1. Front-door sign-in landed on the coordinator chat after the first run's manual
+   `devices approve`; `deviceAutoApprove` is in the template since. The office PC desk stays
+   routed nowhere from the front door (its `@tripin` route now points at this VM).
+2. Settings → Devices lists the Windows node connected with Browser, Computer, Screen and System;
+   "Desktop" opens the live console (verified 21:35 from a second browser tab).
+3. Coordinator computer use: screenshot, Start menu, Notepad, 47 characters typed, screenshot,
+   all through the `computer` tool (22:30, after the tool-profile and spawn fixes; Tally was not
+   yet licensed, so Notepad stood in).
+4. Egress: pending the owner's Mac (`net.inet.ip.forwarding=1` and the three route approvals);
+   `desk-health.ps1` reports `routes: []` until then.
+5. Reboot: `az vm restart` 20:22; boot 14:53:08 UTC; `/healthz` 200 about four minutes later;
+   console signed in, Gateway, node, Caddy and TightVNC up; `desk-health.ps1 -File` green.
+6. Second desk: the first client is the dry run (§6 of the spec).
+
+Seven defects found by this acceptance went back into the recipe and the runtime (browser
+auto-approve, `vasudev` shim, Claude CLI install, terminal selection and wrapped links,
+onboarding killing its own terminal, QuickStart rewriting trusted-proxy auth, the Windows restart
+handoff, the Windows spawn of `claude`, the "coding" tool profile); see the commits of 2026-10-16.
+
 ## 8. Rolling, restarting, stopping
 
 - Roll: `git checkout <sha>` on the Mac and push it to the fork (the VM fetches by sha),
