@@ -192,7 +192,7 @@ characters with three character classes), `GATEWAY_ADMIN_PASSWORD`, `DESK_FRONT_
 front door's basic auth to this desk), `VNC_PASSWORD` (6-8 characters), `WHITELIST_ADDRESSES`
 (comma-separated, may be empty). Secrets travel to the VM on SSH stdin; on the VM three tools take
 one as an argument because they offer nothing else (msiexec for the VNC password, Sysinternals
-Autologon, the desk CLI's `--password`), and the create script redacts every secret value from
+Autologon, `caddy hash-password --plaintext`, the desk CLI's `--password`), and the create script redacts every secret value from
 the output it echoes.
 
 ```bash

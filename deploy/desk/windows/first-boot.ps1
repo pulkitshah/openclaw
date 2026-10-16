@@ -99,8 +99,12 @@ if (-not (Test-Path "$opt\bin\pnpm.cmd")) { "first-boot: corepack/pnpm shim miss
 # 4. Caddy as a startup scheduled task (Caddy has no Windows service mode of its own).
 if (-not (Test-Path "$opt\caddy\caddy.exe")) { Expand-Archive (Get-Pinned "caddy") -DestinationPath "$opt\caddy" -Force }
 $tailnetIp = (& $ts ip -4).Trim()
-# The front password goes to caddy on stdin, not as --plaintext in argv.
-$bcrypt = ($params.frontPassword | & "$opt\caddy\caddy.exe" hash-password).Trim()
+# caddy hash-password on Windows reads its prompt from the console only (any redirected stdin
+# is reported as EOF, and a PowerShell pipe hashes the wrong bytes - both observed live), so the
+# front password is passed as --plaintext to that one ~50 ms process; the runbook lists this with
+# the other argv exceptions.
+$bcrypt = (& "$opt\caddy\caddy.exe" hash-password --plaintext $params.frontPassword 2>$null | Select-Object -Last 1).Trim()
+if ($bcrypt -notlike '$2*') { "first-boot: caddy hash-password failed"; exit 4 }
 $caddyfile = @'
 {{CADDYFILE_TMPL}}
 '@

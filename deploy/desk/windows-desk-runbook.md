@@ -42,10 +42,10 @@ Generate: `openssl rand -base64 24` for passwords, `openssl rand -base64 6 | cut
 Where the secrets go: the create script never puts a value in argv on the Mac (the env file is read
 on stdin by `jq`; `az vm create` takes the admin password from a 0600 file) and sends each phase's
 values to the VM as one JSON document on SSH stdin. On the VM, Tailscale reads the key from a
-temporary file (`--auth-key=file:`), Caddy hashes the front password from stdin, and three tools
-take a secret as an argument because they offer nothing else: msiexec (`VALUE_OF_PASSWORD` for
-TightVNC, once at install), Sysinternals Autologon, and the desk CLI's `--password` for the
-approvals and the health check. The script redacts every secret value from the output it echoes.
+temporary file (`--auth-key=file:`), and four tools take a secret as an argument because they
+offer nothing else: msiexec (`VALUE_OF_PASSWORD` for TightVNC, once at install), Sysinternals
+Autologon, `caddy hash-password --plaintext` (its prompt reads the console only on Windows), and
+the desk CLI's `--password` for the approvals and the health check. The script redacts every secret value from the output it echoes.
 
 ## 3. Create
 
