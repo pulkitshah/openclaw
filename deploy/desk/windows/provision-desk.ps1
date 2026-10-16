@@ -56,6 +56,12 @@ Set-Content -Path "$state\openclaw.json" -Value $config -Encoding ascii
 node "$root\dist\index.js" config validate
 if ($LASTEXITCODE -ne 0) { "provision-desk: config validate failed"; exit 4 }
 
+# 3b. The command name the portal terminal's first-run onboarding types and the runbook uses
+#     (/usr/local/bin/vasudev on the Linux desks). C:\opt\bin is on the machine PATH (first boot).
+foreach ($name in "vasudev", "openclaw") {
+  Set-Content -Path "C:\opt\bin\$name.cmd" -Value "@echo off`r`nnode `"$root\dist\index.js`" %*" -NoNewline -Encoding ascii
+}
+
 # 4. Gateway as the managed scheduled task, then wait for it.
 node "$root\dist\index.js" gateway install --force
 if ($LASTEXITCODE -ne 0) { "provision-desk: gateway install failed"; exit 5 }

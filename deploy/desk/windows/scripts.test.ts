@@ -140,6 +140,20 @@ describe("openclaw.windows-desk.json.tmpl", () => {
   });
 });
 
+describe("provision-desk.ps1", () => {
+  const script = readFileSync(join(HERE, "provision-desk.ps1"), "utf8");
+
+  // The portal terminal's first-run onboarding types `vasudev onboard ...`, and the runbook's
+  // admin recipes say `vasudev`; on the Linux desks /usr/local/bin/vasudev provides it. Without
+  // a shim on the machine PATH the pre-typed command fails with "not recognized" (seen live
+  // 2026-10-16).
+  it("installs vasudev and openclaw command shims on the machine PATH", () => {
+    expect(script).toContain('"vasudev", "openclaw"');
+    expect(script).toContain("C:\\opt\\bin");
+    expect(script).toContain('dist\\index.js`" %*');
+  });
+});
+
 describe("receive-build.ps1 manifest", () => {
   it.runIf(pwsh !== undefined)(
     "matches push-build.sh's bash manifest on mixed-case names, hidden files and excluded plugin node_modules",
