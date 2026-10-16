@@ -123,7 +123,9 @@ $policies = @{
   "HKCU:\Control Panel\Desktop" = @{ ScreenSaveActive = "0"; ForegroundLockTimeout = 0 }
 }
 foreach ($path in $policies.Keys) {
-  New-Item -Path $path -Force | Out-Null
+  # New-Item -Force on an EXISTING protected key (Policies\System) is refused even for an
+  # administrator; only create keys that are missing.
+  if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
   foreach ($kv in $policies[$path].GetEnumerator()) { New-ItemProperty -Path $path -Name $kv.Key -Value $kv.Value -Force | Out-Null }
 }
 

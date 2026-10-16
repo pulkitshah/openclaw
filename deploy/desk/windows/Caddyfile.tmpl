@@ -7,7 +7,7 @@
 }
 
 http://{{TAILNET_IP}}:8443 {
-	basicauth {
+	basic_auth {
 		{{OWNER_EMAIL}} {{FRONT_PASSWORD_BCRYPT}}
 	}
 	reverse_proxy 127.0.0.1:18789 {
