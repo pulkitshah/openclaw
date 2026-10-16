@@ -413,6 +413,40 @@ describe("TerminalSessionManager", () => {
     expect(manager.size).toBe(0);
   });
 
+  // First-run onboarding runs inside a terminal of the implicit "main" agent and replaces it with
+  // the explicit roster; killing that terminal kills the wizard mid-run (observed live
+  // 2026-10-16). A retired agent's sessions follow the successor the reload names instead.
+  it("hands a retired agent's sessions to its successor instead of closing them", async () => {
+    const emit = vi.fn();
+    const pty = makeFakePty();
+    const manager = new TerminalSessionManager({ emit, spawn: async () => pty });
+    const opened = await manager.open(baseRequest({ agentId: "main" }));
+    expect(opened.ok).toBe(true);
+
+    manager.closeDisallowedAgents(
+      (agentId) => agentId === "coordinator",
+      (agentId) => (agentId === "main" ? "coordinator" : undefined),
+    );
+
+    expect(pty.killed).toBe(false);
+    expect(manager.list()).toEqual([expect.objectContaining({ agentId: "coordinator" })]);
+    expect(emit).not.toHaveBeenCalledWith("conn-1", TERMINAL_EVENT_EXIT, expect.anything());
+  });
+
+  it("still closes a retired agent's session when its successor is not allowed either", async () => {
+    const pty = makeFakePty();
+    const manager = new TerminalSessionManager({ emit: vi.fn(), spawn: async () => pty });
+    await manager.open(baseRequest({ agentId: "main" }));
+
+    manager.closeDisallowedAgents(
+      () => false,
+      (agentId) => (agentId === "main" ? "coordinator" : undefined),
+    );
+
+    expect(pty.killed).toBe(true);
+    expect(manager.size).toBe(0);
+  });
+
   it("disposes every session silently (gateway shutdown)", async () => {
     const emit = vi.fn();
     const ptys = [makeFakePty(), makeFakePty()];

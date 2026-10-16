@@ -30,6 +30,7 @@ import { getRequiredSharedGatewaySessionGeneration } from "./server-shared-auth-
 import { startGatewayTlsRenewal } from "./server-tls-renewal.js";
 import type { GatewayHttpTransport } from "./server-transport-bridge.js";
 import { disconnectDisallowedGatewayBrowserOriginClients } from "./server/ws-origin-policy.js";
+import { resolveRetiredAgentSuccessor } from "./terminal/launch.js";
 import { DEFAULT_TERMINAL_DETACH_SECONDS } from "./terminal/session-limits.js";
 
 type GatewayLogger = ReturnType<typeof createSubsystemLogger>;
@@ -400,6 +401,9 @@ export async function finishGatewayStartup(params: {
       }),
     });
   };
+  // The config the terminal policy last reconciled against; a retired agent's sessions follow
+  // the successor the next config names (see resolveRetiredAgentSuccessor).
+  let reconciledConfig = cfgAtStart;
   const tlsRenewal = startGatewayTlsRenewal({
     runtime: gatewayTls,
     servers: runtime.httpServers,
@@ -502,10 +506,15 @@ export async function finishGatewayStartup(params: {
       terminalLaunchPolicy.prepareConfig(nextConfig, { restartPending: plan.restartGateway });
     },
     reconcileRuntimePolicy: async (nextConfig, phase) => {
-      terminalSessions.closeDisallowedAgents((agentId) => terminalLaunchPolicy.resolve(agentId).ok);
+      const previousConfig = reconciledConfig;
+      terminalSessions.closeDisallowedAgents(
+        (agentId) => terminalLaunchPolicy.resolve(agentId).ok,
+        (agentId) => resolveRetiredAgentSuccessor({ previousConfig, nextConfig, agentId }),
+      );
       if (phase !== "committed") {
         return;
       }
+      reconciledConfig = nextConfig;
       terminalSessions.updateDetachGraceMs(
         (nextConfig.gateway?.terminal?.detachedSessionTimeoutSeconds ??
           DEFAULT_TERMINAL_DETACH_SECONDS) * 1000,

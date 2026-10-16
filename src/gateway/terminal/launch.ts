@@ -6,6 +6,8 @@ import path from "node:path";
 import {
   AgentSelectionRequiredError,
   listAgentIds,
+  tryResolveAmbientOwnerAgentId,
+  tryResolveSoleAgentId,
   resolveAgentWorkspaceDir,
   resolveDefaultAgentId,
 } from "../../agents/agent-scope-config.js";
@@ -120,6 +122,32 @@ function resolveTerminalLaunch(params: {
     env,
   });
   return { ok: true, plan: { agentId, cwd, shell, args } };
+}
+
+/**
+ * The agent a retired agent's terminal sessions follow after a reload, or undefined. Only the
+ * previous sole/implicit agent qualifies, and only when the next roster no longer lists it:
+ * first-run onboarding replaces the implicit "main" with an explicit roster whose system agent is
+ * the coordinator, from inside a terminal "main" owns. An agent the next roster still lists has
+ * been revoked, not retired, and keeps the fail-closed close.
+ */
+export function resolveRetiredAgentSuccessor(params: {
+  previousConfig: OpenClawConfig;
+  nextConfig: OpenClawConfig;
+  agentId: string;
+}): string | undefined {
+  const { previousConfig, nextConfig, agentId } = params;
+  if (agentId !== tryResolveSoleAgentId(previousConfig)) {
+    return undefined;
+  }
+  const nextAgentIds = listAgentIds(nextConfig);
+  if (nextAgentIds.includes(agentId)) {
+    return undefined;
+  }
+  const successor = tryResolveAmbientOwnerAgentId(nextConfig);
+  return successor !== undefined && successor !== agentId && nextAgentIds.includes(successor)
+    ? successor
+    : undefined;
 }
 
 /** Maintains fail-closed terminal admission across deferred config restarts. */

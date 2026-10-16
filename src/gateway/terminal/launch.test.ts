@@ -4,10 +4,54 @@ import type { OpenClawConfig } from "../../config/types.openclaw.js";
 import {
   buildTerminalEnv,
   createTerminalLaunchPolicy,
+  resolveRetiredAgentSuccessor,
   resolveTerminalSpawnPlan,
 } from "./launch.js";
 
 const tempDirs = useAutoCleanupTempDirTracker(afterEach);
+
+describe("resolveRetiredAgentSuccessor", () => {
+  // First-run onboarding, running in a terminal of the implicit "main" agent, writes the explicit
+  // roster whose system agent is the coordinator; that terminal follows the coordinator.
+  it("names the new default agent for the implicit main agent an explicit roster replaced", () => {
+    expect(
+      resolveRetiredAgentSuccessor({
+        previousConfig: {},
+        nextConfig: {
+          agents: {
+            ownership: "explicit",
+            defaults: { systemAgent: { agentId: "coordinator" } },
+            entries: { coordinator: {}, researcher: {} },
+          },
+        },
+        agentId: "main",
+      }),
+    ).toBe("coordinator");
+  });
+
+  it("has no successor for an agent the next roster still lists, nor for a non-default agent", () => {
+    // Still listed: an explicit revocation (sandboxed), not a retirement.
+    expect(
+      resolveRetiredAgentSuccessor({
+        previousConfig: {},
+        nextConfig: {
+          agents: {
+            ownership: "explicit",
+            entries: { main: { sandbox: { mode: "all" } }, ops: {} },
+          },
+        },
+        agentId: "main",
+      }),
+    ).toBeUndefined();
+    expect(
+      resolveRetiredAgentSuccessor({
+        previousConfig: { agents: { list: [{ id: "main" }, { id: "ops" }] } },
+        nextConfig: { agents: { list: [{ id: "main" }] } },
+        agentId: "ops",
+      }),
+    ).toBeUndefined();
+  });
+});
 
 const disabled: OpenClawConfig = { gateway: { terminal: { enabled: false } } };
 

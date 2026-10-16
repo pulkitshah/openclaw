@@ -643,8 +643,16 @@ export class TerminalSessionManager {
     this.connections.clearSessions(connId);
   }
 
-  /** Closes live and pending sessions whose agent no longer permits a host shell. */
-  closeDisallowedAgents(isAllowed: (agentId: string) => boolean): void {
+  /**
+   * Closes live and pending sessions whose agent no longer permits a host shell. A live session
+   * whose agent the reload retired follows `successorOf(agentId)` instead when that agent may
+   * open a terminal: first-run onboarding runs inside a terminal of the implicit "main" agent and
+   * replaces it with the explicit roster, and killing that terminal killed the wizard mid-run.
+   */
+  closeDisallowedAgents(
+    isAllowed: (agentId: string) => boolean,
+    successorOf?: (agentId: string) => string | undefined,
+  ): void {
     // Config can change while spawn is awaiting the native PTY import. Mark the
     // pending open so it kills the process instead of registering stale access.
     for (const pending of this.pendingOpens.keys()) {
@@ -656,11 +664,20 @@ export class TerminalSessionManager {
     // disallowed agents are killed too; finalize clears their reaper and skips
     // the exit event when no connection owns the stream.
     for (const session of Array.from(this.sessions.values())) {
-      if (!isAllowed(session.agentId)) {
-        this.finalize(session, "closed", {
-          error: "terminal closed because the agent policy changed",
-        });
+      if (isAllowed(session.agentId)) {
+        continue;
       }
+      const successor = successorOf?.(session.agentId);
+      if (successor !== undefined && isAllowed(successor)) {
+        log.info(
+          `terminal session follows the retired agent's successor: id=${session.id} agent=${session.agentId} -> ${successor}`,
+        );
+        session.agentId = successor;
+        continue;
+      }
+      this.finalize(session, "closed", {
+        error: "terminal closed because the agent policy changed",
+      });
     }
   }
 
