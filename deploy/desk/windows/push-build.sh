@@ -46,7 +46,10 @@ trap 'rm -f "$tarfile"' EXIT
 # to; tar.exe on the VM would extract them as real files and the count would disagree.
 COPYFILE_DISABLE=1 tar -C "$dist" --no-mac-metadata --no-xattrs --exclude='./extensions/*/node_modules' -cf "$tarfile" .
 echo "==> Uploading ${count} files ($(du -h "$tarfile" | cut -f1 | tr -d ' ')) to ${host} with sftp" >&2
-printf -- '-mkdir /C:/opt/stage\nput %s /C:/opt/stage/receive-build.ps1\nput %s /C:/opt/dist-incoming.tar\nquit\n' "$SCRIPT_DIR/receive-build.ps1" "$tarfile" \
+# sftp batch mode aborts on a failed command even with the "-" prefix on this OpenSSH, so the
+# stage directory is made with a plain SSH command first.
+ssh "${ssh_opts[@]}" "vasudev@${host}" "powershell.exe -NoProfile -NonInteractive -Command \"New-Item -ItemType Directory -Force -Path C:\\opt\\stage | Out-Null\""
+printf 'put %s /C:/opt/stage/receive-build.ps1\nput %s /C:/opt/dist-incoming.tar\nquit\n' "$SCRIPT_DIR/receive-build.ps1" "$tarfile" \
   | sftp -b - "${ssh_opts[@]}" "vasudev@${host}" >/dev/null
 out="$(ssh "${ssh_opts[@]}" "vasudev@${host}" "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File C:\\opt\\stage\\receive-build.ps1 -TarPath C:\\opt\\dist-incoming.tar -GitRef ${git_ref} -ExpectedCount ${count} -ExpectedManifest ${manifest}" | tr -d '\r')"
 printf '%s\n' "$out" >&2
