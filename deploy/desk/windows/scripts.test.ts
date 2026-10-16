@@ -114,6 +114,21 @@ describe("openclaw.windows-desk.json.tmpl", () => {
     expect(result.status, result.output).toBe(0);
   });
 
+  // The front door already authenticated the user; a fresh desk must not make the owner approve
+  // their own browser by hand on the VM. operator.admin stays out of the device grant (the
+  // identityScopes line adds it per connection) so the CRITICAL auto-approve-admin audit finding
+  // never fires.
+  it("auto-approves browsers that the front door authenticated", () => {
+    const config = JSON.parse(rendered) as {
+      gateway: {
+        auth: { trustedProxy: { deviceAutoApprove?: { enabled?: boolean; scopes?: string[] } } };
+      };
+    };
+    const autoApprove = config.gateway.auth.trustedProxy.deviceAutoApprove;
+    expect(autoApprove?.enabled).toBe(true);
+    expect(autoApprove?.scopes ?? []).not.toContain("operator.admin");
+  });
+
   it("is checked by a validator that rejects an unknown trusted-proxy key", () => {
     const broken = rendered.replace(
       '"allowLoopback": true',
