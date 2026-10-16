@@ -17,7 +17,7 @@ function Get-HttpStatus([string]$url, [hashtable]$headers = @{}) {
 
 $gateway = (Get-HttpStatus "http://127.0.0.1:18789/healthz") -eq 200
 $status = $null
-try { $status = node $cli nodes status --json --password $pw 2>$null | ConvertFrom-Json } catch { $status = $null }
+try { $status = node $cli nodes status --json 2>$null | ConvertFrom-Json } catch { $status = $null }
 # The desktop node is the connected one that carries all three commands (a paired laptop browser
 # node on the same Gateway must not be mistaken for it).
 $node = @($status.nodes) | Where-Object { $_.connected -and (@($_.commands) -contains "computer.act") -and (@($_.commands) -contains "screen.snapshot") -and (@($_.commands) -contains "desktop.stream") } | Select-Object -First 1

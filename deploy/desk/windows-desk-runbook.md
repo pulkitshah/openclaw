@@ -7,8 +7,34 @@ and `deploy/desk/windows/`; the README section "Azure Windows desk" is the short
 
 ## Status
 
-Not yet executed. Filled in by the live run: dates, VM name, tailnet name and address, fork commit,
-and every deviation from the plan.
+**Executed 2026-10-16 (TripIn Studio, first Windows desk).** VM `vasudev-tripin-az`, resource group
+`vasudev`, **South India**, `Standard_D2as_v6` (2 vCPU AMD, 8 GB, ~$161/mo), Windows Server 2022
+Datacenter Azure Edition, computer name `tripin-az`, tailnet `tripin-az` = `100.96.237.73`
+(`tripin-az.tail325f09.ts.net`), public IP `20.219.104.252` (no inbound rules). Fork commit
+deployed: see `C:\opt\openclaw\dist\.provision-built-ref`. Front door `@tripin` repointed to
+`http://100.96.237.73:8443` at 14:17 IST; the office PC desk is no longer served from the front door
+(it is intact, see §9). `desk-health.ps1` was green at 14:14 IST: gateway, node (computer.act,
+screen.snapshot, desktop.stream), VNC loopback-only, console signed in and unlocked, Tailscale,
+Caddy; no egress routes yet (§6 not done).
+
+Why not the $43 size: this pay-as-you-go subscription (upgraded from a free account the same day)
+is blocked from every B-series and D-series v3 size in all India regions ("SkuNotAvailable:
+capacity restrictions"), Central India is restricted to confidential-compute sizes, Jio India West is
+a DisallowedLocation, and the Basv2 quota is 0 everywhere except Central India (self-service quota
+request: Failed). Only the newer D v4/v6 families deployed. A support request ("Service and
+subscription limits", Compute-VM cores, Basv2 in Central India and West India) is the way to the
+cheap size; then redeploy with `--location centralindia` and delete this VM.
+
+What the live run taught (all folded into the scripts the same day): Windows computer names cap at
+15 characters; non-"s" sizes refuse Premium_LRS; PowerShell as the SSH shell swallows piped stdin
+(keep cmd); Windows OpenSSH stdin stalls after 128 KB of binary data (sftp for the build); sftp
+batch mode aborts on an existing directory even with `-mkdir`; `powershell -Command` exits 1 when
+its last statement was a no-op Remove-Item; Node 26's MSI has no corepack; pnpm 12's native binary
+needs the VC++ runtime; `New-Item -Force` on an existing HKLM Policies key is refused; `caddy
+hash-password` reads only the console (use `--plaintext`); the build unit is dist/ plus
+packages/*/dist; `connect --service` blocks until the device is approved and the node surface
+request appears only after a reconnect; `nodes` commands take no `--password`. The operator's own
+public IP changed mid-run once (the temporary SSH rule had to be updated by hand).
 
 ## 1. Azure account and CLI
 
@@ -65,7 +91,8 @@ Gateway's ts.net ingress does not answer from the VM (section 5), 1 anything els
 
 ## 4. Front door route
 
-On `vasudev-front-door` (root, over the tailnet), in `/etc/caddy/Caddyfile` above the 403 fallthrough:
+Done for TripIn on 2026-10-16 (backup `/etc/caddy/Caddyfile.bak-<stamp>` on the box). On
+`vasudev-front-door` (root, over the tailnet), in `/etc/caddy/Caddyfile` above the 403 fallthrough:
 
 ```
 @<client> header X-Forwarded-User <owner email>
