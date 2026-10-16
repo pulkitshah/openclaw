@@ -108,8 +108,14 @@ describe("createIsolatedGhosttyTerminal wrapped rows", () => {
     runtimeMocks.load.mockReset();
   });
 
-  async function createWithBuffer(rows: string[], wrapped: boolean[], cols: number) {
+  async function createWithBuffer(
+    rows: string[],
+    wrapped: boolean[],
+    cols: number,
+    prepare?: (controller: ReturnType<typeof createTerminalController>) => void,
+  ) {
     const controller = createTerminalController();
+    prepare?.(controller);
     const providers: Array<{
       provideLinks: (
         y: number,
@@ -167,5 +173,21 @@ describe("createIsolatedGhosttyTerminal wrapped rows", () => {
     selectionManager.selectionStart = { col: 0, absoluteRow: 0 };
     selectionManager.selectionEnd = { col: 5, absoluteRow: 2 };
     expect(selectionManager.getSelection()).toBe("https://example.com/abc/def?x=1\nsecond");
+  });
+
+  // Final review: the override binds to ghostty-web's private selection fields; when a later
+  // ghostty-web reshapes them, copy must fall back to ghostty's own text, not silently copy "".
+  it("falls back to ghostty's own selection text when its selection fields are unknown", async () => {
+    const { controller } = await createWithBuffer(["one", "two"], [false, false], 20, (c) => {
+      Object.assign(c.terminal.selectionManager, { getSelection: () => "ghostty's own text" });
+    });
+    const selectionManager = controller.terminal.selectionManager as unknown as {
+      selectionStart?: unknown;
+      selectionEnd?: unknown;
+      getSelection: () => string;
+    };
+    selectionManager.selectionStart = { x: 0, y: 0 };
+    selectionManager.selectionEnd = { x: 3, y: 0 };
+    expect(selectionManager.getSelection()).toBe("ghostty's own text");
   });
 });

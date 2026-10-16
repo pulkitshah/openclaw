@@ -37,7 +37,10 @@ export function createTerminalController(dispose: () => void = vi.fn()) {
       registerLinkProvider: vi.fn(),
       reset: vi.fn(),
       paste: vi.fn(),
-      selectionManager: { mouseDownTarget: null as EventTarget | null },
+      selectionManager: {
+        mouseDownTarget: null as EventTarget | null,
+        getSelection: (): string => "",
+      },
     },
     write: vi.fn(),
     fit: vi.fn(),

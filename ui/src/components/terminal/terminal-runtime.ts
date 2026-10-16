@@ -147,12 +147,15 @@ export async function createIsolatedGhosttyTerminal(options: CreateGhosttyTermin
     : { provideLinks: (_y, callback) => callback(undefined) };
   terminal.registerLinkProvider(linkProvider);
   const selectionManager = asOptionalRecord(terminal)?.selectionManager;
-  if (selectionManager && buffer) {
+  const originalGetSelection = selectionManager?.getSelection;
+  if (selectionManager && buffer && typeof originalGetSelection === "function") {
+    // Bound to ghostty-web 0.4.0's private selection fields; a later shape falls back to
+    // ghostty's own text rather than copying nothing.
     selectionManager.getSelection = () => {
       const { selectionStart, selectionEnd } = selectionManager;
       return isSelectionPoint(selectionStart) && isSelectionPoint(selectionEnd)
         ? selectionTextAcrossWraps(buffer, selectionStart, selectionEnd)
-        : "";
+        : String(originalGetSelection.call(selectionManager) ?? "");
     };
   }
   const mouseUpCandidate = asOptionalRecord(terminal)?.handleMouseUp;

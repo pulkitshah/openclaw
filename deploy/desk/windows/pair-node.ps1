@@ -16,6 +16,7 @@ $params = [Console]::In.ReadToEnd() | ConvertFrom-Json
 $cli = "C:\opt\openclaw\dist\index.js"
 $pw = $params.gatewayAdminPassword
 $ingress = "https://$($params.tailnetHost)"
+$tailnetIp = (& "C:\Program Files\Tailscale\tailscale.exe" ip -4).Trim()
 try { $null = Invoke-WebRequest -UseBasicParsing -Uri "$ingress/healthz" -TimeoutSec 10 } catch { "pair-node: ingress-unreachable $ingress"; exit 7 }
 
 node $cli plugins enable cua-computer | Out-Null
@@ -40,8 +41,10 @@ for ($i = 0; $i -lt 36; $i++) {
   if (-not $deviceApproved) {
     $list = $null
     try { $list = node $cli devices list --json --password $pw 2>$null | ConvertFrom-Json } catch { $list = $null }
+    # Only this VM's own node: a request from any other address is someone else's and is left
+    # for the operator (a rerun on a Gateway with a foreign pending node must not adopt it).
     foreach ($p in @($list.pending)) {
-      if ($p.clientMode -eq "node") {
+      if ($p.clientMode -eq "node" -and $p.remoteIp -in @("127.0.0.1", "::1", $tailnetIp)) {
         node $cli devices approve $p.requestId --password $pw 2>&1 | Out-Null
         "pair-node: approved device request $($p.requestId)"
         $deviceApproved = $true
@@ -52,7 +55,7 @@ for ($i = 0; $i -lt 36; $i++) {
     $np = @()
     try { $np = @(node $cli nodes pending --json 2>$null | ConvertFrom-Json) } catch { $np = @() }
     foreach ($p in $np) {
-      if ($p.requestId) {
+      if ($p.requestId -and $p.displayName -eq $params.displayName) {
         node $cli nodes approve $p.requestId 2>&1 | Out-Null
         "pair-node: approved node request $($p.requestId)"
         $nodeApproved = $true

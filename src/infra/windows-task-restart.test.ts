@@ -133,7 +133,7 @@ describe("relaunchGatewayScheduledTask", () => {
     const script = fs.readFileSync(scriptPath, "utf8");
     // ASCII helper scripts stay marker-free UTF-8 bytes.
     expect(script.startsWith("@echo off\r\n")).toBe(true);
-    expect(script).toContain("timeout /t 1 /nobreak >nul");
+    expect(script).toContain("ping -n 2 127.0.0.1 >nul");
     expect(script).toContain("gateway-restart.log");
     expect(script).toContain(
       'vasudev restart attempt source=windows-task-handoff target="OpenClaw Gateway (work)"',
@@ -172,7 +172,10 @@ describe("relaunchGatewayScheduledTask", () => {
     expect(probe).toMatch(/\{ exit 2 \}; exit 0$/);
     expect(script).toContain("if errorlevel 2 goto cleanup");
     expect(script).toContain("if errorlevel 1 goto run");
-    expect(script).toContain("timeout /t 5 /nobreak >nul");
+    // The helper runs detached with stdin on NUL; `timeout /t` exits at once there ("Input
+    // redirection is not supported"), which collapsed the wait to seconds (final review).
+    expect(script).not.toContain("timeout /t");
+    expect(script).toContain("ping -n 6 127.0.0.1 >nul");
     expect(script).toContain('schtasks /End /TN "OpenClaw Gateway (work)" >>');
     expect(script.indexOf("schtasks /End")).toBeLessThan(script.indexOf("schtasks /Run"));
     expect(script.indexOf("if errorlevel 2 goto cleanup")).toBeLessThan(

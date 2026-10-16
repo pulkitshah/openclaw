@@ -351,6 +351,32 @@ describe("configureGatewayForSetup", () => {
     expect(prompter.text).not.toHaveBeenCalled();
   });
 
+  // Final review: a kept mode with no local password left authMode at its "token" default and
+  // the token branch rewrote gateway.auth to { mode: "token", token: undefined }.
+  it.each([
+    { mode: "trusted-proxy" as const, extra: { trustedProxy: { userHeader: "x-forwarded-user" } } },
+    { mode: "none" as const, extra: {} },
+  ])("keeps $mode auth with no local credential in quickstart", async ({ mode, extra }) => {
+    const baseConfig = { gateway: { auth: { mode, ...extra } } };
+    const prompter = createPrompter({ selectQueue: [], textQueue: [] });
+    const result = await configureGatewayForSetup({
+      flow: "quickstart",
+      baseConfig,
+      nextConfig: baseConfig,
+      localPort: 18789,
+      quickstartGateway: {
+        ...createQuickstartGateway("token"),
+        hasExisting: true,
+        keptAuthMode: mode,
+      },
+      prompter,
+      runtime: createRuntime(),
+    });
+
+    expect(result.nextConfig.gateway?.auth).toEqual(baseConfig.gateway.auth);
+    expect(prompter.text).not.toHaveBeenCalled();
+  });
+
   it("does not add a Control UI auth bypass for fresh quickstart loopback setups", async () => {
     mocks.randomToken.mockReturnValue("generated-token");
 

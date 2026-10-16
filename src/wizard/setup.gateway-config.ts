@@ -307,7 +307,7 @@ export async function configureGatewayForSetup(
         },
       },
     };
-  } else if (authMode === "token") {
+  } else if (!keepAuth && authMode === "token") {
     nextConfig = {
       ...nextConfig,
       gateway: {

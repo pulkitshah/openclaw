@@ -1774,6 +1774,34 @@ exit 0`,
       expect(result.stderr).toContain("--resume");
     });
 
+    // Final review: a run that died after opening the operator SSH rule (or exited 3 to keep it)
+    // left public port 22 open; a later successful --resume never closed it because only the run
+    // that opened the rule deleted it. Every successful run ends with the (idempotent) delete.
+    it("closes the operator SSH rule at the end of a successful --resume it did not open", () => {
+      const head = spawnSync("git", ["-C", HERE, "rev-parse", "HEAD"], {
+        encoding: "utf8",
+      }).stdout.trim();
+      const fakeDist = join(dir, "fake-dist-resume-close");
+      mkdirSync(fakeDist, { recursive: true });
+      writeFileSync(join(fakeDist, "index.js"), "console.log(1)\n");
+      writeFileSync(join(fakeDist, ".provision-built-ref"), `${head}\n`);
+      const result = run(
+        NEW_DESK_AZURE,
+        [deskName, "--env-file", envFile, "--resume", "--skip-pairing", "--git-ref", head],
+        azureEnv({
+          AZ_VM_EXISTS: "1",
+          SSH_LOG: sshLog,
+          SSH_STDIN_LOG: join(dir, "ssh-stdin.log"),
+          SSH_READY_HOSTS: "acme-az.tailnet-fixture.ts.net",
+          SSH_STDOUT: "receive-build: ok 2 files\nprovision-desk: ok",
+          DESK_BUILD_DIR: fakeDist,
+        }),
+      );
+      expect(result.status, result.stderr).toBe(0);
+      expect(readLog(azLog)).not.toContain("nsg rule create");
+      expect(readLog(azLog)).toContain("network nsg rule delete");
+    });
+
     it("skips the bootstrap and first boot on --resume when the desk already answers SSH over the tailnet", () => {
       const head = spawnSync("git", ["-C", HERE, "rev-parse", "HEAD"], {
         encoding: "utf8",

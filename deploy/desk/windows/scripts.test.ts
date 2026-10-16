@@ -131,6 +131,14 @@ describe("openclaw.windows-desk.json.tmpl", () => {
 
   // Onboarding keeps an existing tools.profile and otherwise writes "coding", which has no
   // computer tool: the coordinator drove Notepad through PowerShell instead (live 2026-10-16).
+  // Final review: onboarding writes gateway.port unconditionally; with no port in the template
+  // that write is a new key under the restart-kind "gateway" prefix, so the wizard's last save
+  // restarted the Gateway under its own terminal. An explicit default makes that write a no-op.
+  it("states the Gateway port so onboarding's port write changes nothing", () => {
+    const config = JSON.parse(rendered) as { gateway: { port?: number } };
+    expect(config.gateway.port).toBe(18789);
+  });
+
   it("pins the full tool profile so onboarding cannot narrow the desk's tools", () => {
     const config = JSON.parse(rendered) as { tools: { profile?: string; alsoAllow?: string[] } };
     expect(config.tools.profile).toBe("full");
@@ -171,6 +179,19 @@ describe("first-boot.ps1", () => {
   it("installs the Claude CLI with npm, allowing its install scripts", () => {
     expect(script).toContain("--allow-scripts=@anthropic-ai/claude-code @anthropic-ai/claude-code");
     expect(script).toContain("claude --version");
+  });
+});
+
+describe("pair-node.ps1", () => {
+  const script = readFileSync(join(HERE, "pair-node.ps1"), "utf8");
+
+  // Final review: every pending node request was approved; on a rerun (or --resume) a foreign
+  // node waiting on the same Gateway would have been granted this desk's command surface.
+  it("approves only this VM's own requests", () => {
+    // Device requests carry the requester's address; the node connects from this VM.
+    expect(script).toMatch(/remoteIp[^\n]*-in[^\n]*127\.0\.0\.1/);
+    // Node surface requests carry the display name this script registered.
+    expect(script).toMatch(/nodes pending[\s\S]*displayName -eq \$params\.displayName/);
   });
 });
 

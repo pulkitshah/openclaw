@@ -270,7 +270,10 @@ azure_vm_public_ip() {
 }
 cleanup() {
   local status=$?
-  if (( rule_opened == 1 && keep_operator_ssh == 0 )); then
+  # Close the rule whenever this run opened it, and at the end of every successful run even when
+  # it did not: an earlier run that died (or exited 3 to keep SSH) may have left it open, and a
+  # desk that is up must have no public inbound port. The delete is idempotent.
+  if (( keep_operator_ssh == 0 && (rule_opened == 1 || status == 0) )); then
     azure_close_operator_ssh
   fi
   rm -rf "$tmpdir"
