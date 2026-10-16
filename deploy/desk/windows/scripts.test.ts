@@ -4,6 +4,7 @@ import { userInfo } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import downloads from "./downloads.json" with { type: "json" };
 
 // Parses every PowerShell script in this directory with PowerShell 7. Catches syntax errors
 // before a script ever runs on a client VM. `pwsh` comes from PATH, from VASUDEV_PWSH, or from
@@ -43,5 +44,18 @@ describe.runIf(pwsh !== undefined)("deploy/desk/windows PowerShell scripts", () 
   });
   it.each(scripts)("%s is LF-only (PowerShell 5.1 reads it from a bash heredoc)", (name) => {
     expect(readFileSync(join(HERE, name), "utf8").includes("\r")).toBe(false);
+  });
+});
+
+describe("downloads.json", () => {
+  it("pins every installer with an https url and a 64-hex sha256", () => {
+    const entries = downloads as Record<string, { url: string; sha256: string }>;
+    for (const [name, entry] of Object.entries(entries)) {
+      expect(entry.url, name).toMatch(/^https:\/\//);
+      expect(entry.sha256, name).toMatch(/^[0-9a-f]{64}$/);
+    }
+    expect(Object.keys(entries)).toEqual(
+      expect.arrayContaining(["tailscale", "tightvnc", "caddy", "node", "git", "autologon"]),
+    );
   });
 });

@@ -1,0 +1,26 @@
+{
+  "tailscale": {
+    "url": "https://pkgs.tailscale.com/stable/tailscale-setup-1.104.1-amd64.msi",
+    "sha256": "6da8bcdb0d45a214cae0e8a88c2987ad48dec134bf04dffb9c05f1354c02b0b4"
+  },
+  "tightvnc": {
+    "url": "https://www.tightvnc.com/download/2.8.89/tightvnc-2.8.89-gpl-setup-64bit.msi",
+    "sha256": "dff8d7e40a81e0b86ba1d9d5cc0d4f22d08354c50c9cbdc0825bbb6ccfb1073c"
+  },
+  "caddy": {
+    "url": "https://github.com/caddyserver/caddy/releases/download/v2.11.7/caddy_2.11.7_windows_amd64.zip",
+    "sha256": "0a1edc0b799512051c57071ce0e798d3f2cf67dc98171366f1d2b326072e3b06"
+  },
+  "node": {
+    "url": "https://nodejs.org/dist/v26.12.0/node-v26.12.0-x64.msi",
+    "sha256": "dd72e3693abed70b7cb5c528dc6eaa46e628a25cd82319fb2c1ccb4462cce633"
+  },
+  "git": {
+    "url": "https://github.com/git-for-windows/git/releases/download/v2.56.0.windows.2/MinGit-2.56.0.2-64-bit.zip",
+    "sha256": "da35e72aa21c005a5a0d298cfbae110bc1609a815730ea0dde84b01a1b3cd3be"
+  },
+  "autologon": {
+    "url": "https://download.sysinternals.com/files/AutoLogon.zip",
+    "sha256": "9a477624ea6488acfbd2cefcc392fac082383a3a8db1c6d867af1b410f4731b7"
+  }
+}

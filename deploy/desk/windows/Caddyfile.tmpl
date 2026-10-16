@@ -1,0 +1,17 @@
+# Rendered by first-boot.ps1 to C:\opt\caddy\Caddyfile. The desk's own front: the front-door box
+# reaches this listener over the tailnet with basic auth, and Caddy mints X-Forwarded-User for the
+# loopback Gateway (gateway.auth.mode trusted-proxy, allowLoopback). Plain HTTP: WireGuard already
+# encrypts the hop. Same shape as the office-PC desk and Prabhat.
+{
+	admin off
+}
+
+http://{{TAILNET_IP}}:8443 {
+	basicauth {
+		{{OWNER_EMAIL}} {{FRONT_PASSWORD_BCRYPT}}
+	}
+	reverse_proxy 127.0.0.1:18789 {
+		header_up X-Forwarded-User {http.auth.user.id}
+		header_up Host {upstream_hostport}
+	}
+}
