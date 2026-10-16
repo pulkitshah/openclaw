@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { userInfo } from "node:os";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir, userInfo } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -57,5 +57,54 @@ describe("downloads.json", () => {
     expect(Object.keys(entries)).toEqual(
       expect.arrayContaining(["tailscale", "tightvnc", "caddy", "node", "git", "autologon"]),
     );
+  });
+});
+
+describe("openclaw.windows-desk.json.tmpl", () => {
+  function validate(config: string): { status: number | null; output: string } {
+    const dir = mkdtempSync(join(tmpdir(), "windows-desk-config-"));
+    try {
+      writeFileSync(join(dir, "openclaw.json"), config);
+      const result = spawnSync(
+        process.execPath,
+        [join(HERE, "..", "..", "..", "openclaw.mjs"), "config", "validate"],
+        {
+          encoding: "utf8",
+          env: {
+            ...process.env,
+            OPENCLAW_STATE_DIR: dir,
+            OPENCLAW_CONFIG_PATH: join(dir, "openclaw.json"),
+          },
+        },
+      );
+      return { status: result.status, output: result.stdout + result.stderr };
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
+  const rendered = readFileSync(join(HERE, "openclaw.windows-desk.json.tmpl"), "utf8")
+    .replaceAll("{{OWNER_EMAIL}}", "owner@example.com")
+    .replaceAll("{{TAILNET_HOST}}", "acme-az.tailnet-fixture.ts.net")
+    .replaceAll("{{FRONT_DOOR_ORIGIN}}", "https://vasudev.tripinstudio.com")
+    // The validator checks path.isAbsolute with the host's rules; on the VM "C:\\..." is
+    // absolute, on this Mac only a posix path is.
+    .replace(
+      "C:\\\\opt\\\\vnc-password.txt",
+      process.platform === "win32" ? "C:\\\\opt\\\\vnc-password.txt" : "/opt/vnc-password.txt",
+    );
+
+  it("renders to a config the fork's schema accepts", () => {
+    const result = validate(rendered);
+    expect(result.status, result.output).toBe(0);
+  });
+
+  it("is checked by a validator that rejects an unknown trusted-proxy key", () => {
+    const broken = rendered.replace(
+      '"allowLoopback": true',
+      '"allowLoopback": true, "allowTailscale": true',
+    );
+    const result = validate(broken);
+    expect(result.status).not.toBe(0);
+    expect(result.output).toContain("allowTailscale");
   });
 });

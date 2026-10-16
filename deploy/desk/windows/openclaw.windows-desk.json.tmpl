@@ -1,0 +1,51 @@
+{
+  "gateway": {
+    "mode": "local",
+    "bind": "loopback",
+    "tailscale": { "mode": "serve" },
+    "controlUi": {
+      "communityInvite": false,
+      "allowedOrigins": ["{{FRONT_DOOR_ORIGIN}}", "https://{{TAILNET_HOST}}"]
+    },
+    "trustedProxies": ["127.0.0.1"],
+    "auth": {
+      "mode": "trusted-proxy",
+      "trustedProxy": {
+        "userHeader": "x-forwarded-user",
+        "allowUsers": ["{{OWNER_EMAIL}}"],
+        "allowLoopback": true
+      },
+      "allowTailscale": true,
+      "identityScopes": {
+        "{{OWNER_EMAIL}}": ["operator.admin"],
+        "pulkitshah@github": ["operator.admin"]
+      },
+      "password": { "source": "file", "provider": "gateway-admin-password-file", "id": "value" }
+    },
+    "nodes": {
+      "browser": { "mode": "auto" },
+      "commands": { "allow": ["desktop.stream"] }
+    }
+  },
+  "secrets": {
+    "providers": {
+      "gateway-admin-password-file": {
+        "source": "file",
+        "path": "C:\\opt\\secrets\\gateway-admin-password",
+        "mode": "singleValue"
+      }
+    }
+  },
+  "desktop": { "host": { "enabled": true, "port": 5900, "passwordFile": "C:\\opt\\vnc-password.txt" } },
+  "browser": { "ssrfPolicy": { "allowedHostnames": ["127.0.0.1"] } },
+  "plugins": {
+    "entries": {
+      "anthropic": { "enabled": true, "config": { "sessionCatalog": { "enabled": false } } },
+      "duties": { "enabled": true },
+      "llm-task": { "enabled": true },
+      "wallet": { "enabled": true },
+      "cua-computer": { "enabled": true }
+    }
+  },
+  "tools": { "alsoAllow": ["llm-task"] }
+}

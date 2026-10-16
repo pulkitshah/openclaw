@@ -1811,6 +1811,40 @@ exit 0`,
       expect(result.status).not.toBe(0);
       expect(readLog(azLog)).toContain("network nsg rule delete");
     });
+
+    it("pushes the build, provisions over the tailnet host, and prints the front-door Control UI", () => {
+      const head = spawnSync("git", ["-C", HERE, "rev-parse", "HEAD"], {
+        encoding: "utf8",
+      }).stdout.trim();
+      const fakeDist = join(dir, "fake-dist");
+      mkdirSync(fakeDist, { recursive: true });
+      writeFileSync(join(fakeDist, "index.js"), "console.log(1)\n");
+      writeFileSync(join(fakeDist, ".provision-built-ref"), `${head}\n`);
+      const result = run(
+        NEW_DESK_AZURE,
+        [deskName, "--env-file", envFile, "--resume", "--skip-pairing", "--git-ref", head],
+        azureEnv({
+          AZ_VM_EXISTS: "1",
+          SSH_LOG: sshLog,
+          SSH_STDIN_LOG: join(dir, "ssh-stdin.log"),
+          SSH_STDOUT: "first-boot: ok\nreceive-build: ok 2 files\nprovision-desk: ok",
+          DESK_BUILD_DIR: fakeDist,
+        }),
+      );
+      expect(result.status, result.stderr).toBe(0);
+      const sshCalls = readLog(sshLog);
+      expect(sshCalls).toContain("vasudev@acme-az.tailnet-fixture.ts.net");
+      expect(sshCalls).toContain("-File C:\\opt\\stage\\provision-desk.ps1");
+      const stdin = readFileSync(join(dir, "ssh-stdin.log"), "utf8");
+      expect(stdin).toContain('"gatewayAdminPassword":"fixture-gateway-admin"');
+      expect(stdin).toContain('"frontDoorOrigin":"https://vasudev.tripinstudio.com"');
+      expect(stdin).toContain('"tailnetIp":"100.64.0.9"');
+      // The staged provisioning script carries the desk config template.
+      expect(stdin).toContain('"mode": "trusted-proxy"');
+      expect(stdin).toContain('"allow": ["desktop.stream"]');
+      expect(result.stdout).toContain("Control UI: https://vasudev.tripinstudio.com");
+      expect(readLog(nodeLog)).not.toContain("pnpm build");
+    });
   });
 
   describe("windows/push-build.sh", () => {

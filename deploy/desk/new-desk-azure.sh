@@ -347,3 +347,35 @@ echo "==> ${tailnet_host} (${tailnet_ip})" >&2
 if [[ "$stop_after" == "first-boot" ]]; then
   exit 0
 fi
+
+# Phase 3: build + provision over the tailnet.
+"$WINDOWS_DIR/push-build.sh" "$tailnet_host" --git-ref "$git_ref"
+provision_script="$tmpdir/provision-desk.ps1"
+python3 - "$WINDOWS_DIR/provision-desk.ps1" "$WINDOWS_DIR/openclaw.windows-desk.json.tmpl" "$provision_script" <<'PY'
+import sys
+src, tmpl, out = sys.argv[1:4]
+open(out, "w").write(open(src).read().replace("{{CONFIG_TMPL}}", open(tmpl).read().strip()))
+PY
+provision_json="$tmpdir/provision.json"
+: > "$provision_json"
+chmod 600 "$provision_json"
+fork_repo_url="${DESK_FORK_REPO_URL:-$(git -C "$SCRIPT_DIR" remote get-url origin)}"
+front_door_origin="${DESK_FRONT_DOOR_ORIGIN:-https://vasudev.tripinstudio.com}"
+jq -cn --arg gitRef "$git_ref" --arg forkRepoUrl "$fork_repo_url" --arg ownerEmail "$owner_email" \
+  --arg gatewayAdminPassword "$(env_get GATEWAY_ADMIN_PASSWORD)" --arg frontPassword "$(env_get DESK_FRONT_PASSWORD)" \
+  --arg tailnetHost "$tailnet_host" --arg tailnetIp "$tailnet_ip" --arg frontDoorOrigin "$front_door_origin" --arg clientName "$client" \
+  '{gitRef:$gitRef, forkRepoUrl:$forkRepoUrl, ownerEmail:$ownerEmail, gatewayAdminPassword:$gatewayAdminPassword, frontPassword:$frontPassword, tailnetHost:$tailnetHost, tailnetIp:$tailnetIp, frontDoorOrigin:$frontDoorOrigin, clientName:$clientName}' > "$provision_json"
+echo "==> Provisioning the desk (checkout, pnpm install, config, Gateway task)" >&2
+set +e
+provision_out="$(ssh_vm_script "$tailnet_host" "$provision_script" "$provision_json")"
+set -e
+printf '%s\n' "$provision_out" | grep -v -i 'password' >&2 || true
+if ! printf '%s' "$provision_out" | grep -q '^provision-desk: ok'; then
+  echo "new-desk-azure.sh: provision-desk.ps1 failed" >&2
+  exit 1
+fi
+control_ui_url="$front_door_origin"
+if (( skip_pairing == 1 )); then
+  desk_print_ready "$desk_name" "$control_ui_url" "vasudev@${tailnet_host}" client
+  exit 0
+fi
