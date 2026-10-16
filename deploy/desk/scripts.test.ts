@@ -1,5 +1,13 @@
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync } from "node:fs";
+import {
+  chmodSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+  readFileSync,
+  existsSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,6 +28,7 @@ const ROLL_REMOTE = join(HERE, "remote", "roll-remote.sh");
 const SNAPSHOT = join(HERE, "snapshot.sh");
 const NEW_DESK_OCI = join(HERE, "new-desk-oci.sh");
 const MIGRATE = join(HERE, "migrate-desk.sh");
+const NEW_DESK_AZURE = join(HERE, "new-desk-azure.sh");
 const REAL_NODE = process.execPath;
 
 const TS_AUTHKEY_SECRET = "tskey-auth-FIXTURE-SECRET-0123456789";
@@ -234,6 +243,29 @@ fail_count="\${CURL_FAIL_COUNT:-0}"
 if [ "$count" -le "$fail_count" ]; then
   exit 22
 fi
+exit 0`,
+  );
+  // new-desk-azure.sh: every `az` call is logged; the handful whose output the script parses
+  // answer canned JSON (existence probes exit 3 like the real CLI's "not found"). Canned JSON is
+  // single-quoted literal text, never a `\${VAR:-{...}}` default: bash ends such a default at the
+  // first unbalanced brace and hands jq a truncated document.
+  writeStub(
+    binDir,
+    "az",
+    `set -euo pipefail
+printf '%s\\n' "az $*" >> "\${AZ_LOG:?}"
+args="$*"
+case "$args" in
+  "account show"*)            printf '%s' "\${AZ_ACCOUNT_JSON:-}"; [ -n "\${AZ_ACCOUNT_JSON:-}" ] || printf '%s' '{"id":"sub-fixture","state":"Enabled"}' ;;
+  "group exists"*)            printf '%s' "\${AZ_GROUP_EXISTS:-false}" ;;
+  "network vnet show"*)       if [ "\${AZ_VNET_EXISTS:-0}" = 1 ]; then printf '{"name":"vasudev"}'; else exit 3; fi ;;
+  "network nsg show"*)        if [ "\${AZ_NSG_EXISTS:-0}" = 1 ]; then printf '{"name":"vasudev-desks"}'; else exit 3; fi ;;
+  "vm show"*)                 if [ "\${AZ_VM_EXISTS:-0}" = 1 ]; then printf '%s' '{"name":"existing"}'; else exit 3; fi ;;
+  "vm create"*)               printf '%s' '{"publicIpAddress":"20.0.0.5"}' ;;
+  "vm list-ip-addresses"*)    printf '%s' '[{"virtualMachine":{"network":{"publicIpAddresses":[{"ipAddress":"20.0.0.5"}]}}}]' ;;
+  "vm run-command invoke"*)   printf '%s' "\${AZ_RUN_COMMAND_JSON:-}"; [ -n "\${AZ_RUN_COMMAND_JSON:-}" ] || printf '%s' '{"value":[{"message":"bootstrap-ssh: ok"}]}' ;;
+  *) : ;;
+esac
 exit 0`,
   );
 }
@@ -1574,6 +1606,111 @@ exit 0`,
       expect(result.status).toBe(2);
       expect(result.stderr).toContain("must be a plain hostname");
       expect(readLog(doctlLog)).toBe("");
+    });
+  });
+  describe("new-desk-azure.sh", () => {
+    const deskName = "vasudev-acme-az";
+    let envFile: string;
+    let azLog: string;
+
+    beforeEach(() => {
+      envFile = join(dir, "acme.env");
+      writeFileSync(
+        envFile,
+        [
+          "OWNER_EMAIL=owner@example.com",
+          `TS_AUTHKEY=${TS_AUTHKEY_SECRET}`,
+          "DESK_ADMIN_PASSWORD=Fixture-Admin-Pass-1!",
+          "GATEWAY_ADMIN_PASSWORD=fixture-gateway-admin",
+          "DESK_FRONT_PASSWORD=fixture-front",
+          "VNC_PASSWORD=fixtvnc1",
+          "WHITELIST_ADDRESSES=203.0.113.10,203.0.113.11",
+          "",
+        ].join("\n"),
+        { mode: 0o600 },
+      );
+      writeFileSync(join(dir, "fixture.pub"), "ssh-ed25519 AAAAfixture fixture@test\n");
+      azLog = join(dir, "az.log");
+    });
+
+    function azureEnv(extra: Record<string, string> = {}): Record<string, string> {
+      return {
+        AZ_LOG: azLog,
+        DESK_OPERATOR_IP: "198.51.100.7",
+        DESK_SSH_PUBLIC_KEY: join(dir, "fixture.pub"),
+        DESK_POLL_SECONDS: "5",
+        DESK_SSH_WAIT_SECONDS: "5",
+        TAILSCALE_STATUS_JSON: JSON.stringify({
+          MagicDNSSuffix: "tailnet-fixture.ts.net.",
+          Peer: { peer1: { HostName: "acme-az", Online: true, TailscaleIPs: ["100.64.0.9"] } },
+        }),
+        ...extra,
+      };
+    }
+
+    it("refuses an env file that is missing a key, before any az call", () => {
+      writeFileSync(envFile, "OWNER_EMAIL=owner@example.com\n", { mode: 0o600 });
+      const result = run(NEW_DESK_AZURE, [deskName, "--env-file", envFile], azureEnv());
+      expect(result.status).toBe(2);
+      expect(result.stderr).toContain("TS_AUTHKEY");
+      expect(existsSync(azLog)).toBe(false);
+    });
+
+    it("refuses a group- or world-readable env file", () => {
+      chmodSync(envFile, 0o644);
+      const result = run(NEW_DESK_AZURE, [deskName, "--env-file", envFile], azureEnv());
+      expect(result.status).toBe(2);
+      expect(result.stderr).toContain("0600");
+      expect(existsSync(azLog)).toBe(false);
+    });
+
+    it("creates group, network, NSG with a temporary operator SSH rule, and the VM, in that order", () => {
+      const result = run(
+        NEW_DESK_AZURE,
+        [deskName, "--env-file", envFile, "--client", "acme", "--stop-after", "create"],
+        azureEnv(),
+      );
+      expect(result.status, result.stderr).toBe(0);
+      const calls = readLog(azLog).split("\n");
+      const idx = (needle: string) => calls.findIndex((line) => line.includes(needle));
+      expect(idx("group create --name vasudev --location centralindia")).toBeGreaterThanOrEqual(0);
+      expect(idx("network vnet create")).toBeGreaterThan(idx("group create"));
+      expect(
+        idx("network nsg create --resource-group vasudev --name vasudev-desks"),
+      ).toBeGreaterThan(idx("network vnet create"));
+      expect(idx("network nsg rule create")).toBeGreaterThan(idx("network nsg create"));
+      const rule = calls[idx("network nsg rule create")];
+      expect(rule).toContain("--source-address-prefixes 198.51.100.7/32");
+      expect(rule).toContain("--destination-port-ranges 22");
+      expect(rule).toContain("--name operator-ssh-temp");
+      const create = calls[idx("vm create")];
+      expect(create).toContain(`--name ${deskName}`);
+      expect(create).toContain(
+        "--image MicrosoftWindowsServer:WindowsServer:2022-datacenter-azure-edition:latest",
+      );
+      expect(create).toContain("--size Standard_B2as_v2");
+      expect(create).toContain("--os-disk-size-gb 128");
+      expect(create).toContain("--storage-sku Premium_LRS");
+      expect(create).toContain("--admin-username vasudev");
+      expect(create).toContain("--nsg vasudev-desks");
+      expect(create).toContain("--public-ip-sku Standard");
+      expect(create).not.toContain("Fixture-Admin-Pass-1!");
+      expect(create).toContain("--admin-password @");
+      expect(readLog(azLog)).not.toContain(TS_AUTHKEY_SECRET);
+    });
+
+    it("reuses existing group, network and NSG on a rerun", () => {
+      const result = run(
+        NEW_DESK_AZURE,
+        [deskName, "--env-file", envFile, "--stop-after", "create"],
+        azureEnv({ AZ_GROUP_EXISTS: "true", AZ_VNET_EXISTS: "1", AZ_NSG_EXISTS: "1" }),
+      );
+      expect(result.status, result.stderr).toBe(0);
+      const log = readLog(azLog);
+      expect(log).not.toContain("group create");
+      expect(log).not.toContain("vnet create");
+      expect(log).not.toContain("nsg create --resource-group");
+      expect(log).toContain("vm create");
     });
   });
 });
