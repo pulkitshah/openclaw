@@ -275,6 +275,50 @@ describe("executable path helpers", () => {
   });
 });
 
+describe("resolveExecutablePath on Windows", () => {
+  // npm installs both an extensionless POSIX shim (`claude`) and `claude.cmd` side by side; the
+  // extensionless file was probed first and handed to the CLI runner, whose spawn then failed with
+  // ENOENT ("write EPIPE" to the operator) on every claude-cli turn (live 2026-10-16). PATHEXT
+  // candidates are what CreateProcess can run; they come first.
+  it("prefers a PATHEXT match over an extensionless sibling", async () => {
+    await withMockedPlatform("win32", async () => {
+      await withTestDir({ prefix: "openclaw-exec-path-" }, async (base) => {
+        const binDir = path.join(base, "bin");
+        await fs.mkdir(binDir, { recursive: true });
+        const shimPath = path.join(binDir, "claude");
+        const cmdPath = path.join(binDir, "claude.cmd");
+        await fs.writeFile(shimPath, "#!/bin/sh\n", "utf8");
+        await fs.writeFile(cmdPath, "@echo off\n", "utf8");
+
+        const resolved = resolveExecutablePath("claude", {
+          env: { PATH: binDir, PATHEXT: ".EXE;.CMD;.BAT;.COM" },
+          useCache: false,
+        });
+
+        expect(resolved).toBe(cmdPath);
+      });
+    });
+  });
+
+  it("still resolves a lone extensionless file", async () => {
+    await withMockedPlatform("win32", async () => {
+      await withTestDir({ prefix: "openclaw-exec-path-" }, async (base) => {
+        const binDir = path.join(base, "bin");
+        await fs.mkdir(binDir, { recursive: true });
+        const toolPath = path.join(binDir, "tool");
+        await fs.writeFile(toolPath, "", "utf8");
+
+        expect(
+          resolveExecutablePath("tool", {
+            env: { PATH: binDir, PATHEXT: ".EXE;.CMD" },
+            useCache: false,
+          }),
+        ).toBe(toolPath);
+      });
+    });
+  });
+});
+
 describe("resolveExecutable", () => {
   afterEach(() => {
     vi.restoreAllMocks();

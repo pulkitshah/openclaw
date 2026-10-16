@@ -46,7 +46,10 @@ function resolveWindowsExecutableExtensions(
     return [""];
   }
   const extensions = [...resolveWindowsExecutableExtSet(env)];
-  return includeExtensionless ? ["", ...extensions] : extensions;
+  // CreateProcess runs PATHEXT files; an extensionless sibling (npm's POSIX shim next to
+  // `tool.cmd`) is a last resort, not the first hit (live 2026-10-16: every claude-cli turn
+  // spawned the shim and failed ENOENT).
+  return includeExtensionless ? [...extensions, ""] : extensions;
 }
 
 function resolveWindowsExecutableExtSet(env: NodeJS.ProcessEnv | undefined): Set<string> {
