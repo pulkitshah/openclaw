@@ -48,7 +48,9 @@ COPYFILE_DISABLE=1 tar -C "$dist" --no-mac-metadata --no-xattrs --exclude='./ext
 echo "==> Uploading ${count} files ($(du -h "$tarfile" | cut -f1 | tr -d ' ')) to ${host} with sftp" >&2
 # sftp batch mode aborts on a failed command even with the "-" prefix on this OpenSSH, so the
 # stage directory is made with a plain SSH command first.
-ssh "${ssh_opts[@]}" "vasudev@${host}" "powershell.exe -NoProfile -NonInteractive -Command \"New-Item -ItemType Directory -Force -Path C:\\opt\\stage | Out-Null\""
+# Also clears a tar left by an interrupted push: sftp cannot overwrite a file another process
+# still holds open.
+ssh "${ssh_opts[@]}" "vasudev@${host}" "powershell.exe -NoProfile -NonInteractive -Command \"New-Item -ItemType Directory -Force -Path C:\\opt\\stage | Out-Null; Remove-Item -Force C:\\opt\\dist-incoming.tar -ErrorAction SilentlyContinue; Remove-Item -Recurse -Force C:\\opt\\dist-incoming -ErrorAction SilentlyContinue\""
 printf 'put %s /C:/opt/stage/receive-build.ps1\nput %s /C:/opt/dist-incoming.tar\nquit\n' "$SCRIPT_DIR/receive-build.ps1" "$tarfile" \
   | sftp -b - "${ssh_opts[@]}" "vasudev@${host}" >/dev/null
 out="$(ssh "${ssh_opts[@]}" "vasudev@${host}" "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File C:\\opt\\stage\\receive-build.ps1 -TarPath C:\\opt\\dist-incoming.tar -GitRef ${git_ref} -ExpectedCount ${count} -ExpectedManifest ${manifest}" | tr -d '\r')"
