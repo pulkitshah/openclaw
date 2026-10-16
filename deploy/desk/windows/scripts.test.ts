@@ -129,6 +129,14 @@ describe("openclaw.windows-desk.json.tmpl", () => {
     expect(autoApprove?.scopes ?? []).not.toContain("operator.admin");
   });
 
+  // Onboarding keeps an existing tools.profile and otherwise writes "coding", which has no
+  // computer tool: the coordinator drove Notepad through PowerShell instead (live 2026-10-16).
+  it("pins the full tool profile so onboarding cannot narrow the desk's tools", () => {
+    const config = JSON.parse(rendered) as { tools: { profile?: string; alsoAllow?: string[] } };
+    expect(config.tools.profile).toBe("full");
+    expect(config.tools.alsoAllow).toContain("llm-task");
+  });
+
   it("is checked by a validator that rejects an unknown trusted-proxy key", () => {
     const broken = rendered.replace(
       '"allowLoopback": true',
