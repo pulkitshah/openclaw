@@ -134,6 +134,22 @@ describe("openclaw.windows-desk.json.tmpl", () => {
   // Final review: onboarding writes gateway.port unconditionally; with no port in the template
   // that write is a new key under the restart-kind "gateway" prefix, so the wizard's last save
   // restarted the Gateway under its own terminal. An explicit default makes that write a no-op.
+  // Isolated completions (session titles, summaries) resolve their runtime from the agent
+  // defaults; onboarding writes the claude-cli map only under the coordinator entry, so they
+  // went to the API path and failed "No API key found for provider anthropic" (live
+  // 2026-10-16). The Linux owner template already carries this map; the desk has no API key.
+  it("routes every Anthropic model through the Claude CLI runtime in the agent defaults", () => {
+    const config = JSON.parse(rendered) as {
+      agents?: { defaults?: { models?: Record<string, { agentRuntime?: { id?: string } }> } };
+    };
+    const models = config.agents?.defaults?.models ?? {};
+    expect(Object.keys(models)).toContain("anthropic/claude-opus-5");
+    for (const [model, entry] of Object.entries(models)) {
+      expect(model.startsWith("anthropic/")).toBe(true);
+      expect(entry.agentRuntime?.id).toBe("claude-cli");
+    }
+  });
+
   it("states the Gateway port so onboarding's port write changes nothing", () => {
     const config = JSON.parse(rendered) as { gateway: { port?: number } };
     expect(config.gateway.port).toBe(18789);

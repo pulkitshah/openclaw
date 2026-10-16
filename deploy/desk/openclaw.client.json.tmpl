@@ -31,6 +31,20 @@
       "wallet": { "enabled": true }
     }
   },
+  "agents": {
+    "defaults": {
+      "models": {
+        "anthropic/claude-opus-5": { "agentRuntime": { "id": "claude-cli" } },
+        "anthropic/claude-sonnet-5": { "agentRuntime": { "id": "claude-cli" } },
+        "anthropic/claude-fable-5-1": { "agentRuntime": { "id": "claude-cli" } },
+        "anthropic/claude-fable-5": { "agentRuntime": { "id": "claude-cli" } },
+        "anthropic/claude-opus-4-8": { "agentRuntime": { "id": "claude-cli" } },
+        "anthropic/claude-opus-4-7": { "agentRuntime": { "id": "claude-cli" } },
+        "anthropic/claude-sonnet-4-6": { "agentRuntime": { "id": "claude-cli" } },
+        "anthropic/claude-opus-4-6": { "agentRuntime": { "id": "claude-cli" } }
+      }
+    }
+  },
   "tools": {
     "profile": "full",
     "alsoAllow": ["llm-task"]
