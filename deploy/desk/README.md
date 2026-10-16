@@ -201,7 +201,7 @@ deploy/desk/new-desk-azure.sh vasudev-acme-az --env-file ~/cashew-secrets/acme-a
 
 What it does, in order: resource group / VNet / NSG (no inbound rules), a temporary SSH rule for
 this machine's public IP, the VM (B2as v2, Windows Server 2022 Datacenter Azure Edition, 128 GB),
-OpenSSH through a run-command, `windows/first-boot.ps1` over SSH (Tailscale unattended, TightVNC
+OpenSSH through a run-command (cmd stays the SSH shell; PowerShell is always invoked explicitly, because PowerShell as the login shell swallows piped stdin), `windows/first-boot.ps1` over SSH (Tailscale unattended, TightVNC
 loopback only, Caddy startup task, Node 26 + MinGit + pnpm, auto sign-in, update and lock policies,
 reboot), removal of the SSH rule, `windows/push-build.sh`, `windows/provision-desk.ps1` (checkout,
 `pnpm install`, config from `windows/openclaw.windows-desk.json.tmpl`, Gateway task),

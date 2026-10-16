@@ -207,11 +207,13 @@ fi
 }
 
 ssh_opts=(-o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts_vasudev_desks")
-# Runs one PowerShell command on the VM. Output comes back as-is (CRLF stripped).
+# Runs one PowerShell command on the VM (the SSH shell is cmd.exe; PowerShell is invoked
+# explicitly, see windows/bootstrap-ssh.ps1). The command must not contain double quotes.
+# Output comes back as-is (CRLF stripped).
 ssh_vm() {
   local host="$1"
   shift
-  ssh "${ssh_opts[@]}" "vasudev@${host}" "$@" | tr -d '\r'
+  ssh "${ssh_opts[@]}" "vasudev@${host}" "powershell.exe -NoProfile -NonInteractive -Command \"$*\"" | tr -d '\r'
 }
 # Runs a local .ps1 on the VM. Two SSH calls: the script body is written to C:\opt\stage\<name>
 # from stdin (no command-line length limit, no quoting), then executed with the JSON parameters on

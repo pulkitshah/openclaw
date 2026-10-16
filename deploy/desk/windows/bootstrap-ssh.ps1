@@ -1,7 +1,10 @@
 # Runs once through `az vm run-command invoke` as SYSTEM: turns on the OpenSSH Server feature,
-# trusts the operator's public key for the vasudev administrator, makes PowerShell the SSH shell,
-# and opens port 22 in the Windows firewall. Carries no secrets: the key is public, the password
-# never passes through here. Everything after this step happens over SSH.
+# trusts the operator's public key for the vasudev administrator, and opens port 22 in the
+# Windows firewall. Carries no secrets: the key is public, the password never passes through
+# here. Everything after this step happens over SSH. The SSH shell stays cmd.exe on purpose:
+# with PowerShell as the login shell, PowerShell's own host reads the session's stdin and the
+# scripts this recipe pipes over SSH never see it (observed live 2026-10-16: a staged script hung
+# forever on [Console]::In.ReadToEnd()). Every remote call invokes powershell.exe explicitly.
 param([Parameter(Mandatory = $true)][string]$PublicKey)
 $ErrorActionPreference = "Stop"
 
@@ -16,9 +19,8 @@ $authKeys = "C:\ProgramData\ssh\administrators_authorized_keys"
 Set-Content -Path $authKeys -Value $PublicKey -Encoding ascii
 icacls $authKeys /inheritance:r /grant "Administrators:F" /grant "SYSTEM:F" | Out-Null
 
-New-Item -Path "HKLM:\SOFTWARE\OpenSSH" -Force | Out-Null
-New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell `
-  -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -PropertyType String -Force | Out-Null
+# A DefaultShell left behind by an older recipe would bring the stdin problem back.
+Remove-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -ErrorAction SilentlyContinue
 
 # Password auth off: the NSG limits who can reach port 22, the key limits who gets in.
 $cfg = "C:\ProgramData\ssh\sshd_config"

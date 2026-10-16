@@ -55,7 +55,8 @@ deploy/desk/new-desk-azure.sh vasudev-<client>-az --env-file ~/cashew-secrets/<c
 
 Phases, each announced on stderr: resource group / VNet / NSG (no inbound rules) → temporary
 `operator-ssh-temp` rule for this machine's public IP → `az vm create` → `bootstrap-ssh.ps1` through
-`az vm run-command` (OpenSSH Server, the operator's key, PowerShell as the shell) → SSH wait →
+`az vm run-command` (OpenSSH Server, the operator's key; the SSH shell stays cmd.exe because PowerShell as
+the login shell swallows piped stdin, so every remote call invokes powershell.exe explicitly) → SSH wait →
 `first-boot.ps1` over SSH (secrets on stdin; the VM reboots) → the operator rule is deleted → tailnet
 wait → `push-build.sh` → `provision-desk.ps1` → `pair-node.ps1` → banner. Exit codes: 2 usage/env
 file, 3 Tailscale join failed (the operator rule stays open; fix `TS_AUTHKEY` and `--resume`), 7 the
