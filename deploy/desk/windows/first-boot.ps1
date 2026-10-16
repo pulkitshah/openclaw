@@ -95,6 +95,17 @@ if (-not (Get-Command corepack -ErrorAction SilentlyContinue)) {
 & corepack enable --install-directory "$opt\bin" 2>&1 | Out-Null
 $ErrorActionPreference = "Stop"
 if (-not (Test-Path "$opt\bin\pnpm.cmd")) { "first-boot: corepack/pnpm shim missing"; exit 4 }
+# Claude Code CLI: the desk's agents use the claude-cli provider (the owner's subscription); the
+# sign-in is an owner step in the portal terminal (runbook §4). Same npm invocation as cloud-init:
+# npm 11 skips install scripts by default and claude-code's postinstall places the binary. Git for
+# Windows is optional for it (MinGit has no bash; the CLI uses its PowerShell tool instead).
+if (-not (Get-Command claude -ErrorAction SilentlyContinue)) {
+  $ErrorActionPreference = "Continue"
+  & "C:\Program Files\nodejs\npm.cmd" install -g --allow-scripts=@anthropic-ai/claude-code @anthropic-ai/claude-code 2>&1 | Out-Null
+  $ErrorActionPreference = "Stop"
+}
+$claudeVersion = & "$env:APPDATA\npm\claude.cmd" --version 2>$null
+if (-not $claudeVersion) { "first-boot: claude --version failed after install"; exit 4 }
 
 # 4. Caddy as a startup scheduled task (Caddy has no Windows service mode of its own).
 if (-not (Test-Path "$opt\caddy\caddy.exe")) { Expand-Archive (Get-Pinned "caddy") -DestinationPath "$opt\caddy" -Force }

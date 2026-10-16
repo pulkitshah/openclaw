@@ -107,6 +107,13 @@ reverse_proxy @<client> http://<desk tailnet IP>:8443 {
 `caddy validate --config /etc/caddy/Caddyfile && systemctl reload caddy`. Never route to the desk's
 ts.net name: that is the Gateway's managed-Tailscale ingress and rejects a chained proxy.
 
+First sign-in (owner): the browser is paired on its own (`deviceAutoApprove` in the desk config)
+and the portal lands in the terminal with `vasudev onboard ...` pre-typed. Before choosing
+Anthropic → Claude CLI there, open a second terminal tab (+), run `claude auth login` (the CLI is
+installed at first boot, as the Gateway's user), open the printed link, and paste the code back;
+`claude auth status` confirms it. Then pick Anthropic in the onboarding tab. Learned live
+2026-10-16: without the CLI the step fails with "Claude CLI is not authenticated on this host".
+
 ## 5. Loopback entrance fallback
 
 If `pair-node.ps1` exits 7, the Gateway's `https://<tailnet-host>` ingress does not answer from the

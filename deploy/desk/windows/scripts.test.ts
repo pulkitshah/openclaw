@@ -140,6 +140,19 @@ describe("openclaw.windows-desk.json.tmpl", () => {
   });
 });
 
+describe("first-boot.ps1", () => {
+  const script = readFileSync(join(HERE, "first-boot.ps1"), "utf8");
+
+  // The desk's agents run through the claude-cli provider; the Linux recipe installs the CLI at
+  // first boot (cloud-init) and the Windows one did not (onboarding failed live 2026-10-16 with
+  // "Claude CLI is not authenticated on this host" because there was no CLI at all). npm 11
+  // skips install scripts by default and claude-code needs its postinstall.
+  it("installs the Claude CLI with npm, allowing its install scripts", () => {
+    expect(script).toContain("--allow-scripts=@anthropic-ai/claude-code @anthropic-ai/claude-code");
+    expect(script).toContain("claude --version");
+  });
+});
+
 describe("provision-desk.ps1", () => {
   const script = readFileSync(join(HERE, "provision-desk.ps1"), "utf8");
 
