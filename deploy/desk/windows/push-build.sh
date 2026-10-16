@@ -36,13 +36,19 @@ fi
 manifest="$(cd "$dist" && find . -type f -not -path './extensions/*/node_modules/*' | LC_ALL=C sort | xargs shasum -a 256 | shasum -a 256 | cut -d' ' -f1)"
 count="$(cd "$dist" && find . -type f -not -path './extensions/*/node_modules/*' | wc -l | tr -d ' ')"
 ssh_opts=(-o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$HOME/.ssh/known_hosts_vasudev_desks")
-echo "==> Staging receive-build.ps1 on ${host}" >&2
-ssh "${ssh_opts[@]}" "vasudev@${host}" "powershell.exe -NoProfile -NonInteractive -Command \"New-Item -ItemType Directory -Force -Path C:\\opt\\stage | Out-Null; [IO.File]::WriteAllText('C:\\opt\\stage\\receive-build.ps1', [Console]::In.ReadToEnd())\"" < "$SCRIPT_DIR/receive-build.ps1"
-echo "==> Streaming ${count} files to ${host}" >&2
+# Binary data does not survive Windows OpenSSH's stdin (observed live 2026-10-16: a 262 MB tar
+# stalled after 128 KB, both through PowerShell and straight into tar.exe), so the tar and the
+# receiver script go up with sftp, which uses its own channel, and the receiver reads the tar
+# from disk.
+tarfile="$(mktemp -t vasudev-dist).tar"
+trap 'rm -f "$tarfile"' EXIT
 # bsdtar on macOS adds AppleDouble ._* entries for files with extended attributes unless told not
 # to; tar.exe on the VM would extract them as real files and the count would disagree.
-out="$(COPYFILE_DISABLE=1 tar -C "$dist" --no-mac-metadata --no-xattrs --exclude='./extensions/*/node_modules' -cf - . \
-  | ssh "${ssh_opts[@]}" "vasudev@${host}" "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File C:\\opt\\stage\\receive-build.ps1 -GitRef ${git_ref} -ExpectedCount ${count} -ExpectedManifest ${manifest}" | tr -d '\r')"
+COPYFILE_DISABLE=1 tar -C "$dist" --no-mac-metadata --no-xattrs --exclude='./extensions/*/node_modules' -cf "$tarfile" .
+echo "==> Uploading ${count} files ($(du -h "$tarfile" | cut -f1 | tr -d ' ')) to ${host} with sftp" >&2
+printf 'mkdir /C:/opt/stage\nput %s /C:/opt/stage/receive-build.ps1\nput %s /C:/opt/dist-incoming.tar\nquit\n' "$SCRIPT_DIR/receive-build.ps1" "$tarfile" \
+  | sftp -b - "${ssh_opts[@]}" "vasudev@${host}" >/dev/null
+out="$(ssh "${ssh_opts[@]}" "vasudev@${host}" "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File C:\\opt\\stage\\receive-build.ps1 -TarPath C:\\opt\\dist-incoming.tar -GitRef ${git_ref} -ExpectedCount ${count} -ExpectedManifest ${manifest}" | tr -d '\r')"
 printf '%s\n' "$out" >&2
 if ! printf '%s' "$out" | grep -q '^receive-build: ok'; then
   echo "push-build.sh: the VM did not confirm the build" >&2

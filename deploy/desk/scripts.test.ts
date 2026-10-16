@@ -241,6 +241,17 @@ exit 0`,
 exec "\${REAL_NODE:?}" "$@"`,
   );
 
+  // windows/push-build.sh uploads with sftp; the stub records argv and the batch on stdin.
+  writeStub(
+    binDir,
+    "sftp",
+    `set -euo pipefail
+printf '%s\\n' "sftp $*" >> "\${SSH_LOG:?}"
+batch="$(cat)"
+if [ -n "$batch" ]; then printf '%s\\n' "$batch" >> "\${SSH_LOG:?}"; fi
+exit 0`,
+  );
+
   // windows/push-build.sh builds with `pnpm build` when dist is stale; the stub only records it.
   writeStub(
     binDir,
@@ -1984,10 +1995,15 @@ exit 0`,
       expect(readLog(nodeLog)).toContain("pnpm build");
       expect(readFileSync(join(fakeDist, ".provision-built-ref"), "utf8").trim()).toBe(head);
       const sshCalls = readLog(sshLog);
+      expect(sshCalls).toContain("sftp -b - ");
+      expect(sshCalls).toContain("put ");
+      expect(sshCalls).toContain(" /C:/opt/stage/receive-build.ps1");
+      expect(sshCalls).toContain(" /C:/opt/dist-incoming.tar");
       expect(sshCalls).toContain("vasudev@acme-az.tailnet-fixture.ts.net");
-      expect(sshCalls).toContain("receive-build.ps1");
       // index.js, extensions/demo/index.js and the ref file travel; the plugin node_modules does not.
-      expect(sshCalls).toContain(`-GitRef ${head} -ExpectedCount 3 -ExpectedManifest `);
+      expect(sshCalls).toContain(
+        `-TarPath C:\\opt\\dist-incoming.tar -GitRef ${head} -ExpectedCount 3 -ExpectedManifest `,
+      );
       expect(result.stdout).toContain(`push-build: ok ${head} 3`);
     });
 

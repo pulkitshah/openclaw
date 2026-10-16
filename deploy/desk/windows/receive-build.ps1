@@ -1,12 +1,14 @@
-# Receives a tar of dist/ on stdin (from push-build.sh), extracts it to C:\opt\openclaw\dist, and
-# confirms the file count and manifest hash the sender computed before swapping it in. The
-# plugin node_modules that `pnpm install` created on this VM are kept; everything else is replaced.
+# Extracts the tar push-build.sh uploaded with sftp (-TarPath) to C:\opt\openclaw\dist after
+# confirming the file count and manifest hash the sender computed. The plugin node_modules that
+# `pnpm install` created on this VM are kept; everything else is replaced. (Binary data does not
+# survive Windows OpenSSH's stdin, hence the file.)
 # -ManifestOnly <dir> prints the manifest of an existing directory and exits (the parity test on
 # the Mac runs it under pwsh against push-build.sh's bash computation).
 param(
   [string]$GitRef,
   [int]$ExpectedCount,
   [string]$ExpectedManifest,
+  [string]$TarPath,
   [string]$ManifestOnly
 )
 $ErrorActionPreference = "Stop"
@@ -33,15 +35,12 @@ if ($ManifestOnly) {
   "$($m.manifest) $($m.count)"
   exit 0
 }
-if (-not $GitRef -or -not $ExpectedCount -or -not $ExpectedManifest) { "receive-build: GitRef, ExpectedCount and ExpectedManifest are required"; exit 2 }
+if (-not $GitRef -or -not $ExpectedCount -or -not $ExpectedManifest -or -not $TarPath) { "receive-build: TarPath, GitRef, ExpectedCount and ExpectedManifest are required"; exit 2 }
+if (-not (Test-Path $TarPath)) { "receive-build: tar not found at $TarPath"; exit 2 }
 $dist = "C:\opt\openclaw\dist"; $tmp = "C:\opt\dist-incoming"
 if (Test-Path $tmp) { Remove-Item -Recurse -Force $tmp }
 New-Item -ItemType Directory -Force -Path $tmp | Out-Null
-$tarPath = "$tmp.tar"
-$stdin = [Console]::OpenStandardInput()
-$fs = [IO.File]::Create($tarPath)
-$stdin.CopyTo($fs)
-$fs.Close()
+$tarPath = $TarPath
 tar.exe -xf $tarPath -C $tmp
 Remove-Item $tarPath
 $m = Get-DistManifest $tmp
