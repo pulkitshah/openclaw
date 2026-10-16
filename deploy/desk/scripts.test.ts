@@ -1977,34 +1977,40 @@ exit 0`,
   });
 
   describe("windows/push-build.sh", () => {
-    it("builds when dist was not built from this commit, streams a tar over ssh, and reports the sha and count", () => {
+    it("builds when dist was not built from this commit, uploads dist plus the workspace package dists, and reports the sha and count", () => {
       const head = spawnSync("git", ["-C", HERE, "rev-parse", "HEAD"], {
         encoding: "utf8",
       }).stdout.trim();
-      const fakeDist = join(dir, "fake-dist");
-      mkdirSync(join(fakeDist, "extensions", "demo", "node_modules"), { recursive: true });
-      writeFileSync(join(fakeDist, "index.js"), "console.log(1)\n");
-      writeFileSync(join(fakeDist, "extensions", "demo", "index.js"), "export {}\n");
-      writeFileSync(join(fakeDist, "extensions", "demo", "node_modules", "dep.js"), "ignored\n");
+      const root = join(dir, "fake-root");
+      mkdirSync(join(root, "dist", "extensions", "demo", "node_modules"), { recursive: true });
+      mkdirSync(join(root, "packages", "ai", "dist"), { recursive: true });
+      mkdirSync(join(root, "packages", "unbuilt"), { recursive: true });
+      writeFileSync(join(root, "dist", "index.js"), "console.log(1)\n");
+      writeFileSync(join(root, "dist", "extensions", "demo", "index.js"), "export {}\n");
+      writeFileSync(
+        join(root, "dist", "extensions", "demo", "node_modules", "dep.js"),
+        "ignored\n",
+      );
+      writeFileSync(join(root, "packages", "ai", "dist", "diagnostics.mjs"), "export {}\n");
       const result = run(PUSH_BUILD, ["acme-az.tailnet-fixture.ts.net", "--git-ref", head], {
         SSH_LOG: sshLog,
-        SSH_STDOUT: "receive-build: ok 2 files",
-        DESK_BUILD_DIR: fakeDist,
+        SSH_STDOUT: "receive-build: ok 4 files",
+        DESK_BUILD_ROOT: root,
       });
       expect(result.status, result.stderr).toBe(0);
       expect(readLog(nodeLog)).toContain("pnpm build");
-      expect(readFileSync(join(fakeDist, ".provision-built-ref"), "utf8").trim()).toBe(head);
+      expect(readFileSync(join(root, "dist", ".provision-built-ref"), "utf8").trim()).toBe(head);
       const sshCalls = readLog(sshLog);
       expect(sshCalls).toContain("sftp -b - ");
-      expect(sshCalls).toContain("put ");
       expect(sshCalls).toContain(" /C:/opt/stage/receive-build.ps1");
       expect(sshCalls).toContain(" /C:/opt/dist-incoming.tar");
       expect(sshCalls).toContain("vasudev@acme-az.tailnet-fixture.ts.net");
-      // index.js, extensions/demo/index.js and the ref file travel; the plugin node_modules does not.
+      // dist/index.js, dist/.provision-built-ref, dist/extensions/demo/index.js and
+      // packages/ai/dist/diagnostics.mjs travel; the plugin node_modules and the unbuilt package do not.
       expect(sshCalls).toContain(
-        `-TarPath C:\\opt\\dist-incoming.tar -GitRef ${head} -ExpectedCount 3 -ExpectedManifest `,
+        `-TarPath C:\\opt\\dist-incoming.tar -GitRef ${head} -ExpectedCount 4 -ExpectedManifest `,
       );
-      expect(result.stdout).toContain(`push-build: ok ${head} 3`);
+      expect(result.stdout).toContain(`push-build: ok ${head} 4`);
     });
 
     it("refuses to push when this checkout is not at the requested commit", () => {

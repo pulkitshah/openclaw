@@ -1,7 +1,8 @@
-# Extracts the tar push-build.sh uploaded with sftp (-TarPath) to C:\opt\openclaw\dist after
-# confirming the file count and manifest hash the sender computed. The plugin node_modules that
-# `pnpm install` created on this VM are kept; everything else is replaced. (Binary data does not
-# survive Windows OpenSSH's stdin, hence the file.)
+# Extracts the build unit push-build.sh uploaded with sftp (-TarPath: dist/ plus every
+# packages/<name>/dist/) under C:\opt\openclaw after confirming the file count and manifest hash
+# the sender computed. The plugin node_modules that `pnpm install` created on this VM are kept;
+# everything else in those directories is replaced. (Binary data does not survive Windows
+# OpenSSH's stdin, hence the file.)
 # -ManifestOnly <dir> prints the manifest of an existing directory and exits (the parity test on
 # the Mac runs it under pwsh against push-build.sh's bash computation).
 param(
@@ -17,7 +18,7 @@ $ErrorActionPreference = "Stop"
 # and disagrees with the sender on tsdown's mixed-case chunk names; [StringComparer]::Ordinal
 # does not.
 function Get-DistManifest([string]$root) {
-  $files = Get-ChildItem -Path $root -Recurse -File -Force | Where-Object { $_.FullName -notmatch '[\\/]extensions[\\/][^\\/]+[\\/]node_modules[\\/]' }
+  $files = Get-ChildItem -Path $root -Recurse -File -Force | Where-Object { $_.FullName -notmatch '[\\/]dist[\\/]extensions[\\/][^\\/]+[\\/]node_modules[\\/]' }
   $items = @{}
   foreach ($f in $files) {
     $rel = "." + $f.FullName.Substring($root.TrimEnd('\', '/').Length).Replace('\', '/')
@@ -37,15 +38,16 @@ if ($ManifestOnly) {
 }
 if (-not $GitRef -or -not $ExpectedCount -or -not $ExpectedManifest -or -not $TarPath) { "receive-build: TarPath, GitRef, ExpectedCount and ExpectedManifest are required"; exit 2 }
 if (-not (Test-Path $TarPath)) { "receive-build: tar not found at $TarPath"; exit 2 }
-$dist = "C:\opt\openclaw\dist"; $tmp = "C:\opt\dist-incoming"
+$root = "C:\opt\openclaw"; $tmp = "C:\opt\build-incoming"
 if (Test-Path $tmp) { Remove-Item -Recurse -Force $tmp }
 New-Item -ItemType Directory -Force -Path $tmp | Out-Null
-$tarPath = $TarPath
-tar.exe -xf $tarPath -C $tmp
-Remove-Item $tarPath
+tar.exe -xf $TarPath -C $tmp
+Remove-Item $TarPath
 $m = Get-DistManifest $tmp
 if ($m.count -ne $ExpectedCount) { "receive-build: count mismatch $($m.count) != $ExpectedCount"; exit 1 }
 if ($m.manifest -ne $ExpectedManifest) { "receive-build: manifest mismatch $($m.manifest) != $ExpectedManifest"; exit 1 }
+# Swap in: dist/ keeps its per-plugin node_modules; each packages/<name>/dist is replaced whole.
+$dist = "$root\dist"
 if (Test-Path $dist) {
   Get-ChildItem $dist | Where-Object Name -ne "extensions" | Remove-Item -Recurse -Force
   Get-ChildItem "$dist\extensions" -Directory -ErrorAction SilentlyContinue | ForEach-Object {
@@ -53,7 +55,13 @@ if (Test-Path $dist) {
   }
 }
 New-Item -ItemType Directory -Force -Path $dist | Out-Null
-Copy-Item -Path "$tmp\*" -Destination $dist -Recurse -Force
+Copy-Item -Path "$tmp\dist\*" -Destination $dist -Recurse -Force
+Get-ChildItem "$tmp\packages" -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+  $target = "$root\packages\$($_.Name)\dist"
+  if (Test-Path $target) { Remove-Item -Recurse -Force $target }
+  New-Item -ItemType Directory -Force -Path $target | Out-Null
+  Copy-Item -Path "$($_.FullName)\dist\*" -Destination $target -Recurse -Force
+}
 Remove-Item -Recurse -Force $tmp
 Set-Content -Path "$dist\.provision-built-ref" -Value $GitRef -NoNewline -Encoding ascii
 "receive-build: ok $($m.count) files"
