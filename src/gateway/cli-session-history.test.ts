@@ -913,6 +913,91 @@ describe("cli session history", () => {
     expect(merged).toEqual([{ ...localMessage, __openclaw: importedMeta }]);
   });
 
+  // Prasthan, 2026-10-17: a claude-cli reply with text before and after a tool call was shown
+  // twice. The run persists one local message with the joined text, while the Claude session
+  // file holds one message per block, so no single imported piece matched it exactly.
+  it("absorbs imported text pieces whose joined text is one local assistant reply", () => {
+    const meta = (externalId: string) => ({
+      importedFrom: "claude-cli",
+      cliSessionId: "session-1",
+      externalId,
+    });
+    const localMessages = [
+      { role: "user", content: "retry the check-in", timestamp: 1_000 },
+      {
+        role: "assistant",
+        content: [
+          {
+            type: "text",
+            text: "Let me retry the check-in.\n\nRetried it — same wall as yesterday.",
+          },
+        ],
+        timestamp: 3_000,
+      },
+    ];
+    const toolCall = {
+      role: "assistant",
+      content: [{ type: "toolCall", id: "tool-1", name: "browser", arguments: {} }],
+      timestamp: 2_100,
+      __openclaw: meta("native-tool"),
+    };
+    const importedMessages = [
+      { role: "user", content: "retry the check-in", timestamp: 1_001, __openclaw: meta("u") },
+      {
+        role: "assistant",
+        content: [{ type: "text", text: "Let me retry the check-in." }],
+        timestamp: 2_000,
+        __openclaw: meta("text-1"),
+      },
+      toolCall,
+      {
+        role: "assistant",
+        content: [{ type: "text", text: "Retried it — same wall as yesterday." }],
+        timestamp: 2_900,
+        __openclaw: meta("text-2"),
+      },
+    ];
+
+    const merged = mergeImportedChatHistoryMessages({ localMessages, importedMessages });
+
+    const texts = merged.map((message) => JSON.stringify(message));
+    expect(texts.filter((text) => text.includes("Retried it"))).toHaveLength(1);
+    expect(texts.filter((text) => text.includes("Let me retry"))).toHaveLength(1);
+    // The tool call has no local copy, so it stays visible between the turns.
+    expect(merged).toContainEqual(toolCall);
+    expect(merged.at(-1)).toMatchObject({ role: "assistant", timestamp: 3_000 });
+  });
+
+  it("keeps imported text pieces that do not add up to the local reply", () => {
+    const meta = (externalId: string) => ({
+      importedFrom: "claude-cli",
+      cliSessionId: "session-1",
+      externalId,
+    });
+    const localMessages = [
+      { role: "user", content: "hi", timestamp: 1_000 },
+      { role: "assistant", content: "First part. Something else.", timestamp: 3_000 },
+    ];
+    const importedMessages = [
+      {
+        role: "assistant",
+        content: [{ type: "text", text: "First part." }],
+        timestamp: 2_000,
+        __openclaw: meta("a"),
+      },
+      {
+        role: "assistant",
+        content: [{ type: "text", text: "Different ending." }],
+        timestamp: 2_500,
+        __openclaw: meta("b"),
+      },
+    ];
+
+    const merged = mergeImportedChatHistoryMessages({ localMessages, importedMessages });
+
+    expect(merged).toHaveLength(4);
+  });
+
   it("prefers a literal note match and preserves the distinct unprefixed turn", () => {
     const literal = `${CLAUDE_RESUME_DRIFT_NOTES[0]}\n\nhello`;
     const localMessages = [

@@ -558,6 +558,58 @@ function compareHistoryMessages(a: ComparableHistoryMessage, b: ComparableHistor
   return a.order - b.order;
 }
 
+/**
+ * A claude-cli run persists ONE local assistant message holding the joined text of its reply,
+ * while the Claude session file stores one message per content block — so a reply with text
+ * before and after a tool call arrives as several imported text pieces, none of which equals
+ * the local text, and every piece was shown beside the local reply. For each run of consecutive
+ * imported assistant messages, text pieces whose joined text equals an unconsumed local
+ * assistant reply are absorbed by it; tool-call pieces have no local copy and stay visible.
+ */
+function absorbSplitAssistantReplies(
+  importedEntries: ComparableHistoryMessage[],
+  localRoleTextIndex: RoleTextIndex,
+  consumedLocalCandidates: Set<ComparableHistoryMessage>,
+): Set<unknown> {
+  const absorbed = new Set<unknown>();
+  let pieces: Array<{ message: unknown; text: string }> = [];
+  const settleRun = () => {
+    if (pieces.length >= 2) {
+      const joined = pieces.map((piece) => piece.text).join(" ");
+      const local = findRoleTextCandidate(
+        localRoleTextIndex,
+        {
+          message: undefined,
+          order: 0,
+          hasCliImageMentions: false,
+          role: "assistant",
+          text: joined,
+        },
+        consumedLocalCandidates,
+        0,
+      );
+      if (local) {
+        consumedLocalCandidates.add(local);
+        for (const piece of pieces) {
+          absorbed.add(piece.message);
+        }
+      }
+    }
+    pieces = [];
+  };
+  for (const entry of importedEntries) {
+    if (entry.role !== "assistant") {
+      settleRun();
+      continue;
+    }
+    if (entry.text && !entry.hasCliImageMentions) {
+      pieces.push({ message: entry.message, text: entry.text });
+    }
+  }
+  settleRun();
+  return absorbed;
+}
+
 /** Merges imported CLI transcript messages into local history without duplicating overlaps. */
 export function mergeImportedChatHistoryMessages(params: {
   localMessages: unknown[];
@@ -628,12 +680,24 @@ export function mergeImportedChatHistoryMessages(params: {
       consumedLocalCandidates.add(exactIdentityMatch);
     }
   }
+  // Each imported message is read once (large histories); order is reassigned as it is placed.
+  const importedEntries = params.importedMessages.map((message) =>
+    prepareComparableMessage(message, 0, resolveImportedExternalIdentityKey(message)),
+  );
+  const absorbedImports = absorbSplitAssistantReplies(
+    importedEntries,
+    allMessageRoleTextIndex,
+    consumedLocalCandidates,
+  );
   let changed = false;
   let expanded = false;
   let nextOrder = merged.length;
-  for (const message of params.importedMessages) {
-    const externalIdentityKey = resolveImportedExternalIdentityKey(message);
-    const imported = prepareComparableMessage(message, nextOrder, externalIdentityKey);
+  for (const imported of importedEntries) {
+    if (absorbedImports.has(imported.message)) {
+      continue;
+    }
+    imported.order = nextOrder;
+    const externalIdentityKey = imported.externalIdentityKey;
     if (externalIdentityKey) {
       const exactIdentityMatch = exactExternalIdentityIndex.get(externalIdentityKey);
       if (exactIdentityMatch) {
