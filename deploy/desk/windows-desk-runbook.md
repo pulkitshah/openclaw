@@ -36,6 +36,21 @@ packages/*/dist; `connect --service` blocks until the device is approved and the
 request appears only after a reconnect; `nodes` commands take no `--password`. The operator's own
 public IP changed mid-run once (the temporary SSH rule had to be updated by hand).
 
+**Installers that search the whole disk hang on a desk (2026-10-17, Travelport).** Galileo Desktop
+05.60.03 (and the bundled `Viewpoint(TM).msi`) carry an MSI `DrLocator` row with no path and
+`Depth=99` (the MS SOAP Toolkit merge module looking for `MSSOAP1.dll`), so `AppSearch` walks every
+fixed drive. `C:\opt\openclaw` contains pnpm workspace symlinks (`extensions\*\node_modules\openclaw
+-> ..\..\..`) that cycle, so the walk never ends: the launcher sits at "Preparing to Install" at 100%
+CPU forever and Smartpoint 12 then fails with 1603 "Galileo Desktop ... version 2.5 or higher is
+required". Diagnosis that found it: `NT Kernel Logger` `(registry,file,fileio)` trace for 1.5 s +
+`tracerpt -of CSV`, filter by the launcher's PID in hex. Fix that worked: open the extracted MSI in
+transact mode (`WindowsInstaller.Installer` COM, mode 1), `DELETE FROM DrLocator` and `FROM AppSearch`
+for the path-less deep rows, commit, keep a `.orig`; then `setup.exe /s /f1setup.iss /f2log` from a
+one-off scheduled task (`-LogonType Interactive -RunLevel Highest`, so it runs elevated on the
+console session). Galileo Desktop, Galileo SSL 3.0.3.1, Smartpoint 12.0.1.51 and Smart Buttons
+installed in under 2 minutes after that. Expect the same from any MSI with a root `DrLocator`, and
+from disk-wide antivirus/backup/indexing scans.
+
 ## 1. Azure account and CLI
 
 - Free account → the pay-as-you-go upgrade is required before the cheap B/D sizes are allowed in the
