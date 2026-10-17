@@ -199,7 +199,7 @@ export function registerDutiesGatewayMethods(deps: {
 
   register("duties.get", "operator.read", async (params) => {
     const duty = await requireDuty(readId(params));
-    return { duty, runs: await store.listRuns(duty.id, { onlySuccessful: true, limit: 20 }) };
+    return { duty, runs: await store.listRuns(duty.id, { limit: 50 }) };
   });
 
   register("duties.runs.recent", "operator.read", async (params) => {

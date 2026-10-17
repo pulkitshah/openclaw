@@ -84,6 +84,7 @@ export function harness(params?: {
     creds,
     evidence: () => ({ lookup: async () => params?.blob }),
     render: params?.render ?? {
+      toImage: async () => undefined,
       toPdf: async () => {
         throw new Error("render not expected");
       },

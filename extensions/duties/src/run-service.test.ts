@@ -147,6 +147,7 @@ function deps(delayMs: number, openTracker?: { current: number; max: number }): 
     cred: async () => "",
     templates: { get: async () => undefined, brand: async () => undefined },
     render: {
+      toImage: async () => undefined,
       toPdf: async (_html: string, dest: string) => {
         await mkdir(path.dirname(dest), { recursive: true });
         await writeFile(dest, "%PDF");

@@ -43,7 +43,7 @@ const BRAND_FIELDS = [
   "footer",
 ] as const;
 
-function escapeHtml(value: string): string {
+export function escapeHtml(value: string): string {
   return value
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")

@@ -128,15 +128,11 @@ describe("DutyStore", () => {
     expect((await store.listCredKeys()).map((entry) => entry.key)).toEqual(["acme-demo.username"]);
     await store.forgetCredKey("acme-demo.username");
   });
-  it("lists runs newest first and can filter to successful ones", async () => {
+  it("lists a duty's runs newest first, failed ones included", async () => {
     await store.createRun(run("r1", "ok"));
     await store.createRun(run("r2", "failed"));
     await store.createRun(run("r3", "ok"));
     expect((await store.listRuns("d1")).map((r) => r.id)).toEqual(["r3", "r2", "r1"]);
-    expect((await store.listRuns("d1", { onlySuccessful: true })).map((r) => r.id)).toEqual([
-      "r3",
-      "r1",
-    ]);
   });
   it("lists recent runs newest-first across every duty regardless of status", async () => {
     const runs = memoryKeyed<DutyRun>();

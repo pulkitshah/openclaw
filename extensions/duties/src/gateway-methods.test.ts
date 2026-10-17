@@ -529,6 +529,7 @@ describe("duties gateway methods", () => {
     const { call, store, methods } = harness({
       previewDir: previews,
       render: {
+        toImage: async () => undefined,
         toPdf: async (_html, dest) => {
           await writeFile(dest, "%PDF-preview");
           const previewPath = `${dest.slice(0, -".pdf".length)}.png`;
@@ -567,6 +568,7 @@ describe("duties gateway methods", () => {
     const { call, store } = harness({
       previewDir: previews,
       render: {
+        toImage: async () => undefined,
         toPdf: async (_html, dest) => {
           await writeFile(dest, Buffer.alloc(oversize));
           return { bytes: oversize };

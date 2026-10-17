@@ -96,7 +96,13 @@ export function previewContentType(filePath: string): "image/jpeg" | "image/png"
   const ext = path.extname(filePath).toLowerCase();
   return ext === ".jpg" || ext === ".jpeg" ? "image/jpeg" : "image/png";
 }
-export type RenderAdapter = { toPdf(html: string, destPath: string): Promise<RenderResult> };
+export type RenderAdapter = {
+  toPdf(html: string, destPath: string): Promise<RenderResult>;
+  /** Serves `html` to its own tab and captures it, returning the image file the browser plugin
+   *  wrote (`undefined` for a profile with no screenshot route). This is how a step that never
+   *  looked at a page still leaves a picture in its run's evidence. */
+  toImage(html: string): Promise<string | undefined>;
+};
 
 /** One evaluate for the whole verification: the marker that proves identity plus the two strings
  *  used to describe whatever loaded instead. Function SOURCE, not a body — the act route evals
@@ -150,34 +156,47 @@ export function createRenderAdapter(params: {
     return { marker: "", description: describePage("", text) };
   };
 
-  return {
-    async toPdf(html, destPath) {
-      const { url, token } = params.server.publish(html);
-      let targetId: string;
-      try {
-        ({ targetId } = await browser.open(url, params.timeoutMs ?? 30_000));
-      } catch (error) {
-        // Naming the URL is the whole point: the ways this fails in practice are a wrong scheme
-        // (a TLS-enabled Gateway), a wrong port, and the browser's own SSRF policy refusing
-        // loopback — and a bare browser navigation error says none of them. The URL carries a
-        // single-use token, never a credential.
-        const message = coerceErrorMessage(error);
-        const remedy = NAVIGATION_BLOCKED_RE.test(message) ? ` — ${RENDER_ALLOWLIST_REMEDY}` : "";
-        throw new Error(`could not open the render page at ${url}: ${message}${remedy}`, {
-          cause: error,
-        });
+  /** Publishes `html`, opens it in a tab of its own, proves the tab shows that document, and hands
+   *  the tab to `use`; the tab is closed whatever `use` does. */
+  const withServedPage = async <T>(html: string, use: (targetId: string) => Promise<T>) => {
+    const { url, token } = params.server.publish(html);
+    let targetId: string;
+    try {
+      ({ targetId } = await browser.open(url, params.timeoutMs ?? 30_000));
+    } catch (error) {
+      // Naming the URL is the whole point: the ways this fails in practice are a wrong scheme
+      // (a TLS-enabled Gateway), a wrong port, and the browser's own SSRF policy refusing
+      // loopback — and a bare browser navigation error says none of them. The URL carries a
+      // single-use token, never a credential.
+      const message = coerceErrorMessage(error);
+      const remedy = NAVIGATION_BLOCKED_RE.test(message) ? ` — ${RENDER_ALLOWLIST_REMEDY}` : "";
+      throw new Error(`could not open the render page at ${url}: ${message}${remedy}`, {
+        cause: error,
+      });
+    }
+    try {
+      // Printing whatever the tab happens to show is how a 404 page, an interstitial, or a
+      // second Gateway's answer became a plausible `<name>.pdf` that a `deliver` step then sent
+      // to a customer. The marker is this document's own single-use token, so only the page
+      // just published can carry it.
+      const page = await readPage(targetId);
+      if (page.marker !== token) {
+        throw new Error(
+          `render page not served at ${url} (got ${page.description || "an empty page"})`,
+        );
       }
-      try {
-        // Printing whatever the tab happens to show is how a 404 page, an interstitial, or a
-        // second Gateway's answer became a plausible `<name>.pdf` that a `deliver` step then sent
-        // to a customer. The marker is this document's own single-use token, so only the page
-        // just published can carry it.
-        const page = await readPage(targetId);
-        if (page.marker !== token) {
-          throw new Error(
-            `render page not served at ${url} (got ${page.description || "an empty page"})`,
-          );
-        }
+      return await use(targetId);
+    } finally {
+      await browser.close(targetId).catch(() => {});
+    }
+  };
+
+  return {
+    async toImage(html) {
+      return withServedPage(html, (targetId) => browser.screenshotPath(targetId));
+    },
+    async toPdf(html, destPath) {
+      return withServedPage(html, async (targetId) => {
         const produced = await browser.pdf(targetId);
         await mkdir(path.dirname(destPath), { recursive: true });
         await copyFile(produced, destPath);
@@ -186,9 +205,7 @@ export function createRenderAdapter(params: {
         // in the Control UI without a PDF viewer. A profile that cannot screenshot still renders.
         const previewPath = await copyPreview(targetId).catch(() => undefined);
         return { bytes, ...(previewPath ? { previewPath } : {}) };
-      } finally {
-        await browser.close(targetId).catch(() => {});
-      }
+      });
 
       async function copyPreview(tab: string): Promise<string | undefined> {
         const shot = await browser.screenshotPath(tab);

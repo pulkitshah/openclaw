@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { resolveGatewayPort, type OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { coerceErrorMessage } from "openclaw/plugin-sdk/error-runtime";
@@ -18,10 +19,12 @@ import {
 import {
   createRenderAdapter,
   createRenderServer,
+  previewContentType,
   RENDER_ROUTE_PATH,
 } from "./src/adapters/render.js";
 import { credDelete, credGet, credHas, credSet } from "./src/creds.js";
 import { createDutiesEventService } from "./src/events.js";
+import { evidenceCardHtml } from "./src/evidence-card.js";
 import { createRunFiles } from "./src/files.js";
 import { registerDutiesGatewayMethods } from "./src/gateway-methods.js";
 import { registerLegacyTeamExport } from "./src/legacy-team-export.js";
@@ -228,19 +231,24 @@ export default definePluginEntry({
       store,
       deps: async (duty, run) => {
         const evidenceBlobs = evidence();
+        const putEvidence = async (bytes: Uint8Array, contentType: string) => {
+          const key = randomUUID();
+          await evidenceBlobs.register(key, bytes, { contentType, kind: "screenshot" });
+          return key;
+        };
         return {
           browser: createBrowserAdapter({
             request,
             profile: browserProfile,
             tabLabel: `duty:${duty.id}`,
-            blobs: {
-              put: async (bytes, contentType) => {
-                const key = randomUUID();
-                await evidenceBlobs.register(key, bytes, { contentType, kind: "screenshot" });
-                return key;
-              },
-            },
+            blobs: { put: putEvidence },
           }),
+          // A step with no tab open is pictured by a card of what it did, captured in the render
+          // adapter's own tab, so the run's evidence has an image for every step.
+          evidenceCard: async (card) => {
+            const shot = await render.toImage(evidenceCardHtml(card));
+            return shot ? putEvidence(await readFile(shot), previewContentType(shot)) : undefined;
+          },
           ai: createAiAdapter({
             request,
             // A chat or mail run bills and resolves its agent through its own session; a manual run

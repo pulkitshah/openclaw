@@ -54,6 +54,7 @@ export function fakeDeps(over: Partial<RunnerDeps> = {}): RunnerDeps & { calls: 
     })(),
     templates: over.templates ?? { get: async () => undefined, brand: async () => undefined },
     render: over.render ?? {
+      toImage: async () => undefined,
       toPdf: async (html, dest) => {
         calls.push(`render ${html}`);
         await mkdir(path.dirname(dest), { recursive: true });
@@ -79,6 +80,7 @@ export function fakeDeps(over: Partial<RunnerDeps> = {}): RunnerDeps & { calls: 
     filesDir: over.filesDir ?? mkdtempSync(path.join(tmpdir(), "duties-runner-")),
     // Conditional so the default stays "no cancellation hook" rather than an explicit undefined.
     ...(over.isCancelled ? { isCancelled: over.isCancelled } : {}),
+    ...(over.evidenceCard ? { evidenceCard: over.evidenceCard } : {}),
   };
 }
 

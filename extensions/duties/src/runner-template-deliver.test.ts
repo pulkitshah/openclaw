@@ -537,7 +537,7 @@ describe("template and deliver steps", () => {
     expect(outcome.report).toMatch(/no owner target configured/u);
   });
 
-  it("records no screenshot for a failed deliver step, even with a tab still open", async () => {
+  it("captures the open tab for a failed deliver step too", async () => {
     const deps = fakeDeps({
       resolveRoute: async () => {
         throw new Error("no owner target configured — set it on the Duties page");
@@ -553,10 +553,8 @@ describe("template and deliver steps", () => {
     );
     expect(outcome.status).toBe("failed");
     expect(outcome.steps.map((s) => s.status)).toEqual(["ok", "failed"]);
-    // The browser step's own evidence still carries one: the gate is the step's kind, not the tab
-    // (a failed ai/ask step keeps its screenshot too — only template/deliver skip it).
-    expect(outcome.steps[0]!.screenshotBlobId).toBe("blob-1");
-    expect(outcome.steps[1]!.screenshotBlobId).toBeUndefined();
+    // Every step leaves a picture: with a tab open that is the tab, whatever the step's kind.
+    expect(outcome.steps.map((s) => s.screenshotBlobId)).toEqual(["blob-1", "blob-1"]);
   });
 
   it("a cancelled run never delivers", async () => {

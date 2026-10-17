@@ -446,17 +446,32 @@ function deliveredToNote(run: DutyRun): string | undefined {
   return `Delivered to ${delivered.summary.replace(/^→\s*/u, "")}`;
 }
 
-function successfulRunRow(run: DutyRun): string {
-  const delivered = deliveredToNote(run);
-  return `<li><span class="st ok">✓</span><span class="when">${esc(fmtWhen(run.startedAt))}</span><span class="r">${esc(run.trigger)}${
-    delivered ? ` · ${esc(delivered)}` : ""
+/** Where a run that did not finish stopped: the failing step's own label and summary, so the
+ *  list says why without opening the run. */
+function stoppedAtNote(run: DutyRun): string | undefined {
+  if (run.status !== "failed" && run.status !== "blocked") {
+    return undefined;
+  }
+  const step = run.failedStep
+    ? run.steps.find((s) => s.stepId === run.failedStep)
+    : run.steps.findLast((s) => s.status !== "ok");
+  if (!step) {
+    return undefined;
+  }
+  return `at “${step.label}”${step.summary ? `: ${step.summary}` : ""}`;
+}
+
+function runRow(run: DutyRun): string {
+  const note = run.status === "ok" ? deliveredToNote(run) : stoppedAtNote(run);
+  return `<li>${runStatusPill(run.status)}<span class="when">${esc(fmtWhen(run.startedAt))}</span><span class="r">${esc(run.trigger)}${
+    note ? ` · ${esc(note)}` : ""
   }</span><a href="#" data-open-run="${esc(run.id)}" data-duty-id="${esc(run.dutyId)}">view run</a></li>`;
 }
 
 export function renderDetail(duty: Duty, runs: readonly DutyRun[], opts?: RenderOpts): string {
   const errorBanner = opts?.error ? renderErrorBanner(opts.error) : "";
-  const successful = runs
-    .filter((r) => r.dutyId === duty.id && r.status === "ok")
+  const dutyRuns = runs
+    .filter((r) => r.dutyId === duty.id)
     .toSorted((a, b) => b.startedAt - a.startedAt);
   const steps = duty.steps.length
     ? `<ol class="steps">${renderNodes(duty.steps, { n: 0 })}</ol>`
@@ -477,9 +492,9 @@ export function renderDetail(duty: Duty, runs: readonly DutyRun[], opts?: Render
 <div class="two">
   <div class="stack">
     <div class="panel"><div class="ph"><h2>What it does</h2></div><div class="pb">${steps}</div></div>
-    <div class="panel"><div class="ph"><h2>Successful runs</h2><span class="muted small">Failures reach you as a notification, not here</span></div><div class="pb">${
-      successful.length
-        ? `<ul class="runs">${successful.map(successfulRunRow).join("")}</ul>`
+    <div class="panel"><div class="ph"><h2>All runs</h2></div><div class="pb">${
+      dutyRuns.length
+        ? `<ul class="runs">${dutyRuns.map(runRow).join("")}</ul>`
         : `<p class="muted">No runs yet.</p>`
     }</div></div>
   </div>

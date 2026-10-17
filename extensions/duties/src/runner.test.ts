@@ -424,6 +424,81 @@ describe("runDuty", () => {
     expect(outcome.status).toBe("failed");
     expect(outcome.steps[1]).toMatchObject({ status: "failed", screenshotBlobId: "blob-1" });
   });
+  it("pictures a step that ran with no tab open by a card of what it did", async () => {
+    const cards: unknown[] = [];
+    const outcome = await runDuty(
+      duty([
+        {
+          id: "s1",
+          kind: "ai",
+          label: "Read the request",
+          params: { instruction: "extract" },
+          saveAs: ["origin"],
+        },
+      ]),
+      fakeDeps({
+        evidenceCard: async (card) => {
+          cards.push(card);
+          return "card-1";
+        },
+      }),
+      { inputs: {} },
+    );
+    expect(outcome.steps[0]).toMatchObject({ status: "ok", screenshotBlobId: "card-1" });
+    expect(cards).toEqual([
+      {
+        label: "Read the request",
+        kind: "ai",
+        status: "ok",
+        summary: expect.any(String),
+        produced: JSON.stringify({ origin: "IXU" }, null, 2),
+      },
+    ]);
+  });
+  it("captures the open tab for every step kind once a page is open, not a card", async () => {
+    let cards = 0;
+    const outcome = await runDuty(
+      duty([
+        { id: "s1", kind: "browser", label: "Open", params: { action: "open", url: "https://x" } },
+        { id: "s2", kind: "ai", label: "Read", params: { instruction: "extract" } },
+      ]),
+      fakeDeps({
+        evidenceCard: async () => {
+          cards += 1;
+          return "card-1";
+        },
+      }),
+      { inputs: {} },
+    );
+    expect(outcome.steps.map((s) => s.screenshotBlobId)).toEqual(["blob-1", "blob-1"]);
+    expect(cards).toBe(0);
+  });
+  it("pictures a failed step with no tab open, and a capture failure never fails the run", async () => {
+    const failing = await runDuty(
+      duty([{ id: "s1", kind: "ai", label: "Read", params: { instruction: "extract" } }]),
+      fakeDeps({
+        ai: {
+          extract: async () => {
+            throw new Error("ai step failed: LLM JSON did not match schema");
+          },
+        },
+        evidenceCard: async (card) => (card.status === "failed" ? "card-f" : undefined),
+      }),
+      { inputs: {} },
+    );
+    expect(failing.steps[0]).toMatchObject({ status: "failed", screenshotBlobId: "card-f" });
+    const broken = await runDuty(
+      duty([{ id: "s1", kind: "ai", label: "Read", params: { instruction: "extract" } }]),
+      fakeDeps({
+        evidenceCard: async () => {
+          throw new Error("no browser");
+        },
+      }),
+      { inputs: {} },
+    );
+    expect(broken.status).toBe("ok");
+    expect(broken.steps[0]!.screenshotBlobId).toBeUndefined();
+  });
   // Team v2 Task 6: an `ask` step's `params.target` (parsed off "team:<id>") reaches the ask
   // adapter as `target`, so it can raise the question in that member's session instead of the
   // owner's; an ask with no target (or "owner") still passes none, unchanged.

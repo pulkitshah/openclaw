@@ -126,6 +126,30 @@ describe("createRenderAdapter", () => {
     expect(await readFile(result.previewPath!, "utf8")).toBe("JPEG-BYTES");
   });
 
+  it("captures a served page as an image after verifying its marker, and closes the tab", async () => {
+    const server = createRenderServer({ baseUrl: "http://127.0.0.1:19001" });
+    let token = "";
+    const publish = server.publish.bind(server);
+    vi.spyOn(server, "publish").mockImplementation((html: string) => {
+      const result = publish(html);
+      token = result.token;
+      return result;
+    });
+    const browser = {
+      open: vi.fn(async (_url: string, _timeoutMs?: number) => ({ targetId: "T9" })),
+      evaluate: vi.fn(async () => ({ marker: token, title: "", text: "" })),
+      text: vi.fn(async () => ""),
+      pdf: vi.fn(async () => "/never.pdf"),
+      screenshotPath: vi.fn(async () => "/tmp/card.png"),
+      close: vi.fn(async () => undefined),
+    };
+    expect(await createRenderAdapter({ server, browser }).toImage("<h1>card</h1>")).toBe(
+      "/tmp/card.png",
+    );
+    expect(browser.pdf).not.toHaveBeenCalled();
+    expect(browser.close).toHaveBeenCalledWith("T9");
+  });
+
   it("refuses to print a page that is not the published document, and closes the tab", async () => {
     const server = createRenderServer({ baseUrl: "http://127.0.0.1:19001" });
     const browser = {

@@ -14,6 +14,7 @@ import {
   parseTeamRouteTarget,
   resolvePlaceholders,
 } from "./duty.js";
+import type { EvidenceCard } from "./evidence-card.js";
 import { safeFileName, uniqueFileName } from "./files.js";
 import type { RunFile, RunOrigin, StepEvidence } from "./store.js";
 import { renderTemplate } from "./template.js";
@@ -122,6 +123,9 @@ export type RunnerDeps = {
   render: RenderAdapter;
   deliver: DeliverAdapter;
   resolveRoute: RouteResolver;
+  /** Pictures a step that ran with no browser tab open, returning the evidence blob id. Absent or
+   *  failing leaves that step without a screenshot; it never fails the step. */
+  evidenceCard?: (card: EvidenceCard) => Promise<string | undefined>;
   /** This run's own directory (`createRunFiles().runDir(runId)`); every document a `template` step
    *  produces is written here, so a cleanup pass can drop the whole run by age. */
   filesDir: string;
@@ -324,6 +328,25 @@ export async function runDuty(
       outputs[step.saveAs] = value;
     }
   };
+
+  /** What a step saved, for its evidence card. */
+  const producedBy = (step: Step): string | undefined => {
+    if (step.saveAs === undefined) {
+      return undefined;
+    }
+    const keys = Array.isArray(step.saveAs) ? step.saveAs : [step.saveAs];
+    const saved = Object.fromEntries(
+      keys.filter((key) => outputs[key] !== undefined).map((key) => [key, outputs[key]]),
+    );
+    return Object.keys(saved).length ? redact(JSON.stringify(saved, null, 2)) : undefined;
+  };
+
+  /** Every step leaves a picture: the tab the run has open, whatever the step's kind, else a card
+   *  of what the step did. A failed capture leaves the step without one; it never fails it. */
+  const capture = async (card: EvidenceCard): Promise<string | undefined> =>
+    targetId
+      ? await deps.browser.screenshot(targetId).catch(() => undefined)
+      : await deps.evidenceCard?.(card).catch(() => undefined);
 
   const runStep = async (step: Step): Promise<void> => {
     if (deps.isCancelled?.()) {
@@ -649,10 +672,13 @@ export async function runDuty(
         summary,
         target: step.target ? describeTarget(step.target) : undefined,
         startedAt,
-        screenshotBlobId:
-          step.kind.startsWith("browser") && targetId
-            ? await deps.browser.screenshot(targetId).catch(() => undefined)
-            : undefined,
+        screenshotBlobId: await capture({
+          label: step.label,
+          kind: step.kind,
+          status: "ok",
+          summary: redact(summary),
+          produced: producedBy(step),
+        }),
       });
     } catch (error) {
       // A cancelled run stopped on the owner's instruction, not on a step outcome: the run's own
@@ -660,21 +686,22 @@ export async function runDuty(
       if (error instanceof HaltSignal && error.outcome === "cancelled") {
         throw error;
       }
-      // Wider than the success-path gate on purpose: when an `ai` read or an `ask` fails, the page
-      // the run was looking at IS the evidence. `template`/`deliver` failures are the exception —
-      // they never look at a tab, so a screenshot there is just an unrelated page.
-      const shot =
-        step.kind !== "template" && step.kind !== "deliver" && targetId
-          ? await deps.browser.screenshot(targetId).catch(() => undefined)
-          : undefined;
+      const status =
+        error instanceof HaltSignal && error.outcome === "blocked" ? "blocked" : "failed";
+      const failure = error instanceof HaltSignal ? error.message : errorMessage(error);
       record({
         stepId: step.id,
         label: step.label,
         kind: step.kind,
-        status: error instanceof HaltSignal && error.outcome === "blocked" ? "blocked" : "failed",
-        summary: error instanceof HaltSignal ? error.message : errorMessage(error),
+        status,
+        summary: failure,
         startedAt,
-        screenshotBlobId: shot,
+        screenshotBlobId: await capture({
+          label: step.label,
+          kind: step.kind,
+          status,
+          summary: redact(failure),
+        }),
       });
       throw error instanceof HaltSignal
         ? error

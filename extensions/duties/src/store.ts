@@ -308,14 +308,11 @@ export class DutyStore {
     await store.register(id, next);
     return next;
   }
-  async listRuns(
-    dutyId: string,
-    opts?: { onlySuccessful?: boolean; limit?: number },
-  ): Promise<DutyRun[]> {
+  async listRuns(dutyId: string, opts?: { limit?: number }): Promise<DutyRun[]> {
     const entries = await this.stores.runs.entries();
     return entries
       .map((e) => e.value)
-      .filter((r) => r.dutyId === dutyId && (!opts?.onlySuccessful || r.status === "ok"))
+      .filter((r) => r.dutyId === dutyId)
       .toSorted((a, b) => b.startedAt - a.startedAt)
       .slice(0, opts?.limit ?? 50);
   }

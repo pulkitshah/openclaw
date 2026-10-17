@@ -35,7 +35,7 @@ describe("render", () => {
     expect(html).not.toMatch(/draft/iu);
   });
 
-  it("detail lists successful runs only and highlights ask steps", () => {
+  it("detail lists every run with its status, says where a failed one stopped, and highlights ask steps", () => {
     const html = renderDetail(
       duty as unknown as Duty,
       [
@@ -57,12 +57,26 @@ describe("render", () => {
           trigger: "manual",
           inputs: {},
           outputs: {},
-          steps: [],
+          failedStep: "s1",
+          steps: [
+            {
+              stepId: "s1",
+              label: "Confirm?",
+              kind: "ask",
+              status: "failed",
+              summary: "ask transport gone",
+              durationMs: 1,
+            },
+          ],
         },
       ] as unknown as DutyRun[],
     );
-    expect(html).toContain("r1");
-    expect(html).not.toContain("r2");
+    expect(html).toContain("All runs");
+    expect(html).toContain('data-open-run="r1"');
+    expect(html).toContain('data-open-run="r2"');
+    expect(html).toContain("run-failed");
+    expect(html).toContain("ask transport gone");
+    expect(html.indexOf('data-open-run="r2"')).toBeLessThan(html.indexOf('data-open-run="r1"'));
     expect(html).toContain('class="kind ask"');
   });
 
