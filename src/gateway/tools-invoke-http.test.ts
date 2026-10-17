@@ -216,6 +216,11 @@ vi.mock("../agents/openclaw-tools.js", async () => {
         if (mode === "crash") {
           throw new Error("boom");
         }
+        if (mode === "crash-secret") {
+          throw new Error(
+            "upstream rejected key sk-ant-api03-abcdefghijklmnopqrstuvwxyz0123456789",
+          );
+        }
         return { ok: true };
       },
     },
@@ -1217,7 +1222,19 @@ describe("POST /tools/invoke", () => {
     const crashBody = await crashRes.json();
     expect(crashBody.ok).toBe(false);
     expect(crashBody.error?.type).toBe("tool_error");
-    expect(crashBody.error?.message).toBe("tool execution failed");
+    // The caller (a Duty's ai step, an operator script) needs the tool's own reason —
+    // "LLM JSON did not match schema", a timeout — not a generic line it can only retry blind.
+    expect(crashBody.error?.message).toBe("boom");
+
+    const secretRes = await invokeToolAuthed({
+      tool: "tools_invoke_test",
+      args: { mode: "crash-secret" },
+      sessionKey: "main",
+    });
+    expect(secretRes.status).toBe(500);
+    const secretBody = await secretRes.json();
+    expect(secretBody.error?.message).toContain("upstream rejected key");
+    expect(secretBody.error?.message).not.toContain("abcdefghijklmnopqrstuvwxyz0123456789");
   });
 
   it("passes deprecated format alias through invoke payloads even when schema omits it", async () => {

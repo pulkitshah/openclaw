@@ -247,7 +247,7 @@ describe("POST /tools/invoke request cancellation", () => {
     expect(response.status).toBe(500);
     await expect(response.json()).resolves.toEqual({
       ok: false,
-      error: { type: "tool_error", message: "tool execution failed" },
+      error: { type: "tool_error", message: "probe failed" },
     });
   });
 });

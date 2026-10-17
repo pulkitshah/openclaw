@@ -9,6 +9,10 @@ import { resolveToolLoopDetectionConfig } from "../agents/agent-tools.js";
 import { getChannelAgentToolMeta } from "../agents/channel-tools.js";
 import { isKnownCoreToolId } from "../agents/tool-catalog.js";
 import {
+  formatToolExecutionErrorMessage,
+  protectNetworkToolExecutionError,
+} from "../agents/tool-result-error.js";
+import {
   AUTOMATIONS_TOOL_NAME,
   isAutomationsToolName,
 } from "../agents/tools/automations-tool-name.js";
@@ -461,11 +465,21 @@ async function invokeGatewayToolWithSignal(
     if (!params.signal?.aborted) {
       logWarn(`tools-invoke: tool execution failed: ${String(err)}`);
     }
+    // Same policy as the MCP loopback handler: the caller gets the tool's own redacted reason
+    // (a Duty's ai step retried blind for days on a bare "tool execution failed" while
+    // llm-task was reporting schema mismatches and timeouts), and network-sourced failures are
+    // wrapped as external content.
+    const message = formatToolExecutionErrorMessage(
+      tool.resultContentSource === "network"
+        ? protectNetworkToolExecutionError(err, "tool execution failed", params.signal)
+        : err,
+      "tool execution failed",
+    );
     return {
       ok: false,
       status: 500,
       toolName,
-      error: { type: "tool_error", message: "tool execution failed" },
+      error: { type: "tool_error", message },
     };
   }
 }
