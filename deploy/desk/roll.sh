@@ -16,7 +16,7 @@ Rolls a hosted desk to <git-ref> (default: main) over tailnet SSH:
      now-idle checkout — runtime-only, the same mode and heap ceiling cloud-init's own first
      boot uses, so a default-size (4 GB) desk can actually complete the build.
   3. On success: restores root:openclaw ownership, discards the snapshot, starts the Gateway
-     and waits for /healthz to answer 200, then prints its reported version — or, with
+     and waits up to 15 min for /healthz to answer 200, then prints its reported version — or, with
      --reboot, reboots the whole box instead (for kernel/package updates that need a window
      the owner picks; the enabled unit starts back up on its own after the reboot).
      On failure (fetch/install/build): restores the snapshot (dist, the git checkout and that

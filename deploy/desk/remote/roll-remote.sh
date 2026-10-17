@@ -19,11 +19,14 @@ gateway_port="${3:?roll-remote.sh: missing <gateway-port>}"
 mode="${4:?roll-remote.sh: missing <mode>}"
 
 # The checkout this rolls. A desk never sets these three: they exist so the test can point the
-# script at a temp tree and shrink the 120 s health wait, the same test-only-knob pattern
-# new-desk.sh uses for its own poll interval.
+# script at a temp tree and shrink the 900 s health wait, the same test-only-knob pattern
+# new-desk.sh uses for its own poll interval. 900 s matches migrate-desk.sh: an Oracle A1 desk's
+# database preflight alone takes ~4-5 min before the first /healthz answer (Amigos, 2026-10-17,
+# reported a failed roll at 120 s while the new build came up fine at 5 min).
 root="${OPENCLAW_DESK_ROOT:-/opt/openclaw}"
-health_attempts="${OPENCLAW_DESK_HEALTH_ATTEMPTS:-60}"
+health_attempts="${OPENCLAW_DESK_HEALTH_ATTEMPTS:-450}"
 health_interval="${OPENCLAW_DESK_HEALTH_INTERVAL_SECONDS:-2}"
+health_budget_seconds=$((health_attempts * health_interval))
 
 cd "$root"
 
@@ -109,7 +112,7 @@ if ! build_new_ref; then
     echo "roll FAILED at ${build_step}; previous build restored and Gateway restarted" >&2
     exit 5
   fi
-  echo "roll FAILED at ${build_step}; previous build restored but Gateway did not answer /healthz within 120s — check: ssh root@${desk_name} journalctl -u openclaw-gateway -u cloud-init-output --no-pager" >&2
+  echo "roll FAILED at ${build_step}; previous build restored but Gateway did not answer /healthz within ${health_budget_seconds}s — check: ssh root@${desk_name} journalctl -u openclaw-gateway -u cloud-init-output --no-pager" >&2
   exit 6
 fi
 
@@ -124,7 +127,7 @@ if [ "$mode" = "reboot" ]; then
 fi
 systemctl start openclaw-gateway
 if ! wait_healthy; then
-  echo "openclaw-gateway did not answer /healthz on port ${gateway_port} within 120s" >&2
+  echo "openclaw-gateway did not answer /healthz on port ${gateway_port} within ${health_budget_seconds}s" >&2
   exit 1
 fi
 sudo -H -u openclaw node "$root/openclaw.mjs" --version
