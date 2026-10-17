@@ -34,14 +34,14 @@ const STDERR_DRAIN_GRACE_MS = 200;
  */
 export function resolveClaudeCliSpawnInvocation(params: {
   command: string;
-  args: string[];
+  args: readonly string[];
   env?: NodeJS.ProcessEnv;
   platform?: NodeJS.Platform;
   execPath?: string;
 }): { command: string; args: string[]; shell?: boolean; windowsHide?: boolean } {
   const platform = params.platform ?? process.platform;
   if (platform !== "win32") {
-    return { command: params.command, args: params.args, shell: undefined, windowsHide: undefined };
+    return { command: params.command, args: [...params.args], shell: undefined, windowsHide: undefined };
   }
   const program = resolveWindowsSpawnProgram({
     command: params.command,
@@ -50,7 +50,7 @@ export function resolveClaudeCliSpawnInvocation(params: {
     execPath: params.execPath,
     packageName: "@anthropic-ai/claude-code",
   });
-  const invocation = materializeWindowsSpawnProgram(program, params.args);
+  const invocation = materializeWindowsSpawnProgram(program, [...params.args]);
   return {
     command: invocation.command,
     args: invocation.argv,
