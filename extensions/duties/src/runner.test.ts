@@ -335,6 +335,34 @@ describe("runDuty", () => {
     expect(deps.calls).toContain("press Enter");
     expect(deps.calls).toContain("evaluate () => document.querySelectorAll('.row').length");
   });
+  // Prasthan, 2026-10-16/17: every TBO search to Abu Dhabi failed at its extract step because
+  // the portal names the airport "Abu Dhabi Int'l" and the script quoted it as '{{out:...}}' —
+  // the apostrophe ended the string and the page rejected the whole function.
+  it("escapes values placed inside an evaluate body's string literals", async () => {
+    const deps = fakeDeps();
+    const value = "Abu Dhabi Int'l \"AUH\" `x` ${y} \\ end\nnext";
+    const outcome = await runDuty(
+      duty([
+        { id: "s1", kind: "browser", label: "Open", params: { action: "open", url: "https://x" } },
+        {
+          id: "s2",
+          kind: "browser.evaluate",
+          label: "Read the airport",
+          params: {
+            fn: "() => ['{{in:airport}}', \"{{in:airport}}\", `{{in:airport}}`, {{in:count}}]",
+          },
+        },
+      ]),
+      deps,
+      { inputs: { airport: value, count: 7 } },
+    );
+    expect(outcome.status).toBe("ok");
+    const evaluated = deps.calls.find((call) => call.startsWith("evaluate "));
+    const body = evaluated?.slice("evaluate ".length) ?? "";
+    // oxlint-disable-next-line typescript/no-implied-eval -- parses the generated page function to prove it is valid JS.
+    const fn = new Function(`return (${body});`)() as () => unknown[];
+    expect(fn()).toEqual([value, value, value, 7]);
+  });
   it("evaluates a url_matches condition through the browser's url read", async () => {
     const steps: Duty["steps"] = [
       { id: "s1", kind: "browser", label: "Open", params: { action: "open", url: "https://x" } },

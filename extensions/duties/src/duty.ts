@@ -704,6 +704,9 @@ export async function resolvePlaceholders(
     cred?: (key: string) => Promise<string>;
     /** Path of the file a `template` step produced; only `deliver`/`template` params may use it. */
     file?: (stepId: string) => string | undefined;
+    /** Applied to every `in`/`out`/`cred` value before it is spliced in — a page script needs
+     *  its values escaped for the string literal they land in (see `escapeJsStringContent`). */
+    encode?: (value: string) => string;
   },
 ): Promise<string> {
   let result = value;
@@ -731,9 +734,24 @@ export async function resolvePlaceholders(
       }
       replacement = await ctx.cred(key);
     }
-    result = result.replaceAll(whole, () => replacement);
+    const spliced = scope === "file" || !ctx.encode ? replacement : ctx.encode(replacement);
+    result = result.replaceAll(whole, () => spliced);
   }
   return result;
+}
+
+/**
+ * Escapes a value for the inside of any JavaScript string literal — `'…'`, `"…"` or a template
+ * literal — without adding quotes, so a Duty's page script can keep writing `'{{out:city}}'`.
+ * A value with an apostrophe ("Abu Dhabi Int'l") used to end the string and the page rejected
+ * the whole function. A bare numeric placeholder (`{{out:count}}`) is unchanged.
+ */
+export function escapeJsStringContent(value: string): string {
+  return JSON.stringify(value)
+    .slice(1, -1)
+    .replaceAll("'", "\\'")
+    .replaceAll("`", "\\`")
+    .replaceAll("${", "\\${");
 }
 
 function stringify(value: unknown): string {

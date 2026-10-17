@@ -11,6 +11,7 @@ import {
   type DutyNode,
   type Step,
   type Target,
+  escapeJsStringContent,
   parseTeamRouteTarget,
   resolvePlaceholders,
 } from "./duty.js";
@@ -415,7 +416,11 @@ export async function runDuty(
           throw new Error(`unknown browser action "${action}"`);
         }
       } else if (step.kind === "browser.evaluate") {
-        const fn = String(await resolve(step.params.fn));
+        const fn = String(
+          await resolveTree(step.params.fn, (text) =>
+            resolvePlaceholders(text, { ...ctx(), encode: escapeJsStringContent }),
+          ),
+        );
         const result = await deps.browser.evaluate(requireTab(), fn, budget);
         save(step, result);
         summary = JSON.stringify(result)?.slice(0, 120) ?? "";
