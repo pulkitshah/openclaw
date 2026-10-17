@@ -528,7 +528,9 @@ function findPlaywrightChromiumExecutableCandidatesLinux(): Array<BrowserExecuta
       if (!entry.startsWith("chromium-")) {
         continue;
       }
-      for (const linuxDir of ["chrome-linux64", "chrome-linux"]) {
+      // Playwright names the install directory per architecture: `chrome-linux-arm64` on
+      // arm64 hosts (Oracle A1, Graviton), `chrome-linux64`/`chrome-linux` on x64.
+      for (const linuxDir of ["chrome-linux64", "chrome-linux", "chrome-linux-arm64"]) {
         candidates.push({
           kind: "chromium",
           path: path.join(browserPath, entry, linuxDir, "chrome"),

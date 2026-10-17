@@ -151,6 +151,25 @@ describe("browser default executable detection", () => {
     });
   });
 
+  it("finds Playwright's Chromium on an arm64 host", () => {
+    const browserCache = "/tmp/browsers";
+    const executableCandidate = `${browserCache}/chromium-1243/chrome-linux-arm64/chrome`;
+    vi.stubEnv("PLAYWRIGHT_BROWSERS_PATH", browserCache);
+    vi.mocked(fs.readdirSync).mockReturnValue(["chromium-1243"] as never);
+    vi.mocked(fs.statSync).mockImplementation((candidate) => {
+      if (String(candidate) !== executableCandidate) {
+        throw new Error("ENOENT");
+      }
+      return { isFile: () => true } as fs.Stats;
+    });
+
+    const config = {} as Parameters<typeof resolveBrowserExecutableForPlatform>[0];
+    expect(resolveBrowserExecutableForPlatform(config, "linux")).toEqual({
+      kind: "chromium",
+      path: executableCandidate,
+    });
+  });
+
   it("detects Edge via LaunchServices bundle ID (com.microsoft.edgemac)", () => {
     const edgeExecutablePath = "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge";
     // macOS LaunchServices registers Edge as "com.microsoft.edgemac", which
